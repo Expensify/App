@@ -36,6 +36,13 @@ type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 
 const translations = {
+    earlyRenewal: {
+        title: 'Renew your Expensify subscription',
+        subtitle: 'One less thing to do before the new year.',
+        confirmTitle: 'Confirm renewal',
+        renew: 'Renew',
+        confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Renew your subscription for a 12-month term, from ${startDate} to ${endDate}.`,
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: '1 day',
@@ -56,6 +63,8 @@ const translations = {
         unableToDisplayChart: 'Unable to display chart',
         // @context Shown below "Unable to display chart". "WebGL" is a graphics technology name; keep it untranslated.
         webGLNotSupported: "Your browser doesn't support WebGL. Please enable it or switch browsers.",
+        // @context Shown below "Unable to display chart" when the chart renderer failed to load, e.g. after an app update while the page stayed open.
+        chartFailedToLoad: 'The chart could not be loaded. Please refresh the page and try again.',
         // @context Refers to closing or hiding a notification or message, not rejecting or ignoring something.
         dismiss: 'Dismiss',
         // @context Used on a button to continue an action or workflow, not the formal or procedural sense of “to proceed.”
@@ -458,8 +467,6 @@ const translations = {
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
         skip: 'Skip',
-        chatWithAccountManager: (accountManagerDisplayName: string) => `Need something specific? Chat with your account manager, ${accountManagerDisplayName}.`,
-        chatNow: 'Chat now',
         workEmail: 'Work email',
         destination: 'Destination',
         // @context Refers to a secondary or subordinate rate (e.g., mileage reimbursement). Should be localized consistently across accounting contexts.
@@ -1440,6 +1447,8 @@ const translations = {
                     : 'Before you track distance, you need to add your home address to your private profile. This workspace uses this address for commuter deductions.',
             cta: 'Add Home Address',
         },
+        expenseAdded: 'Expense added',
+        invoiceSent: 'Invoice sent',
         amount: 'Amount',
         percent: 'Percent',
         date: 'Date',
@@ -6613,6 +6622,8 @@ const translations = {
         expensifyCard: {
             issueAndManageCards: 'Issue and manage your Expensify Cards',
             getStartedIssuing: 'Get started by issuing your first virtual or physical card.',
+            noCardFeedsAvailable: 'No card feeds available',
+            noCardFeedsAvailableDescription: 'There are no card feeds available for this workspace.',
             verificationInProgress: 'Verification in progress...',
             verifyingTheDetails: "We're verifying a few details. Concierge will let you know when Expensify Cards are ready to issue.",
             disclaimer:
@@ -11324,6 +11335,21 @@ const translations = {
         paymentHistory: {
             title: 'View payment history',
             subtitle: 'Your complete monthly payment history charged to this account.',
+            payments: 'Payments',
+            inclTax: 'incl. tax',
+            empty: 'No payments yet.',
+            activeUsers: ({count}: {count: number}) => ({
+                one: '1 active user',
+                other: `${count} active users`,
+            }),
+            state: {
+                paid: 'Paid',
+                cleared: 'Cleared',
+                failed: 'Failed',
+                refunded: 'Refunded',
+                disputed: 'Disputed',
+                balanceTransfer: 'Balance transfer',
+            },
         },
         subscriptionSettings: {
             title: 'Subscription settings',

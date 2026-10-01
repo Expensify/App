@@ -412,9 +412,6 @@ const translations: TranslationDeepObject<typeof en> = {
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
         skip: 'Ignorer',
-        chatWithAccountManager: (accountManagerDisplayName: string) =>
-            `Vous avez besoin de quelque chose en particulier ? Discutez avec votre gestionnaire de compte, ${accountManagerDisplayName}.`,
-        chatNow: 'Discuter maintenant',
         workEmail: 'E-mail professionnel',
         destination: 'Destination',
         subrate: 'Sous-taux',
@@ -525,6 +522,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noResultsFoundSubtitle: 'Aucun résultat. Veuillez essayer de modifier vos filtres ou votre requête de recherche',
         unableToDisplayChart: 'Impossible d’afficher le graphique',
         webGLNotSupported: 'Votre navigateur ne prend pas en charge WebGL. Veuillez l’activer ou changer de navigateur.',
+        chartFailedToLoad: 'Le graphique n’a pas pu être chargé. Veuillez actualiser la page et réessayer.',
         apiKey: 'Clé API',
         exportsTo: 'Exports vers',
     },
@@ -1348,6 +1346,8 @@ const translations: TranslationDeepObject<typeof en> = {
                     : 'Avant de suivre une distance, vous devez ajouter votre adresse personnelle à votre profil privé. Cet espace de travail utilise cette adresse pour les déductions liées aux trajets domicile-travail.',
             cta: 'Ajouter une adresse domicile',
         },
+        expenseAdded: 'Dépense ajoutée',
+        invoiceSent: 'Facture envoyée',
         amount: 'Montant',
         percent: 'Pourcentage',
         date: 'Date',
@@ -6429,6 +6429,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             csvColumnType: 'Type',
             csvColumnLimitType: 'Type de limite',
             csvColumnLimit: 'Limite',
+            noCardFeedsAvailable: 'Aucun flux de carte disponible',
+            noCardFeedsAvailableDescription: 'Aucun flux de carte n’est disponible pour cet espace de travail.',
         },
         categories: {
             deleteCategories: 'Supprimer des catégories',
@@ -11140,7 +11142,18 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 invalid: "Ce code n'est pas valide",
             },
         },
-        paymentHistory: {title: 'Afficher l’historique des paiements', subtitle: 'Votre historique complet des paiements mensuels facturés sur ce compte.'},
+        paymentHistory: {
+            title: 'Afficher l’historique des paiements',
+            subtitle: 'Votre historique complet des paiements mensuels facturés sur ce compte.',
+            payments: 'Paiements',
+            inclTax: 'incl. taxes',
+            empty: 'Aucun paiement pour l’instant.',
+            activeUsers: ({count}: {count: number}) => ({
+                one: '1 utilisateur actif',
+                other: `${count} utilisateurs actifs`,
+            }),
+            state: {paid: 'Payé', cleared: 'Compensé', failed: 'Échec', refunded: 'Remboursé', disputed: 'Contesté', balanceTransfer: 'Virement de solde'},
+        },
         subscriptionSettings: {
             title: 'Paramètres d’abonnement',
             summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>
@@ -11715,6 +11728,13 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             title: 'Créez vos propres agents',
             description: `<muted-text>Créez des agents personnalisés pour examiner, approuver et acheminer les dépenses selon les règles que vous définissez. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">En savoir plus</a>.</muted-text>`,
         },
+    },
+    earlyRenewal: {
+        confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Renouvelez votre abonnement pour une durée de 12 mois, du ${startDate} au ${endDate}.`,
+        title: 'Renouvelez votre abonnement Expensify',
+        subtitle: 'Une chose de moins à faire avant la nouvelle année.',
+        confirmTitle: 'Confirmer le renouvellement',
+        renew: 'Renouveler',
     },
 };
 export default translations;

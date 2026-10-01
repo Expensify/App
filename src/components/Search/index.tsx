@@ -1,7 +1,6 @@
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import type {SelectionListHandle} from '@components/SelectionList/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
@@ -17,7 +16,7 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSaveSortedReportIDs from '@hooks/useSaveSortedReportIDs';
-import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
+import useSearchAutoRefetch from '@hooks/useSearchAutoRefetch';
 import useSearchShouldCalculateTotals, {getSearchRequestOffsetForMissingAllMatchingCount} from '@hooks/useSearchShouldCalculateTotals';
 import useStableArrayReference from '@hooks/useStableArrayReference';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -246,7 +245,6 @@ function Search({
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
-    const searchListRef = useRef<SelectionListHandle<SearchListItem> | null>(null);
 
     const savedSearchSelector = useCallback(
         (searches: OnyxEntry<SaveSearch>) => {
@@ -275,7 +273,7 @@ function Search({
         clearSelectedTransactions();
     }, [validGroupBy, prevValidGroupBy, clearSelectedTransactions]);
 
-    const {newSearchResultKeys, handleSelectionListScroll, newTransactions, hasQueuedHighlights} = useSearchHighlightAndScroll({
+    const {newTransactions} = useSearchAutoRefetch({
         searchResults,
         transactions,
         previousTransactions,
@@ -285,7 +283,6 @@ function Search({
         shouldCalculateTotals,
         reportActions,
         previousReportActions,
-        shouldUseLiveData,
     });
 
     const {
@@ -309,22 +306,11 @@ function Search({
     } = useSearchSnapshot({
         queryJSON,
         searchResults,
-        newSearchResultKeys,
         transactions,
         reportActions,
         visibleRowLimit: shouldUseLiveData ? liveRowLimit : undefined,
         selectedTransactions,
     });
-
-    // Mirror `hasQueuedHighlights` into a ref so the post-create-flow `useFocusEffect`
-    // (which has empty deps) can read the latest value without re-creating its callback.
-    // Used to skip the deferral that would otherwise hide the freshly-added row from
-    // FlashList during the RHP dismiss transition, which would prevent the highlight
-    // animation from ever firing on it.
-    const hasQueuedHighlightsRef = useRef(hasQueuedHighlights);
-    useEffect(() => {
-        hasQueuedHighlightsRef.current = hasQueuedHighlights;
-    }, [hasQueuedHighlights]);
 
     // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
     // we also need to check that the searchResults matches the type and status of the current search
@@ -385,14 +371,6 @@ function Search({
                 return;
             }
 
-            // If the highlight hook already queued rows for the post-create animation,
-            // skip the skeleton-during-transition defer. Otherwise FlashList stays empty
-            // for ~1s while the RHP dismiss transition runs, the row never mounts inside
-            // the 300ms highlight window, and `useAnimatedHighlightStyle` never fires.
-            if (hasQueuedHighlightsRef.current) {
-                return;
-            }
-
             // Show skeleton while the RHP dismiss animation plays. The transition
             // hasn't started yet when useFocusEffect fires (it begins after paint),
             // so waitForUpcomingTransition defers until the animation actually ends.
@@ -413,8 +391,8 @@ function Search({
     // so we never fall through to the empty-state check with stale zero-length data.
     const isDeferringHeavyWork = !isOffline && shouldDeferHeavySearchWork;
     const isSearchLoadingWithNoResults = isSearchPending(searchResults) && Array.isArray(searchResults?.data) && searchResults.data.length === 0;
-    // Every write of `errors` stores the response code next to them, so a reload keeps the classification
-    // that component state would have lost. `null` means no response has been recorded for this query yet.
+    // The response code is persisted next to the errors it explains, so a reload keeps the classification
+    // that component state would have lost. `null` means the code for these errors has not been stored yet.
     const responseStatusCode = searchResults?.search?.responseJsonCode ?? null;
     const hasUnresolvedErrors = hasErrors && responseStatusCode === null;
     const isWaitingForInitialData = !shouldUseLiveData && !isOffline && (!isDataLoaded || isSearchLoadingWithNoResults || hasUnresolvedErrors || isCardFeedsLoading);
@@ -1014,9 +992,8 @@ function Search({
 
     const onLayout = useCallback(() => {
         onLayoutBase();
-        handleSelectionListScroll(stableSortedData, searchListRef.current);
         onContentReady?.();
-    }, [onLayoutBase, handleSelectionListScroll, stableSortedData, onContentReady]);
+    }, [onLayoutBase, onContentReady]);
 
     // Must be a ref, not state: cancelNavigationSpans is called during render
     // (inside conditional returns), so using setState would trigger infinite re-renders.
@@ -1182,6 +1159,8 @@ function Search({
         return <View onLayout={onDeferredLayout} />;
     }
 
+    const listContainerStyle = shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3;
+
     // This is a performance optimization for the submit-expense->search path only.
     // The SearchPage skeleton (useSearchLoadingState) doesn't cover this case because
     // Search must mount for its onLayout to flush the deferred CreateMoneyRequest API write, which would block the JS thread causing a slowdown on post expense creation navigation
@@ -1190,7 +1169,7 @@ function Search({
             <SearchRowSkeleton
                 shouldAnimate
                 onLayout={onSkeletonLayout}
-                containerStyle={shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3}
+                containerStyle={listContainerStyle}
             />
         );
     }
@@ -1199,6 +1178,15 @@ function Search({
         Log.alert('[Search] Undefined search type');
         cancelNavigationSpans();
         return <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>;
+    }
+
+    if (hasUnresolvedErrors) {
+        return (
+            <SearchRowSkeleton
+                shouldAnimate
+                containerStyle={listContainerStyle}
+            />
+        );
     }
 
     if (hasErrors) {
@@ -1214,9 +1202,11 @@ function Search({
                 shouldCalculateTotals: shouldCalculateTotalsOnRetry,
                 prevReportsLength: filteredDataLength,
                 isLoading: !!searchResults?.search?.isLoading,
+                // Must match the page-level request this retry triggers, or search() re-sends the query as an upgrade.
+                shouldSaveRecentSearch: true,
             });
         };
-        // failureData stores NO_RESPONSE when the request never got a server answer, so only the results' freshness is in
+        // search() stores NO_RESPONSE when the request never got a server answer, so only the results' freshness is in
         // doubt and the refresh copy fits. Any code the server did return marks a real failure and keeps the error copy,
         // and an invalid query gets no button because re-sending it cannot succeed.
         let failureKind: ValueOf<typeof CONST.SEARCH.FAILURE_KIND> = CONST.SEARCH.FAILURE_KIND.FAILED;
@@ -1248,7 +1238,7 @@ function Search({
             },
         } as const;
         return (
-            <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3, styles.flex1]}>
+            <View style={[listContainerStyle, styles.flex1]}>
                 <FullPageErrorView
                     shouldShow
                     containerStyle={styles.searchBlockingErrorViewContainer}
@@ -1272,7 +1262,7 @@ function Search({
     ) {
         cancelNavigationSpans();
         return (
-            <View style={[styles.flex1, isInLandscapeMode ? undefined : [shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3]]}>
+            <View style={[styles.flex1, isInLandscapeMode ? undefined : [listContainerStyle]]}>
                 <EmptySearchView
                     similarSearchHash={similarSearchHash}
                     type={type}
@@ -1319,7 +1309,7 @@ function Search({
                     onLayout={onLayoutChart}
                     scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
                 >
-                    <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3, styles.mh4, styles.mb4, styles.flex1]}>
+                    <View style={[listContainerStyle, styles.mh4, styles.mb4, styles.flex1]}>
                         <SearchChartWrapper
                             title={chartTitle}
                             groupBy={validGroupBy}
@@ -1399,7 +1389,6 @@ function Search({
     };
 
     const commonViewProps: CommonSearchViewProps = {
-        ref: searchListRef,
         queryJSON,
         data: stableSortedData,
         columns: columnsToShow,
@@ -1453,8 +1442,10 @@ function Search({
         <SearchScopeProvider>
             <SearchWriteActionsProvider
                 filteredData={filteredData}
+                renderedData={stableSortedData}
                 totalSelectableItemsCount={totalSelectableItemsCount}
                 searchResults={searchResults}
+                searchHash={hash}
                 transactions={transactions}
                 isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                 type={type}
