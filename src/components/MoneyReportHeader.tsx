@@ -103,20 +103,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
 
     const anchorTransactionIDFromRoute = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? route.params.anchorTransactionID : undefined;
     const routeAnchorTransactionID = anchorTransactionIDFromRoute && activeTransactionIDs.includes(anchorTransactionIDFromRoute) ? anchorTransactionIDFromRoute : undefined;
-    // The route anchor is the most reliable source right after a cold open: the report's own transactions and its
-    // parent report action may not have loaded yet, and without it the carousel would pop in only once they do.
-    //
-    // A report reached from the Reports list (or paged onto by that list's own arrows) is never anchored to an
-    // expense: every entry point that opens an expense with a carousel uses SEARCH_REPORT instead. Anchoring it
-    // let a one-expense report hand its arrows to whatever expense list happened to be active - the Expenses tab's
-    // list, one tab over - and page the user out of the reports they were browsing.
     const carouselAnchorTransactionID = route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT ? undefined : (singleTransactionID ?? threadTransactionID ?? routeAnchorTransactionID);
-    // Two entries are the minimum for a carousel; with fewer, fall through to the report-level arrows rather than
-    // rendering an expense carousel that decides on its own to show nothing.
-    //
-    // The carousel also only belongs in an RHP, which is where every entry point that seeds one opens the expense.
-    // Without the screen check the Inbox central pane would pick up whatever list is active - a single global value
-    // that outlives the screen that wrote it - and show arrows for expenses the user last saw somewhere else.
     const shouldShowTransactionNavigation =
         route.name !== SCREENS.REPORT && !!carouselAnchorTransactionID && activeTransactionIDs.length > 1 && activeTransactionIDs.includes(carouselAnchorTransactionID);
 
