@@ -2873,7 +2873,7 @@ const translations = {
         fixBankAccount: {
             title: 'Fix bank account',
             debitBlockedBody:
-                "Your bank blocked the test transactions to this account.<br/><br/>Please have them whitelist Expensify's ACH IDs:<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>Then, resend the test transactions below.",
+                "Your bank blocked the test transactions to this account.<br/><br/>Please have them whitelist Expensify's ACH IDs:<bullet-list><bullet-item aria-label='1 2 7 0 2 3 9 4 5 0'>1270239450</bullet-item><bullet-item aria-label='2 2 7 0 2 3 9 4 5 0'>2270239450</bullet-item><bullet-item aria-label='4 2 7 0 2 3 9 4 5 0'>4270239450</bullet-item></bullet-list>Then, resend the test transactions below.",
             insufficientFundsBody: 'Test transactions failed due to insufficient funds. Once funds are available, use the button below.',
             resendButton: 'Resend transactions',
             successTitle: 'Transactions sent!',
