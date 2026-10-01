@@ -50,7 +50,8 @@ function RoomHeaderAvatars({icons, report, policy, participants, currentUserAcco
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera', 'FallbackAvatar', 'ImageCropSquareMask']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const canEditRoomAvatar = isUserCreatedPolicyRoom(report) && participants.includes(currentUserAccountID) && !!policy && policy.role !== CONST.POLICY.ROLE.AUDITOR;
+    const canEditRoomAvatar =
+        isUserCreatedPolicyRoom(report) && participants.includes(currentUserAccountID) && !!policy && policy.role !== CONST.POLICY.ROLE.AUDITOR && policy.role !== CONST.POLICY.ROLE.GUEST;
 
     if (!icons.length) {
         return null;

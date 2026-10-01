@@ -51,7 +51,7 @@ function ReportDetailsDescription({reportID}: ReportDetailsDescriptionProps) {
     return (
         <OfflineWithFeedback pendingAction={report.pendingFields?.description}>
             <MentionReportContext.Provider value={mentionReportContextValue}>
-                <MenuItem.Root onPress={canEditReportDescription ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DESCRIPTION.path)) : undefined}>
+                <MenuItem.Root onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DESCRIPTION.path))}>
                     <MenuItem.Row>
                         <MenuItemField.Content name={translate('reportDescriptionPage.roomDescription')}>
                             {!!getReportDescription(report) && <MenuItem.FieldValueHTML characterLimit={100}>{getReportDescription(report)}</MenuItem.FieldValueHTML>}
