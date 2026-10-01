@@ -12785,6 +12785,7 @@ describe('SearchUIUtils', () => {
             personalDetails,
             isSelfTourViewed: false,
             hasCompletedGuidedSetupFlow: true,
+            delegateAccountID: undefined,
             IOUTransactionID: threadReportID,
         };
 
@@ -12936,7 +12937,7 @@ describe('SearchUIUtils', () => {
 
         it('Should create an optimistic parent report if the hasParentReport is false', async () => {
             const transactionListItem = getTransactionListItem(0);
-            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasParentReport: false}, getCurrencyDecimalsLocal);
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasParentReport: false}, getCurrencyDecimalsLocal, undefined);
 
             await waitForBatchedUpdates();
 
@@ -12948,7 +12949,7 @@ describe('SearchUIUtils', () => {
 
         it('Should create an optimistic parent report action if the hasParentReportAction is false', async () => {
             const transactionListItem = getTransactionListItem(0);
-            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasParentReportAction: false}, getCurrencyDecimalsLocal);
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasParentReportAction: false}, getCurrencyDecimalsLocal, undefined);
 
             await waitForBatchedUpdates();
 
@@ -12958,9 +12959,26 @@ describe('SearchUIUtils', () => {
             expect(parentReportAction).toBeTruthy();
         });
 
+        it('Should set delegateAccountID on the optimistic parent report action', async () => {
+            // Given a transaction opened from Search by a copilot
+            const transactionListItem = getTransactionListItem(0);
+            const delegateAccountID = 99;
+
+            // When the optimistic parent report action is built
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasParentReportAction: false}, getCurrencyDecimalsLocal, delegateAccountID);
+
+            await waitForBatchedUpdates();
+
+            // Then it carries the copilot so the "on behalf of" label renders before the API responds
+            const parentReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionListItem.reportID}`);
+            const parentReportAction = transactionListItem?.reportAction?.reportActionID && parentReport?.[transactionListItem?.reportAction?.reportActionID];
+
+            expect(parentReportAction).toMatchObject({delegateAccountID});
+        });
+
         it('Should create an optimistic transaction if the hasTransaction is false', async () => {
             const transactionListItem = getTransactionListItem(0);
-            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasTransaction: false}, getCurrencyDecimalsLocal);
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasTransaction: false}, getCurrencyDecimalsLocal, undefined);
 
             await waitForBatchedUpdates();
 
@@ -12971,7 +12989,7 @@ describe('SearchUIUtils', () => {
 
         it('Should create an optimistic transaction thread if the hasTransactionThreadReport is false', async () => {
             const transactionListItem = getTransactionListItem(0);
-            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasTransactionThreadReport: false}, getCurrencyDecimalsLocal, '456');
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasTransactionThreadReport: false}, getCurrencyDecimalsLocal, undefined, '456');
 
             await waitForBatchedUpdates();
 
