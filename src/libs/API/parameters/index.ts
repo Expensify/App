@@ -88,6 +88,8 @@ export type {default as UpdateCampfireExporterParams} from './UpdateCampfireExpo
 export type {default as UpdateCampfireExportDateParams} from './UpdateCampfireExportDateParams';
 export type {default as UpdateCampfireDefaultVendorParams} from './UpdateCampfireDefaultVendorParams';
 export type {default as UpdateCampfireCreditCardAccountParams} from './UpdateCampfireCreditCardAccountParams';
+export type {default as UpdateCampfireExportToMultipleAccountsParams} from './UpdateCampfireExportToMultipleAccountsParams';
+export type {default as UpdateCampfireCardProgramAccountParams} from './UpdateCampfireCardProgramAccountParams';
 export type {default as UpdateCampfireAutoSyncParams} from './UpdateCampfireAutoSyncParams';
 export type {default as UpdateCampfireAccountingMethodParams} from './UpdateCampfireAccountingMethodParams';
 export type {default as UpdateCampfireSyncReimbursedReportsParams} from './UpdateCampfireSyncReimbursedReportsParams';
@@ -103,6 +105,14 @@ export type {default as UpdateBusinessCentralEnableNewCategoriesParams} from './
 export type {default as UpdateBusinessCentralFieldMappingParams} from './UpdateBusinessCentralFieldMappingParams';
 export type {default as UpdateBusinessCentralSyncTaxRatesParams} from './UpdateBusinessCentralSyncTaxRatesParams';
 export type {default as UpdateBusinessCentralSyncItemsParams} from './UpdateBusinessCentralSyncItemsParams';
+export type {default as UpdateBusinessCentralExporterParams} from './UpdateBusinessCentralExporterParams';
+export type {default as UpdateBusinessCentralExportDateParams} from './UpdateBusinessCentralExportDateParams';
+export type {default as UpdateBusinessCentralReimbursableExpensesExportDestinationParams} from './UpdateBusinessCentralReimbursableExpensesExportDestinationParams';
+export type {default as UpdateBusinessCentralNonreimbursableExpensesExportDestinationParams} from './UpdateBusinessCentralNonreimbursableExpensesExportDestinationParams';
+export type {default as UpdateBusinessCentralReimbursableAccountParams} from './UpdateBusinessCentralReimbursableAccountParams';
+export type {default as UpdateBusinessCentralNonreimbursableAccountParams} from './UpdateBusinessCentralNonreimbursableAccountParams';
+export type {default as UpdateBusinessCentralDefaultVendorParams} from './UpdateBusinessCentralDefaultVendorParams';
+export type {default as UpdateBusinessCentralPaymentMethodParams} from './UpdateBusinessCentralPaymentMethodParams';
 export type {default as UpdateNetSuiteAccountingMethodParams} from './UpdateNetSuiteAccountingMethodParams';
 export type {default as UpdateQuickbooksOnlineAccountingMethodParams} from './UpdateQuickbooksOnlineAccountingMethodParams';
 export type {default as UpdateXeroAccountingMethodParams} from './UpdateXeroAccountingMethodParams';
@@ -581,6 +591,7 @@ export type {default as ChangeReportPolicyAndInviteSubmitterParams} from './Chan
 export type {ChangeTransactionsReportParams, TransactionThreadInfo} from './ChangeTransactionsReportParams';
 export type {default as SetPolicyProhibitedExpensesParams} from './SetPolicyProhibitedExpensesParams';
 export type {default as SetPolicyCommuterExclusionsParams} from './SetPolicyCommuterExclusionsParams';
+export type {default as SetEmployeeWorkArrangementParams} from './SetEmployeeWorkArrangementParams';
 export type {default as DisablePolicyCommuterExclusionsParams} from './DisablePolicyCommuterExclusionsParams';
 export type {default as SetPolicyRequireMapOrGPSParams} from './SetPolicyRequireMapOrGPSParams';
 export type {default as CreateDigitalWalletParams} from './CreateDigitalWalletParams';
@@ -605,6 +616,7 @@ export type {default as AddReportApproverParams} from './AddReportApproverParams
 export type {default as EnableGlobalReimbursementsForUSDBankAccountParams} from './EnableGlobalReimbursementsForUSDBankAccountParams';
 export type {default as SendReminderForCorpaySignerInformationParams} from './SendReminderForCorpaySignerInformationParams';
 export type {default as SendScheduleCallNudgeParams} from './SendScheduleCallNudge';
+export type {default as AcceptEarlyRenewalOfferParams} from './AcceptEarlyRenewalOfferParams';
 export type {default as DomainParams} from './DomainParams';
 export type {default as OpenDomainPageParams} from './OpenDomainPageParams';
 export type {default as RequestDomainAdminshipParams} from './RequestDomainAdminshipParams';

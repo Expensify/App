@@ -84,7 +84,7 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnl
             return;
         }
 
-        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id, true));
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id, {isForcedToChangeCurrency: true}));
     }, [policy]);
 
     /**
