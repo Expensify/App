@@ -57,6 +57,7 @@ function MapViewImpl({
     unit,
     ref,
     shouldDisplayCurrentLocation = true,
+    shouldAnimate = true,
 }: MapViewProps) {
     // Coordinates of every rendered route (the main one and the alternate one, if any), used to frame the map around all of them.
     const allDirectionCoordinates = utils.getCoordinatesFromAllDirections(directionCoordinatesProp, alternateDirection);
@@ -135,12 +136,12 @@ function MapViewImpl({
         }
 
         // Avoid animating the navigation to the same location
-        const shouldAnimate = prevUserPosition.longitude !== currentPosition.longitude || prevUserPosition.latitude !== currentPosition.latitude;
+        const shouldAnimatePan = prevUserPosition.longitude !== currentPosition.longitude || prevUserPosition.latitude !== currentPosition.latitude;
 
         mapRef.flyTo({
             center: [currentPosition.longitude, currentPosition.latitude],
             zoom: CONST.MAPBOX.DEFAULT_ZOOM,
-            animate: shouldAnimate,
+            animate: shouldAnimatePan,
         });
     }, [currentPosition, mapRef, prevUserPosition.longitude, prevUserPosition.latitude, shouldPanMapToCurrentPosition]);
 
@@ -154,6 +155,13 @@ function MapViewImpl({
         }
 
         if (waypoints.length === 1) {
+            if (!shouldAnimate) {
+                mapRef.getMap()?.jumpTo({
+                    center: waypoints.at(0)?.coordinate,
+                    zoom: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
+                });
+                return;
+            }
             mapRef.flyTo({
                 center: waypoints.at(0)?.coordinate,
                 zoom: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
@@ -167,8 +175,12 @@ function MapViewImpl({
             waypoints.map((waypoint) => waypoint.coordinate),
             allDirectionCoordinates,
         );
-        map.fitBounds([northEast, southWest], {padding: mapPadding});
-    }, [waypoints, mapRef, mapPadding, allDirectionCoordinates]);
+        map.fitBounds([northEast, southWest], {
+            padding: mapPadding,
+            animate: shouldAnimate,
+            duration: shouldAnimate ? undefined : 0,
+        });
+    }, [waypoints, mapRef, mapPadding, allDirectionCoordinates, shouldAnimate]);
 
     useEffect(resetBoundaries, [resetBoundaries]);
 
@@ -245,6 +257,7 @@ function MapViewImpl({
             return {
                 zoom: initialState.zoom,
                 bounds: [northEast, southWest],
+                fitBoundsOptions: {padding: mapPadding},
             };
         }
         return {
@@ -252,7 +265,7 @@ function MapViewImpl({
             latitude: currentPosition?.latitude,
             zoom: initialState.zoom,
         };
-    }, [waypoints, allDirectionCoordinates, interactive, currentPosition?.longitude, currentPosition?.latitude, initialState.zoom]);
+    }, [waypoints, allDirectionCoordinates, interactive, currentPosition?.longitude, currentPosition?.latitude, initialState.zoom, mapPadding]);
 
     // The route layers only need to be interactive when there is an alternate route to pick, so that clicking a route selects it.
     const interactiveLayerIds = useMemo(() => (interactive && hasAlternateDirection ? ALTERNATE_DIRECTIONS_LAYER_IDS : undefined), [interactive, hasAlternateDirection]);

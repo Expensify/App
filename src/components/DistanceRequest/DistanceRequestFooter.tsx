@@ -108,6 +108,7 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
     }
 
     const shouldShowReuseRoute = !!navigateToReuseRoutePage && !!reusableDistanceRoutes?.length;
+    const isAddStopDisabled = numberOfWaypoints === MAX_WAYPOINTS;
 
     return (
         <>
@@ -115,18 +116,20 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
                 <View style={[styles.flexRow, styles.justifyContentCenter, styles.pv2, styles.gap2]}>
                     <PressableWithFeedback
                         onPress={() => navigateToWaypointEditPage(Object.keys(transaction?.comment?.waypoints ?? {}).length)}
-                        disabled={numberOfWaypoints === MAX_WAYPOINTS}
+                        disabled={isAddStopDisabled}
                         accessibilityRole={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('distance.addStop')}
                         sentryLabel="DistanceRequestFooter-AddStop"
-                        style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.ph4, styles.pv2]}
+                        style={[styles.searchFiltersResetButton]}
+                        hoverStyle={isAddStopDisabled ? undefined : styles.hoveredComponentBG}
+                        disabledStyle={styles.buttonOpacityDisabled}
                     >
                         <Icon
                             src={expensifyIcons.Plus}
-                            size={CONST.ICON_SIZE.SMALL}
+                            size={CONST.ICON_SIZE.EXTRA_SMALL}
                             fill={theme.icon}
                         />
-                        <Text style={[styles.textLabelSupporting, styles.labelStrong]}>{translate('distance.addStop')}</Text>
+                        <Text style={[styles.textMicroBoldSupporting]}>{translate('distance.addStop')}</Text>
                     </PressableWithFeedback>
                     {shouldShowReuseRoute && (
                         <PressableWithFeedback
@@ -134,14 +137,15 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('distance.reuseRoute')}
                             sentryLabel="DistanceRequestFooter-ReuseRoute"
-                            style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.ph4, styles.pv2]}
+                            style={[styles.searchFiltersResetButton]}
+                            hoverStyle={styles.hoveredComponentBG}
                         >
                             <Icon
                                 src={expensifyIcons.History}
-                                size={CONST.ICON_SIZE.SMALL}
+                                size={CONST.ICON_SIZE.EXTRA_SMALL}
                                 fill={theme.icon}
                             />
-                            <Text style={[styles.textLabelSupporting, styles.labelStrong]}>{translate('distance.reuseRoute')}</Text>
+                            <Text style={[styles.textMicroBoldSupporting]}>{translate('distance.reuseRoute')}</Text>
                         </PressableWithFeedback>
                     )}
                 </View>

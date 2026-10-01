@@ -10,6 +10,9 @@ import type {SharedValue} from 'react-native-reanimated';
 type Coordinate = [number, number];
 
 type MapViewProps = {
+    /** Whether camera transitions should animate when fitting bounds or centering. */
+    shouldAnimate?: boolean;
+
     /** Public access token to be used to fetch map data from Mapbox. */
     accessToken: string;
 
