@@ -12,4 +12,3 @@ function useHeaderContext(): HeaderContextValue {
 
 export default HeaderContext;
 export {useHeaderContext};
-export type {HeaderContextValue};
