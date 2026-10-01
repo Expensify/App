@@ -9,6 +9,7 @@ import ScrollView from '@components/ScrollView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useMultipleSnapshots from '@hooks/useMultipleSnapshots';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -29,7 +30,7 @@ import React, {useEffect, useEffectEvent} from 'react';
 import {View} from 'react-native';
 
 import type {InsightsFilters} from './insightsFilters';
-import type {InsightsDashboardState} from './resolveDashboardState';
+import type {InsightsDashboardChart, InsightsDashboardState} from './resolveDashboardState';
 
 import InsightsChartWidget from './charts/InsightsChartWidget';
 import InsightsPageControls from './controls/InsightsPageControls';
@@ -41,12 +42,11 @@ import InsightsNoExpensesState from './states/InsightsNoExpensesState';
 import useInsightsFilters from './useInsightsFilters';
 
 type InsightsDashboardContentProps = {
-    dashboardID: InsightsDashboardID;
-
-    /** Hash of the dashboard-wide query, which the record every chart reads is stored under */
-    hash: number | undefined;
-
     state: InsightsDashboardState;
+    headlineChart: InsightsDashboardChart;
+
+    /** Charts in the grid below the headline, left out when no workspace in scope is eligible for them */
+    supportingCharts: InsightsDashboardChart[];
 
     /** Page-level filters every chart on the dashboard is narrowed by */
     filters: InsightsFilters;
@@ -58,14 +58,12 @@ type InsightsDashboardContentProps = {
     onGroupByChange: (groupBy: InsightsFilters['groupBy']) => void;
 };
 
-function InsightsDashboardContent({dashboardID, hash, state, filters, onRetry, onGroupByChange}: InsightsDashboardContentProps) {
+function InsightsDashboardContent({state, headlineChart, supportingCharts, filters, onRetry, onGroupByChange}: InsightsDashboardContentProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {login} = useCurrentUserPersonalDetails();
     const icons = useMemoizedLazyExpensifyIcons(['OfflineCloud']);
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const didRequestFail = state === INSIGHTS_DASHBOARD_STATE.ERROR || state === INSIGHTS_DASHBOARD_STATE.STALE;
 
@@ -118,22 +116,20 @@ function InsightsDashboardContent({dashboardID, hash, state, filters, onRetry, o
         );
     }
 
-    const {headlineChart, supportingCharts} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
-    const visibleCharts = getVisibleCharts(supportingCharts, policies, filters.policyIDs, login);
-
     // Wide layout stacks the cards in two independent columns, so a short card doesn't leave a gap under it
-    const columns = shouldUseNarrowLayout ? [visibleCharts] : [visibleCharts.filter((chart, index) => index % 2 === 0), visibleCharts.filter((chart, index) => index % 2 === 1)];
+    const columns = shouldUseNarrowLayout ? [supportingCharts] : [supportingCharts.filter((chart, index) => index % 2 === 0), supportingCharts.filter((chart, index) => index % 2 === 1)];
 
     return (
         <ScrollView
+            style={styles.insightsDashboardScrollView}
             contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb5]}
             addBottomSafeAreaPadding
         >
             <View style={styles.insightsDashboardLayout}>
                 <InsightsChartWidget
-                    dashboardID={dashboardID}
-                    hash={hash}
-                    chart={headlineChart}
+                    chart={headlineChart.chart}
+                    queryJSON={headlineChart.queryJSON}
+                    snapshot={headlineChart.snapshot}
                     filters={filters}
                     onRetry={onRetry}
                     onGroupByChange={onGroupByChange}
@@ -145,12 +141,12 @@ function InsightsDashboardContent({dashboardID, hash, state, filters, onRetry, o
                             key={columnIndex}
                             style={[styles.flex1, styles.insightsChartColumn]}
                         >
-                            {columnCharts.map((chart) => (
+                            {columnCharts.map(({chart, queryJSON, snapshot}) => (
                                 <InsightsChartWidget
                                     key={chart.graphKey}
-                                    dashboardID={dashboardID}
-                                    hash={hash}
                                     chart={chart}
+                                    queryJSON={queryJSON}
+                                    snapshot={snapshot}
                                     filters={filters}
                                     onRetry={onRetry}
                                 />
@@ -167,6 +163,8 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
+    const {login} = useCurrentUserPersonalDetails();
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {filters, defaultFilters, isResolved, setFilters} = useInsightsFilters(dashboardID);
     const {isBetaEnabled} = usePermissions();
 
@@ -193,8 +191,19 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
     }, [dashboardID, jsonQuery, hash, isFocused, isOffline]);
 
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
-    const [headlineSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${dashboard?.graphs?.[INSIGHTS_DASHBOARD_SPECS[dashboardID].headlineChart.graphKey]?.snapshotHash}`);
-    const state = getDashboardState(dashboard, isOffline, headlineSnapshot);
+    const {headlineChart: headlineSpec, supportingCharts: supportingSpecs} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
+    const eligibleCharts = getVisibleCharts(supportingSpecs, policies, filters.policyIDs, login);
+    // Until the filters resolve, the charts have no query to read data for, so they show their loading state
+    const visibleChartQueries = query
+        ? [query.headlineChart, ...query.supportingCharts.filter(({chart}) => eligibleCharts.includes(chart))]
+        : [headlineSpec, ...eligibleCharts].map((chart) => ({chart, queryJSON: undefined}));
+    const snapshots = useMultipleSnapshots(visibleChartQueries.flatMap(({queryJSON}) => (queryJSON ? [String(queryJSON.hash)] : [])));
+    const charts: InsightsDashboardChart[] = visibleChartQueries.map((chartQuery) => ({
+        ...chartQuery,
+        snapshot: chartQuery.queryJSON ? snapshots[chartQuery.queryJSON.hash] : undefined,
+    }));
+    const [headlineChart, ...supportingCharts] = charts;
+    const state = getDashboardState(dashboard, isOffline, charts);
 
     return (
         <ScreenWrapper
@@ -215,9 +224,9 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
                 />
             )}
             <InsightsDashboardContent
-                dashboardID={dashboardID}
-                hash={hash}
                 state={state}
+                headlineChart={headlineChart}
+                supportingCharts={supportingCharts}
                 filters={filters}
                 onRetry={requestDashboard}
                 onGroupByChange={(groupBy) => setFilters({groupBy})}
