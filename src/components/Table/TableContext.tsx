@@ -1,5 +1,7 @@
 import type {MeasurableInput} from '@components/SelectionList/SelectionListWithSections/types';
 
+import CONST from '@src/CONST';
+
 import type {FlashListRef} from '@shopify/flash-list';
 import type {ComponentRef} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, View} from 'react-native';
@@ -8,7 +10,7 @@ import React, {createContext, useContext} from 'react';
 
 import type {TableListMetadata} from './buildTableListData';
 import type {FilterConfig} from './middlewares/filtering';
-import type {ActiveSorting} from './middlewares/sorting';
+import type {ActiveSorting, SortOrder} from './middlewares/sorting';
 import type {TableHeaderProps} from './TableHeader';
 import type {SharedListProps, TableColumn, TableData, TableMethods, TableRow} from './types';
 
@@ -71,6 +73,12 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
      */
     dynamicGridTemplateColumns: string[] | undefined;
 
+    /** The width the rows need when the columns don't fit, which makes the list scroll horizontally too. `undefined` means they fit. */
+    scrollWidth: number | undefined;
+
+    /** Measured width of the area the table lays out into. Content-sized columns only. `0` until the first layout. */
+    tableWidth: number;
+
     /** Filter configuration for dropdown filters. */
     filterConfig: FilterConfig<FilterKey> | undefined;
 
@@ -81,6 +89,9 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
 
     /** The column the table is initially sorted by, used as the reset target for sort controls. */
     initialSortColumn: ColumnKey | undefined;
+
+    /** The order `initialSortColumn` is initially sorted in, used as the reset target for sort controls. */
+    initialSortOrder: SortOrder;
 
     /** The column sorting is locked to on narrow layouts, where user sorting is ignored. */
     narrowLayoutSortColumn: ColumnKey | undefined;
@@ -111,6 +122,9 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     /** Whether to use a narrow layout (e.g. on mobile screens). */
     shouldUseNarrowTableLayout: boolean;
 
+    /** Whether `ListFooterComponent` renders as a continuation of the rows, so it owns the rounded bottom corners. */
+    shouldFooterRenderAsLastRow?: boolean;
+
     /** Callback when the user changes the search string in the filter bar. */
     onSearchStringChange?: (searchString: string) => void;
 };
@@ -124,12 +138,15 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
     originalDataLength: 0,
     columns: [],
     dynamicGridTemplateColumns: undefined,
+    scrollWidth: undefined,
+    tableWidth: 0,
     activeFilters: {},
     activeSorting: {
         columnKey: undefined,
         order: 'asc',
     },
     initialSortColumn: undefined,
+    initialSortOrder: CONST.SEARCH.SORT_ORDER.ASC,
     narrowLayoutSortColumn: undefined,
     activeSearchString: '',
     tableMethods: {} as TableMethods<string, string>,
@@ -139,7 +156,7 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
     hasSearchString: false,
     tableListMetadata: {
         hasPageHeader: false,
-        shouldRenderStickyHeader: false,
+        columnHeaderPlacement: CONST.TABLES.COLUMN_HEADER_PLACEMENT.NONE,
         syntheticRowsBeforeData: 0,
         stickyTableHeaderIndex: 0,
         listDataRowOffset: 0,

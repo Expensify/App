@@ -21,6 +21,8 @@ import NarrowPaneContext from '@libs/Navigation/AppNavigator/Navigators/NarrowPa
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
 import Navigation from '@libs/Navigation/Navigation';
 
+import variables from '@styles/variables';
+
 import {areAllModalsHidden, closeTop, onModalDidClose, setCloseModal, setModalCovering, setModalVisibility, willAlertModalBecomeVisible} from '@userActions/Modal';
 
 import CONST from '@src/CONST';
@@ -298,23 +300,27 @@ function BaseModal({
     });
     const modalPaddingStyles = shouldUseModalPaddingStyle ? paddings : {paddingLeft: paddings.paddingLeft, paddingRight: paddings.paddingRight};
 
-    const modalContextValue = {
-        activeModalType: isVisible ? type : undefined,
-        default: false,
-    };
-
     const isFullWidthNarrowSheet =
         (type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED || type === CONST.MODAL.MODAL_TYPE.CENTERED_SWIPEABLE_TO_RIGHT) && isSmallScreenWidth && !shouldKeepRightDockedBackdropInNarrowPane;
+    // A right docked sheet floats like the RHP on wide web, so it dims the page as lightly as the RHP does.
+    const rightDockedBackdropOpacity = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && !isSmallScreenWidth ? variables.rhpOverlayOpacity : undefined;
     const backdropOpacityAdjusted =
         !shouldShowBackdrop && (hideBackdrop || isStackedOnRHP || isFullWidthNarrowSheet) // full-width narrow sheets (RHP-like) shouldn't dim a backdrop behind them
             ? 0
-            : backdropOpacity;
+            : (backdropOpacity ?? rightDockedBackdropOpacity);
 
     const dragArea = type === CONST.MODAL.MODAL_TYPE.CENTERED || type === CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE ? undefined : false;
 
     const isBottomDockedModalInLandscapeMode = type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && isInLandscapeMode;
 
     const shouldWrapChildrenInScrollView = shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode && isBottomDockedModalInLandscapeMode;
+
+    const modalContextValue = {
+        activeModalType: isVisible ? type : undefined,
+        isContentWrappedInScrollView: shouldWrapChildrenInScrollView,
+        default: false,
+    };
+
     const shouldShowBottomDockedDismissButton = isSmallScreenWidth && type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && !!(onBackdropPress ?? onClose);
     // `bottomDockedDismissButtonRef.current` can be `null` by the time focus-trap reads `initialFocus` (the read is
     // deferred via setTimeout) — e.g. the sheet was dismissed quickly, or a layout change flipped `shouldShowBottomDockedDismissButton`

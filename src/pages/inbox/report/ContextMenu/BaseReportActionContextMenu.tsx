@@ -169,7 +169,6 @@ function BaseReportActionContextMenu({
     const {isProduction, isDevelopment, environment} = useEnvironment();
     const isStaging = environment === CONST.ENVIRONMENT.STAGING;
     const threeDotRef = useRef<ComponentRef<typeof View>>(null);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         selector: withDEWRoutedActionsObject,
     });
@@ -284,7 +283,6 @@ function BaseReportActionContextMenu({
                 reportAction,
                 childReportActions,
                 isArchivedRoom,
-                betas,
                 menuTarget: anchor,
                 isChronosReport,
                 reportID,
@@ -429,7 +427,6 @@ function BaseReportActionContextMenu({
                                 introSelected,
                                 isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
                                 hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-                                betas,
                                 isDelegateAccessRestricted,
                                 showDelegateNoAccessModal,
                                 currentUserAccountID: currentUserPersonalDetails?.accountID,

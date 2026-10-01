@@ -33,7 +33,6 @@ function DynamicWorkspaceConfirmationPage() {
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path);
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
@@ -81,7 +80,6 @@ function DynamicWorkspaceConfirmationPage() {
             shouldCreateControlPolicy: isSubscriptionTypeOfInvoicing(privateSubscription?.type),
             type: params.planType,
             isSelfTourViewed,
-            betas,
             hasActiveAdminPolicies,
             hasOwnedPaidPolicy,
             isAnnualSubscription,

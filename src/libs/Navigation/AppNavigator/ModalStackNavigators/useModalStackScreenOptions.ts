@@ -4,11 +4,13 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import enhanceCardStyleInterpolator from '@libs/Navigation/AppNavigator/enhanceCardStyleInterpolator';
 import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwipe';
 import RHP_WEB_TRANSITION_SPEC from '@libs/Navigation/AppNavigator/RHPTransitionSpec';
 import useModalCardStyleInterpolator from '@libs/Navigation/AppNavigator/useModalCardStyleInterpolator';
+import getSidePanelRHPShrink from '@libs/Navigation/helpers/getSidePanelRHPShrink';
 import type {PlatformStackNavigationOptions, PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 
 import CONST from '@src/CONST';
@@ -33,6 +35,7 @@ function useWideModalStackScreenOptions() {
     // https://github.com/Expensify/App/issues/63747
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const {windowWidth} = useWindowDimensions();
     const {wideRHPRouteKeys, superWideRHPRouteKeys} = useWideRHPState();
     const {sidePanelOffset} = useSidePanelState();
 
@@ -45,12 +48,15 @@ function useWideModalStackScreenOptions() {
             let cardStyleInterpolator: StackCardStyleInterpolator = baseInterpolator;
 
             if (!isSmallScreenWidth) {
-                // Each card draws its own bordered modal, so the container must overflow or the border and shadow get cut off.
+                // Shrink the super wide sheet by the Side Panel width while it is open so the sheet's
+                // left edge stays put instead of being pushed off-screen, capped at what its panes can spare
+                // so the card never clips its own content. See https://github.com/Expensify/App/issues/99035
+                const sidePanelShrink = getSidePanelRHPShrink(sidePanelOffset.current, windowWidth);
+
+                // Cards draw their own frame, so the container must not clip them.
                 if (superWideRHPRouteKeys.includes(route.key)) {
                     cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {
-                        // Shrink the super wide sheet by the Side Panel width while it is open so the sheet's
-                        // left edge stays put instead of being pushed off-screen. See https://github.com/Expensify/App/issues/99035
-                        cardStyle: styles.getSuperWideRHPExtendedCardInterpolatorStyles(Animated.subtract(animatedSuperWideRHPWidth, sidePanelOffset.current)),
+                        cardStyle: styles.getSuperWideRHPExtendedCardInterpolatorStyles(Animated.subtract(animatedSuperWideRHPWidth, sidePanelShrink)),
                         containerStyle: styles.overflowVisible,
                     });
                 } else if (wideRHPRouteKeys.includes(route.key)) {
@@ -83,7 +89,7 @@ function useWideModalStackScreenOptions() {
                 },
             };
         },
-        [StyleUtils, isSmallScreenWidth, modalCardStyleInterpolator, sidePanelOffset, styles, superWideRHPRouteKeys, wideRHPRouteKeys],
+        [StyleUtils, isSmallScreenWidth, modalCardStyleInterpolator, sidePanelOffset, styles, superWideRHPRouteKeys, windowWidth, wideRHPRouteKeys],
     );
 }
 

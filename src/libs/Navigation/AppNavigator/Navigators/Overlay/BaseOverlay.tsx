@@ -39,11 +39,13 @@ type BaseOverlayProps = {
     transparent?: boolean;
 };
 
+const defaultPositionLeftValue = -2 * variables.sideBarWidth;
+
 // The default value of positionLeftValue is equal to -2 * variables.sideBarWidth, because we need to stretch the overlay to cover the sidebar and the translate animation distance.
 function BaseOverlay({
     onPress,
     progress,
-    positionLeftValue = -2 * variables.sideBarWidth,
+    positionLeftValue = defaultPositionLeftValue,
     positionRightValue = 0,
     positionTopValue = 0,
     positionBottomValue = 0,
@@ -60,6 +62,8 @@ function BaseOverlay({
             aria-hidden
             style={[
                 styles.pFixed,
+                // Overlays shorter than the 30px top bar (the floating RHP gap bands) would otherwise leak a pressable area onto the card below.
+                styles.overflowHidden,
                 !transparent && styles.overlayBackground,
                 styles.overlayStyles({progress: progress ?? current.progress, positionLeftValue, positionRightValue, positionTopValue, positionBottomValue, maxOpacity}),
             ]}

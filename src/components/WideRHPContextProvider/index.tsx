@@ -185,8 +185,8 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     /**
      * Effect that manages the tertiary overlay animation and rendering state.
      */
-    // react-navigation's card wrapper swallows clicks on the dimmed area, so the overlay from the screen below can't catch them when a skinny RHP sits over a wide one.
-    const shouldRenderTertiaryOverlay = useShouldRenderOverlay(isRHPFocused && isWideRHPBelow, thirdOverlayProgress);
+    // react-navigation's card wrapper swallows clicks on the dimmed area, so the overlay from the screen below can't catch them when a skinny RHP sits over a wide or super wide one.
+    const shouldRenderTertiaryOverlay = useShouldRenderOverlay(isRHPFocused && (isWideRHPBelow || isSuperWideRHPBelow), thirdOverlayProgress);
 
     /**
      * Removes the route from both wide and super-wide sets. Used on screen unmount.

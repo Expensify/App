@@ -1,12 +1,11 @@
-import type {ThemeStyles} from '@styles/index';
+import type {OverlayPositionValue, ThemeStyles} from '@styles/index';
 
-// eslint-disable-next-line no-restricted-imports
-import type {Animated, StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 
 type RHPFrameStyleParams = {
     styles: ThemeStyles;
 
-    animatedWidth: Animated.AnimatedSubtraction<string | number>;
+    animatedWidth: OverlayPositionValue;
 
     shouldUseNarrowLayout: boolean;
 
@@ -14,6 +13,6 @@ type RHPFrameStyleParams = {
     shouldUseCenteredFrame: boolean;
 };
 
-type GetRHPFrameStyle = (params: RHPFrameStyleParams) => Animated.WithAnimatedValue<StyleProp<ViewStyle>>;
+type GetRHPFrameStyle = (params: RHPFrameStyleParams) => StyleProp<ViewStyle>;
 
 export default GetRHPFrameStyle;

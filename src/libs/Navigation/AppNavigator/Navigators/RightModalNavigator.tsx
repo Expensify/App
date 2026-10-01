@@ -15,6 +15,7 @@ import useModalStackScreenOptions from '@libs/Navigation/AppNavigator/ModalStack
 import useRHPScreenOptions from '@libs/Navigation/AppNavigator/useRHPScreenOptions';
 import calculateSuperWideRHPWidth from '@libs/Navigation/helpers/calculateSuperWideRHPWidth';
 import calculateWideRHPWidth from '@libs/Navigation/helpers/calculateWideRHPWidth';
+import getSidePanelRHPShrink from '@libs/Navigation/helpers/getSidePanelRHPShrink';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
@@ -26,7 +27,10 @@ import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigati
 
 import {PINContextProvider} from '@pages/MissingPersonalDetails/PINContext';
 import SearchAdvancedFiltersProvider from '@pages/Search/SearchAdvancedFiltersProvider';
+import {MergeATSApprovalDraftProvider} from '@pages/workspace/recruiting/approver/MergeATSApprovalDraftContext';
+import {MergeATSFiltersDraftProvider} from '@pages/workspace/recruiting/merge/filters/MergeATSFiltersDraftContext';
 
+import type {OverlayPositionValue} from '@styles/index';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -66,6 +70,22 @@ function SearchAdvancedFiltersWithContext(props: Record<string, unknown>) {
         <SearchAdvancedFiltersProvider>
             <ModalStackNavigators.SearchAdvancedFiltersModalStackNavigator {...props} />
         </SearchAdvancedFiltersProvider>
+    );
+}
+
+function MergeATSFiltersWithDraftContext(props: Record<string, unknown>) {
+    return (
+        <MergeATSFiltersDraftProvider>
+            <ModalStackNavigators.MergeATSFiltersModalStackNavigator {...props} />
+        </MergeATSFiltersDraftProvider>
+    );
+}
+
+function MergeATSApprovalWithDraftContext(props: Record<string, unknown>) {
+    return (
+        <MergeATSApprovalDraftProvider>
+            <ModalStackNavigators.MergeATSApprovalModalStackNavigator {...props} />
+        </MergeATSApprovalDraftProvider>
     );
 }
 
@@ -123,10 +143,17 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     });
     const isExecutingRef = useRef<boolean>(false);
     const screenOptions = useRHPScreenOptions();
-    const {superWideRHPRouteKeys, wideRHPRouteKeys, shouldRenderTertiaryOverlay, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForRHPOnSuperWideRHP} =
-        useWideRHPState();
+    const {
+        superWideRHPRouteKeys,
+        wideRHPRouteKeys,
+        shouldRenderTertiaryOverlay,
+        shouldRenderSecondaryOverlayForRHPOnWideRHP,
+        shouldRenderSecondaryOverlayForRHPOnSuperWideRHP,
+        isWideRHPFocused,
+        isSuperWideRHPFocused,
+    } = useWideRHPState();
     const {clearWideRHPKeys, syncRHPKeys} = useWideRHPActions();
-    const {windowWidth} = useWindowDimensions();
+    const {windowWidth, windowHeight} = useWindowDimensions();
     const modalStackScreenOptions = useModalStackScreenOptions();
     const styles = useThemeStyles();
     const {sidePanelOffset} = useSidePanelState();
@@ -156,8 +183,11 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     // The super wide RHP already spans almost the full window, so without shrinking it by the same amount
     // its left edge would be pushed off-screen once the Side Panel opens. Subtract the Side Panel offset
     // from the super wide width only (progress === 2) so the sheet's left edge stays put while the Side
-    // Panel animates open/closed. See https://github.com/Expensify/App/issues/99035
-    const superWideRHPSidePanelOffset = Animated.multiply(expandedRHPProgress.interpolate({inputRange: [0, 1, 2], outputRange: [0, 0, 1], extrapolate: 'clamp'}), sidePanelOffset.current);
+    // Panel animates open/closed, and never below what its panes need. See https://github.com/Expensify/App/issues/99035
+    const superWideRHPSidePanelOffset = Animated.multiply(
+        expandedRHPProgress.interpolate({inputRange: [0, 1, 2], outputRange: [0, 0, 1], extrapolate: 'clamp'}),
+        getSidePanelRHPShrink(sidePanelOffset.current, windowWidth),
+    );
 
     const animatedWidth = Animated.subtract(
         expandedRHPProgress.interpolate({
@@ -168,6 +198,19 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     );
 
     const overlayPositionLeft = useMemo(() => -1 * calculateSuperWideRHPWidth(windowWidth), [windowWidth]);
+
+    // Width of the focused card. The super wide animated width already gives up the Side Panel offset.
+    let focusedRHPWidth: OverlayPositionValue = singleRHPWidth;
+    if (isSuperWideRHPFocused) {
+        focusedRHPWidth = animatedWidth;
+    } else if (isWideRHPFocused) {
+        focusedRHPWidth = calculateWideRHPWidth(windowWidth);
+    }
+
+    // Where the focused card starts, measured from the right window edge and from the left.
+    const tertiaryOverlayColumn = Animated.add(sidePanelOffset.current, Animated.add(focusedRHPWidth, 2 * variables.rhpFloatingCardBorderWidth + variables.rhpFloatingCardMargin));
+    const tertiaryOverlayCardBandLeft = Animated.subtract(windowWidth, tertiaryOverlayColumn);
+    const tertiaryOverlayVerticalGapInset = windowHeight - variables.rhpFloatingCardMargin;
 
     // With a report or expense stacked in the RHP every card draws its own modal, so the frame is invisible.
     const shouldUseCenteredFrame =
@@ -213,6 +256,12 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
             isExecutingRef.current = false;
         }
     }, [navigation]);
+
+    // Pressing the dimmed gap around the focused card goes back one level when a card is stacked below, and closes the RHP when it is not.
+    const floatingCardGapProgress = shouldRenderTertiaryOverlay ? thirdOverlayProgress : undefined;
+    const handleFloatingCardGapPress = shouldRenderTertiaryOverlay ? Navigation.dismissToPreviousRHP : handleOverlayPress;
+    // The gap on the right stops before the Side Panel, which shares that edge.
+    const floatingCardGapRightBandLeft = Animated.subtract(Animated.subtract(windowWidth, sidePanelOffset.current), variables.rhpFloatingCardMargin);
 
     const clearWideRHPKeysAfterTabChanged = useCallback(() => {
         const isRhpOpened = navigationRef?.getRootState()?.routes?.some((rootStateRoute) => rootStateRoute.key === route.key);
@@ -436,6 +485,14 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 options={modalStackScreenOptions}
                             />
                             <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.RECRUITING_MERGE_IMPORT_SETTINGS}
+                                component={MergeATSFiltersWithDraftContext}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.RECRUITING_MERGE_APPROVAL}
+                                component={MergeATSApprovalWithDraftContext}
+                            />
+                            <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS}
                                 component={SearchAdvancedFiltersWithContext}
                             />
@@ -509,10 +566,36 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                 {!shouldUseNarrowLayout && shouldRenderTertiaryOverlay && (
                     <RHPOverlay
                         progress={thirdOverlayProgress}
-                        positionRightValue={Animated.add(sidePanelOffset.current, variables.rhpWidth)}
+                        positionRightValue={tertiaryOverlayColumn}
                         onPress={Navigation.dismissToPreviousRHP}
                         transparent
                     />
+                )}
+                {/* Keeps the dimmed margin above, below and to the right of the focused card pressable. */}
+                {!shouldUseNarrowLayout && shouldUseCenteredFrame && (
+                    <>
+                        <RHPOverlay
+                            progress={floatingCardGapProgress}
+                            positionLeftValue={tertiaryOverlayCardBandLeft}
+                            positionBottomValue={tertiaryOverlayVerticalGapInset}
+                            onPress={handleFloatingCardGapPress}
+                            transparent
+                        />
+                        <RHPOverlay
+                            progress={floatingCardGapProgress}
+                            positionLeftValue={tertiaryOverlayCardBandLeft}
+                            positionTopValue={tertiaryOverlayVerticalGapInset}
+                            onPress={handleFloatingCardGapPress}
+                            transparent
+                        />
+                        <RHPOverlay
+                            progress={floatingCardGapProgress}
+                            positionLeftValue={floatingCardGapRightBandLeft}
+                            positionRightValue={sidePanelOffset.current}
+                            onPress={handleFloatingCardGapPress}
+                            transparent
+                        />
+                    </>
                 )}
             </NoDropZone>
         </NarrowPaneContextProvider>

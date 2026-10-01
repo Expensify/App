@@ -33,7 +33,7 @@ function SecondaryOverlay() {
      * 2. Single RHP is displayed on Super Wide RHP
      * 3. Wide RHP is displayed on Super Wide RHP route.
      *  */
-    // Rendered from the RHP screen below so the dim clips to that screen's rounded card and a click dismisses to it while the card on top stays interactive.
+    // Rendered by the screen below, so the dim clips to its rounded corners and a press dismisses to it.
     if (isRHPDisplayedOnWideRHP) {
         return (
             <RHPOverlay

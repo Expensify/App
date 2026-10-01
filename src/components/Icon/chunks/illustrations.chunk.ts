@@ -133,6 +133,7 @@ import CardReaderAlt from '@assets/images/simple-illustrations/simple-illustrati
 import Chair from '@assets/images/simple-illustrations/simple-illustration__chair.svg';
 import Chalkboard from '@assets/images/simple-illustrations/simple-illustration__chalkboard.svg';
 import Chart from '@assets/images/simple-illustrations/simple-illustration__chart.svg';
+import ChartSync from '@assets/images/simple-illustrations/simple-illustration__chartsync.svg';
 import ChatBubbles from '@assets/images/simple-illustrations/simple-illustration__chatbubbles.svg';
 import CheckboxText from '@assets/images/simple-illustrations/simple-illustration__checkboxtext.svg';
 import CheckmarkCircle from '@assets/images/simple-illustrations/simple-illustration__checkmarkcircle.svg';
@@ -166,6 +167,8 @@ import Hourglass from '@assets/images/simple-illustrations/simple-illustration__
 import HouseMoney from '@assets/images/simple-illustrations/simple-illustration__house-money.svg';
 import House from '@assets/images/simple-illustrations/simple-illustration__house.svg';
 import HouseWithMap from '@assets/images/simple-illustrations/simple-illustration__housewithmap.svg';
+import IceCreamNumberOne from '@assets/images/simple-illustrations/simple-illustration__ice-cream-number-1.svg';
+import IceCreamNumberTwo from '@assets/images/simple-illustrations/simple-illustration__ice-cream-number-2.svg';
 import InvoiceBlue from '@assets/images/simple-illustrations/simple-illustration__invoice.svg';
 import LifeRing from '@assets/images/simple-illustrations/simple-illustration__lifering.svg';
 import Lightbulb from '@assets/images/simple-illustrations/simple-illustration__lightbulb.svg';
@@ -357,6 +360,7 @@ const Illustrations = {
     CreditCardsNew,
     FolderOpen,
     FolderSync,
+    ChartSync,
     HandCard,
     Hashtag,
     InvoiceBlue,
@@ -435,6 +439,8 @@ const Illustrations = {
     House,
     HouseWithMap,
     HouseMoney,
+    IceCreamNumberOne,
+    IceCreamNumberTwo,
     LifeRing,
     Lightbulb,
     LockClosed,
