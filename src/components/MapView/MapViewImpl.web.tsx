@@ -289,7 +289,7 @@ function MapViewImpl({
 
     return !isOffline && !!accessToken && !!initialViewState ? (
         <View
-            style={style}
+            style={[style, !interactive ? styles.pointerEventsNone : {}]}
             {...responder.panHandlers}
         >
             <Map

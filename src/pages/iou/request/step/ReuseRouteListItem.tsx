@@ -68,6 +68,7 @@ function ReuseRouteThumbnail({transactionID, receiptSource, waypoints}: ReuseRou
             <ConfirmedRoute
                 transaction={transaction}
                 shouldHaveBorderRadius={false}
+                interactive={false}
             />
         );
     }
