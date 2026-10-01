@@ -41,10 +41,13 @@ describe('actions/Policy/PerDiem', () => {
     });
 
     it('sends only the changed rate when editing a destination', () => {
+        // Given a Per Diem custom unit with multiple destinations.
         const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
+        // When one destination is renamed.
         editPerDiemRateDestination('policy', rateID, customUnit, 'Updated Destination');
 
+        // Then only that destination is sent and optimistically updated.
         expect(writeSpy).toHaveBeenCalledTimes(1);
         const [command, parameters, onyxData] = writeSpy.mock.calls[0];
         expect(command).toBe(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT);
@@ -54,7 +57,7 @@ describe('actions/Policy/PerDiem', () => {
             customUnitRate: expect.any(String),
         });
         expect(parameters).not.toHaveProperty('customUnit');
-        expect(JSON.parse(parameters.customUnitRate)).toEqual({...currentRate, name: 'Updated Destination'});
+        expect(JSON.parse(String(parameters.customUnitRate))).toEqual({...currentRate, name: 'Updated Destination'});
         expect(parameters.customUnitRate).not.toContain(unchangedRateID);
         expect(onyxData?.optimisticData?.[0].value).toMatchObject({
             customUnits: {
@@ -70,10 +73,13 @@ describe('actions/Policy/PerDiem', () => {
     });
 
     it('sends only the changed rate when editing a subrate name', () => {
+        // Given a Per Diem custom unit with multiple destinations and subrates.
         const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
+        // When one subrate is renamed.
         editPerDiemRateSubrate('policy', rateID, 'breakfast', customUnit, 'Morning meal');
 
+        // Then only its parent destination is sent.
         const [command, parameters] = writeSpy.mock.calls[0];
         expect(command).toBe(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT);
         expect(parameters).not.toHaveProperty('customUnit');
@@ -87,10 +93,13 @@ describe('actions/Policy/PerDiem', () => {
     });
 
     it('sends only the changed rate when editing an amount', () => {
+        // Given a Per Diem custom unit with multiple destinations and subrates.
         const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
+        // When one subrate amount is changed.
         editPerDiemRateAmount('policy', rateID, 'breakfast', customUnit, 1701);
 
+        // Then only its parent destination is sent.
         const [command, parameters] = writeSpy.mock.calls[0];
         expect(command).toBe(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT);
         expect(parameters).not.toHaveProperty('customUnit');
@@ -104,10 +113,13 @@ describe('actions/Policy/PerDiem', () => {
     });
 
     it('sends only the changed rate when editing a currency', () => {
+        // Given a Per Diem custom unit with multiple destinations.
         const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
+        // When one destination's currency is changed.
         editPerDiemRateCurrency('policy', rateID, customUnit, 'EUR');
 
+        // Then only that destination is sent.
         const [command, parameters] = writeSpy.mock.calls[0];
         expect(command).toBe(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT);
         expect(parameters).not.toHaveProperty('customUnit');
