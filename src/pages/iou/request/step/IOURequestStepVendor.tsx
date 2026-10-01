@@ -104,8 +104,10 @@ function IOURequestStepVendor({
               }
             : undefined;
 
+    const shouldShowNoneRow = !!currentVendorID && !trimmedSearch;
+
     const data: VendorListItem[] = [
-        ...(currentVendorID && !trimmedSearch
+        ...(shouldShowNoneRow
             ? [
                   {
                       value: '',

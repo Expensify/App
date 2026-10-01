@@ -13,6 +13,12 @@ type PolicyVendor = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** The active accounting connection that supplied this vendor. */
     origin?: PolicyConnectionName;
+
+    /** A list of errors keyed by microtime */
+    errors?: OnyxCommon.Errors | null;
+
+    /** Error fields */
+    errorFields?: OnyxCommon.ErrorFields | null;
 }>;
 
 /** Record of normalized policy vendors, indexed by externalID. */

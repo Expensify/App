@@ -6561,7 +6561,17 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             invoiceFieldInitialValueRequiredError: '请选择发票字段的初始值',
             addField: '添加字段',
         },
-        vendors: {emptyTitle: '尚无供应商', emptySubtitle: '会计同步完成后，供应商将显示在此处。', findVendor: '查找供应商', managedInAccountingSoftware: '供应商在您的'},
+        vendors: {
+            emptyTitle: '尚无供应商',
+            emptySubtitle: '会计同步完成后，供应商将显示在此处。',
+            findVendor: '查找供应商',
+            managedInAccountingSoftware: '供应商在您的',
+            enableVendor: 'Enable vendor',
+            enableVendors: 'Enable vendors',
+            disableVendor: 'Disable vendor',
+            disableVendors: 'Disable vendors',
+            updateFailureMessage: 'An error occurred while updating the vendor, please try again',
+        },
         tags: {
             tagName: '标签名称',
             requiresTag: '成员必须为所有报销添加标签',
