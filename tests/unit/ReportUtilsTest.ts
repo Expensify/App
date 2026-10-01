@@ -6905,6 +6905,27 @@ describe('ReportUtils', () => {
     });
 
     describe('canEditReportAction', () => {
+        it.each([
+            [CONST.REPORT.TYPE.SUPPORT_TICKET, false],
+            [CONST.REPORT.TYPE.CHAT, true],
+            [undefined, true],
+        ] as const)('comment with childType %s has edit permission %s', (childType, expected) => {
+            // Given an action attributed to the current user, with or without a child report
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(89019),
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                childType,
+                message: [{type: 'COMMENT', html: 'Support ticket', text: 'Support ticket'}],
+            };
+
+            // When edit permission is checked for menus or the keyboard shortcut
+            const canEdit = canEditReportAction(reportAction, undefined, undefined);
+
+            // Then support-ticket previews are read-only, while ordinary comments remain editable
+            expect(canEdit).toBe(expected);
+        });
+
         it('should use the passed reportActions to determine whether the money request report was forwarded since the last submit', async () => {
             const reportID = '89020';
             const transactionID = '89020-transaction';

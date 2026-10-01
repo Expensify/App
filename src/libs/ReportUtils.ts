@@ -198,6 +198,7 @@ import {
     isActionableJoinRequestPending,
     isActionableTrackExpense,
     isActionOfType,
+    isCreatedSupportTicketReportAction,
     isCreatedTaskReportAction,
     isCurrentActionUnread,
     isDeletedAction,
@@ -5756,6 +5757,7 @@ function canEditReportAction(
         !isOptimisticAttachment &&
         !isDeletedAction(reportAction) &&
         !isCreatedTaskReportAction(reportAction) &&
+        !isCreatedSupportTicketReportAction(reportAction) &&
         reportAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
     );
 }
