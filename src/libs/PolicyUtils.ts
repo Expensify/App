@@ -2909,7 +2909,7 @@ function sortVendors<TVendor extends {id?: string; externalID?: string; name: st
 }
 
 /**
- * Resolves the configured default vendor ID for the active integration that supports vendor enablement (QBO, Intacct, or Xero).
+ * Resolves the configured default vendor ID for the active integration that supports vendor enablement.
  * Returns undefined if no default vendor is configured or if the integration does not have an active default fallback.
  */
 function getDefaultVendorID(policy: OnyxEntry<Policy>, origin?: ConnectionName): string | undefined {
@@ -2929,6 +2929,21 @@ function getDefaultVendorID(policy: OnyxEntry<Policy>, origin?: ConnectionName):
     } else if (integrationOrigin === CONST.POLICY.CONNECTIONS.NAME.XERO) {
         const xeroConfig = policy.connections[CONST.POLICY.CONNECTIONS.NAME.XERO]?.config;
         return xeroConfig?.defaultVendor || undefined;
+    } else if (integrationOrigin === CONST.POLICY.CONNECTIONS.NAME.RILLET) {
+        const rilletConfig = policy.connections[CONST.POLICY.CONNECTIONS.NAME.RILLET]?.config;
+        return rilletConfig?.export?.defaultVendorID || undefined;
+    } else if (integrationOrigin === CONST.POLICY.CONNECTIONS.NAME.DUALENTRY) {
+        const dualentryConfig = policy.connections[CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]?.config;
+        return dualentryConfig?.export?.defaultVendorID || undefined;
+    } else if (integrationOrigin === CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE) {
+        const campfireConfig = policy.connections[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]?.config;
+        return campfireConfig?.export?.defaultVendorID || undefined;
+    } else if (integrationOrigin === CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL) {
+        const businessCentralConfig = policy.connections[CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]?.config;
+        return businessCentralConfig?.export?.defaultVendorID || undefined;
+    } else if (integrationOrigin === CONST.POLICY.CONNECTIONS.NAME.CERTINIA) {
+        const certiniaConfig = policy.connections[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]?.config;
+        return certiniaConfig?.export?.vendorAccount || undefined;
     }
 
     return undefined;

@@ -4307,6 +4307,91 @@ describe('PolicyUtils', () => {
             expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.XERO)).toBe('xero_contact_1');
         });
 
+        it('resolves Rillet default vendor', () => {
+            const policy = {
+                id: '1',
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.RILLET]: {
+                        config: {
+                            export: {
+                                defaultVendorID: 'rillet_vendor_1',
+                            },
+                        },
+                    },
+                },
+            } as unknown as Policy;
+
+            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.RILLET)).toBe('rillet_vendor_1');
+        });
+
+        it('resolves DualEntry default vendor', () => {
+            const policy = {
+                id: '1',
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]: {
+                        config: {
+                            export: {
+                                defaultVendorID: 'dualentry_vendor_1',
+                            },
+                        },
+                    },
+                },
+            } as unknown as Policy;
+
+            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.DUALENTRY)).toBe('dualentry_vendor_1');
+        });
+
+        it('resolves Campfire default vendor', () => {
+            const policy = {
+                id: '1',
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {
+                        config: {
+                            export: {
+                                defaultVendorID: 'campfire_vendor_1',
+                            },
+                        },
+                    },
+                },
+            } as unknown as Policy;
+
+            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE)).toBe('campfire_vendor_1');
+        });
+
+        it('resolves Business Central default vendor', () => {
+            const policy = {
+                id: '1',
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                        config: {
+                            export: {
+                                defaultVendorID: 'bc_vendor_1',
+                            },
+                        },
+                    },
+                },
+            } as unknown as Policy;
+
+            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL)).toBe('bc_vendor_1');
+        });
+
+        it('resolves Certinia default vendor', () => {
+            const policy = {
+                id: '1',
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
+                        config: {
+                            export: {
+                                vendorAccount: 'certinia_acc_1',
+                            },
+                        },
+                    },
+                },
+            } as unknown as Policy;
+
+            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.CERTINIA)).toBe('certinia_acc_1');
+        });
+
         it('returns undefined when policy has no connections', () => {
             expect(getDefaultVendorID(undefined, CONST.POLICY.CONNECTIONS.NAME.QBO)).toBeUndefined();
         });
