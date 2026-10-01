@@ -26,8 +26,7 @@ describe('applyColumnWidthOverrides', () => {
         // When the stored width is applied
         const {columnWidths, columnWidthValues} = applyColumnWidthOverrides({columns, baseColumnWidths, columnWidthOverrides: {name: 260}});
 
-        // Then only that column changes, so the table overflows and scrolls, and each value falls back to its width, so
-        // the first paint already matches what a drag would write and no column jumps once one starts
+        // Then only that column changes, and each value falls back to its width so no column jumps once a drag starts
         expect(columnWidths).toEqual({name: 260, email: 200, role: 200});
         expect(columnWidthValues).toEqual([getColumnWidthValue('name', 260), getColumnWidthValue('email', 200), getColumnWidthValue('role', 200)]);
     });

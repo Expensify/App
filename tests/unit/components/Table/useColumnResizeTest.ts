@@ -98,8 +98,7 @@ describe('useColumnResize', () => {
             getHandleProps().onPointerMove?.(createPointerEvent(handleElement, {clientX: 160}));
         });
 
-        // Then the width is painted straight onto the scope, so the drag repaints without a React render, and the
-        // columns after it keep their widths, so the table overflows and scrolls instead
+        // Then the width is painted straight onto the scope without a React render, and later columns keep their widths
         expect(readWidth('name')).toBe('260px');
         expect(readWidth('email')).toBe('');
         expect(readWidth('role')).toBe('');
@@ -131,8 +130,7 @@ describe('useColumnResize', () => {
             getHandleProps().onPointerUp?.(createPointerEvent(handleElement, {clientX: 100}));
         });
 
-        // Then nothing is stored, and the scope is cleared since no render follows that would clear it, which
-        // would otherwise leave the painted widths masking later resolved ones
+        // Then nothing is stored, and the scope is cleared since no render follows to clear it
         expect(setTableColumnWidth).not.toHaveBeenCalled();
         expect(readWidth('name')).toBe('');
     });

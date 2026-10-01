@@ -149,7 +149,7 @@ export default function TableRow({
 
     const tableRowPressableStyles = [
         styles.mh5,
-        // The list sizes this row from a measurement, so set its box from the header's expression or the background won't follow a drag.
+        // The list sizes rows from a measurement, so without this the background wouldn't follow a drag.
         !!rowWidth && getColumnsWidthStyle(rowWidth),
         isGroupHeader ? styles.hoveredComponentBG : styles.highlightBG,
         styles.userSelectNone,

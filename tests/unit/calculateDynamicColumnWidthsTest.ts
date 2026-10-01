@@ -247,8 +247,7 @@ describe('distributeEqualWidths', () => {
 
     // Given a width that does not divide evenly
     // When equal widths are distributed
-    // Then the remainder goes to the first column, so the columns still add up to the room they were given and the
-    // table neither overflows by a px nor leaves one unused
+    // Then the remainder goes to the first column, so the columns still sum exactly to the available width
     it('hands the rounding remainder to the first column', () => {
         const widths = distributeEqualWidths(3, 901);
 

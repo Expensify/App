@@ -4,7 +4,6 @@ import type {RefObject} from 'react';
 
 import {useRef} from 'react';
 
-/** What the indicator's opacity property is set to. */
 const INDICATOR_OPACITY = {
     VISIBLE: '1',
     HIDDEN: '0',
@@ -18,18 +17,14 @@ type ResizeIndicator = {
     hideIndicator: () => void;
 };
 
-/**
- * Shows the handle's line, running from its heading row's top to the lowest row's bottom. Measured once per reveal: the
- * line sits in the handle, so drags and sideways scrolls carry it along, and the scroller clips whatever runs past the rows.
- */
+/** Shows the handle's line. Measured once per reveal. The line lives in the handle, so drags and scrolls carry it. */
 function drawIndicatorAtHandle(scopeElement: HTMLElement | null, handleElement: HTMLElement) {
     const handleRect = handleElement.getBoundingClientRect();
     const headerRowTop = (handleElement.closest(TABLE_ROW_SELECTOR) ?? handleElement).getBoundingClientRect().top;
     let lowestRowBottom = handleRect.bottom;
 
     for (const row of scopeElement?.querySelectorAll(TABLE_ROW_SELECTOR) ?? []) {
-        // The hidden twins a virtualized list keeps around aren't where a row is drawn. Only hiding within the table
-        // counts: a modal hiding the whole screen from assistive tech hides every row and leaves them all drawn.
+        // Skip the list's hidden twins, but not rows hidden by an outer modal's aria-hidden.
         const hiddenAncestor = row.closest('[aria-hidden="true"]');
 
         if (hiddenAncestor && scopeElement?.contains(hiddenAncestor)) {

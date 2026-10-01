@@ -6,13 +6,13 @@ import type {RefObject} from 'react';
 import {useLayoutEffect, useRef} from 'react';
 
 type UseLiveColumnWidthsParams = {
-    /** What each column resolved to, which is what a column paints while it has no live width. */
+    /** What a column paints while it has no live width. */
     resolvedColumnWidths: Record<string, number>;
 
-    /** Stored widths. A change means React has rendered them as the columns' fallbacks, so the live widths step aside. */
+    /** Stored widths. A change means React rendered them, so live widths are cleared. */
     columnWidthOverrides: ColumnWidthOverrides | undefined;
 
-    /** The active drag, if any. Live widths are kept while it lasts, so a width stored from elsewhere can't yank the column. */
+    /** Active drag. Live widths survive it so a width stored elsewhere can't yank the column. */
     dragRef: RefObject<unknown>;
 };
 
@@ -24,17 +24,14 @@ type LiveColumnWidths = {
 
     writeColumnWidth: (columnKey: string, width: number) => void;
 
-    /** Column's currently painted width (ahead of React mid-gesture). `undefined` if it has none, never zero, to avoid collapsing it. */
+    /** Currently painted width, ahead of React mid-gesture. `undefined` rather than zero, so a column never collapses. */
     readColumnWidth: (columnKey: string) => number | undefined;
 
-    /** Hands every column back to the fallback React rendered. */
+    /** Hands every column back to React's fallback. */
     clearLiveWidths: () => void;
 };
 
-/**
- * Column widths written mid-gesture as CSS custom properties, ahead of React. At rest there are none and every column
- * paints the fallback React rendered, so the custom properties never have to be kept in sync with the resolved widths.
- */
+/** Widths written mid-gesture as CSS custom properties. None at rest, so they never need syncing with resolved widths. */
 function useLiveColumnWidths({resolvedColumnWidths, columnWidthOverrides, dragRef}: UseLiveColumnWidthsParams): LiveColumnWidths {
     const scopeElementRef = useRef<HTMLElement | null>(null);
     const liveWidthsRef = useRef<Record<string, number>>({});
@@ -61,8 +58,7 @@ function useLiveColumnWidths({resolvedColumnWidths, columnWidthOverrides, dragRe
         liveWidthsRef.current = {};
     };
 
-    // A committed width has now been rendered as the columns' fallbacks, so the live widths step aside before paint. The
-    // payers land where the drag left them because the resolver splits the width the same way.
+    // React now renders the committed width as the fallback, so drop live widths before paint.
     useLayoutEffect(() => {
         // The drag's own commit clears later.
         if (dragRef.current) {

@@ -52,11 +52,11 @@ type TableSemanticContainerProps = {
      * The width the rows need when the columns don't fit, which scrolls the header/body run horizontally as one so the
      * header stays aligned with its rows. Set only for tables whose filter bar isn't in the list. The others are
      * scrolled by the list itself (see `TableBody`).
-     * Resizable tables always pass a CSS sum of the column widths instead, so a drag past the edge scrolls without a re-render.
+     * Resizable tables always pass a CSS expression, so a drag past the edge scrolls without a re-render.
      */
     scrollWidth: number | string | undefined;
 
-    /** Owns the element holding the column width custom properties and the resize indicator line. `undefined` when not resizable. */
+    /** Resize controller, or `undefined` when not resizable. */
     columnResize: ColumnResizeController | undefined;
 
     /**
@@ -137,7 +137,7 @@ function TableSemanticContainer({
         // The columns don't fit, so the header and the body scroll horizontally as one and stay aligned. The content
         // container carries the width they need, and the rows fill it, matching how the Search table scrolls.
         renderedChildren.push(
-            // The scope has no box (`display: contents`); it just gives the resize logic an element above the scroller and rows to write widths onto.
+            // Box-less element above the scroller and rows that holds the column width custom properties.
             <ColumnResizeScope
                 key={`tableSemanticContainerScope-${renderedChildren.length}`}
                 onScopeElement={columnResize?.setScopeElement}

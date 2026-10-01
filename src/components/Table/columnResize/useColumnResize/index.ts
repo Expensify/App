@@ -19,32 +19,29 @@ const {HANDLE_HIT_WIDTH} = CONST.TABLES.COLUMN_RESIZE;
 type Drag = {
     column: ResizableColumn;
 
-    /** Where the pointer went down, which every later position is measured against. */
+    /** Where the pointer went down. */
     startClientX: number;
 
-    /** The column's width when the drag started, which the pointer's travel is added to. */
+    /** The column's width when the drag started. */
     startWidth: number;
 };
 
 /**
  * Web column resizing: dragging a column's right edge sets its width. Widths live in CSS custom properties so React
- * doesn't render mid-drag; only the dragged column's final width is stored in Onyx.
+ * doesn't render mid-drag. Only the dragged column's final width is stored in Onyx.
  */
 function useColumnResize({columnResizingID, columns, resolvedColumnWidths, columnWidthOverrides, columnGap}: UseColumnResizeParams): ColumnResizeController | undefined {
     const dragRef = useRef<Drag | null>(null);
     const {scopeElementRef, setScopeElement, writeColumnWidth, readColumnWidth, clearLiveWidths} = useLiveColumnWidths({resolvedColumnWidths, columnWidthOverrides, dragRef});
     const {revealIndicator, hideIndicator} = useResizeIndicator(scopeElementRef, dragRef);
 
-    /** Forgets the drag and restores the document cursor. Doesn't commit anything. */
+    /** Forgets the drag and restores the cursor, without committing. */
     const resetDrag = () => {
         dragRef.current = null;
         document.body.style.cursor = '';
     };
 
-    /**
-     * Stores the dragged column's width. The live widths are cleared once React renders the stored one, or right away
-     * when nothing is stored, since then no render follows.
-     */
+    /** Stores the width. Clears live widths right away when nothing is stored, since no render follows to clear them. */
     const commitColumnWidth = (columnKey: string, width: number) => {
         if (!columnResizingID || columnWidthOverrides?.[columnKey] === width) {
             clearLiveWidths();
@@ -78,8 +75,7 @@ function useColumnResize({columnResizingID, columns, resolvedColumnWidths, colum
         event.preventDefault();
         event.stopPropagation();
 
-        // Capture keeps the rest of the drag on this handle even once the pointer has moved off it, so the drag
-        // survives the pointer crossing into the rows, the window chrome, or another column's handle.
+        // Keeps the drag on this handle once the pointer moves off it.
         event.currentTarget.setPointerCapture(event.pointerId);
 
         revealIndicator(event.currentTarget);
@@ -99,7 +95,7 @@ function useColumnResize({columnResizingID, columns, resolvedColumnWidths, colum
             return;
         }
 
-        // The only write during a drag. The line rides the handle, so it follows the clamped width, not the pointer.
+        // The line rides the handle, so it follows the clamped width, not the pointer.
         writeColumnWidth(drag.column.columnKey, getDraggedColumnWidth(drag.startWidth, drag.startClientX, event.clientX));
     };
 
@@ -116,8 +112,7 @@ function useColumnResize({columnResizingID, columns, resolvedColumnWidths, colum
 
         endDrag(drag);
 
-        // The handle has moved with the column, so whether the pointer is still on it decides whether the edge stays
-        // visible. Releasing capture doesn't reliably raise a boundary event, so this is read rather than waited for.
+        // Releasing capture doesn't reliably fire pointerleave, so hit-test the moved handle instead.
         const handleRect = event.currentTarget.getBoundingClientRect();
         const isPointerStillOnHandle = event.clientX >= handleRect.left && event.clientX <= handleRect.right && event.clientY >= handleRect.top && event.clientY <= handleRect.bottom;
 
@@ -150,7 +145,7 @@ function useColumnResize({columnResizingID, columns, resolvedColumnWidths, colum
             position: 'absolute',
             top: 0,
             bottom: 0,
-            // Overhangs by half the column gap so the strip is centred between columns. Every handle has a next column, since the last one is headless.
+            // Centred in the gap after the column. There's always a next column since the last one is headless.
             right: -(columnGap / 2 + HANDLE_HIT_WIDTH / 2),
             width: HANDLE_HIT_WIDTH,
             cursor: 'col-resize',
@@ -160,7 +155,6 @@ function useColumnResize({columnResizingID, columns, resolvedColumnWidths, colum
         onPointerDown: (event) => handlePointerDown(column, event),
         onPointerMove: handlePointerMove,
         onPointerUp: handlePointerUp,
-        // A cancelled gesture ends the same way a capture taken back by the browser does: whatever width was already written stands.
         onPointerCancel: handleLostPointerCapture,
         onLostPointerCapture: handleLostPointerCapture,
         onPointerEnter: (event) => revealIndicator(event.currentTarget),

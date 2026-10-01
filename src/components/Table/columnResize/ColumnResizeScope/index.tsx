@@ -2,10 +2,7 @@ import type {ColumnResizeScopeProps} from '@components/Table/columnResize/types'
 
 import React from 'react';
 
-/**
- * Owns the element the column widths are written on. A `display: contents` `div` (a `View` can't do that or expose its node),
- * so it adds no box while the custom properties still inherit into the header, rows and scroller.
- */
+/** Element the column widths are written on. A `display: contents` `div`, so it adds no box. */
 function ColumnResizeScope({onScopeElement, children}: ColumnResizeScopeProps) {
     if (!onScopeElement) {
         return children;

@@ -10,9 +10,8 @@ import React from 'react';
 const {INDICATOR_WIDTH} = CONST.TABLES.COLUMN_RESIZE;
 
 /**
- * Drag strip over a column's right edge, inside its header cell. Carries the line drawn down the table while this edge
- * is hovered or dragged, so it moves with the column on its own, through drags and sideways scrolls alike.
- * Renders nothing for non-draggable columns. A plain `div` because it relies on DOM pointer capture and focus handling.
+ * Drag the strip over a column's right edge. Carries the indicator line, so it moves with the column through drags and scrolls.
+ * A plain `div` because it relies on DOM pointer capture.
  */
 function ColumnResizeHandle({columnResize, columnKey}: ColumnResizeHandleProps) {
     const theme = useTheme();
@@ -28,7 +27,7 @@ function ColumnResizeHandle({columnResize, columnKey}: ColumnResizeHandleProps) 
                 aria-hidden
                 style={{
                     position: 'absolute',
-                    // Runs from the heading row's top to the lowest row's bottom; neither matches the handle's box, so the handle measures and writes both.
+                    // Spans heading row to lowest row, which the handle's box doesn't match, so both are measured.
                     top: `var(${RESIZE_INDICATOR_TOP_VARIABLE}, 0px)`,
                     height: `var(${RESIZE_INDICATOR_HEIGHT_VARIABLE}, 100%)`,
                     left: '50%',
@@ -36,7 +35,6 @@ function ColumnResizeHandle({columnResize, columnKey}: ColumnResizeHandleProps) 
                     width: INDICATOR_WIDTH,
                     backgroundColor: theme.iconMenu,
                     opacity: `var(${RESIZE_INDICATOR_OPACITY_VARIABLE}, 0)`,
-                    // The handle owns the pointer; this is only ever a picture of where the edge is.
                     pointerEvents: 'none',
                 }}
             />

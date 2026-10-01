@@ -1,6 +1,6 @@
 import type {ColumnResizeScopeProps} from '@components/Table/columnResize/types';
 
-/** No-op on native: there are no resizable columns, so children render as-is. */
+/** No-op on native. */
 function ColumnResizeScope({children}: ColumnResizeScopeProps) {
     return children;
 }

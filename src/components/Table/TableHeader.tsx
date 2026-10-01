@@ -130,7 +130,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
             style={[
                 styles.pv2,
                 styles.mh5,
-                // Same expression as the row box, so headings can't drift from their cells. An exact width, not a floor: each box's parent differs.
+                // Same expression as the rows, so headings stay aligned with their cells.
                 !!rowWidth && getColumnsWidthStyle(rowWidth),
                 styles.highlightBG,
                 styles.borderBottom,
@@ -144,10 +144,9 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                 // Use Grid on web when available (will override flex if supported)
                 styles.dGrid,
                 !shouldUseNarrowTableLayout && {gridTemplateColumns: gridTemplateColumns.join(' ')},
-                // `space-between` is only for the flex fallback. Grid would spread a narrowed column's leftover room between tracks and shift the
-                // headings off their cells, so pack to the start like the rows do.
+                // Grid with `space-between` would spread a narrowed column's leftover room between tracks, so pack to the start like the rows.
                 !!dynamicGridTemplateColumns && !shouldUseNarrowTableLayout && styles.justifyContentStart,
-                // Lifts the edges' lines, which hang below the header, above the rows that paint after it.
+                // Resize lines hang below the header, so keep them above the rows.
                 !!columnResize && styles.zIndex1,
                 style,
             ]}
@@ -217,7 +216,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         </View>
     );
 
-    // In the list header (not FlashList's sticky overlay) so it scrolls sideways with the columns. Only a backdrop; the inner header row carries the width.
+    // In the list header rather than FlashList's sticky overlay, so it scrolls sideways with the columns. The inner row carries the width.
     if (rendersColumnHeaderInListHeader(tableListMetadata)) {
         return <View style={styles.appBG}>{header}</View>;
     }
@@ -353,7 +352,7 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
         >
             {sortButton}
 
-            {/* Overhangs the cell's right edge; omitted from the sticky header's hidden twin to avoid duplicate handles. */}
+            {/* Skipped in the sticky header's hidden twin to avoid duplicate handles. */}
             {!isAccessibilityHidden && (
                 <ColumnResizeHandle
                     columnResize={columnResize}

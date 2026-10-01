@@ -118,10 +118,7 @@ function distributeAvailableWidth(desiredWidths: number[], maxWidths: number[], 
     return widths;
 }
 
-/**
- * Splits the width into equal whole-px columns summing exactly to it, remainder going to the first column.
- * Resizable columns need these numbers as a drag starting point, whereas static equal columns are just styled `1fr`.
- */
+/** Equal whole-px widths summing exactly to `availableWidth`. The remainder goes to the first column. */
 function distributeEqualWidths(columnCount: number, availableWidth: number): number[] {
     if (columnCount <= 0) {
         return [];

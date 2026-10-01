@@ -31,9 +31,8 @@ type ColumnHeaderPlacementParams = {
     isColumnHeaderHiddenInNarrowLayout: boolean;
 
     /**
-     * Whether the columns sit in a horizontal scroller, either because they overflow the table or because they are
-     * resizable and a drag may overflow it at any moment. FlashList's sticky-row overlay can't follow them sideways, so
-     * the column header moves into the list header instead (see `TableBody`).
+     * Whether the columns sit in a horizontal scroller because they overflow or are resizable. FlashList's sticky-row overlay
+     * can't follow them sideways, so the column header moves into the list header instead (see `TableBody`).
      */
     hasHorizontalScrollContainer: boolean;
 };

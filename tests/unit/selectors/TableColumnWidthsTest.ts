@@ -26,8 +26,7 @@ describe('tableColumnWidthsSelector', () => {
 
     // Given a table that hasn't opted into resizing, which is most of them and every table on native
     // When its widths are selected
-    // Then there are none regardless of what is stored, so those tables hold a value that never changes and are never
-    // re-rendered by somebody else's drag
+    // Then there are none regardless of what is stored, so another table's drag never re-renders them
     it('returns nothing for a table that has not opted into resizing', () => {
         expect(tableColumnWidthsSelector(undefined)(storedWidths)).toBeUndefined();
     });
@@ -41,8 +40,7 @@ describe('tableColumnWidthsSelector', () => {
 
     // Given a drag in one table, which rewrites the root object holding every table's widths
     // When another table re-selects its own
-    // Then it gets back the very same object it had before. This is the whole point of selecting: without it every
-    // table in the app would re-render on every drag in any of them.
+    // Then it gets back the very same object, so other tables don't re-render on every drag
     it('returns the same entry when a different table is resized', () => {
         const selectTagWidths = tableColumnWidthsSelector(TAGS_TABLE_ID);
         const storedWidthsAfterOtherTableResized = {...storedWidths, [TAXES_TABLE_ID]: {name: 420}};

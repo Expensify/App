@@ -74,16 +74,13 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
      */
     dynamicGridTemplateColumns: string[] | undefined;
 
-    /** Row width when the columns overflow (scrolls horizontally); `undefined` when they fit. A CSS expression while resizable, so drags need no re-render. */
+    /** Row width when the columns overflow and the list scrolls horizontally, or `undefined` when they fit. A CSS expression while resizable, so drags need no re-render. */
     scrollWidth: number | string | undefined;
 
-    /**
-     * Width of the row's own box (background, separators, corners) while resizable, else `undefined`.
-     * The list sizes rows from a measurement, so without this the background wouldn't follow a drag.
-     */
+    /** Row box width while resizable, so the row background follows a drag. `undefined` otherwise. */
     rowWidth: string | undefined;
 
-    /** Lets the header render column edge handles. `undefined` when resizing is off (including native and narrow layouts). */
+    /** Lets the header render column edge handles. `undefined` when resizing is off, which includes native and narrow layouts. */
     columnResize: ColumnResizeController | undefined;
 
     /** Measured width of the area the table lays out into. Content-sized columns only. `0` until the first layout. */

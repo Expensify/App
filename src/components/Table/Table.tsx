@@ -385,11 +385,8 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     // static tracks and never measure the table.
     const isDynamicSizingEnabled = shouldUseDynamicColumns && !shouldUseNarrowTableLayout && canMeasureText();
 
-    // Resizing rides on dynamic sizing: a dragged width is honored by the same resolver that sizes a column from its
-    // content, so a table that isn't being sized has nothing to apply one to.
+    // Dragged widths are applied by the dynamic sizing resolver, so resizing requires it.
     const isColumnResizingEnabled = isDynamicSizingEnabled && !!columnResizingID;
-    // Narrowed to this table's own entry, because every table subscribes to the same key: without the selector a drag
-    // in one table would rewrite the root object and re-render every other table in the app, resizable or not.
     const columnWidthsSelector = useMemo(() => tableColumnWidthsSelector(columnResizingID), [columnResizingID]);
     const [columnWidthOverrides] = useOnyx(ONYXKEYS.TABLE_COLUMN_WIDTHS, {selector: columnWidthsSelector});
 
@@ -461,8 +458,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const hasColumnHeaderElement = !!tableHeaderElement;
     const hasRows = processedData.length > 0;
     const isColumnHeaderHiddenInNarrowLayout = shouldUseNarrowTableLayout && !title;
-    // Resizable tables keep the scroller even while their columns fit: a drag can overflow the table without a React render,
-    // and switching the column header's placement mid-drag would remount the handle under the pointer.
+    // Resizable tables always get the scroller: a drag can overflow without a render, and moving the header mid-drag would remount the handle.
     const hasHorizontalScrollContainer = isColumnResizingEnabled || !!dynamicScrollWidth;
 
     const tableListMetadata = useMemo(

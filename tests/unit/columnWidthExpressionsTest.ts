@@ -45,16 +45,15 @@ describe('columnWidthExpressions', () => {
 
         // Given columns whose widths are custom properties, plus the chrome around them
         // When the scrolled content's width is built
-        // Then it sums to an expression floored at the table's width, so narrowing a column never shrinks the table
-        // and widening one past its edge starts the horizontal scroller without React rendering anything
+        // Then it sums to an expression floored at the table's width, so narrowing never shrinks the table
+        // and widening past its edge scrolls without a React render
         it('sums the columns and the chrome, floored at the table width', () => {
             expect(getColumnsWidthExpression(['var(--table-column-width-name, 200px)', '80px'], 64, '100%')).toBe('max(100%, calc(var(--table-column-width-name, 200px) + 80px + 64px))');
         });
 
         // Given a row's own box, whose containing block is the cell the list positions it in
         // When its width is built
-        // Then the floor is a length rather than `100%`, because a percentage there resolves against a block that is
-        // already the row's margin wider than the row and would leave it overhanging its cell
+        // Then the floor is a px length, since `100%` there includes the row's margin and would overhang its cell
         it('takes a length floor for a box measured against its own cell', () => {
             expect(getColumnsWidthExpression(['var(--table-column-width-name, 200px)'], 24, '860px')).toBe('max(860px, calc(var(--table-column-width-name, 200px) + 24px))');
         });

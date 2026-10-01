@@ -60,36 +60,33 @@ type UseDynamicColumnWidthsParams<DataType extends TableData, ColumnKey extends 
     /** Whether the leading selection checkbox column is rendered, since it takes width from the data columns. */
     hasSelectionColumn: boolean;
 
-    /** Whether columns are resizable; forces px tracks from custom properties, since a drag needs a starting width. */
+    /** Whether columns are resizable, which forces px tracks read from custom properties. */
     isColumnResizingEnabled: boolean;
 
-    /** Widths the user already dragged this table's columns to. Each one is honored as if the column declared it. */
+    /** Widths the user dragged this table's columns to. */
     columnWidthOverrides: ColumnWidthOverrides | undefined;
 };
 
 type UseDynamicColumnWidthsResult = {
-    /** Grid tracks for the header and rows. `undefined` keeps the static tracks (fixed widths and `1fr` shares). */
+    /** Grid tracks for the header and rows. `undefined` keeps the static tracks of fixed widths and `1fr` shares. */
     gridTemplateColumns: string[] | undefined;
 
-    /** Row width when columns overflow the table. A CSS expression while resizable, so drag overflow scrolls without a re-render. */
+    /** Row width when columns overflow. A CSS expression while resizable, so drags scroll without a re-render. */
     scrollWidth: number | string | undefined;
 
-    /**
-     * Row box width (background, separators, corners) while resizable, else `undefined`. Needed since the list sizes rows from
-     * a measurement. Unlike `scrollWidth`, excludes the row's outer margin.
-     */
+    /** Row box width while resizable, which is `scrollWidth` minus the outer margin. `undefined` otherwise. */
     rowWidth: string | undefined;
 
     /** The columns whose right edge the user can drag, in column order. Empty unless the columns are resizable. */
     resizableColumns: ResizableColumn[];
 
-    /** What each column resolved to, which is the width a drag on its edge starts from. */
+    /** Each column's resolved width, which a drag starts from. */
     resolvedColumnWidths: Record<string, number>;
 };
 
 /**
- * First column of the trailing headless run (arrow, menu, icon), which absorbs leftover width to stay pinned right.
- * `undefined` when the last column has a heading; leftover room then stays empty.
+ * First column of the trailing headless run, like an arrow, menu or icon, which absorbs leftover width to stay pinned right.
+ * `undefined` when the last column has a heading, and leftover room then stays empty.
  */
 function getGrowableColumnKey<DataType extends TableData, ColumnKey extends string>(columns: Array<TableColumn<ColumnKey, DataType>>): ColumnKey | undefined {
     let growableColumnKey: ColumnKey | undefined;
@@ -288,8 +285,7 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
         }));
 
         const {widths, shouldScrollHorizontally} = calculateDynamicColumnWidths(constraints, availableWidth);
-        // The columns fit equally, which is exactly what the static `1fr` tracks already do — unless the user can drag
-        // them, which needs each column to resolve to a width the drag can start from.
+        // Equal columns are what the static `1fr` tracks already do, but a drag needs px widths to start from.
         if (widths.length === 0 && !isColumnResizingEnabled) {
             return noDynamicWidths;
         }
@@ -314,10 +310,8 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
                 return {...noDynamicWidths, gridTemplateColumns, resolvedColumnWidths};
             }
 
-            // The rows are wider than the table, so the caller scrolls them horizontally at exactly the width they need. This
-            // adds back all of the row chrome subtracted above, margin included: the rows keep their horizontal margin inside
-            // the scrolled content, so leaving it out would make the content container too narrow and clip the rows' trailing
-            // edge at the end of the scroll.
+            // Rows overflow, so scroll at exactly their width. Margin is included because rows keep it inside the scrolled
+            // content, and without it their trailing edge gets clipped.
             const scrollWidth = resolvedWidths.reduce((total, width) => total + width, 0) + fixedColumnsWidth + selectionColumnWidth + totalGapWidth + rowChromeWidth;
 
             return {...noDynamicWidths, gridTemplateColumns, scrollWidth, resolvedColumnWidths};
@@ -339,20 +333,16 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
             columnWidthOverrides,
         });
 
-        // The row's width is summed from the widths rather than from the tracks, so what the growable track grows into is
-        // the room the row actually has and not room the sum went and asked for.
+        // Row width sums the widths, not the tracks, so the growable track only grows into real leftover room.
         const gridTemplateColumns = columnWidthValues.map((widthValue, index) => (columns.at(index)?.key === growableColumnKey ? getGrowableColumnTrack(widthValue) : widthValue));
 
-        // Every width the row lays out, in the order the header and the rows render them. The selection checkbox takes a
-        // column of the row like any other.
         const rowWidthValues = hasSelectionColumn ? [`${selectionColumnWidth}px`, ...columnWidthValues] : columnWidthValues;
 
         // Scroll at the live column sum, so a drag that widens a column past the table's edge starts scrolling mid-drag.
         return {
             gridTemplateColumns,
             scrollWidth: getColumnsWidthExpression(rowWidthValues, totalGapWidth + rowChromeWidth, '100%'),
-            // The same sum without the row's outer margin, floored at the row's full-width box rather than at `100%` —
-            // which for a row resolves against the cell the list positions it in, and so is already the margin too wide.
+            // Without the outer margin. Floored at px because `100%` resolves against the list cell, which includes the margin.
             rowWidth: getColumnsWidthExpression(rowWidthValues, totalGapWidth + rowPaddingWidth, `${tableWidth - rowMarginWidth}px`),
             resizableColumns,
             resolvedColumnWidths: overriddenColumnWidths,
