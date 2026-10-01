@@ -5,7 +5,7 @@ import {useSearchSelectionActions} from '@components/Search/SearchContext';
 
 import {canIOUBePaid as canIOUBePaidAction} from '@libs/actions/IOU/ReportWorkflow';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
+import {getTotalAmountForIOUReportPreviewButton, isEveryReportTransactionSelected} from '@libs/MoneyRequestReportUtils';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {isSubmitPolicy} from '@libs/PolicyUtils';
@@ -123,7 +123,18 @@ function useSelectionModeReportActions({
     const nonPendingDeleteTransactions = transactions.filter((t): t is OnyxTypes.Transaction => !!t && (isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE));
 
     const getCanIOUBePaid = (onlyShowPayElsewhere = false) =>
-        canIOUBePaidAction(report, chatReport, policy, bankAccountList, currentUserLogin ?? '', currentUserAccountID, transactions, onlyShowPayElsewhere, undefined, invoiceReceiverPolicy);
+        canIOUBePaidAction(
+            report,
+            chatReport,
+            policy,
+            bankAccountList,
+            currentUserLogin ?? '',
+            currentUserAccountID,
+            transactions,
+            onlyShowPayElsewhere,
+            isChatReportArchived,
+            invoiceReceiverPolicy,
+        );
     const canIOUBePaid = getCanIOUBePaid();
     const onlyShowPayElsewhere = !canIOUBePaid && getCanIOUBePaid(true);
     const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;
@@ -184,7 +195,7 @@ function useSelectionModeReportActions({
     const hasApproveAction = primaryAction === CONST.REPORT.PRIMARY_ACTIONS.APPROVE || secondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE);
     const hasPayAction = primaryAction === CONST.REPORT.PRIMARY_ACTIONS.PAY || secondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.PAY);
 
-    const allExpensesSelected = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactions.length;
+    const allExpensesSelected = isEveryReportTransactionSelected(transactions, selectedTransactionIDs);
 
     const selectedTransactions = transactions.filter((transaction) => selectedTransactionIDs.includes(transaction.transactionID));
     const hasSelectedTransactionsOnSubmitPolicy = isSubmitPolicy(policy) && selectedTransactions.length > 0;

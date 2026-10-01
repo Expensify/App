@@ -183,7 +183,7 @@ function TransactionListItemWide<TItem extends ListItem>({
                         policyTagLists={policyTagLists}
                         shouldShowTooltip={showTooltip}
                         onButtonPress={handleActionButtonPress}
-                        onCheckboxPress={() => onCheckboxPress?.(item)}
+                        onCheckboxPress={(_transactionID, shiftKey) => onCheckboxPress?.(item, undefined, shiftKey)}
                         shouldUseNarrowLayout={false}
                         shouldUseFullHeightEditableCellHoverTarget
                         shouldSkipDeferRBR

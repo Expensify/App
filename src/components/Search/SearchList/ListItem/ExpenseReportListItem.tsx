@@ -369,9 +369,9 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         shouldShowMarkAsDoneCopy,
     ]);
 
-    const handleSelectionButtonPress = useCallback(() => {
-        onSelectionButtonPress?.(reportItem as unknown as TItem);
-    }, [onSelectionButtonPress, reportItem]);
+    const handleSelectionButtonPress = (shiftKey?: boolean) => {
+        onSelectionButtonPress?.(item, undefined, shiftKey);
+    };
 
     const listItemPressableStyle = useMemo(
         () => [
@@ -425,7 +425,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                         width={12}
                         height={12}
                     />
-                    <Text style={[isLargeScreenWidth ? styles.textMicro : styles.mutedNormalTextLabel, styles.textDanger]}>{translate('iou.rejectReport.rejectedReportMessage')}</Text>
+                    <Text style={[isLargeScreenWidth ? styles.textMicro : styles.mutedNormalTextLabel, {color: theme.textError}]}>{translate('iou.rejectReport.rejectedReportMessage')}</Text>
                 </View>
             );
         }
@@ -441,7 +441,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                     width={12}
                     height={12}
                 />
-                <Text style={[isLargeScreenWidth ? styles.textMicro : styles.mutedNormalTextLabel, styles.textDanger]}>
+                <Text style={[isLargeScreenWidth ? styles.textMicro : styles.mutedNormalTextLabel, {color: theme.textError}]}>
                     {translate('reportViolations.reportContainsExpensesWithViolations')}
                 </Text>
             </View>
@@ -456,10 +456,10 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         styles.mr1,
         styles.textMicro,
         styles.mutedNormalTextLabel,
-        styles.textDanger,
         isLargeScreenWidth,
         expensifyIcons.DotIndicator,
         theme.danger,
+        theme.textError,
         translate,
     ]);
 

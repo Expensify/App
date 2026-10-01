@@ -7,6 +7,7 @@ import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import type {ActionHandledType} from '@hooks/useHoldMenuSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -243,6 +244,7 @@ function Search({
     const previousReportActions = usePrevious(reportActions);
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
+    const delegateAccountID = useDelegateAccountID();
 
     const savedSearchSelector = useCallback(
         (searches: OnyxEntry<SaveSearch>) => {
@@ -487,6 +489,7 @@ function Search({
             shouldCalculateTotals,
             prevReportsLength: filteredDataLength,
             isLoading: !!searchResults?.search?.isLoading,
+            shouldSaveRecentSearch: searchRequestOffset === 0 && !shouldUseLiveData,
         });
 
         // We don't need to run the effect on change of isFocused.
@@ -621,6 +624,7 @@ function Search({
                     personalDetails,
                     isSelfTourViewed,
                     hasCompletedGuidedSetupFlow,
+                    delegateAccountID,
                     IOUTransactionID: item?.reportAction?.childReportID,
                     shouldNavigate: shouldOpenTransactionThread && !shouldOpenTransactionThreadInNewTab,
                 });
@@ -684,12 +688,19 @@ function Search({
                             personalDetails,
                             isSelfTourViewed,
                             hasCompletedGuidedSetupFlow,
+                            delegateAccountID,
                             IOUTransactionID: firstTransaction?.reportAction?.childReportID,
                             transactionPreviewData,
                             shouldNavigate: false,
                         });
                     } else {
-                        setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData, getCurrencyDecimals, firstTransaction?.reportAction?.childReportID);
+                        setOptimisticDataForTransactionThreadPreview(
+                            firstTransaction,
+                            transactionPreviewData,
+                            getCurrencyDecimals,
+                            delegateAccountID,
+                            firstTransaction?.reportAction?.childReportID,
+                        );
                     }
                 }
 
@@ -751,7 +762,7 @@ function Search({
             markReportRHPWidth(reportID, 'wide');
 
             if (isTransactionItem && transactionPreviewData) {
-                setOptimisticDataForTransactionThreadPreview(transactionItem, transactionPreviewData, getCurrencyDecimals, transactionItem?.reportAction?.childReportID);
+                setOptimisticDataForTransactionThreadPreview(transactionItem, transactionPreviewData, getCurrencyDecimals, delegateAccountID, transactionItem?.reportAction?.childReportID);
             }
 
             const route = ROUTES.SEARCH_REPORT.getRoute({reportID, backTo});
@@ -776,6 +787,7 @@ function Search({
             currentSearchKey,
             getCurrencyDecimals,
             conciergeChat,
+            delegateAccountID,
         ],
     );
 
@@ -1417,8 +1429,10 @@ function Search({
         <SearchScopeProvider>
             <SearchWriteActionsProvider
                 filteredData={filteredData}
+                renderedData={stableSortedData}
                 totalSelectableItemsCount={totalSelectableItemsCount}
                 searchResults={searchResults}
+                searchHash={hash}
                 transactions={transactions}
                 isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                 type={type}

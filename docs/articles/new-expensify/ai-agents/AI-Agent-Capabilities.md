@@ -173,6 +173,18 @@ To accomplish this, include phrases like:
 
 ---
 
+## How to write instructions that delete expense reports
+
+**Goal:** Deletes an unsubmitted expense report the requester owns, after they confirm the deletion. Only reports that are still open or in draft can be deleted — a report that has been submitted, approved, reimbursed, or closed cannot be. Deleting an individual expense rather than a whole report is covered by the edit-expenses capability.
+
+To accomplish this, include phrases like:
+- Delete this report
+- Remove the report I just created
+- Cancel this expense report
+- Delete the report named Q1 Travel
+
+---
+
 ## How to write instructions that create expenses
 
 **Goal:** Creates a new expense — a cash or receipt expense, or a distance/mileage entry — for the person who asked, using the details in their message.
@@ -212,6 +224,20 @@ To accomplish this, include phrases like:
 - Acknowledge receipt of the report with a message
 - Post a summary of the analysis performed before approving
 - Leave a reminder for the submitter about next steps
+
+---
+
+## How to write instructions that send direct messages to workspace members
+
+**Goal:** Opens a 1:1 direct message with any workspace member and sends a message from the agent, creating the DM thread if one does not already exist.
+
+To accomplish this, include phrases like:
+- Send each employee a reminder to submit their expenses at the end of the month
+- Message the submitter directly when their report is rejected
+- Notify individual workspace members of a workspace change
+- DM each person with outstanding reports a personalized nudge
+- Send a private message to the submitter when a receipt is missing
+- Reach out to each team member individually with their spending summary
 
 ---
 
@@ -269,4 +295,4 @@ To accomplish this, include phrases like:
 
 ---
 
-*This reference covers all 20 AI Agent capabilities.*
+*This reference covers all 22 AI Agent capabilities.*

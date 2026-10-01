@@ -7511,6 +7511,7 @@ describe('actions/Policy', () => {
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                reportTransactions: [],
                 hasOwnedPaidPolicy: false,
             });
             await waitForBatchedUpdates();
@@ -7568,6 +7569,7 @@ describe('actions/Policy', () => {
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                reportTransactions: [],
                 hasOwnedPaidPolicy,
                 currentUserDisplayName: undefined,
             });
@@ -7604,6 +7606,7 @@ describe('actions/Policy', () => {
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                reportTransactions: [],
                 hasOwnedPaidPolicy: false,
             });
             expect(result).toBeUndefined();
@@ -7664,6 +7667,7 @@ describe('actions/Policy', () => {
                 reportActionsList,
                 doesEmployeePersonalDetailExist: true,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                reportTransactions: [],
                 hasOwnedPaidPolicy: false,
             });
 
@@ -7720,6 +7724,7 @@ describe('actions/Policy', () => {
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                reportTransactions: [],
                 hasOwnedPaidPolicy: false,
             });
             await waitForBatchedUpdates();
@@ -7764,6 +7769,11 @@ describe('actions/Policy', () => {
                 policyID: 'oldPolicyID',
                 currency: CONST.CURRENCY.USD,
                 total: 5000,
+                reimbursableTotal: 5000,
+                nonReimbursableTotal: 0,
+                unheldTotal: 5000,
+                unheldReimbursableTotal: 5000,
+                unheldNonReimbursableTotal: 0,
             };
 
             const transaction: Transaction = {
@@ -7792,6 +7802,7 @@ describe('actions/Policy', () => {
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                reportTransactions: [transaction],
                 hasOwnedPaidPolicy: false,
             });
             await waitForBatchedUpdates();
@@ -7809,6 +7820,31 @@ describe('actions/Policy', () => {
 
             expect(optimisticTransaction?.amount).toBe(-5000);
             expect(optimisticTransaction?.convertedAmount).toBe(-6000);
+
+            // The optimistic report merge has to flip every total column too, not just `total`, because the Total on
+            // screen is read from `reimbursableTotal` in preference to `total`.
+            const optimisticReport: OnyxEntry<Report> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+            expect(optimisticReport?.type).toBe(CONST.REPORT.TYPE.EXPENSE);
+            expect(optimisticReport?.total).toBe(-5000);
+            expect(optimisticReport?.reimbursableTotal).toBe(-5000);
+            expect(optimisticReport?.unheldTotal).toBe(-5000);
+            expect(optimisticReport?.unheldReimbursableTotal).toBe(-5000);
+
+            // `toBe` is `Object.is`, so the already-zero columns have to be matched as -0.
+            expect(optimisticReport?.nonReimbursableTotal).toBe(-0);
+            expect(optimisticReport?.unheldNonReimbursableTotal).toBe(-0);
+
+            // And the Total rendered for the converted report is positive rather than -$50.00
+            expect(ReportUtils.getMoneyRequestSpendBreakdown(optimisticReport).totalDisplaySpend).toBe(5000);
         });
     });
 });
