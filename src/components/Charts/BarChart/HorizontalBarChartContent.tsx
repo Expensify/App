@@ -166,7 +166,7 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
 
     const valueDomain = getNiceValueDomain(data, VictoryTheme.axis.tickCount);
 
-    const {formatValue} = useChartLabelFormats({
+    const {formatValue, formatCompactValue} = useChartLabelFormats({
         data,
         unit: yAxisUnit,
         unitPosition: yAxisUnitPosition,
@@ -304,7 +304,7 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
         }
         let widest = 0;
         for (const tick of getNiceValueTicks(valueDomain, VictoryTheme.axis.tickCount)) {
-            widest = Math.max(widest, measureTextWidth(formatValue(tick), fontManager, variables.iconSizeExtraSmall));
+            widest = Math.max(widest, measureTextWidth(formatCompactValue(tick), fontManager, variables.iconSizeExtraSmall));
         }
         return widest / 2;
     })();
@@ -325,7 +325,7 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
                     fontSize={variables.iconSizeExtraSmall}
                     fontManager={fontManager}
                     labelColor={theme.textSupporting}
-                    formatValue={formatValue}
+                    formatValue={formatCompactValue}
                 />
                 <ChartYAxisLabels
                     yTicks={chartData.map((point) => point.y)}

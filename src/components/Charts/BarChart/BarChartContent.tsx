@@ -27,11 +27,11 @@ function BarChartOrientationDispatcher({isHorizontal = false, canFallBackToHoriz
     const [containerWidth, setContainerWidth] = useState(0);
     const {data, yAxisUnit, yAxisUnitPosition = 'left'} = props;
 
-    const {formatValue} = useChartLabelFormats({data, unit: yAxisUnit, unitPosition: yAxisUnitPosition});
+    const {formatCompactValue} = useChartLabelFormats({data, unit: yAxisUnit, unitPosition: yAxisUnitPosition});
     const measurements = useChartLabelMeasurements(data, fontManager, FONT_SIZE);
 
     // Predict the vertical chart's plot geometry from the container width so the fit decision matches what it would measure after mounting.
-    const yAxisLabelWidth = getYAxisLabelWidth(data, formatValue, fontManager, FONT_SIZE, VERTICAL_BAR_DOMAIN_PADDING);
+    const yAxisLabelWidth = getYAxisLabelWidth(data, formatCompactValue, fontManager, FONT_SIZE, VERTICAL_BAR_DOMAIN_PADDING);
     const plotBounds = getVerticalBarPlotBounds(containerWidth, yAxisLabelWidth + GLYPH_PADDING);
 
     const {labelRotation} = useChartLabelLayout({
