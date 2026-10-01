@@ -32,8 +32,6 @@ function ScanFooter({
     return (
         <ExpenseFormLayoutContext.Provider value={dropdownRowsExpenseFormLayout}>
             <View style={isCompactMode ? styles.flex1 : undefined}>
-                {/* The wrapper is kept in the tree for both modes so toggling compact mode doesn't remount (and reload) the receipt.
-                    `dContents` keeps it transparent to layout, which the compact receipt needs to grow against the `flex1` parent. */}
                 <View style={isCompactMode ? styles.dContents : styles.mv2}>
                     <ReceiptSection
                         policy={policy}
