@@ -92,7 +92,7 @@ function hasBrokenPlaidConnection(accountData: AccountData | undefined): boolean
  * - Provisioned as the Expensify Card settlement account; or
  * - Linked policy is on Expensify Card waitlist (NVP_EXPENSIFY_ON_CARD_WAITLIST)
  */
-function canLinkPlaid(bankAccount: {isExpensifyCardSettlementAccount?: boolean; accountData?: AccountData} | null | undefined, onCardWaitlistPolicyIDs: string[] | undefined): boolean {
+function canLinkPlaid(bankAccount: {isExpensifyCardSettlementAccount?: boolean; accountData?: AccountData} | null | undefined, cardOnWaitlistPolicyIDs: Set<string> | undefined): boolean {
     if (!bankAccount) {
         return false;
     }
@@ -102,12 +102,12 @@ function canLinkPlaid(bankAccount: {isExpensifyCardSettlementAccount?: boolean; 
     }
 
     const policyID = bankAccount.accountData?.additionalData?.policyID;
-    if (policyID && onCardWaitlistPolicyIDs?.includes(policyID)) {
+    if (policyID && cardOnWaitlistPolicyIDs?.has(policyID)) {
         return true;
     }
 
     for (const id of bankAccount.accountData?.policyIDs ?? []) {
-        if (onCardWaitlistPolicyIDs?.includes(id)) {
+        if (cardOnWaitlistPolicyIDs?.has(id)) {
             return true;
         }
     }
