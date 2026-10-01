@@ -35,7 +35,7 @@ Expensify matches vendors by email address. QuickBooks Online requires unique na
 4. If the record belongs to someone else or is a customer or employee, choose one of these fixes:
    - Rename the conflicting record so Expensify can automatically create the vendor/supplier under the original name.
    - Create a vendor/supplier with a different, unique name and the submitter's exact email address.
-5. Sync the QuickBooks Online connection in Expensify, then retry exporting the report.
+5. In Expensify, select **Sync now** for the QuickBooks Online connection. Once the sync completes, retry exporting the report.
 
 ---
 
@@ -51,4 +51,4 @@ Yes. A customer or employee record can use the name Expensify is trying to give 
 
 ## Can I Fix This by Disabling Automatic Vendor Creation?
 
-Disabling automatic creation does not resolve the name conflict or create a matching vendor/supplier. If you manage vendors manually, create a vendor/supplier with a unique name and the submitter's exact email, then sync and retry the export.
+Disabling automatic creation does not resolve the name conflict or create a matching vendor/supplier. If you manage vendors manually, create a vendor/supplier with a unique name and the submitter's exact email, then select **Sync now** in Expensify and retry the export.

@@ -35,7 +35,7 @@ Expensify matches vendors by email address. QuickBooks Online requires unique na
 4. If the record belongs to someone else or is a customer or employee, choose one of these fixes:
    - Rename the conflicting record so Expensify can automatically create the vendor/supplier under the original name.
    - Create a vendor/supplier with a different, unique name and the submitter's exact email address.
-5. Sync the QuickBooks Online connection in Expensify, then retry exporting the report.
+5. In Expensify, select **Sync Now** for the QuickBooks Online connection. Once the sync completes, retry exporting the report.
 
 ---
 
@@ -43,7 +43,7 @@ Expensify matches vendors by email address. QuickBooks Online requires unique na
 
 ## Can I Retry the Export?
 
-Yes. After correcting the records in QuickBooks Online, sync the connection in Expensify and retry exporting the report.
+Yes. After correcting the records in QuickBooks Online, select **Sync Now** in Expensify and retry exporting the report.
 
 ## Does ONL583 Mean the Vendor Does Not Exist?
 
@@ -51,8 +51,8 @@ Not necessarily. A vendor/supplier may exist under a different email, or the nam
 
 ## Can I Fix This by Disabling Automatic Vendor Creation?
 
-Disabling automatic creation does not resolve the name conflict or create a matching vendor/supplier. If you manage vendors manually, create a vendor/supplier with a unique name and the submitter's exact email, then sync and retry the export.
+Disabling automatic creation does not resolve the name conflict or create a matching vendor/supplier. If you manage vendors manually, create a vendor/supplier with a unique name and the submitter's exact email, then select **Sync Now** in Expensify and retry the export.
 
 ## Do I Need to Reconnect QuickBooks Online?
 
-No. Resolve the name conflict or correct the vendor/supplier email, then sync and retry the export.
+No. Resolve the name conflict or correct the vendor/supplier email, then select **Sync Now** in Expensify and retry the export.
