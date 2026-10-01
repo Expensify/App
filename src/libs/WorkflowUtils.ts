@@ -27,7 +27,7 @@ import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import {getConnectedHRProvider, getHRAdvancedModeFinalApprover, getHRFinalApprover, isAnyHRConnected, isHRAdvancedMode, isAnyHRReadOnlyWorkflowMode} from './merge/HRUtils';
 import {getConnectedATSProvider, isAnyRecruitingReadOnlyWorkflowMode} from './merge/RecruitingUtils';
 import {rand64} from './NumberUtils';
-import {getDefaultApprover, isExpensifyTeam, shouldFilterExpensifyTeam} from './PolicyUtils';
+import {getDefaultApprover, isExpensifyTeam, isNonMemberApprover, shouldFilterExpensifyTeam} from './PolicyUtils';
 import {fromIndexMap, isApprovalWorkflowRule, isRuleFilterComparison, toIndexMap} from './RuleUtils';
 
 const INITIAL_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
@@ -229,7 +229,9 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
             availableMembers.push(member);
         }
 
-        if (!submitsTo || (!employees[submitsTo] && !hrAdvancedModeFinalApproverEmail)) {
+        // A member who submits to someone no longer on the workspace is still shown under that approver, flagged,
+        // so the admin can see the broken workflow and fix it instead of it being hidden.
+        if (!submitsTo) {
             continue;
         }
 
@@ -246,11 +248,14 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
                         avatar: personalDetailsByEmail[effectiveSubmitsTo]?.avatar,
                         displayName: personalDetailsByEmail[effectiveSubmitsTo]?.displayName ?? effectiveSubmitsTo,
                         isCircularReference: false,
+                        ...(isNonMemberApprover(policy, effectiveSubmitsTo) ? {isNotWorkspaceMember: true} : {}),
                     },
                 ];
             }
             if (shouldFilterOutExpensifyTeam) {
-                approvers = approvers.filter((approver) => !isExpensifyTeam(approver.email));
+                // Keep a non-member approver even when it is an Expensify team email, so the workflow never ends up
+                // without approvers and the admin can still see and fix it.
+                approvers = approvers.filter((approver) => !!approver.isNotWorkspaceMember || !isExpensifyTeam(approver.email));
             }
             if (hrAdvancedModeFinalApproverEmail) {
                 const lastApprover = approvers.at(-1);
@@ -435,11 +440,15 @@ type UpdateWorkflowDataOnApproverRemovalParams = {
     /**
      * The email of the approver being removed
      */
-    removedApprover: PersonalDetails;
+    removedApproverEmail: string;
     /**
      * The email of the workspace owner
      */
-    ownerDetails: PersonalDetails;
+    ownerEmail: string;
+    /**
+     * Personal details of the workspace owner, used for the owner's avatar and display name when they replace the removed approver
+     */
+    ownerDetails?: PersonalDetails;
 };
 
 type UpdateWorkflowDataOnApproverRemovalResult = Array<
@@ -475,6 +484,11 @@ function convertApprovalWorkflowToPolicyEmployees({
     const pendingAction = type === CONST.APPROVAL_WORKFLOW.TYPE.CREATE ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
 
     for (const [index, approver] of approvalWorkflow.approvers.entries()) {
+        // A non-member approver has no employee entry to update, and sending one would add a fake employee
+        if (approver.isNotWorkspaceMember) {
+            continue;
+        }
+
         const nextApprover = approvalWorkflow.approvers.at(index + 1);
         const forwardsTo = type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? '' : (nextApprover?.email ?? '');
         const approvalLimit = type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? null : approver.approvalLimit;
@@ -539,7 +553,11 @@ function convertApprovalWorkflowToPolicyEmployees({
     // For each approver to remove, we update the employee list with forwardsTo set to ''
     // which will reset the forwardsTo on the backend.
     if (approversToRemove) {
-        for (const {email} of approversToRemove) {
+        for (const {email, isNotWorkspaceMember} of approversToRemove) {
+            if (isNotWorkspaceMember) {
+                continue;
+            }
+
             updatedEmployeeList[email] = {
                 ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : {email}),
                 forwardsTo: '',
@@ -551,12 +569,15 @@ function convertApprovalWorkflowToPolicyEmployees({
     return updatedEmployeeList;
 }
 
-function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover, ownerDetails}: UpdateWorkflowDataOnApproverRemovalParams): UpdateWorkflowDataOnApproverRemovalResult {
+function updateWorkflowDataOnApproverRemoval({
+    approvalWorkflows,
+    removedApproverEmail,
+    ownerEmail,
+    ownerDetails,
+}: UpdateWorkflowDataOnApproverRemovalParams): UpdateWorkflowDataOnApproverRemovalResult {
     const defaultWorkflow = approvalWorkflows.find((workflow) => workflow.isDefault);
-    const removedApproverEmail = removedApprover.login;
-    const ownerEmail = ownerDetails.login;
-    const ownerAvatar = ownerDetails.avatar ?? '';
-    const ownerDisplayName = ownerDetails.displayName ?? '';
+    const ownerAvatar = ownerDetails?.avatar ?? '';
+    const ownerDisplayName = ownerDetails?.displayName ?? ownerEmail;
 
     return approvalWorkflows.flatMap((workflow) => {
         // Drop any workflow that has no approvers. There is nothing to update on it, and passing it to
@@ -581,7 +602,7 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
                             ...currentApprover,
                             avatar: ownerAvatar,
                             displayName: ownerDisplayName,
-                            email: ownerEmail ?? '',
+                            email: ownerEmail,
                         },
                     ],
                 };
@@ -643,10 +664,10 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
                 });
 
                 const newApprover = {
-                    email: ownerEmail ?? '',
+                    email: ownerEmail,
                     forwardsTo: undefined,
-                    avatar: ownerDetails?.avatar ?? '',
-                    displayName: ownerDetails?.displayName ?? '',
+                    avatar: ownerAvatar,
+                    displayName: ownerDisplayName,
                     isCircularReference: workflow.approvers.at(removedApproverIndex)?.isCircularReference,
                 };
 
@@ -686,7 +707,7 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
                             ...currentApprover,
                             avatar: ownerAvatar,
                             displayName: ownerDisplayName,
-                            email: ownerEmail ?? '',
+                            email: ownerEmail,
                         },
                     ],
                 };
@@ -732,10 +753,10 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
             });
 
             const newApprover = {
-                email: ownerEmail ?? '',
+                email: ownerEmail,
                 forwardsTo: undefined,
-                avatar: ownerDetails?.avatar ?? '',
-                displayName: ownerDetails?.displayName ?? '',
+                avatar: ownerAvatar,
+                displayName: ownerDisplayName,
                 isCircularReference: workflow.approvers.at(removedApproverIndex)?.isCircularReference,
             };
 
@@ -1696,19 +1717,21 @@ function convertApprovalWorkflowRulesToWorkflows({
             availableMembers.push(member);
         }
 
+        // Mirrors the legacy builder: a submitter whose approver is no longer on the workspace is still shown, flagged.
         const hasInitialRule = !!resolveFirstApprover(email, rules, {});
-        if (!hasInitialRule && (!submitsTo || (!employees[submitsTo] && !hrAdvancedModeFinalApproverEmail))) {
-            // Mirrors the existing legacy filter: skip submitters whose first approver isn't reachable.
+        if (!hasInitialRule && !submitsTo) {
             continue;
         }
 
-        let chain = buildApproverChainFromRules({submitter: email, rules, employees, personalDetailsByEmail});
+        let chain = buildApproverChainFromRules({submitter: email, rules, employees, personalDetailsByEmail}).map((approver) =>
+            isNonMemberApprover(policy, approver.email) ? {...approver, isNotWorkspaceMember: true} : approver,
+        );
         if (chain.length === 0) {
             continue;
         }
 
         if (shouldFilterOutExpensifyTeam) {
-            chain = chain.filter((approver) => !isExpensifyTeam(approver.email));
+            chain = chain.filter((approver) => !!approver.isNotWorkspaceMember || !isExpensifyTeam(approver.email));
         }
         if (hrAdvancedModeFinalApproverEmail) {
             const last = chain.at(-1);

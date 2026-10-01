@@ -114,6 +114,11 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
             const previousApprover = approvalWorkflow.approvers.slice(0, approverIndex).findLast(Boolean);
             const error = approvalWorkflow?.errors?.[`approver-${approverIndex}`];
 
+            // Flag a non-member approver as soon as the editor opens, rather than only after a Save attempt
+            if (!error && approver?.isNotWorkspaceMember) {
+                return translate('workflowsPage.approverNotWorkspaceMember');
+            }
+
             if (!error) {
                 return;
             }

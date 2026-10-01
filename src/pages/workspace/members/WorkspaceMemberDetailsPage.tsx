@@ -278,11 +278,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     };
 
     const removeUser = () => {
-        const ownerEmail = ownerDetails?.login;
-        const removedApprover = personalDetails?.[accountID];
+        // Fall back to the policy owner, so submitters are still reassigned when personal details aren't loaded.
+        const ownerEmail = ownerDetails?.login ?? policy?.owner;
 
         // If the user is not an approver, proceed with member removal
-        if (!isPolicyApprover(policy, memberLogin) || !removedApprover?.login || !ownerEmail) {
+        if (!memberLogin || !isPolicyApprover(policy, memberLogin) || !ownerEmail) {
             removeMemberAndCloseModal();
             return;
         }
@@ -290,7 +290,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         // Update approval workflows after approver removal
         const updatedWorkflows = updateWorkflowDataOnApproverRemoval({
             approvalWorkflows,
-            removedApprover,
+            removedApproverEmail: memberLogin,
+            ownerEmail,
             ownerDetails,
         });
 

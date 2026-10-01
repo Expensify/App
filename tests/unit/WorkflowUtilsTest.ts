@@ -348,7 +348,8 @@ describe('WorkflowUtils', () => {
             expect(approvalWorkflows).toEqual([]);
         });
 
-        it('Should not include users that submit to non-employee user', () => {
+        it('Should show users that submit to a non-employee user under that approver, flagged as not a workspace member', () => {
+            // Given a member who submits to someone no longer on the workspace
             const employees: PolicyEmployeeList = {
                 '1@example.com': {
                     email: '1@example.com',
@@ -359,9 +360,67 @@ describe('WorkflowUtils', () => {
             const defaultApprover = '1@example.com';
             const policy = createMockPolicy(employees, defaultApprover);
 
+            // When the workflows are built
             const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, localeCompare});
 
-            expect(approvalWorkflows).toEqual([]);
+            // Then the member shows in a workflow under that approver, flagged so the admin can see and fix it,
+            // instead of being hidden from every workflow
+            expect(approvalWorkflows).toEqual([
+                buildWorkflow([], [1], {isDefault: true}),
+                {members: [buildMember(1)], approvers: [buildApprover(2, {isNotWorkspaceMember: true})], isDefault: false, pendingAction: undefined},
+            ]);
+        });
+
+        it('Should not flag a non-employee approver in HR advanced mode', () => {
+            // Given an HR integration in advanced (manager) mode, whose final approver doesn't have to be a member
+            const employees: PolicyEmployeeList = {
+                '1@example.com': {
+                    email: '1@example.com',
+                    submitsTo: '2@example.com',
+                },
+            };
+            const policy = createMock<Policy>({
+                ...createMockPolicy(employees, '1@example.com'),
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
+                        config: {approvalMode: CONST.MERGE.APPROVAL_MODE.MANAGER, finalApprover: '3@example.com', integration: 'workday', groups: []},
+                    },
+                },
+            });
+
+            // When the workflows are built
+            const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, localeCompare});
+
+            // Then the non-member approver isn't flagged, since HR mode routes outside employeeList on purpose
+            const approvers = approvalWorkflows.flatMap((workflow) => workflow.approvers);
+            expect(approvers.some((approver) => approver.email === '2@example.com')).toBe(true);
+            expect(approvers.some((approver) => approver.isNotWorkspaceMember)).toBe(false);
+        });
+
+        it('Should keep a non-employee Expensify team approver when Expensify team members are filtered out', () => {
+            // Given a customer workspace where a member submits to an Expensify team email that is no longer a member
+            const employees: PolicyEmployeeList = {
+                'alice@example.com': {
+                    email: 'alice@example.com',
+                    submitsTo: 'guide@expensify.com',
+                },
+                'bob@example.com': {
+                    email: 'bob@example.com',
+                    submitsTo: 'bob@example.com',
+                },
+            };
+            const policy = createMock<Policy>({
+                ...createMockPolicy(employees, 'bob@example.com'),
+                owner: 'bob@example.com',
+            });
+
+            // When the workflows are built for a non-Expensify user
+            const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, localeCompare, currentUserLogin: 'bob@example.com'});
+
+            // Then the broken workflow keeps its flagged approver instead of ending up with no approvers
+            const brokenWorkflow = approvalWorkflows.find((workflow) => workflow.members.some((member) => member.email === 'alice@example.com'));
+            expect(brokenWorkflow?.approvers).toHaveLength(1);
+            expect(brokenWorkflow?.approvers.at(0)).toMatchObject({email: 'guide@expensify.com', isNotWorkspaceMember: true});
         });
 
         it('Should transform all users into one default workflow', () => {
@@ -590,8 +649,7 @@ describe('WorkflowUtils', () => {
         });
 
         it('Should include members with orphaned submitsTo in availableMembers', () => {
-            // Member with submitsTo pointing to non-member (not in employeeList) won't appear in any
-            // workflow, but should still appear in availableMembers so admins can fix the chain.
+            // Given a member with submitsTo pointing to a non-member (not in employeeList)
             const employees: PolicyEmployeeList = {
                 'alice@example.com': {
                     email: 'alice@example.com',
@@ -608,14 +666,18 @@ describe('WorkflowUtils', () => {
                 'bob@example.com': {accountID: 2, login: 'bob@example.com', displayName: 'Bob'},
             };
 
+            // When the workflows are built
             const {approvalWorkflows, availableMembers} = convertPolicyEmployeesToApprovalWorkflows({
                 policy,
                 personalDetails: personalDetailsForTest,
                 localeCompare,
             });
 
-            expect(approvalWorkflows).toHaveLength(1);
-            expect(approvalWorkflows.at(0)?.members).toHaveLength(1);
+            // Then the member shows in their own flagged workflow and is still selectable in availableMembers, so admins can fix the chain
+            expect(approvalWorkflows).toHaveLength(2);
+            expect(approvalWorkflows.at(0)?.members.map((member) => member.email)).toEqual(['bob@example.com']);
+            expect(approvalWorkflows.at(1)?.members.map((member) => member.email)).toEqual(['alice@example.com']);
+            expect(approvalWorkflows.at(1)?.approvers.at(0)).toMatchObject({email: 'nonexistent@example.com', isNotWorkspaceMember: true});
             const memberEmails = availableMembers.map((m) => m.email).sort();
             expect(memberEmails).toEqual(['alice@example.com', 'bob@example.com']);
         });
@@ -1088,9 +1150,51 @@ describe('WorkflowUtils', () => {
                 overLimitForwardsTo: 'update',
             });
         });
+
+        it('Should not send an employee entry for an approver who is not a workspace member', () => {
+            // Given a workflow whose approver is no longer on the workspace, as the Members pages pass it when another approver is removed
+            const previousEmployeeList: PolicyEmployeeList = {
+                '1@example.com': {email: '1@example.com', submitsTo: '9@example.com'},
+            };
+            const approvalWorkflow: ApprovalWorkflow = {
+                members: [buildMember(1)],
+                approvers: [buildApprover(9, {isNotWorkspaceMember: true})],
+                isDefault: false,
+            };
+
+            // When it is converted for an update, and again with that approver being replaced
+            const convertedEmployees = convertApprovalWorkflowToPolicyEmployees({previousEmployeeList, approvalWorkflow, type: 'update'});
+            const replacedEmployees = convertApprovalWorkflowToPolicyEmployees({
+                previousEmployeeList,
+                approvalWorkflow: {...approvalWorkflow, approvers: [buildApprover(2)]},
+                approversToRemove: approvalWorkflow.approvers,
+                type: 'update',
+            });
+
+            // Then no entry is created for the non-member, which would otherwise add a fake employee
+            expect(convertedEmployees).toEqual({});
+            expect(replacedEmployees['9@example.com']).toBeUndefined();
+            expect(replacedEmployees['1@example.com']?.submitsTo).toBe('2@example.com');
+        });
     });
 
     describe('updateWorkflowDataOnApproverRemoval', () => {
+        it('Should fall back to the owner email when the owner has no personal details', () => {
+            // Given a workflow whose only approver is removed, while the owner's personal details aren't loaded
+            const approvalWorkflow1 = buildWorkflow([], [3], {isDefault: true});
+            const approvalWorkflow2 = buildWorkflow([1], [2]);
+
+            // When the approver is removed
+            const result = updateWorkflowDataOnApproverRemoval({
+                approvalWorkflows: [approvalWorkflow1, approvalWorkflow2],
+                removedApproverEmail: '2@example.com',
+                ownerEmail: 'owner@example.com',
+            });
+
+            // Then the owner still replaces the removed approver, so the members are reassigned instead of left on a non-member
+            expect(result.at(1)?.approvers).toEqual([{...buildApprover(2), email: 'owner@example.com', avatar: '', displayName: 'owner@example.com'}]);
+        });
+
         it('Should remove Workflow 2 if its approvers are removed and it has no approvers, with Workspace (default) having the approver as the Workspace Owner.', () => {
             const approvalWorkflow1: ApprovalWorkflow = {
                 members: [buildMember(1), buildMember(2)],
@@ -1112,7 +1216,8 @@ describe('WorkflowUtils', () => {
 
             const updateWorkflowDataOnApproverRemovalResult = updateWorkflowDataOnApproverRemoval({
                 approvalWorkflows: [approvalWorkflow1, approvalWorkflow2],
-                removedApprover,
+                removedApproverEmail: removedApprover.login ?? '',
+                ownerEmail: ownerDetails.login ?? '',
                 ownerDetails,
             });
 
@@ -1139,7 +1244,8 @@ describe('WorkflowUtils', () => {
 
             const updateWorkflowDataOnApproverRemovalResult = updateWorkflowDataOnApproverRemoval({
                 approvalWorkflows: [approvalWorkflow1, approvalWorkflow2],
-                removedApprover,
+                removedApproverEmail: removedApprover.login ?? '',
+                ownerEmail: ownerDetails.login ?? '',
                 ownerDetails,
             });
 
@@ -1166,7 +1272,8 @@ describe('WorkflowUtils', () => {
 
             const updateWorkflowDataOnApproverRemovalResult = updateWorkflowDataOnApproverRemoval({
                 approvalWorkflows: [approvalWorkflow1, approvalWorkflow2],
-                removedApprover,
+                removedApproverEmail: removedApprover.login ?? '',
+                ownerEmail: ownerDetails.login ?? '',
                 ownerDetails,
             });
 
@@ -1196,7 +1303,8 @@ describe('WorkflowUtils', () => {
 
             const updateWorkflowDataOnApproverRemovalResult = updateWorkflowDataOnApproverRemoval({
                 approvalWorkflows: [approvalWorkflow1, approvalWorkflow2],
-                removedApprover,
+                removedApproverEmail: removedApprover.login ?? '',
+                ownerEmail: ownerDetails.login ?? '',
                 ownerDetails,
             });
 
@@ -1223,7 +1331,8 @@ describe('WorkflowUtils', () => {
 
             const updateWorkflowDataOnApproverRemovalResult = updateWorkflowDataOnApproverRemoval({
                 approvalWorkflows: [approvalWorkflow1, approvalWorkflow2],
-                removedApprover,
+                removedApproverEmail: removedApprover.login ?? '',
+                ownerEmail: ownerDetails.login ?? '',
                 ownerDetails,
             });
 
@@ -1250,7 +1359,8 @@ describe('WorkflowUtils', () => {
 
             const updateWorkflowDataOnApproverRemovalResult = updateWorkflowDataOnApproverRemoval({
                 approvalWorkflows: [approvalWorkflow1, approvalWorkflow2],
-                removedApprover,
+                removedApproverEmail: removedApprover.login ?? '',
+                ownerEmail: ownerDetails.login ?? '',
                 ownerDetails,
             });
 
@@ -1274,7 +1384,8 @@ describe('WorkflowUtils', () => {
 
             const result = updateWorkflowDataOnApproverRemoval({
                 approvalWorkflows: [approvalWorkflow1],
-                removedApprover,
+                removedApproverEmail: removedApprover.login ?? '',
+                ownerEmail: ownerDetails.login ?? '',
                 ownerDetails,
             });
 
@@ -1298,7 +1409,8 @@ describe('WorkflowUtils', () => {
 
             const result = updateWorkflowDataOnApproverRemoval({
                 approvalWorkflows: [approvalWorkflow1],
-                removedApprover,
+                removedApproverEmail: removedApprover.login ?? '',
+                ownerEmail: ownerDetails.login ?? '',
                 ownerDetails,
             });
 
@@ -1326,7 +1438,8 @@ describe('WorkflowUtils', () => {
 
             const result = updateWorkflowDataOnApproverRemoval({
                 approvalWorkflows: [approvalWorkflow1],
-                removedApprover,
+                removedApproverEmail: removedApprover.login ?? '',
+                ownerEmail: ownerDetails.login ?? '',
                 ownerDetails,
             });
 
@@ -1350,7 +1463,8 @@ describe('WorkflowUtils', () => {
 
             const result = updateWorkflowDataOnApproverRemoval({
                 approvalWorkflows: [approvalWorkflow1],
-                removedApprover,
+                removedApproverEmail: removedApprover.login ?? '',
+                ownerEmail: ownerDetails.login ?? '',
                 ownerDetails,
             });
 
@@ -1378,7 +1492,8 @@ describe('WorkflowUtils', () => {
 
             const result = updateWorkflowDataOnApproverRemoval({
                 approvalWorkflows: [approvalWorkflow1],
-                removedApprover,
+                removedApproverEmail: removedApprover.login ?? '',
+                ownerEmail: ownerDetails.login ?? '',
                 ownerDetails,
             });
 
@@ -1415,7 +1530,8 @@ describe('WorkflowUtils', () => {
 
             const result = updateWorkflowDataOnApproverRemoval({
                 approvalWorkflows: [approvalWorkflow1],
-                removedApprover,
+                removedApproverEmail: removedApprover.login ?? '',
+                ownerEmail: ownerDetails.login ?? '',
                 ownerDetails,
             });
 
@@ -1453,7 +1569,8 @@ describe('WorkflowUtils', () => {
 
             const result = updateWorkflowDataOnApproverRemoval({
                 approvalWorkflows: [approvalWorkflow1],
-                removedApprover,
+                removedApproverEmail: removedApprover.login ?? '',
+                ownerEmail: ownerDetails.login ?? '',
                 ownerDetails,
             });
 
@@ -1487,7 +1604,8 @@ describe('WorkflowUtils', () => {
 
             const result = updateWorkflowDataOnApproverRemoval({
                 approvalWorkflows: [emptyDefaultWorkflow, approvalWorkflow],
-                removedApprover,
+                removedApproverEmail: removedApprover.login ?? '',
+                ownerEmail: ownerDetails.login ?? '',
                 ownerDetails,
             });
 
@@ -2016,6 +2134,25 @@ describe('WorkflowUtils', () => {
                 owner: 'owner@example.com',
                 employeeList: employees,
                 approver: defaultApprover,
+            });
+
+            it('Should show a member who submits to a non-member under that approver, flagged', () => {
+                // Given a member no rule covers, whose submitsTo points at someone no longer on the workspace
+                const employees: PolicyEmployeeList = {
+                    '1@example.com': {email: '1@example.com', submitsTo: '1@example.com'},
+                    '5@example.com': {email: '5@example.com', submitsTo: '9@example.com'},
+                };
+                const policy = createPolicy(employees, '1@example.com');
+
+                // When the workflows are built from rules
+                const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({policy, personalDetails, localeCompare, rules: {}});
+
+                // Then the member is shown under the non-member approver, flagged, instead of being hidden
+                const brokenWorkflow = approvalWorkflows.find((workflow) => workflow.members.some((member) => member.email === '5@example.com'));
+                expect(brokenWorkflow?.isDefault).toBe(false);
+                expect(brokenWorkflow?.approvers).toHaveLength(1);
+                expect(brokenWorkflow?.approvers.at(0)).toMatchObject({email: '9@example.com', isNotWorkspaceMember: true});
+                expect(approvalWorkflows.find((workflow) => workflow.isDefault)?.approvers.at(0)?.isNotWorkspaceMember).toBeUndefined();
             });
 
             it('Should reconstruct a multi-approver chain from rules', () => {

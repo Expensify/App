@@ -241,21 +241,19 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         const hasApprovers = selectedEmployees.some((email) => isPolicyApprover(policy, email));
 
         if (hasApprovers) {
-            const ownerEmail = ownerDetails.login;
+            // Fall back to the employeeList email and policy owner, so submitters are still reassigned when personal
+            // details aren't loaded. Skipping it would leave them submitting to someone no longer on the workspace.
+            const ownerEmail = ownerDetails.login ?? policy?.owner;
             let currentWorkflows = approvalWorkflows;
             for (const login of selectedEmployees) {
-                if (!isPolicyApprover(policy, login)) {
+                if (!isPolicyApprover(policy, login) || !ownerEmail) {
                     continue;
                 }
 
-                const accountID = policyMemberEmailsToAccountIDs[login];
-                const removedApprover = personalDetails?.[accountID];
-                if (!removedApprover?.login || !ownerEmail) {
-                    continue;
-                }
                 const updatedWorkflows = updateWorkflowDataOnApproverRemoval({
                     approvalWorkflows: currentWorkflows,
-                    removedApprover,
+                    removedApproverEmail: login,
+                    ownerEmail,
                     ownerDetails,
                 });
                 currentWorkflows = updatedWorkflows.filter((workflow) => !workflow.removeApprovalWorkflow);

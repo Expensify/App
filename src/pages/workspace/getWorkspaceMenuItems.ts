@@ -12,6 +12,7 @@ import {
     canMemberRead,
     canPolicyAccessFeature,
     hasAccountingFeatureConnection,
+    hasApprovalWorkflowWithNonMemberApprover,
     hasPolicyCategoriesError,
     hasPolicyRulesError,
     hasVendorFeature,
@@ -344,7 +345,8 @@ function getWorkspaceMenuItems({
                 translationKey: 'workspace.common.workflows',
                 icon: icons.Workflows,
                 getRoute: () => ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID),
-                brickRoadIndicator: !isEmptyObject(policy?.errorFields?.reimburser ?? {}) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                brickRoadIndicator:
+                    !isEmptyObject(policy?.errorFields?.reimburser ?? {}) || hasApprovalWorkflowWithNonMemberApprover(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 screenName: SCREENS.WORKSPACE.WORKFLOWS,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.WORKFLOWS,
                 highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED,

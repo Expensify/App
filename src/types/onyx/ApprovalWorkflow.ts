@@ -64,6 +64,12 @@ type Approver = {
     isCircularReference?: boolean;
 
     /**
+     * Is this approver no longer a workspace member. Members can still submit to them when they were removed without
+     * their submitters being reassigned, so the workflow is shown with an error until an admin fixes it.
+     */
+    isNotWorkspaceMember?: boolean;
+
+    /**
      * If report total is above this limit, the report will be forwarded to 'overLimitForwardsTo' instead of 'forwardsTo'
      */
     approvalLimit?: number | null;

@@ -210,6 +210,8 @@ function ApprovalWorkflowSection({
                                 }
                                 helperText={getApprovalLimitDescription({approver, currency, translate, formatPhoneNumber, convertToDisplayString})}
                                 helperTextStyle={styles.workflowApprovalLimitText}
+                                brickRoadIndicator={approver.isNotWorkspaceMember ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                errorText={approver.isNotWorkspaceMember ? translate('workflowsPage.approverNotWorkspaceMember') : undefined}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_APPROVER}
                             />
                         </View>

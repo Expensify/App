@@ -2965,6 +2965,7 @@ ${amount} per ${merchant} - ${date}`,
             },
         },
         approverInMultipleWorkflows: 'Questo membro appartiene già a un altro flusso di approvazione. Qualsiasi aggiornamento effettuato qui verrà applicato anche lì.',
+        approverNotWorkspaceMember: 'Questo approvante non è più un membro dello spazio di lavoro. Scegli un nuovo approvante o elimina questo flusso di lavoro.',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> approva già i report per <strong>${name2}</strong>. Scegli un altro approvatore per evitare un flusso di lavoro circolare.`,
         emptyContent: {

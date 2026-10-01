@@ -78,4 +78,24 @@ describe('ApprovalWorkflowSection', () => {
 
         expect(screen.queryByLabelText('Edit')).toBeNull();
     });
+
+    it('shows an error under an approver who is no longer a workspace member', () => {
+        // Given a workflow whose approver was removed from the workspace without reassigning its members
+        const brokenWorkflow: ApprovalWorkflow = {...baseWorkflow, approvers: [{email: 'removed@example.com', displayName: 'removed@example.com', isNotWorkspaceMember: true}]};
+
+        // When the workflow card renders
+        renderSection({approvalWorkflow: brokenWorkflow, onPress: jest.fn()});
+
+        // Then the admin sees an error telling them to fix it
+        expect(screen.getByText('workflowsPage.approverNotWorkspaceMember')).toBeTruthy();
+    });
+
+    it('does not show the non-member error for a regular approver', () => {
+        // Given a workflow whose approver is a workspace member
+        // When the workflow card renders
+        renderSection({approvalWorkflow: baseWorkflow, onPress: jest.fn()});
+
+        // Then no error is shown
+        expect(screen.queryByText('workflowsPage.approverNotWorkspaceMember')).toBeNull();
+    });
 });

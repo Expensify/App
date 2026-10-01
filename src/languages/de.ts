@@ -2979,6 +2979,7 @@ ${amount} für ${merchant} – ${date}`,
             },
         },
         approverInMultipleWorkflows: 'Dieses Mitglied gehört bereits zu einem anderen Genehmigungsworkflow. Alle Aktualisierungen hier werden sich auch dort auswirken.',
+        approverNotWorkspaceMember: 'Dieser Genehmiger ist kein Mitglied des Workspaces mehr. Wählen Sie einen neuen Genehmiger aus oder löschen Sie diesen Workflow.',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> genehmigt bereits Berichte für <strong>${name2}</strong>. Bitte wähle eine andere approvierende Person, um einen zirkulären Workflow zu vermeiden.`,
         emptyContent: {
