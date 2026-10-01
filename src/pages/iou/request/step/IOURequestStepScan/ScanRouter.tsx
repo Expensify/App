@@ -156,8 +156,6 @@ function ScanLocationPrompt({gpsRequired}: {gpsRequired: boolean}) {
     );
 }
 
-ScanLocationPrompt.displayName = 'ScanLocationPrompt';
-
 /**
  * ScanRouter — selects the appropriate scan variant based on route params and transaction state.
  *
