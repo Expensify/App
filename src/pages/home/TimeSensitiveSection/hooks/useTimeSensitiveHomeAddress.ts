@@ -8,9 +8,6 @@ import type {Policy, PrivatePersonalDetails} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-// Only an office-based member has an ordinary commute to measure against their home, so a workspace on the
-// homeAndOffice method needs an address from them and not from a member with no regular workplace. The member's
-// own arrangement decides that before the workspace default does.
 const createNeedsHomeAddressWorkspaceSelector = (currentUserEmail: string | undefined) => (policies: OnyxCollection<Policy>) =>
     Object.values(policies ?? {}).some(
         (policy) =>
