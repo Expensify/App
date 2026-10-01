@@ -4853,18 +4853,15 @@ function createNewReport(
 }
 
 function openSupportTicket() {
+    const reportID = generateReportID();
     const parameters: CreateSupportTicketParams = {
-        reportID: CONST.DEFAULT_NUMBER_ID.toString(),
+        reportID,
     };
 
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method -- navigation requires the server-generated report ID.
-    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_SUPPORT_TICKET, parameters).then((response) => {
-        if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS || !response.reportID) {
-            return;
-        }
+    Navigation.navigate(getReportRouteForCurrentContext({reportID, isPendingCreation: true}));
 
-        Navigation.navigate(getReportRouteForCurrentContext({reportID: response.reportID}));
-    });
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method -- this command creates the report under the client-generated ID used by the pending route.
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_SUPPORT_TICKET, parameters).then(() => undefined);
 }
 
 function dismissFailedSupportTicket(supportTicketReportID: string, parentReportID: string, parentReportActionID: string) {

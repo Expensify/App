@@ -19,8 +19,10 @@ const {default: ContextMenuActions} = jest.requireActual<typeof ContextMenuActio
 
 const quickEmojiAction = ContextMenuActions.at(0);
 const replyInThreadAction = ContextMenuActions.find((action) => 'sentryLabel' in action && action.sentryLabel === CONST.SENTRY_LABEL.CONTEXT_MENU.REPLY_IN_THREAD);
+const joinThreadAction = ContextMenuActions.find((action) => 'sentryLabel' in action && action.sentryLabel === CONST.SENTRY_LABEL.CONTEXT_MENU.JOIN_THREAD);
+const leaveThreadAction = ContextMenuActions.find((action) => 'sentryLabel' in action && action.sentryLabel === CONST.SENTRY_LABEL.CONTEXT_MENU.LEAVE_THREAD);
 
-if (!quickEmojiAction || !replyInThreadAction) {
+if (!quickEmojiAction || !replyInThreadAction || !joinThreadAction || !leaveThreadAction) {
     throw new Error('Support ticket context menu actions were not found');
 }
 
@@ -64,5 +66,27 @@ describe('ContextMenuActions support tickets', () => {
 
         // Then threading is unavailable
         expect(shouldShowReplyInThread).toBe(false);
+    });
+
+    it('hides Join thread for customer comments', () => {
+        // Given a customer comment in a support ticket
+        const args = getSupportTicketArgs();
+
+        // When the context menu is built
+        const shouldShowJoinThread = joinThreadAction.shouldShow(args);
+
+        // Then joining a thread is unavailable
+        expect(shouldShowJoinThread).toBe(false);
+    });
+
+    it('hides Leave thread for customer comments', () => {
+        // Given a customer comment in a support ticket
+        const args = getSupportTicketArgs();
+
+        // When the context menu is built
+        const shouldShowLeaveThread = leaveThreadAction.shouldShow(args);
+
+        // Then leaving a thread is unavailable
+        expect(shouldShowLeaveThread).toBe(false);
     });
 });

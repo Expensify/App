@@ -42,6 +42,7 @@ import {
     orderPersonalDetailsOptions,
     orderWorkspaceOptions,
     recentReportComparator,
+    shouldUseFullTitleForOption,
 } from '@libs/OptionsListUtils';
 import {getCurrentUserSearchTerms, getPersonalDetailSearchTerms} from '@libs/OptionsListUtils/searchMatchUtils';
 import {canCreateTaskInReport, canUserPerformWriteAction, isCanceledTaskReport, isExpensifyOnlyParticipantInReport} from '@libs/ReportUtils';
@@ -12758,6 +12759,18 @@ describe('OptionsListUtils', () => {
             // The non-search path caches its result, so the pending deletions have to be part of the cache inputs.
             expect(buildGroupChatOption(undefined, false)?.icons?.at(0)?.name).toBe('Black Panther, Iron Man, Spider-Man');
             expect(buildGroupChatOption({[GROUP_CHAT_REPORT_ID]: ['4']}, false)?.icons?.at(0)?.name).toBe('Iron Man, Spider-Man');
+        });
+    });
+
+    describe('shouldUseFullTitleForOption', () => {
+        it('uses the report title for support tickets', () => {
+            const supportTicket: OptionData = {
+                reportID: 'supportTicketReportID',
+                keyForList: 'supportTicketReportID',
+                type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+            };
+
+            expect(shouldUseFullTitleForOption(supportTicket)).toBe(true);
         });
     });
 });

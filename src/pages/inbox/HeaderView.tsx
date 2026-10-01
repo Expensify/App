@@ -421,7 +421,9 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                                 tooltipEnabled
                                                 numberOfLines={1}
                                                 textStyles={[styles.headerText, styles.pre]}
-                                                shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport || shouldUseGroupTitle || isReportArchived}
+                                                shouldUseFullTitle={
+                                                    isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport || isSupportTicketReport || shouldUseGroupTitle || isReportArchived
+                                                }
                                                 renderAdditionalText={renderAdditionalText}
                                                 shouldAddEllipsis={shouldAddEllipsis}
                                             />

@@ -826,7 +826,10 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.joinThread',
         icon: 'Bell',
-        shouldShow: ({reportAction, isArchivedRoom, isThreadReportParentAction, isHarvestReport}) => {
+        shouldShow: ({report, reportAction, isArchivedRoom, isThreadReportParentAction, isHarvestReport}) => {
+            if (isSupportTicket(report)) {
+                return false;
+            }
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             const isDeletedAction = isDeletedActionReportActionsUtils(reportAction);
             const shouldDisplayThreadReplies = shouldDisplayThreadRepliesReportUtils(reportAction, isThreadReportParentAction);
@@ -896,7 +899,10 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.leaveThread',
         icon: 'Exit',
-        shouldShow: ({reportAction, isArchivedRoom, isThreadReportParentAction, isHarvestReport}) => {
+        shouldShow: ({report, reportAction, isArchivedRoom, isThreadReportParentAction, isHarvestReport}) => {
+            if (isSupportTicket(report)) {
+                return false;
+            }
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             const isDeletedAction = isDeletedActionReportActionsUtils(reportAction);
             const shouldDisplayThreadReplies = shouldDisplayThreadRepliesReportUtils(reportAction, isThreadReportParentAction);

@@ -99,26 +99,40 @@ describe('Support tickets', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('shows the assigned support rep and explains why the ticket cannot be checked', async () => {
+    it('shows the title, description, and assigned support rep for an open ticket', async () => {
         // Given an open support ticket assigned to John
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
+                locale: 'en',
+                reports: {
+                    [SUPPORT_TICKET_REPORT_ID]: {
+                        reportName: 'Support ticket, Sep 30, 2026: Jane Doe and John Smith',
+                        isEmpty: false,
+                        brickRoadStatus: undefined,
+                        requiresAttention: false,
+                        reportErrors: {},
+                    },
+                },
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
         renderSupportTicketView();
         await waitForBatchedUpdatesWithAct();
 
-        // When the customer presses its checkbox
+        // When the ticket is shown
         fireEvent.press(screen.getByLabelText(translateLocal('supportTicket.checkboxTooltip')));
 
-        // Then the ticket introduces John and explains that only the support rep can resolve it
+        // Then it shows the localized title, description, and read-only assignee
+        expect(screen.getByText('Support ticket, Sep 30, 2026: Jane Doe and John Smith')).toBeOnTheScreen();
+        expect(screen.getByText(translateLocal('task.description'))).toBeOnTheScreen();
         expect(
             screen.getByText(
                 "Hi, I'm John, and I'll work with you until this is fully resolved. If you've already shared details with us, I'll review them before responding so you don't need to repeat yourself. If this is a new issue, let me know what you need help with.",
             ),
         ).toBeOnTheScreen();
-        expect(mockShowConfirmModal).toHaveBeenCalledWith({
-            title: translateLocal('workspace.common.readOnlyActionTitle'),
-            prompt: translateLocal('supportTicket.checkboxTooltip'),
-            confirmText: translateLocal('common.buttonConfirm'),
-            shouldShowCancelButton: false,
-        });
+        expect(screen.getByText(translateLocal('task.assignee'))).toBeOnTheScreen();
+        expect(screen.getByText('John Smith')).toBeOnTheScreen();
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
     });
 
     it('uses the support rep email when their display name is unavailable', async () => {
