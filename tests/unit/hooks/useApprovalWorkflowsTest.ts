@@ -44,20 +44,20 @@ async function seedForwardApproveRules(policyID: string, submitter: string, appr
     await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}${keyPrefix}1`, {
         scope: CONST.RULES.SCOPE.POLICY,
         scopeID: policyID,
-        triggers: indexMap(CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT),
+        triggers: indexMap(CONST.RULES.TRIGGERS.REPORT_SUBMIT),
         filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: [submitter]},
-        actions: indexMap({name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver}),
+        actions: indexMap({name: CONST.RULES.ACTIONS.FORWARD_TO, approver}),
     });
     await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}${keyPrefix}2`, {
         scope: CONST.RULES.SCOPE.POLICY,
         scopeID: policyID,
-        triggers: indexMap(CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE),
+        triggers: indexMap(CONST.RULES.TRIGGERS.REPORT_APPROVE),
         filters: {
             operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
             left: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: [submitter]},
             right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, right: approver},
         },
-        actions: indexMap({name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.APPROVE_REPORT}),
+        actions: indexMap({name: CONST.RULES.ACTIONS.APPROVE_REPORT}),
     });
 }
 

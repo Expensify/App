@@ -512,7 +512,6 @@
 "../../src/hooks/useWindowDimensions/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/hooks/useWorkletStateMachine/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/languages/flattenObject.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/libs/Accessibility/moveAccessibilityFocus/types.ts"	"@typescript-eslint/no-deprecated/ElementRef"	1
 "../../src/libs/AccountingUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/__mocks__/App.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/__mocks__/App.ts"	"no-restricted-syntax"	2
@@ -634,7 +633,7 @@
 "../../src/libs/actions/Policy/Policy.ts"	"no-restricted-syntax"	10
 "../../src/libs/actions/Policy/ReportField.ts"	"no-restricted-imports"	1
 "../../src/libs/actions/Policy/ReportField.ts"	"no-restricted-syntax"	4
-"../../src/libs/actions/Policy/Rules.ts"	"no-restricted-syntax"	3
+"../../src/libs/actions/Policy/Rules.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/Policy/Tag.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/Policy/Tag.ts"	"no-restricted-imports"	1
 "../../src/libs/actions/Policy/Tag.ts"	"no-restricted-syntax"	4
@@ -688,7 +687,6 @@
 "../../src/libs/API/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/API/makeRequest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/AttendeeUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../src/libs/Avatars/InitialAvatars.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/BankAccountUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/canFocusInputOnScreenFocus/index.ts"	"no-restricted-syntax"	1
 "../../src/libs/CardFeedUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	7
@@ -701,7 +699,6 @@
 "../../src/libs/ComposerFocusManager.ts"	"@typescript-eslint/no-deprecated/TextInput.State.currentlyFocusedField"	1
 "../../src/libs/ComposerFocusManager.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/ComposerUtils/index.ts"	"no-restricted-syntax"	1
-"../../src/libs/compoundParamsKey.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/CountryUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/CurrencyUtils.ts"	"rulesdir/no-onyx-connect"	1
 "../../src/libs/DateUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
