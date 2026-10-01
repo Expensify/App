@@ -151,12 +151,13 @@ On web or desktop:
 2. Click the checkbox next to the first item you want to select.
 3. Hold **Shift** and click the checkbox next to the last item.
 
-Everything between the two checkboxes is selected. To change where the range ends, hold **Shift** and click a different checkbox.
+Everything between the two checkboxes is selected. To adjust the range, hold **Shift** and click a different checkbox.
 
 - Group header checkboxes and the **Select all** checkbox work as usual, even while you hold **Shift**. They don't select a range.
 - When your results are grouped, a range only includes expenses in groups that are expanded.
 - In **Reports**, a range selects whole reports.
-- If you've just used **Select all**, Shift+click narrows the selection to the range you click.
+- If you've just used **Select all**, Shift+click narrows the selection to the range you click. Groups that are collapsed stay selected.
+- After **Select all matching items**, Shift+click doesn't narrow the selection.
 - Items that can't be selected, such as expenses being deleted, are skipped.
 
 Shift+click isn't available in the mobile app.
