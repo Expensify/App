@@ -52,6 +52,8 @@ const adopt: ReceiptStorage['adopt'] = async (uriOrPath, fileName) => {
 
 const toLocalUri: ReceiptStorage['toLocalUri'] = (durableName) => `file://${getReceiptsUploadFolderPath()}/${durableName}`;
 
+const retain: ReceiptStorage['retain'] = () => {};
+
 const resolve: ReceiptStorage['resolve'] = (source) => {
     if (typeof source !== 'string') {
         return undefined;
@@ -63,6 +65,6 @@ const resolve: ReceiptStorage['resolve'] = (source) => {
     return durableName ? toLocalUri(durableName) : source;
 };
 
-const receiptStorage: ReceiptStorage = {adopt, toLocalUri, resolve};
+const receiptStorage: ReceiptStorage = {adopt, toLocalUri, retain, resolve};
 
 export default receiptStorage;
