@@ -47,7 +47,7 @@ jest.mock('@components/ScreenWrapper', () => {
     MockScreenWrapper.displayName = 'ScreenWrapper';
     return MockScreenWrapper;
 });
-jest.mock('@components/HeaderWithBackButton', () => ({onBackButtonPress}: HeaderProps) => {
+jest.mock('@components/Header/composed/HeaderWithBackButtonAndTitle', () => ({onBackButtonPress}: HeaderProps) => {
     mockHeaderProps.current = {onBackButtonPress};
     return null;
 });
