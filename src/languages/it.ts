@@ -4671,13 +4671,13 @@ ${amount} per ${merchant} - ${date}`,
             airfareCard:
                 'Sapevi che puoi prenotare e gestire i voli direttamente in Expensify? Prenota tramite <a href="https://travel.expensify.com">Expensify Travel</a> con il tuo account fedeltà della compagnia aerea per continuare a guadagnare punti, miglia e vantaggi di status mentre noi creiamo automaticamente la tua spesa. ✈️',
             hotelManual:
-                'Lo sapevi che puoi prenotare e gestire i soggiorni in hotel direttamente in Expensify? Prenota tramite <a href="https://travel.expensify.com">Expensify Travel</a> con il tuo account fedeltà dell’hotel per continuare a guadagnare punti e vantaggi di stato mentre creiamo automaticamente la tua spesa. 🏨',
+                'Sapevi che puoi prenotare e gestire i tuoi soggiorni in hotel direttamente in Expensify? Prenota tramite <a href="https://travel.expensify.com">Expensify Travel</a> con il tuo account fedeltà dell’hotel per continuare a guadagnare punti e vantaggi di status mentre creiamo automaticamente la tua spesa. 🏨',
             hotelCard:
-                'Lo sapevi che puoi prenotare e gestire i soggiorni in hotel direttamente in Expensify? Prenota tramite <a href="https://travel.expensify.com">Expensify Travel</a> con il tuo account fedeltà dell’hotel per continuare a guadagnare punti e vantaggi di stato mentre creiamo automaticamente la tua spesa. 🏨',
+                'Sapevi che puoi prenotare e gestire i tuoi soggiorni in hotel direttamente in Expensify? Prenota tramite <a href="https://travel.expensify.com">Expensify Travel</a> con il tuo account fedeltà dell’hotel per continuare a guadagnare punti e vantaggi di status mentre creiamo automaticamente la tua spesa. 🏨',
             carManual:
-                'Sapevi che puoi prenotare e gestire il noleggio auto direttamente in Expensify? Prenota tramite <a href="https://travel.expensify.com">Expensify Travel</a> usando il tuo account fedeltà per il noleggio auto per continuare a guadagnare punti e vantaggi di status mentre creiamo automaticamente la tua spesa. 🚗',
+                'Lo sapevi che puoi prenotare e gestire il noleggio auto direttamente in Expensify? Prenota tramite <a href="https://travel.expensify.com">Expensify Travel</a> usando il tuo account fedeltà per il noleggio auto, così continui ad accumulare punti e vantaggi di status mentre noi creiamo automaticamente la tua spesa. 🚗',
             carCard:
-                'Sapevi che puoi prenotare e gestire il noleggio auto direttamente in Expensify? Prenota tramite <a href="https://travel.expensify.com">Expensify Travel</a> usando il tuo account fedeltà per il noleggio auto per continuare a guadagnare punti e vantaggi di status mentre creiamo automaticamente la tua spesa. 🚗',
+                'Lo sapevi che puoi prenotare e gestire il noleggio auto direttamente in Expensify? Prenota tramite <a href="https://travel.expensify.com">Expensify Travel</a> usando il tuo account fedeltà per il noleggio auto, così continui ad accumulare punti e vantaggi di status mentre noi creiamo automaticamente la tua spesa. 🚗',
             railManual:
                 'Sapevi che puoi prenotare e gestire i viaggi in treno direttamente in Expensify? La prossima volta evita la seccatura di creare la spesa manualmente e prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:

@@ -4712,9 +4712,9 @@ ${amount} pour ${merchant} - ${date}`,
             hotelCard:
                 'Saviez-vous que vous pouvez réserver et gérer vos séjours à l’hôtel directement dans Expensify ? Réservez via <a href="https://travel.expensify.com">Expensify Travel</a> avec votre propre compte de fidélité hôtelier pour continuer à gagner des points et des avantages de statut pendant que nous créons automatiquement votre dépense.',
             carManual:
-                'Saviez-vous que vous pouvez réserver et gérer des locations de voiture directement dans Expensify ? Réservez via <a href="https://travel.expensify.com">Expensify Travel</a> avec votre propre compte de fidélité de location de voiture pour continuer à gagner des points et des avantages liés à votre statut pendant que nous créons automatiquement votre dépense. 🚗',
+                'Saviez-vous que vous pouvez réserver et gérer des locations de voiture directement dans Expensify ? Réservez via <a href="https://travel.expensify.com">Expensify Travel</a> avec votre propre compte de fidélité de location de voiture pour continuer à gagner des points et des avantages de statut pendant que nous créons automatiquement votre dépense. 🚗',
             carCard:
-                'Saviez-vous que vous pouvez réserver et gérer des locations de voiture directement dans Expensify ? Réservez via <a href="https://travel.expensify.com">Expensify Travel</a> avec votre propre compte de fidélité de location de voiture pour continuer à gagner des points et des avantages liés à votre statut pendant que nous créons automatiquement votre dépense. 🚗',
+                'Saviez-vous que vous pouvez réserver et gérer des locations de voiture directement dans Expensify ? Réservez via <a href="https://travel.expensify.com">Expensify Travel</a> avec votre propre compte de fidélité de location de voiture pour continuer à gagner des points et des avantages de statut pendant que nous créons automatiquement votre dépense. 🚗',
             railManual:
                 'Saviez-vous que vous pouvez réserver et gérer vos trajets en train directement dans Expensify ? La prochaine fois, évitez la corvée de créer votre dépense manuellement et réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:

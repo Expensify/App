@@ -4668,17 +4668,17 @@ ${amount} voor ${merchant} - ${date}`,
         },
         nudge: {
             airfareManual:
-                'Wist je dat je vluchten rechtstreeks in Expensify kunt boeken en beheren? Boek via <a href="https://travel.expensify.com">Expensify Travel</a> met je eigen loyaliteitsaccount van de luchtvaartmaatschappij om punten, miles en statusvoordelen te blijven verdienen, terwijl wij automatisch je uitgave aanmaken. ✈️',
+                'Wist je dat je rechtstreeks in Expensify vluchten kunt boeken en beheren? Boek via <a href="https://travel.expensify.com">Expensify Travel</a> met je eigen loyaliteitsaccount van de luchtvaartmaatschappij om punten, mijlen en statusvoordelen te blijven verdienen, terwijl wij automatisch je uitgave aanmaken. ✈️',
             airfareCard:
-                'Wist je dat je vluchten rechtstreeks in Expensify kunt boeken en beheren? Boek via <a href="https://travel.expensify.com">Expensify Travel</a> met je eigen loyaliteitsaccount van de luchtvaartmaatschappij om punten, miles en statusvoordelen te blijven verdienen, terwijl wij automatisch je uitgave aanmaken. ✈️',
+                'Wist je dat je rechtstreeks in Expensify vluchten kunt boeken en beheren? Boek via <a href="https://travel.expensify.com">Expensify Travel</a> met je eigen loyaliteitsaccount van de luchtvaartmaatschappij om punten, mijlen en statusvoordelen te blijven verdienen, terwijl wij automatisch je uitgave aanmaken. ✈️',
             hotelManual:
-                'Wist je dat je hotelverblijven rechtstreeks in Expensify kunt boeken en beheren? Boek via <a href="https://travel.expensify.com">Expensify Travel</a> met je eigen hotel loyaliteitsaccount om punten en statusvoordelen te blijven verdienen, terwijl wij automatisch je uitgave aanmaken.',
+                'Wist je dat je hotelovernachtingen direct in Expensify kunt boeken en beheren? Boek via <a href="https://travel.expensify.com">Expensify Travel</a> met je eigen hotelgetrouwheidsaccount om punten en statusvoordelen te blijven verdienen terwijl wij automatisch je uitgave aanmaken. 🏨',
             hotelCard:
-                'Wist je dat je hotelverblijven rechtstreeks in Expensify kunt boeken en beheren? Boek via <a href="https://travel.expensify.com">Expensify Travel</a> met je eigen hotel loyaliteitsaccount om punten en statusvoordelen te blijven verdienen, terwijl wij automatisch je uitgave aanmaken.',
+                'Wist je dat je hotelovernachtingen direct in Expensify kunt boeken en beheren? Boek via <a href="https://travel.expensify.com">Expensify Travel</a> met je eigen hotelgetrouwheidsaccount om punten en statusvoordelen te blijven verdienen terwijl wij automatisch je uitgave aanmaken. 🏨',
             carManual:
-                'Wist je dat je autoverhuur rechtstreeks in Expensify kunt boeken en beheren? Boek via <a href="https://travel.expensify.com">Expensify Travel</a> met je eigen loyaliteitsaccount voor autoverhuur om punten en statusvoordelen te blijven verdienen, terwijl wij automatisch je uitgave aanmaken. 🚗',
+                'Wist je dat je autoverhuur direct in Expensify kunt boeken en beheren? Boek via <a href="https://travel.expensify.com">Expensify Travel</a> met je eigen loyaliteitsaccount voor autohuur om punten en statusvoordelen te blijven verdienen, terwijl wij automatisch je uitgave aanmaken. 🚗',
             carCard:
-                'Wist je dat je autoverhuur rechtstreeks in Expensify kunt boeken en beheren? Boek via <a href="https://travel.expensify.com">Expensify Travel</a> met je eigen loyaliteitsaccount voor autoverhuur om punten en statusvoordelen te blijven verdienen, terwijl wij automatisch je uitgave aanmaken. 🚗',
+                'Wist je dat je autoverhuur direct in Expensify kunt boeken en beheren? Boek via <a href="https://travel.expensify.com">Expensify Travel</a> met je eigen loyaliteitsaccount voor autohuur om punten en statusvoordelen te blijven verdienen, terwijl wij automatisch je uitgave aanmaken. 🚗',
             railManual:
                 'Wist je dat je treinreizen direct in Expensify kunt boeken en beheren? Vermijd de volgende keer het gedoe van het handmatig aanmaken van je uitgave en boek gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:

@@ -4660,17 +4660,17 @@ ${amount} para ${merchant} - ${date}`,
         },
         nudge: {
             airfareManual:
-                'Você sabia que pode reservar e gerenciar voos direto no Expensify? Reserve pelo <a href="https://travel.expensify.com">Expensify Travel</a> usando sua própria conta de fidelidade da companhia aérea para continuar acumulando pontos, milhas e status, enquanto criamos sua despesa automaticamente. ✈️',
+                'Você sabia que pode reservar e gerenciar voos direto no Expensify? Reserve pelo <a href="https://travel.expensify.com">Expensify Travel</a> com a sua própria conta de fidelidade da companhia aérea para continuar acumulando pontos, milhas e status enquanto criamos sua despesa automaticamente. ✈️',
             airfareCard:
-                'Você sabia que pode reservar e gerenciar voos direto no Expensify? Reserve pelo <a href="https://travel.expensify.com">Expensify Travel</a> usando sua própria conta de fidelidade da companhia aérea para continuar acumulando pontos, milhas e status, enquanto criamos sua despesa automaticamente. ✈️',
+                'Você sabia que pode reservar e gerenciar voos direto no Expensify? Reserve pelo <a href="https://travel.expensify.com">Expensify Travel</a> com a sua própria conta de fidelidade da companhia aérea para continuar acumulando pontos, milhas e status enquanto criamos sua despesa automaticamente. ✈️',
             hotelManual:
-                'Você sabia que pode reservar e gerenciar estadias em hotéis direto no Expensify? Reserve pelo <a href="https://travel.expensify.com">Expensify Travel</a> usando a sua própria conta de fidelidade do hotel para continuar acumulando pontos e benefícios de status enquanto criamos sua despesa automaticamente. 🏨',
+                'Você sabia que você pode reservar e gerenciar estadias em hotéis direto no Expensify? Reserve pelo <a href="https://travel.expensify.com">Expensify Travel</a> usando a sua própria conta de fidelidade do hotel para continuar acumulando pontos e benefícios de status enquanto criamos automaticamente sua despesa. 🏨',
             hotelCard:
-                'Você sabia que pode reservar e gerenciar estadias em hotéis direto no Expensify? Reserve pelo <a href="https://travel.expensify.com">Expensify Travel</a> usando a sua própria conta de fidelidade do hotel para continuar acumulando pontos e benefícios de status enquanto criamos sua despesa automaticamente. 🏨',
+                'Você sabia que você pode reservar e gerenciar estadias em hotéis direto no Expensify? Reserve pelo <a href="https://travel.expensify.com">Expensify Travel</a> usando a sua própria conta de fidelidade do hotel para continuar acumulando pontos e benefícios de status enquanto criamos automaticamente sua despesa. 🏨',
             carManual:
-                'Você sabia que pode reservar e gerenciar aluguel de carros direto no Expensify? Reserve pelo <a href="https://travel.expensify.com">Expensify Travel</a> com a sua própria conta de fidelidade de locadora de carros para continuar acumulando pontos e benefícios de status enquanto criamos automaticamente sua despesa. 🚗',
+                'Você sabia que dá para reservar e gerenciar aluguel de carro direto no Expensify? Reserve pelo <a href="https://travel.expensify.com">Expensify Travel</a> usando sua própria conta de fidelidade da locadora para continuar acumulando pontos e benefícios de status enquanto nós criamos sua despesa automaticamente. 🚗',
             carCard:
-                'Você sabia que pode reservar e gerenciar aluguel de carros direto no Expensify? Reserve pelo <a href="https://travel.expensify.com">Expensify Travel</a> com a sua própria conta de fidelidade de locadora de carros para continuar acumulando pontos e benefícios de status enquanto criamos automaticamente sua despesa. 🚗',
+                'Você sabia que dá para reservar e gerenciar aluguel de carro direto no Expensify? Reserve pelo <a href="https://travel.expensify.com">Expensify Travel</a> usando sua própria conta de fidelidade da locadora para continuar acumulando pontos e benefícios de status enquanto nós criamos sua despesa automaticamente. 🚗',
             railManual:
                 'Você sabia que pode reservar e gerenciar viagens de trem direto no Expensify? Da próxima vez, evite o trabalho de criar sua despesa manualmente e simplesmente reserve pela <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:

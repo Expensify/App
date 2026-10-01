@@ -4632,17 +4632,17 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         },
         nudge: {
             airfareManual:
-                'Expensify でフライトの予約や管理ができることをご存じでしたか？ご自身の航空会社のマイレージアカウントを使って <a href="https://travel.expensify.com">Expensify Travel</a> から予約すると、ポイントやマイル、ステータス特典を獲得し続けながら、経費を自動で作成できます。 ✈️',
+                'Expensify でフライトの予約や管理ができることをご存じでしたか？ご自身の航空会社マイレージアカウントを使って <a href="https://travel.expensify.com">Expensify Travel</a> から予約すれば、ポイントやマイル、ステータス特典を獲得し続けながら、経費は自動的に作成されます。 ✈️',
             airfareCard:
-                'Expensify でフライトの予約や管理ができることをご存じでしたか？ご自身の航空会社のマイレージアカウントを使って <a href="https://travel.expensify.com">Expensify Travel</a> から予約すると、ポイントやマイル、ステータス特典を獲得し続けながら、経費を自動で作成できます。 ✈️',
+                'Expensify でフライトの予約や管理ができることをご存じでしたか？ご自身の航空会社マイレージアカウントを使って <a href="https://travel.expensify.com">Expensify Travel</a> から予約すれば、ポイントやマイル、ステータス特典を獲得し続けながら、経費は自動的に作成されます。 ✈️',
             hotelManual:
-                'Expensify でホテルの予約や宿泊管理ができることをご存じでしたか？ご自身のホテル会員アカウントを使って <a href="https://travel.expensify.com">Expensify Travel</a> から予約すると、ポイントやステータス特典を貯めながら、経費を自動で作成できます。',
+                'Expensify でホテルの予約や滞在管理ができるのをご存じですか？ご自身のホテル会員アカウントを使って <a href="https://travel.expensify.com">Expensify Travel</a> から予約すると、ポイントやステータス特典を貯めながら、経費を自動で作成できます。 🏨',
             hotelCard:
-                'Expensify でホテルの予約や宿泊管理ができることをご存じでしたか？ご自身のホテル会員アカウントを使って <a href="https://travel.expensify.com">Expensify Travel</a> から予約すると、ポイントやステータス特典を貯めながら、経費を自動で作成できます。',
+                'Expensify でホテルの予約や滞在管理ができるのをご存じですか？ご自身のホテル会員アカウントを使って <a href="https://travel.expensify.com">Expensify Travel</a> から予約すると、ポイントやステータス特典を貯めながら、経費を自動で作成できます。 🏨',
             carManual:
-                'Expensify でレンタカーの予約や管理ができることをご存じですか？ご自身のレンタカーのロイヤリティアカウントを使って <a href="https://travel.expensify.com">Expensify Travel</a> から予約すると、ポイントやステータス特典を獲得し続けながら、経費精算を自動で作成できます。 🚗',
+                'Expensify でレンタカーの予約と管理ができることをご存じですか？ご自身のレンタカー会員アカウントでポイントやステータス特典を貯めながら、<a href="https://travel.expensify.com">Expensify Travel</a> 経由で予約すると、経費は自動的に作成されます。',
             carCard:
-                'Expensify でレンタカーの予約や管理ができることをご存じですか？ご自身のレンタカーのロイヤリティアカウントを使って <a href="https://travel.expensify.com">Expensify Travel</a> から予約すると、ポイントやステータス特典を獲得し続けながら、経費精算を自動で作成できます。 🚗',
+                'Expensify でレンタカーの予約と管理ができることをご存じですか？ご自身のレンタカー会員アカウントでポイントやステータス特典を貯めながら、<a href="https://travel.expensify.com">Expensify Travel</a> 経由で予約すると、経費は自動的に作成されます。',
             railManual:
                 'Expensify で列車の予約や管理ができることをご存じでしたか？次回からは、経費を手動で作成する手間を省いて、<a href="https://travel.expensify.com">Expensify Travel</a> から簡単に予約しましょう。',
             railCard:

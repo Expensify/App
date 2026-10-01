@@ -4697,17 +4697,17 @@ ${amount} dla ${merchant} - ${date}`,
         },
         nudge: {
             airfareManual:
-                'Czy wiesz, że możesz rezerwować i zarządzać lotami bezpośrednio w Expensify? Rezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a>, używając własnego konta lojalnościowego linii lotniczych, aby dalej zdobywać punkty, mile i korzyści statusowe, podczas gdy my automatycznie utworzymy Twój wydatek. ✈️',
+                'Czy wiesz, że możesz rezerwować i zarządzać lotami bezpośrednio w Expensify? Rezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> z własnym kontem lojalnościowym linii lotniczych, żeby dalej zdobywać punkty, mile i przywileje statusowe, a my automatycznie utworzymy Twój wydatek. ✈️',
             airfareCard:
-                'Czy wiesz, że możesz rezerwować i zarządzać lotami bezpośrednio w Expensify? Rezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a>, używając własnego konta lojalnościowego linii lotniczych, aby dalej zdobywać punkty, mile i korzyści statusowe, podczas gdy my automatycznie utworzymy Twój wydatek. ✈️',
+                'Czy wiesz, że możesz rezerwować i zarządzać lotami bezpośrednio w Expensify? Rezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> z własnym kontem lojalnościowym linii lotniczych, żeby dalej zdobywać punkty, mile i przywileje statusowe, a my automatycznie utworzymy Twój wydatek. ✈️',
             hotelManual:
-                'Wiedziałeś, że możesz rezerwować i zarządzać pobytami w hotelach bezpośrednio w Expensify? Zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> z własnym kontem lojalnościowym hotelu, żeby dalej zbierać punkty i korzystać z przywilejów statusowych, a my automatycznie utworzymy twój wydatek. 🏨',
+                'Wiesz, że możesz rezerwować i zarządzać pobytami w hotelach bezpośrednio w Expensify? Rezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> z własnym kontem lojalnościowym hotelu, żeby nadal zdobywać punkty i korzyści statusowe, a my automatycznie utworzymy twój wydatek. 🏨',
             hotelCard:
-                'Wiedziałeś, że możesz rezerwować i zarządzać pobytami w hotelach bezpośrednio w Expensify? Zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> z własnym kontem lojalnościowym hotelu, żeby dalej zbierać punkty i korzystać z przywilejów statusowych, a my automatycznie utworzymy twój wydatek. 🏨',
+                'Wiesz, że możesz rezerwować i zarządzać pobytami w hotelach bezpośrednio w Expensify? Rezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> z własnym kontem lojalnościowym hotelu, żeby nadal zdobywać punkty i korzyści statusowe, a my automatycznie utworzymy twój wydatek. 🏨',
             carManual:
-                'Wiesz, że możesz rezerwować i zarządzać wynajmem samochodów bezpośrednio w Expensify? Rezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> z własnym kontem lojalnościowym wypożyczalni, żeby dalej zdobywać punkty i korzyści statusowe, a my automatycznie utworzymy Twój wydatek. 🚗',
+                'Czy wiesz, że możesz rezerwować i zarządzać wynajmem samochodów bezpośrednio w Expensify? Zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a>, używając swojego konta z programem lojalnościowym wypożyczalni, aby dalej zdobywać punkty i korzyści statusowe, a my automatycznie utworzymy twój wydatek. 🚗',
             carCard:
-                'Wiesz, że możesz rezerwować i zarządzać wynajmem samochodów bezpośrednio w Expensify? Rezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> z własnym kontem lojalnościowym wypożyczalni, żeby dalej zdobywać punkty i korzyści statusowe, a my automatycznie utworzymy Twój wydatek. 🚗',
+                'Czy wiesz, że możesz rezerwować i zarządzać wynajmem samochodów bezpośrednio w Expensify? Zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a>, używając swojego konta z programem lojalnościowym wypożyczalni, aby dalej zdobywać punkty i korzyści statusowe, a my automatycznie utworzymy twój wydatek. 🚗',
             railManual:
                 'Wiesz, że możesz rezerwować i zarządzać przejazdami pociągiem bezpośrednio w Expensify? Następnym razem uniknij kłopotu z ręcznym tworzeniem wydatku i po prostu zarezerwuj przejazd przez <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:

@@ -4705,9 +4705,9 @@ ${amount} für ${merchant} – ${date}`,
             hotelCard:
                 'Wussten Sie, dass Sie Hotelaufenthalte direkt in Expensify buchen und verwalten können? Buchen Sie über <a href="https://travel.expensify.com">Expensify Travel</a> mit Ihrem eigenen Hotel-Treuekonto, um weiterhin Punkte und Statusvorteile zu sammeln, während wir Ihre Ausgabe automatisch erstellen. 🏨',
             carManual:
-                'Wussten Sie, dass Sie Mietwagen direkt in Expensify buchen und verwalten können? Buchen Sie über <a href="https://travel.expensify.com">Expensify Travel</a> mit Ihrem eigenen Bonusprogramm-Konto für Mietwagen, um weiterhin Punkte und Statusvorteile zu sammeln, während wir Ihre Ausgabe automatisch erstellen. 🚗',
+                'Wussten Sie, dass Sie Mietwagen direkt in Expensify buchen und verwalten können? Buchen Sie über <a href="https://travel.expensify.com">Expensify Travel</a> mit Ihrem eigenen Bonuskonto für Mietwagen, um weiterhin Punkte und Statusvorteile zu sammeln, während wir Ihre Ausgabe automatisch erstellen. 🚗',
             carCard:
-                'Wussten Sie, dass Sie Mietwagen direkt in Expensify buchen und verwalten können? Buchen Sie über <a href="https://travel.expensify.com">Expensify Travel</a> mit Ihrem eigenen Bonusprogramm-Konto für Mietwagen, um weiterhin Punkte und Statusvorteile zu sammeln, während wir Ihre Ausgabe automatisch erstellen. 🚗',
+                'Wussten Sie, dass Sie Mietwagen direkt in Expensify buchen und verwalten können? Buchen Sie über <a href="https://travel.expensify.com">Expensify Travel</a> mit Ihrem eigenen Bonuskonto für Mietwagen, um weiterhin Punkte und Statusvorteile zu sammeln, während wir Ihre Ausgabe automatisch erstellen. 🚗',
             railManual:
                 'Wussten Sie, dass Sie Zugfahrten direkt in Expensify buchen und verwalten können? Sparen Sie sich das nächste Mal den Aufwand, Ihre Ausgabe manuell zu erstellen, und buchen Sie einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
