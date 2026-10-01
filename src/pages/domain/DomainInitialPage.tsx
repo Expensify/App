@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Header from '@components/Header';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
 import AccountAvatarButton from '@components/Navigation/AccountAvatarButton';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
@@ -115,17 +115,14 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                 shouldForceFullScreen
                 shouldDisplaySearchRouter
             >
-                <Header>
-                    <Header.BackButton onPress={() => Navigation.goBack(ROUTES.DOMAINS_LIST.route)} />
-                    <Header.Title
-                        title={domainName ?? ''}
-                        titleStyles={styles.textHeadlineH2}
-                    />
-                    <Header.Right>
-                        {shouldUseNarrowLayout && <SidePanelButton />}
-                        <AccountAvatarButton />
-                    </Header.Right>
-                </Header>
+                <HeaderWithBackButtonAndTitle
+                    title={domainName ?? ''}
+                    titleStyles={styles.textHeadlineH2}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.DOMAINS_LIST.route)}
+                >
+                    {shouldUseNarrowLayout && <SidePanelButton />}
+                    <AccountAvatarButton />
+                </HeaderWithBackButtonAndTitle>
 
                 <ScrollView contentContainerStyle={styles.flexColumn}>
                     <View style={[styles.pb4, styles.mh3, styles.mt3]}>
