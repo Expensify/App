@@ -912,7 +912,7 @@ function subscribeToUserEvents(
     PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.RECONNECT_APP, () => {
         // This event is broadcast on the account-wide channel, so every signed-in device receives it, not only
         // the one whose updateID is missing. A full ReconnectApp uses setCollection and clears report actions the
-        // device already holds (#97847, #100791). Pass lastUpdateID so the server can reply incrementally; it
+        // device already holds (#97847, #100791). Pass lastUpdateID so the server can reply incrementally. It
         // still returns full data when it can't serve that range, and we fall back to a full reconnect when the
         // client has no lastUpdateID yet.
         reconnectApp(lastUpdateIDAppliedToClient);
