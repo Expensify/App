@@ -4709,12 +4709,12 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             settlementFrequency: '清算頻度',
             setAsDefault: 'デフォルトのワークスペースに設定',
             defaultNote: `${CONST.EMAIL.RECEIPTS} に送信されたレシートは、このワークスペースに表示されます。`,
-            archive: 'Archive workspace',
-            archiveConfirmation: 'Are you sure you want to archive this workspace?',
+            archive: 'ワークスペースをアーカイブ',
+            archiveConfirmation: 'このワークスペースをアーカイブしてもよろしいですか？',
             archiveWithThirdPartyCardsConfirmation:
-                'Are you sure you want to archive this workspace? This will unassign all credit cards from users and permanently delete any unsubmitted card expenses.',
+                'このワークスペースをアーカイブしてもよろしいですか？ すべてのクレジットカードのユーザーへの割り当てが解除され、未申請のカード経費は完全に削除されます。',
             archiveWithExpensifyCardsConfirmation:
-                'Are you sure you want to archive this workspace? This will set all Expensify Card limits to $0 and automatically decline any new purchase attempts.',
+                'このワークスペースをアーカイブしてもよろしいですか？ すべての Expensify カードの利用限度額が $0 に設定され、新しい購入はすべて自動的に拒否されます。',
             deleteWorkspaceTitle: (workspaceName: string) => `${workspaceName} を削除しますか？`,
             deleteConfirmation: 'このワークスペースを削除してもよろしいですか？',
             deleteWithCardsConfirmation: 'このワークスペースを削除してもよろしいですか？ すべてのカードフィードと割り当て済みカードが削除されます。',
@@ -4722,7 +4722,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             deleteTravelInvoicingError: 'お客様の会社では、統合トラベル請求がまだ有効になっています。',
             outstandingBalanceWarning: '最後のワークスペースを削除する前に精算する必要がある未払残高があります。支払いを解決するには、サブスクリプション設定に移動してください。',
             outstandingBalanceArchiveWarning:
-                'You have an outstanding balance that must be settled before archiving your last workspace. Please go to your subscription settings to resolve the payment.',
+                '最後のワークスペースをアーカイブする前に精算する必要がある未払残高があります。支払いを解決するには、サブスクリプション設定に移動してください。',
             settleBalance: 'サブスクリプションに移動',
             unavailable: '利用できないワークスペース',
             memberNotFound: 'メンバーが見つかりません。ワークスペースに新しいメンバーを招待するには、上の招待ボタンを使用してください。',
