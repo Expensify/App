@@ -582,11 +582,12 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
 
     const handleFooterTotalChange = (nextTotalType: SearchFooterTotal) => {
         // A hand-picked selection is summed from its own rows, so it shows the new breakdown straight away and waits
-        // on nothing. Every other case needs the figure from the backend, so the skeleton waits on the hash the query
-        // is moving to — `footerTotal` is part of the hash, since it changes the aggregate that comes back.
+        // on nothing. The same goes for a to-do search, whose totals are summed from live Onyx data with the query's
+        // own breakdown applied. Every other case needs the figure from the backend, so the skeleton waits on the hash
+        // the query is moving to — `footerTotal` is part of the hash, since it changes the aggregate that comes back.
         if (hasPartialSelection) {
             setFooterTotalState({searchHash: currentSearchHash, selectedTotal: nextTotalType});
-        } else if (currentSearchQueryJSON) {
+        } else if (currentSearchQueryJSON && !shouldUseLiveData) {
             setPendingTotal({hash: buildSearchQueryJSON(getQueryWithFooterSelection(currentSearchQueryJSON, {footerTotal: nextTotalType}))?.hash, fromHash: metadata?.hash});
         }
 
@@ -717,7 +718,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     }
 
     const isAwaitingFooterTotal =
-        pendingTotal?.hash !== undefined && pendingTotal.hash === currentSearchHash && metadata?.hash !== currentSearchHash && metadata?.hash === pendingTotal.fromHash;
+        !shouldUseLiveData && pendingTotal?.hash !== undefined && pendingTotal.hash === currentSearchHash && metadata?.hash !== currentSearchHash && metadata?.hash === pendingTotal.fromHash;
 
     // A partial selection shows a client-side subtotal that is ready immediately, so it never waits on a search.
     const isFooterTotalLoading = isFooterTotalConverting || (!hasPartialSelection && (isAwaitingFooterTotal || (!!metadata?.isLoading && metadata?.offset === 0)));

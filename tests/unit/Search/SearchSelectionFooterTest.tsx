@@ -65,9 +65,10 @@ const mockSelectedTransactions: {current: SelectedTransactions} = {current: {}};
 const mockExcludedTransactions: {current: SelectedTransactions} = {current: {}};
 const mockSelectedReports: {current: SelectedReports[]} = {current: []};
 const mockAreAllMatchingItemsSelected = {current: false};
+const mockShouldUseLiveData = {current: false};
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchQueryContext: () => mockSearchQueryContext.current,
-    useSearchResultsContext: () => ({currentSearchResults: undefined}),
+    useSearchResultsContext: () => ({currentSearchResults: undefined, shouldUseLiveData: mockShouldUseLiveData.current}),
     useSearchSelectionContext: () => ({
         selectedTransactions: mockSelectedTransactions.current,
         excludedTransactions: mockExcludedTransactions.current,
@@ -192,6 +193,7 @@ describe('SearchSelectionFooter', () => {
 
     beforeEach(async () => {
         mockIsFooterSelectorsBetaEnabled.current = true;
+        mockShouldUseLiveData.current = false;
         setSearchQuery('type:expense');
         mockSelectedTransactions.current = {transaction1: buildSelectedTransaction(SELECTED_EXPENSE_CURRENCY)};
         mockExcludedTransactions.current = {};
@@ -498,6 +500,33 @@ describe('SearchSelectionFooter', () => {
 
             // Then the skeleton gives way to the figure
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({isTotalLoading: false, total: 12000}));
+        });
+
+        it('never waits on a search for a to-do search, whose totals are summed from live data', async () => {
+            // Given a to-do search (e.g. Drafts), whose results are built from live Onyx data and carry no snapshot
+            // hash a wait could ever end on
+            mockShouldUseLiveData.current = true;
+            setSearchQuery('type:expense', 2);
+            mockSelectedTransactions.current = {};
+
+            const {rerender} = render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 4)} />);
+            await waitForBatchedUpdates();
+
+            // When a different total is applied and the query moves onto its own hash
+            await act(async () => {
+                mockCapturedFooterProps.current?.onTotalChange?.(CONST.SEARCH.FOOTER_TOTAL.BILLABLE);
+                await waitForBatchedUpdates();
+            });
+            const nextQuery = mockSetParams.mock.calls.at(0)?.at(0)?.q ?? '';
+            const nextHash = buildSearchQueryJSON(nextQuery)?.hash ?? 0;
+            setSearchQuery(nextQuery, nextHash);
+            // Live results keep the hash they were stamped with, so it never catches up to the query's
+            rerender(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 4)} />);
+            await waitForBatchedUpdates();
+
+            // Then the figure is shown straight away instead of a skeleton that could never resolve
+            expect(mockCapturedFooterProps.current?.isTotalLoading).toBe(false);
+            expect(nextQuery).toContain('footerTotal:billable');
         });
 
         it('leaves the total alone while a search the footer did not ask for runs, so it does not flicker', async () => {
