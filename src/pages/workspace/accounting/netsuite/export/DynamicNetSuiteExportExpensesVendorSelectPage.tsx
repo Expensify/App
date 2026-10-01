@@ -12,7 +12,8 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getNetSuiteVendorOptions, settingsPendingAction} from '@libs/PolicyUtils';
+import {getNetSuiteVendorOptions} from '@libs/NetSuiteUtils';
+import {settingsPendingAction} from '@libs/PolicyUtils';
 
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
