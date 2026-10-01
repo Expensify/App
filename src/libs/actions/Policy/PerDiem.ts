@@ -4,7 +4,7 @@ import {getImportFailedFinalModal} from '@libs/actions/ImportSpreadsheet';
 import * as API from '@libs/API';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import enhanceParameters from '@libs/Network/enhanceParameters';
@@ -301,7 +301,7 @@ function updateWorkspacePerDiemRate(policyID: string, customUnitID: string, curr
                             rates: {
                                 [rateID]: {
                                     ...currentRate,
-                                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                                    errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                                     pendingAction: null,
                                 },
                             },
