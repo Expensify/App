@@ -7588,6 +7588,15 @@ const plainStyles = (theme: ThemeColors) =>
             gap: variables.insightsCardGap,
         } satisfies ViewStyle,
 
+        insightsDashboardScrollView: {
+            ...scrollbarGutterStable,
+        },
+
+        insightsPageControlsContainer: {
+            ...scrollbarGutterStable,
+            overflow: 'hidden',
+        },
+
         insightsChartGrid: {
             flexDirection: 'row',
             alignItems: 'flex-start',
