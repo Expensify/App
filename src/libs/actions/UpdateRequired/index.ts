@@ -6,19 +6,21 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
 
-// Several requests can get a 426 at once, only the first one should trigger the reload.
-let isReloading = false;
+import pkg from '../../../../package.json';
+
+// Many requests can get a 426 at once, and the Log command itself can get one. Only the first 426 should reload or alert.
+let hasHandledUpdateRequired = false;
 
 /**
- * Returns true only if this is the first reload attempt in the tab and it was recorded. When sessionStorage is unusable
- * the attempt can't be counted, so reloading could loop forever and the caller must show the Update Required screen instead.
+ * Returns true only if a reload attempt for this bundle version was recorded. The stored version matching the running one means
+ * the last reload didn't get a new bundle. A later deploy changes the version, so it gets its own reload.
  */
 function markReloadAttempted(): boolean {
     try {
-        if (sessionStorage.getItem(CONST.SESSION_STORAGE_KEYS.UPDATE_REQUIRED_RELOADED)) {
+        if (sessionStorage.getItem(CONST.SESSION_STORAGE_KEYS.UPDATE_REQUIRED_RELOADED_VERSION) === pkg.version) {
             return false;
         }
-        sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.UPDATE_REQUIRED_RELOADED, 'true');
+        sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.UPDATE_REQUIRED_RELOADED_VERSION, pkg.version);
         return true;
     } catch {
         return false;
@@ -27,21 +29,22 @@ function markReloadAttempted(): boolean {
 
 /**
  * Web should always serve the latest version, so a 426 usually means the browser loaded an old bundle from its cache.
- * The app version is baked into the bundle, so the request can only be retried with a new bundle: clear the caches and reload once per tab,
- * and show the Update Required screen if the app still gets a 426 afterwards.
+ * The app version is baked into the bundle, so the request can only be retried with a new bundle: clear the caches and reload,
+ * and show the Update Required screen if the same bundle version still gets a 426 afterwards.
  */
 function alertUser() {
-    if (isReloading) {
+    if (hasHandledUpdateRequired) {
         return;
     }
 
+    hasHandledUpdateRequired = true;
+
     if (markReloadAttempted()) {
-        isReloading = true;
         clearWorkboxRecoveryCaches().then(() => window.location.reload());
         return;
     }
 
-    Log.alert('[UpdateRequired] Got a 426 on web after clearing the cache and reloading');
+    Log.alert('[UpdateRequired] Got a 426 on web after clearing the cache and reloading', {appVersion: pkg.version});
     Onyx.set(ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED, true);
 }
 
