@@ -1,4 +1,4 @@
-import {isMobile as isMobileBrowser} from '@libs/Browser';
+import {isMobilePhoneWeb} from '@libs/isInLandscapeMode';
 
 import CONST from '@src/CONST';
 
@@ -52,7 +52,7 @@ function useIsSoftKeyboardOpen(isEnabled = true): boolean {
     }
 
     useEffect(() => {
-        if (!isEnabled || !isMobileBrowser()) {
+        if (!isEnabled || !isMobilePhoneWeb) {
             return;
         }
 

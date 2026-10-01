@@ -1,6 +1,8 @@
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useIsSoftKeyboardOpen from '@hooks/useIsSoftKeyboardOpen';
 
+import {isMobilePhoneWeb} from '@libs/isInLandscapeMode';
+
 import {useActionListContext} from '@pages/inbox/ActionListContext';
 
 import type {LayoutChangeEvent} from 'react-native';
@@ -58,8 +60,11 @@ const PROGRAMMATIC_JUMP_THRESHOLD = 400;
  *
  * Uses the height animation (rather than translateY over the content) so the freed space is actually reclaimed by the
  * list below, matching CollapsibleHeaderOnKeyboard — which is a no-op on web, so the two never animate the same node.
+ *
+ * Only a phone browser can ever be in landscape here, so this is only mounted there — see CollapsibleHeaderOnScroll
+ * below. On a phone it stays mounted in portrait too: swapping it in on rotation would remount the header.
  */
-function CollapsibleHeaderOnScroll({children}: CollapsibleHeaderOnScrollProps) {
+function MobileWebCollapsibleHeaderOnScroll({children}: CollapsibleHeaderOnScrollProps) {
     // `isInLandscapeMode` is already false on desktop browsers and tablets (see @libs/isInLandscapeMode), so this is
     // effectively "mobile web phone, in landscape".
     const isInLandscapeMode = useIsInLandscapeMode();
@@ -215,12 +220,24 @@ function CollapsibleHeaderOnScroll({children}: CollapsibleHeaderOnScrollProps) {
                     {children}
                 </Reanimated.View>
             </Reanimated.View>
-            {/* The wrappers above stay mounted on every web report, landscape or not: unmounting them on rotation would
-                remount the header, so desktop web pays for two animated views and a few idle shared values instead. The
-                button is the part that can be skipped, so it is mounted only where the header can actually collapse. */}
+            {/* The wrappers above stay mounted in portrait too (see the component comment); the button is the part that
+                can be skipped, so it is mounted only where the header can actually collapse. */}
             {isInLandscapeMode && <FloatingBackButton collapseProgress={collapseProgress} />}
         </>
     );
+}
+
+/**
+ * Desktop and tablet browsers can never rotate into mobile web landscape, so they render the header exactly as native
+ * does, with no animated wrappers and no per-scroll reaction. `isMobilePhoneWeb` is fixed at load, so the tree shape
+ * never changes at runtime and the header is never remounted.
+ */
+function CollapsibleHeaderOnScroll({children}: CollapsibleHeaderOnScrollProps) {
+    if (!isMobilePhoneWeb) {
+        return children;
+    }
+
+    return <MobileWebCollapsibleHeaderOnScroll>{children}</MobileWebCollapsibleHeaderOnScroll>;
 }
 
 export default CollapsibleHeaderOnScroll;
