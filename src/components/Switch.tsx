@@ -121,6 +121,9 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, pending = false, 
         <PressableWithFeedback
             disabled={pending || (!disabledAction && disabled)}
             isNested={isNested}
+            // When nested in a pressable row (e.g. a menu row), the row owns keyboard focus, so the Switch must not be its
+            // own tab stop — otherwise Tab/Shift+Tab desyncs the row's focused index from what's visually focused.
+            focusable={!isNested}
             onPress={handleSwitchPress}
             onMouseDown={(e) => {
                 if (!isNested) {
