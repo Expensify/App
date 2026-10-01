@@ -87,6 +87,7 @@ type MoneyReportHeaderSecondaryActionsProps = {
     isReportInSearch?: boolean;
     backTo?: Route;
     dropdownMenuRef?: React.RefObject<ButtonWithDropdownMenuRef>;
+    isDisabled?: boolean;
 };
 
 const MORE_MENU_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT = {
@@ -94,7 +95,7 @@ const MORE_MENU_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
-function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isReportInSearch, backTo, dropdownMenuRef}: MoneyReportHeaderSecondaryActionsProps) {
+function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isReportInSearch, backTo, dropdownMenuRef, isDisabled}: MoneyReportHeaderSecondaryActionsProps) {
     const {isPaidAnimationRunning, isApprovedAnimationRunning, startAnimation, startApprovedAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
     const {openHoldMenu, openPDFDownload, openHoldEducational, openRejectModal} = useMoneyReportHeaderModals();
 
@@ -489,6 +490,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             primaryAction={primaryAction}
             applicableSecondaryActions={applicableSecondaryActions}
             dropdownMenuRef={dropdownMenuRef}
+            isDisabled={isDisabled}
             onOptionsMenuHide={handleOptionsMenuHide}
             ref={kycWallRef}
             shouldPutHeaderTextAfterBackButton
@@ -496,7 +498,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     );
 }
 
-function MoneyReportHeaderSecondaryActionsPlaceholder({primaryAction}: {primaryAction: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | ''}) {
+function MoneyReportHeaderSecondaryActionsPlaceholder({primaryAction, isDisabled}: {primaryAction: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | ''; isDisabled?: boolean}) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -512,6 +514,7 @@ function MoneyReportHeaderSecondaryActionsPlaceholder({primaryAction}: {primaryA
                 size={CONST.BUTTON_SIZE.MEDIUM}
                 innerStyles={innerStyles}
                 style={shouldTakeRemainingWidth ? styles.w100 : undefined}
+                isDisabled={isDisabled}
                 onPress={() => {}}
             >
                 <Button.Text>{translate('common.more')}</Button.Text>
@@ -521,7 +524,7 @@ function MoneyReportHeaderSecondaryActionsPlaceholder({primaryAction}: {primaryA
     );
 }
 
-function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInSearch, backTo, dropdownMenuRef}: MoneyReportHeaderSecondaryActionsProps) {
+function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInSearch, backTo, dropdownMenuRef, isDisabled}: MoneyReportHeaderSecondaryActionsProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isMediumScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const shouldTakeRemainingWidth = (shouldUseNarrowLayout || isMediumScreenWidth) && !primaryAction && !isInLandscapeMode;
@@ -533,7 +536,12 @@ function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInS
             anchorAlignment={MORE_MENU_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT}
         >
             <NavigationDeferredMount
-                placeholder={<MoneyReportHeaderSecondaryActionsPlaceholder primaryAction={primaryAction} />}
+                placeholder={
+                    <MoneyReportHeaderSecondaryActionsPlaceholder
+                        primaryAction={primaryAction}
+                        isDisabled={isDisabled}
+                    />
+                }
                 // RHPReportScreen remounts this tree on setParams arrow-nav without firing a transition,
                 // so we must not wait for one — see https://github.com/Expensify/App/issues/88931.
                 waitForUpcomingTransition={false}
@@ -544,6 +552,7 @@ function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInS
                     isReportInSearch={isReportInSearch}
                     backTo={backTo}
                     dropdownMenuRef={dropdownMenuRef}
+                    isDisabled={isDisabled}
                 />
             </NavigationDeferredMount>
         </ReportSubmitToPopoverAnchor>
