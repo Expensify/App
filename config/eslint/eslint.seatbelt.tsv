@@ -5,7 +5,6 @@
 "../../__mocks__/@react-native-camera-roll/camera-roll.ts"	"@typescript-eslint/no-deprecated/CameraRoll.save"	1
 "../../__mocks__/@react-native-community/netinfo.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../__mocks__/@react-navigation/native/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../__mocks__/@ua/react-native-airship.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../__mocks__/expo-video.tsx"	"react-hooks/refs"	2
 "../../__mocks__/openai.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../__mocks__/react-freeze.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -20,7 +19,6 @@
 "../../.github/actions/javascript/getPreviousVersion/getPreviousVersion.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../.github/actions/javascript/getPullRequestDetails/getPullRequestDetails.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../.github/actions/javascript/getPullRequestIncrementalChanges/getPullRequestIncrementalChanges.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
-"../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed.ts"	"no-restricted-imports"	1
 "../../.github/actions/javascript/postOrReplaceComment/postOrReplaceComment.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../.github/actions/javascript/proposalPoliceComment/proposalPoliceComment.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -132,8 +130,6 @@
 "../../src/components/FeedbackSurvey.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/FilePicker/index.native.tsx"	"react-hooks/refs"	1
 "../../src/components/FilePicker/index.tsx"	"react-hooks/refs"	1
-"../../src/components/FlatList/FlatList/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
-"../../src/components/FlatList/FlatList/index.tsx"	"react-hooks/refs"	1
 "../../src/components/FlatList/hooks/useFlatListHandle.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/components/FocusTrap/FocusTrapContainerElement/index.web.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/FocusTrap/FocusTrapForScreen/index.web.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -425,7 +421,6 @@
 "../../src/hooks/useDynamicBackPath.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useExportedToFilterOptions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useFilterFormValues.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/hooks/useGeographicalStateAndCountryFromRoute.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/hooks/useHtmlPaste/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/hooks/useHydrateReportsFromSnapshot.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useImportSpreadsheetConfirmModal.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -792,7 +787,6 @@
 "../../src/libs/OptionsListUtils/index.ts"	"@typescript-eslint/no-deprecated/translateLocal"	7
 "../../src/libs/OptionsListUtils/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/OptionsListUtils/index.ts"	"rulesdir/no-onyx-connect"	1
-"../../src/libs/OptionsListUtils/searchMatchUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	2
 "../../src/libs/PageHTMLCapture/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Parser.ts"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/libs/Parser.ts"	"rulesdir/no-onyx-connect"	2
@@ -836,8 +830,9 @@
 "../../src/libs/telemetry/forwardLogsToSentry.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/telemetry/TelemetrySynchronizer.ts"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/libs/TransactionPreviewUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/libs/TransactionUtils/getUpdatedTransaction.ts"	"@typescript-eslint/no-deprecated/translateLocal"	2
 "../../src/libs/TransactionUtils/index.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	1
-"../../src/libs/TransactionUtils/index.ts"	"@typescript-eslint/no-deprecated/translateLocal"	3
+"../../src/libs/TransactionUtils/index.ts"	"@typescript-eslint/no-deprecated/translateLocal"	1
 "../../src/libs/TransactionUtils/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	7
 "../../src/libs/UnreadIndicatorUpdater/index.ts"	"no-restricted-imports"	1
 "../../src/libs/UnreadIndicatorUpdater/index.ts"	"no-restricted-syntax"	1
@@ -879,8 +874,8 @@
 "../../src/pages/domain/Members/TwoFactorAuth/DomainMemberResetTwoFactorAuthPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/DynamicEditReportFieldPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/DynamicReportChangeWorkspacePage.tsx"	"rulesdir/no-direct-personal-details-list"	3
-"../../src/pages/DynamicReportDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../src/pages/DynamicReportDetailsPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
+"../../src/pages/DynamicReportDetailsPage/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
+"../../src/pages/DynamicReportDetailsPage/index.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/DynamicReportParticipantDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/DynamicRoomMemberDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/DynamicRoomMembersPage.tsx"	"react-hooks/set-state-in-effect"	1
@@ -1285,7 +1280,7 @@
 "../../src/pages/workspace/WorkspaceOverviewSharePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/WorkspacesListPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/polyfills/requestIdleCallback.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	52
+"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	53
 "../../src/ROUTES.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/selectors/AdvancedSearchFiltersForm.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/selectors/Domain.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
