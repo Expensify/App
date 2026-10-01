@@ -20,12 +20,21 @@ function CountrySelection({isEditing, onNext, onMove, formValues}: CustomSubPage
         // Countries with a single currency have nothing to pick, so default it and let the details step move on.
         const [firstCurrency] = getLocalCurrencies(selectedCountry);
 
+        // A different country asks for different details, so everything collected for the last one is dropped.
+        const clearedFields = hasCountryChanged
+            ? Object.fromEntries(
+                  Object.keys(formValues)
+                      .filter((fieldName) => fieldName !== INPUT_IDS.BANK_COUNTRY && fieldName !== INPUT_IDS.BANK_CURRENCY)
+                      .map((fieldName) => [fieldName, '']),
+              )
+            : {};
+
         setDraftValues(ONYXKEYS.FORMS.COLLECT_DEPOSIT_ACCOUNT_FORM, {
+            ...clearedFields,
             [INPUT_IDS.BANK_COUNTRY]: selectedCountry,
             [INPUT_IDS.BANK_CURRENCY]: hasCountryChanged ? firstCurrency || '' : formValues[INPUT_IDS.BANK_CURRENCY],
         });
 
-        // A different country asks for different details, so the collected ones have to be filled in again.
         if (hasCountryChanged) {
             onMove(CONST.COLLECT_DEPOSIT_ACCOUNT.INDEXES.MAPPING.BANK_ACCOUNT_DETAILS, false);
             return;

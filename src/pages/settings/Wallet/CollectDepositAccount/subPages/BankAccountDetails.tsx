@@ -1,3 +1,4 @@
+import AddressSearch from '@components/AddressSearch';
 import CurrencyPicker from '@components/CurrencyPicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -20,17 +21,36 @@ import type CustomSubPageProps from '@pages/settings/Wallet/CollectDepositAccoun
 import {setDraftValues} from '@userActions/FormActions';
 
 import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/CollectDepositAccountForm';
 
 import React from 'react';
 import {View} from 'react-native';
 
+function isSupportedCountry(countryISO: string): countryISO is Country {
+    return countryISO in CONST.ALL_COUNTRIES;
+}
+
+// Empty keys tell AddressSearch to skip a value, so country, name and coordinates never land in the form.
+const ADDRESS_SEARCH_INPUT_KEYS = {
+    street: INPUT_IDS.ADDRESS_STREET,
+    city: INPUT_IDS.ADDRESS_CITY,
+    state: INPUT_IDS.ADDRESS_STATE,
+    zipCode: INPUT_IDS.ADDRESS_ZIP_CODE,
+    country: '',
+    name: '',
+    address: '',
+    lat: '',
+    lng: '',
+};
+
 function BankAccountDetails({isEditing, onNext, formValues, fieldsMap, fieldsType}: CustomSubPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const bankCountry = formValues[INPUT_IDS.BANK_COUNTRY] ?? '';
+    const limitSearchesToCountry = isSupportedCountry(bankCountry) ? bankCountry : '';
 
     const localCurrencies = getLocalCurrencies(bankCountry);
     const isLocal = fieldsType === CONST.BANK_ACCOUNT.FIELDS_TYPE.LOCAL;
@@ -41,7 +61,7 @@ function BankAccountDetails({isEditing, onNext, formValues, fieldsMap, fieldsTyp
 
     // The picker only offers an exclude list, so locally everything the country has no mapping for is excluded.
     const {currencyList} = useCurrencyListState();
-    const excludedCurrencies = isLocal ? Object.keys(currencyList).filter((currencyCode) => !localCurrencies.includes(currencyCode)) : [];
+    const excludedCurrencies = isLocal && hasCurrencyChoice ? Object.keys(currencyList).filter((currencyCode) => !localCurrencies.includes(currencyCode)) : [];
 
     // Editing holds the new values back until submit, so the draft is written here rather than on every keystroke.
     const handleSubmit = useStepFormSubmit<typeof ONYXKEYS.FORMS.COLLECT_DEPOSIT_ACCOUNT_FORM>({
@@ -85,25 +105,42 @@ function BankAccountDetails({isEditing, onNext, formValues, fieldsMap, fieldsTyp
                             }}
                             headerContent={currencyHeaderContent}
                             excludeCurrencies={excludedCurrencies}
-                            shouldShowFullPageOfflineView
                         />
                     </View>
                 )}
                 {Object.entries(fieldsMap).map(([fieldName, field]) => {
+                    // The API only accepts a two letter code for US states, so offer the list rather than free text.
                     const isUSState = fieldName === INPUT_IDS.ADDRESS_STATE && bankCountry === CONST.COUNTRY.US;
+                    // Only the holder's own street searches, so picking a result cannot overwrite the bank's address.
+                    const isSearchableAddress = fieldName === INPUT_IDS.ADDRESS_STREET;
 
                     return (
                         <View
                             style={isUSState ? [styles.mhn5, styles.pv1] : [styles.pv2]}
                             key={fieldName}
                         >
-                            {isUSState ? (
+                            {!!isUSState && (
                                 <InputWrapper
                                     InputComponent={StatePicker}
                                     inputID={fieldName}
                                     shouldSaveDraft={!isEditing}
                                 />
-                            ) : (
+                            )}
+                            {!!isSearchableAddress && (
+                                <InputWrapper
+                                    InputComponent={AddressSearch}
+                                    inputID={fieldName}
+                                    defaultValue={formValues[fieldName]}
+                                    label={field.label}
+                                    shouldSaveDraft={!isEditing}
+                                    renamedInputKeys={ADDRESS_SEARCH_INPUT_KEYS}
+                                    limitSearchesToCountry={limitSearchesToCountry}
+                                    maxInputLength={CONST.FORM_CHARACTER_LIMIT}
+                                    forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                                    autoComplete="street-address"
+                                />
+                            )}
+                            {!isUSState && !isSearchableAddress && (
                                 <InputWrapper
                                     InputComponent={TextInput}
                                     inputID={fieldName}

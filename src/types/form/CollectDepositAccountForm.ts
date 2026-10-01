@@ -9,6 +9,9 @@ const INPUT_IDS = {
     ROUTING_NUMBER: 'routingNumber',
     ACCOUNT_NUMBER: 'accountNumber',
     ADDRESS_STATE: 'addressState',
+    ADDRESS_STREET: 'addressStreet',
+    ADDRESS_CITY: 'addressCity',
+    ADDRESS_ZIP_CODE: 'addressZipCode',
 } as const;
 
 export type {CollectDepositAccountForm};

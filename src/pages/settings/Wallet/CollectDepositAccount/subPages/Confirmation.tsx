@@ -68,12 +68,11 @@ function Confirmation({onNext, onMove, formValues, fieldsMap, fieldsType}: Custo
             submitButtonText={translate('common.confirm')}
             style={[styles.flexGrow1]}
             submitButtonStyles={[styles.ph5, styles.mb0]}
-            enabledWhenOffline={false}
             isLoading={personalBankAccount?.isLoading}
             scrollContextEnabled
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('addPersonalBankAccount.confirmationStepHeader')}</Text>
-            <Text style={[styles.mutedTextLabel, styles.ph5, styles.mb5]}>{translate('addPersonalBankAccount.confirmationStepSubHeader')}</Text>
+            <Text style={[styles.mb6, styles.ph5, styles.textSupporting]}>{translate('addPersonalBankAccount.confirmationStepSubHeader')}</Text>
             <MenuItemField
                 name={translate('common.country')}
                 value={formValues[INPUT_IDS.BANK_COUNTRY]}
