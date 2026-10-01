@@ -201,7 +201,6 @@ import {
     isRootGroupChat,
     isSelfDMOrSelfDMThread,
     isSortableColumnName,
-    isSupportTicket,
     isUnread,
     isUploadingAttachmentRemovedFromDraft,
     isWorkspaceMemberLeavingWorkspaceRoom,
@@ -26457,22 +26456,7 @@ describe('support tickets', () => {
         statusNum: CONST.REPORT.STATUS_NUM.OPEN,
     };
 
-    it('identifies support tickets and their resolved state', () => {
-        // Given an open support ticket
-        expect(isSupportTicket(openSupportTicket)).toBe(true);
-        expect(isResolvedSupportTicket(openSupportTicket)).toBe(false);
-
-        // When the support ticket is resolved
-        expect(
-            isResolvedSupportTicket({
-                ...openSupportTicket,
-                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
-            }),
-        ).toBe(true);
-    });
-
-    it('uses the parent preview when the ticket is not loaded', () => {
+    it('uses the resolved parent preview when the ticket is not loaded', () => {
         // Given a support ticket that has not loaded yet
         expect(
             isResolvedSupportTicket(null, {

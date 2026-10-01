@@ -33,38 +33,23 @@ describe('actions/Report', () => {
         mockNavigate.mockClear();
     });
 
-    it('opens a pending report before a new support ticket request resolves', async () => {
+    it.each([
+        ['a new support ticket', undefined, {newSupportTicketReportID}],
+        ['a reassigned support ticket', 'resolvedSupportTicketReportID', {newSupportTicketReportID, resolvedSupportTicketReportID: 'resolvedSupportTicketReportID'}],
+    ])('opens a pending report and sends the expected payload for %s', async (_scenario, resolvedSupportTicketReportID, parameters) => {
+        // Given a request for a new or reassigned support ticket
         // When the customer asks to talk to a human
-        const request = openSupportTicket();
+        const request = openSupportTicket(resolvedSupportTicketReportID);
 
         // Then the App opens the client-generated report ID while the request is still pending
         expect(mockGenerateReportID).toHaveBeenCalled();
         expect(mockGetReportRouteForCurrentContext).toHaveBeenCalledWith({reportID: newSupportTicketReportID, isPendingCreation: true});
         expect(mockNavigate).toHaveBeenCalledWith(`r/${newSupportTicketReportID}`);
-        expect(mockMakeRequestWithSideEffects).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_SUPPORT_TICKET, {newSupportTicketReportID});
+        expect(mockMakeRequestWithSideEffects).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_SUPPORT_TICKET, parameters);
 
         await request;
 
         // And the request does not navigate a second time after the server has created the report
         expect(mockNavigate).toHaveBeenCalledTimes(1);
-    });
-
-    it('sends the resolved ticket ID separately when creating a reassigned support ticket', async () => {
-        // Given a resolved support ticket that needs a new assigned rep
-        const resolvedSupportTicketReportID = 'resolvedSupportTicketReportID';
-
-        // When the customer creates the reassigned ticket
-        const request = openSupportTicket(resolvedSupportTicketReportID);
-
-        // Then the request uses a new client-generated report ID and identifies the old resolved ticket separately
-        expect(mockGenerateReportID).toHaveBeenCalled();
-        expect(mockGetReportRouteForCurrentContext).toHaveBeenCalledWith({reportID: newSupportTicketReportID, isPendingCreation: true});
-        expect(mockNavigate).toHaveBeenCalledWith(`r/${newSupportTicketReportID}`);
-        expect(mockMakeRequestWithSideEffects).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_SUPPORT_TICKET, {
-            newSupportTicketReportID,
-            resolvedSupportTicketReportID,
-        });
-
-        await request;
     });
 });

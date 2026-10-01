@@ -63,48 +63,15 @@ const getSupportTicketParentActionArgs = (): ShouldShowArgs =>
     });
 
 describe('ContextMenuActions support tickets', () => {
-    it('hides reactions for customer comments', () => {
+    it('hides actions that do not apply to customer comments', () => {
         // Given a customer comment in a support ticket
         const args = getSupportTicketArgs();
 
         // When the context menu is built
-        const shouldShowReactions = quickEmojiAction.shouldShow(args);
+        const shouldShowActions = [quickEmojiAction, replyInThreadAction, joinThreadAction, leaveThreadAction].map((action) => action.shouldShow(args));
 
-        // Then reactions are unavailable
-        expect(shouldShowReactions).toBe(false);
-    });
-
-    it('hides Reply in thread for customer comments', () => {
-        // Given a customer comment in a support ticket
-        const args = getSupportTicketArgs();
-
-        // When the context menu is built
-        const shouldShowReplyInThread = replyInThreadAction.shouldShow(args);
-
-        // Then threading is unavailable
-        expect(shouldShowReplyInThread).toBe(false);
-    });
-
-    it('hides Join thread for customer comments', () => {
-        // Given a customer comment in a support ticket
-        const args = getSupportTicketArgs();
-
-        // When the context menu is built
-        const shouldShowJoinThread = joinThreadAction.shouldShow(args);
-
-        // Then joining a thread is unavailable
-        expect(shouldShowJoinThread).toBe(false);
-    });
-
-    it('hides Leave thread for customer comments', () => {
-        // Given a customer comment in a support ticket
-        const args = getSupportTicketArgs();
-
-        // When the context menu is built
-        const shouldShowLeaveThread = leaveThreadAction.shouldShow(args);
-
-        // Then leaving a thread is unavailable
-        expect(shouldShowLeaveThread).toBe(false);
+        // Then reactions and every thread action are unavailable
+        expect(shouldShowActions).toEqual([false, false, false, false]);
     });
 
     it('hides Copy message for support ticket parent actions', () => {

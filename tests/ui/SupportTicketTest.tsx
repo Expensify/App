@@ -49,27 +49,26 @@ const supportTicketReport: Report = {
     statusNum: CONST.REPORT.STATUS_NUM.OPEN,
 };
 
-function renderSupportTicketView() {
-    return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <SupportTicketView
-                report={supportTicketReport}
-                action={supportTicketAction}
-            />
-        </ComposeProviders>,
-    );
+function renderSupportTicket(component: React.ReactNode) {
+    return render(<ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>{component}</ComposeProviders>);
 }
 
-function renderSupportTicketPreview() {
-    return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <SupportTicketPreview
-                action={supportTicketAction}
-                isHovered={false}
-                style={undefined}
-            />
-        </ComposeProviders>,
-    );
+async function setDerivedReportName(reportName: string, locale = 'en') {
+    await act(async () => {
+        await Onyx.set(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
+            locale,
+            reports: {
+                [SUPPORT_TICKET_REPORT_ID]: {
+                    reportName,
+                    isEmpty: false,
+                    brickRoadStatus: undefined,
+                    requiresAttention: false,
+                    reportErrors: {},
+                },
+            },
+        });
+    });
+    await waitForBatchedUpdatesWithAct();
 }
 
 describe('Support tickets', () => {
@@ -102,22 +101,13 @@ describe('Support tickets', () => {
 
     it('shows the title, description, and assigned support rep for an open ticket', async () => {
         // Given an open support ticket assigned to John
-        await act(async () => {
-            await Onyx.set(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
-                locale: 'en',
-                reports: {
-                    [SUPPORT_TICKET_REPORT_ID]: {
-                        reportName: 'Support ticket, Sep 30, 2026: Jane Doe and John Smith',
-                        isEmpty: false,
-                        brickRoadStatus: undefined,
-                        requiresAttention: false,
-                        reportErrors: {},
-                    },
-                },
-            });
-        });
-        await waitForBatchedUpdatesWithAct();
-        renderSupportTicketView();
+        await setDerivedReportName('Support ticket, Sep 30, 2026: Jane Doe and John Smith');
+        renderSupportTicket(
+            <SupportTicketView
+                report={supportTicketReport}
+                action={supportTicketAction}
+            />,
+        );
         await waitForBatchedUpdatesWithAct();
 
         // When the customer presses the read-only ticket checkbox
@@ -156,7 +146,12 @@ describe('Support tickets', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        renderSupportTicketView();
+        renderSupportTicket(
+            <SupportTicketView
+                report={supportTicketReport}
+                action={supportTicketAction}
+            />,
+        );
         await waitForBatchedUpdatesWithAct();
 
         expect(
@@ -170,39 +165,20 @@ describe('Support tickets', () => {
         // Given a support ticket assigned to John whose derived title is localized
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${SUPPORT_TICKET_REPORT_ID}`, supportTicketReport);
-            await Onyx.set(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
-                locale: 'en',
-                reports: {
-                    [SUPPORT_TICKET_REPORT_ID]: {
-                        reportName: 'Support ticket, Sep 30, 2026: Jane Doe and John Smith',
-                        isEmpty: false,
-                        brickRoadStatus: undefined,
-                        requiresAttention: false,
-                        reportErrors: {},
-                    },
-                },
-            });
         });
+        await setDerivedReportName('Support ticket, Sep 30, 2026: Jane Doe and John Smith');
         await waitForBatchedUpdatesWithAct();
-        renderSupportTicketPreview();
+        renderSupportTicket(
+            <SupportTicketPreview
+                action={supportTicketAction}
+                isHovered={false}
+                style={undefined}
+            />,
+        );
         await waitForBatchedUpdatesWithAct();
 
         // When the App language changes and the preview checkbox is pressed
-        await act(async () => {
-            await Onyx.set(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
-                locale: 'es',
-                reports: {
-                    [SUPPORT_TICKET_REPORT_ID]: {
-                        reportName: 'Localized support ticket title',
-                        isEmpty: false,
-                        brickRoadStatus: undefined,
-                        requiresAttention: false,
-                        reportErrors: {},
-                    },
-                },
-            });
-        });
-        await waitForBatchedUpdatesWithAct();
+        await setDerivedReportName('Localized support ticket title', 'es');
         fireEvent.press(screen.getByLabelText(translateLocal('supportTicket.checkboxTooltip')));
 
         // Then the preview updates its localized title and opens the checkbox explanation without navigating away
