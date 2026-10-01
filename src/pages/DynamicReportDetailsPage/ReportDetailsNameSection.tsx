@@ -32,6 +32,7 @@ import {clearPolicyRoomNameErrors} from '@userActions/Report';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Report} from '@src/types/onyx';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -44,26 +45,25 @@ type ReportDetailsNameSectionProps = {
     reportID: string;
 };
 
-/** Name row, plus the workspace row for rooms, rendered for every report that is not an expense, invoice or money request report */
-function ReportDetailsNameSection({reportID}: ReportDetailsNameSectionProps) {
+type ReportDetailsNameSectionContentProps = {
+    report: Report;
+};
+
+function ReportDetailsNameSectionContent({report}: ReportDetailsNameSectionContentProps) {
+    const reportID = report.reportID;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const parentReportAction = useParentReportAction(report);
     const isReportArchived = useReportIsArchived(reportID);
     const {reportName} = useReportDetailsReportName(report, parentReport, parentReportAction);
 
-    if (!report?.reportID) {
-        return null;
-    }
-
     const isGroupChat = isGroupChatUtil(report);
     const isThread = isThreadUtil(report);
-    const isWorkspaceChat = isWorkspaceChatUtil(report?.chatType ?? '');
+    const isWorkspaceChat = isWorkspaceChatUtil(report.chatType ?? '');
     const shouldDisableRename = shouldDisableRenameUtil(report, isReportArchived);
     const chatRoomSubtitle = getChatRoomSubtitle(report, policy, conciergeReportID, translate, rules, false, isReportArchived) ?? '';
     const additionalRoomDetails =
@@ -88,10 +88,10 @@ function ReportDetailsNameSection({reportID}: ReportDetailsNameSectionProps) {
 
     return (
         <OfflineWithFeedback
-            pendingAction={report?.pendingFields?.reportName}
-            errors={report?.errorFields?.reportName ?? null}
+            pendingAction={report.pendingFields?.reportName}
+            errors={report.errorFields?.reportName ?? null}
             errorRowStyles={[styles.ph5]}
-            onClose={() => clearPolicyRoomNameErrors(report?.reportID)}
+            onClose={() => clearPolicyRoomNameErrors(report.reportID)}
         >
             <View style={[styles.flex1, !shouldDisableRename && styles.mt3]}>
                 <MenuItemWithTopDescription
@@ -124,6 +124,17 @@ function ReportDetailsNameSection({reportID}: ReportDetailsNameSectionProps) {
             </View>
         </OfflineWithFeedback>
     );
+}
+
+/** Name row, plus the workspace row for rooms, rendered for every report that is not an expense, invoice or money request report */
+function ReportDetailsNameSection({reportID}: ReportDetailsNameSectionProps) {
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+
+    if (!report?.reportID) {
+        return null;
+    }
+
+    return <ReportDetailsNameSectionContent report={report} />;
 }
 
 export default ReportDetailsNameSection;

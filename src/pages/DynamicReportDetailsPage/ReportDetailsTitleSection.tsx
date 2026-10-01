@@ -44,24 +44,22 @@ type ReportDetailsTitleSectionProps = {
     reportID: string;
 };
 
-/** Title row backed by the workspace title report field, plus the "From" row, rendered for expense, invoice and money request reports */
-function ReportDetailsTitleSection({reportID}: ReportDetailsTitleSectionProps) {
+type ReportDetailsTitleSectionContentProps = {
+    report: OnyxTypes.Report;
+};
+
+function ReportDetailsTitleSectionContent({report}: ReportDetailsTitleSectionContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails?.accountID;
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const parentReportAction = useParentReportAction(report);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
     const {reportName, derivedParentReportName} = useReportDetailsReportName(report, parentReport, parentReportAction);
-
-    if (!report?.reportID) {
-        return null;
-    }
 
     const isMoneyRequestReport = isMoneyRequestReportUtil(report);
     const isInvoiceReport = isInvoiceReportUtil(report);
@@ -107,7 +105,7 @@ function ReportDetailsTitleSection({reportID}: ReportDetailsTitleSectionProps) {
                         onPress={
                             shouldShowEditableTitleField && report.policyID
                                 ? () => {
-                                      if (!report?.policyID) {
+                                      if (!report.policyID) {
                                           return;
                                       }
 
@@ -125,9 +123,9 @@ function ReportDetailsTitleSection({reportID}: ReportDetailsTitleSectionProps) {
                     titleComponent={
                         <ParentNavigationSubtitle
                             parentNavigationSubtitleData={parentNavigationSubtitleData}
-                            reportID={report?.reportID}
-                            parentReportID={report?.parentReportID}
-                            parentReportActionID={report?.parentReportActionID}
+                            reportID={report.reportID}
+                            parentReportID={report.parentReportID}
+                            parentReportActionID={report.parentReportActionID}
                             pressableStyles={[styles.mt1, styles.mw100]}
                             textStyles={[styles.popoverMenuText, styles.flexShrink1, styles.preWrap, styles.mw100]}
                             subtitleNumberOfLines={2}
@@ -142,6 +140,17 @@ function ReportDetailsTitleSection({reportID}: ReportDetailsTitleSectionProps) {
             )}
         </>
     );
+}
+
+/** Title row backed by the workspace title report field, plus the "From" row, rendered for expense, invoice and money request reports */
+function ReportDetailsTitleSection({reportID}: ReportDetailsTitleSectionProps) {
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+
+    if (!report?.reportID) {
+        return null;
+    }
+
+    return <ReportDetailsTitleSectionContent report={report} />;
 }
 
 export default ReportDetailsTitleSection;
