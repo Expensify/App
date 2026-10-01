@@ -145,7 +145,7 @@ describe('HelpPage', () => {
         expect(screen.getByText(translateLocal('initialSettingsPage.talkToAHuman'))).toBeOnTheScreen();
         expect(screen.getByText(translateLocal('initialSettingsPage.helpPage.talkToAHumanDescription'))).toBeOnTheScreen();
 
-        const itemLabels = screen.getAllByRole('button').map((button) => button.props.accessibilityLabel as string);
+        const itemLabels = screen.getAllByRole('button').map((button) => String(button.props.accessibilityLabel ?? ''));
         const conciergeIndex = itemLabels.findIndex((label) => label.startsWith(translateLocal('initialSettingsPage.helpPage.conciergeChat')));
         const talkToAHumanIndex = itemLabels.findIndex((label) => label.startsWith(translateLocal('initialSettingsPage.talkToAHuman')));
         const helpSiteIndex = itemLabels.findIndex((label) => label.startsWith(translateLocal('initialSettingsPage.helpPage.helpSite')));

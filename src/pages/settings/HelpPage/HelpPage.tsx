@@ -44,8 +44,8 @@ function isConciergePersonalDetail(details: PersonalDetails | null | undefined):
 }
 
 function HelpPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['ConciergeAvatar', 'NewWindow', 'Monitor']);
-    const illustrations = useMemoizedLazyIllustrations(['ChatBubbles', 'Chalkboard', 'TopiaryDollarSign']);
+    const icons = useMemoizedLazyExpensifyIcons(['ChatBubbles', 'ConciergeAvatar', 'NewWindow', 'Monitor']);
+    const illustrations = useMemoizedLazyIllustrations(['Chalkboard', 'TopiaryDollarSign']);
     const themeIllustrations = useThemeIllustrations();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -201,8 +201,8 @@ function HelpPage() {
               key: 'initialSettingsPage.talkToAHuman',
               title: translate('initialSettingsPage.talkToAHuman'),
               description: translate('initialSettingsPage.helpPage.talkToAHumanDescription'),
-              icon: illustrations.ChatBubbles,
-              iconType: CONST.ICON_TYPE_AVATAR,
+              icon: icons.ChatBubbles,
+              iconType: CONST.ICON_TYPE_ICON,
               onPress: () => openSupportTicket().catch(() => undefined),
               shouldShowRightIcon: true,
               wrapperStyle: [styles.sectionMenuItemTopDescription],
