@@ -1208,6 +1208,7 @@ const translations: TranslationDeepObject<typeof en> = {
         viewOnSpend: 'Προβολή στο Spend',
         emptyState: {title: 'Τίποτα προς εμφάνιση', subtitle: 'Δοκιμάστε να προσαρμόσετε τα κριτήριά σας παραπάνω'},
         noExpensesState: {title: 'Δείτε πού πηγαίνουν τα χρήματά σας', subtitle: 'Μόλις έχετε δαπάνες, θα βλέπετε τάσεις δαπανών, κορυφαίους εμπόρους και άλλα.'},
+        compare: {label: 'Σύγκριση', previousPeriod: 'Προηγούμενη περίοδος', average: 'Μέσος όρος'},
     },
     allSettingsScreen: {
         subscription: 'Συνδρομή',
@@ -2246,7 +2247,7 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Εικόνα προφίλ',
         customInstructions: 'Προσαρμοσμένες οδηγίες',
         copilotIntoAccount: 'Οδηγός εντός λογαριασμού',
-        viewMemberHistory: 'Προβολή ιστορικού μέλους',
+        seeChatHistory: 'Δείτε το ιστορικό συνομιλιών',
         viewAgentHistory: 'Προβολή ιστορικού αντιπροσώπου',
         publicSection: {
             title: 'Δημόσιο',
@@ -3384,6 +3385,7 @@ ${amount} για ${merchant} - ${date}`,
         error: {
             pleaseFillTwoFactorAuth: 'Εισαγάγετε τον κωδικό ελέγχου ταυτότητας δύο παραγόντων σας',
             pleaseFillSecurityCode: 'Παρακαλούμε εισαγάγετε τον κωδικό ασφαλείας σας',
+            tooManyAttempts: 'Πάρα πολλές προσπάθειες. Δοκιμάστε ξανά αργότερα.',
             incorrectSecurityCode: 'Εσφαλμένος ή μη έγκυρος κωδικός ασφαλείας. Δοκιμάστε ξανά ή ζητήστε έναν νέο κωδικό.',
         },
         securityCodeNotReceived: 'Δεν λάβατε κωδικό ασφαλείας;',
@@ -6530,6 +6532,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             statusActive: 'Ενεργό',
             statusInactive: 'Ανενεργό',
             remaining: 'Υπόλοιπο',
+            noCardFeedsAvailable: 'Δεν υπάρχουν διαθέσιμες ροές καρτών',
+            noCardFeedsAvailableDescription: 'Δεν υπάρχουν διαθέσιμες ροές καρτών για αυτόν τον χώρο εργασίας.',
         },
         categories: {
             deleteCategories: 'Διαγραφή κατηγοριών',
@@ -7274,6 +7278,15 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 `Αν αφαιρέσετε τον/την ${memberName} από αυτόν τον χώρο εργασίας, θα τον/την αντικαταστήσουμε ως τεχνική επαφή με τον/την ${workspaceOwner}, τον/την κάτοχο του χώρου εργασίας.`,
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
                 `Ο/Η ${memberName} έχει μία εκκρεμή αναφορά προς επεξεργασία που απαιτεί ενέργεια. Παρακαλούμε ζητήστε του/της να ολοκληρώσει την απαιτούμενη ενέργεια προτού τον/την αφαιρέσετε από τον χώρο εργασίας.`,
+            workArrangement: 'Διευθέτηση εργασίας',
+            officeBased: 'Με βάση γραφείου',
+            noRegularWorkspace: 'Απομακρυσμένα ή μέσω κινητού',
+            workArrangementPage: {
+                title: 'Διευθέτηση εργασίας',
+                optionOfficeBasedHelp: 'Το μέλος μετακινείται σε ένα γραφείο. Οι συνήθεις μετακινήσεις προς και από την εργασία εξαιρούνται από την αποζημίωση.',
+                optionNoRegularWorkspaceHelp: 'Το μέλος εργάζεται από το σπίτι ή ταξιδεύει μεταξύ τοποθεσιών χωρίς τακτικό γραφείο, επομένως οι κανόνες μετακίνησης δεν ισχύουν.',
+                futureOnlyNote: 'Οι αλλαγές ισχύουν μόνο για μελλοντικούς υπολογισμούς χιλιομέτρων. Οι υπάρχουσες δαπάνες χιλιομέτρων δεν επανυπολογίζονται.',
+            },
         },
         card: {
             getStartedIssuing: 'Ξεκινήστε εκδίδοντας την πρώτη σας εικονική ή φυσική κάρτα.',
@@ -9067,6 +9080,35 @@ ${reportName}`,
                 description: 'Επιλέξτε τον λογαριασμό διακανονισμού σας και θα δημιουργήσουμε την πληρωμή στο Campfire.',
             },
             travelInvoicingPayableAccount: {label: 'Λογαριασμός πληρωτέων για τιμολόγηση ταξιδιών'},
+            exportToMultipleAccounts: 'Ρύθμιση εξαγωγής σε πολλούς λογαριασμούς',
+            cardProgramAccount: {
+                label: 'Λογαριασμός προγράμματος κάρτας',
+                description: 'Παρακάμψτε τον λογαριασμό χώρου εργασίας για αυτά τα προγράμματα καρτών.',
+                descriptionLevel2: 'Παράκαμψη του λογαριασμού χώρου εργασίας για αυτό το πρόγραμμα κάρτας.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Όλα τα προγράμματα χρησιμοποιούν τον προεπιλεγμένο λογαριασμό';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} πρόγραμμα με προσαρμοσμένο λογαριασμό`;
+                    }
+                    return `${customAccountsCount} προγράμματα με προσαρμοσμένους λογαριασμούς`;
+                },
+            },
+            cardAccount: {
+                label: 'Λογαριασμός ανά κάρτα',
+                description: 'Παρακάμψτε τον λογαριασμό προγράμματος για μεμονωμένες κάρτες.',
+                descriptionLevel2: 'Παράκαμψη του λογαριασμού προγράμματος για αυτές τις κάρτες.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Όλες οι κάρτες χρησιμοποιούν λογαριασμούς προγράμματος';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} κάρτα με προσαρμοσμένο λογαριασμό`;
+                    }
+                    return `${customAccountsCount} κάρτες με προσαρμοσμένους λογαριασμούς`;
+                },
+            },
         },
         businessCentral: {
             businessCentralSetup: 'Ρύθμιση Dynamics 365 Business Central',
@@ -9083,6 +9125,51 @@ ${reportName}`,
             importDescription: 'Επιλέξτε ποιες ρυθμίσεις κωδικοποίησης θέλετε να εισαγάγετε από το Dynamics 365 Business Central.',
             items: 'Στοιχεία',
             enableNewCategories: 'Ενεργοποίηση νέων εισαγόμενων κατηγοριών',
+            exportDescription: 'Ρυθμίστε τον τρόπο με τον οποίο τα δεδομένα του Expensify εξάγονται στο Dynamics 365 Business Central.',
+            exportDate: {
+                label: 'Ημερομηνία συναλλαγής',
+                description: 'Χρησιμοποιήστε αυτήν την ημερομηνία κατά την εξαγωγή αναφορών στο Dynamics 365 Business Central.',
+                values: {
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Ημερομηνία τελευταίας δαπάνης',
+                        description: 'Ημερομηνία της πιο πρόσφατης δαπάνης στην αναφορά.',
+                    },
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Ημερομηνία εξαγωγής',
+                        description: 'Ημερομηνία εξαγωγής της αναφοράς στο Dynamics 365 Business Central.',
+                    },
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Ημερομηνία υποβολής',
+                        description: 'Ημερομηνία που η αναφορά υποβλήθηκε για έγκριση.',
+                    },
+                },
+            },
+            exportReimbursable: 'Εξαγωγή αποζημιώσιμων εξόδων ως',
+            exportNonReimbursable: 'Εξαγωγή εξόδων εταιρικής κάρτας ως',
+            exportDestination: {
+                [CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.JOURNAL_ENTRY]: 'Γενικό ημερολόγιο',
+                [CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE]: 'Τιμολόγια αγοράς',
+            },
+            reimbursableAccount: {
+                label: 'Λογαριασμός αποζημιώσιμων εξόδων',
+                description: 'Επιλέξτε πού θα εξαχθούν τα αποζημιώσιμα έξοδα.',
+            },
+            defaultCompanyCardVendor: {
+                label: 'Προεπιλεγμένος προμηθευτής εταιρικής κάρτας',
+                description: 'Επιλέξτε έναν προεπιλεγμένο προμηθευτή Dynamics 365 Business Central για έξοδα που δεν αντιστοιχίζονται αυτόματα.',
+            },
+            companyCardAccount: {
+                label: 'Λογαριασμός εταιρικής κάρτας',
+                description: 'Επιλέξτε πού θα εξαχθούν οι συναλλαγές εταιρικής κάρτας.',
+            },
+            paymentMethod: {
+                label: 'Μέθοδος πληρωμής',
+                description: 'Επιλέξτε μια μέθοδο πληρωμής για τα τιμολόγια αγοράς, ώστε το Dynamics 365 Business Central να μπορεί να τα συμφωνήσει με την τράπεζά σας.',
+            },
+            noBankAccountsFound: 'Δεν βρέθηκαν τραπεζικοί λογαριασμοί',
+            noBankAccountsFoundDescription: 'Προσθέστε τραπεζικούς λογαριασμούς στο Dynamics 365 Business Central και συγχρονίστε ξανά τη σύνδεση',
+            noPaymentMethodsFound: 'Δεν βρέθηκαν μέθοδοι πληρωμής',
+            noPaymentMethodsFoundDescription: 'Προσθέστε μεθόδους πληρωμής στο Dynamics 365 Business Central και συγχρονίστε ξανά τη σύνδεση',
         },
     },
     getAssistancePage: {
@@ -9792,6 +9879,10 @@ ${reportName}`,
                 : `άλλαξε τη ροή έγκρισης για τον/την ${member} ώστε να σταματήσει η προώθηση αναφορών πάνω από ${previousLimit}`,
         changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
             `άλλαξε τη ροή έγκρισης για τον/την ${member} ώστε να προωθεί αναφορές πάνω από ${limit} (προηγουμένως ${previousLimit})`,
+        updatedMemberWorkArrangement: ({displayName, newArrangement, oldArrangement}: {displayName: string; newArrangement: string; oldArrangement: string}) =>
+            `άλλαξε τη ρύθμιση εργασίας του/της ${displayName} σε ${newArrangement} (προηγουμένως: ${oldArrangement})`,
+        updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
+            `άλλαξε τη προεπιλεγμένη εργασιακή ρύθμιση σε ${newArrangement} (προηγουμένως ${oldArrangement})`,
     },
     roomMembersPage: {
         memberNotFound: 'Το μέλος δεν βρέθηκε.',
