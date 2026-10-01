@@ -1,3 +1,5 @@
+import {getAllPersonalDetails as getAllPersonalDetailsFromStore, getPersonalDetail} from '@libs/PersonalDetailsStore';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -6,14 +8,6 @@ import type {Attendee} from '@src/types/onyx/IOU';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
-
-let allPersonalDetails: OnyxTypes.PersonalDetailsList = {};
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (value) => {
-        allPersonalDetails = value ?? {};
-    },
-});
 
 let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
 Onyx.connect({
@@ -74,14 +68,6 @@ Onyx.connect({
     },
 });
 
-let deprecatedCurrentUserPersonalDetails: OnyxEntry<OnyxTypes.PersonalDetails>;
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (value) => {
-        deprecatedCurrentUserPersonalDetails = value?.[deprecatedUserAccountID] ?? undefined;
-    },
-});
-
 let allReportActions: OnyxCollection<OnyxTypes.ReportActions>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
@@ -134,7 +120,7 @@ Onyx.connect({
 });
 
 function getAllPersonalDetails(): OnyxTypes.PersonalDetailsList {
-    return allPersonalDetails;
+    return getAllPersonalDetailsFromStore();
 }
 
 function getAllTransactions(): NonNullable<OnyxCollection<OnyxTypes.Transaction>> {
@@ -166,7 +152,7 @@ function getAllTransactionDrafts(): NonNullable<OnyxCollection<OnyxTypes.Transac
 }
 
 function getCurrentUserPersonalDetails(): OnyxEntry<OnyxTypes.PersonalDetails> {
-    return deprecatedCurrentUserPersonalDetails;
+    return getPersonalDetail(deprecatedUserAccountID);
 }
 
 function getCurrentUserAccountIDFromSession(): number {
