@@ -108,9 +108,10 @@ async function clearStorageAndRedirect(signOutReason: SignOutReason, errorMessag
         keysToPreserve.push(ONYXKEYS.LAST_VISITED_PATH);
     }
 
-    // The park write must land before the clear, otherwise the queued writes are wiped with the rest of the storage
-    const didParkPersistedRequests = shouldParkPersistedRequests ? await parkPersistedRequests() : false;
-    if (didParkPersistedRequests) {
+    // The park write must land before the clear, otherwise the queued writes are wiped with the rest of the storage.
+    // The key is preserved even when nothing new was parked, so a repeated redirect can't wipe an earlier park.
+    if (shouldParkPersistedRequests) {
+        await parkPersistedRequests();
         keysToPreserve.push(ONYXKEYS.PARKED_PERSISTED_REQUESTS);
     }
 
