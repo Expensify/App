@@ -9,7 +9,7 @@ internalScope: Audience is all members. Covers assigning, scheduling the end of,
 
 If you're out of the office or on vacation, you can assign a vacation delegate to handle your approvals while you're away.
 
-A vacation delegate can approve reports on your behalf. Once assigned, any reports sent to you for approval will be automatically redirected to your delegate. Pick a **Clear after** date and the delegate is removed automatically at the end of that day, so reports come back to you when you return.
+A vacation delegate can approve reports on your behalf. Once assigned, any reports sent to you for approval will be automatically redirected to your delegate. Pick a **Clear after** date and time and the delegate is removed automatically at that time, so reports come back to you when you return.
 
 All delegate actions are tracked in the report history for full visibility.
 
@@ -19,10 +19,10 @@ All delegate actions are tracked in the report history for full visibility.
 
 1. Go to **Account > Profile > Vacation delegate**.
 2. Select the member who should approve on your behalf.
-3. Optional (recommended): Under **Clear after**, pick the last day the delegate should cover.
+3. Optional (recommended): Under **Clear after**, pick the last day the delegate should cover. Then, under **Time**, pick when the delegate should clear on that day. If you don't change the time, the delegate clears at the end of the day.
 4. Click **Save**.
 
-Once set, any reports or chats that would normally come to you will be redirected to your delegate. You can view every action they take in the report's history and comments. The delegate and the date it clears are shown under **Vacation delegate** on your profile.
+Once set, any reports or chats that would normally come to you will be redirected to your delegate. You can view every action they take in the report's history and comments. The delegate and the date and time it clears are shown under **Vacation delegate** on your profile.
 
 ## How to remove a vacation delegate
 

@@ -6,7 +6,7 @@ import useVacationDelegatePersonalDetails from '@hooks/useVacationDelegatePerson
 
 import getVacationDelegateDisplayName from '@libs/getVacationDelegateDisplayName';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
-import {formatVacationDelegateClearDate, getVacationDelegateClearDate, isVacationDelegateExpired} from '@libs/VacationDelegateUtils';
+import {formatVacationDelegateClearDateTime, getVacationDelegateClearDateTime, isVacationDelegateExpired} from '@libs/VacationDelegateUtils';
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
@@ -110,7 +110,7 @@ function VacationDelegateMenuItemPreset({vacationDelegate, label, errors, pendin
 
     const rawDelegateLogin = vacationDelegatePersonalDetails?.login ?? vacationDelegate?.delegate ?? '';
     const delegateDisplayName = getVacationDelegateDisplayName(rawDelegateLogin, vacationDelegatePersonalDetails?.displayName, formatPhoneNumber);
-    const clearDate = formatVacationDelegateClearDate(getVacationDelegateClearDate(vacationDelegate?.clearAfter, timezone?.selected), dateFnsLocale);
+    const clearDate = formatVacationDelegateClearDateTime(getVacationDelegateClearDateTime(vacationDelegate?.clearAfter, timezone?.selected), dateFnsLocale);
     const untilText = clearDate ? translate('statusPage.vacationDelegate.until', clearDate) : '';
 
     return (

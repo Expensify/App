@@ -1,4 +1,11 @@
-import {formatVacationDelegateClearDate, getVacationDelegateClearAfter, getVacationDelegateClearDate, isVacationDelegateExpired} from '@libs/VacationDelegateUtils';
+import {
+    formatVacationDelegateClearDateTime,
+    getVacationDelegateClearAfter,
+    getVacationDelegateClearDate,
+    getVacationDelegateClearDateTime,
+    getVacationDelegateLocalClearDateTime,
+    isVacationDelegateExpired,
+} from '@libs/VacationDelegateUtils';
 
 describe('VacationDelegateUtils', () => {
     beforeEach(() => {
@@ -10,19 +17,53 @@ describe('VacationDelegateUtils', () => {
         jest.useRealTimers();
     });
 
+    describe('getVacationDelegateLocalClearDateTime', () => {
+        it('takes the day from the date and only the time from the time picker value', () => {
+            // Given a picked day and a time picker value whose own date is a different day
+            // When they are combined
+            // Then the result keeps the picked day, since the time picker's date part is meaningless
+            expect(getVacationDelegateLocalClearDateTime('2026-10-01', '2026-09-28 17:30:00')).toBe('2026-10-01 17:30:00');
+        });
+
+        it('falls back to the end of the day when no time is picked, and to nothing when no day is picked', () => {
+            // Given a day without a time, and no day at all
+            // When they are combined
+            // Then the day ends at 23:59:59 so the delegate covers all of it, and no day means the delegate never clears
+            expect(getVacationDelegateLocalClearDateTime('2026-10-01', undefined)).toBe('2026-10-01 23:59:59');
+            expect(getVacationDelegateLocalClearDateTime('', '2026-09-28 17:30:00')).toBe('');
+        });
+    });
+
     describe('getVacationDelegateClearAfter', () => {
-        it('converts the picked day to the UTC end of that day in the given timezone', () => {
-            // Given a day picked in Los Angeles, where Oct 1 ends at 06:59:59 UTC on Oct 2 during daylight saving time
+        it('converts the picked day and time to UTC in the given timezone', () => {
+            // Given 5:30 PM on Oct 1 picked in Los Angeles, which is 7 hours behind UTC during daylight saving time
+            // When it is converted for the backend
+            // Then the backend gets the same moment in UTC
+            expect(getVacationDelegateClearAfter('2026-10-01', '2026-09-28 17:30:00', 'America/Los_Angeles')).toBe('2026-10-02 00:30:00');
+        });
+
+        it('converts a day without a time to the UTC end of that day in the given timezone', () => {
+            // Given a day picked in Los Angeles with no time, where Oct 1 ends at 06:59:59 UTC on Oct 2 during daylight saving time
             // When it is converted for the backend
             // Then the delegate stays active for the whole picked day, not just until midnight UTC
-            expect(getVacationDelegateClearAfter('2026-10-01', 'America/Los_Angeles')).toBe('2026-10-02 06:59:59');
+            expect(getVacationDelegateClearAfter('2026-10-01', undefined, 'America/Los_Angeles')).toBe('2026-10-02 06:59:59');
         });
 
         it('returns undefined when no day is picked, so the delegate never clears', () => {
             // Given no picked day
             // When it is converted for the backend
             // Then nothing is sent, since the date is optional
-            expect(getVacationDelegateClearAfter('', 'America/Los_Angeles')).toBeUndefined();
+            expect(getVacationDelegateClearAfter('', '2026-09-28 17:30:00', 'America/Los_Angeles')).toBeUndefined();
+        });
+    });
+
+    describe('getVacationDelegateClearDateTime', () => {
+        it('converts the UTC clear after datetime back into the picked day and time', () => {
+            // Given the datetime the backend stored for 5:30 PM on Oct 1 picked in Los Angeles
+            // When it is read back in the same timezone
+            // Then it shows the day and time that were picked, not the UTC ones
+            expect(getVacationDelegateClearDateTime('2026-10-02 00:30:00', 'America/Los_Angeles')).toBe('2026-10-01 17:30:00');
+            expect(getVacationDelegateClearDateTime(undefined, 'America/Los_Angeles')).toBe('');
         });
     });
 
@@ -35,13 +76,13 @@ describe('VacationDelegateUtils', () => {
         });
     });
 
-    describe('formatVacationDelegateClearDate', () => {
-        it('formats the day for display and ignores an invalid one', () => {
-            // Given a valid and an invalid day
+    describe('formatVacationDelegateClearDateTime', () => {
+        it('formats the day and time for display and ignores an invalid one', () => {
+            // Given a valid and an invalid datetime
             // When they are formatted
-            // Then the valid one reads as a short date and the invalid one shows nothing instead of throwing
-            expect(formatVacationDelegateClearDate('2026-10-01', undefined)).toBe('Oct 1, 2026');
-            expect(formatVacationDelegateClearDate('not a date', undefined)).toBe('');
+            // Then the valid one reads as a short date with a time and the invalid one shows nothing instead of throwing
+            expect(formatVacationDelegateClearDateTime('2026-10-01 17:30:00', undefined)).toBe('Oct 1, 2026 5:30 PM');
+            expect(formatVacationDelegateClearDateTime('not a date', undefined)).toBe('');
         });
     });
 

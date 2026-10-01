@@ -41,7 +41,7 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getFormattedAddress, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {expensifyLoginsSelector, getContactMethodsOptions, getLoginListBrickRoadIndicator} from '@libs/UserUtils';
-import {formatVacationDelegateClearDate, getVacationDelegateClearDate, isVacationDelegateExpired} from '@libs/VacationDelegateUtils';
+import {formatVacationDelegateClearDateTime, getVacationDelegateClearDateTime, isVacationDelegateExpired} from '@libs/VacationDelegateUtils';
 
 import useTimeSensitiveHomeAddress from '@pages/home/TimeSensitiveSection/hooks/useTimeSensitiveHomeAddress';
 
@@ -110,7 +110,7 @@ function ProfilePage() {
         ? getVacationDelegateDisplayName(vacationDelegatePersonalDetails?.login ?? vacationDelegate?.delegate ?? '', vacationDelegatePersonalDetails?.displayName, formatPhoneNumber)
         : '';
     const vacationDelegateClearDate = hasVacationDelegate
-        ? formatVacationDelegateClearDate(getVacationDelegateClearDate(vacationDelegate?.clearAfter, currentUserPersonalDetails?.timezone?.selected), dateFnsLocale)
+        ? formatVacationDelegateClearDateTime(getVacationDelegateClearDateTime(vacationDelegate?.clearAfter, currentUserPersonalDetails?.timezone?.selected), dateFnsLocale)
         : '';
     const vacationDelegateUntilText = vacationDelegateClearDate ? translate('statusPage.vacationDelegate.until', vacationDelegateClearDate) : '';
     const vacationDelegateBrickRoadIndicator = isEmptyObject(getVacationDelegateErrors(vacationDelegate)) ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;

@@ -8,6 +8,9 @@ const INPUT_IDS = {
 
     /** Day (yyyy-MM-dd) the vacation delegate clears on, in the timezone of the person setting it */
     CLEAR_AFTER_DATE: 'clearAfterDate',
+
+    /** Time the vacation delegate clears at on that day, in the timezone of the person setting it. Stored as yyyy-MM-dd HH:mm:ss by the time picker, but only the time is used. */
+    CLEAR_AFTER_TIME: 'clearAfterTime',
 } as const;
 
 type InputID = ValueOf<typeof INPUT_IDS>;
@@ -17,6 +20,7 @@ type VacationDelegateForm = Form<
     {
         [INPUT_IDS.DELEGATE]: string;
         [INPUT_IDS.CLEAR_AFTER_DATE]: string;
+        [INPUT_IDS.CLEAR_AFTER_TIME]: string;
     }
 >;
 

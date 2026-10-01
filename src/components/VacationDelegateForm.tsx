@@ -4,7 +4,15 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {formatVacationDelegateClearDate, getVacationDelegateClearAfter, getVacationDelegateClearDate, isVacationDelegateExpired} from '@libs/VacationDelegateUtils';
+import DateUtils from '@libs/DateUtils';
+import {
+    formatVacationDelegateClearDateTime,
+    getVacationDelegateClearAfter,
+    getVacationDelegateClearDate,
+    getVacationDelegateClearDateTime,
+    getVacationDelegateLocalClearDateTime,
+    isVacationDelegateExpired,
+} from '@libs/VacationDelegateUtils';
 import {getDatePassedError} from '@libs/ValidationUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,6 +30,7 @@ import FormProvider from './Form/FormProvider';
 import InputWrapper from './Form/InputWrapper';
 import MenuItemAction from './MenuItem/presets/MenuItemAction';
 import Text from './Text';
+import TimeModalPicker from './TimeModalPicker';
 import VacationDelegateMenuItem from './VacationDelegateMenuItem';
 
 type VacationDelegateFormProps = {
@@ -62,16 +71,27 @@ function VacationDelegateForm({vacationDelegate, description, onChangeDelegate, 
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.VACATION_DELEGATE_FORM_DRAFT);
 
     const savedDelegate = isVacationDelegateExpired(vacationDelegate?.clearAfter) ? undefined : vacationDelegate?.delegate;
+    const savedClearDateTime = savedDelegate ? getVacationDelegateClearDateTime(vacationDelegate?.clearAfter, timezone?.selected) : '';
     const savedClearDate = savedDelegate ? getVacationDelegateClearDate(vacationDelegate?.clearAfter, timezone?.selected) : '';
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- an empty draft means no member was picked yet
     const delegate = draftValues?.[INPUT_IDS.DELEGATE] || savedDelegate;
-    const formattedClearDate = formatVacationDelegateClearDate(draftValues?.[INPUT_IDS.CLEAR_AFTER_DATE] ?? savedClearDate, dateFnsLocale);
+    const clearDate = draftValues?.[INPUT_IDS.CLEAR_AFTER_DATE] ?? savedClearDate;
+    const formattedClearDateTime = formatVacationDelegateClearDateTime(
+        getVacationDelegateLocalClearDateTime(clearDate, draftValues?.[INPUT_IDS.CLEAR_AFTER_TIME] ?? savedClearDateTime),
+        dateFnsLocale,
+    );
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.VACATION_DELEGATE_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.VACATION_DELEGATE_FORM> => {
         const formErrors: FormInputErrors<typeof ONYXKEYS.FORMS.VACATION_DELEGATE_FORM> = {};
-        const dateError = values[INPUT_IDS.CLEAR_AFTER_DATE] ? getDatePassedError(translate, values[INPUT_IDS.CLEAR_AFTER_DATE]) : '';
+        if (!values[INPUT_IDS.CLEAR_AFTER_DATE]) {
+            return formErrors;
+        }
+
+        const dateError = getDatePassedError(translate, values[INPUT_IDS.CLEAR_AFTER_DATE]);
         if (dateError) {
             formErrors[INPUT_IDS.CLEAR_AFTER_DATE] = dateError;
+        } else if (isVacationDelegateExpired(getVacationDelegateClearAfter(values[INPUT_IDS.CLEAR_AFTER_DATE], values[INPUT_IDS.CLEAR_AFTER_TIME], timezone?.selected))) {
+            formErrors[INPUT_IDS.CLEAR_AFTER_TIME] = translate('common.error.invalidTimeShouldBeFuture');
         }
         return formErrors;
     };
@@ -81,7 +101,7 @@ function VacationDelegateForm({vacationDelegate, description, onChangeDelegate, 
             return;
         }
 
-        onSubmit(delegate, getVacationDelegateClearAfter(values[INPUT_IDS.CLEAR_AFTER_DATE], timezone?.selected));
+        onSubmit(delegate, getVacationDelegateClearAfter(values[INPUT_IDS.CLEAR_AFTER_DATE], values[INPUT_IDS.CLEAR_AFTER_TIME], timezone?.selected));
     };
 
     return (
@@ -119,9 +139,23 @@ function VacationDelegateForm({vacationDelegate, description, onChangeDelegate, 
                     shouldHideClearButton
                     shouldSaveDraft
                 />
-                {/* The bottom margin matches the date input's own, so the remove button below sits the same distance from whichever is last */}
-                {!!formattedClearDate && <Text style={[styles.textLabelSupporting, styles.mt2, styles.mb2]}>{translate('statusPage.vacationDelegate.willClearOn', formattedClearDate)}</Text>}
             </View>
+            {/* The time only means something once a day is picked. Until it is changed, the delegate clears at the end of that day. */}
+            {!!clearDate && (
+                <View style={styles.mt2}>
+                    <InputWrapper
+                        InputComponent={TimeModalPicker}
+                        inputID={INPUT_IDS.CLEAR_AFTER_TIME}
+                        label={translate('statusPage.time')}
+                        defaultValue={savedClearDateTime || DateUtils.getEndOfToday()}
+                        shouldSaveDraft
+                    />
+                </View>
+            )}
+            {/* The bottom margin matches the date input's own, so the remove button below sits the same distance from whichever is last */}
+            {!!formattedClearDateTime && (
+                <Text style={[styles.mh5, styles.textLabelSupporting, styles.mt2, styles.mb2]}>{translate('statusPage.vacationDelegate.willClearOn', formattedClearDateTime)}</Text>
+            )}
             {!!savedDelegate && (
                 <View style={styles.mt4}>
                     <MenuItemAction
