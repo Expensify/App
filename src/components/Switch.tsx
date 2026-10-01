@@ -35,6 +35,13 @@ type SwitchProps = {
 
     /** Whether the switch is nested inside another pressable */
     isNested?: boolean;
+
+    /**
+     * Animate the thumb on any `isOn` change, not only when the switch itself is pressed. Use this when the switch can
+     * be toggled from outside (e.g. the whole row or a keyboard shortcut) and it is NOT inside a recycled list. Leave it
+     * off for list rows, where the default guard must stay to avoid switches flipping as rows recycle during scrolling.
+     */
+    shouldAnimateOnExternalChange?: boolean;
 };
 
 const OFFSET_X = {
@@ -42,7 +49,7 @@ const OFFSET_X = {
     ON: 20,
 };
 
-function Switch({isOn, onToggle, accessibilityLabel, disabled, pending = false, showLockIcon, disabledAction, isNested}: SwitchProps) {
+function Switch({isOn, onToggle, accessibilityLabel, disabled, pending = false, showLockIcon, disabledAction, isNested, shouldAnimateOnExternalChange = false}: SwitchProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const offsetX = useSharedValue(isOn ? OFFSET_X.ON : OFFSET_X.OFF);
@@ -58,8 +65,8 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, pending = false, 
         if (prevIsOn.current === isOn) {
             return;
         }
-        if (hasUserToggled.current) {
-            // User just toggled - animate to new position
+        if (hasUserToggled.current || shouldAnimateOnExternalChange) {
+            // User just toggled (or the caller opted in to animate external changes) - animate to new position
             offsetX.set(withTiming(targetOffsetX, {duration: 300}));
             hasUserToggled.current = false;
         } else {
@@ -69,7 +76,7 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, pending = false, 
             offsetX.set(targetOffsetX);
         }
         prevIsOn.current = isOn;
-    }, [isOn, offsetX, targetOffsetX]);
+    }, [isOn, offsetX, targetOffsetX, shouldAnimateOnExternalChange]);
 
     const handleSwitchPress = () => {
         requestAnimationFrame(() => {

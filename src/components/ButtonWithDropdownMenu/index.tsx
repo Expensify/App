@@ -359,11 +359,13 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                             ? {
                                   shouldShowRightComponent: true,
                                   // `isNested` lets the Switch handle its own press (so it animates) while stopping the event from
-                                  // bubbling to the row — no double-toggle. The row's onSelected still toggles via keyboard/label.
+                                  // bubbling to the row — no double-toggle. `shouldAnimateOnExternalChange` makes the thumb also
+                                  // animate when the row/keyboard toggles it, so every path looks the same.
                                   rightComponent: (
                                       <Switch
                                           {...item.switchProps}
                                           isNested
+                                          shouldAnimateOnExternalChange
                                       />
                                   ),
                               }
