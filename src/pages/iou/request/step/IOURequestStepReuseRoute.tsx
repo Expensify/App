@@ -151,7 +151,7 @@ function IOURequestStepReuseRoute({
     }));
 
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, undefined, report, transaction);
-    const headerMessage = searchValue && data.length === 0 ? translate('common.noResultsFound') : '';
+    const headerMessage = searchValue.trim() && data.length === 0 ? translate('common.noResultsFound') : '';
 
     return (
         <StepScreenWrapper
@@ -167,22 +167,24 @@ function IOURequestStepReuseRoute({
                     return null;
                 }
                 return (
-                    <SelectionList
-                        data={data}
-                        onSelectRow={selectRoute}
-                        textInputOptions={{
-                            label: translate('distance.findARoute'),
-                            value: searchValue,
-                            onChangeText: setSearchValue,
-                            headerMessage,
-                            shouldBeInsideList: true,
-                        }}
-                        customListHeaderContent={<Text style={[styles.ph5, styles.pb2, styles.textSupporting]}>{translate('distance.choosePreviousRoute')}</Text>}
-                        ListItem={ReuseRouteListItem}
-                        shouldShowLoadingPlaceholder={!!isLoadingReusableDistanceRoutes && routes.length === 0}
-                        customLoadingPlaceholder={<ReuseRouteSkeleton fixedNumItems={3} />}
-                        shouldSingleExecuteRowSelect
-                    />
+                    <>
+                        <Text style={[styles.ph5, styles.pb2, styles.textSupporting]}>{translate('distance.choosePreviousRoute')}</Text>
+                        <SelectionList
+                            data={data}
+                            onSelectRow={selectRoute}
+                            textInputOptions={{
+                                label: translate('distance.findARoute'),
+                                value: searchValue,
+                                onChangeText: setSearchValue,
+                                headerMessage,
+                            }}
+                            ListItem={ReuseRouteListItem}
+                            shouldShowLoadingPlaceholder={!!isLoadingReusableDistanceRoutes && routes.length === 0}
+                            customLoadingPlaceholder={<ReuseRouteSkeleton fixedNumItems={3} />}
+                            shouldShowListEmptyContent={false}
+                            shouldSingleExecuteRowSelect
+                        />
+                    </>
                 );
             }}
         </StepScreenWrapper>
