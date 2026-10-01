@@ -278,6 +278,12 @@ function DatePicker({
         return () => setInputValidationError(inputID, '');
     }, [inputID, blockingError, setInputValidationError, onValidationErrorChange]);
 
+    // Leaving the field is the point the user is finished with it, which is when a form lets a required error show
+    const handleFieldBlur = () => {
+        segmentInput.onFieldBlur();
+        onTouched?.();
+    };
+
     const handleClear = () => {
         onTouched?.();
         setInputValidationError(inputID, '');
@@ -345,7 +351,7 @@ function DatePicker({
                                   focusFirstUnfilledSegment: segmentInput.focusFirstUnfilledSegment,
                                   isSegmentElement: segmentInput.isSegmentElement,
                                   isAllSelected: segmentInput.isAllSelected,
-                                  onFieldBlur: segmentInput.onFieldBlur,
+                                  onFieldBlur: handleFieldBlur,
                                   hasTypedDigits: segmentInput.hasTypedDigits,
                               }
                             : undefined
