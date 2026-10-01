@@ -252,7 +252,7 @@ function PaymentMethodList({
                 (onUnlockPress ?? onActionPress)(undefined);
                 return;
             }
-            if (status.requiresPlaidHandler && onPlaidPress) {
+            if (onPlaidPress) {
                 onPlaidPress();
                 return;
             }
