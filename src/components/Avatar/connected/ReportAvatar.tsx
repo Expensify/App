@@ -19,6 +19,7 @@ import ChatThreadAvatar from './ChatThreadAvatar';
 import ExpenseReportAvatar from './ExpenseReportAvatar';
 import GroupChatAvatar from './GroupChatAvatar';
 import PolicyExpenseChatAvatar from './PolicyExpenseChatAvatar';
+import TaskReportAvatar from './TaskReportAvatar';
 
 type SortingOption = ValueOf<typeof CONST.REPORT_ACTION_AVATARS.SORT_BY>;
 
@@ -118,10 +119,23 @@ function ReportAvatar({
                     fallbackDisplayName={fallbackDisplayName}
                 />
             );
+        case CONST.REPORT_AVATAR_KIND.TASK:
+            return (
+                <TaskReportAvatar
+                    reportID={reportID}
+                    size={size}
+                    backdropColor={backdropColor}
+                    // A task outside a workspace renders a single avatar even inside a horizontal stack, and there it drops its container styles.
+                    containerStyle={horizontalStacking ? [] : singleAvatarContainerStyle}
+                    subscriptContainerStyle={subscriptAvatarContainerStyle}
+                    horizontalStacking={horizontalStacking}
+                    sort={sort}
+                    fallbackDisplayName={fallbackDisplayName}
+                />
+            );
         // TODO: The remaining kinds still render the legacy component. https://github.com/Expensify/App/issues/94590 adds a
         // dedicated wrapper per kind, one PR at a time. The last of those deletes the ReportActionAvatars import and simplifies props.
         case CONST.REPORT_AVATAR_KIND.IOU:
-        case CONST.REPORT_AVATAR_KIND.TASK:
         case CONST.REPORT_AVATAR_KIND.INVOICE:
         case CONST.REPORT_AVATAR_KIND.ROOM:
         case CONST.REPORT_AVATAR_KIND.DEFAULT:

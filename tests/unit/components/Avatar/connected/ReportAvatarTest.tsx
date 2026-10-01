@@ -36,6 +36,17 @@ let mockCapturedAccountAvatarProps: Record<string, unknown> = {};
 
 let mockCapturedPolicyExpenseChatAvatarProps: Record<string, unknown> = {};
 
+let mockCapturedTaskReportAvatarProps: Record<string, unknown> = {};
+
+jest.mock('@components/Avatar/connected/TaskReportAvatar', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const {View} = require('react-native');
+    return (props: Record<string, unknown>) => {
+        mockCapturedTaskReportAvatarProps = props;
+        return <View testID="MockedTaskReportAvatar" />;
+    };
+});
+
 jest.mock('@components/Avatar/connected/PolicyExpenseChatAvatar', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View} = require('react-native');
@@ -94,6 +105,7 @@ describe('ReportAvatar (connected)', () => {
         mockCapturedChatThreadAvatarProps = {};
         mockCapturedAccountAvatarProps = {};
         mockCapturedPolicyExpenseChatAvatarProps = {};
+        mockCapturedTaskReportAvatarProps = {};
     });
 
     afterEach(async () => {
@@ -105,7 +117,6 @@ describe('ReportAvatar (connected)', () => {
 
     it.each([
         ['an IOU report', {type: CONST.REPORT.TYPE.IOU}],
-        ['a task report', {type: CONST.REPORT.TYPE.TASK}],
         ['an invoice report', {type: CONST.REPORT.TYPE.INVOICE}],
         ['a room', {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM}],
         ['a trip room without its parent fields', {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM}],
@@ -272,6 +283,59 @@ describe('ReportAvatar (connected)', () => {
         // Then the wrapper gets the stacking options and the sort to apply to them
         expect(mockCapturedPolicyExpenseChatAvatarProps.horizontalStacking).toEqual({maxRows: 2});
         expect(mockCapturedPolicyExpenseChatAvatarProps.sort).toBe(CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE);
+    });
+
+    it('should render TaskReportAvatar for a task report with the layout container styles resolved', async () => {
+        // Given a task report in Onyx
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, type: CONST.REPORT.TYPE.TASK});
+        await waitForBatchedUpdatesWithAct();
+
+        const singleAvatarContainerStyle = [{marginRight: 12}];
+        const subscriptAvatarContainerStyle = [{marginRight: 0}];
+
+        // When the dispatcher renders it with every prop
+        render(
+            <ReportAvatar
+                reportID={REPORT_ID}
+                size={CONST.AVATAR_SIZE.SMALL}
+                singleAvatarContainerStyle={singleAvatarContainerStyle}
+                backdropColor="#ff0000"
+                subscriptAvatarContainerStyle={subscriptAvatarContainerStyle}
+                fallbackDisplayName={FALLBACK_NAME}
+            />,
+        );
+
+        // Then the wrapper gets each container style under its layout-specific name
+        expect(screen.getByTestId('MockedTaskReportAvatar')).toBeOnTheScreen();
+        expect(mockCapturedTaskReportAvatarProps).toEqual({
+            reportID: REPORT_ID,
+            size: CONST.AVATAR_SIZE.SMALL,
+            backdropColor: '#ff0000',
+            containerStyle: singleAvatarContainerStyle,
+            subscriptContainerStyle: subscriptAvatarContainerStyle,
+            fallbackDisplayName: FALLBACK_NAME,
+        });
+    });
+
+    it('should hand a task report the stacking props and drop its single container styles inside a horizontal stack', async () => {
+        // Given a task report in Onyx
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, type: CONST.REPORT.TYPE.TASK});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the dispatcher renders it inside a horizontal stack
+        render(
+            <ReportAvatar
+                reportID={REPORT_ID}
+                singleAvatarContainerStyle={[{marginRight: 12}]}
+                horizontalStacking={{maxRows: 2}}
+                sort={CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE}
+            />,
+        );
+
+        // Then a task outside a workspace, which stays a single avatar, drops its container styles, and the stacking options and sort reach the wrapper
+        expect(mockCapturedTaskReportAvatarProps.containerStyle).toEqual([]);
+        expect(mockCapturedTaskReportAvatarProps.horizontalStacking).toEqual({maxRows: 2});
+        expect(mockCapturedTaskReportAvatarProps.sort).toBe(CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE);
     });
 
     it('should render ChatThreadAvatar for a trip room, which is a thread of its trip preview', async () => {
