@@ -1,3 +1,4 @@
+import {hasAuthToken} from '@libs/actions/Session';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
@@ -6,6 +7,7 @@ import type {LinkingOptions} from '@react-navigation/native';
 
 import {config} from './config';
 import isNativeOAuthCallbackURL from './isNativeOAuthCallbackURL';
+import isShareRootURL from './isShareRootURL';
 import prefixes from './prefixes';
 import subscribe from './subscribe';
 
@@ -20,7 +22,9 @@ const linkingConfig: LinkingOptions<RootNavigatorParamList> = {
     // initial URL and later `url` events. The native OAuth callback is consumed by the auth session that opened
     // it, so routing it would only land on NotFound and tear down the returning screen. The signed-out path goes
     // through openReportFromDeepLink instead, which has its own guard.
-    filter: (url) => !isNativeOAuthCallbackURL(url),
+    // A share received while signed out is parked by openReportFromDeepLink instead. If react-navigation kept it, the
+    // share page would flash when the user signs in, before a new user is sent to onboarding.
+    filter: (url) => !isNativeOAuthCallbackURL(url) && !(isShareRootURL(url) && !hasAuthToken()),
 };
 
 // eslint-disable-next-line import/prefer-default-export

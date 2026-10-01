@@ -2,6 +2,7 @@ import {useInitialURLState} from '@components/InitialURLContextProvider';
 
 import AccountUtils from '@libs/AccountUtils';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
+import {holdPendingShareIntentForOnboarding, openPendingShareIntentAfterSignIn} from '@libs/Navigation/helpers/pendingShareIntent';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isLoggingInAsNewUser} from '@libs/SessionUtils';
@@ -108,12 +109,14 @@ function useOnboardingFlowRouter() {
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 const isInvitedOrGroupMember = (hasNonPersonalPolicy || wasInvitedToNewDot) ?? false;
                 if (isMigratedUser || isInvitedOrGroupMember || shouldSuppressPromotionalUI) {
+                    openPendingShareIntentAfterSignIn();
                     return;
                 }
 
                 // Test builds skip the onboarding UI entirely; the flag is absent from production env files.
                 // Gate only the auto-entry into onboarding here so unrelated behaviour (e.g. hybrid-app transitions above) is unaffected.
                 if (CONFIG.SKIP_ONBOARDING) {
+                    openPendingShareIntentAfterSignIn();
                     return;
                 }
 
@@ -133,10 +136,15 @@ function useOnboardingFlowRouter() {
                 // navigate goes through the router where OnboardingGuard would block the navigation.
                 // isNavigationReady ensures navigation is ready, which is critical during fresh login.
                 if (isOnboardingCompleted === false) {
+                    // A share sent before sign-in waits for onboarding to finish; navigateAfterOnboarding opens it.
+                    holdPendingShareIntentForOnboarding();
                     Navigation.isNavigationReady().then(() => {
                         startOnboardingFlow(buildOnboardingFlowParams(account, onboardingValues, onboardingCompanySize, onboardingPurposeSelected, onboardingInitialPath));
                     });
+                    return;
                 }
+
+                openPendingShareIntentAfterSignIn();
             },
         });
 

@@ -506,6 +506,13 @@ function openReportFromDeepLink(
 
     // Navigate to the report after sign-in/sign-up.
     waitForUserSignIn().then(() => {
+        // A share received while signed out never reached react-navigation (see linkingConfig.filter). Park it, so it
+        // opens once we know whether the user has to onboard first. Navigating now would flash the share page.
+        if (isShareIntentRoute && !isAuthenticated) {
+            setPendingShareIntent();
+            return;
+        }
+
         // A Submit-via-PDF secure access link must reach the report regardless of onboarding status: the report screen
         // is where JoinReportViaSecureLink runs, and onboarding is suppressed for secure-link visitors. The generic
         // handling below intentionally drops deep links for users who still need to onboard, so branch out first.
@@ -546,12 +553,6 @@ function openReportFromDeepLink(
                     initialHasCompletedGuidedSetupFlow = val.hasCompletedGuidedSetupFlow;
                 }
 
-                // Park the share now: the deep link handler below only runs once onboarding is complete, which can be
-                // after navigateAfterOnboarding has already picked the post-onboarding destination.
-                if (isShareIntentRoute && initialHasCompletedGuidedSetupFlow === false) {
-                    setPendingShareIntent();
-                }
-
                 Navigation.waitForProtectedRoutes().then(() => {
                     if (route && isAnonymousUser() && !canAnonymousUserAccessRoute(route)) {
                         signOutAndRedirectToSignIn(true);
@@ -572,15 +573,6 @@ function openReportFromDeepLink(
 
                         const state = navigationRef.getRootState();
                         const currentFocusedRoute = findFocusedRoute(state);
-
-                        // Onboarding removes the share modal, so park a share from a user who may still have to onboard for
-                        // navigateAfterOnboarding to reopen. Skip the back-button error, since the user never pressed back.
-                        if (isShareIntentRoute && !isAuthenticated && initialHasCompletedGuidedSetupFlow !== true) {
-                            setPendingShareIntent();
-                            if (isOnboardingFlowName(currentFocusedRoute?.name) || initialHasCompletedGuidedSetupFlow === false) {
-                                return;
-                            }
-                        }
 
                         if (isOnboardingFlowName(currentFocusedRoute?.name)) {
                             setOnboardingErrorMessage('onboarding.purpose.errorBackButton');
