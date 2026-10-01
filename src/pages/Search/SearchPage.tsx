@@ -121,13 +121,7 @@ function SearchPage({route}: SearchPageProps) {
     // query would mount it with no data and flash a skeleton in the middle of the fade. Key it on the last query
     // that actually resolved instead: the current results stay on screen until the new ones arrive, then the area
     // swaps once.
-    // `state: loaded` lands in the snapshot before the rows do — the client writes that state when the request
-    // settles, and the response's own data is a separate Onyx merge. Ending the hold on it hands the results area a
-    // row-less snapshot for a render, which reads as an emptied result: the list swaps out and the selection
-    // reconcile wipes what was selected. A snapshot the server described as empty (`hasResults: false`) is a real
-    // answer and resolves immediately.
-    const hasRowsForCurrentQuery = currentSearchResults?.data !== undefined || currentSearchResults?.search?.hasResults === false || !!currentSearchResults?.errors;
-    const isSearchResolvedForCurrentQuery = isCurrentSearchResolved && hasRowsForCurrentQuery && !!searchResults && !!currentSearchQueryJSON;
+    const isSearchResolvedForCurrentQuery = isCurrentSearchResolved && !!searchResults && !!currentSearchQueryJSON;
     if (isSearchResolvedForCurrentQuery && currentSearchQueryJSON && searchResults && lastResolvedSearch?.searchResults !== searchResults) {
         setLastResolvedSearch({queryJSON: currentSearchQueryJSON, searchResults});
     }
