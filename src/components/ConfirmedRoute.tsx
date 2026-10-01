@@ -38,7 +38,7 @@ type ConfirmedRouteProps = {
     interactive?: boolean;
     shouldDisplayCompass?: boolean;
 
-    /** Whether camera transitions should animate when fitting bounds. Defaults to false for static previews. */
+    /** Whether camera transitions should animate when fitting bounds. Set to false for static previews where the fit runs on mount. */
     shouldAnimate?: boolean;
 };
 
@@ -49,7 +49,7 @@ function ConfirmedRoute({
     requireRouteToDisplayMap = false,
     interactive,
     shouldDisplayCompass = true,
-    shouldAnimate = false,
+    shouldAnimate = true,
 }: ConfirmedRouteProps) {
     const {isOffline} = useNetwork();
     const selectedRouteKey = getSelectedRouteKey(transaction);

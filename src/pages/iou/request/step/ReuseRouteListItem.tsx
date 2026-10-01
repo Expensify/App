@@ -69,6 +69,8 @@ function ReuseRouteThumbnail({transactionID, receiptSource, waypoints}: ReuseRou
                 transaction={transaction}
                 shouldHaveBorderRadius={false}
                 interactive={false}
+                // Static card preview, the camera fit runs on mount so animating it serves no purpose
+                shouldAnimate={false}
             />
         );
     }

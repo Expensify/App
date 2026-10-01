@@ -50,7 +50,7 @@ function getRouteThumbnailSource(receiptSource: string | undefined): string | un
         return undefined;
     }
     const resolvedSource = tryResolveUrlFromApiRoot(receiptSource);
-    if (resolvedSource.endsWith('.pdf')) {
+    if (resolvedSource.toLowerCase().endsWith('.pdf')) {
         return `${resolvedSource.slice(0, -'.pdf'.length)}.jpg.1024.jpg`;
     }
     return `${resolvedSource}.1024.jpg`;
