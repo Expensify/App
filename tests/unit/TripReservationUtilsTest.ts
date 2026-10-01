@@ -3,7 +3,7 @@ import {formatTransitLocationLabel, getAirReservations, getPNRReservationDataFro
 
 import CONST from '@src/CONST';
 import type {ReportNameValuePairs} from '@src/types/onyx';
-import type {Pnr, TripData} from '@src/types/onyx/TripData';
+import type {Pnr, RailPnr, TripData} from '@src/types/onyx/TripData';
 
 import {airReservationPnrData, airReservationTravelers} from '../data/TripAirReservationData';
 import {createRandomReport} from '../utils/collections/reports';
@@ -2702,6 +2702,67 @@ describe('TripReservationUtils', () => {
             const trainReservation = result.find((r) => r.reservation.type === CONST.RESERVATION_TYPE.TRAIN);
             expect(trainReservation?.reservation.start?.cityName).toEqual('City X');
             expect(trainReservation?.reservation.end?.cityName).toEqual('City Y');
+        });
+    });
+
+    describe('rail traveler information', () => {
+        it.each<{description: string; passengerInfos: RailPnr['passengerInfos']}>([
+            {description: 'passenger entry', passengerInfos: []},
+            {description: 'userOrgId', passengerInfos: [{passengerType: ''}]},
+            {description: 'userId', passengerInfos: [{passengerType: '', userOrgId: {organizationId: {id: ''}}}]},
+        ])('should preserve reservations when the rail $description is missing', ({passengerInfos}) => {
+            // Given a mixed trip with incomplete rail passenger data that must not prevent access to other bookings
+            const report = createRandomReport(1, undefined);
+            const reportNameValuePairs: ReportNameValuePairs = {
+                tripData: {
+                    tripID: 'trip123',
+                    payload: {
+                        ...tripWithAllReservations,
+                        pnrs: [
+                            airPnrDirect,
+                            airPnrConnecting,
+                            {
+                                ...railPnr,
+                                data: {
+                                    ...railPnr.data,
+                                    railPnr: {...railPnrData, passengerInfos},
+                                },
+                            },
+                            carPnr,
+                            hotelPnr,
+                        ],
+                    },
+                },
+            };
+
+            // When the trip reservations are extracted for the Home page
+            const result = getReservationsFromTripReport(report, reportNameValuePairs);
+
+            // Then all bookings remain available and only the rail traveler details are omitted
+            const expectedReservations = getReservationsFromTripReport(report, {tripData: {tripID: 'trip123', payload: tripWithAllReservations}});
+            expect(result).toHaveLength(7);
+            expect(result).toEqual(
+                expectedReservations.map((reservationData) =>
+                    reservationData.reservation.type === CONST.RESERVATION_TYPE.TRAIN
+                        ? {...reservationData, reservation: {...reservationData.reservation, travelerPersonalInfo: {name: '', email: ''}}}
+                        : reservationData,
+                ),
+            );
+        });
+
+        it('should preserve traveler details when the rail passenger has a matching user ID', () => {
+            // Given a rail booking with complete passenger data linked to a known traveler
+            const report = createRandomReport(1, undefined);
+            const reportNameValuePairs: ReportNameValuePairs = {
+                tripData: {tripID: 'trip123', payload: {...basicTripData, pnrs: [railPnr]}},
+            };
+
+            // When the trip reservations are extracted for the Home page
+            const result = getReservationsFromTripReport(report, reportNameValuePairs);
+
+            // Then valid traveler details remain visible alongside the rail reservation
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.reservation.travelerPersonalInfo).toEqual({name: 'Smith Alice', email: 'alice.smith@example.com'});
         });
     });
 

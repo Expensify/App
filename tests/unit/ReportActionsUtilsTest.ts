@@ -69,6 +69,7 @@ import {
     getUpdateACHAccountMessage,
     getUpdatedAutoHarvestingMessage,
     getUpdatedCommuterExclusionsMessage,
+    getUpdatedMemberWorkArrangementMessage,
     getUpdatedCardFeedLiabilityMessage,
     getUpdatedCardFeedStatementPeriodMessage,
     hasNextActionMadeBySameActor,
@@ -4498,6 +4499,65 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getUpdatedMemberWorkArrangementMessage', () => {
+        const buildAction = (originalMessage: Record<string, unknown>, actionName: ReportAction['actionName'] = CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_WORK_ARRANGEMENT) =>
+            ({
+                actionName,
+                reportActionID: '1',
+                created: '',
+                originalMessage,
+                message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, text: 'fallback message', html: 'fallback message'}],
+            }) as ReportAction;
+
+        it('falls back to the report action text for another action type', () => {
+            const action = buildAction({newValue: true, oldValue: false}, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING);
+
+            expect(getUpdatedMemberWorkArrangementMessage(translateLocal, action)).toBe(ReportActionsUtils.getReportActionText(action));
+        });
+
+        it('falls back to the report action text when arrangement values are not booleans', () => {
+            const action = buildAction({newValue: 'office', oldValue: false});
+
+            expect(getUpdatedMemberWorkArrangementMessage(translateLocal, action)).toBe(ReportActionsUtils.getReportActionText(action));
+        });
+
+        it('uses the member name when available', () => {
+            const action = buildAction({name: 'Member One', newValue: true, oldValue: false});
+
+            expect(getUpdatedMemberWorkArrangementMessage(translateLocal, action)).toBe(
+                translateLocal('workspaceActions.updatedMemberWorkArrangement', {
+                    displayName: 'Member One',
+                    newArrangement: translateLocal('workspace.people.officeBased'),
+                    oldArrangement: translateLocal('workspace.people.noRegularWorkspace'),
+                }),
+            );
+        });
+
+        it('formats the email when a member name is missing', () => {
+            const email = '+919383833920@expensify.sms';
+            const action = buildAction({email, newValue: true, oldValue: false});
+
+            expect(getUpdatedMemberWorkArrangementMessage(translateLocal, action)).toBe(
+                translateLocal('workspaceActions.updatedMemberWorkArrangement', {
+                    displayName: formatPhoneNumber(email),
+                    newArrangement: translateLocal('workspace.people.officeBased'),
+                    oldArrangement: translateLocal('workspace.people.noRegularWorkspace'),
+                }),
+            );
+        });
+
+        it('uses the default arrangement message when no member name or email is present', () => {
+            const action = buildAction({name: '', newValue: true, oldValue: false});
+
+            expect(getUpdatedMemberWorkArrangementMessage(translateLocal, action)).toBe(
+                translateLocal('workspaceActions.updatedDefaultWorkArrangement', {
+                    newArrangement: translateLocal('workspace.people.officeBased'),
+                    oldArrangement: translateLocal('workspace.people.noRegularWorkspace'),
+                }),
+            );
+        });
+    });
+
     describe('getUpdatedCardFeedLiabilityMessage', () => {
         it('should return enabled message when liabilityType is ALLOW', () => {
             const action = {
@@ -7354,6 +7414,23 @@ describe('ReportActionsUtils', () => {
             const real = conciergeComment('200', '2026-09-02 00:00:00.000');
             const sorted = [failed, real];
             expect(ReportActionsUtils.getLatestConciergeFeedbackActionID(sorted, persisted(sorted))).toBe('200');
+        });
+
+        it('picks the newest Concierge comment out of a report actions collection', () => {
+            const older = conciergeComment('100', '2026-09-01 00:00:00.000');
+            const newer = conciergeComment('200', '2026-09-02 00:00:00.000');
+            const userComment = conciergeComment('300', '2026-09-03 00:00:00.000', {actorAccountID: 12345});
+            const collection = {[older.reportActionID]: older, [newer.reportActionID]: newer, [userComment.reportActionID]: userComment};
+
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionIDFromReportActions(collection)).toBe('200');
+        });
+
+        it('returns undefined when the collection holds no Concierge comment to rate', () => {
+            const whisper = conciergeComment('400', '2026-09-05 00:00:00.000', {originalMessage: {html: 'w', whisperedTo: [1]}} as Partial<ReportAction>);
+            const failed = conciergeComment('500', '2026-09-06 00:00:00.000', {errors: {someError: 'error'}});
+
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionIDFromReportActions({[whisper.reportActionID]: whisper, [failed.reportActionID]: failed})).toBeUndefined();
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionIDFromReportActions(undefined)).toBeUndefined();
         });
 
         it('returns undefined for an empty report', () => {

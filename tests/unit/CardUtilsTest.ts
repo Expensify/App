@@ -9,6 +9,7 @@ import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import IntlStore from '@src/languages/IntlStore';
 import type * as CardArtworkColorsModule from '@src/libs/CardArtworkColors';
 import {
+    checkIfNewFeedConnected,
     doesCardFeedExist,
     feedHasCards,
     filterAllInactiveCards,
@@ -48,6 +49,7 @@ import {
     getDomainOrWorkspaceAccountID,
     getEligibleBankAccountsForCard,
     getEligibleBankAccountsForUkEuCard,
+    getExpensifyCardEnrollmentRoute,
     getFeedNameForDisplay,
     getFeedType,
     getFilteredCardList,
@@ -92,6 +94,7 @@ import {
 } from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {
     BankAccountList,
     Card,
@@ -107,6 +110,7 @@ import type {
 } from '@src/types/onyx';
 import type {CardFeedWithNumber, CompanyFeeds} from '@src/types/onyx/CardFeeds';
 import type {Connections} from '@src/types/onyx/Policy';
+import type {ACHDataReimbursementAccount} from '@src/types/onyx/ReimbursementAccount';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {FC} from 'react';
@@ -1332,6 +1336,23 @@ describe('CardUtils', () => {
         it('Should return empty object if undefined is passed', () => {
             const companyFeeds = getCompanyFeeds(undefined);
             expect(companyFeeds).toStrictEqual({});
+        });
+    });
+
+    describe('checkIfNewFeedConnected', () => {
+        it('Should retain the Plaid feed after the initial feed update', () => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Plaid institution IDs are dynamic runtime feed keys that CompanyCardFeedWithDomainID cannot represent.
+            const plaidFeed = 'plaid.ins_123456#1' as CompanyCardFeedWithDomainID;
+            const cardFeeds = createMock<CombinedCardFeeds>({
+                [plaidFeed]: {
+                    domainID: 1,
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Plaid institution IDs are dynamic runtime feed keys that CompanyCardFeed cannot represent.
+                    feed: 'plaid.ins_123456' as CompanyCardFeed,
+                    pending: false,
+                },
+            });
+
+            expect(checkIfNewFeedConnected(cardFeeds, cardFeeds, 'ins_123456')).toEqual({isNewFeedConnected: plaidFeed, newFeed: undefined});
         });
     });
 
@@ -4709,6 +4730,72 @@ describe('getEligibleBankAccountsForUkEuCard', () => {
         const result = getEligibleBankAccountsForUkEuCard(bankAccounts, undefined, 'GBP');
         expect(result).toHaveLength(1);
         expect(result.at(0)?.bankCountry).toBe('GB');
+    });
+});
+
+describe('getExpensifyCardEnrollmentRoute', () => {
+    const policyID = 'policy123';
+    const addBankAccountRoute = ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID, backTo: ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)});
+    const eligibleBankAccounts: BankAccountList = {
+        '1': {
+            accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, allowDebit: true, state: CONST.BANK_ACCOUNT.STATE.OPEN},
+            bankCurrency: CONST.CURRENCY.USD,
+            bankCountry: 'US',
+        },
+    };
+
+    it('returns the add bank account route when no eligible account exists', () => {
+        expect(
+            getExpensifyCardEnrollmentRoute({
+                policyID,
+                currencyCode: CONST.CURRENCY.USD,
+                isUkEuCurrencySupported: false,
+                bankAccountsList: {},
+                supportedCountriesByCurrency: undefined,
+                achData: undefined,
+            }),
+        ).toBe(addBankAccountRoute);
+    });
+
+    it('returns the bank account selector route when an eligible account exists', () => {
+        expect(
+            getExpensifyCardEnrollmentRoute({
+                policyID,
+                currencyCode: CONST.CURRENCY.USD,
+                isUkEuCurrencySupported: false,
+                bankAccountsList: eligibleBankAccounts,
+                supportedCountriesByCurrency: undefined,
+                achData: undefined,
+            }),
+        ).toBe(ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.getRoute(policyID));
+    });
+
+    it('returns the add bank account route when setup is in progress', () => {
+        const achData = createMock<ACHDataReimbursementAccount>({bankAccountID: 1, state: CONST.BANK_ACCOUNT.STATE.SETUP, policyID});
+        expect(
+            getExpensifyCardEnrollmentRoute({
+                policyID,
+                currencyCode: CONST.CURRENCY.USD,
+                isUkEuCurrencySupported: false,
+                bankAccountsList: eligibleBankAccounts,
+                supportedCountriesByCurrency: undefined,
+                achData,
+            }),
+        ).toBe(addBankAccountRoute);
+    });
+
+    it('returns the bank account selector route when another workspace has setup in progress', () => {
+        const achData = createMock<ACHDataReimbursementAccount>({bankAccountID: 1, state: CONST.BANK_ACCOUNT.STATE.SETUP, policyID: 'anotherPolicy'});
+        expect(
+            getExpensifyCardEnrollmentRoute({
+                policyID,
+                currencyCode: CONST.CURRENCY.USD,
+                isUkEuCurrencySupported: false,
+                bankAccountsList: eligibleBankAccounts,
+                supportedCountriesByCurrency: undefined,
+                achData,
+            }),
+        ).toBe(ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.getRoute(policyID));
     });
 });
 
