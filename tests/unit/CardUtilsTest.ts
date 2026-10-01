@@ -92,6 +92,7 @@ import {
 } from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import type {
     BankAccountList,
     Card,
@@ -122,8 +123,6 @@ import createRandomCard, {createRandomCompanyCard, createRandomExpensifyCard} fr
 import createMock from '../utils/createMock';
 import {formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-
-jest.mock('@libs/Navigation/helpers/getActiveRoute', () => () => 'r/123');
 
 const shortDate = '0924';
 const shortDateSlashed = '09/24';
@@ -4077,34 +4076,35 @@ describe('CardUtils', () => {
 
     describe('getBrokenConnectionUrlToFixPersonalCard', () => {
         const environmentURL = 'https://dev.new.expensify.com';
+        const buildDynamicRoute = (suffix: string) => `r/123/${suffix}` as Route;
 
         it('Should return undefined when cards is undefined', () => {
             const cards = undefined;
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- This test deliberately exercises the runtime guard for a missing required cards argument.
-            const result = getBrokenConnectionUrlToFixPersonalCard(cards as unknown as Parameters<typeof getBrokenConnectionUrlToFixPersonalCard>[0], environmentURL);
+            const result = getBrokenConnectionUrlToFixPersonalCard(cards as unknown as Parameters<typeof getBrokenConnectionUrlToFixPersonalCard>[0], environmentURL, buildDynamicRoute);
             expect(result).toBeUndefined();
         });
 
         it('Should return undefined when cards is null', () => {
             const cards = null;
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- This test deliberately exercises the runtime guard for a null required cards argument.
-            const result = getBrokenConnectionUrlToFixPersonalCard(cards as unknown as Parameters<typeof getBrokenConnectionUrlToFixPersonalCard>[0], environmentURL);
+            const result = getBrokenConnectionUrlToFixPersonalCard(cards as unknown as Parameters<typeof getBrokenConnectionUrlToFixPersonalCard>[0], environmentURL, buildDynamicRoute);
             expect(result).toBeUndefined();
         });
 
         it('Should return wallet URL when cards is empty object', () => {
-            const result = getBrokenConnectionUrlToFixPersonalCard({}, environmentURL);
+            const result = getBrokenConnectionUrlToFixPersonalCard({}, environmentURL, buildDynamicRoute);
             expect(result).toBe(`${environmentURL}/settings/wallet`);
         });
 
         it('Should return personal card details URL over the current page when there is exactly one card', () => {
-            // Given one broken card while report 123 is the active route
+            // Given one broken card shown on report 123
             const cards: Record<string, Card> = {
                 '1': createMock<Card>({cardID: 12345}),
             };
 
             // When the fix link is built
-            const result = getBrokenConnectionUrlToFixPersonalCard(cards, environmentURL);
+            const result = getBrokenConnectionUrlToFixPersonalCard(cards, environmentURL, buildDynamicRoute);
 
             // Then it opens the card details over the report, so the report stays behind it after a reload
             expect(result).toBe(`${environmentURL}/r/123/personal-card/12345`);
@@ -4115,7 +4115,7 @@ describe('CardUtils', () => {
                 '1': createMock<Card>({cardID: 111}),
                 '2': createMock<Card>({cardID: 222}),
             };
-            const result = getBrokenConnectionUrlToFixPersonalCard(cards, environmentURL);
+            const result = getBrokenConnectionUrlToFixPersonalCard(cards, environmentURL, buildDynamicRoute);
             expect(result).toBe(`${environmentURL}/settings/wallet`);
         });
 
@@ -4123,7 +4123,7 @@ describe('CardUtils', () => {
             const cards: Record<string, Card> = {
                 cardKey: createMock<Card>({cardID: 99999}),
             };
-            const result = getBrokenConnectionUrlToFixPersonalCard(cards, environmentURL);
+            const result = getBrokenConnectionUrlToFixPersonalCard(cards, environmentURL, buildDynamicRoute);
             expect(result).toBe(`${environmentURL}/r/123/personal-card/99999`);
         });
     });

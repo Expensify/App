@@ -2,6 +2,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -199,6 +200,15 @@ function AddPersonalBankAccountPage() {
         }
         prevPage();
     };
+
+    // The wallet flow replaces sub-pages in the stack, so the default hardware back would close the whole flow.
+    useAndroidBackButtonHandler(() => {
+        if (!isOpenedFromWalletFlow) {
+            return false;
+        }
+        handleBackButtonPress();
+        return true;
+    });
 
     // Advance to the success step once the bank account has been added successfully. This can resolve while the user
     // has navigated back to an earlier substep, so jump straight to success rather than relying on the current page.
