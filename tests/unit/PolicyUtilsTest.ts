@@ -24,6 +24,7 @@ import {
     getAllTaxRates,
     getAllTaxRatesNamesAndValues,
     getConnectedIntegration,
+    getConnectionExporters,
     getCurrentTaxID,
     getCustomUnitsForDuplication,
     getDefaultChatEnabledPolicy,
@@ -6467,5 +6468,25 @@ describe('shouldHideDynamicExternalWorkflowPeople', () => {
     it('returns false when a stale flag is left on a policy that no longer uses a Dynamic External Workflow', () => {
         const policy: Policy = {...createRandomPolicy(0), approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED, dynamicExternalWorkflowHidePeople: true};
         expect(shouldHideDynamicExternalWorkflowPeople(policy)).toBe(false);
+    });
+});
+
+describe('getConnectionExporters', () => {
+    it('includes the Business Central preferred exporter', () => {
+        // Given a workspace connected to Business Central with a preferred exporter
+        const policy = createMock<Policy>({
+            ...createRandomPolicy(0),
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                    config: {export: {exporter: 'exporter@example.com'}},
+                },
+            },
+        });
+
+        // When the workspace's connection exporters are read
+        const exporters = getConnectionExporters(policy);
+
+        // Then the Business Central exporter is listed, so that member can export reports to Business Central
+        expect(exporters).toContain('exporter@example.com');
     });
 });
