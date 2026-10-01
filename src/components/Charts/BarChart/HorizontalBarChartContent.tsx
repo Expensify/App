@@ -58,7 +58,7 @@ const CATEGORY_LABEL_GAP = 24;
 /** Gap between the bars of one row, as a share of a bar's thickness */
 const BAR_WITHIN_GROUP_PADDING = 0.1;
 
-/** Fraction of each row reserved as gap when it holds several series, so each of its bars stays as legible as a lone one */
+/** Row gap fraction when a row holds several series, smaller so paired bars stay legible */
 const MULTI_SERIES_BAR_PADDING = 0.45;
 
 /**
@@ -186,10 +186,10 @@ function HorizontalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxi
     const barThickness = useSharedValue(0);
     const rowHeight = useSharedValue(0);
 
-    /** Canvas y position of each row's center, so a press can be traced back to the bar under the cursor */
+    /** Canvas y of each row's center */
     const rowCenters = useSharedValue<number[]>([]);
 
-    /** Canvas x position of each bar's tip, per row and then per series */
+    /** Canvas x of each bar's tip, by row then series */
     const barTips = useSharedValue<number[][]>([]);
     const xZero = useSharedValue(0);
     const plotLeft = useSharedValue(0);
@@ -285,7 +285,7 @@ function HorizontalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxi
         resolveTooltipPosition,
     });
 
-    /** Records where every data point sits on the canvas, which hover, press and the tooltip read */
+    /** Stores canvas positions for hover, press and the tooltip */
     const updateHitPositions = (xScale: Scale, yScale: Scale) => {
         const zero = xScale(0);
         xZero.set(zero);

@@ -73,10 +73,10 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
         ...Object.fromEntries(seriesKeys.map((key) => [key, getSeriesValue(point, key)])),
     }));
 
-    /** Canvas y position of every series at every point, so a press can be traced back to the line under the cursor. */
+    /** Canvas y of every series at every point */
     const seriesPointY = useSharedValue<number[][]>([]);
 
-    /** The series of the topmost dot under the cursor at the pressed point, or of the closest dot when none is under it. Series are drawn primary on top. */
+    /** Series of the topmost dot under the cursor, else of the closest dot. The primary series is drawn on top. */
     const resolveSeriesKey = (index: number, cursorY: number): string => {
         const distances = seriesPointY.get().map((positions) => Math.abs((positions.at(index) ?? Infinity) - cursorY));
         const topmostUnderCursor = distances.findIndex((distance) => distance <= DOT_RADIUS + DOT_HOVER_EXTRA_RADIUS);
@@ -184,7 +184,7 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
         chartBottom,
     });
 
-    /** Records where every data point sits on the canvas, which hover, press and the tooltip read */
+    /** Stores canvas positions for hover, press and the tooltip */
     const updateHitPositions = (xScale: Scale, yScale: Scale) => {
         updateTickPositions(xScale, data.length);
         seriesPointY.set(seriesKeys.map((key) => data.map((point) => yScale(getSeriesValue(point, key)))));

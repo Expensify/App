@@ -23,7 +23,7 @@ import {
 
 import type {InsightsFilters} from './insightsFilters';
 
-/** One of the two periods a chart plots: how the legend names it and the dates it covers. */
+/** A compared period's legend label and dates */
 type ComparisonWindow = {
     label: string;
 
@@ -31,10 +31,8 @@ type ComparisonWindow = {
 };
 
 type ComparisonWindows = {
-    /** The period on screen */
     current: ComparisonWindow;
 
-    /** The period before it, drawn as the charts' second series */
     previous: ComparisonWindow;
 };
 
@@ -65,15 +63,10 @@ function resolveMonthWindows(currentRange: ChartBucketRange): ComparisonWindows 
     };
 }
 
-/**
- * The two periods the charts compare, resolved from the page's Date selection.
- *
- * Nothing is compared against a selection with no period before it to compare against, which the caller reads as
- * comparison being unavailable.
- */
+/** Resolves the current and previous periods from the Date filter. Undefined for selections with no previous period. */
 function resolveComparisonWindows(date: InsightsFilters['date'], translate: LocaleContextProps['translate']): ComparisonWindows | undefined {
     if ('preset' in date) {
-        // The period on screen comes from the same resolver the search query is built with, so only the one before it is worked out here.
+        // Uses the search query's resolver so chart labels and queries agree.
         const currentRange = getDateRangeForPreset(date.preset);
         if (!currentRange.start || !currentRange.end) {
             return undefined;
@@ -111,16 +104,16 @@ function resolveComparisonWindows(date: InsightsFilters['date'], translate: Loca
 
     const start = parseISO('on' in date ? date.on : date.from);
     const end = parseISO('on' in date ? date.on : date.to);
-    // A range covering whole months is compared month for month, so its length and the period it opens agree.
+    // Whole-month ranges compare month for month.
     const coversWholeMonths = isSameDay(start, startOfMonth(start)) && isSameDay(end, endOfMonth(end));
     const monthCount = differenceInCalendarMonths(end, start) + 1;
     const dayCount = differenceInCalendarDays(end, start) + 1;
 
-    // Whatever its length, a custom range is compared against the range of the same length ending the day before it starts.
+    // Other ranges compare against the same-length range just before.
     const previousEnd = subDays(start, 1);
     const previousStart = coversWholeMonths ? subMonths(start, monthCount) : subDays(start, dayCount);
 
-    // A single day is named by its date; any longer range is named by its length, in whole months when it covers them.
+    // A single day is named by its date, longer ranges by their length.
     const previousLabel = (() => {
         if (isSameDay(start, end)) {
             return format(previousEnd, DAY_LABEL_FORMAT);
@@ -128,7 +121,7 @@ function resolveComparisonWindows(date: InsightsFilters['date'], translate: Loca
         return coversWholeMonths ? translate('insightsPage.compare.priorMonths', monthCount) : translate('insightsPage.compare.priorDays', dayCount);
     })();
 
-    // A range within one year needs no year on either end; one that crosses years is ambiguous without them.
+    // Years are shown only when the range crosses one.
     const dayFormat = isSameYear(start, end) ? DAY_LABEL_FORMAT : DAY_WITH_YEAR_LABEL_FORMAT;
 
     return {

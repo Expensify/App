@@ -18,7 +18,7 @@ type ChartTooltipLayerProps = {
     /** Chart data points used to compute tooltip content */
     data: ChartDataPoint[];
 
-    /** The plotted series, which the tooltip reads one row per */
+    /** Plotted series, one tooltip row each */
     series: ChartSeries[];
 
     /** Formats a numeric value for display */

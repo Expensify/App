@@ -41,7 +41,7 @@ type SearchChartViewProps = {
     /** Color every bar is drawn in. Only a bar chart reads it. */
     color?: string;
 
-    /** The period drawn beside `data` as a second series, left out when nothing is compared */
+    /** Second series, when comparing */
     comparison?: ChartComparison;
 
     /** Renders the details of the plotted groups below the chart */
@@ -77,7 +77,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, comp
     const {series, rows} = model;
     const points = rows.map((row) => row.point);
 
-    /** A compared bucket with no expenses has no row of its own, so its dates are worked out from its position */
+    /** A comparison bucket with no expenses has no row, so its dates come from its position */
     const getPressedBucketRange = (row: SearchChartDataRow, isComparisonSeries: boolean): ChartBucketRange => {
         const bucketRange = getBucketRange?.(row.item) ?? {start: '', end: ''};
         if (!isComparisonSeries) {
@@ -98,7 +98,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, comp
         const isComparisonSeries = seriesKey === CHART_SERIES_KEY.COMPARISON;
         const pressedPeriod = isComparisonSeries ? comparison?.comparisonPeriod : comparison?.primaryPeriod;
         const pressedItem = (isComparisonSeries ? row.comparisonItem : row.item) ?? row.item;
-        // A time bucket opens the dates it covers; a ranking group opens its own rows over the period its series plots.
+        // Time buckets open their own dates; ranking groups open the pressed series' period.
         const dateRange = getBucketRange ? getBucketDrillDownRange(queryJSON, getPressedBucketRange(row, isComparisonSeries), pressedPeriod?.range) : pressedPeriod?.range;
         const query = buildChartDrillDownQuery(queryJSON, {groupFilter: getBucketRange ? undefined : getFilterQuery(pressedItem), dateRange});
 

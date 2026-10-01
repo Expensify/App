@@ -28,7 +28,7 @@ type InsightsDataTableProps = {
     /** The plotted groups, prepared by `SearchChartView` */
     rows: SearchChartDataRow[];
 
-    /** The plotted series, primary first, which say which value of a row the table prints */
+    /** Plotted series, primary first */
     series: ChartSeries[];
 
     /** The chart type the rows are plotted on */
@@ -49,7 +49,7 @@ function isMemberGroup(item: GroupedItem): item is TransactionMemberGroupListIte
     return isMemberGroupBy(item.groupedBy);
 }
 
-/** How far the period on screen moved from the one before it, as a fraction of it. Absent when there is nothing to measure against. */
+/** Change relative to the previous period, undefined when that is zero */
 function getRelativeChange(current: number, previous: number): number | undefined {
     if (previous === 0) {
         return undefined;
@@ -88,7 +88,7 @@ function InsightsDataTable({rows, series, view, groupBy, isLoading}: InsightsDat
             {rows.map((row, index) => {
                 const {item, comparisonItem, point, color} = row;
                 const isLastRow = index === rows.length - 1;
-                // Against a compared period a group is measured by how much it moved; on its own, by its count and share of the spend.
+                // Compared rows show the change; lone rows show count and share.
                 const amountChange = (item.total ?? 0) - (comparisonItem?.total ?? 0);
                 const relativeChange = getRelativeChange(item.total ?? 0, comparisonItem?.total ?? 0);
                 let detailText = translate('iou.expenseCount', {count: item.count});

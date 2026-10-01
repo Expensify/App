@@ -25,16 +25,16 @@ import {applyInsightsFilters} from './insightsQueries';
 type InsightsChartState = ValueOf<typeof INSIGHTS_CHART_STATE>;
 
 type InsightsChartComparison = {
-    /** What the chart draws beside the period on screen, absent when nothing is compared or the previous period isn't ready */
+    /** Second series, absent when not comparing or the previous period isn't ready */
     comparison: ChartComparison | undefined;
 
-    /** The previous period's state while it keeps the chart from being drawn: loading, failed, or offline with nothing stored */
+    /** Previous period's loading, error or offline state, which the chart shows instead */
     blockingState: InsightsChartState | undefined;
 };
 
 const BLOCKING_STATES = new Set<InsightsChartState>([INSIGHTS_CHART_STATE.LOADING, INSIGHTS_CHART_STATE.ERROR, INSIGHTS_CHART_STATE.OFFLINE]);
 
-/** Reads the period before the one a chart plots, when the page compares against it, and prepares it for drawing. */
+/** Loads and prepares a chart's previous period when the page compares. */
 function useInsightsChartComparison(chart: InsightsChartSpec, filters: InsightsFilters, queryJSON: Readonly<SearchQueryJSON> | undefined): InsightsChartComparison {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -43,7 +43,7 @@ function useInsightsChartComparison(chart: InsightsChartSpec, filters: InsightsF
     const isComparing = isBetaEnabled(CONST.BETAS.INSIGHTS_COMPARE) && filters.compare === CONST.SEARCH.COMPARE.PREVIOUS_PERIOD;
     const previousPeriodQueryJSON = isComparing ? buildSearchQueryJSON(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.PREVIOUS_PERIOD)) : undefined;
     const [previousPeriodSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${previousPeriodQueryJSON?.hash}`);
-    // Grouped by the current query but uncapped, since its top groups by previous spend may not be the ones plotted now.
+    // Keep all previous-period groups so current top groups can find their matches.
     const sortedData = useGroupedItems(previousPeriodSnapshot, queryJSON && {...queryJSON, limit: undefined});
     const windows = resolveComparisonWindows(filters.date, translate);
 

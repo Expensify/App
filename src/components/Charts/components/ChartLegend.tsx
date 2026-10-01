@@ -11,7 +11,7 @@ type ChartLegendProps = {
     series: ChartSeries[];
 };
 
-/** Names the series a bar or line chart plots. A chart plotting one unnamed series draws nothing. */
+/** Legend for a bar or line chart's series. Renders nothing for fewer than two named series. */
 function ChartLegend({series}: ChartLegendProps) {
     const styles = useThemeStyles();
     const namedSeries = series.filter((seriesItem) => !!seriesItem.label);

@@ -75,10 +75,10 @@ function VerticalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxisU
     /** Width of the whole group of bars at one x position, as BarGroup lays it out */
     const groupWidth = useSharedValue(0);
 
-    /** Canvas x position of each group's center, so a press can be traced back to the bar under the cursor */
+    /** Canvas x of each group's center */
     const groupCenters = useSharedValue<number[]>([]);
 
-    /** Canvas y position of each bar's top, per group and then per series */
+    /** Canvas y of each bar's top, by group then series */
     const barTops = useSharedValue<number[][]>([]);
     const yZero = useSharedValue(0);
 
@@ -188,7 +188,7 @@ function VerticalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxisU
         yZero,
     });
 
-    /** Records where every data point sits on the canvas, which hover, press and the tooltip read */
+    /** Stores canvas positions for hover, press and the tooltip */
     const updateHitPositions = (xScale: Scale, yScale: Scale) => {
         yZero.set(yScale(0));
         updateTickPositions(xScale, data.length);

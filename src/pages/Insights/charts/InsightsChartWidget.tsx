@@ -62,10 +62,10 @@ function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGr
     const sortedData = useGroupedItems(snapshot, queryJSON);
     const {data, state: currentPeriodState} = resolveInsightsChartData({snapshot, queryJSON, sortedData, isOffline});
     const {comparison, blockingState} = useInsightsChartComparison(chart, filters, queryJSON);
-    // A compared chart is ready only once both periods are, so its second series never pops in or goes silently missing.
+    // Show a compared chart only once both periods resolve.
     const state = currentPeriodState === INSIGHTS_CHART_STATE.READY && blockingState ? blockingState : currentPeriodState;
     const groupBy = chart.groupBy ?? filters.groupBy;
-    // A pie shows one period at a time, so a compared pie is drawn as a bar chart instead.
+    // Pies show one period, so compared pies render as bars.
     const view = comparison && chart.view === CONST.SEARCH.VIEW.PIE ? CONST.SEARCH.VIEW.BAR : chart.view;
     const isLoading = state === INSIGHTS_CHART_STATE.LOADING;
     const shouldShowTable = view === CONST.SEARCH.VIEW.BAR || view === CONST.SEARCH.VIEW.PIE;
@@ -100,7 +100,6 @@ function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGr
 
     return (
         <WidgetContainer
-            // A multi-row tooltip on the top bar rises past the card's edge, so the card must not clip it.
             containerStyles={styles.overflowVisible}
             title={translate(chart.titleKey)}
             titleRightContent={

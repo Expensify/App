@@ -8,7 +8,7 @@ import type {ChartBucketRange} from './chartGroupByConfig';
 import type {SearchQueryJSON, SearchQueryString} from './types';
 
 type ChartDrillDown = {
-    /** Narrows the table to the pressed group, left out by a time bucket, which is only narrowed by dates */
+    /** Filter for the pressed ranking group; time buckets narrow by dates only */
     groupFilter?: string;
 
     /**

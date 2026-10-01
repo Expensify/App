@@ -62,7 +62,7 @@ function PieChartContent({data, series, isLoading, valueUnit, valueUnitPosition,
     // Slices are sorted by absolute value (largest first) for color assignment,
     // so slice indices don't match the original data array. We map back via
     // originalIndex so the tooltip can display the original (possibly negative) value.
-    // A pie shows one window at a time, so its slices are sized by the primary series alone.
+    // Slices are sized by the primary series only.
     const primarySeriesKey = series.at(0)?.key ?? '';
     const processedSlices = processDataIntoSlices(data, primarySeriesKey, pieGeometry);
     const activeOriginalDataIndex = activeSliceIndex >= 0 ? (processedSlices.at(activeSliceIndex)?.originalIndex ?? -1) : -1;

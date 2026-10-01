@@ -31,7 +31,6 @@ import type {ChartView, GroupedItem, SearchChartDataRow, SearchGroupBy} from './
 
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
 
-/** Keys the chart layer reads each period's amounts under */
 const CHART_SERIES_KEY = {
     PRIMARY: 'primary',
     COMPARISON: 'comparison',
@@ -39,7 +38,7 @@ const CHART_SERIES_KEY = {
 
 const DAYS_IN_WEEK = 7;
 
-/** How many buckets into its period a bucket starts. A week counts from the one holding the period's first day, whichever weekday weeks start on. */
+/** Bucket offset from the period start. Weeks count from the week holding the first day, whatever weekday weeks start on. */
 const BUCKET_OFFSET: Record<ChartBucketUnit, (bucketStart: Date, periodStart: Date) => number> = {
     day: differenceInCalendarDays,
     week: (bucketStart, periodStart) => Math.ceil(differenceInCalendarDays(bucketStart, periodStart) / DAYS_IN_WEEK),
@@ -48,7 +47,6 @@ const BUCKET_OFFSET: Record<ChartBucketUnit, (bucketStart: Date, periodStart: Da
     year: differenceInCalendarYears,
 };
 
-/** Steps a date forward by whole buckets */
 const BUCKET_ADD: Record<ChartBucketUnit, (date: Date, amount: number) => Date> = {
     day: addDays,
     week: (date, amount) => addDays(date, amount * DAYS_IN_WEEK),
@@ -57,7 +55,7 @@ const BUCKET_ADD: Record<ChartBucketUnit, (date: Date, amount: number) => Date> 
     year: addYears,
 };
 
-/** Translation of a bucket's position in its period, the label used when the compared buckets share no calendar name */
+/** Position labels for paired buckets that share no calendar name */
 const BUCKET_POSITION_LABEL = {
     day: 'insightsPage.compare.dayNumber',
     week: 'insightsPage.compare.weekNumber',
@@ -66,43 +64,41 @@ const BUCKET_POSITION_LABEL = {
     year: 'insightsPage.compare.yearNumber',
 } as const satisfies Record<ChartBucketUnit, string>;
 
-/** One of the two compared periods: how the legend names it, its color, and the dates it covers */
+/** A compared period's legend label, color and dates */
 type ChartComparisonPeriod = {
     /** Name shown in the legend and the tooltip */
     label: string;
 
     color: string;
 
-    /** The dates the period covers, which its buckets' positions are measured from */
+    /** Bucket offsets are measured from its start */
     range: ChartBucketRange;
 };
 
-/** Everything a second series needs to be paired with the primary one and labeled */
+/** A second series, paired with the primary one */
 type ChartComparison = {
-    /** The compared period's grouped rows, in the order the search returned them */
+    /** Grouped rows of the comparison period */
     rows: GroupedItem[];
 
-    /** The period the primary rows were plotted from */
     primaryPeriod: ChartComparisonPeriod;
 
-    /** The period drawn beside it */
     comparisonPeriod: ChartComparisonPeriod;
 };
 
 type BuildChartSeriesParams = {
-    /** The grouped rows of the period on screen, drawn as the chart's primary series */
+    /** Grouped rows drawn as the primary series */
     rows: GroupedItem[];
 
     /** Color of the primary series when nothing is compared */
     color?: string;
 
-    /** The period drawn beside the primary one, left out when nothing is compared */
+    /** Second series, when comparing */
     comparison?: ChartComparison;
 
     /** The chart type the rows are plotted on, which decides how groups are colored */
     view: ChartView;
 
-    /** What the rows are grouped by, which decides how the two periods' rows pair up */
+    /** Decides how rows of the two periods pair up */
     groupBy: SearchGroupBy;
 
     /** Returns the full label of a group */
@@ -114,7 +110,7 @@ type BuildChartSeriesParams = {
     /** Returns how many decimals a currency is displayed with */
     getCurrencyDecimals: (currency: string) => number;
 
-    /** Names a compared time bucket, which the plain bucket label can't since it only fits the period on screen */
+    /** Formats labels shared by paired time buckets */
     translate: LocaleContextProps['translate'];
 
     dateFnsLocale: LocaleContextProps['dateFnsLocale'];
@@ -162,15 +158,12 @@ function getPairingKey(item: GroupedItem, periodStart: string, groupBy: SearchGr
     return `bucket:${BUCKET_OFFSET[bucketUnit](parseISO(bucketStart), parseISO(periodStart))}`;
 }
 
-/**
- * The dates of the bucket paired with a bucket of the period on screen, for when the compared period returned no row for it.
- * The paired bucket sits at the same position in its own period and is as long as the bucket on screen.
- */
+/** Returns the calendar bucket at the same offset in the comparison period, for a bucket it returned no row for. */
 function getCounterpartBucketRange(bucketRange: ChartBucketRange, primaryStart: string, comparisonStart: string, bucketUnit: ChartBucketUnit): ChartBucketRange {
     const bucketStart = parseISO(bucketRange.start);
     const offset = BUCKET_OFFSET[bucketUnit](bucketStart, parseISO(primaryStart));
     const dateInBucket = BUCKET_ADD[bucketUnit](parseISO(comparisonStart), offset);
-    // A week starts on the same weekday as the bucket on screen, so the date is moved back to it.
+    // Align weeks to the primary bucket's week start.
     const toBucketStart: Record<ChartBucketUnit, (date: Date) => Date> = {
         day: (date) => date,
         week: (date) => addDays(date, -((getDay(date) - getDay(bucketStart) + DAYS_IN_WEEK) % DAYS_IN_WEEK)),
@@ -184,13 +177,10 @@ function getCounterpartBucketRange(bucketRange: ChartBucketRange, primaryStart: 
     return {start: format(counterpartStart, CONST.DATE.FNS_FORMAT_STRING), end: format(counterpartEnd, CONST.DATE.FNS_FORMAT_STRING)};
 }
 
-/** A bucket's calendar name as date-fns patterns: in full, and compact for the axis */
+/** date-fns patterns for a bucket's full and axis names */
 type CalendarNamePatterns = {full: string; short: string};
 
-/**
- * The calendar name a period's buckets can go by, like "January" or "Mon".
- * Undefined when the period is long enough for the name to repeat, or for a unit that has no such name.
- */
+/** Calendar name patterns for a period's buckets, like "January" or "Mon". Undefined when a name could repeat within the period. */
 function getCalendarNamePatterns(bucketUnit: ChartBucketUnit, periodStart: Date, periodEnd: Date): CalendarNamePatterns | undefined {
     switch (bucketUnit) {
         case 'day':
@@ -207,10 +197,7 @@ function getCalendarNamePatterns(bucketUnit: ChartBucketUnit, periodStart: Date,
     }
 }
 
-/**
- * Names a time bucket so the name fits its counterpart in the compared period too: the calendar name both share,
- * like "January" ("Jan" on the axis), or else its position, like "Week 2".
- */
+/** Labels a time bucket with the calendar name it shares with its paired bucket, like "January", or else its position, like "Week 2". */
 function getComparedBucketLabel(
     bucketStart: string,
     {primaryPeriod, comparisonPeriod}: ChartComparison,
@@ -282,7 +269,7 @@ function buildChartSeries({
             let rowColor;
             if (pieColors) {
                 rowColor = pieColors.at(index);
-                // Comparing tells the periods apart by color, so the per-group palette is only for a lone series.
+                // Compared series are colored by period, so only a lone series gets per-group colors.
             } else if (view === CONST.SEARCH.VIEW.BAR && !comparison) {
                 rowColor = color ?? VictoryTheme.colors.getColor(index);
             }

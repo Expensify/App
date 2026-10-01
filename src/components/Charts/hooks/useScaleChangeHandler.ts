@@ -3,8 +3,8 @@ import type {Scale} from 'victory-native';
 import {useEffect, useEffectEvent, useRef} from 'react';
 
 /**
- * Returns the `onScaleChange` handler for a CartesianChart, which hands the chart's scales to `onScales`.
- * victory-native reports its scales only when an axis changes, so they are kept and handed over again whenever the data or series change.
+ * Returns a CartesianChart `onScaleChange` handler that passes the scales to `onScales`.
+ * victory-native reports scales only when an axis changes, so the stored ones are passed again when data or series change.
  */
 function useScaleChangeHandler(onScales: (xScale: Scale, yScale: Scale) => void, data: unknown, series: unknown): (xScale: Scale, yScale: Scale) => void {
     const scalesRef = useRef<{xScale: Scale; yScale: Scale} | undefined>(undefined);

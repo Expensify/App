@@ -8,7 +8,7 @@ type ChartSeries = {
     /** Identifies this series' amount in every point's `values` */
     key: string;
 
-    /** Name shown in the legend and the tooltip, left out by a chart plotting a single unnamed dataset */
+    /** Legend and tooltip name, absent for a single unnamed series */
     label?: string;
 
     /** Left out, a lone series of vertical bars takes a palette color per bar, horizontal bars take blue, and anything else the default */

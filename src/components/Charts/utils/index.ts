@@ -220,7 +220,7 @@ function getSeriesValue(point: ChartDataPoint, seriesKey: string): number {
     return point.values[seriesKey] ?? 0;
 }
 
-/** Every series' amount at a point, for the axis and domain calculations that span all of them. */
+/** Every series' amount at a point */
 function getPointValues(point: ChartDataPoint): number[] {
     return Object.values(point.values);
 }

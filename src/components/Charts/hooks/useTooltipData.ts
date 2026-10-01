@@ -6,7 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import {formatPercentOfTotal} from '@libs/PercentageUtils';
 
 type TooltipRow = {
-    /** Name of the series this row reads, left out by a chart plotting a single unnamed series */
+    /** Series name, absent for a single unnamed series */
     label?: string;
 
     /** The series' amount at the active point */
