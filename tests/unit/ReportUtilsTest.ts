@@ -215,6 +215,7 @@ import {
     shouldDisableRename,
     shouldDisableThread,
     shouldDisplayReportFields,
+    shouldDisplayThreadReplies,
     shouldEnableNegative,
     shouldExcludeAncestorReportAction,
     shouldCreateNewMoneyRequestReport,
@@ -20774,6 +20775,43 @@ describe('ReportUtils', () => {
                 disabledOptions: [true, true, true],
             });
             expect(shouldHideSingleReportField(reportField)).toBe(true);
+        });
+    });
+    describe('shouldDisplayThreadReplies', () => {
+        it('returns true when the action has replies', () => {
+            // Given a parent action whose thread has a reply from one commenter
+            const reportAction = createMock<ReportAction>({childVisibleActionCount: 1, childCommenterCount: 1});
+
+            // When it is not the parent action of the thread being viewed
+            // Then the thread row is shown
+            expect(shouldDisplayThreadReplies(reportAction, false)).toBe(true);
+        });
+
+        it('returns false when the server zeroed the reply counts and no agent is processing', () => {
+            // Given a parent action whose reply counts were zeroed by the server
+            const reportAction = createMock<ReportAction>({childVisibleActionCount: 0, childCommenterCount: 0});
+
+            // When no agent is processing a reply in the thread
+            // Then the thread row is hidden
+            expect(shouldDisplayThreadReplies(reportAction, false)).toBe(false);
+        });
+
+        it('returns true when the reply counts are zeroed but an agent is still processing in the thread', () => {
+            // Given a Concierge question whose thread has no persisted replies yet, so the server returned zeroed counts
+            const reportAction = createMock<ReportAction>({childVisibleActionCount: 0, childCommenterCount: 0});
+
+            // When Concierge is still processing a reply in the thread
+            // Then the thread row stays visible so it doesn't disappear while Concierge is thinking
+            expect(shouldDisplayThreadReplies(reportAction, false, true)).toBe(true);
+        });
+
+        it('returns false for the parent action of the thread being viewed, even while an agent is processing', () => {
+            // Given the parent action shown at the top of its own thread
+            const reportAction = createMock<ReportAction>({childVisibleActionCount: 0, childCommenterCount: 0});
+
+            // When an agent is processing a reply in that thread
+            // Then the thread row is still hidden, because the user is already in the thread
+            expect(shouldDisplayThreadReplies(reportAction, true, true)).toBe(false);
         });
     });
     describe('shouldDisplayReportFields', () => {
