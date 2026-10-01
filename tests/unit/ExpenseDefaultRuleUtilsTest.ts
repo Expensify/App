@@ -222,6 +222,28 @@ describe('ExpenseDefaultRuleUtils', () => {
 
             expect(isExpenseDefaultRule(rule)).toBe(false);
         });
+
+        it('is false for a rule that matches on something other than a merchant', () => {
+            // Given a category rule, which the merchant rule editor has no way to open
+            const rule = asStoredRule(buildRuleWithOverrides({filters: {left: FIELD.CATEGORY, operator: CONTAINS, right: 'Coffee'}}));
+
+            // When it is tested
+            // Then it is not an expense default, so a client that cannot edit it does not list it either
+            expect(isExpenseDefaultRule(rule)).toBe(false);
+        });
+
+        it('is true for a merchant condition nested inside a combination', () => {
+            // Given a rule whose merchant condition sits one level down, which is how two merchants are matched
+            const rule = asStoredRule(
+                buildRuleWithOverrides({
+                    filters: {left: merchantFilter, operator: CONST.SEARCH.SYNTAX_OPERATORS.OR, right: {left: FIELD.MERCHANT, operator: CONTAINS, right: 'Costa'}},
+                }),
+            );
+
+            // When it is tested
+            // Then the nesting does not hide the merchant condition
+            expect(isExpenseDefaultRule(rule)).toBe(true);
+        });
     });
 
     describe('getPolicyExpenseDefaultRules', () => {
