@@ -30,7 +30,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type IconAsset from '@src/types/utils/IconAsset';
 import viewRef from '@src/types/utils/viewRef';
 
 import React, {memo, useCallback, useContext, useEffect, useMemo, useState} from 'react';
@@ -148,11 +147,6 @@ function AttachmentModalBaseContent({
             setCurrentAttachmentLink(attachment?.attachmentLink ?? '');
         },
         [onCarouselAttachmentChange, setFile],
-    );
-
-    const threeDotsMenuItems = useMemo(
-        () => (typeof threeDotsMenuItemsProp === 'function' ? threeDotsMenuItemsProp({file: fileToDisplay, source, isLocalSource}) : (threeDotsMenuItemsProp ?? [])),
-        [fileToDisplay, isLocalSource, source, threeDotsMenuItemsProp],
     );
 
     const [isDownloadButtonReadyToBeShown, setIsDownloadButtonReadyToBeShown] = useState(true);
@@ -332,6 +326,8 @@ function AttachmentModalBaseContent({
         transaction,
         type,
     ]);
+    const threeDotsMenuItems = threeDotsMenuItemsProp?.({file: fileToDisplay, source, isLocalSource}) ?? [];
+    const singleThreeDotsMenuItem = threeDotsMenuItems.length === 1 && shouldMinimizeMenuButton ? threeDotsMenuItems.at(0) : undefined;
 
     return (
         <GestureHandlerRootView style={styles.flex1}>
@@ -344,13 +340,12 @@ function AttachmentModalBaseContent({
                 <Header.Right>
                     {shouldShowDownloadButton && <Header.DownloadButton onPress={() => onDownloadAttachment?.({file: fileToDisplay, source})} />}
                     {!!threeDotsMenuItems.length &&
-                        (threeDotsMenuItems.length === 1 && shouldMinimizeMenuButton ? (
+                        (singleThreeDotsMenuItem ? (
                             <Header.IconButton
-                                tooltipText={threeDotsMenuItems.at(0)?.text ?? ''}
-                                onPress={threeDotsMenuItems.at(0)?.onSelected}
-                                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- callers of this minimize path always pass a real icon component, never a string/avatar source
-                                iconSrc={threeDotsMenuItems.at(0)?.icon as IconAsset}
-                                sentryLabel={threeDotsMenuItems.at(0)?.sentryLabel}
+                                tooltipText={singleThreeDotsMenuItem.text ?? ''}
+                                onPress={singleThreeDotsMenuItem.onSelected}
+                                iconSrc={singleThreeDotsMenuItem.icon}
+                                sentryLabel={singleThreeDotsMenuItem.sentryLabel}
                             />
                         ) : (
                             <Header.ThreeDotsMenu

@@ -6,6 +6,7 @@ import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {ComponentRef, RefObject} from 'react';
 import type {RotationDegrees} from 'react-fast-pdf';
@@ -26,7 +27,12 @@ type ThreeDotsMenuItemFactoryProps = AttachmentModalContentData & {
     isLocalSource: boolean;
 };
 
-type ThreeDotsMenuItemFactory = (props: ThreeDotsMenuItemFactoryProps) => PopoverMenuItem[];
+/** Narrower than `PopoverMenuItem`: this menu only ever shows a plain icon. */
+type ThreeDotsMenuFactoryItem = Pick<PopoverMenuItem, 'text' | 'onSelected' | 'sentryLabel' | 'shouldCallAfterModalHide'> & {
+    icon: IconAsset;
+};
+
+type ThreeDotsMenuItemFactory = (props: ThreeDotsMenuItemFactoryProps) => ThreeDotsMenuFactoryItem[];
 
 type DownloadAttachmentCallback = (props: AttachmentModalContentData) => void;
 
@@ -61,7 +67,7 @@ type AttachmentModalBaseContentProps = {
     headerTitle?: string;
 
     /** The menu items for the three dots button */
-    threeDotsMenuItems?: PopoverMenuItem[] | ThreeDotsMenuItemFactory;
+    threeDotsMenuItems?: ThreeDotsMenuItemFactory;
 
     /** The report that has this attachment */
     report?: OnyxEntry<OnyxTypes.Report>;
