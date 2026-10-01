@@ -13,7 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getBankAccountConnectionStatus, getBankAccountState, isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
+import {getBankAccountConnectionStatus, getBankAccountSearchLabel, getBankAccountState, isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import type {BankAccountConnectionStatus} from '@libs/BankAccountUtils';
 import {
     getAssignedCardSortKey,
@@ -236,12 +236,14 @@ function PaymentMethodList({
         onUnlockPress?: (e: GestureResponderEvent | KeyboardEvent | undefined) => void,
         isPendingDelete = false,
         onFixPress?: () => void,
+        accountName?: string,
     ): PaymentMethodItem['connectionStatus'] => ({
         statusText: translate(status.labelKey),
         statusTone: status.tone,
         tooltipText: status.tooltipKey ? translate(status.tooltipKey) : undefined,
         message: status.messageKey ? translate(status.messageKey) : undefined,
         actionText: status.actionKey ? translate(status.actionKey) : undefined,
+        actionAccessibilityLabel: status.actionKey && accountName ? `${translate(status.actionKey)}, ${accountName}` : undefined,
         // An account queued for deletion is struck through, so its action is disabled rather than hidden.
         isActionDisabled: isPendingDelete,
         onActionPress: () => {
@@ -651,6 +653,7 @@ function PaymentMethodList({
                           paymentMethodThreeDotsPress,
                           paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                           onFixPress,
+                          getBankAccountSearchLabel(paymentMethod as BankAccount),
                       )
                     : undefined,
             };
