@@ -2,6 +2,8 @@ import {act, render, screen} from '@testing-library/react-native';
 
 import type ReceiptPDFOverlayProps from '@components/ReportActionItem/ReceiptPDFOverlay/types';
 
+import CONST from '@src/CONST';
+
 import type {ComponentType, ReactNode} from 'react';
 
 import React from 'react';
@@ -40,9 +42,7 @@ jest.mock('@userActions/CanvasSize', () => ({
 }));
 
 // jest-expo resolves the native variant first, and this test covers the web implementation
-const {default: ReceiptPDFOverlay, PDF_PAGE_BORDER} = jest.requireActual<{default: ComponentType<ReceiptPDFOverlayProps>; PDF_PAGE_BORDER: number}>(
-    '@components/ReportActionItem/ReceiptPDFOverlay/index.tsx',
-);
+const {default: ReceiptPDFOverlay} = jest.requireActual<{default: ComponentType<ReceiptPDFOverlayProps>}>('@components/ReportActionItem/ReceiptPDFOverlay/index.tsx');
 
 const SOURCE_URL = 'https://example.com/receipt.pdf';
 const OVERSAMPLE_WIDTH = 500;
@@ -98,7 +98,7 @@ describe('ReceiptPDFOverlay', () => {
         expect(mockPDFPreviewer).not.toHaveBeenCalled();
         expect(screen.getByText('page-1')).toBeTruthy();
         expect(onLoadSuccess).toHaveBeenCalledTimes(1);
-        expect(mockRenderedThumbnails.at(-1)?.width).toBe(OVERSAMPLE_WIDTH + PDF_PAGE_BORDER * 2);
+        expect(mockRenderedThumbnails.at(-1)?.width).toBe(OVERSAMPLE_WIDTH + CONST.RECEIPT.PDF_PAGE_BORDER * 2);
     });
 
     it('keeps the previous page on screen until the next one has rendered', () => {

@@ -29,9 +29,6 @@ const oversampleContainerStyle = {
     transformOrigin: 'top left',
 };
 
-// PDFPreviewer pads each page by this much, so the single page uses it too to stay framed like the thumbnail
-const PDF_PAGE_BORDER = 9;
-
 const DOCUMENT_OPTIONS = {
     cMapUrl: '/cmaps/',
     cMapPacked: true,
@@ -71,7 +68,7 @@ function ReceiptPDFPage({pageNumber, width, onRenderSuccess, ...canvasLimits}: R
     const devicePixelRatio = aspectRatio ? getDevicePixelRatio(width, width * aspectRatio, canvasLimits) : undefined;
 
     return (
-        <div style={{position: 'absolute', top: PDF_PAGE_BORDER, left: 0}}>
+        <div style={{position: 'absolute', top: CONST.RECEIPT.PDF_PAGE_BORDER, left: 0}}>
             <Thumbnail
                 pageNumber={pageNumber}
                 width={width}
@@ -144,7 +141,7 @@ function ReceiptPDFOverlay({sourceURL, isAuthTokenRequired = true, onLoadFailure
     };
 
     // Matches PDFPreviewer's page width on small screens: the full width of the oversized container plus its border
-    const pageWidth = oversampleWidth + PDF_PAGE_BORDER * 2;
+    const pageWidth = oversampleWidth + CONST.RECEIPT.PDF_PAGE_BORDER * 2;
     const canvasLimits = {maxCanvasWidth, maxCanvasHeight, maxCanvasArea};
 
     return (
@@ -158,7 +155,7 @@ function ReceiptPDFOverlay({sourceURL, isAuthTokenRequired = true, onLoadFailure
                 ref={observeOversampleWidth}
                 style={oversampleContainerStyle}
             >
-                {page === undefined ? (
+                {!isSinglePage ? (
                     <PDFPreviewer
                         file={fileURL}
                         pageMaxWidth={variables.pdfPageMaxWidth}
@@ -211,4 +208,3 @@ function ReceiptPDFOverlay({sourceURL, isAuthTokenRequired = true, onLoadFailure
 }
 
 export default ReceiptPDFOverlay;
-export {PDF_PAGE_BORDER};

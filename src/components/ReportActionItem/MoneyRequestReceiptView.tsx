@@ -616,7 +616,7 @@ function MoneyRequestReceiptView({
 
     // Pages can only be flipped where ReportActionItemImage renders the real PDF over the thumbnail (hover-capable
     // devices). Elsewhere only a page 1 thumbnail exists, so the static count badge stays.
-    const canFlipReceiptPages = shouldShowReceiptPageCount && canZoomReceipt && deviceHasHoverSupport && !isMapDistanceRequest;
+    const canFlipReceiptPages = shouldShowReceiptPageCount && canZoomReceipt && deviceHasHoverSupport;
 
     // Page and load state are keyed to the filename, not the source URL: the URL changes from local to remote
     // mid-scan without the PDF being reloaded, while a replaced receipt gets a new filename and starts over.
