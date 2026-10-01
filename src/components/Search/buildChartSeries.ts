@@ -175,21 +175,24 @@ function getCounterpartBucketRange(bucketRange: ChartBucketRange, primaryStart: 
     return {start: format(counterpartStart, CONST.DATE.FNS_FORMAT_STRING), end: format(counterpartEnd, CONST.DATE.FNS_FORMAT_STRING)};
 }
 
+/** A bucket's calendar name as date-fns patterns: in full, and compact for the axis */
+type CalendarNamePatterns = {full: string; short: string};
+
 /**
- * The calendar name a window's buckets can go by, like "January" or "Mon", as a date-fns pattern.
+ * The calendar name a window's buckets can go by, like "January" or "Mon".
  * Undefined when the window is long enough for the name to repeat, or for a unit that has no such name.
  */
-function getCalendarNamePattern(bucketUnit: ChartBucketUnit, windowStart: Date, windowEnd: Date): string | undefined {
+function getCalendarNamePatterns(bucketUnit: ChartBucketUnit, windowStart: Date, windowEnd: Date): CalendarNamePatterns | undefined {
     switch (bucketUnit) {
         case 'day':
             if (differenceInCalendarDays(windowEnd, windowStart) < DAYS_IN_WEEK) {
-                return 'EEE';
+                return {full: 'EEE', short: 'EEE'};
             }
-            return isSameMonth(windowStart, windowEnd) ? 'd' : undefined;
+            return isSameMonth(windowStart, windowEnd) ? {full: 'd', short: 'd'} : undefined;
         case 'month':
-            return differenceInCalendarMonths(windowEnd, windowStart) < 12 ? 'LLLL' : undefined;
+            return differenceInCalendarMonths(windowEnd, windowStart) < 12 ? {full: 'LLLL', short: 'LLL'} : undefined;
         case 'quarter':
-            return differenceInCalendarQuarters(windowEnd, windowStart) < 4 ? 'QQQ' : undefined;
+            return differenceInCalendarQuarters(windowEnd, windowStart) < 4 ? {full: 'QQQ', short: 'QQQ'} : undefined;
         default:
             return undefined;
     }
@@ -197,7 +200,7 @@ function getCalendarNamePattern(bucketUnit: ChartBucketUnit, windowStart: Date, 
 
 /**
  * Names a time bucket so the name fits its counterpart in the compared window too: the calendar name both share,
- * like "January", or else its position, like "Week 2". Undefined when either window's dates are unknown.
+ * like "January" ("Jan" on the axis), or else its position, like "Week 2". Undefined when either window's dates are unknown.
  */
 function getComparedBucketLabel(
     bucketStart: string,
@@ -206,7 +209,7 @@ function getComparedBucketLabel(
     bucketUnit: ChartBucketUnit,
     translate: LocaleContextProps['translate'],
     dateFnsLocale: LocaleContextProps['dateFnsLocale'],
-): string | undefined {
+): {label: string; shortLabel: string} | undefined {
     if (!primary.start || !primary.end || !comparison.start) {
         return undefined;
     }
@@ -214,12 +217,13 @@ function getComparedBucketLabel(
     const primaryStart = parseISO(primary.start);
     const offset = BUCKET_OFFSET[bucketUnit](bucketDate, primaryStart);
     const counterpartDate = BUCKET_ADD[bucketUnit](parseISO(comparison.start), offset);
-    const pattern = getCalendarNamePattern(bucketUnit, primaryStart, parseISO(primary.end));
+    const patterns = getCalendarNamePatterns(bucketUnit, primaryStart, parseISO(primary.end));
 
-    if (pattern && format(bucketDate, pattern) === format(counterpartDate, pattern)) {
-        return format(bucketDate, pattern, {locale: dateFnsLocale});
+    if (patterns && format(bucketDate, patterns.full) === format(counterpartDate, patterns.full)) {
+        return {label: format(bucketDate, patterns.full, {locale: dateFnsLocale}), shortLabel: format(bucketDate, patterns.short, {locale: dateFnsLocale})};
     }
-    return translate(BUCKET_POSITION_LABEL[bucketUnit], offset + 1);
+    const positionLabel = translate(BUCKET_POSITION_LABEL[bucketUnit], offset + 1);
+    return {label: positionLabel, shortLabel: positionLabel};
 }
 
 /**
@@ -245,8 +249,8 @@ function buildChartSeries({primary, comparison, view, groupBy, getLabel, getShor
                 ? getComparedBucketLabel(getBucketRange(item).start, primary, comparison, bucketUnit, translate, dateFnsLocale)
                 : undefined;
         const point: ChartDataPoint = {
-            label: comparedLabel ?? StringUtils.normalize(getLabel(item)),
-            shortLabel: comparedLabel ?? getShortLabel?.(item),
+            label: comparedLabel?.label ?? StringUtils.normalize(getLabel(item)),
+            shortLabel: comparedLabel ? comparedLabel.shortLabel : getShortLabel?.(item),
             values: {
                 [CHART_SERIES_KEY.PRIMARY]: getAmount(item),
                 ...(!!comparison && {[CHART_SERIES_KEY.COMPARISON]: comparisonItem ? getAmount(comparisonItem) : 0}),

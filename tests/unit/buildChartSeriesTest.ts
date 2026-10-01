@@ -404,10 +404,10 @@ describe('buildChartSeries labels for compared time buckets', () => {
             {start: '2025-01-01', end: '2025-10-01'},
         );
 
-        // Then each month is named on its own, which fits both of the bars drawn for it
+        // Then each month is named on its own, which fits both of the bars drawn for it, and shortened on the axis like a lone series
         expect(labels).toEqual([
-            ['January', 'January'],
-            ['February', 'February'],
+            ['January', 'Jan'],
+            ['February', 'Feb'],
         ]);
     });
 

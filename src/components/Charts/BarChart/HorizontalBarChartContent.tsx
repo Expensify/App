@@ -363,7 +363,7 @@ function HorizontalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxi
                     formatValue={formatValue}
                 />
                 <ChartYAxisLabels
-                    yTicks={chartData.map((point) => point.y)}
+                    yTicks={data.map((point, index) => lastIndex - index)}
                     yScale={args.yScale}
                     chartBounds={args.chartBounds}
                     fontSize={variables.iconSizeExtraSmall}
