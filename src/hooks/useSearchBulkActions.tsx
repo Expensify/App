@@ -102,6 +102,7 @@ import {
     hasOnlyPendingCardTransactions,
     hasReceipt as hasReceiptTransactionUtils,
     hasTransactionBeenRejected,
+    isBrokenConnectionViolation,
     isDeletedTransaction,
     isDistanceRequest,
     isManagedCardTransaction,
@@ -2779,8 +2780,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                                 getTransactionViolations(transaction, allTransactionViolations, email ?? '', accountID, reportForViolations, reportOwnerLogin, policyForViolations) ?? [];
                             // Each report has its own policy, so this filter (unlike the dismissal filter above) can't be
                             // delegated to getReportSubmitViolationSummary - it's called once across every selected report.
-                            filteredViolationsCollection[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] = transactionViolationsForReport.filter((violation) =>
-                                shouldShowViolation(reportForViolations, policyForViolations, violation.name, email ?? '', accountID, true, transaction),
+                            // AUTO_REPORTED_REJECTED_EXPENSE and a pending RTER card-match are kept regardless of
+                            // shouldShowViolation, same as getReportSubmitViolationSummary's own loop - it checks for
+                            // their raw presence (hasTransactionBeenRejected/hasPendingRTERViolation) before any filtering.
+                            filteredViolationsCollection[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] = transactionViolationsForReport.filter(
+                                (violation) =>
+                                    violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE ||
+                                    (violation.name === CONST.VIOLATIONS.RTER && violation.data?.pendingPattern && !isBrokenConnectionViolation(violation)) ||
+                                    shouldShowViolation(reportForViolations, policyForViolations, violation.name, email ?? '', accountID, true, transaction),
                             );
                         }
                     }
