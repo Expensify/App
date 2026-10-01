@@ -9027,6 +9027,9 @@ const CONST = {
     PRODUCT_TRAINING_TOOLTIP_REAPPEAR_WINDOW: {
         SEVEN_DAYS: 7 * 24 * 60 * 60 * 1000,
     },
+
+    // Users whose free trial started on or after this date never saw the separate Accounting and HR pages
+    CONNECTIONS_MOVED_NEW_USER_CUTOFF_DATE: '2026-10-01',
     INBOX_TAB_STALE_UNREAD_MONTHS: 3,
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
     AGENTS_RULES_BANNER: 'agentsRulesBanner',

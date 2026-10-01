@@ -58,7 +58,7 @@ import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {ImageContentFit} from 'expo-image';
 import type {ComponentRef, ReactElement, ReactNode, Ref} from 'react';
-import type {GestureResponderEvent, Role, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, ImageStyle, Role, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 
@@ -240,6 +240,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** Prop to represent the size of the avatar images to be shown */
         avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
+
+        /** Additional styles for the avatar image when the icon type is an avatar */
+        avatarImageStyles?: StyleProp<ViewStyle & ImageStyle>;
 
         /** Affects avatar size  */
         viewMode?: ValueOf<typeof CONST.OPTION_MODE>;
@@ -506,6 +509,7 @@ function MenuItem({
     leftComponent,
     rightIconReportID,
     avatarSize = CONST.AVATAR_SIZE.DEFAULT,
+    avatarImageStyles,
     isSmallAvatarSubscriptMenu = false,
     brickRoadIndicator,
     shouldRenderAsHTML = false,
@@ -949,7 +953,7 @@ function MenuItem({
                                                             )}
                                                             {iconType === CONST.ICON_TYPE_AVATAR && (
                                                                 <UserAvatar
-                                                                    imageStyles={styles.alignSelfCenter}
+                                                                    imageStyles={[styles.alignSelfCenter, avatarImageStyles]}
                                                                     source={icon}
                                                                     accountID={getAccountIDFromAvatarID(avatarID)}
                                                                     fallbackIcon={fallbackIcon ?? icons.FallbackAvatar}

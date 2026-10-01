@@ -92,6 +92,8 @@ function ConnectionCard({listing, columnCount}: ConnectionCardProps) {
                 titleStyle={styles.textStrong}
                 icon={icon}
                 iconType={CONST.ICON_TYPE_AVATAR}
+                // Many partner logos are transparent, so they need a white backdrop in both themes
+                avatarImageStyles={styles.backgroundWhite}
                 fallbackIcon={icons.Building}
                 descriptionAddon={
                     status ? (
