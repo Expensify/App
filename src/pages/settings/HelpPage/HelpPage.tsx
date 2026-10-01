@@ -22,7 +22,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {openHelpPage} from '@libs/actions/Help';
 import {openExternalLink} from '@libs/actions/Link';
 import {navigateToAndOpenReportWithAccountIDs} from '@libs/actions/Report';
-import Navigation from '@libs/Navigation/Navigation';
 
 import colors from '@styles/theme/colors';
 

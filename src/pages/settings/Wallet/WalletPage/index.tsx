@@ -13,7 +13,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
-import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
 import Section from '@components/Section';
 import Text from '@components/Text';
 
