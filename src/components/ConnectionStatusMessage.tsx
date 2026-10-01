@@ -34,7 +34,7 @@ function ConnectionStatusMessage({
     onLinkPress,
     shouldIncludeHorizontalPadding = true,
 }: ConnectionStatusMessageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Exclamation']);
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
