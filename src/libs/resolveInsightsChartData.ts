@@ -27,9 +27,6 @@ type ResolveInsightsChartDataParams = {
     /** The snapshot's rows, grouped and sorted the way the chart plots them */
     sortedData: GroupedItem[] | undefined;
 
-    /** The previous period's rows, grouped the same way, absent when nothing is compared */
-    previousPeriodData?: GroupedItem[];
-
     /** Whether the device is offline, so a chart with nothing stored can't expect data to arrive */
     isOffline?: boolean;
 };
@@ -38,14 +35,11 @@ type InsightsChartData = {
     /** Rows for the period on screen, empty in every state but `ready` */
     data: GroupedItem[];
 
-    /** Rows for the period before it, absent unless that period's snapshot holds data */
-    previousPeriodData?: GroupedItem[];
-
     state: InsightsChartState;
 };
 
 /** Resolves one chart's rows and state from its snapshot, whether GetInsights or Search loaded it. */
-function resolveInsightsChartData({snapshot, queryJSON, sortedData, previousPeriodData, isOffline = false}: ResolveInsightsChartDataParams): InsightsChartData {
+function resolveInsightsChartData({snapshot, queryJSON, sortedData, isOffline = false}: ResolveInsightsChartDataParams): InsightsChartData {
     const isLoaded = isSearchDataLoaded(snapshot, queryJSON);
     const hasErrors = Object.keys(snapshot?.errors ?? {}).length > 0;
 
@@ -65,7 +59,7 @@ function resolveInsightsChartData({snapshot, queryJSON, sortedData, previousPeri
         return {data: [], state: INSIGHTS_CHART_STATE.EMPTY};
     }
 
-    return {data: sortedData, previousPeriodData, state: INSIGHTS_CHART_STATE.READY};
+    return {data: sortedData, state: INSIGHTS_CHART_STATE.READY};
 }
 
 export {INSIGHTS_CHART_STATE, resolveInsightsChartData};

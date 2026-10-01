@@ -1,4 +1,3 @@
-import VictoryTheme from '@components/Charts/VictoryTheme';
 import {buildViewOnSpendQuery} from '@components/Search/chartDrillDown';
 import ChartEmptyState from '@components/Search/ChartEmptyState';
 import ChartErrorState from '@components/Search/ChartErrorState';
@@ -12,23 +11,18 @@ import WidgetHeaderMenu from '@components/WidgetHeaderMenu';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import {INSIGHTS_CHART_STATE, resolveInsightsChartData} from '@libs/resolveInsightsChartData';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import InsightsGroupByDropdown from '@pages/Insights/controls/InsightsGroupByDropdown';
 import type {InsightsChartSpec} from '@pages/Insights/dashboardSpecs';
-import resolveComparisonWindows from '@pages/Insights/insightsCompare';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
-import {applyInsightsFilters} from '@pages/Insights/insightsQueries';
+import useInsightsChartComparison from '@pages/Insights/useInsightsChartComparison';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchResults} from '@src/types/onyx';
 
@@ -62,34 +56,15 @@ function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGr
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isBetaEnabled} = usePermissions();
     const icons = useMemoizedLazyExpensifyIcons(['Expand']);
 
     const {isOffline} = useNetwork();
-    const isComparingPreviousPeriod = isBetaEnabled(CONST.BETAS.INSIGHTS_COMPARE) && filters.compare === CONST.SEARCH.COMPARE.PREVIOUS_PERIOD;
-    const previousPeriodQueryJSON = isComparingPreviousPeriod ? buildSearchQueryJSON(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.PREVIOUS_PERIOD)) : undefined;
-    const [previousPeriodSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${previousPeriodQueryJSON?.hash}`);
     const sortedData = useGroupedItems(snapshot, queryJSON);
-    // Grouped by the current query but uncapped, since its top groups by previous spend may not be the ones plotted now.
-    const previousPeriodSortedData = useGroupedItems(previousPeriodSnapshot, queryJSON && {...queryJSON, limit: undefined});
-    const {data, previousPeriodData, state: currentPeriodState} = resolveInsightsChartData({snapshot, queryJSON, sortedData, previousPeriodData: previousPeriodSortedData, isOffline});
-    const previousPeriodState = isComparingPreviousPeriod
-        ? resolveInsightsChartData({snapshot: previousPeriodSnapshot, queryJSON: previousPeriodQueryJSON, sortedData: previousPeriodSortedData, isOffline}).state
-        : undefined;
+    const {data, state: currentPeriodState} = resolveInsightsChartData({snapshot, queryJSON, sortedData, isOffline});
+    const {comparison, blockingState} = useInsightsChartComparison(chart, filters, queryJSON);
     // A compared chart is ready only once both periods are, so its second series never pops in or goes silently missing.
-    const isPreviousPeriodUnresolved =
-        previousPeriodState === INSIGHTS_CHART_STATE.LOADING || previousPeriodState === INSIGHTS_CHART_STATE.ERROR || previousPeriodState === INSIGHTS_CHART_STATE.OFFLINE;
-    const state = currentPeriodState === INSIGHTS_CHART_STATE.READY && previousPeriodState && isPreviousPeriodUnresolved ? previousPeriodState : currentPeriodState;
+    const state = currentPeriodState === INSIGHTS_CHART_STATE.READY && blockingState ? blockingState : currentPeriodState;
     const groupBy = chart.groupBy ?? filters.groupBy;
-    const windows = resolveComparisonWindows(filters.date, translate);
-    const comparison =
-        isComparingPreviousPeriod && previousPeriodData && windows
-            ? {
-                  data: previousPeriodData,
-                  current: {...windows.current, color: chart.color ?? VictoryTheme.colors.default},
-                  previous: {...windows.previous, color: chart.comparisonColor ?? VictoryTheme.colors.defaultDot},
-              }
-            : undefined;
     // A pie shows one period at a time, so a compared pie is drawn as a bar chart instead.
     const view = comparison && chart.view === CONST.SEARCH.VIEW.PIE ? CONST.SEARCH.VIEW.BAR : chart.view;
     const isLoading = state === INSIGHTS_CHART_STATE.LOADING;
