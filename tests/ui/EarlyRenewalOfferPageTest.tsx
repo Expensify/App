@@ -110,8 +110,7 @@ describe('EarlyRenewalOfferPage', () => {
     });
 
     it('renews with the chosen discount and closes the picker', async () => {
-        // Given the billing owner has chosen the two-year discount and Auth accepts it
-        jest.mocked(acceptEarlyRenewalOffer).mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
+        // Given the billing owner has chosen the two-year discount
         render(<EarlyRenewalOfferPage />);
         fireEvent.press(screen.getByRole('radio', {name: 'earlyRenewal.offer.twoYears'}));
 
@@ -121,25 +120,8 @@ describe('EarlyRenewalOfferPage', () => {
             await Promise.resolve();
         });
 
-        // Then only that offer is sent to Auth and the picker closes
+        // Then only that offer is queued for Auth and the picker closes, since any failure shows on the banner instead
         expect(acceptEarlyRenewalOffer).toHaveBeenCalledWith(CONST.SUBSCRIPTION.EARLY_RENEWAL.OFFER_ID.INCENTIVIZED_TWO_YEARS);
         expect(Navigation.goBack).toHaveBeenCalledTimes(1);
-    });
-
-    it('shows the error Auth returns when the renewal fails', async () => {
-        // Given the billing owner has chosen the one-year discount but Auth rejects it
-        jest.mocked(acceptEarlyRenewalOffer).mockResolvedValue({jsonCode: 402, message: 'This offer is no longer available.'});
-        render(<EarlyRenewalOfferPage />);
-        fireEvent.press(screen.getByRole('radio', {name: 'earlyRenewal.offer.oneYear'}));
-
-        // When they press the renew button
-        await act(async () => {
-            capturedSubmitButtonProps?.onSubmit();
-            await Promise.resolve();
-        });
-
-        // Then the picker stays open and shows why, so they can try again
-        expect(capturedSubmitButtonProps?.message).toBe('This offer is no longer available.');
-        expect(Navigation.goBack).not.toHaveBeenCalled();
     });
 });

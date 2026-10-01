@@ -50,16 +50,10 @@ function EarlyRenewalOfferPage() {
     const illustrations = useMemoizedLazyIllustrations(['AgentsIceCream', 'IceCreamNumberOne', 'IceCreamNumberTwo']);
     const [selectedOfferID, setSelectedOfferID] = useState<IncentivizedOfferID | null>(null);
     const [errorMessage, setErrorMessage] = useState('');
-    const [isRenewing, setIsRenewing] = useState(false);
 
     const selectOffer = (offerID: IncentivizedOfferID) => {
         setSelectedOfferID(offerID);
         setErrorMessage('');
-    };
-
-    const showRenewalError = (message?: string) => {
-        setErrorMessage(message ?? translate('common.genericErrorMessage'));
-        setIsRenewing(false);
     };
 
     const renewWithSelectedOffer = () => {
@@ -68,16 +62,9 @@ function EarlyRenewalOfferPage() {
             return;
         }
 
-        setIsRenewing(true);
-        acceptEarlyRenewalOffer(selectedOfferID)
-            .then((response) => {
-                if (response?.jsonCode === CONST.JSON_CODE.SUCCESS) {
-                    Navigation.goBack();
-                    return;
-                }
-                showRenewalError(response?.message);
-            })
-            .catch(() => showRenewalError());
+        // Any failure surfaces on the Subscription banner and Home card, which read the offer's errors
+        acceptEarlyRenewalOffer(selectedOfferID);
+        Navigation.goBack();
     };
 
     return (
@@ -163,7 +150,6 @@ function EarlyRenewalOfferPage() {
                     isAlertVisible={!!errorMessage}
                     message={errorMessage}
                     onSubmit={renewWithSelectedOffer}
-                    isLoading={isRenewing}
                     shouldShowLoadingImmediatelyOnPress={false}
                     buttonText={translate('earlyRenewal.offer.renewAndClaim')}
                     containerStyles={[styles.mh0, styles.mv0, styles.mb0]}
