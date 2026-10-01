@@ -5879,7 +5879,17 @@ describe('ReportUtils', () => {
                 canUnholdRequest: false,
             });
 
-            putOnHold(expenseTransaction.transactionID, 'hold', transactionThreadReport.reportID, false, currentUserEmail, currentUserAccountID, undefined, false, undefined, {
+            putOnHold({
+                transactionID: expenseTransaction.transactionID,
+                transaction: expenseTransaction,
+                comment: 'hold',
+                initialReportID: transactionThreadReport.reportID,
+                isOffline: false,
+                currentUserLogin: currentUserEmail,
+                currentUserAccountID,
+                transactionViolations: undefined,
+                isTrackIntentUser: false,
+                delegateAccountID: undefined,
                 rules: undefined,
                 ancestors: [],
             });
