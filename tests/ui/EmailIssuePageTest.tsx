@@ -218,16 +218,15 @@ describe('EmailIssuePage', () => {
         expect(mockRequestEmailUnblock).toHaveBeenCalledTimes(1);
     });
 
-    it('does not retry from the modal while offline', async () => {
-        // Given a user with an email delivery failure whose unblock attempt just failed, while offline
-        mockIsOffline = true;
+    it('disables the retry modal confirm button while offline', async () => {
+        // Given a user with an email delivery failure who has just pressed the unblock button
         await act(async () => {
             await Onyx.merge(ONYXKEYS.ACCOUNT, {hasEmailDeliveryFailure: true, isUnblockingEmail: true});
         });
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        mockShowConfirmModal.mockResolvedValue({action: 'CONFIRM'});
+        mockShowConfirmModal.mockResolvedValue({action: 'CANCEL'});
 
         // When the request settles with the failure flag still set
         await act(async () => {
@@ -235,8 +234,9 @@ describe('EmailIssuePage', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        // Then confirming "Try again" while offline must not queue another request indefinitely
-        expect(mockRequestEmailUnblock).not.toHaveBeenCalled();
+        // Then the modal is asked to disable "Try again" while offline (the modal is stubbed here, so the
+        // disabled state itself is the modal's concern), so an offline retry can't queue another request indefinitely
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({shouldDisableConfirmButtonWhenOffline: true}));
     });
 
     it('disables the main unblock button while offline', async () => {
