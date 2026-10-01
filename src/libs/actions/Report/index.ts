@@ -4852,10 +4852,11 @@ function createNewReport(
     return {...optimisticReportData, reportPreviewReportActionID};
 }
 
-function openSupportTicket() {
+function openSupportTicket(resolvedReportID?: string) {
     const reportID = generateReportID();
     const parameters: CreateSupportTicketParams = {
         reportID,
+        ...(resolvedReportID ? {resolvedReportID} : {}),
     };
 
     Navigation.navigate(getReportRouteForCurrentContext({reportID, isPendingCreation: true}));
