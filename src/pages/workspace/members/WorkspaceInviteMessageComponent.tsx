@@ -4,6 +4,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors} from '@components/Form/types';
 import Header from '@components/Header';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
@@ -280,16 +281,13 @@ function WorkspaceInviteMessageComponent({
                 shouldEnableMaxHeight
             >
                 {shouldShowBackButton && (
-                    <Header>
-                        <Header.BackButton onPress={() => Navigation.goBack(backTo)} />
-                        <Header.Title
-                            title={headerTitle}
-                            subtitle={subtitle}
-                        />
-                        <Header.Right>
-                            <Header.CloseButton onPress={() => Navigation.dismissModal()} />
-                        </Header.Right>
-                    </Header>
+                    <HeaderWithBackButtonAndTitle
+                        title={headerTitle}
+                        subtitle={subtitle}
+                        onBackButtonPress={() => Navigation.goBack(backTo)}
+                    >
+                        <Header.CloseButton onPress={() => Navigation.dismissModal()} />
+                    </HeaderWithBackButtonAndTitle>
                 )}
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}

@@ -2,7 +2,7 @@ import MultiAccountAvatar from '@components/Avatar/connected/MultiAccountAvatar'
 import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import FixedFooter from '@components/FixedFooter';
-import Header from '@components/Header';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -142,13 +142,10 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldShowOfflineIndicatorInWideScreen
         >
-            <Header>
-                <Header.BackButton />
-                <Header.Title
-                    title={isWorkflowsImport ? translate('workspace.invite.members') : translate('workspace.inviteMessage.confirmDetails')}
-                    subtitle={policy?.name}
-                />
-            </Header>
+            <HeaderWithBackButtonAndTitle
+                title={isWorkflowsImport ? translate('workspace.invite.members') : translate('workspace.inviteMessage.confirmDetails')}
+                subtitle={policy?.name}
+            />
             <View style={styles.ph5}>
                 <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
                     <MultiAccountAvatar

@@ -1,7 +1,7 @@
 import UserAvatar from '@components/Avatar/UserAvatar';
 import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
-import Header from '@components/Header';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
@@ -342,13 +342,10 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                 enableEdgeToEdgeBottomSafeAreaPadding
                 testID="WorkspaceMemberDetailsPage"
             >
-                <Header>
-                    <Header.BackButton />
-                    <Header.Title
-                        title={displayName}
-                        subtitle={policy?.name}
-                    />
-                </Header>
+                <HeaderWithBackButtonAndTitle
+                    title={displayName}
+                    subtitle={policy?.name}
+                />
                 <ScrollView addBottomSafeAreaPadding>
                     <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>
                         <View style={[styles.avatarSectionWrapper, styles.pb0]}>
