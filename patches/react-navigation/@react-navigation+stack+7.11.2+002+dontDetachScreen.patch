@@ -1,9 +1,9 @@
 diff --git a/node_modules/@react-navigation/stack/lib/module/views/Stack/CardA11yWrapper.js b/node_modules/@react-navigation/stack/lib/module/views/Stack/CardA11yWrapper.js
-index 44c8f10..93673f8 100644
+index 7750f21..d95ceb0 100644
 --- a/node_modules/@react-navigation/stack/lib/module/views/Stack/CardA11yWrapper.js
 +++ b/node_modules/@react-navigation/stack/lib/module/views/Stack/CardA11yWrapper.js
-@@ -27,6 +27,7 @@ export const CardA11yWrapper = /*#__PURE__*/React.forwardRef(({
-       overflow: active ? undefined : 'hidden',
+@@ -23,6 +23,7 @@ export const CardA11yWrapper = /*#__PURE__*/React.forwardRef(({
+     style: [StyleSheet.absoluteFill, {
        // We use visibility on web
        display: Platform.OS !== 'web' && isHidden ? 'none' : 'flex',
 +      zIndex: Platform.OS === 'web' ? 'auto' : undefined,

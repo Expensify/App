@@ -1,14 +1,14 @@
 # `@react-navigation` patches
 
 ### @react-navigation+package-name+7+fix-failing-jest-by-disabling-esmodule.patch
-#### [@react-navigation+bottom-tabs+7.19.1+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+bottom-tabs+7.19.1+001+fix-failing-jest-by-disabling-esmodule.patch)
+#### [@react-navigation+bottom-tabs+7.19.2+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+bottom-tabs+7.19.2+001+fix-failing-jest-by-disabling-esmodule.patch)
 #### [@react-navigation+core+7.22.1+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+core+7.22.1+001+fix-failing-jest-by-disabling-esmodule.patch)
-#### [@react-navigation+elements+2.9.42+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+elements+2.9.42+001+fix-failing-jest-by-disabling-esmodule.patch)
-#### [@react-navigation+material-top-tabs+7.7.1+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+material-top-tabs+7.7.1+001+fix-failing-jest-by-disabling-esmodule.patch)
-#### [@react-navigation+native-stack+7.19.1+002+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+native-stack+7.19.1+002+fix-failing-jest-by-disabling-esmodule.patch)
+#### [@react-navigation+elements+2.9.43+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+elements+2.9.43+001+fix-failing-jest-by-disabling-esmodule.patch)
+#### [@react-navigation+material-top-tabs+7.7.2+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+material-top-tabs+7.7.2+001+fix-failing-jest-by-disabling-esmodule.patch)
+#### [@react-navigation+native-stack+7.19.2+002+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+native-stack+7.19.2+002+fix-failing-jest-by-disabling-esmodule.patch)
 #### [@react-navigation+native+7.4.1+002+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+native+7.4.1+002+fix-failing-jest-by-disabling-esmodule.patch)
 #### [@react-navigation+routers+7.6.4+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+routers+7.6.4+001+fix-failing-jest-by-disabling-esmodule.patch)
-#### [@react-navigation+stack+7.11.1+004+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+stack+7.11.1+004+fix-failing-jest-by-disabling-esmodule.patch)
+#### [@react-navigation+stack+7.11.2+004+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+stack+7.11.2+004+fix-failing-jest-by-disabling-esmodule.patch)
 
 - Reason: Necessary to run Jest with the obligatory `--experimental-vm-modules` flag. Currently we transpile all the code to `commonjs`, but Jest looks up to individual `package.jsons` to see whether the package is `commonjs` or `ESModule`. That causes a conflict, which can be solved by removing `{"type":"module"}` from `lib/module/package.json`. This might be an issue with Jest, but it would require much more investigation. More: https://github.com/react-navigation/react-navigation/issues/12637
 - Upstream PR/issue: https://github.com/react-navigation/react-navigation/issues/12637
@@ -43,16 +43,16 @@
 - PR Updating Patch: [#32087](https://github.com/Expensify/App/pull/32087) [#42465](https://github.com/Expensify/App/pull/42465) [#64155](https://github.com/Expensify/App/pull/64155) [#101715](https://github.com/Expensify/App/issues/101715)
 - Note: Re-ported onto 7.4.1. `createMemoryHistory` and `useLinking` were refactored upstream (`getPathWithoutHash`, `getHistoryLength`, `pendingPopStateDelta`, `isPoppingLastEntry`), so the hunks were re-anchored instead of applied verbatim: `backIndex` keeps upstream's hash handling and adds the focused-route-key match, and `useLinking` keeps upstream's `pendingPopStateDelta` guard and `getHistoryLength` delta while re-adding `historyDeltaByKeys`/`getStaleHistoryDiff`. Two parts of the old patch became redundant and were dropped: the `findFocusedRouteKey` helper file now matches upstream's own module, and the extra `history.replace` right after `history.go(nextIndex - currentIndex)` duplicated the replace that upstream already runs at the end of the same `try` block.
 
-### [@react-navigation+stack+7.11.1+001+edge-drag-gesture.patch](@react-navigation+stack+7.11.1+001+edge-drag-gesture.patch)
+### [@react-navigation+stack+7.11.2+001+edge-drag-gesture.patch](@react-navigation+stack+7.11.2+001+edge-drag-gesture.patch)
 
 - Reason: Adds `edgeDragGestureMonitor` implementation
 - Upstream PR/issue: N/A
 - E/App issue: [#15849](https://github.com/Expensify/App/issues/15849)
 - PR Introducing Patch: [#18402](https://github.com/Expensify/App/pull/18402)
 - PR Updating Patch: [#22678](https://github.com/Expensify/App/pull/22678) [#22437](https://github.com/Expensify/App/pull/22437) [#64155](https://github.com/Expensify/App/pull/64155) [#101715](https://github.com/Expensify/App/issues/101715)
-- Note: Re-ported onto 7.11.1. The added and removed lines are unchanged; only the surrounding context moved, because 7.10.x wrapped the gesture animation in `animationIdRef`/`isAnimatingRef` guards. `resetExpectingTouchendWithDelay()` still runs after those guards, so a stale animation callback that returns early no longer resets the monitor.
+- Note: Re-ported onto 7.11.2. The added and removed lines are unchanged; only the surrounding context moved, because 7.10.x wrapped the gesture animation in `animationIdRef`/`isAnimatingRef` guards. 7.11.2 did not touch `Card.js` or `CardStack.js`, so the patch body is identical to the 7.11.1 one. `resetExpectingTouchendWithDelay()` still runs after those guards, so a stale animation callback that returns early no longer resets the monitor.
 
-### [@react-navigation+stack+7.11.1+002+dontDetachScreen.patch](@react-navigation+stack+7.11.1+002+dontDetachScreen.patch)
+### [@react-navigation+stack+7.11.2+002+dontDetachScreen.patch](@react-navigation+stack+7.11.2+002+dontDetachScreen.patch)
 - Reason: Prevents the second screen in the stack from being detached too early.  
   Additionally, setting `zIndex: Platform.OS === 'web' ? 'auto' : undefined` helps avoid issues in Safari where the home screen might be hidden due to `overflow: hidden`.
 - Upstream PR/issue: N/A
@@ -60,7 +60,7 @@
 - PR Introducing Patch: [#22437](https://github.com/Expensify/App/pull/22437)
 - PR Updating Patch: [#33280](https://github.com/Expensify/App/pull/33280) [#37421](https://github.com/Expensify/App/pull/37421) [#49539](https://github.com/Expensify/App/pull/49539) [#64155](https://github.com/Expensify/App/pull/64155) [#65119](https://github.com/Expensify/App/issues/65119) [#101715](https://github.com/Expensify/App/issues/101715)
 - Note: Not fully covered by the public `detachPreviousScreen` option (this also forces `activityState`). v8 replaces `detachInactiveScreens`/`detachPreviousScreen`/`freezeOnBlur` with a single `inactiveBehavior` option — re-evaluate this patch then.
-- Note: Re-ported onto 7.11.1 unchanged. `STATE_TRANSITIONING_OR_BELOW_TOP` is now a module-level constant upstream, so the patch no longer declares it, and `CardA11yWrapper.js` is byte-for-byte identical to 7.8.5, so the `zIndex` hunk still applies (the 7.11.x `overflow` handling change did not touch this file).
+- Note: Re-ported onto 7.11.2. `STATE_TRANSITIONING_OR_BELOW_TOP` is now a module-level constant upstream, so the patch no longer declares it. 7.11.2 (https://github.com/react-navigation/react-navigation/pull/13255) removed the `overflow: active ? undefined : 'hidden'` line from `CardA11yWrapper`, so the `zIndex` hunk was re-anchored on the line above it. The added lines are unchanged. With that `overflow: hidden` gone from `CardA11yWrapper`, the Safari case the `zIndex` part was added for may no longer happen. That has not been verified, so the `zIndex` part stays.
 
 ### Removed patches
 
@@ -70,13 +70,4 @@
 
   `tests/unit/Navigation/createMemoryHistoryTest.ts` covered the old contract and now asserts the new one: a timed-out traversal rejects, and the in-time case points `window.history.state` at the target entry first, the way a real traversal does.
 
-### [@react-navigation+stack+7.8.5+005+clip-inactive-card-inside-card.patch](@react-navigation+stack+7.8.5+005+clip-inactive-card-inside-card.patch)
-
-- Reason: On the web floating RHP each stacked card draws its own drop shadow through the interpolator's `cardStyle` (`getRHPExtendedCardFrame`). `CardA11yWrapper` puts `overflow: hidden` on every card that is not on top, and the wrapper is sized to the navigator frame, so it clips the shadow of the card under the focused one. Opening an expense over an expense report cut the report card's left and bottom shadow. The patch moves that clip from `CardA11yWrapper` to the `Animated.View` in `Card` that receives `cardStyle`. That view paints the shadow, and `overflow: hidden` does not clip an element's own shadow, so the shadow stays and the content is still clipped. `CardContainer` passes `active` down to `Card`.
-- Upstream PR/issue: https://github.com/react-navigation/react-navigation/issues/13254, fix in https://github.com/react-navigation/react-navigation/pull/13255. Upstream declined an opt-out option and asked for this instead. The patch is that change applied to the compiled 7.8.5 output.
-- E/App issue: N/A, the patch came out of the internal web floating-RHP styling work. Removing it is tracked in [#101715](https://github.com/Expensify/App/issues/101715), the react-navigation upgrade.
-- PR Introducing Patch: [#101093](https://github.com/callstack-internal/Expensify-App/pull/101093)
-- PR Updating Patch: N/A
-- Note: Not gated to the RHP. Every stack now clips inactive cards one level lower, so the built-in `styles.shadow` edge view inside `Card` is clipped on inactive cards too. The active card covers that edge.
-- Note: Upstream shipped the fix in `@react-navigation/stack` 7.11.2, first release containing https://github.com/react-navigation/react-navigation/pull/13255. Their shape differs from ours: `CardA11yWrapper` drops `overflow` completely, and `CardContainer` passes `pageOverflowEnabled: active && headerMode !== 'float' && presentation !== 'modal'`, so the clip lands in `CardContent`, whose `styles.card` still carries `overflow: 'hidden'`. Inactive cards stay clipped and the stacked RHP shadow survives, but the clip sits one level below ours, which leaves the built-in `styles.shadow` edge view unclipped on inactive cards.
-- Note: Drop this patch by moving to `stack` 7.11.2 or newer, see #101715 above. It cannot be bumped on its own: `createStackNavigator` there reads `render` from `useNavigationBuilder`, which starts in `core` 7.22.1, and `elements` 2.9.43 plus every sibling declare `native ^7.4.1` as a peer, so npm rejects 7.11.2 next to our `native` 7.1.33. `stack+001+edge-drag-gesture` and `stack+002+dontDetachScreen` need hand-porting to 7.11.2 because it rewrote the gesture and animation lifecycle in `Card.js` and switched the gesture wrapper to `pointerEvents: "auto"`.
+- `@react-navigation+stack+7.8.5+005+clip-inactive-card-inside-card.patch` was dropped: upstream shipped the same fix in `@react-navigation/stack` 7.11.2 (https://github.com/react-navigation/react-navigation/pull/13255, reported in https://github.com/react-navigation/react-navigation/issues/13254). The patch came from [#101093](https://github.com/callstack-internal/Expensify-App/pull/101093) to keep the shadow of the card under the focused one on the web floating RHP. Upstream drops `overflow` from `CardA11yWrapper` and clips inactive cards in `CardContent` through `pageOverflowEnabled: active && headerMode !== 'float' && presentation !== 'modal'`, so the stacked RHP shadow survives the same way. The clip sits one level below where our patch put it, so the built-in `styles.shadow` edge view inside `Card` is no longer clipped on inactive cards. The active card covers that edge.
