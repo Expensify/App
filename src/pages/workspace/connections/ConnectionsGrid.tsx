@@ -35,7 +35,7 @@ function ConnectionsGrid({listings}: ConnectionsGridProps) {
     const fillerCount = (columnCount - (listings.length % columnCount)) % columnCount;
 
     return (
-        <View style={[styles.flexRow, styles.flexWrap, styles.gap4]}>
+        <View style={[styles.flexRow, styles.flexWrap, styles.gap3]}>
             {listings.map((listing) => (
                 <ConnectionCard
                     key={listing.key}

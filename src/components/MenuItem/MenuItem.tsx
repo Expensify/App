@@ -178,6 +178,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Optional component to render before the description text (e.g. a badge pill) */
         descriptionAddon?: ReactNode;
 
+        /** Content shown right after the title, on the same line */
+        titleAddon?: ReactNode;
+
         /** Text to show below menu item. This text is not interactive */
         helperText?: string;
 
@@ -479,6 +482,7 @@ function MenuItem({
     furtherDetailsComponent,
     description,
     descriptionAddon,
+    titleAddon,
     helperText,
     helperTextStyle,
     errorText,
@@ -1030,6 +1034,7 @@ function MenuItem({
                                                                         />
                                                                     </View>
                                                                 )}
+                                                                {titleAddon}
                                                             </View>
                                                         )}
                                                         {!shouldShowDescriptionOnTop && renderDescriptionView()}
@@ -1057,11 +1062,11 @@ function MenuItem({
                                                                 text={badgeText}
                                                                 icon={badgeIcon}
                                                                 badgeStyles={[
+                                                                    badgeStyle,
                                                                     styles.alignSelfStart,
                                                                     styles.ml3,
                                                                     styles.mt2,
                                                                     focused && !isBadgeSuccess && styles.badgeDefaultActive,
-                                                                    badgeStyle,
                                                                 ]}
                                                                 success={isBadgeSuccess}
                                                                 isStrong={isBadgeStrong}

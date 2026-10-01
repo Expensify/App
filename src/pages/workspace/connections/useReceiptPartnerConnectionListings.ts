@@ -75,7 +75,10 @@ function useReceiptPartnerConnectionListings(policy: OnyxEntry<Policy>): Connect
                       message: shouldShowEnterCredentialsError ? translate('workspace.connections.brokenConnection') : uberData.description,
                   }
                 : undefined,
-            offer: {onPress: canWrite ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CLAIM_OFFER.getRoute(policyID, CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER)) : undefined},
+            // The Uber partner offer only applies to new connections
+            offer: isConnected
+                ? undefined
+                : {onPress: canWrite ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CLAIM_OFFER.getRoute(policyID, CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER)) : undefined},
             onConnect: connectUber,
             isLoading: !policy?.receiptPartners?.uber && !isOffline && !!policy?.isLoadingReceiptPartners,
             onConfigure: () => Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID)),

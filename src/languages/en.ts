@@ -5059,6 +5059,7 @@ const translations = {
             broken: 'Broken',
             brokenConnection: 'Cannot sync due to broken connection',
             replaceConnectionTitle: 'Replace connection?',
+            offer: 'Offer',
             replaceConnectionPrompt: (connectionName: string) => `This will remove your current ${connectionName} connection.`,
             hrisListing: (providerName: string) => `${providerName} (HRIS)`,
             atsListing: (providerName: string) => `${providerName} (ATS)`,
@@ -7597,7 +7598,6 @@ const translations = {
             qboConnectionExpiring: ({date}: {date: string}) => `Your QuickBooks Online connection expires on ${date}.`,
             qboConnectionExpired: ({date}: {date: string}) => `Your QuickBooks Online connection expired on ${date}.`,
             claimOffer: {
-                badgeText: 'Offer available!',
                 xero: {
                     headline: 'Get Xero free for 6 months!',
                     description: '<muted-text><centered-text>New to Xero? Expensify customers get 6 months free. Claim your offer below.</centered-text></muted-text>',

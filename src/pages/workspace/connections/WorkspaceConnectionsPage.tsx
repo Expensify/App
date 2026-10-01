@@ -32,6 +32,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {openPolicyHRPage, openPolicyRecruitingPage} from '@libs/actions/PolicyConnections';
+import Tab from '@libs/actions/Tab';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -72,6 +73,12 @@ type RouteParams = {
     isIntuitEnterpriseSuite?: string;
 };
 
+/**
+ * The SELECTED_TAB Onyx collection is typed as the IOU request tabs, so a persisted Connections tab is looked up here
+ * to narrow it without a type assertion.
+ */
+const CONNECTIONS_TABS_BY_KEY = new Map<string, ConnectionsTab>(Object.values(CONST.TAB.CONNECTIONS).map((tab) => [tab, tab]));
+
 type MergeSetupFlow = {
     setupLink: string;
     category: MergeProviderCardCategory;
@@ -108,7 +115,7 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const {startIntegrationFlow} = useAccountingActions();
     const {canWrite: canWriteAccounting} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.ACCOUNTING);
-    const [activeTab, setActiveTab] = useState<ConnectionsTab>(CONST.TAB.CONNECTIONS.ALL);
+    const [lastSelectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.CONNECTIONS_TAB_TYPE}`);
     const [mergeSetupFlow, setMergeSetupFlow] = useState<MergeSetupFlow | undefined>();
     const route = useRoute();
     const params = route.params as RouteParams | undefined;
@@ -133,6 +140,13 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
     const listings: ConnectionListing[] = [...accountingListings, ...mergeListings, ...receiptPartnerListings, ...mcpListings];
     const connectedListings = listings.filter((listing) => !!listing.status);
     const availableListings = listings.filter((listing) => !listing.status);
+
+    // Recruiting providers are behind a beta, so the tab only shows once there is something to list in it
+    const hasRecruitingListings = listings.some((listing) => listing.category === CONST.TAB.CONNECTIONS.RECRUITING);
+    const visibleTabs = Object.values(CONST.TAB.CONNECTIONS).filter((tab) => tab !== CONST.TAB.CONNECTIONS.RECRUITING || hasRecruitingListings);
+    // The tab is kept in Onyx so the page lands on it again after a remount, e.g. when coming back from a connect flow in another browser tab
+    const persistedTab = CONNECTIONS_TABS_BY_KEY.get(lastSelectedTab ?? '');
+    const activeTab = persistedTab && visibleTabs.includes(persistedTab) ? persistedTab : CONST.TAB.CONNECTIONS.ALL;
 
     const [searchValue, setSearchValue, searchResults, appliedSearchValue] = useSearchResults(
         availableListings,
@@ -200,9 +214,6 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
     const connectedHRConnectionName = CONST.POLICY.CONNECTIONS.HR_CONNECTION_NAMES.find((name) => !!policy?.connections?.[name]);
     const connectedRecruitingConnectionName = isRecruitingBetaEnabled ? CONST.POLICY.CONNECTIONS.RECRUITING_CONNECTION_NAMES.find((name) => !!policy?.connections?.[name]) : undefined;
 
-    // Recruiting providers are behind a beta, so the tab only shows once there is something to list in it
-    const hasRecruitingListings = listings.some((listing) => listing.category === CONST.TAB.CONNECTIONS.RECRUITING);
-    const visibleTabs = Object.values(CONST.TAB.CONNECTIONS).filter((tab) => tab !== CONST.TAB.CONNECTIONS.RECRUITING || hasRecruitingListings);
     const tabs: Array<TabSelectorBaseItem<ConnectionsTab>> = visibleTabs.map((tab) => ({
         key: tab,
         title: translate(`workspace.connections.tabs.${tab}`),
@@ -302,7 +313,7 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
                                 activeTabKey={selectedTab}
                                 onTabPress={(tab) => {
                                     setSearchValue('');
-                                    setActiveTab(tab);
+                                    Tab.setSelectedTab(CONST.TAB.CONNECTIONS_TAB_TYPE, tab);
                                 }}
                                 onActiveTabPress={() => setSearchValue('')}
                                 // On mobile the tabs scroll edge to edge, so the page gutter moves inside the scroll content

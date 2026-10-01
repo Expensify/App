@@ -89,7 +89,7 @@ function ConnectionCard({listing, columnCount}: ConnectionCardProps) {
             <MenuItem
                 ref={registerConnectButton}
                 title={title}
-                titleStyle={styles.textStrong}
+                titleStyle={[styles.textStrong, styles.flexShrink1]}
                 icon={icon}
                 iconType={CONST.ICON_TYPE_AVATAR}
                 // Many partner logos are transparent, so they need a white backdrop in both themes
@@ -107,11 +107,18 @@ function ConnectionCard({listing, columnCount}: ConnectionCardProps) {
                     ) : undefined
                 }
                 description={status?.message}
-                badgeText={offer ? translate('workspace.accounting.claimOffer.badgeText') : undefined}
-                isBadgeSuccess
-                badgeStyle={[styles.minHeight5, styles.mt1]}
-                shouldShowBadgeBelow
-                onBadgePress={offer?.onPress}
+                titleAddon={
+                    offer ? (
+                        <Badge
+                            text={translate('workspace.connections.offer')}
+                            isCondensed
+                            badgeStyles={[styles.ml2, styles.badgeOffer]}
+                            textStyles={styles.badgeOfferText}
+                            onPress={offer.onPress}
+                            pressable={!!offer.onPress}
+                        />
+                    ) : undefined
+                }
                 numberOfLinesDescription={1}
                 wrapperStyle={[styles.pv4, styles.ph4]}
                 onPress={status ? onConfigure : onConnect}
