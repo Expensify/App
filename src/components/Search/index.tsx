@@ -36,7 +36,7 @@ import {flushPendingSearchWrite, hasPendingSearchWrite} from '@libs/pendingSearc
 import {isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
 import {isOneTransactionReport} from '@libs/ReportUtils';
 import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
-import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildSearchQueryString, getQueryHashWithoutFooterSelections} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
     doesSearchItemMatchSort,
@@ -156,7 +156,7 @@ function Search({
     const isFocused = useIsFocused();
 
     const {markReportRHPWidth, unmarkReportRHPWidth} = useWideRHPActions();
-    const {currentSearchHash, currentSearchKey, shouldResetSearchQuery, suggestedSearches} = useSearchQueryContext();
+    const {currentSearchHash, currentSearchQueryJSON, currentSearchKey, shouldResetSearchQuery, suggestedSearches} = useSearchQueryContext();
     const {lastSearchType, shouldUseLiveData} = useSearchResultsContext();
 
     const {setShouldResetSearchQuery} = useSearchQueryActions();
@@ -564,6 +564,9 @@ function Search({
         clearSelectedTransactions();
     }, [isSearchResultsEmpty, prevIsSearchResultEmpty, clearSelectedTransactions]);
 
+    const hashWithoutFooterSelections = getQueryHashWithoutFooterSelections(queryJSON);
+    const currentHashWithoutFooterSelections = currentSearchQueryJSON ? getQueryHashWithoutFooterSelections(currentSearchQueryJSON) : currentSearchHash;
+
     const isUnmounted = useRef(false);
     const hasHadFirstLayout = useRef(false);
     const navigateToReportsSpanOnMount = useRef(getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS));
@@ -591,13 +594,13 @@ function Search({
             if (!isFocused && !isUnmounted.current) {
                 return;
             }
-            if (isSearchTopmostFullScreenRoute() && currentSearchHash === hash) {
+            if (isSearchTopmostFullScreenRoute() && hashWithoutFooterSelections === currentHashWithoutFooterSelections) {
                 return;
             }
             clearSelectedTransactions();
             turnOffMobileSelectionMode();
         },
-        [isFocused, clearSelectedTransactions, hash, currentSearchHash],
+        [isFocused, clearSelectedTransactions, hashWithoutFooterSelections, currentHashWithoutFooterSelections],
     );
 
     const areItemsGrouped = !!validGroupBy || isExpenseReportType;
