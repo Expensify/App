@@ -13,4 +13,4 @@
 
 - Upstream PR/issue: https://github.com/goldfire/howler.js/issues/1743, https://github.com/goldfire/howler.js/pull/1764
 - E/App issue: https://github.com/Expensify/App/issues/102744
-- PR introducing patch: TBD
+- PR introducing patch: https://github.com/Expensify/App/pull/102795
