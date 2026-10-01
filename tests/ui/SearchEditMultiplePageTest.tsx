@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
@@ -9,6 +9,10 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
+
+import {updateMultipleMoneyRequests} from '@libs/actions/IOU/BulkEdit';
+import type * as BulkEditActions from '@libs/actions/IOU/BulkEdit';
+import Navigation from '@libs/Navigation/Navigation';
 
 import SearchEditMultiplePage from '@pages/Search/SearchEditMultiple/SearchEditMultiplePage';
 
@@ -25,6 +29,8 @@ import type {ValueOf} from 'type-fest';
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
+// eslint-disable-next-line no-restricted-imports
+import {ActivityIndicator as RNActivityIndicator} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
@@ -47,6 +53,12 @@ jest.mock('@components/MenuItemWithTopDescription', () => {
         </View>
     );
 });
+
+// Saving runs a heavy Onyx update, so it is stubbed to observe when it runs relative to the spinner.
+jest.mock('@libs/actions/IOU/BulkEdit', () => ({
+    ...jest.requireActual<typeof BulkEditActions>('@libs/actions/IOU/BulkEdit'),
+    updateMultipleMoneyRequests: jest.fn(),
+}));
 
 const CURRENT_USER_ACCOUNT_ID = 5;
 const CURRENT_USER_EMAIL = 'bjorn@vikings.net';
@@ -135,8 +147,9 @@ function renderPage() {
     );
 }
 
-async function selectTransactions(selectedTransactionIDs: string[]) {
+async function selectTransactions(selectedTransactionIDs: string[], draftChanges: Partial<Transaction> = {}) {
     await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`, {
+        ...draftChanges,
         transactionID: CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID,
         selectedTransactionIDs,
     });
@@ -167,6 +180,8 @@ describe('SearchEditMultiplePage', () => {
     });
 
     afterEach(async () => {
+        jest.clearAllMocks();
+        jest.restoreAllMocks();
         await Onyx.clear();
         await waitForBatchedUpdatesWithAct();
     });
@@ -187,5 +202,28 @@ describe('SearchEditMultiplePage', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByTestId('menu-item-Reimbursable').props.accessibilityState).toEqual(expect.objectContaining({disabled: true}));
+    });
+
+    it('shows the spinner before applying the changes on save, then applies them and dismisses the RHP', async () => {
+        // Given a bulk edit with a pending merchant change on an expense that is not finalized, so no confirm modal shows
+        const dismissSpy = jest.spyOn(Navigation, 'dismissToPreviousRHP').mockImplementation(() => {});
+        await selectTransactions([OPEN_TRANSACTION_ID], {merchant: 'New merchant'});
+        const renderResult = renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When Save is pressed
+        fireEvent.press(screen.getByText('Save'));
+
+        // Then the spinner is painted first and the heavy update has not run yet, which is what save hands to startWithLoading for
+        expect(renderResult.UNSAFE_queryByType(RNActivityIndicator)).not.toBeNull();
+        expect(updateMultipleMoneyRequests).not.toHaveBeenCalled();
+
+        // When the deferred macrotask fires
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the changes are applied to the selected expense and the RHP is dismissed
+        expect(updateMultipleMoneyRequests).toHaveBeenCalledTimes(1);
+        expect(updateMultipleMoneyRequests).toHaveBeenCalledWith(expect.objectContaining({transactionIDs: [OPEN_TRANSACTION_ID], changes: {merchant: 'New merchant'}}));
+        expect(dismissSpy).toHaveBeenCalledTimes(1);
     });
 });

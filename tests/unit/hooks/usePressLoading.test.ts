@@ -78,6 +78,41 @@ describe('usePressLoading', () => {
         expect(work).toHaveBeenCalledTimes(1);
     });
 
+    it('ignores a second press that lands before the first one settles', async () => {
+        // Given a hook whose first press is still waiting for its deferred work to run
+        const {result} = renderHook(() => usePressLoading());
+        const work = jest.fn();
+
+        // When the button is pressed twice in the same tick, before React commits isPressed and disables it
+        act(() => {
+            result.current.startWithLoading(work);
+            result.current.startWithLoading(work);
+        });
+        await flush();
+
+        // Then the work runs once, so a fast double tap cannot submit twice
+        expect(work).toHaveBeenCalledTimes(1);
+    });
+
+    it('accepts a new press once the previous one has settled', async () => {
+        // Given a press that already ran to completion and released the guard
+        const {result} = renderHook(() => usePressLoading());
+        const work = jest.fn();
+        act(() => {
+            result.current.startWithLoading(work);
+        });
+        await flush();
+
+        // When the button is pressed again
+        act(() => {
+            result.current.startWithLoading(work);
+        });
+        await flush();
+
+        // Then the second press runs too, so the guard only blocks overlapping presses
+        expect(work).toHaveBeenCalledTimes(2);
+    });
+
     it('clears the loading state once the work settles when there is no external isLoading', async () => {
         // Given a handler that returns without navigating and without driving an external flag,
         // as a validation bail-out does
