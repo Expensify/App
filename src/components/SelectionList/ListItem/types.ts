@@ -43,7 +43,7 @@ type ListItem<K extends string | number = string> = {
     isDisabledCheckbox?: boolean;
 
     /** Hover tooltip for a locked option, e.g. a Has value required by another filter */
-    tooltipText?: string;
+    tooltipText?: string | null;
 
     /** Whether this option is disabled for selection */
     isDisabled?: boolean | null;
