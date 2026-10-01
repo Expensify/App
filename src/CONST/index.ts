@@ -5588,6 +5588,14 @@ const CONST = {
     SUBSCRIPTION: {
         TEAM_2025_PRICING_START_DATE: new Date(2025, 3, 1),
         PRICING_TYPE_2025: 'team2025Pricing',
+        EARLY_RENEWAL: {
+            NON_INCENTIVIZED_START: '2026-10-01T00:00:00Z',
+            INCENTIVIZED_START: '2026-10-15T00:00:00Z',
+            CAMPAIGN_END: '2027-01-01T00:00:00Z',
+            OFFER_ID: {
+                NON_INCENTIVIZED_ONE_YEAR: 'nonIncentivizedOneYear',
+            },
+        },
         TYPE: {
             ANNUAL: 'yearly2018',
             PAY_PER_USE: 'monthly2018',

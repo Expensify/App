@@ -11701,5 +11701,13 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             description: `<muted-text>Erstellen Sie benutzerdefinierte Agenten, die Ausgaben anhand Ihrer Regeln prüfen, genehmigen und weiterleiten. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Mehr erfahren</a>.</muted-text>`,
         },
     },
+    earlyRenewal: {
+        confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) =>
+            `Verlängern Sie Ihr Abonnement für einen Zeitraum von 12 Monaten, von ${startDate} bis ${endDate}.`,
+        title: 'Verlängern Sie Ihr Expensify-Abonnement',
+        subtitle: 'Eine Sache weniger zu erledigen vor dem neuen Jahr.',
+        confirmTitle: 'Verlängerung bestätigen',
+        renew: 'Erneuern',
+    },
 };
 export default translations;
