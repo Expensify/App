@@ -154,8 +154,8 @@ On web or desktop:
 Everything between the two checkboxes is selected. To adjust the range, hold **Shift** and click a different checkbox.
 
 - Group header checkboxes and the **Select all** checkbox work as usual, even while you hold **Shift**. They don't select a range.
-- After you check a group's header, Shift+click an expense in that group to keep only the expenses from the top of the group down to that one.
-- After you check **Select all**, or choose **Select all on this page**, Shift+click a row to keep only the rows from the top of the list down to that one. Groups that are collapsed stay selected.
+- After you check a group's header, Shift+click the checkbox of an expense in that group to keep only the expenses from the top of the group down to that one.
+- After you check **Select all**, or choose **Select all on this page**, Shift+click a row's checkbox to keep only the rows from the top of the list down to that one. Groups that are collapsed stay selected.
 - When there are more results than fit on the page, the **Select all** checkbox opens a menu. If you choose **Select all** there, every matching item is selected, and Shift+click doesn't narrow that selection.
 - When your results are grouped, a range only includes expenses in groups that are expanded.
 - In **Reports**, a range selects whole reports. To select a range of expenses inside a report, open the report.
