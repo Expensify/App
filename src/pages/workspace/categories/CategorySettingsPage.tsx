@@ -2,7 +2,7 @@ import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWith
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -33,6 +33,7 @@ import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
+import Parser from '@libs/Parser';
 import {arePolicyRulesEnabled, getWorkflowApprovalsUnavailable, hasTags, isControlPolicy, tryNavigateToControlPolicyUpgrade} from '@libs/PolicyUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -81,6 +82,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
         ? []
         : getCategoryContextualRules({
               policy,
+              policyCategories,
               category: policyCategory,
               categoryName: policyCategory.name,
               translate,
@@ -310,33 +312,35 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                     {categoryRulesEnabled && (
                         <>
                             <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.commentHint}>
-                                <MenuItemWithTopDescription
-                                    title={policyCategory?.commentHint}
-                                    description={translate('workspace.rules.categoryRules.descriptionHint')}
-                                    onPress={() => {
-                                        navigateToCategoryRule(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_DESCRIPTION_HINT.path);
-                                    }}
-                                    interactive={canWriteCategories}
-                                    shouldShowRightIcon={canWriteCategories}
-                                    shouldRenderAsHTML
+                                <MenuItemFieldHTML
+                                    name={translate('workspace.rules.categoryRules.descriptionHint')}
+                                    value={policyCategory?.commentHint}
+                                    onPress={
+                                        canWriteCategories
+                                            ? () => {
+                                                  navigateToCategoryRule(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_DESCRIPTION_HINT.path);
+                                              }
+                                            : undefined
+                                    }
                                 />
                             </OfflineWithFeedback>
-                            <MenuItemWithTopDescription
-                                title={approverText}
-                                description={translate('workspace.rules.categoryRules.approver')}
-                                onPress={() => {
-                                    navigateToCategoryRule(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_APPROVER.path);
-                                }}
-                                interactive={canWriteCategories}
-                                shouldShowRightIcon={canWriteCategories}
-                                disabled={approverDisabled}
-                                helperText={
-                                    approverDisabled
-                                        ? translate('workspace.rules.categoryRules.enableWorkflows', `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)}`)
+                            <MenuItemField
+                                name={translate('workspace.rules.categoryRules.approver')}
+                                value={approverText}
+                                onPress={
+                                    canWriteCategories
+                                        ? () => {
+                                              navigateToCategoryRule(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_APPROVER.path);
+                                          }
                                         : undefined
                                 }
-                                shouldParseHelperText
+                                isDisabled={approverDisabled}
                             />
+                            {approverDisabled && (
+                                <MenuItem.HelpTextHTML>
+                                    {Parser.replace(translate('workspace.rules.categoryRules.enableWorkflows', `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)}`))}
+                                </MenuItem.HelpTextHTML>
+                            )}
                         </>
                     )}
                     {canWriteCategories && !isThereAnyAccountingConnection && (
