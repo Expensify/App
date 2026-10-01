@@ -60,12 +60,8 @@ type WorkspaceMembersTableProps = {
     headerComponent?: React.ReactElement;
 };
 
-/**
- * Width the approver cell's avatar and the space after it take before the name starts. The `8` is `styles.gap2`, which
- * the cell lays its avatar and name out with. It can't be read from the theme here because this is module scope, so
- * keep the two in step.
- */
-const APPROVER_CELL_AVATAR_WIDTH = variables.avatarSizeXxxSmall + 8;
+/** Width the approver cell's avatar and the gap the row lays it out with, which the name starts after. */
+const APPROVER_CELL_AVATAR_WIDTH = variables.avatarSizeXxxSmall + variables.spacing2;
 
 const WORKSPACE_MEMBER_FILTER_VALUES = {
     ADMINS: 'admins',
@@ -181,29 +177,7 @@ export default function WorkspaceMembersTable({
         }
 
         if (activeSorting.columnKey === 'approver') {
-            const item1ApproverName = item1.approverDisplayName;
-            const item2ApproverName = item2.approverDisplayName;
-
-            if (!item1ApproverName && !item2ApproverName) {
-                return memberNameComparison;
-            }
-
-            // Members without an approver sort last in both directions.
-            if (!item1ApproverName) {
-                return 1;
-            }
-
-            if (!item2ApproverName) {
-                return -1;
-            }
-
-            const approverNameComparison = localeCompare(item1ApproverName, item2ApproverName);
-
-            if (approverNameComparison !== 0) {
-                return approverNameComparison * orderMultiplier;
-            }
-
-            return memberNameComparison;
+            return compareOptionalValues(item1.approverDisplayName, item2.approverDisplayName, localeCompare, orderMultiplier, memberNameComparison);
         }
 
         if (activeSorting.columnKey === 'customField1') {

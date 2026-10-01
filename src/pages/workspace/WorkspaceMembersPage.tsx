@@ -385,9 +385,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
     // Unlike the custom fields, this column applies to every workspace type, so it isn't gated on Control.
     const isApprovalsEnabled = areApprovalsEnabled(policy);
-    const firstApproverByMemberEmail = useMemo(() => (isApprovalsEnabled ? getFirstApproverByMemberEmail(enforcedApprovalWorkflows) : {}), [enforcedApprovalWorkflows, isApprovalsEnabled]);
+    const firstApproverByMemberEmail = getFirstApproverByMemberEmail(enforcedApprovalWorkflows);
     const shouldShowApproverColumn = hasWideTableLayout && isApprovalsEnabled && !isEmptyObject(firstApproverByMemberEmail);
-    const shouldUseOrdinalApproverLabel = useMemo(() => hasMultiLevelApprovalWorkflow(enforcedApprovalWorkflows), [enforcedApprovalWorkflows]);
+    const shouldUseOrdinalApproverLabel = hasMultiLevelApprovalWorkflow(enforcedApprovalWorkflows);
 
     // Submit workspaces have a flat role model where every member, including the owner, is an Editor.
     const isSubmitWorkspace = isSubmitPolicy(policy);
