@@ -725,7 +725,7 @@ function queryHasPositiveApprovedViolation(queryJSON: SearchQueryJSON | undefine
     );
 }
 
-function ensureHasApprovedViolation(hasValues: string[] | undefined): string[] {
+function ensureHasApprovedViolation(hasValues: HasFilterValue[] | undefined): HasFilterValue[] {
     if (hasValues?.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION)) {
         return hasValues;
     }
