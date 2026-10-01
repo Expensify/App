@@ -1,19 +1,11 @@
-import UserAvatar from '@components/Avatar/UserAvatar';
-import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
-import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
-import type {PromotedAction} from '@components/PromotedActionsBar';
-import PromotedActionsBar, {PromotedActions} from '@components/PromotedActionsBar';
-import ReportHeaderAvatars from '@components/ReportHeaderAvatars';
-import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
@@ -36,6 +28,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import {useDerivedReportNamesByReportIDs} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -61,21 +54,17 @@ import {getReportName} from '@libs/ReportNameUtils';
 import {
     canDeleteCardTransactionByLiabilityType,
     canDeleteTransaction,
-    canEditReportDescription as canEditReportDescriptionUtil,
     canEditReportTitle,
-    canJoinChat,
     canLeaveChat,
     canWriteInReport,
     findLastAccessedReport,
     getAvailableReportFields,
     getChatRoomSubtitle,
-    getIcons,
     getOriginalReportID,
     getParentNavigationSubtitle,
     getParticipantsAccountIDsForDisplay,
     getParticipantsList,
     getPolicyName,
-    getReportDescription,
     getReportFieldKey,
     getReportForHeader,
     isArchivedNonExpenseReport,
@@ -113,40 +102,27 @@ import {
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {getDeleteConfirmationPrompt, getDeleteExpenseTitle, getOriginalTransactionWithSplitInfo, isDemoTransaction} from '@libs/TransactionUtils';
-import {getAccountIDFromAvatarID} from '@libs/UserAvatarUtils';
+
+import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
+import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
 
 import {getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU/DeleteMoneyRequest';
 import {createDraftTransactionAndNavigateToParticipantSelector} from '@userActions/IOU/StartExpenseFlows';
 import {deleteTrackExpense, getNavigationUrlAfterTrackExpenseDelete} from '@userActions/IOU/TrackExpense';
-import {
-    clearAvatarErrors,
-    clearPolicyRoomNameErrors,
-    getReportPrivateNote,
-    hasErrorInPrivateNotes,
-    leaveGroupChat,
-    leaveRoom,
-    setDeleteTransactionNavigateBackUrl,
-    updateGroupChatAvatar,
-} from '@userActions/Report';
+import {clearPolicyRoomNameErrors, getReportPrivateNote, hasErrorInPrivateNotes, leaveGroupChat, leaveRoom, setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import {canActionTask, canModifyTask, reopenTask} from '@userActions/Task';
 import {deleteTask} from '@userActions/TaskDeletion';
 
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import {pendingDeleteMemberAccountIDsSelector} from '@src/selectors/ReportMetaData';
 import type * as OnyxTypes from '@src/types/onyx';
-import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type IconAsset from '@src/types/utils/IconAsset';
 
-import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 
 import {StackActions, useFocusEffect} from '@react-navigation/native';
 import {delegateEmailSelector} from '@selectors/Account';
@@ -156,34 +132,18 @@ import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
-import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
+import type {DynamicReportDetailsPageMenuItem} from './types';
 
-import withReportOrNotFound from './inbox/report/withReportOrNotFound';
-
-type DynamicReportDetailsPageMenuItem = {
-    key: DeepValueOf<typeof CONST.REPORT_DETAILS_MENU_ITEM>;
-    translationKey: TranslationPaths;
-    icon: IconAsset;
-    isAnonymousAction: boolean;
-    action: () => void;
-    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
-    subtitle?: number;
-    shouldShowRightIcon?: boolean;
-    subtitleStyle?: StyleProp<ViewStyle>;
-};
+import getReportDetailsCaseID from './getReportDetailsCaseID';
+import ReportDetailsAvatar from './ReportDetailsAvatar';
+import ReportDetailsDescription from './ReportDetailsDescription';
+import ReportDetailsPromotedActions from './ReportDetailsPromotedActions';
+import {CASES} from './types';
 
 type DynamicReportDetailsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT>;
 
-const CASES = {
-    DEFAULT: 'default',
-    MONEY_REQUEST: 'money_request',
-    MONEY_REPORT: 'money_report',
-};
-
-type CaseID = ValueOf<typeof CASES>;
-
 function DynamicReportDetailsPage({policy, report, route, reportMetadata, reportLoadingState}: DynamicReportDetailsPageProps) {
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const activePolicy = useActivePolicy();
@@ -200,7 +160,6 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         'Building',
         'Exit',
         'Bug',
-        'Camera',
         'Trashcan',
         'ArrowSplit',
         'Hashtag',
@@ -221,7 +180,6 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
     const [guideAccountIDs] = useOnyx(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [pendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {selector: pendingDeleteMemberAccountIDsSelector});
 
     const {reportActions} = usePaginatedReportActions(report.reportID);
     const [reportActionsForOriginalReportID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`);
@@ -238,7 +196,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
 
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
@@ -279,8 +237,6 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
     const isTaskModifiable = canModifyTask(report, currentUserAccountID, isParentReportArchived);
     const isTaskActionable = canActionTask(report, parentReportAction, currentUserAccountID, parentReport, isParentReportArchived);
-    const canEditReportDescription = canEditReportDescriptionUtil(report, policy);
-    const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '') && (isTaskReport ? isTaskModifiable : true);
     const isExpenseReport = isMoneyRequestReport || isInvoiceReport || isMoneyRequest;
     const isSingleTransactionView = isMoneyRequest || isTrackExpenseReport;
     const isSelfDMTrackExpenseReport = isTrackExpenseReport && isSelfDMUtil(parentReport);
@@ -301,17 +257,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const shouldOpenRoomMembersPage = isUserCreatedPolicyRoom || isChatThread || (isPolicyExpenseChat && isPolicyAdmin);
     const participants = getParticipantsList(report, personalDetails, shouldOpenRoomMembersPage);
 
-    let caseID: CaseID;
-    if (isMoneyRequestReport || isInvoiceReport) {
-        // 3. MoneyReportHeader
-        caseID = CASES.MONEY_REPORT;
-    } else if (isSingleTransactionView) {
-        // 2. MoneyRequestHeader
-        caseID = CASES.MONEY_REQUEST;
-    } else {
-        // 1. HeaderView
-        caseID = CASES.DEFAULT;
-    }
+    const caseID = getReportDetailsCaseID({isMoneyRequestReport, isInvoiceReport, isMoneyRequest, isTrackExpenseReport});
 
     // Get the active chat members by filtering out the pending members with delete action
     const activeChatMembers = participants.flatMap((accountID) => {
@@ -723,81 +669,6 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         return items;
     })();
 
-    const icons = getIcons(report, formatPhoneNumber, translate, personalDetails, null, '', -1, policy, undefined, isReportArchived, pendingDeleteMemberAccountIDs, conciergeReportID);
-
-    const renderedAvatar = (() => {
-        if (isChatRoom && !isThread) {
-            return (
-                <View style={styles.mb3}>
-                    <RoomHeaderAvatars
-                        icons={icons}
-                        report={report}
-                        policy={policy}
-                        participants={participants}
-                        currentUserAccountID={currentUserAccountID}
-                    />
-                </View>
-            );
-        }
-        if (!isGroupChat || isThread) {
-            return (
-                <View style={styles.mb3}>
-                    <ReportHeaderAvatars reportID={report?.reportID ?? moneyRequestReport?.reportID} />
-                </View>
-            );
-        }
-
-        const groupChatIcon = icons.at(0);
-        const groupChatAvatarSource = groupChatIcon?.source;
-        const groupChatAvatar = groupChatAvatarSource ? (
-            <UserAvatar
-                source={groupChatAvatarSource}
-                size={CONST.AVATAR_SIZE.XXXX_LARGE}
-                accountID={getAccountIDFromAvatarID(groupChatIcon?.id)}
-                fallbackIcon={groupChatIcon?.fallbackIcon}
-            />
-        ) : null;
-
-        return (
-            <AvatarWithImagePicker
-                source={groupChatAvatarSource}
-                avatar={groupChatAvatar}
-                isUsingDefaultAvatar={!report.avatarUrl}
-                onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report.reportID))}
-                onImageRemoved={() => {
-                    // Calling this without a file will remove the avatar
-                    updateGroupChatAvatar(report.reportID, report.avatarUrl);
-                }}
-                onImageSelected={(file) => updateGroupChatAvatar(report.reportID, report.avatarUrl, file)}
-                editIcon={expensifyIcons.Camera}
-                editIconStyle={styles.smallEditIconAccount}
-                pendingAction={report.pendingFields?.avatar ?? undefined}
-                errors={report.errorFields?.avatar ?? null}
-                errorRowStyles={styles.mt6}
-                onErrorClose={() => clearAvatarErrors(report.reportID)}
-                style={[styles.w100, styles.mb3]}
-            />
-        );
-    })();
-
-    const canJoin = canJoinChat(report, parentReportAction, policy, parentReport, !!reportNameValuePairs?.private_isArchived);
-
-    const promotedActions = (() => {
-        const result: PromotedAction[] = [];
-
-        if (canJoin) {
-            result.push(PromotedActions.join(report, currentUserAccountID));
-        }
-
-        if (report) {
-            result.push(PromotedActions.pin(report));
-        }
-
-        result.push(PromotedActions.share());
-
-        return result;
-    })();
-
     const shouldDisplayGroupWorkspaceAsPushRow = !isThread && (isGroupChat || isUserCreatedPolicyRoom || isDefaultRoom);
     const nameSectionGroupWorkspace = (
         <OfflineWithFeedback
@@ -1064,8 +935,6 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         });
     };
 
-    const mentionReportContextValue = {currentReportID: report.reportID, exactlyMatch: true};
-
     const shouldShowFurtherDetailsContent =
         !isEmptyObject(parentNavigationSubtitleData) && (shouldShowEditableTitleField || isMoneyRequestReport || isInvoiceReport || isMoneyRequest || isTaskReport);
 
@@ -1077,28 +946,15 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                     onBackButtonPress={() => Navigation.goBack(navigateBackFromReportDetailsPath)}
                 />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
-                    <View style={[styles.reportDetailsTitleContainer, styles.pb0]}>{renderedAvatar}</View>
+                    <View style={[styles.reportDetailsTitleContainer, styles.pb0]}>
+                        <ReportDetailsAvatar reportID={report.reportID} />
+                    </View>
                     {isExpenseReport && nameSectionTitleField}
                     {isExpenseReport && shouldShowFurtherDetailsContent && nameSectionFurtherDetailsContent}
 
                     {!isExpenseReport && nameSectionGroupWorkspace}
 
-                    {shouldShowReportDescription && (
-                        <OfflineWithFeedback pendingAction={report.pendingFields?.description}>
-                            <MentionReportContext.Provider value={mentionReportContextValue}>
-                                <MenuItem.Root onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DESCRIPTION.path))}>
-                                    <MenuItem.Row>
-                                        <MenuItemField.Content name={translate('reportDescriptionPage.roomDescription')}>
-                                            {!!getReportDescription(report) && <MenuItem.FieldValueHTML characterLimit={100}>{getReportDescription(report)}</MenuItem.FieldValueHTML>}
-                                        </MenuItemField.Content>
-                                        <MenuItem.Trailing>
-                                            <MenuItem.Chevron />
-                                        </MenuItem.Trailing>
-                                    </MenuItem.Row>
-                                </MenuItem.Root>
-                            </MentionReportContext.Provider>
-                        </OfflineWithFeedback>
-                    )}
+                    <ReportDetailsDescription reportID={report.reportID} />
 
                     {isFinancialReportsForBusinesses && (
                         <>
@@ -1121,10 +977,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                         </>
                     )}
 
-                    <PromotedActionsBar
-                        containerStyle={styles.mt5}
-                        promotedActions={promotedActions}
-                    />
+                    <ReportDetailsPromotedActions reportID={report.reportID} />
 
                     {menuItems.map((item) => (
                         <MenuItem

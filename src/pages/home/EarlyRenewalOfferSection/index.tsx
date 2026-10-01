@@ -1,5 +1,6 @@
 import Button from '@components/Button';
 import Icon from '@components/Icon';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 import WidgetContainer from '@components/WidgetContainer';
 
@@ -13,7 +14,7 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {draftEarlyRenewalMessage} from '@libs/actions/EarlyRenewalOffer';
+import {clearEarlyRenewalOfferErrors, draftEarlyRenewalMessage} from '@libs/actions/EarlyRenewalOffer';
 import Navigation from '@libs/Navigation/Navigation';
 
 import variables from '@styles/variables';
@@ -72,25 +73,32 @@ function EarlyRenewalOfferSection() {
             title={canClaim ? claimTitle : translate('earlyRenewal.adminTitle')}
             containerStyles={styles.trialBannerBackgroundColor}
         >
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pt3, styles.pb8, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}>
-                <Icon
-                    src={illustrations.SubscriptionAnnual}
-                    width={ICON_SIZE}
-                    height={ICON_SIZE}
-                />
-                <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter]}>
-                    <Text style={styles.widgetItemTitle}>{canClaim ? claimSubtitle : translate('earlyRenewal.adminSubtitle')}</Text>
+            <OfflineWithFeedback
+                errors={eligibility.errors}
+                onClose={clearEarlyRenewalOfferErrors}
+                errorRowStyles={[styles.pb4, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
+            >
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pt3, styles.pb8, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}>
+                    <Icon
+                        src={illustrations.SubscriptionAnnual}
+                        width={ICON_SIZE}
+                        height={ICON_SIZE}
+                    />
+                    <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter]}>
+                        <Text style={styles.widgetItemTitle}>{canClaim ? claimSubtitle : translate('earlyRenewal.adminSubtitle')}</Text>
+                    </View>
+                    <Button
+                        isDisabled={canClaim && isOffline}
+                        isLoading={canClaim && !!eligibility.pendingAction}
+                        onPress={canClaim ? showEarlyRenewalConfirmation : openEarlyRenewalDraft}
+                        size={CONST.BUTTON_SIZE.SMALL}
+                        style={styles.widgetItemButton}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    >
+                        <Button.Text>{canClaim ? claimCTA : translate('earlyRenewal.adminCTA')}</Button.Text>
+                    </Button>
                 </View>
-                <Button
-                    isDisabled={canClaim && isOffline}
-                    onPress={canClaim ? showEarlyRenewalConfirmation : openEarlyRenewalDraft}
-                    size={CONST.BUTTON_SIZE.SMALL}
-                    style={styles.widgetItemButton}
-                    variant={CONST.BUTTON_VARIANT.SUCCESS}
-                >
-                    <Button.Text>{canClaim ? claimCTA : translate('earlyRenewal.adminCTA')}</Button.Text>
-                </Button>
-            </View>
+            </OfflineWithFeedback>
         </WidgetContainer>
     );
 }

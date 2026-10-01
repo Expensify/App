@@ -1,5 +1,7 @@
+import type {Errors, PendingAction} from './OnyxCommon';
+
 /** The current user's available Early Renewal 2027 action */
-type EarlyRenewalOfferEligibility =
+type EarlyRenewalOfferEligibility = (
     | {
           /** Whether the current user can accept the offer as the billing owner */
           canClaim: true;
@@ -11,6 +13,13 @@ type EarlyRenewalOfferEligibility =
 
           /** The policy whose billing owner the current user can nudge */
           nudgePolicyID: string;
-      };
+      }
+) & {
+    /** Set while an accepted offer is waiting on the server */
+    pendingAction?: PendingAction;
+
+    /** Why accepting the offer failed */
+    errors?: Errors | null;
+};
 
 export default EarlyRenewalOfferEligibility;

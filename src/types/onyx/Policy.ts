@@ -1127,9 +1127,6 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether we should export to the most recent open period if the current one is closed  */
         exportToNextOpenPeriod: boolean;
 
-        /** Whether non-reimbursable exports are split into one transaction per calendar month */
-        splitExportsByPostingPeriod?: boolean;
-
         /** Whether we will include the original foreign amount of a transaction to NetSuite */
         allowForeignCurrency?: boolean;
 
@@ -3059,6 +3056,9 @@ type CommuterExclusions = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Distance unit stored alongside fixedDistance ('mi' or 'km'). Mirrors the policy distance custom unit at the time it was set. */
     fixedDistanceUnit?: string;
+
+    /** Default work arrangement for members without a per-member hasOfficeWorkArrangement. */
+    isOfficeWorkArrangement?: boolean;
 }>;
 
 /** Prohibited expense types */
