@@ -24,7 +24,7 @@
 - PR Introducing Patch: [#37891](https://github.com/Expensify/App/pull/37891)
 - PR Updating Patch: [#64155](https://github.com/Expensify/App/pull/64155), [#98097](https://github.com/Expensify/App/pull/98097), [#101715](https://github.com/Expensify/App/issues/101715)
 - Note: Re-ported onto 7.22.1. Every hunk applied without changes.
-- Note: Core 7.22.0 made `useNavigationBuilder` return a `render` callback and deprecated the `NavigationContent` output it returned before. Our only builder call site, `createPlatformStackNavigatorComponent` (shared by `createRootStackNavigator`, `createRightModalNavigator`, `createSplitNavigator` and `createSearchFullscreenNavigator`), still uses `NavigationContent`, and the `convertCustomScreenOptions` argument this patch adds has no upstream equivalent, so move to `render` and re-check this patch together when `NavigationContent` eventually disappears.
+- Note: Core 7.22.0 made `useNavigationBuilder` return a `render` callback and deprecated the `NavigationContent` output it returned before. Our only builder call site, `createPlatformStackNavigatorComponent` (shared by `createRootStackNavigator`, `createRightModalNavigator`, `createSplitNavigator` and `createSearchFullscreenNavigator`), still uses `NavigationContent`, and the `convertCustomScreenOptions` argument this patch adds has no upstream equivalent, so switch to `render` and re-check both together when `NavigationContent` eventually disappears.
 
 ### [@react-navigation+core+7.22.1+003+root-state-not-undefined.patch](@react-navigation+core+7.22.1+003+root-state-not-undefined.patch)
 
@@ -32,7 +32,7 @@
 - Upstream PR/issue: https://github.com/react-navigation/react-navigation/commit/4e6eaaac6fad57d09ab5a828484b8ffeb4cfc6e5 (core 7.21.13, "fix return type of getRootState")
 - E/App issue: [#101715](https://github.com/Expensify/App/issues/101715)
 - PR Introducing Patch: N/A
-- Note: Drop this patch once call sites handle the missing state explicitly (a guarded `getRootState()` helper in `src/libs/Navigation` would cover most of them). Until then, calling `getRootState()` before the container mounts logs react-navigation's `NOT_INITIALIZED_ERROR` and returns `undefined` at runtime while the type claims otherwise - same as before the upgrade.
+- Note: Drop this patch once call sites handle the missing state explicitly (a guarded `getRootState()` helper in `src/libs/Navigation` would cover most of them). Until then, calling `getRootState()` before the container mounts logs react-navigation's `NOT_INITIALIZED_ERROR` and returns `undefined` at runtime while the type claims otherwise, same as before the upgrade.
 
 ### [@react-navigation+native+7.4.1+001+initial.patch](@react-navigation+native+7.4.1+001+initial.patch)
 
@@ -50,7 +50,7 @@
 - E/App issue: [#15849](https://github.com/Expensify/App/issues/15849)
 - PR Introducing Patch: [#18402](https://github.com/Expensify/App/pull/18402)
 - PR Updating Patch: [#22678](https://github.com/Expensify/App/pull/22678) [#22437](https://github.com/Expensify/App/pull/22437) [#64155](https://github.com/Expensify/App/pull/64155) [#101715](https://github.com/Expensify/App/issues/101715)
-- Note: Re-ported onto 7.11.2. The added and removed lines are unchanged; only the surrounding context moved, because 7.10.x wrapped the gesture animation in `animationIdRef`/`isAnimatingRef` guards. 7.11.2 did not touch `Card.js` or `CardStack.js`, so the patch body is identical to the 7.11.1 one. `resetExpectingTouchendWithDelay()` still runs after those guards, so a stale animation callback that returns early no longer resets the monitor.
+- Note: Re-ported onto 7.11.2. The added and removed lines are unchanged. Only the surrounding context moved, because 7.10.x wrapped the gesture animation in `animationIdRef`/`isAnimatingRef` guards. 7.11.2 did not touch `Card.js` or `CardStack.js`, so the patch body is identical to the 7.11.1 one. `resetExpectingTouchendWithDelay()` still runs after those guards, so a stale animation callback that returns early no longer resets the monitor.
 
 ### [@react-navigation+stack+7.11.2+002+dontDetachScreen.patch](@react-navigation+stack+7.11.2+002+dontDetachScreen.patch)
 - Reason: Prevents the second screen in the stack from being detached too early.  
