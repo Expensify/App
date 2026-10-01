@@ -73,7 +73,7 @@ function Button({
     };
 
     // Entry point for a pointer press
-    const handlePress = (event?: GestureResponderEvent | KeyboardEvent) => {
+    const pressWithFeedback = (event?: GestureResponderEvent | KeyboardEvent) => {
         if (event?.type === 'click' && event.currentTarget instanceof HTMLElement) {
             event.currentTarget.blur();
         }
@@ -84,9 +84,6 @@ function Button({
 
         return runPress(event);
     };
-
-    // Entry point for the Enter shortcut
-    const handleEnterPress = () => runPress();
 
     const buttonVariantStyles = useMemo(() => {
         const shouldUseDisabledStyles = isDisabled && !stayNormalOnDisable;
@@ -191,7 +188,7 @@ function Button({
             onBlur={onBlur}
             onHoverIn={!isDisabled || !stayNormalOnDisable ? () => setIsHovered(true) : undefined}
             onHoverOut={!isDisabled || !stayNormalOnDisable ? () => setIsHovered(false) : undefined}
-            onPress={handlePress}
+            onPress={pressWithFeedback}
             onLongPress={(event) => {
                 if (isLongPressDisabled) {
                     return;
@@ -204,7 +201,7 @@ function Button({
         >
             {blendOpacity && <View style={[StyleSheet.absoluteFill, buttonBlendForegroundStyle]} />}
             <ButtonStateContext.Provider value={{isHovered, variant, size, isDisabled, isLoading}}>
-                <ButtonActionsContext.Provider value={{onPress: handleEnterPress}}>
+                <ButtonActionsContext.Provider value={{onPress: runPress}}>
                     <View
                         style={[
                             styles.flexRow,

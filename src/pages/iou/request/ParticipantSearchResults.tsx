@@ -446,7 +446,7 @@ function ParticipantSearchResults({
     const hasPolicyExpenseChatParticipant = selectedOptions.some((participant) => participant.isPolicyExpenseChat);
     const shouldShowSplitBillErrorMessage = selectedOptions.length > 1 && hasPolicyExpenseChatParticipant;
 
-    const handleConfirmSelection = () => {
+    const confirmSelection = () => {
         if (shouldShowSplitBillErrorMessage || !selectedOptions.length) {
             return;
         }
@@ -454,7 +454,7 @@ function ParticipantSearchResults({
         onFinish(CONST.IOU.TYPE.SPLIT);
     };
 
-    const handleConfirmFocusedOption = (option: Participant) => {
+    const confirmFocusedOption = (option: Participant) => {
         if (shouldShowSplitBillErrorMessage) {
             return;
         }
@@ -487,7 +487,7 @@ function ParticipantSearchResults({
                 shouldShowSplitBillErrorMessage={shouldShowSplitBillErrorMessage}
                 shouldShowListEmptyContent={shouldShowListEmptyContent}
                 isDismissedReferralBanner={isDismissedReferralBanner}
-                onConfirmSelection={handleConfirmSelection}
+                onConfirmSelection={confirmSelection}
                 onNewWorkspace={() => onFinish()}
                 onCloseParticipantPicker={onCloseParticipantPicker}
             />
@@ -565,8 +565,8 @@ function ParticipantSearchResults({
     return (
         <SelectionListWithSections
             confirmButtonOptions={{
-                onConfirm: handleConfirmSelection,
-                onConfirmFocusedOption: handleConfirmFocusedOption,
+                onConfirm: confirmSelection,
+                onConfirmFocusedOption: confirmFocusedOption,
                 isFooterConfirmEnabled: selectedOptions.length > 0 || isCategorizeOrShareAction,
                 // Pass the footer Next button's disabled state so Enter falls back to the list when split-bill disables Next;
                 // otherwise Enter can't toggle off the conflicting row.
