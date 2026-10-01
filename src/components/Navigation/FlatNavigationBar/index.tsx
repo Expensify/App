@@ -65,6 +65,7 @@ import FlatNavDivider from './FlatNavDivider';
 import FlatNavItem from './FlatNavItem';
 import FlatNavLogo from './FlatNavLogo';
 import FlatNavSavedSearches from './FlatNavSavedSearches';
+import FlatNavSubItemList from './FlatNavSubItemList';
 import useFlatNavSpendItems from './useFlatNavSpendItems';
 
 // TODO: placeholder destinations shown for design review only. They render as rows but go nowhere.
@@ -163,7 +164,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const getSearchItemLabel = (item: SearchTypeMenuItem, isSubItem: boolean) =>
         translate(isSubItem ? getGroupedSearchTranslationPath(item.key, item.translationPath) : item.translationPath);
 
-    const renderSearchItem = (item: SearchTypeMenuItem, isSubItem: boolean) => (
+    const renderSearchItem = (item: SearchTypeMenuItem, isSubItem: boolean, index = 0, total = 1) => (
         <FlatNavItem
             key={item.key}
             isCollapsed={isVisuallyCollapsed}
@@ -171,6 +172,9 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
             icon={isSubItem ? undefined : searchIcons[item.icon]}
             isSelected={isSpendTabSelected && currentSearchKey === item.key}
             isSubItem={isSubItem}
+            isFirstSubItem={isSubItem && index === 0}
+            isLastSubItem={isSubItem && index === total - 1}
+            subItemIndex={index}
             badgeText={getItemBadgeText(item.key, reportCounts)}
             sentryLabel={CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM}
             onPress={() => navigateToSearchItem(item)}
@@ -312,7 +316,11 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                                 navigateToSearchItem(firstExpense);
                                             }}
                                         />
-                                        {isExpensesGroupSelected && !isVisuallyCollapsed && expenses.map((item) => renderSearchItem(item, true))}
+                                        {isExpensesGroupSelected && !isVisuallyCollapsed && (
+                                            <FlatNavSubItemList selectedIndex={expenses.findIndex((item) => item.key === currentSearchKey)}>
+                                                {expenses.map((item, index) => renderSearchItem(item, true, index, expenses.length))}
+                                            </FlatNavSubItemList>
+                                        )}
                                     </>
                                 )}
 
@@ -334,7 +342,11 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                                 navigateToSearchItem(firstReport);
                                             }}
                                         />
-                                        {isReportsGroupSelected && !isVisuallyCollapsed && reports.map((item) => renderSearchItem(item, true))}
+                                        {isReportsGroupSelected && !isVisuallyCollapsed && (
+                                            <FlatNavSubItemList selectedIndex={reports.findIndex((item) => item.key === currentSearchKey)}>
+                                                {reports.map((item, index) => renderSearchItem(item, true, index, reports.length))}
+                                            </FlatNavSubItemList>
+                                        )}
                                     </>
                                 )}
 
@@ -355,7 +367,11 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                                 navigateToSearchItem(firstAccounting);
                                             }}
                                         />
-                                        {isAccountingGroupSelected && !isVisuallyCollapsed && accounting.map((item) => renderSearchItem(item, true))}
+                                        {isAccountingGroupSelected && !isVisuallyCollapsed && (
+                                            <FlatNavSubItemList selectedIndex={accounting.findIndex((item) => item.key === currentSearchKey)}>
+                                                {accounting.map((item, index) => renderSearchItem(item, true, index, accounting.length))}
+                                            </FlatNavSubItemList>
+                                        )}
                                     </>
                                 )}
 

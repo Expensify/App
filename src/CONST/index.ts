@@ -8263,6 +8263,7 @@ const CONST = {
             EXPENSES: 'expenses',
             MY_EXPENSES: 'myExpenses',
             REPORTS: 'reports',
+            MY_REPORTS: 'myReports',
             SUBMIT: 'submit',
             APPROVE: 'approve',
             PAY: 'pay',

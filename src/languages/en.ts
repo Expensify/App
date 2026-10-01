@@ -9939,6 +9939,7 @@ const translations = {
             reports: 'Reports',
             allExpenses: 'All expenses',
             allReports: 'All reports',
+            myReports: 'My reports',
             myExpenses: 'My expenses',
             expenses: 'Expenses',
             submit: 'Drafts',

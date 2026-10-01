@@ -10077,6 +10077,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             reports: 'Notes de frais',
             allExpenses: 'Toutes les dépenses',
             allReports: 'Toutes les notes de frais',
+            myReports: 'Mes notes de frais',
             myExpenses: 'Mes dépenses',
             expenses: 'Dépenses',
             submit: 'Brouillons',

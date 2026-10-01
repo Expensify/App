@@ -10052,6 +10052,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             reports: 'Berichte',
             allExpenses: 'Alle Ausgaben',
             allReports: 'Alle Berichte',
+            myReports: 'Meine Berichte',
             myExpenses: 'Meine Ausgaben',
             expenses: 'Ausgaben',
             submit: 'Entwürfe',

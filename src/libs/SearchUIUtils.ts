@@ -798,6 +798,7 @@ function getSuggestedSearchesVisibility(
             [CONST.SEARCH.SEARCH_KEYS.EXPENSES]: true,
             [CONST.SEARCH.SEARCH_KEYS.MY_EXPENSES]: true,
             [CONST.SEARCH.SEARCH_KEYS.REPORTS]: true,
+            [CONST.SEARCH.SEARCH_KEYS.MY_REPORTS]: true,
             [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: shouldShowSubmitSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.PAY]: shouldShowPaySuggestion,
             [CONST.SEARCH.SEARCH_KEYS.APPROVE]: shouldShowApproveSuggestion,
@@ -4738,6 +4739,9 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
         }
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.REPORTS]) {
             expenseReportsSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.REPORTS]);
+        }
+        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.MY_REPORTS]) {
+            expenseReportsSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.MY_REPORTS]);
         }
 
         if (!isTrackIntentWithWorkflowsDisabled) {

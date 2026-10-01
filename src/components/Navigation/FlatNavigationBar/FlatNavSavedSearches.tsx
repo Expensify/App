@@ -31,6 +31,7 @@ import {accountIDSelector} from '@selectors/Session';
 import React from 'react';
 
 import FlatNavItem from './FlatNavItem';
+import FlatNavSubItemList from './FlatNavSubItemList';
 
 /**
  * Child rows of the flat navigation bar's "Saved" group.
@@ -91,35 +92,42 @@ function FlatNavSavedSearches() {
         })
         .sort((a, b) => localeCompare(a.title, b.title));
 
-    return items.map((item) => (
-        <FlatNavItem
-            key={item.key}
-            label={item.title}
-            isSelected={currentSearchKey === item.searchKey}
-            isSubItem
-            sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_MENU_ITEM}
-            hoverActionComponent={
-                <SavedSearchItemThreeDotMenu
-                    menuItems={getOverflowMenu(expensifyIcons, item.key, translate, showDeleteModal, false, undefined, {
-                        onShare: () => handleShare(item.key, item.query),
-                        isCopied: copiedID === item.key,
-                    })}
-                    isDisabledItem={item.isDisabled}
-                    isCopied={copiedID === item.key}
-                    containerStyle={styles.wAuto}
-                    iconWidth={variables.iconSizeSmall}
-                    iconHeight={variables.iconSizeSmall}
+    return (
+        <FlatNavSubItemList selectedIndex={items.findIndex((item) => currentSearchKey === item.searchKey)}>
+            {items.map((item, index) => (
+                <FlatNavItem
+                    key={item.key}
+                    label={item.title}
+                    isSelected={currentSearchKey === item.searchKey}
+                    isSubItem
+                    isFirstSubItem={index === 0}
+                    isLastSubItem={index === items.length - 1}
+                    subItemIndex={index}
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_MENU_ITEM}
+                    hoverActionComponent={
+                        <SavedSearchItemThreeDotMenu
+                            menuItems={getOverflowMenu(expensifyIcons, item.key, translate, showDeleteModal, false, undefined, {
+                                onShare: () => handleShare(item.key, item.query),
+                                isCopied: copiedID === item.key,
+                            })}
+                            isDisabledItem={item.isDisabled}
+                            isCopied={copiedID === item.key}
+                            containerStyle={styles.wAuto}
+                            iconWidth={variables.iconSizeSmall}
+                            iconHeight={variables.iconSizeSmall}
+                        />
+                    }
+                    onPress={() => {
+                        if (item.isDisabled) {
+                            return;
+                        }
+                        setSearchContext(false);
+                        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.query, name: item.name, searchKey: item.searchKey}));
+                    }}
                 />
-            }
-            onPress={() => {
-                if (item.isDisabled) {
-                    return;
-                }
-                setSearchContext(false);
-                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.query, name: item.name, searchKey: item.searchKey}));
-            }}
-        />
-    ));
+            ))}
+        </FlatNavSubItemList>
+    );
 }
 
 export default FlatNavSavedSearches;

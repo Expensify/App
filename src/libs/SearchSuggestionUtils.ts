@@ -191,6 +191,28 @@ function getSuggestedSearches(
                 return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
+        [CONST.SEARCH.SEARCH_KEYS.MY_REPORTS]: {
+            key: CONST.SEARCH.SEARCH_KEYS.MY_REPORTS,
+            translationPath: 'search.tabs.myReports',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+            icon: 'Document',
+            searchQuery: buildQueryStringFromFilterFormValues({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                from: [`${accountID}`],
+            }),
+            get searchQueryJSON() {
+                return buildSearchQueryJSON(this.searchQuery);
+            },
+            get hash() {
+                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get similarSearchHash() {
+                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get recentSearchHash() {
+                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
         [CONST.SEARCH.SEARCH_KEYS.REPORTS]: {
             key: CONST.SEARCH.SEARCH_KEYS.REPORTS,
             translationPath: 'search.tabs.reports',

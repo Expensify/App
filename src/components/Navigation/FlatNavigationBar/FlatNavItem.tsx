@@ -18,6 +18,8 @@ import React from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
+import {useFlatNavSubItemHover} from './FlatNavSubItemList';
+
 type FlatNavItemProps = {
     /** Translated row label */
     label: string;
@@ -50,6 +52,13 @@ type FlatNavItemProps = {
 
     /** Collapsed rows keep only their icon, so the bar can narrow to an icon rail */
     isCollapsed?: boolean;
+
+    /** Ends of a group of sub-rows, where the rule down their left stops short of the rows outside the group */
+    isFirstSubItem?: boolean;
+    isLastSubItem?: boolean;
+
+    /** Position within the group, so the group's shared marker knows which row the pointer is on */
+    subItemIndex?: number;
 
     onPress: (event?: GestureResponderEvent | KeyboardEvent) => void;
 };
@@ -87,12 +96,16 @@ function FlatNavItem({
     additionalStyle,
     hoverActionComponent,
     isCollapsed = false,
+    isFirstSubItem = false,
+    isLastSubItem = false,
+    subItemIndex = 0,
     onPress,
 }: FlatNavItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     // The label and badge stay mounted and fade, rather than disappearing the moment the bar starts narrowing.
     const collapseFadeStyle = useSearchSidebarCollapseFadeStyle();
+    const subItemHover = useFlatNavSubItemHover();
 
     // Collapsed rows have nowhere to put a badge, so a row that has one shows the same green dot the Inbox uses.
     const resolvedStatusIndicatorColor = statusIndicatorColor ?? (isCollapsed && !!badgeText ? theme.iconSuccessFill : undefined);
@@ -104,6 +117,8 @@ function FlatNavItem({
             accessibilityLabel={accessibilityLabel ?? label}
             accessibilityState={{selected: isSelected}}
             sentryLabel={sentryLabel}
+            onHoverIn={isSubItem ? () => subItemHover?.onSubItemHoverIn(subItemIndex) : undefined}
+            onHoverOut={isSubItem ? () => subItemHover?.onSubItemHoverOut(subItemIndex) : undefined}
             style={({hovered}) => [
                 styles.flatNavigationBarItem,
                 isSubItem && !isCollapsed && styles.flatNavigationBarSubItem,
@@ -114,6 +129,15 @@ function FlatNavItem({
         >
             {({hovered}) => (
                 <>
+                    {isSubItem && !isCollapsed && (
+                        <View
+                            style={[
+                                styles.flatNavigationBarSubItemRule,
+                                isFirstSubItem && styles.flatNavigationBarSubItemRuleFirst,
+                                isLastSubItem && styles.flatNavigationBarSubItemRuleLast,
+                            ]}
+                        />
+                    )}
                     {!!icon && (
                         <View>
                             <Icon

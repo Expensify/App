@@ -14,7 +14,13 @@ import {searchKeyToSavedSearchID} from './SearchKeyUtils';
 const EXPENSES_KEYS: SearchKey[] = [CONST.SEARCH.SEARCH_KEYS.EXPENSES, CONST.SEARCH.SEARCH_KEYS.MY_EXPENSES];
 
 /** Keys under "Reports", in the order navigation renders them. */
-const REPORTS_KEYS: SearchKey[] = [CONST.SEARCH.SEARCH_KEYS.REPORTS, CONST.SEARCH.SEARCH_KEYS.SUBMIT, CONST.SEARCH.SEARCH_KEYS.APPROVE, CONST.SEARCH.SEARCH_KEYS.PAY];
+const REPORTS_KEYS: SearchKey[] = [
+    CONST.SEARCH.SEARCH_KEYS.REPORTS,
+    CONST.SEARCH.SEARCH_KEYS.MY_REPORTS,
+    CONST.SEARCH.SEARCH_KEYS.SUBMIT,
+    CONST.SEARCH.SEARCH_KEYS.APPROVE,
+    CONST.SEARCH.SEARCH_KEYS.PAY,
+];
 
 /** Keys under "Accounting", in the order navigation renders them. */
 const ACCOUNTING_KEYS: SearchKey[] = [

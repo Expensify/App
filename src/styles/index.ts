@@ -147,6 +147,9 @@ const touchCalloutNone: Pick<ViewStyle, 'WebkitTouchCallout'> = isMobileSafari()
  * Domain editor menus so their labels line up. Also used to indent the global bar's nested rows to their parent's label.
  */
 const navigationRowPaddingHorizontal = 12;
+
+/** How far a sub-row's left rule sits in from the row's own left edge. */
+const flatNavigationBarSubItemRuleInset = 20;
 // to prevent vertical text offset in Safari for badges, new lineHeight values have been added
 const lineHeightBadge: Pick<TextStyle, 'lineHeight'> = isSafari() ? {lineHeight: variables.lineHeightXSmall} : {lineHeight: variables.lineHeightNormal};
 
@@ -927,6 +930,41 @@ const staticStyles = (theme: ThemeColors) =>
         // at the same x as the labels of the rows above them.
         flatNavigationBarSubItem: {
             paddingLeft: navigationRowPaddingHorizontal + variables.iconSizeNormal,
+            borderRadius: 0,
+        },
+
+        // Drawn rather than bordered: a border would sit on the row's own edge, and the active marker needs to be
+        // inset from the row's top and bottom and to overlay the resting rule. Rows sit flush, so the resting
+        // segments join into one line down the group.
+        flatNavigationBarSubItemRule: {
+            position: 'absolute',
+            left: flatNavigationBarSubItemRuleInset,
+            top: 0,
+            bottom: 0,
+            width: 1,
+            backgroundColor: theme.border,
+        },
+
+        // The line stops short of the rows above and below the group, so it reads as belonging to the sub-rows alone.
+        flatNavigationBarSubItemRuleFirst: {
+            top: 8,
+        },
+
+        flatNavigationBarSubItemRuleLast: {
+            bottom: 8,
+        },
+
+        // A dot centred on the resting rule. Its ring is painted in the bar's own background, so it reads as
+        // punching a gap in the line rather than sitting beside it.
+        flatNavigationBarSubItemMarker: {
+            position: 'absolute',
+            left: variables.flatNavigationBarRowInset + flatNavigationBarSubItemRuleInset - 5.5,
+            width: 12,
+            height: 12,
+            borderRadius: 6,
+            borderWidth: 2,
+            borderColor: theme.appBG,
+            backgroundColor: theme.success,
         },
 
         // A sub-row's indent is otherwise empty, so its hover control sits there and leaves the label its full width.
