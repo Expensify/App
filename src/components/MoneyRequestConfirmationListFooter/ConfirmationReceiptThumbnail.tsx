@@ -199,7 +199,7 @@ function ConfirmationReceiptThumbnail({
                 ))}
             {shouldShowReceiptPageCount && (
                 <Badge
-                    text={translate('receipt.pageCount', {pageCount: receiptPageCount})}
+                    text={translate('receipt.pageCount', {page: 1, pageCount: receiptPageCount})}
                     badgeStyles={[styles.receiptPageCountBadge, styles.pointerEventsNone]}
                 />
             )}

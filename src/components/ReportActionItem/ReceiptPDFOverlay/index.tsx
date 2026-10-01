@@ -27,7 +27,7 @@ const oversampleContainerStyle = {
     transformOrigin: 'top left',
 };
 
-function ReceiptPDFOverlay({sourceURL, isAuthTokenRequired = true, onLoadFailure}: ReceiptPDFOverlayProps) {
+function ReceiptPDFOverlay({sourceURL, isAuthTokenRequired = true, onLoadFailure, onLoadSuccess, page}: ReceiptPDFOverlayProps) {
     const styles = useThemeStyles();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [maxCanvasArea] = useOnyx(ONYXKEYS.MAX_CANVAS_AREA);
@@ -80,6 +80,8 @@ function ReceiptPDFOverlay({sourceURL, isAuthTokenRequired = true, onLoadFailure
                     contentContainerStyle={styles.bgTransparent}
                     shouldShowErrorComponent={false}
                     LoadingComponent={null}
+                    page={page}
+                    onLoadSuccess={onLoadSuccess}
                     onLoadError={() => {
                         setFailedURL(fileURL);
                         onLoadFailure?.();

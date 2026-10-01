@@ -1345,7 +1345,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: 'Dodaj paragon',
             phrase2: 'lub przeciągnij i upuść tutaj',
         },
-        pageCount: ({pageCount}: {pageCount: number}) => `Strona 1 z ${pageCount}`,
+        pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Strona ${page} z ${pageCount}`,
     },
     quickAction: {
         scanReceipt: 'Zeskanuj paragon',

@@ -4154,6 +4154,19 @@ const staticStyles = (theme: ThemeColors) =>
             marginLeft: 0,
         },
 
+        receiptPageNavigator: {
+            position: 'absolute',
+            bottom: 12,
+            left: 12,
+            flexDirection: 'row',
+            alignItems: 'center',
+            minHeight: 28,
+            paddingHorizontal: 12,
+            gap: 8,
+            borderRadius: variables.componentBorderRadiusRounded,
+            backgroundColor: theme.badgeDefaultBG,
+        },
+
         receiptActionButton: {
             width: 40,
             height: 40,

@@ -104,6 +104,7 @@ import {View} from 'react-native';
 
 import HoveredDistanceEReceipt from './HoveredDistanceEReceipt';
 import {isElementHovered, resetButtonHoverState} from './receiptHoverUtils';
+import ReceiptPageNavigator from './ReceiptPageNavigator';
 import ReportActionItemImage from './ReportActionItemImage';
 
 type MoneyRequestReceiptViewProps = {
@@ -240,6 +241,9 @@ function MoneyRequestReceiptView({
 
     const displayedReceiptSource = ReceiptStorage.resolve(transaction?.receipt?.localSource) ?? transaction?.receipt?.source;
     const prevDisplayedReceiptSource = usePrevious(displayedReceiptSource);
+
+    const [selectedReceiptPage, setSelectedReceiptPage] = useState<{filename?: string; page: number}>({page: 1});
+    const [loadedReceiptPDFFilename, setLoadedReceiptPDFFilename] = useState<string>();
 
     useEffect(() => {
         if (!displayedReceiptSource || prevDisplayedReceiptSource === displayedReceiptSource) {
@@ -609,6 +613,19 @@ function MoneyRequestReceiptView({
 
     // Show the count badge only after a multi-page PDF receipt loads.
     const shouldShowReceiptPageCount = receiptPageCount > 1 && Str.isPDF(receiptURIs?.filename ?? '') && !isLoading && !(isMapDistanceRequest && isPendingReceiptRegeneration);
+
+    // Pages can only be flipped where ReportActionItemImage renders the real PDF over the thumbnail (hover-capable
+    // devices). Elsewhere only a page 1 thumbnail exists, so the static count badge stays.
+    const canFlipReceiptPages = shouldShowReceiptPageCount && canZoomReceipt && deviceHasHoverSupport && !isMapDistanceRequest;
+
+    // Page and load state are keyed to the filename, not the source URL: the URL changes from local to remote
+    // mid-scan without the PDF being reloaded, while a replaced receipt gets a new filename and starts over.
+    const receiptFilename = receiptURIs?.filename;
+    const receiptPage = selectedReceiptPage.filename === receiptFilename ? selectedReceiptPage.page : 1;
+
+    // Large PDFs take a while to load, and until then only the page 1 thumbnail is visible
+    const shouldShowReceiptPageNavigator = canFlipReceiptPages && !!receiptFilename && loadedReceiptPDFFilename === receiptFilename;
+
     const receiptPendingAction = isDistanceRequest ? getPendingFieldAction('waypoints') : getPendingFieldAction('receipt');
     const isReceiptOfflinePending = isOffline && !!receiptPendingAction;
     const receiptAuditMessagesRow = (
@@ -752,6 +769,8 @@ function MoneyRequestReceiptView({
                                                 shouldUseThumbnailImage={!fillSpace}
                                                 shouldUseFullHeight={fillSpace}
                                                 canZoomReceipt={canZoomReceipt}
+                                                pdfPage={canFlipReceiptPages ? receiptPage : undefined}
+                                                onPDFLoadSuccess={() => setLoadedReceiptPDFFilename(receiptFilename)}
                                                 thumbnail={receiptURIs?.thumbnail}
                                                 fileExtension={receiptURIs?.fileExtension}
                                                 isThumbnail={receiptURIs?.isThumbnail}
@@ -771,9 +790,16 @@ function MoneyRequestReceiptView({
                                     )}
                                 </ReceiptHoverZoom>
                             </View>
-                            {shouldShowReceiptPageCount && (
+                            {shouldShowReceiptPageNavigator && (
+                                <ReceiptPageNavigator
+                                    page={receiptPage}
+                                    pageCount={receiptPageCount}
+                                    onChangePage={(page) => setSelectedReceiptPage({filename: receiptFilename, page})}
+                                />
+                            )}
+                            {shouldShowReceiptPageCount && !shouldShowReceiptPageNavigator && (
                                 <Badge
-                                    text={translate('receipt.pageCount', {pageCount: receiptPageCount})}
+                                    text={translate('receipt.pageCount', {page: 1, pageCount: receiptPageCount})}
                                     badgeStyles={[styles.receiptPageCountBadge, styles.pointerEventsNone]}
                                 />
                             )}
