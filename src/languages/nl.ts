@@ -8765,7 +8765,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
                 `Weet je zeker dat je de goedkeuringsmodus voor deze werkruimte wilt wijzigen? Lees meer over de verschillende ${providerName}-ondersteunde workflowmodi op onze <a href="${helpSiteURL}">help-site</a>.`,
             approvalModeDeleteWorkflowsWarningPrompt: (providerName: string, helpSiteURL: string) =>
-                `Als je de goedkeuringsmodus wijzigt, worden alle bestaande goedkeuringsworkflows verwijderd. Lees meer over de verschillende ${providerName}-ondersteunde workflowmodi op onze <a href="${helpSiteURL}">help-site</a>.`,
+                `Als je de goedkeuringsmodus wijzigt, worden alle bestaande goedkeuringsworkflows gewist. Lees meer over de verschillende door ${providerName} ingeschakelde workflowmodi op onze <a href="${helpSiteURL}">help-site</a>.`,
             approvalModeWarningConfirm: 'Goedkeuringsmodus wijzigen',
             syncingModalTitle: 'Je verbinding wordt gesynchroniseerd',
             syncingModalDescription: 'De eerste verbinding kan even duren. Je krijgt een melding als er fouten optreden.',

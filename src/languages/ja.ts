@@ -8671,7 +8671,7 @@ ${reportName}`,
             approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
                 `このワークスペースの承認モードを変更してもよろしいですか？${providerName} 対応の各ワークフローモードについては、<a href="${helpSiteURL}">ヘルプサイト</a>で詳しくご覧いただけます。`,
             approvalModeDeleteWorkflowsWarningPrompt: (providerName: string, helpSiteURL: string) =>
-                `承認モードを変更すると、既存のすべての承認ワークフローが削除されます。${providerName} 対応の各ワークフローモードについては、<a href="${helpSiteURL}">ヘルプサイト</a>で詳しくご覧いただけます。`,
+                `承認モードを変更すると、既存のすべての承認ワークフローが消去されます。${providerName} 対応のさまざまなワークフローモードについては、<a href="${helpSiteURL}">ヘルプサイト</a>をご覧ください。`,
             approvalModeWarningConfirm: '承認モードを変更',
             syncingModalTitle: '接続を同期しています',
             syncingModalDescription: '最初の接続には時間がかかる場合があります。エラーが発生した場合は通知されます。',
