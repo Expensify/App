@@ -41,6 +41,7 @@ function ChartTooltip({title, rows, chartWidth, initialTooltipPosition}: ChartTo
     const tooltipMeasuredWidth = useSharedValue(0);
 
     const singleRow = rows.length === 1 ? rows.at(0) : undefined;
+    const singleRowContent = singleRow ? getRowContent(singleRow) : '';
     const content = [title, ...rows.map(getRowContent)].join(' ');
 
     /**
@@ -107,7 +108,7 @@ function ChartTooltip({title, rows, chartWidth, initialTooltipPosition}: ChartTo
                     style={styles.chartTooltipText}
                     numberOfLines={1}
                 >
-                    {`${title} • ${getRowContent(singleRow)}`}
+                    {singleRowContent ? `${title} • ${singleRowContent}` : title}
                 </Text>
             ) : (
                 <>
