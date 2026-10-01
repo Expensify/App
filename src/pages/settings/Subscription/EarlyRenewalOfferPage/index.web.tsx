@@ -47,7 +47,7 @@ function EarlyRenewalOfferPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const themeIllustrations = useThemeIllustrations();
-    const illustrations = useMemoizedLazyIllustrations(['AgentsIceCream', 'IceCreamNumberOne', 'IceCreamNumberTwo']);
+    const illustrations = useMemoizedLazyIllustrations(['IceCreamMenu', 'IceCreamNumberOne', 'IceCreamNumberTwo']);
     const [selectedOfferID, setSelectedOfferID] = useState<IncentivizedOfferID | null>(null);
     const [errorMessage, setErrorMessage] = useState('');
 
@@ -87,7 +87,7 @@ function EarlyRenewalOfferPage() {
                     />
                 </View>
                 <Icon
-                    src={illustrations.AgentsIceCream}
+                    src={illustrations.IceCreamMenu}
                     width={variables.earlyRenewalOfferHeroWidth}
                     height={variables.earlyRenewalOfferHeroHeight}
                 />
