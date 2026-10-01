@@ -67,13 +67,14 @@ function EmailIssuePage() {
             confirmText: translate('common.tryAgain'),
             cancelText: translate('common.dismiss'),
             shouldShowCancelButton: true,
+            shouldDisableConfirmButtonWhenOffline: true,
         }).then((result) => {
-            if (result?.action !== ModalActions.CONFIRM || isOffline) {
+            if (result?.action !== ModalActions.CONFIRM) {
                 return;
             }
             requestEmailUnblock();
         });
-    }, [prevIsUnblockingEmail, isUnblockingEmail, hasEmailDeliveryFailure, showConfirmModal, translate, isOffline]);
+    }, [prevIsUnblockingEmail, isUnblockingEmail, hasEmailDeliveryFailure, showConfirmModal, translate]);
 
     return (
         <ScreenWrapper
@@ -82,12 +83,9 @@ function EmailIssuePage() {
             testID="EmailIssuePage"
             shouldShowOfflineIndicatorInWideScreen
         >
-            <HeaderWithBackButton
-                title={translate('emailIssuePage.title')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButton title={translate('emailIssuePage.title')} />
             <ScrollView
-                style={[styles.flex1]}
+                style={styles.flex1}
                 contentContainerStyle={[styles.flexGrow1, styles.ph5]}
             >
                 <View style={[styles.pt3, styles.gap5]}>
@@ -108,7 +106,7 @@ function EmailIssuePage() {
                     </View>
                 </View>
             </ScrollView>
-            <FixedFooter style={[styles.gap2]}>
+            <FixedFooter style={styles.gap2}>
                 <Button
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={() => {
