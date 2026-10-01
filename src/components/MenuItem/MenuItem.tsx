@@ -65,7 +65,7 @@ import type {GestureResponderEvent, Role, StyleProp, TextStyle, ViewStyle} from 
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 
-import React, {useMemo, useRef} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import useRemoveNonInteractiveClickHandler from './hooks/useRemoveNonInteractiveClickHandler';
@@ -586,6 +586,8 @@ function MenuItem({
     const {singleExecution, waitForNavigate} = useMenuItemGroupActions() ?? {};
     const popoverAnchor = useRef<ComponentRef<typeof View>>(null);
     const pressableRef = useRef<ComponentRef<typeof View>>(null);
+    const didTouchStartOnCopyableTextRef = useRef(false);
+    const [didTouchStartOnCopyableText, setDidTouchStartOnCopyableText] = useState(false);
     const {isPressStartOnCopyableText, markMouseDownOnCopyableText, markTouchStartOnCopyableText, shouldSuppressCopyableTextRowLongPress, shouldSuppressCopyableTextRowPress} =
         useCopyableTextRowPress();
     useRemoveNonInteractiveClickHandler(pressableRef, interactive);
@@ -689,7 +691,7 @@ function MenuItem({
     }, [helperText, shouldParseHelperText, shouldEscapeText]);
 
     const shouldRenderTitleAsHTML = shouldRenderAsHTML && !!title && Parser.isHTML(title);
-    const shouldOverrideHTMLTitleSelection = isTitleSelectable && getPlatform() === CONST.PLATFORM.WEB;
+    const shouldEnableTextSelection = isTitleSelectable && getPlatform() === CONST.PLATFORM.WEB;
 
     const processedTitle = useMemo(() => {
         let titleToWrap = '';
@@ -793,6 +795,16 @@ function MenuItem({
         });
         onSecondaryInteraction?.(event);
     };
+    const secondaryInteractionHandler = copyable && !deviceHasHoverSupport ? secondaryInteraction : onSecondaryInteraction;
+
+    const handlePressIn = () => {
+        if (shouldEnableTextSelection && didTouchStartOnCopyableTextRef.current) {
+            return;
+        }
+        if (shouldBlockSelection && shouldUseNarrowLayout && canUseTouchScreen()) {
+            ControlSelection.block();
+        }
+    };
 
     const isIDPassed = !!iconReportID || !!iconAccountID || iconAccountID === CONST.DEFAULT_NUMBER_ID;
 
@@ -831,16 +843,21 @@ function MenuItem({
                             <PressableWithSecondaryInteraction
                                 onPress={shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
                                 onMouseDown={(event) => {
+                                    didTouchStartOnCopyableTextRef.current = false;
+                                    setDidTouchStartOnCopyableText(false);
                                     markMouseDownOnCopyableText(event?.target, isTitleSelectable);
                                 }}
                                 onTouchStart={(event) => {
-                                    markTouchStartOnCopyableText(event, isTitleSelectable && isPressStartOnCopyableText(event));
+                                    const isCopyableTarget = markTouchStartOnCopyableText(event, shouldEnableTextSelection && isPressStartOnCopyableText(event));
+                                    didTouchStartOnCopyableTextRef.current = isCopyableTarget;
+                                    setDidTouchStartOnCopyableText(isCopyableTarget);
                                 }}
                                 shouldAllowTextSelection={isTitleSelectable}
                                 preventDefaultContextMenu={(event) => deviceHasHoverSupport || !isTitleSelectable || !isPressStartOnCopyableText(event)}
-                                onPressIn={() => shouldBlockSelection && shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
+                                onPressIn={handlePressIn}
                                 onPressOut={ControlSelection.unblock}
-                                onSecondaryInteraction={copyable && !deviceHasHoverSupport ? secondaryInteraction : onSecondaryInteraction}
+                                // Keep the native selection menu available through press-out; reset on the next pointer start.
+                                onSecondaryInteraction={shouldEnableTextSelection && didTouchStartOnCopyableText ? undefined : secondaryInteractionHandler}
                                 wrapperStyle={outerWrapperStyle}
                                 activeOpacity={!interactive ? 1 : variables.pressDimValue}
                                 opacityAnimationDuration={variables.instantAnimationDuration}
@@ -1037,7 +1054,7 @@ function MenuItem({
                                                                         {shouldRenderTitleAsHTML || shouldParseTitle ? (
                                                                             <RenderHTML
                                                                                 html={processedTitle}
-                                                                                isSelectable={shouldOverrideHTMLTitleSelection ? true : undefined}
+                                                                                isSelectable={shouldEnableTextSelection ? true : undefined}
                                                                             />
                                                                         ) : (
                                                                             <Text style={styles.webViewStyles.baseFontStyle}>{convertToLTR(Parser.htmlToText(processedTitle))}</Text>
