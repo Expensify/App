@@ -324,8 +324,10 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
         (isWorkflowFromIntegration ||
             isDEWEnabled ||
             (([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED].some((approvalMode) => approvalMode === policy?.approvalMode) && !hasApprovalError) ?? false));
+    // Any approval mode other than Optional (for example, Smart Report or Bill.com) means approvals are configured, even when the toggle shows them as off.
+    const hasConfiguredApprovals = isApprovalsEnabled || (!!policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL);
     // Smart Limit cards require approvals, so they only block turning approvals off. Admins can still turn approvals on.
-    const isApprovalsLockedBySmartLimit = isSmartLimitEnabled && isApprovalsEnabled;
+    const isApprovalsLockedBySmartLimit = isSmartLimitEnabled && hasConfiguredApprovals;
     const approvalOptionSubtitle = isWorkflowFromIntegration || !isApprovalsLockedBySmartLimit ? approvalSubtitle : translate('workspace.moreFeatures.workflows.disableApprovalPrompt');
 
     const getAddApprovalsToggleDisabledAction = () => {

@@ -161,6 +161,22 @@ describe('WorkspaceWorkflowsPageRevamp - Smart Limit approvals lock', () => {
         expect(screen.queryByLabelText(addApprovalsDescription())).not.toBeOnTheScreen();
     });
 
+    it.each([CONST.POLICY.APPROVAL_MODE.SMARTREPORT, CONST.POLICY.APPROVAL_MODE.BILLCOM])(
+        'keeps the toggle locked but shown as off when Smart Limit cards exist and the approval mode is %s',
+        async (approvalMode) => {
+            // Given a workspace with Smart Limit cards and an approval mode other than Optional that the toggle doesn't show as on
+            await setupPolicy({areApprovalsLockedByExpensifyCard: true, approvalMode});
+            renderPage();
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the toggle is locked with the Smart Limit prompt, because approvals are still configured, and it keeps showing approvals as off
+            expect(querySubtitle(smartLimitPrompt())).toBeOnTheScreen();
+            const approvalsSwitch = screen.getByLabelText(lockedLabel(smartLimitPrompt()));
+            expect(approvalsSwitch).not.toBeChecked();
+            expect(screen.queryByLabelText(addApprovalsDescription())).not.toBeOnTheScreen();
+        },
+    );
+
     it('keeps the toggle unlocked when the workspace has no Smart Limit cards', async () => {
         // Given a workspace with approvals on and no Smart Limit cards
         await setupPolicy({areApprovalsLockedByExpensifyCard: false, approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC});
