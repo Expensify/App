@@ -229,6 +229,7 @@ import type {
     AnyRequest,
     Attachment,
     BankAccountList,
+    CardList,
     IntroSelected,
     InvitedEmailsToAccountIDs,
     NewGroupChatDraft,
@@ -462,6 +463,7 @@ type MergeReportsProps = {
     hash?: number;
     bankAccountList: OnyxEntry<BankAccountList>;
     rules: OnyxCollection<Rule>;
+    cardList: OnyxEntry<CardList>;
     isTrackIntentUser: boolean | undefined;
     personalPolicyOutputCurrency: string | undefined;
     selfDMReportActions: OnyxEntry<ReportActions>;
@@ -8772,6 +8774,7 @@ function mergeReports({
     allReports: allReportsParam,
     allReportActions = {},
     rules,
+    cardList,
     isTrackIntentUser,
     personalPolicyOutputCurrency,
     selfDMReportActions,
@@ -8806,6 +8809,7 @@ function mergeReports({
         reports,
         rules,
         skippedReportIDs: sourceReportIDs,
+        cardList,
         isTrackIntentUser,
         personalPolicyOutputCurrency,
         selfDMReportActions,

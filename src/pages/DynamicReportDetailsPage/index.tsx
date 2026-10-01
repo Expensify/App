@@ -52,7 +52,7 @@ import {getOneTransactionThreadReportID, getOriginalMessage, getTrackExpenseActi
 import {getReportNameFromNames} from '@libs/ReportAttributesUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
-    canDeleteCardTransactionByLiabilityType,
+    canDeleteCardTransaction,
     canDeleteTransaction,
     canEditReportTitle,
     canLeaveChat,
@@ -101,7 +101,7 @@ import {
     shouldDisableRename as shouldDisableRenameUtil,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
-import {getDeleteConfirmationPrompt, getDeleteExpenseTitle, getOriginalTransactionWithSplitInfo, isDemoTransaction} from '@libs/TransactionUtils';
+import {getDeleteConfirmationPrompt, getDeleteExpenseTitle, getOriginalTransactionWithSplitInfo, isDemoTransaction, isManagedCardTransaction} from '@libs/TransactionUtils';
 
 import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
 import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
@@ -213,6 +213,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: filteredPoliciesInfoSelector});
     const [preferredPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(preferredPolicyID)}`, {selector: billingRestrictionPolicySelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const {showConfirmModal} = useConfirmModal();
     const reportForHeader = getReportForHeader(report, parentReport);
     const derivedReportNames = useDerivedReportNamesByReportIDs([report?.parentReportID, reportForHeader?.reportID]);
@@ -291,15 +292,6 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const isMoneyRequestReportArchived = useReportIsArchived(moneyRequestReport?.reportID);
     const [moneyRequestReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(moneyRequestReport?.reportID)}`);
 
-    const shouldShowTaskDeleteButton =
-        isTaskReport &&
-        !isCanceledTaskReport &&
-        canWriteInReport(report) &&
-        report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED &&
-        !isClosedReport(report) &&
-        isTaskModifiable &&
-        isTaskActionable;
-    const canDeleteRequest = isActionOwner && (canDeleteTransaction(moneyRequestReport, rules, isMoneyRequestReportArchived) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
     const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const [iouOriginalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransaction?.comment?.originalTransactionID)}`);
@@ -311,8 +303,21 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         reportActions: requestParentReportAction ? [requestParentReportAction] : [],
         policy,
     });
-    const isCardTransactionCanBeDeleted = canDeleteCardTransactionByLiabilityType(iouTransaction);
-    const shouldShowDeleteButton = shouldShowTaskDeleteButton || (canDeleteRequest && isCardTransactionCanBeDeleted) || isDemoTransaction(iouTransaction);
+
+    const shouldShowTaskDeleteButton =
+        isTaskReport &&
+        !isCanceledTaskReport &&
+        canWriteInReport(report) &&
+        report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED &&
+        !isClosedReport(report) &&
+        isTaskModifiable &&
+        isTaskActionable;
+    const canDeleteRequest =
+        (isActionOwner || (isPolicyAdmin && isManagedCardTransaction(iouTransaction))) &&
+        (canDeleteTransaction(moneyRequestReport, rules, isMoneyRequestReportArchived) || isSelfDMTrackExpenseReport) &&
+        !isDeletedParentAction;
+    const shouldShowDeleteButton = shouldShowTaskDeleteButton || (canDeleteRequest && canDeleteCardTransaction(iouTransaction, policy, cardList)) || isDemoTransaction(iouTransaction);
+
     const shouldShowEditSplitOnDeleteAction = iouTransactionID ? shouldOpenSplitExpenseEditFlowOnDelete([iouTransactionID]) : false;
     let deleteMenuItemTitle = translate('reportActionContextMenu.deleteAction', requestParentReportAction);
     if (shouldShowEditSplitOnDeleteAction) {
