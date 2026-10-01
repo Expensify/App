@@ -67,7 +67,7 @@ type CommonSearchViewProps = {
 
     /**
      * The page header, rendered as the list's own header so it scrolls away with the rows and a drag starting on it
-     * scrolls the list. Only set where the header is not pinned above the list — see useShouldScrollMainHeader.
+     * scrolls the list. Only set where the header is not pinned above the list — see useIsMobileWebLandscape.
      */
     ListHeaderComponent?: React.JSX.Element;
 

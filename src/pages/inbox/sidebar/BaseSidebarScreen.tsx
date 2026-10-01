@@ -6,9 +6,9 @@ import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import {useAppLoadSkeletonState} from '@hooks/useInFlightRequests';
+import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useShouldScrollMainHeader from '@hooks/useShouldScrollMainHeader';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isMobile} from '@libs/Browser';
@@ -27,7 +27,8 @@ function BaseSidebarScreen() {
     const tabBarBottomContentStyle = useTabBarBottomContentStyle();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const shouldScrollMainHeader = useShouldScrollMainHeader();
+    // The header scrolls away with the content on mobile web in landscape, where vertical space is scarce.
+    const shouldScrollMainHeader = useIsMobileWebLandscape();
     const shouldShowSkeleton = useAppLoadSkeletonState();
 
     // Tag an in-flight inbox-tab navigation span when the app-loading skeleton is shown instead of the

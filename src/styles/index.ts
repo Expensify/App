@@ -2294,7 +2294,7 @@ const staticStyles = (theme: ThemeColors) =>
             paddingRight: 20,
         },
 
-        // Shorter report header for mobile web in landscape — see useShouldUseCompactChatChrome.
+        // Shorter report header for mobile web in landscape — see useIsMobileWebLandscape.
         appContentHeaderCompact: {
             height: variables.contentHeaderCompactHeight,
         },
@@ -2983,7 +2983,7 @@ const staticStyles = (theme: ThemeColors) =>
             width: '100%',
         },
 
-        // Shorter header bar for mobile web in landscape — see useShouldUseCompactHeaderBar.
+        // Shorter header bar for mobile web in landscape — see useIsMobileWebLandscape.
         headerBarCompact: {
             height: variables.contentHeaderCompactHeight,
         },
@@ -4440,7 +4440,7 @@ const staticStyles = (theme: ThemeColors) =>
         /**
          * Home page content container for when the TopBar scrolls away as part of the content. The horizontal padding
          * moves onto the widget block instead, because the TopBar carries its own margins and would otherwise be
-         * inset twice — see useShouldScrollMainHeader.
+         * inset twice — see useIsMobileWebLandscape.
          */
         homePageScrollAwayHeaderContentContainer: {
             flexGrow: 1,

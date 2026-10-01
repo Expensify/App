@@ -1,9 +1,8 @@
-import variables from '@styles/variables';
-
 import type {ViewStyle} from 'react-native';
 
+import useIsMobileWebLandscape from './useIsMobileWebLandscape';
 import useSafeAreaPaddings from './useSafeAreaPaddings';
-import useShouldUseFloatingNavigationTabBar from './useShouldUseFloatingNavigationTabBar';
+import useStyleUtils from './useStyleUtils';
 
 /**
  * Bottom padding a tab root screen's scrollable content needs so its last row can be scrolled clear of the
@@ -13,10 +12,12 @@ import useShouldUseFloatingNavigationTabBar from './useShouldUseFloatingNavigati
  * see useTabBarBottomContentStyle. Add this to any existing bottom padding rather than replacing it.
  */
 function useFloatingNavigationTabBarPadding(): number {
-    const shouldUseFloatingTabBar = useShouldUseFloatingNavigationTabBar();
+    // The tab bar becomes a pill floating in the bottom-left corner on mobile web in landscape, where vertical space is scarce.
+    const shouldUseFloatingTabBar = useIsMobileWebLandscape();
     const {paddingBottom: safeAreaPaddingBottom} = useSafeAreaPaddings(true);
+    const StyleUtils = useStyleUtils();
 
-    return shouldUseFloatingTabBar ? variables.floatingNavigationTabBarHeight + variables.floatingNavigationTabBarMargin * 2 + safeAreaPaddingBottom : 0;
+    return shouldUseFloatingTabBar ? StyleUtils.getFloatingTabBarOccupiedHeight(safeAreaPaddingBottom) : 0;
 }
 
 /** {@link useFloatingNavigationTabBarPadding} as a style, for appending to a contentContainerStyle array. */

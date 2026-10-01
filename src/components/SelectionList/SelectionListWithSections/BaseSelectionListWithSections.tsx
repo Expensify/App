@@ -385,12 +385,14 @@ function BaseSelectionListWithSectionsImpl({
                     keyboardShouldPersistTaps={keyboardShouldPersistTaps}
                     ListHeaderComponent={customListHeaderContent}
                     ListFooterComponent={
-                        !!listFooterContent || isFooterInsideList ? (
+                        isFooterInsideList ? (
                             <>
                                 {listFooterContent}
-                                {isFooterInsideList && footer}
+                                {footer}
                             </>
-                        ) : undefined
+                        ) : (
+                            listFooterContent
+                        )
                     }
                     ListFooterComponentStyle={style?.listFooterContentStyle}
                     style={style?.listStyle}

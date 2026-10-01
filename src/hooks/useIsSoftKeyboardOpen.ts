@@ -36,12 +36,23 @@ function getViewportHeight(): number {
  *
  * The full viewport height is re-measured whenever no text field is focused, so it stays correct across orientation
  * changes and browser chrome appearing or disappearing.
+ *
+ * Only web consumers exist: everything that reads this is a mobile web landscape treatment with a native stub of its
+ * own, so there is no native implementation. Pass `isEnabled: false` where the result is not going to be used (for
+ * example in portrait) so the window listeners are not registered at all; the hook then reports the keyboard closed.
  */
-function useIsSoftKeyboardOpen(): boolean {
+function useIsSoftKeyboardOpen(isEnabled = true): boolean {
     const [isSoftKeyboardOpen, setIsSoftKeyboardOpen] = useState(false);
 
+    // A keyboard reported open just before the hook was disabled must not stick around, nor greet it on re-enable.
+    const [prevIsEnabled, setPrevIsEnabled] = useState(isEnabled);
+    if (prevIsEnabled !== isEnabled) {
+        setPrevIsEnabled(isEnabled);
+        setIsSoftKeyboardOpen(false);
+    }
+
     useEffect(() => {
-        if (!isMobileBrowser()) {
+        if (!isEnabled || !isMobileBrowser()) {
             return;
         }
 
@@ -92,7 +103,7 @@ function useIsSoftKeyboardOpen(): boolean {
             window.removeEventListener('resize', sync);
             window.visualViewport?.removeEventListener('resize', sync);
         };
-    }, []);
+    }, [isEnabled]);
 
     return isSoftKeyboardOpen;
 }

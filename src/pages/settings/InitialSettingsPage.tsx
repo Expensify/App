@@ -13,12 +13,12 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 
 import useFloatingNavigationTabBarPaddingStyle from '@hooks/useFloatingNavigationTabBarPaddingStyle';
+import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
-import useShouldScrollMainHeader from '@hooks/useShouldScrollMainHeader';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -53,7 +53,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [canSwitchAccounts = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector: canSwitchAccountsSelector});
     const tabBarContent = <TabBarBottomContent selectedTab={NAVIGATION_TABS.SETTINGS} />;
     const floatingTabBarPaddingStyle = useFloatingNavigationTabBarPaddingStyle();
-    const shouldScrollMainHeader = useShouldScrollMainHeader();
+    // The header scrolls away with the content on mobile web in landscape, where vertical space is scarce.
+    const shouldScrollMainHeader = useIsMobileWebLandscape();
     const styles = useThemeStyles();
     const tabBarBottomContentStyle = useTabBarBottomContentStyle();
     const {isExecuting, singleExecution} = useSingleExecution();

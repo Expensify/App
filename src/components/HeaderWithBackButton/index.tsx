@@ -16,10 +16,10 @@ import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useDialogLabelRegistration from '@hooks/useDialogLabelRegistration';
 import useInitialFocusRef from '@hooks/useInitialFocusRef';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
+import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useShouldHideHeaderForKeyboard from '@hooks/useShouldHideHeaderForKeyboard';
-import useShouldUseCompactHeaderBar from '@hooks/useShouldUseCompactHeaderBar';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -108,7 +108,8 @@ function HeaderWithBackButton({
     const isInLandscapeMode = useIsInLandscapeMode();
     const {contentHeaderHeightStyle} = useContentHeaderHeight();
     const shouldHideHeaderForKeyboard = useShouldHideHeaderForKeyboard();
-    const shouldUseCompactHeaderBar = useShouldUseCompactHeaderBar();
+    // The header shrinks to the intrinsic height of its back button and title on mobile web in landscape.
+    const shouldUseCompactHeaderBar = useIsMobileWebLandscape();
     const setBackButtonRef = useInitialFocusRef({shouldSkip: shouldSkipFocusAfterTransition});
 
     const middleContent = useMemo(() => {

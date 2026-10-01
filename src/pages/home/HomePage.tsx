@@ -10,11 +10,11 @@ import ScrollView from '@components/ScrollView';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useFloatingNavigationTabBarPaddingStyle from '@hooks/useFloatingNavigationTabBarPaddingStyle';
 import {useAppLoadSkeletonVisibility} from '@hooks/useInFlightRequests';
+import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useShouldScrollMainHeader from '@hooks/useShouldScrollMainHeader';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import openHomePage from '@libs/actions/HomePage';
@@ -45,7 +45,8 @@ const RIGHT_COLUMN_TEST_ID = 'homePageRightColumn';
 function HomePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const floatingTabBarPaddingStyle = useFloatingNavigationTabBarPaddingStyle();
-    const shouldScrollMainHeader = useShouldScrollMainHeader();
+    // The header scrolls away with the content on mobile web in landscape, where vertical space is scarce.
+    const shouldScrollMainHeader = useIsMobileWebLandscape();
     const styles = useThemeStyles();
     const tabBarBottomContentStyle = useTabBarBottomContentStyle();
     const {translate} = useLocalize();

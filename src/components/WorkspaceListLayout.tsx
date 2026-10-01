@@ -1,8 +1,8 @@
+import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
-import useShouldScrollMainHeader from '@hooks/useShouldScrollMainHeader';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -46,7 +46,8 @@ type WorkspaceListLayoutProps = {
 function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeaderButton = true, scrollHeaderWithTable = false}: WorkspaceListHeaderContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const shouldScrollMainHeader = useShouldScrollMainHeader();
+    // The header scrolls away with the content on mobile web in landscape, where vertical space is scarce.
+    const shouldScrollMainHeader = useIsMobileWebLandscape();
     const icons = useMemoizedLazyExpensifyIcons(['Globe', 'Building']);
     const {badgeText: domainsBadgeText, hasDomainErrors} = useDomainsTabBadge();
     const navigationOptions = [
@@ -110,7 +111,8 @@ function WorkspaceListLayout({children, activeTabKey, headerButton, headerCompon
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const debugTabViewHeight = useDebugTabViewHeight();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
-    const shouldScrollMainHeader = useShouldScrollMainHeader();
+    // The header scrolls away with the content on mobile web in landscape, where vertical space is scarce.
+    const shouldScrollMainHeader = useIsMobileWebLandscape();
 
     // When the header scrolls with the table, the top bar is rendered by WorkspaceListHeaderContent inside the list instead.
     const shouldScrollTopBarWithTable = scrollHeaderWithTable && shouldScrollMainHeader;
@@ -123,7 +125,6 @@ function WorkspaceListLayout({children, activeTabKey, headerButton, headerCompon
             activeTabKey={activeTabKey}
             headerButton={headerButton}
             shouldShowHeaderButton={shouldDisplayButtonsInSeparateLine}
-            scrollHeaderWithTable={scrollHeaderWithTable}
         />
     );
 

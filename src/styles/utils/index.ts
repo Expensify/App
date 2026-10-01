@@ -1455,6 +1455,15 @@ function getOptionMargin(itemIndex: number, itemsLen: number) {
     return {};
 }
 
+/**
+ * Total vertical space the floating (mWeb landscape) tab bar occupies: the pill itself plus the gap above and
+ * below it, and the bottom safe area. Used both to pull the bar out of the layout flow and to reserve the same
+ * amount of scroll room at the bottom of the tab root screens.
+ */
+function getFloatingTabBarOccupiedHeight(safeAreaPaddingBottom: number): number {
+    return variables.floatingNavigationTabBarHeight + variables.floatingNavigationTabBarMargin * 2 + safeAreaPaddingBottom;
+}
+
 const staticStyleUtils = {
     positioning,
     searchHeaderDefaultOffset,
@@ -1553,16 +1562,8 @@ const staticStyleUtils = {
     getNavigationBarType,
     getSuccessReportCardLostIllustrationStyle,
     getOptionMargin,
+    getFloatingTabBarOccupiedHeight,
 };
-
-/**
- * Total vertical space the floating (mWeb landscape) tab bar occupies: the pill itself plus the gap above and
- * below it, and the bottom safe area. Used both to pull the bar out of the layout flow and to reserve the same
- * amount of scroll room at the bottom of the tab root screens.
- */
-function getFloatingTabBarOccupiedHeight(safeAreaPaddingBottom: number): number {
-    return variables.floatingNavigationTabBarHeight + variables.floatingNavigationTabBarMargin * 2 + safeAreaPaddingBottom;
-}
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     ...staticStyleUtils,

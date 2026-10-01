@@ -63,7 +63,7 @@ function CollapsibleHeaderOnScroll({children}: CollapsibleHeaderOnScrollProps) {
     // `isInLandscapeMode` is already false on desktop browsers and tablets (see @libs/isInLandscapeMode), so this is
     // effectively "mobile web phone, in landscape".
     const isInLandscapeMode = useIsInLandscapeMode();
-    const isSoftKeyboardOpen = useIsSoftKeyboardOpen();
+    const isSoftKeyboardOpen = useIsSoftKeyboardOpen(isInLandscapeMode);
     const {scrollOffsetSV, maxScrollOffsetSV} = useActionListContext();
 
     // JS ref guards against re-measuring when the inner view reports a height of 0.
@@ -215,7 +215,9 @@ function CollapsibleHeaderOnScroll({children}: CollapsibleHeaderOnScrollProps) {
                     {children}
                 </Reanimated.View>
             </Reanimated.View>
-            {/* Mounted only where the header can actually collapse, so the rest of web pays nothing for it. */}
+            {/* The wrappers above stay mounted on every web report, landscape or not: unmounting them on rotation would
+                remount the header, so desktop web pays for two animated views and a few idle shared values instead. The
+                button is the part that can be skipped, so it is mounted only where the header can actually collapse. */}
             {isInLandscapeMode && <FloatingBackButton collapseProgress={collapseProgress} />}
         </>
     );

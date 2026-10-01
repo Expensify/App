@@ -1,6 +1,6 @@
+import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useShouldUseCompactChatChrome from '@hooks/useShouldUseCompactChatChrome';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {PropsWithChildren} from 'react';
@@ -13,7 +13,8 @@ function ComposerFooter({children}: PropsWithChildren) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {isOffline} = useNetwork();
-    const shouldUseCompactChrome = useShouldUseCompactChatChrome();
+    // Shorter report header and compose row on mobile web in landscape, where vertical space is scarce.
+    const shouldUseCompactChrome = useIsMobileWebLandscape();
 
     const secondaryRowStyle = shouldUseCompactChrome ? styles.chatItemComposeSecondaryRowCompact : styles.chatItemComposeSecondaryRow;
 

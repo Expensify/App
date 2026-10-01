@@ -18,13 +18,13 @@ import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
 import {useLoadingBarVisibility} from '@hooks/useInFlightRequests';
+import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useSearchListContentContainerStyle from '@hooks/useSearchListContentContainerStyle';
 import useSearchLoadingState from '@hooks/useSearchLoadingState';
-import useShouldScrollMainHeader from '@hooks/useShouldScrollMainHeader';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -108,7 +108,8 @@ function SearchPageNarrow({
     const {shouldUseLiveData} = useSearchResultsContext();
     const {isOffline} = useNetwork();
 
-    const shouldScrollMainHeader = useShouldScrollMainHeader();
+    // The header scrolls away with the content on mobile web in landscape, where vertical space is scarce.
+    const shouldScrollMainHeader = useIsMobileWebLandscape();
     const searchListContentContainerStyle = useSearchListContentContainerStyle(hasFilterBars);
     const shouldShowLoadingBarForReports = useLoadingBarVisibility();
     // Controls the visibility of the educational tooltip based on user scrolling.
@@ -164,7 +165,7 @@ function SearchPageNarrow({
                 scrollOffset.set(currentOffset);
             },
         },
-        [hasFilterBars, windowHeight, minTopBarOffset],
+        [hasFilterBars, windowHeight],
     );
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery(), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));

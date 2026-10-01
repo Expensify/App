@@ -3,11 +3,11 @@ import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import ROUTE_TO_NAVIGATION_TAB from '@components/Navigation/NavigationTabBar/ROUTE_TO_NAVIGATION_TAB';
 
-import useIsSoftKeyboardOpen from '@hooks/useIsSoftKeyboardOpen';
+import useIsFloatingTabBarHiddenForKeyboard from '@hooks/useIsFloatingTabBarHiddenForKeyboard';
+import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
-import useShouldUseFloatingNavigationTabBar from '@hooks/useShouldUseFloatingNavigationTabBar';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -37,8 +37,9 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBlockingViewVisible} = useFullScreenBlockingViewState();
     const {paddingBottom: safeAreaPaddingBottom} = useSafeAreaPaddings(true);
-    const shouldUseFloatingTabBar = useShouldUseFloatingNavigationTabBar();
-    const isSoftKeyboardOpen = useIsSoftKeyboardOpen();
+    // The tab bar becomes a pill floating in the bottom-left corner on mobile web in landscape, where vertical space is scarce.
+    const shouldUseFloatingTabBar = useIsMobileWebLandscape();
+    const isCoveredByKeyboard = useIsFloatingTabBarHiddenForKeyboard(shouldUseFloatingTabBar);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const activeRoute = state.routes[state.index];
@@ -71,12 +72,6 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
     useEffect(() => {
         cancelTabNavigationSpans(NAVIGATION_TAB_TO_SPANS[selectedTab]);
     }, [selectedTab]);
-
-    // The floating bar and its buttons hover over the content rather than sitting in the layout, so when the soft
-    // keyboard opens they get pushed up with the shrinking viewport and end up riding on top of it. Hide them for as
-    // long as the keyboard is up so they stay out of the way behind it. The full width bar needs no such treatment:
-    // it takes real space in the layout, which the keyboard simply covers.
-    const isCoveredByKeyboard = shouldUseFloatingTabBar && isSoftKeyboardOpen;
 
     const isHidden = shouldHide || isCoveredByKeyboard || (shouldApplyDelay && animationDoneKey !== stateKey);
 

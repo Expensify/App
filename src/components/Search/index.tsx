@@ -131,7 +131,7 @@ type SearchProps = {
     /**
      * The page header, rendered as the list's own header so it scrolls away with the rows and a drag starting on it
      * scrolls the list. Set only where the page does not pin the header above the content — see
-     * useShouldScrollMainHeader. Every branch that renders something other than the list has to render it too,
+     * useIsMobileWebLandscape. Every branch that renders something other than the list has to render it too,
      * otherwise the screen would lose its header entirely in that state.
      */
     listHeader?: React.JSX.Element;

@@ -19,7 +19,7 @@ import {useEffect} from 'react';
  */
 function useShouldHideHeaderForKeyboard(): boolean {
     const isInLandscapeMode = useIsInLandscapeMode();
-    const isSoftKeyboardOpen = useIsSoftKeyboardOpen();
+    const isSoftKeyboardOpen = useIsSoftKeyboardOpen(isInLandscapeMode);
     const shouldHideHeader = isInLandscapeMode && isSoftKeyboardOpen;
 
     useEffect(() => {

@@ -59,7 +59,7 @@ type EmptySearchViewProps = {
 
     /**
      * The page header, rendered as this scroller's first child so it scrolls away with the empty state and a drag
-     * starting on it scrolls the view — see useShouldScrollMainHeader.
+     * starting on it scrolls the view — see useIsMobileWebLandscape.
      */
     listHeader?: React.ReactNode;
 };

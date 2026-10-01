@@ -4,13 +4,13 @@ import {useSearchRowSelectionActions, useSearchSelectionContext} from '@componen
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
 
+import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
-import useShouldScrollMainHeader from '@hooks/useShouldScrollMainHeader';
 import useUndeleteTransactions from '@hooks/useUndeleteTransactions';
 
 import type {TransactionPreviewData} from '@libs/actions/Search';
@@ -66,7 +66,8 @@ function useSearchListViewState({data, listData = data, isMobileSelectionModeEna
     const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
     const contentHeaderHeight = isSmallScreenWidth ? variables.contentHeaderNarrowHeight : variables.contentHeaderHeight;
     const {isEditingCell, wasRecentlyEditingCell} = useEditingCellState();
-    const shouldScrollMainHeader = useShouldScrollMainHeader();
+    // The header scrolls away with the content on mobile web in landscape, where vertical space is scarce.
+    const shouldScrollMainHeader = useIsMobileWebLandscape();
 
     const listRef = useRef<FlashListRef<SearchListItem>>(null);
     const prevDataLength = usePrevious(data.length);
@@ -106,7 +107,7 @@ function useSearchListViewState({data, listData = data, isMobileSelectionModeEna
             return;
         }
         // The offset keeps the row clear of the header pinned above the list. Where the header scrolls as part of the
-        // list's content there is nothing pinned to clear — see useShouldScrollMainHeader.
+        // list's content there is nothing pinned to clear — see useIsMobileWebLandscape.
         listRef.current.scrollToIndex({index, animated, viewOffset: shouldScrollMainHeader ? 0 : -contentHeaderHeight});
     };
 

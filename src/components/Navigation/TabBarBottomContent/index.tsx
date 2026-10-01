@@ -1,7 +1,7 @@
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 
+import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useShouldUseFloatingNavigationTabBar from '@hooks/useShouldUseFloatingNavigationTabBar';
 
 import React from 'react';
 
@@ -9,7 +9,8 @@ import type TabBarBottomContentProps from './types';
 
 function TabBarBottomContent({selectedTab}: TabBarBottomContentProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const shouldUseFloatingTabBar = useShouldUseFloatingNavigationTabBar();
+    // The tab bar becomes a pill floating in the bottom-left corner on mobile web in landscape, where vertical space is scarce.
+    const shouldUseFloatingTabBar = useIsMobileWebLandscape();
 
     // The floating tab bar hovers over the content instead of sitting below it, so nothing is rendered in flow
     // here and the screen expands all the way to the bottom. Tab root screens keep their last row reachable by

@@ -1,6 +1,6 @@
 import type {ViewStyle} from 'react-native';
 
-import useShouldScrollMainHeader from './useShouldScrollMainHeader';
+import useIsMobileWebLandscape from './useIsMobileWebLandscape';
 import useThemeStyles from './useThemeStyles';
 
 /**
@@ -8,12 +8,13 @@ import useThemeStyles from './useThemeStyles';
  * needs so its first row clears the header floating above it.
  *
  * `undefined` where the header scrolls as part of the list's content instead of floating above it: there it occupies
- * real space, so reserving more would leave a gap — see useShouldScrollMainHeader. Having a single owner for this
+ * real space, so reserving more would leave a gap — see useIsMobileWebLandscape. Having a single owner for this
  * keeps the many places that render into that space from disagreeing about it.
  */
 function useSearchListContentContainerStyle(hasFilterBars: boolean): ViewStyle | undefined {
     const styles = useThemeStyles();
-    const shouldScrollMainHeader = useShouldScrollMainHeader();
+    // The header scrolls away with the content on mobile web in landscape, where vertical space is scarce.
+    const shouldScrollMainHeader = useIsMobileWebLandscape();
 
     return shouldScrollMainHeader ? undefined : styles.searchListContentContainerStyles(hasFilterBars);
 }

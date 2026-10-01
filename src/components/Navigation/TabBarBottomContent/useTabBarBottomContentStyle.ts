@@ -1,4 +1,4 @@
-import useShouldUseFloatingNavigationTabBar from '@hooks/useShouldUseFloatingNavigationTabBar';
+import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -13,7 +13,8 @@ import type {StyleProp, ViewStyle} from 'react-native';
  */
 function useTabBarBottomContentStyle(): StyleProp<ViewStyle> {
     const styles = useThemeStyles();
-    const shouldUseFloatingTabBar = useShouldUseFloatingNavigationTabBar();
+    // The tab bar becomes a pill floating in the bottom-left corner on mobile web in landscape, where vertical space is scarce.
+    const shouldUseFloatingTabBar = useIsMobileWebLandscape();
 
     return shouldUseFloatingTabBar ? [styles.overflowVisible, styles.pb0] : styles.overflowVisible;
 }
