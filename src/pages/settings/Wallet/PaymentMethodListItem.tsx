@@ -291,6 +291,8 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     };
     const menuItem = <MenuItem {...menuItemProps} />;
 
+    const actionAccessibilityLabel = connectionStatus?.actionText ? `${connectionStatus.actionText} ${item.title ?? ''}, ${item.description}` : undefined;
+
     return (
         <OfflineWithFeedback
             onClose={item.canDismissError ? () => dismissError(item) : undefined}
@@ -309,6 +311,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                                     <ConnectionStatusMessage
                                         message={connectionStatus.message}
                                         actionText={connectionStatus.actionText}
+                                        actionAccessibilityLabel={actionAccessibilityLabel}
                                         onActionPress={connectionStatus.onActionPress}
                                         isActionDisabled={connectionStatus.isActionDisabled}
                                         statusTone={connectionStatus.statusTone}
