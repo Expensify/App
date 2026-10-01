@@ -47,7 +47,7 @@ type MoneyReportHeaderKYCDropdownProps = Omit<KYCWallProps, 'children' | 'enable
     /** Callback fired when the dropdown menu hides */
     onOptionsMenuHide?: () => void;
 
-    /** Whether the dropdown button is disabled */
+    /** Disables the "More" dropdown, e.g. while expenses are selected */
     isDisabled?: boolean;
 };
 
