@@ -5,7 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isFilterNegatable} from '@libs/SearchQueryUtils';
+import {formHasAnyApprovalFilter, isFilterNegatable} from '@libs/SearchQueryUtils';
 import {getHasOptions, getMultiSelectFilterOptions, getSingleSelectFilterOptions} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
@@ -110,15 +110,26 @@ function HasMultiSelectListFilterContent({value = [], type = CONST.SEARCH.DATA_T
     const {translate} = useLocalize();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const [isAnyApprovalRequired] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: formHasAnyApprovalFilter});
     const selectedValues = value as string[];
+    const lockedHasValues = isAnyApprovalRequired ? [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION] : [];
+    const effectiveSelectedValues = [...new Set([...selectedValues, ...lockedHasValues])];
     // Include already-selected values even when the matching workspace feature is off, otherwise
     // toggling another option would call onChange without them and clear the saved/query selection.
     const items = getHasOptions(translate, type, {
         policies: policies ?? {},
         policyCategories,
-        selectedValues,
-    });
-    const multiSelectValues = items.filter((item) => selectedValues.includes(item.value));
+        selectedValues: effectiveSelectedValues,
+    }).map((item) =>
+        item.value === CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION && isAnyApprovalRequired
+            ? {
+                  ...item,
+                  isDisabled: true,
+                  tooltipText: translate('search.filters.has.requiredWithAnyApproval'),
+              }
+            : item,
+    );
+    const multiSelectValues = items.filter((item) => effectiveSelectedValues.includes(item.value));
 
     return (
         <MultiSelect
@@ -128,7 +139,11 @@ function HasMultiSelectListFilterContent({value = [], type = CONST.SEARCH.DATA_T
             isNegatable={isFilterNegatable(CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS)}
             footer={footer}
             onChange={(selectedItems) => {
-                onChange(selectedItems.map((item) => item.value));
+                const nextValues = selectedItems.map((item) => item.value);
+                if (isAnyApprovalRequired && !nextValues.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION)) {
+                    nextValues.push(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
+                }
+                onChange(nextValues);
             }}
         />
     );

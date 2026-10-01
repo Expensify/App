@@ -704,6 +704,35 @@ function hasValuesIncludeViolationFilter(hasValues: readonly string[] | undefine
     return !!hasValues?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION) || !!hasValues?.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
 }
 
+function formHasAnyApprovalFilter(form: Partial<SearchAdvancedFiltersForm> | null | undefined): boolean {
+    if (!form) {
+        return false;
+    }
+
+    const {dateOnKey, dateBeforeKey, dateAfterKey, dateRangeKey} = getDateFilterKeys(CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL);
+    return [form[dateOnKey], form[dateBeforeKey], form[dateAfterKey], form[dateRangeKey], form[FILTER_KEYS.ANY_APPROVAL_NOT]].some((value) => !!value);
+}
+
+function queryHasAnyApprovalFilter(queryJSON: SearchQueryJSON | undefined): boolean {
+    return !!queryJSON?.flatFilters.some((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL);
+}
+
+function queryHasPositiveApprovedViolation(queryJSON: SearchQueryJSON | undefined): boolean {
+    return !!queryJSON?.flatFilters.some(
+        (group) =>
+            group.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS &&
+            group.filters.some((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && filter.value.toString() === CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION),
+    );
+}
+
+function ensureHasApprovedViolation(hasValues: string[] | undefined): string[] {
+    if (hasValues?.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION)) {
+        return hasValues;
+    }
+
+    return [...(hasValues ?? []), CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION];
+}
+
 /**
  * Resolves a typed workspace name to its ID. Names are not unique, so an ambiguous one is left alone rather than
  * guessing which workspace was meant.
@@ -1189,6 +1218,14 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
         }
 
         supportedFilterValues[filter] = undefined;
+    }
+
+    // Auth rejects anyApproval unless has:approved-violation (or violationApprover) is also present.
+    if (formHasAnyApprovalFilter(supportedFilterValues)) {
+        supportedFilterValues.has = ensureHasApprovedViolation(supportedFilterValues.has);
+        if (supportedFilterValues.hasNot?.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION)) {
+            supportedFilterValues.hasNot = supportedFilterValues.hasNot.filter((value) => value !== CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
+        }
     }
 
     // We separate type and status filters from other filters to maintain hashes consistency for saved searches
@@ -2526,7 +2563,13 @@ function getQueryWithUpdatedValues(query: string, shouldSkipAmountConversion = f
         standardizedQuery.type = CONST.SEARCH.DATA_TYPES.CHAT;
     }
 
-    return buildSearchQueryString(standardizedQuery);
+    const queryString = buildSearchQueryString(standardizedQuery);
+    const queryType = standardizedQuery.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
+    if (queryType === CONST.SEARCH.DATA_TYPES.EXPENSE && queryHasAnyApprovalFilter(standardizedQuery) && !queryHasPositiveApprovedViolation(standardizedQuery)) {
+        return `${queryString} has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}`.trim();
+    }
+
+    return queryString;
 }
 
 function isSearchRootParams(params: unknown): params is SearchRootParams {
@@ -3009,6 +3052,7 @@ export {
     doesQueryMatchDefaultFilterKeysAndType,
     queryHasViolationFilter,
     hasValuesIncludeViolationFilter,
+    formHasAnyApprovalFilter,
 };
 
 export type {BuildUserReadableQueryStringParams};

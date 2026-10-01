@@ -540,6 +540,28 @@ describe('SearchQueryUtils', () => {
                 {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.SEARCH.DATA_TYPES.EXPENSE, isDefault: true},
             ]);
         });
+
+        test('applies has:approved-violation when anyApproval is present', () => {
+            // Given a typed search that uses anyApproval without the required Has filter
+            const userQuery = `type:expense ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}:${CONST.SEARCH.DATE_PRESETS.LAST_MONTH}`;
+
+            // When the query is standardized
+            const result = getQueryWithUpdatedValues(userQuery);
+
+            // Then has:approved-violation is added because Auth requires it with anyApproval
+            expect(result).toBe(`${defaultQuery} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}:${CONST.SEARCH.DATE_PRESETS.LAST_MONTH} has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}`);
+        });
+
+        test('does not duplicate has:approved-violation when anyApproval already has it', () => {
+            // Given a typed search that already includes both filters
+            const userQuery = `type:expense has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}:${CONST.SEARCH.DATE_PRESETS.LAST_MONTH}`;
+
+            // When the query is standardized
+            const result = getQueryWithUpdatedValues(userQuery);
+
+            // Then the existing has filter is left as a single value
+            expect(result).toBe(`${defaultQuery} has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}:${CONST.SEARCH.DATE_PRESETS.LAST_MONTH}`);
+        });
     });
 
     describe('buildQueryStringFromFilterFormValues', () => {
@@ -2212,31 +2234,31 @@ describe('SearchQueryUtils', () => {
                 modifier: 'ON',
                 formKey: FILTER_KEYS.ANY_APPROVAL_ON,
                 formValue: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
-                expectedQuery: `type:expense ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}:${CONST.SEARCH.DATE_PRESETS.LAST_MONTH}`,
+                expectedQuery: `type:expense has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}:${CONST.SEARCH.DATE_PRESETS.LAST_MONTH}`,
             },
             {
                 modifier: 'AFTER',
                 formKey: FILTER_KEYS.ANY_APPROVAL_AFTER,
                 formValue: '2026-04-01',
-                expectedQuery: `type:expense ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}>2026-04-01`,
+                expectedQuery: `type:expense has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}>2026-04-01`,
             },
             {
                 modifier: 'BEFORE',
                 formKey: FILTER_KEYS.ANY_APPROVAL_BEFORE,
                 formValue: '2026-04-30',
-                expectedQuery: `type:expense ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}<2026-04-30`,
+                expectedQuery: `type:expense has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}<2026-04-30`,
             },
             {
                 modifier: 'RANGE',
                 formKey: FILTER_KEYS.ANY_APPROVAL_RANGE,
                 formValue: '2026-04-01,2026-04-30',
-                expectedQuery: `type:expense ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}>=2026-04-01 ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}<=2026-04-30`,
+                expectedQuery: `type:expense has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}>=2026-04-01 ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}<=2026-04-30`,
             },
             {
                 modifier: 'negated',
                 formKey: FILTER_KEYS.ANY_APPROVAL_NOT,
                 formValue: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
-                expectedQuery: `type:expense -${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}:${CONST.SEARCH.DATE_PRESETS.LAST_MONTH}`,
+                expectedQuery: `type:expense has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION} -${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}:${CONST.SEARCH.DATE_PRESETS.LAST_MONTH}`,
             },
         ])('round-trips the $modifier form', ({formKey, formValue, expectedQuery}) => {
             // Given an expense search with an anyApproval date filter
@@ -2256,13 +2278,31 @@ describe('SearchQueryUtils', () => {
 
             const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
 
-            // Then the original form key is preserved and the other anyApproval keys are empty
+            // Then the original form key is preserved, the other anyApproval keys are empty, and has:approved-violation is applied
             expect(result[formKey]).toBe(formValue);
+            expect(result.has).toEqual([CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION]);
             for (const otherKey of anyApprovalFormKeys) {
                 if (otherKey !== formKey) {
                     expect(result[otherKey]).toBeUndefined();
                 }
             }
+        });
+
+        test('keeps an existing has value when applying approved-violation for anyApproval', () => {
+            // Given an expense search that already has a receipt filter plus anyApproval
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                has: [CONST.SEARCH.HAS_VALUES.RECEIPT],
+                [FILTER_KEYS.ANY_APPROVAL_ON]: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+            };
+
+            // When the form is converted to a query
+            const queryString = buildQueryStringFromFilterFormValues(filterValues);
+
+            // Then approved-violation is added without dropping the existing has value
+            expect(queryString).toBe(
+                `type:expense has:${CONST.SEARCH.HAS_VALUES.RECEIPT},${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}:${CONST.SEARCH.DATE_PRESETS.LAST_MONTH}`,
+            );
         });
 
         test('anyApproval date filters are dropped on an expense-report search', () => {

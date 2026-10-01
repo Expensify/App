@@ -10164,6 +10164,7 @@ const translations = {
             has: {
                 submittedViolation: 'Submitted violation',
                 approvedViolation: 'Approved violation',
+                requiredWithAnyApproval: 'Required with the any-approval filter',
             },
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Submit',

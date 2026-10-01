@@ -1,8 +1,11 @@
+import Tooltip from '@components/Tooltip';
+
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
 import React from 'react';
+import {View} from 'react-native';
 
 import type {ListItem, ListItemProps} from './types';
 
@@ -36,7 +39,7 @@ function MultiSelectListItem<TItem extends ListItem>({
 
     const computedWrapperStyle = [icon ? [styles.pv0, styles.mnh13] : styles.optionRowCompact, wrapperStyle];
 
-    return (
+    const row = (
         <BaseSelectListItem
             item={item}
             isFocused={isFocused}
@@ -58,6 +61,23 @@ function MultiSelectListItem<TItem extends ListItem>({
             shouldHighlightSelectedItem={shouldHighlightSelectedItem}
             titleNumberOfLines={titleNumberOfLines}
         />
+    );
+
+    if (!item.tooltipText) {
+        return row;
+    }
+
+    // Wrap a host View so BoundsObserver can attach to this composite list row.
+    // Native hover events are required because the Has filter lives in a portalled popover;
+    // React's synthetic mouseleave can get stranded and leave the tooltip stuck open.
+    return (
+        <Tooltip
+            text={item.tooltipText}
+            shouldHandleScroll
+            shouldUseNativeHoverEvents
+        >
+            <View>{row}</View>
+        </Tooltip>
     );
 }
 
