@@ -58,6 +58,9 @@ const CATEGORY_LABEL_GAP = 24;
 /** Gap between the bars of one row, as a share of a bar's thickness */
 const BAR_WITHIN_GROUP_PADDING = 0.1;
 
+/** Fraction of each row reserved as gap when it holds several series, so each of its bars stays as legible as a lone one */
+const MULTI_SERIES_BAR_PADDING = 0.45;
+
 /**
  * Builds a bar path with only the tip end rounded and the axis end square.
  * victory-native's BarGroup keys its corner flip on the y value, which for a horizontal chart is the
@@ -186,19 +189,40 @@ function HorizontalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxi
     /** Canvas y position of each row's center, so a press can be traced back to the bar under the cursor */
     const rowCenters = useSharedValue<number[]>([]);
 
-    /** Canvas x position of each row's longest bar tip, so hovering any of the row's bars hits it */
-    const rowTips = useSharedValue<number[]>([]);
+    /** Canvas x position of each bar's tip, per row and then per series */
+    const barTips = useSharedValue<number[][]>([]);
     const xZero = useSharedValue(0);
     const plotLeft = useSharedValue(0);
 
-    /** The series whose bar sits under `cursorY`, resolved from the row's top edge */
-    const resolveSeriesKey = (rowCenterY: number, cursorY: number): string => {
-        const groupThickness = barThickness.get();
-        if (groupThickness <= 0) {
-            return primarySeriesKey;
+    const rowPadding = series.length > 1 ? MULTI_SERIES_BAR_PADDING : HORIZONTAL_BAR_PADDING;
+
+    /** Thickness of a whole row of bars, mirroring BarGroup's barWidth: (1 - betweenGroupPadding) * plotHeight / groupCount */
+    const getGroupThickness = (plotHeight: number): number => (data.length > 0 ? (1 - rowPadding) * (plotHeight / data.length) : 0);
+
+    /** Index of the row's series whose bar is under the cursor, or -1 when the cursor misses every bar. The label column counts as the first series. */
+    const getSeriesIndexAt = (index: number, cursorX: number, cursorY: number): number => {
+        'worklet';
+
+        // A small pad around the row keeps thin bars easy to hit, capped at the row spacing so neighboring rows never overlap.
+        const thickness = barThickness.get();
+        const rowCenterY = rowCenters.get().at(index);
+        if (thickness <= 0 || rowCenterY === undefined) {
+            return -1;
         }
-        const seriesIndex = Math.min(series.length - 1, Math.max(0, Math.floor((cursorY - (rowCenterY - groupThickness / 2)) / (groupThickness / series.length))));
-        return seriesKeys.at(seriesIndex) ?? primarySeriesKey;
+        const band = Math.min(thickness + 2 * HOVER_ROW_PADDING, rowHeight.get());
+        if (cursorY < rowCenterY - band / 2 || cursorY > rowCenterY + band / 2) {
+            return -1;
+        }
+        if (cursorX <= plotLeft.get()) {
+            return 0;
+        }
+
+        // The bar runs from the zero axis to its tip, on either side for positive and negative values, with some tolerance past the tip.
+        const seriesIndex = Math.min(series.length - 1, Math.max(0, Math.floor((cursorY - (rowCenterY - thickness / 2)) / (thickness / series.length))));
+        const zero = xZero.get();
+        const tipX = barTips.get().at(index)?.at(seriesIndex) ?? zero;
+        const tipEnd = tipX >= zero ? tipX + HOVER_TIP_TOLERANCE : tipX - HOVER_TIP_TOLERANCE;
+        return cursorX >= Math.min(zero, tipEnd) && cursorX <= Math.max(zero, tipEnd) ? seriesIndex : -1;
     };
 
     const handleBarPress = (index: number, cursor: {x: number; y: number}) => {
@@ -207,7 +231,7 @@ function HorizontalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxi
         }
         const dataPoint = data.at(index);
         if (dataPoint && onBarPress) {
-            onBarPress(dataPoint, index, resolveSeriesKey(rowCenters.get().at(index) ?? cursor.y, cursor.y));
+            onBarPress(dataPoint, index, seriesKeys.at(getSeriesIndexAt(index, cursor.x, cursor.y)) ?? primarySeriesKey);
         }
     };
 
@@ -219,47 +243,21 @@ function HorizontalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxi
         if (barAreaHeight === 0) {
             return BASE_DOMAIN_PADDING;
         }
-        const verticalPadding = calculateMinDomainPadding(barAreaHeight, data.length, HORIZONTAL_BAR_PADDING);
+        const verticalPadding = calculateMinDomainPadding(barAreaHeight, data.length, rowPadding);
         return {...BASE_DOMAIN_PADDING, top: verticalPadding, bottom: verticalPadding};
     })();
 
     const handleChartBoundsChange = (bounds: ChartBounds) => {
         const plotHeight = bounds.bottom - bounds.top;
         setBarAreaHeight(plotHeight);
-        barThickness.set(data.length > 0 ? (1 - HORIZONTAL_BAR_PADDING) * (plotHeight / data.length) : 0);
+        barThickness.set(getGroupThickness(plotHeight));
         plotLeft.set(bounds.left);
     };
 
     const checkIsOverBar = (args: HitTestArgs) => {
         'worklet';
 
-        // Vertically the target is the bar thickness plus a small pad (thin bars stay easy to hit), never wider
-        // than the row spacing so adjacent rows don't overlap. Using the bar thickness rather than the full row
-        // gap keeps the empty space above/below a bar inert, including a single bar that spans the whole plot.
-        // Horizontally the target is the category label column on the left OR the bar itself (so hovering a group
-        // label also shows the tooltip), but the empty plot space between them and beyond the bar tip stays inert.
-        // The bar runs between the zero axis and its tip. Positive bars point right (tip past the axis), negative
-        // bars point left (tip before the axis). Extend the tolerance outward past the tip. The label column sits
-        // left of the plot area, so treat it as a separate hoverable region rather than merging it with the bar
-        // span, which would otherwise make the empty negative-side plot region between them hoverable too.
-        const thickness = barThickness.get();
-        if (thickness <= 0) {
-            return false;
-        }
-        const band = Math.min(thickness + 2 * HOVER_ROW_PADDING, rowHeight.get());
-        const rowTop = args.targetY - band / 2;
-        const rowBottom = args.targetY + band / 2;
-        const isWithinRow = args.cursorY >= rowTop && args.cursorY <= rowBottom;
-        const zero = xZero.get();
-        const tipX = rowTips.get().at(args.targetIndex) ?? args.targetX;
-        const tipEnd = tipX >= zero ? tipX + HOVER_TIP_TOLERANCE : tipX - HOVER_TIP_TOLERANCE;
-        const barStart = Math.min(zero, tipEnd);
-        const barEnd = Math.max(zero, tipEnd);
-        const isWithinBar = args.cursorX >= barStart && args.cursorX <= barEnd;
-        const isWithinLabelColumn = args.cursorX <= plotLeft.get();
-        const isWithinBarExtent = isWithinBar || isWithinLabelColumn;
-
-        return isWithinRow && isWithinBarExtent;
+        return getSeriesIndexAt(args.targetIndex, args.cursorX, args.cursorY) >= 0;
     };
 
     const resolveTargetIndex = (args: ResolveTargetIndexArgs) => {
@@ -292,12 +290,7 @@ function HorizontalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxi
         xZero.set(zero);
         const oy = data.map((point, index) => yScale(lastIndex - index));
         rowCenters.set(oy);
-        rowTips.set(
-            data.map((point) => {
-                const tips = seriesKeys.map((key) => xScale(getSeriesValue(point, key)));
-                return tips.reduce((farthest, tip) => (Math.abs(tip - zero) > Math.abs(farthest - zero) ? tip : farthest), zero);
-            }),
-        );
+        barTips.set(data.map((point) => seriesKeys.map((key) => xScale(getSeriesValue(point, key)))));
         setPointPositions(
             // The tooltip sits above the row and points at the top bar, the first series.
             data.map((point) => xScale(getSeriesValue(point, primarySeriesKey))),
@@ -395,7 +388,7 @@ function HorizontalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxi
     // barWidth for a single series: (1 - betweenGroupPadding) * plotHeight / groupCount.
     const renderBars = (args: CartesianChartRenderArg<{x: number; y: number}, 'y'>) => {
         const plotHeight = args.chartBounds.bottom - args.chartBounds.top;
-        const groupThickness = data.length > 0 ? (1 - HORIZONTAL_BAR_PADDING) * (plotHeight / data.length) : 0;
+        const groupThickness = getGroupThickness(plotHeight);
         if (groupThickness <= 0) {
             return null;
         }

@@ -2,10 +2,20 @@ import type {ChartDataPoint} from '@components/Charts/types';
 import {getSeriesValue, processDataIntoSlices} from '@components/Charts/utils';
 import VictoryTheme from '@components/Charts/VictoryTheme';
 import {buildChartSeries, CHART_SERIES_KEY, getSliceColorsByDataIndex} from '@components/Search/buildChartSeries';
-import type {TransactionMerchantGroupListItemType, TransactionQuarterGroupListItemType} from '@components/Search/SearchList/ListItem/types';
+import CHART_GROUP_BY_CONFIG from '@components/Search/chartGroupByConfig';
+import type {
+    TransactionDayGroupListItemType,
+    TransactionMerchantGroupListItemType,
+    TransactionMonthGroupListItemType,
+    TransactionQuarterGroupListItemType,
+    TransactionWeekGroupListItemType,
+} from '@components/Search/SearchList/ListItem/types';
 import type {ChartView, GroupedItem, SearchGroupBy} from '@components/Search/types';
 
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
+
+import {translateLocal} from '../utils/TestHelper';
 
 /** A grouped merchant result, carrying the fields the series is built from. */
 function merchantGroup(merchant: string, total: number, count = 1, percentOfTotal?: number): TransactionMerchantGroupListItemType {
@@ -339,5 +349,153 @@ describe('buildChartSeries with a compared period', () => {
 
         // Then no row carries a color of its own, since every bar takes the color of the period it belongs to
         expect(model.rows.every((row) => row.color === undefined)).toBe(true);
+    });
+});
+
+describe('buildChartSeries labels for compared time buckets', () => {
+    beforeAll(() => {
+        IntlStore.load(CONST.LOCALES.EN);
+    });
+
+    /** Fields every grouped bucket carries besides its own date */
+    const BUCKET_BASE = {count: 1, total: 100000, currency: CONST.CURRENCY.USD, transactions: []};
+
+    function monthGroup(year: number, month: number): TransactionMonthGroupListItemType {
+        return {
+            ...BUCKET_BASE,
+            groupedBy: CONST.SEARCH.GROUP_BY.MONTH,
+            year,
+            month,
+            formattedMonth: `${month}/${year}`,
+            shortFormattedMonth: `${month}`,
+            sortKey: month,
+            keyForList: `month_${year}_${month}`,
+        };
+    }
+
+    function weekGroup(week: string): TransactionWeekGroupListItemType {
+        return {...BUCKET_BASE, groupedBy: CONST.SEARCH.GROUP_BY.WEEK, week, formattedWeek: week, shortFormattedWeek: week, keyForList: `week_${week}`};
+    }
+
+    function dayGroup(day: string): TransactionDayGroupListItemType {
+        return {...BUCKET_BASE, groupedBy: CONST.SEARCH.GROUP_BY.DAY, day, formattedDay: day, shortFormattedDay: day, keyForList: `day_${day}`};
+    }
+
+    /** Builds the labels of a chart plotting the window on screen against the one before it. */
+    function buildLabels(rows: GroupedItem[], groupBy: SearchGroupBy, current: {start: string; end: string}, previous: {start: string; end: string}) {
+        return buildChartSeries({
+            primary: {rows, label: 'Current', ...current},
+            comparison: {rows: [], label: 'Previous', ...previous},
+            view: CONST.SEARCH.VIEW.BAR,
+            groupBy,
+            getLabel: CHART_GROUP_BY_CONFIG[groupBy].getLabel,
+            getShortLabel: CHART_GROUP_BY_CONFIG[groupBy].getShortLabel,
+            getCurrencyDecimals,
+            translate: translateLocal,
+        }).rows.map((row) => [row.point.label, row.point.shortLabel]);
+    }
+
+    it('names months without their year, since the same month of each year is compared', () => {
+        // Given year to date plotted against the year before
+        const labels = buildLabels(
+            [monthGroup(2026, 1), monthGroup(2026, 2)],
+            CONST.SEARCH.GROUP_BY.MONTH,
+            {start: '2026-01-01', end: '2026-10-01'},
+            {start: '2025-01-01', end: '2025-10-01'},
+        );
+
+        // Then each month is named on its own, which fits both of the bars drawn for it
+        expect(labels).toEqual([
+            ['January', 'January'],
+            ['February', 'February'],
+        ]);
+    });
+
+    it('numbers weeks from the start of the window, since their dates differ from month to month', () => {
+        // Given September 2026, whose first week starts on Sunday August 30 and second on September 6
+        const labels = buildLabels(
+            [weekGroup('2026-08-30'), weekGroup('2026-09-06')],
+            CONST.SEARCH.GROUP_BY.WEEK,
+            {start: '2026-09-01', end: '2026-09-30'},
+            {start: '2026-08-01', end: '2026-08-31'},
+        );
+
+        // Then the weeks are numbered by their position, which August's weeks share although their dates differ
+        expect(labels).toEqual([
+            ['Week 1', 'Week 1'],
+            ['Week 2', 'Week 2'],
+        ]);
+    });
+
+    it('names days by the day of the month when the window spans a month', () => {
+        // Given September 2026 plotted day by day
+        const labels = buildLabels([dayGroup('2026-09-06')], CONST.SEARCH.GROUP_BY.DAY, {start: '2026-09-01', end: '2026-09-30'}, {start: '2026-08-01', end: '2026-08-31'});
+
+        // Then the day is named by its number, which the same day of August shares
+        expect(labels).toEqual([['6', '6']]);
+    });
+
+    it('names days by the weekday when the window spans a week', () => {
+        // Given a week plotted day by day against the week before it
+        const labels = buildLabels([dayGroup('2026-09-07')], CONST.SEARCH.GROUP_BY.DAY, {start: '2026-09-06', end: '2026-09-12'}, {start: '2026-08-30', end: '2026-09-05'});
+
+        // Then the day is named by its weekday, which the matching day of the week before shares
+        expect(labels).toEqual([['Mon', 'Mon']]);
+    });
+
+    it('numbers weeks the same whichever weekday they start on', () => {
+        // Given September 2026 grouped into weeks starting on Monday, whose first week starts on August 31
+        const labels = buildLabels(
+            [weekGroup('2026-08-31'), weekGroup('2026-09-07')],
+            CONST.SEARCH.GROUP_BY.WEEK,
+            {start: '2026-09-01', end: '2026-09-30'},
+            {start: '2026-08-01', end: '2026-08-31'},
+        );
+
+        // Then the week holding the first day of the window is still the first one
+        expect(labels).toEqual([
+            ['Week 1', 'Week 1'],
+            ['Week 2', 'Week 2'],
+        ]);
+    });
+
+    it('numbers months when the compared month has a different name', () => {
+        // Given September plotted against August, so a month name would only fit one of the two bars
+        const labels = buildLabels([monthGroup(2026, 9)], CONST.SEARCH.GROUP_BY.MONTH, {start: '2026-09-01', end: '2026-09-30'}, {start: '2026-08-01', end: '2026-08-31'});
+
+        // Then the month is named by its position in the window, which fits both
+        expect(labels).toEqual([['Month 1', 'Month 1']]);
+    });
+
+    it('numbers days when a custom range is compared against days with other dates', () => {
+        // Given September 10 to 25 plotted against the 16 days before it, which start on August 25
+        const labels = buildLabels(
+            [dayGroup('2026-09-10'), dayGroup('2026-09-12')],
+            CONST.SEARCH.GROUP_BY.DAY,
+            {start: '2026-09-10', end: '2026-09-25'},
+            {start: '2026-08-25', end: '2026-09-09'},
+        );
+
+        // Then the days are named by their position, since "10" would be wrong for August 25
+        expect(labels).toEqual([
+            ['Day 1', 'Day 1'],
+            ['Day 3', 'Day 3'],
+        ]);
+    });
+
+    it('keeps the plain labels when nothing is compared', () => {
+        // Given a single month plotted on its own
+        const labels = buildChartSeries({
+            primary: {rows: [monthGroup(2026, 1)]},
+            view: CONST.SEARCH.VIEW.BAR,
+            groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+            getLabel: CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.MONTH].getLabel,
+            getShortLabel: CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.MONTH].getShortLabel,
+            getCurrencyDecimals,
+            translate: translateLocal,
+        }).rows.map((row) => [row.point.label, row.point.shortLabel]);
+
+        // Then it keeps its own label with the year, since there is no other period it needs to fit
+        expect(labels).toEqual([['1/2026', '1']]);
     });
 });

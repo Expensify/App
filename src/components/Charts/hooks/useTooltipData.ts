@@ -12,7 +12,7 @@ type TooltipRow = {
     /** The series' amount at the active point */
     amount: string;
 
-    /** The amount's share of total spend, which only the window on screen has */
+    /** The amount's share of total spend, shown only when a single series is plotted */
     percentage?: string;
 };
 
@@ -25,7 +25,7 @@ type TooltipData = {
 
 /**
  * Formats tooltip content for the active chart data point: one row per plotted series.
- * The share of total spend is read off the point, so it describes the window on screen alone.
+ * The share of total spend shows for a single series only, not when periods are compared.
  */
 function useTooltipData(activeDataIndex: number, data: ChartDataPoint[], series: ChartSeries[], formatAmount: (value: number) => string): TooltipData | null {
     const {preferredLocale} = useLocalize();
@@ -40,14 +40,13 @@ function useTooltipData(activeDataIndex: number, data: ChartDataPoint[], series:
 
     return {
         title: dataPoint.label,
-        rows: series.map((seriesItem, index) => {
+        rows: series.map((seriesItem) => {
             const value = getSeriesValue(dataPoint, seriesItem.key);
-            const isPrimarySeries = index === 0;
 
             return {
                 label: seriesItem.label,
                 amount: formatAmount(value),
-                percentage: isPrimarySeries && dataPoint.percentOfTotal !== undefined ? formatPercentOfTotal(dataPoint.percentOfTotal, value, preferredLocale) : undefined,
+                percentage: series.length === 1 && dataPoint.percentOfTotal !== undefined ? formatPercentOfTotal(dataPoint.percentOfTotal, value, preferredLocale) : undefined,
             };
         }),
     };

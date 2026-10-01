@@ -78,20 +78,22 @@ type SearchChartViewProps = {
  * and handles navigation/drill-down logic
  */
 function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, comparison, renderDetails, chartContainerStyle}: SearchChartViewProps) {
-    const {preferredLocale} = useLocalize();
+    const {preferredLocale, translate, dateFnsLocale} = useLocalize();
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {currentSearchKey} = useSearchQueryContext();
 
     const {getLabel, getShortLabel, getFilterQuery, getBucketRange} = CHART_GROUP_BY_CONFIG[groupBy];
 
     const model = buildChartSeries({
-        primary: {rows: data, label: comparison?.current.label, color: comparison?.current.color ?? color, start: comparison?.current.range.start},
+        primary: {rows: data, label: comparison?.current.label, color: comparison?.current.color ?? color, start: comparison?.current.range.start, end: comparison?.current.range.end},
         comparison: comparison ? {rows: comparison.data, label: comparison.previous.label, color: comparison.previous.color, start: comparison.previous.range.start} : undefined,
         view,
         groupBy,
         getLabel,
         getShortLabel,
         getCurrencyDecimals,
+        translate,
+        dateFnsLocale,
     });
     const {series, rows} = model;
     const points = rows.map((row) => row.point);

@@ -1,5 +1,6 @@
 import type {ChartDataPoint, ChartSeries} from '@components/Charts';
 import VictoryTheme from '@components/Charts/VictoryTheme';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import {convertToFrontendAmountAsInteger} from '@libs/CurrencyUtils';
 import {isShareWorthDrawing} from '@libs/PercentageUtils';
@@ -7,7 +8,19 @@ import StringUtils from '@libs/StringUtils';
 
 import CONST from '@src/CONST';
 
-import {differenceInCalendarDays, differenceInCalendarMonths, differenceInCalendarQuarters, differenceInCalendarWeeks, differenceInCalendarYears, parseISO} from 'date-fns';
+import {
+    addDays,
+    addMonths,
+    addQuarters,
+    addYears,
+    differenceInCalendarDays,
+    differenceInCalendarMonths,
+    differenceInCalendarQuarters,
+    differenceInCalendarYears,
+    format,
+    isSameMonth,
+    parseISO,
+} from 'date-fns';
 
 import type {ChartBucketUnit} from './chartGroupByConfig';
 import type {ChartView, GroupedItem, SearchChartDataRow, SearchGroupBy} from './types';
@@ -20,13 +33,34 @@ const CHART_SERIES_KEY = {
     COMPARISON: 'comparison',
 } as const;
 
-const BUCKET_DIFFERENCE: Record<ChartBucketUnit, (later: Date, earlier: Date) => number> = {
+const DAYS_IN_WEEK = 7;
+
+/** How many buckets into its window a bucket starts. A week counts from the one holding the window's first day, whichever weekday weeks start on. */
+const BUCKET_OFFSET: Record<ChartBucketUnit, (bucketStart: Date, windowStart: Date) => number> = {
     day: differenceInCalendarDays,
-    week: differenceInCalendarWeeks,
+    week: (bucketStart, windowStart) => Math.ceil(differenceInCalendarDays(bucketStart, windowStart) / DAYS_IN_WEEK),
     month: differenceInCalendarMonths,
     quarter: differenceInCalendarQuarters,
     year: differenceInCalendarYears,
 };
+
+/** Steps a date forward by whole buckets */
+const BUCKET_ADD: Record<ChartBucketUnit, (date: Date, amount: number) => Date> = {
+    day: addDays,
+    week: (date, amount) => addDays(date, amount * DAYS_IN_WEEK),
+    month: addMonths,
+    quarter: addQuarters,
+    year: addYears,
+};
+
+/** Translation of a bucket's position in its window, the label used when the compared buckets share no calendar name */
+const BUCKET_POSITION_LABEL = {
+    day: 'insightsPage.compare.dayNumber',
+    week: 'insightsPage.compare.weekNumber',
+    month: 'insightsPage.compare.monthNumber',
+    quarter: 'insightsPage.compare.quarterNumber',
+    year: 'insightsPage.compare.yearNumber',
+} as const satisfies Record<ChartBucketUnit, string>;
 
 /** One window plotted as a series: the rows it groups, how the legend names it, and where the window starts. */
 type ChartSeriesWindow = {
@@ -40,6 +74,9 @@ type ChartSeriesWindow = {
 
     /** First day of the window, `yyyy-MM-dd`, which its buckets' positions are measured from */
     start?: string;
+
+    /** Last day of the window, `yyyy-MM-dd` */
+    end?: string;
 };
 
 type BuildChartSeriesParams = {
@@ -63,6 +100,11 @@ type BuildChartSeriesParams = {
 
     /** Returns how many decimals a currency is displayed with */
     getCurrencyDecimals: (currency: string) => number;
+
+    /** Names a compared time bucket, which the plain bucket label can't since it only fits the window on screen */
+    translate?: LocaleContextProps['translate'];
+
+    dateFnsLocale?: LocaleContextProps['dateFnsLocale'];
 };
 
 type SearchChartModel = {
@@ -104,7 +146,54 @@ function getPairingKey(item: GroupedItem, windowStart: string | undefined, group
         return getFilterQuery(item);
     }
 
-    return `bucket:${BUCKET_DIFFERENCE[bucketUnit](parseISO(bucketStart), parseISO(windowStart))}`;
+    return `bucket:${BUCKET_OFFSET[bucketUnit](parseISO(bucketStart), parseISO(windowStart))}`;
+}
+
+/**
+ * The calendar name a window's buckets can go by, like "January" or "Mon", as a date-fns pattern.
+ * Undefined when the window is long enough for the name to repeat, or for a unit that has no such name.
+ */
+function getCalendarNamePattern(bucketUnit: ChartBucketUnit, windowStart: Date, windowEnd: Date): string | undefined {
+    switch (bucketUnit) {
+        case 'day':
+            if (differenceInCalendarDays(windowEnd, windowStart) < DAYS_IN_WEEK) {
+                return 'EEE';
+            }
+            return isSameMonth(windowStart, windowEnd) ? 'd' : undefined;
+        case 'month':
+            return differenceInCalendarMonths(windowEnd, windowStart) < 12 ? 'LLLL' : undefined;
+        case 'quarter':
+            return differenceInCalendarQuarters(windowEnd, windowStart) < 4 ? 'QQQ' : undefined;
+        default:
+            return undefined;
+    }
+}
+
+/**
+ * Names a time bucket so the name fits its counterpart in the compared window too: the calendar name both share,
+ * like "January", or else its position, like "Week 2". Undefined when either window's dates are unknown.
+ */
+function getComparedBucketLabel(
+    bucketStart: string,
+    primary: ChartSeriesWindow,
+    comparison: ChartSeriesWindow,
+    bucketUnit: ChartBucketUnit,
+    translate: LocaleContextProps['translate'],
+    dateFnsLocale: LocaleContextProps['dateFnsLocale'],
+): string | undefined {
+    if (!primary.start || !primary.end || !comparison.start) {
+        return undefined;
+    }
+    const bucketDate = parseISO(bucketStart);
+    const primaryStart = parseISO(primary.start);
+    const offset = BUCKET_OFFSET[bucketUnit](bucketDate, primaryStart);
+    const counterpartDate = BUCKET_ADD[bucketUnit](parseISO(comparison.start), offset);
+    const pattern = getCalendarNamePattern(bucketUnit, primaryStart, parseISO(primary.end));
+
+    if (pattern && format(bucketDate, pattern) === format(counterpartDate, pattern)) {
+        return format(bucketDate, pattern, {locale: dateFnsLocale});
+    }
+    return translate(BUCKET_POSITION_LABEL[bucketUnit], offset + 1);
 }
 
 /**
@@ -113,7 +202,7 @@ function getPairingKey(item: GroupedItem, windowStart: string | undefined, group
  * This is the single place group totals are turned into plotted values. A row keeps the grouped items its values
  * were read from, so a press on it can be traced back to the window it belongs to.
  */
-function buildChartSeries({primary, comparison, view, groupBy, getLabel, getShortLabel, getCurrencyDecimals}: BuildChartSeriesParams): SearchChartModel {
+function buildChartSeries({primary, comparison, view, groupBy, getLabel, getShortLabel, getCurrencyDecimals, translate, dateFnsLocale}: BuildChartSeriesParams): SearchChartModel {
     const series: ChartSeries[] = [{key: CHART_SERIES_KEY.PRIMARY, label: primary.label, color: primary.color}];
     if (comparison) {
         series.push({key: CHART_SERIES_KEY.COMPARISON, label: comparison.label, color: comparison.color});
@@ -121,12 +210,17 @@ function buildChartSeries({primary, comparison, view, groupBy, getLabel, getShor
 
     const getAmount = (item: GroupedItem) => convertToFrontendAmountAsInteger(item.total ?? 0, getCurrencyDecimals(item.currency ?? CONST.CURRENCY.USD));
     const comparisonByPairingKey = new Map((comparison?.rows ?? []).map((item) => [getPairingKey(item, comparison?.start, groupBy), item]));
+    const {bucketUnit, getBucketRange} = CHART_GROUP_BY_CONFIG[groupBy];
 
     const rows = primary.rows.map((item) => {
         const comparisonItem = comparison ? comparisonByPairingKey.get(getPairingKey(item, primary.start, groupBy)) : undefined;
+        const comparedLabel =
+            comparison && bucketUnit && getBucketRange && translate
+                ? getComparedBucketLabel(getBucketRange(item).start, primary, comparison, bucketUnit, translate, dateFnsLocale)
+                : undefined;
         const point: ChartDataPoint = {
-            label: StringUtils.normalize(getLabel(item)),
-            shortLabel: getShortLabel?.(item),
+            label: comparedLabel ?? StringUtils.normalize(getLabel(item)),
+            shortLabel: comparedLabel ?? getShortLabel?.(item),
             values: {
                 [CHART_SERIES_KEY.PRIMARY]: getAmount(item),
                 ...(!!comparison && {[CHART_SERIES_KEY.COMPARISON]: comparisonItem ? getAmount(comparisonItem) : 0}),

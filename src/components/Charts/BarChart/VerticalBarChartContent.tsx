@@ -71,23 +71,33 @@ function VerticalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxisU
 
     const yAxisDomain = useDynamicYDomain(data);
 
-    /** Width of one bar and of the whole group of bars at one x position, as BarGroup lays them out */
-    const barWidth = useSharedValue(0);
+    /** Width of the whole group of bars at one x position, as BarGroup lays it out */
     const groupWidth = useSharedValue(0);
 
     /** Canvas x position of each group's center, so a press can be traced back to the bar under the cursor */
     const groupCenters = useSharedValue<number[]>([]);
 
-    /** The series whose bar sits under `cursorX`, resolved from the group's left edge */
-    const resolveSeriesKey = (index: number, cursorX: number): string => {
+    /** Canvas y position of each bar's top, per group and then per series */
+    const barTops = useSharedValue<number[][]>([]);
+    const yZero = useSharedValue(0);
+
+    /** Index of the group's series whose bar is under the cursor, or -1 when the cursor misses every bar */
+    const getSeriesIndexAt = (index: number, cursorX: number, cursorY: number): number => {
+        'worklet';
+
         const groupCenter = groupCenters.get().at(index);
-        const width = barWidth.get();
-        if (groupCenter === undefined || width === 0) {
-            return primarySeriesKey;
+        const currentGroupWidth = groupWidth.get();
+        if (groupCenter === undefined || currentGroupWidth === 0) {
+            return -1;
         }
-        const offset = cursorX - (groupCenter - groupWidth.get() / 2);
-        const seriesIndex = Math.min(seriesKeys.length - 1, Math.max(0, Math.floor(offset / width)));
-        return seriesKeys.at(seriesIndex) ?? primarySeriesKey;
+        const offset = cursorX - (groupCenter - currentGroupWidth / 2);
+        if (offset < 0 || offset > currentGroupWidth) {
+            return -1;
+        }
+        const seriesIndex = Math.min(seriesKeys.length - 1, Math.floor(offset / (currentGroupWidth / seriesKeys.length)));
+        const currentYZero = yZero.get();
+        const barTop = barTops.get().at(index)?.at(seriesIndex) ?? currentYZero;
+        return cursorY >= Math.min(barTop, currentYZero) && cursorY <= Math.max(barTop, currentYZero) ? seriesIndex : -1;
     };
 
     const handleBarPress = (index: number, cursor: {x: number; y: number}) => {
@@ -96,12 +106,11 @@ function VerticalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxisU
         }
         const dataPoint = data.at(index);
         if (dataPoint && onBarPress) {
-            onBarPress(dataPoint, index, resolveSeriesKey(index, cursor.x));
+            onBarPress(dataPoint, index, seriesKeys.at(getSeriesIndexAt(index, cursor.x, cursor.y)) ?? primarySeriesKey);
         }
     };
 
-    const handleBarSizeChange = (sizes: {barWidth: number; groupWidth: number}) => {
-        barWidth.set(sizes.barWidth);
+    const handleBarSizeChange = (sizes: {groupWidth: number}) => {
         groupWidth.set(sizes.groupWidth);
     };
 
@@ -142,7 +151,6 @@ function VerticalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxisU
     });
 
     const chartBottom = useSharedValue(0);
-    const yZero = useSharedValue(0);
 
     const {isCursorOverLabel, findLabelCursorX, updateTickPositions} = useLabelHitTesting({
         fontManager,
@@ -157,7 +165,6 @@ function VerticalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxisU
     const handleChartBoundsChange = (bounds: ChartBounds) => {
         const domainWidth = bounds.right - bounds.left;
         const calculatedGroupWidth = ((1 - BAR_INNER_PADDING) * domainWidth) / data.length;
-        barWidth.set(calculatedGroupWidth / series.length);
         groupWidth.set(calculatedGroupWidth);
         yZero.set(0);
         setBarAreaWidth(domainWidth);
@@ -168,18 +175,7 @@ function VerticalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxisU
     const checkIsOverBar = (args: HitTestArgs) => {
         'worklet';
 
-        const currentGroupWidth = groupWidth.get();
-        const currentYZero = yZero.get();
-        if (currentGroupWidth === 0) {
-            return false;
-        }
-        const barLeft = args.targetX - currentGroupWidth / 2;
-        const barRight = args.targetX + currentGroupWidth / 2;
-
-        const barTop = Math.min(args.targetY, currentYZero);
-        const barBottom = Math.max(args.targetY, currentYZero);
-
-        return args.cursorX >= barLeft && args.cursorX <= barRight && args.cursorY >= barTop && args.cursorY <= barBottom;
+        return getSeriesIndexAt(args.targetIndex, args.cursorX, args.cursorY) >= 0;
     };
 
     const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition} = useChartInteractions({
@@ -196,9 +192,10 @@ function VerticalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxisU
         updateTickPositions(xScale, data.length);
         const centers = chartData.map((point, index) => xScale(point.x ?? index));
         groupCenters.set(centers);
+        barTops.set(data.map((point) => seriesKeys.map((key) => yScale(getSeriesValue(point, key)))));
         setPointPositions(
             centers,
-            // The tooltip and the hover area sit above the tallest bar of the group, so both windows stay reachable.
+            // The tooltip sits above the tallest bar of the group, so it clears every series.
             data.map((point) => Math.min(...seriesKeys.map((key) => yScale(getSeriesValue(point, key))))),
         );
     };
