@@ -457,6 +457,10 @@ function MoneyRequestReportPreview({
         );
     };
 
+    if (iouReport?.isHiddenForBillReceiver) {
+        return null;
+    }
+
     return (
         <MoneyRequestReportPreviewContent
             newTransactionIDs={newTransactionIDs}

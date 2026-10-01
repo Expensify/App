@@ -34,6 +34,21 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        bills: 'Contas a pagar',
+        createBill: 'Criar conta a pagar',
+        vendorEmail: 'E-mail do fornecedor',
+        domain: 'Domínio destinatário',
+        invoiceDetails: 'Detalhes da fatura',
+        attachPDF: 'Anexar PDF',
+        payByACH: 'Pagar por ACH',
+        markAsPaid: 'Marcar como paga',
+        paymentFailed: 'Não foi possível pagar esta conta. Tente novamente.',
+        createFailed: 'Não foi possível criar esta conta. Tente novamente.',
+        payBills: ({count}) => ({one: 'Pagar 1 conta', other: `Pagar ${count} contas`}),
+        primaryContactHint: (domain) =>
+            `O contato principal é o ponto de contato de ${domain} e receberá as contas enviadas ao endereço de pagamento de contas deste domínio ${domain}@expensify.cash.`,
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `${count} dia`,

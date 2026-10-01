@@ -185,7 +185,7 @@ function useSearchSnapshot({
     const validGroupBy = getValidGroupBy(groupBy);
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
-    const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+    const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || type === CONST.SEARCH.DATA_TYPES.BILL;
 
     // Only CHAT/TASK sections read reportAttributesDerivedValue. It's a derived value that gets a new
     // reference whenever any report changes (e.g. on every step of a PAY), so keeping it in the deps for

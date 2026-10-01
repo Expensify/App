@@ -170,6 +170,13 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Invoice room receiver data */
         invoiceReceiver?: InvoiceReceiver;
 
+        billID?: string;
+        invoiceID?: string;
+        billSenderAccountID?: number;
+        billReceiverAccountID?: number;
+        isBillPayReport?: boolean;
+        isHiddenForBillReceiver?: boolean;
+
         /** Number of transactions in the report */
         transactionCount?: number;
 

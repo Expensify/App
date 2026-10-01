@@ -59,6 +59,7 @@ function ForYouSection({isInitialLoad, isConciergeMenuVisible, setIsConciergeMen
     const submitCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.SUBMIT];
     const approveCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.APPROVE];
     const payCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.PAY];
+    const billPayCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.BILLS_PAY] ?? 0;
     const exportCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.EXPORT];
 
     const navigateToReport = useCallback(
@@ -153,6 +154,13 @@ function ForYouSection({isInitialLoad, isConciergeMenuVisible, setIsConciergeMen
                     ),
                 },
                 {
+                    key: 'billsPay',
+                    count: billPayCount,
+                    icon: icons.MoneyBag,
+                    translationKey: 'billPay.payBills' as const,
+                    handler: createNavigationHandler(CONST.SEARCH.ACTION_FILTERS.PAY, {type: CONST.SEARCH.DATA_TYPES.BILL, payer: accountID?.toString()}, CONST.SEARCH.SEARCH_KEYS.BILLS_PAY),
+                },
+                {
                     key: 'reviewDomainAdminRequests',
                     count: domainAdminRequestsCount,
                     icon: icons.UserShield,
@@ -176,6 +184,7 @@ function ForYouSection({isInitialLoad, isConciergeMenuVisible, setIsConciergeMen
             icons.ThumbsUp,
             icons.UserShield,
             payCount,
+            billPayCount,
             singleReportIDs,
             submitCount,
         ],

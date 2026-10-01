@@ -34,6 +34,20 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        bills: '账单',
+        createBill: '创建账单',
+        vendorEmail: '供应商邮箱',
+        domain: '接收域名',
+        invoiceDetails: '发票详情',
+        attachPDF: '附加 PDF',
+        payByACH: '通过 ACH 支付',
+        markAsPaid: '标记为已支付',
+        paymentFailed: '无法支付此账单。请重试。',
+        createFailed: '无法创建此账单。请重试。',
+        payBills: ({count}) => ({one: '支付 1 笔账单', other: `支付 ${count} 笔账单`}),
+        primaryContactHint: (domain) => `主要联系人是 ${domain} 的主要联络人，并将收到发送至此域名账单支付地址 ${domain}@expensify.cash 的账单。`,
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `1 天`,
