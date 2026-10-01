@@ -11,6 +11,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {format} from '@libs/NumberFormatUtils';
 import {formatPercentOfTotal} from '@libs/PercentageUtils';
 
 import CONST from '@src/CONST';
@@ -48,13 +49,13 @@ function isMemberGroup(item: GroupedItem): item is TransactionMemberGroupListIte
     return isMemberGroupBy(item.groupedBy);
 }
 
-/** How the period on screen compares to the one before it, in whole percentage points. Absent when there is nothing to measure against. */
-function getChangeAgainstComparison(current: number, previous: number | undefined): number | undefined {
-    if (previous === undefined || previous === 0) {
+/** How far the period on screen moved from the one before it, as a fraction of it. Absent when there is nothing to measure against. */
+function getRelativeChange(current: number, previous: number): number | undefined {
+    if (previous === 0) {
         return undefined;
     }
 
-    return Math.round(((current - previous) / Math.abs(previous)) * 100);
+    return (current - previous) / Math.abs(previous);
 }
 
 function InsightsDataTable({rows, series, view, groupBy, isLoading}: InsightsDataTableProps) {
@@ -80,22 +81,27 @@ function InsightsDataTable({rows, series, view, groupBy, isLoading}: InsightsDat
     }
 
     const shouldShowColorDot = view === CONST.SEARCH.VIEW.PIE;
-    const primarySeriesKey = series.at(0)?.key ?? '';
     const comparisonSeries = series.at(1);
 
     return (
         <View style={styles.chartInlineTable}>
             {rows.map((row, index) => {
-                const {item, point, color} = row;
+                const {item, comparisonItem, point, color} = row;
                 const isLastRow = index === rows.length - 1;
-                // Against a compared period a group is measured by how much it moved; on its own, by its share of the spend.
-                const change = comparisonSeries ? getChangeAgainstComparison(point.values[primarySeriesKey] ?? 0, point.values[comparisonSeries.key] ?? 0) : undefined;
+                // Against a compared period a group is measured by how much it moved; on its own, by its count and share of the spend.
+                const amountChange = (item.total ?? 0) - (comparisonItem?.total ?? 0);
+                const relativeChange = getRelativeChange(item.total ?? 0, comparisonItem?.total ?? 0);
+                let detailText = translate('iou.expenseCount', {count: item.count});
                 let supportingText =
                     point.percentOfTotal === undefined
                         ? undefined
                         : translate('search.percentOfSpend', {percent: formatPercentOfTotal(point.percentOfTotal, item.total ?? 0, preferredLocale)});
                 if (comparisonSeries) {
-                    supportingText = change === undefined ? undefined : translate('insightsPage.compare.changeAgainst', change, comparisonSeries.label ?? '');
+                    detailText = translate('insightsPage.compare.change', `${amountChange > 0 ? '+' : ''}${convertToDisplayString(amountChange, item.currency)}`);
+                    supportingText =
+                        relativeChange === undefined
+                            ? undefined
+                            : format(preferredLocale, relativeChange, {style: 'percent', minimumFractionDigits: 1, maximumFractionDigits: 1, signDisplay: 'exceptZero'});
                 }
 
                 return (
@@ -117,7 +123,7 @@ function InsightsDataTable({rows, series, view, groupBy, isLoading}: InsightsDat
                                 shouldShowTooltip
                             />
                             <TextWithTooltip
-                                text={translate('iou.expenseCount', {count: item.count})}
+                                text={detailText}
                                 style={styles.mutedNormalTextLabel}
                                 shouldShowTooltip
                             />

@@ -1,4 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import ChartLegend from '@components/Charts/components/ChartLegend';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
 import type {HitTestArgs, ResolveTargetIndexArgs} from '@components/Charts/hooks';
@@ -426,52 +427,55 @@ function HorizontalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxi
     }
 
     return (
-        <GestureDetector
-            gesture={customGestures}
-            touchAction="pan-y"
-        >
-            <Animated.View
-                style={[styles.chartContent, dynamicChartStyle, cursorStyle]}
-                onLayout={handleLayout}
+        <>
+            <GestureDetector
+                gesture={customGestures}
+                touchAction="pan-y"
             >
-                {chartWidth > 0 && (
-                    <CartesianChart
-                        xKey="x"
-                        padding={chartPadding}
-                        yKeys={['y']}
-                        domain={valueDomain ? {x: valueDomain} : undefined}
-                        domainPadding={domainPadding}
-                        onChartBoundsChange={handleChartBoundsChange}
-                        onScaleChange={handleScaleChange}
-                        renderOutside={renderOutside}
-                        xAxis={{
-                            tickCount: VictoryTheme.axis.tickCount,
-                            lineWidth: VictoryTheme.axis.yLineWidth,
-                            lineColor: theme.border,
-                        }}
-                        yAxis={[
-                            {
-                                tickCount: data.length,
-                                lineWidth: 0,
-                            },
-                        ]}
-                        frame={{lineWidth: 0}}
-                        data={chartData}
-                    >
-                        {renderBars}
-                    </CartesianChart>
-                )}
-                <ChartTooltipLayer
-                    matchedIndex={matchedIndex}
-                    isTooltipActive={isTooltipActive}
-                    data={data}
-                    series={series}
-                    formatValue={formatValue}
-                    chartWidth={chartWidth}
-                    initialTooltipPosition={initialTooltipPosition}
-                />
-            </Animated.View>
-        </GestureDetector>
+                <Animated.View
+                    style={[styles.chartContent, dynamicChartStyle, cursorStyle]}
+                    onLayout={handleLayout}
+                >
+                    {chartWidth > 0 && (
+                        <CartesianChart
+                            xKey="x"
+                            padding={chartPadding}
+                            yKeys={['y']}
+                            domain={valueDomain ? {x: valueDomain} : undefined}
+                            domainPadding={domainPadding}
+                            onChartBoundsChange={handleChartBoundsChange}
+                            onScaleChange={handleScaleChange}
+                            renderOutside={renderOutside}
+                            xAxis={{
+                                tickCount: VictoryTheme.axis.tickCount,
+                                lineWidth: VictoryTheme.axis.yLineWidth,
+                                lineColor: theme.border,
+                            }}
+                            yAxis={[
+                                {
+                                    tickCount: data.length,
+                                    lineWidth: 0,
+                                },
+                            ]}
+                            frame={{lineWidth: 0}}
+                            data={chartData}
+                        >
+                            {renderBars}
+                        </CartesianChart>
+                    )}
+                    <ChartTooltipLayer
+                        matchedIndex={matchedIndex}
+                        isTooltipActive={isTooltipActive}
+                        data={data}
+                        series={series}
+                        formatValue={formatValue}
+                        chartWidth={chartWidth}
+                        initialTooltipPosition={initialTooltipPosition}
+                    />
+                </Animated.View>
+            </GestureDetector>
+            <ChartLegend series={series} />
+        </>
     );
 }
 

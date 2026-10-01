@@ -1,7 +1,6 @@
 import type {ChartSeries} from '@components/Charts/types';
 import Text from '@components/Text';
 
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import React from 'react';
@@ -15,7 +14,6 @@ type ChartLegendProps = {
 /** Names the series a bar or line chart plots. A chart plotting one unnamed series draws nothing. */
 function ChartLegend({series}: ChartLegendProps) {
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const namedSeries = series.filter((seriesItem) => !!seriesItem.label);
 
     if (namedSeries.length < 2) {
@@ -23,7 +21,7 @@ function ChartLegend({series}: ChartLegendProps) {
     }
 
     return (
-        <View style={[styles.chartLegendContainer, {marginBottom: shouldUseNarrowLayout ? 20 : 32}]}>
+        <View style={styles.chartLegendContainer}>
             {namedSeries.map((seriesItem) => (
                 <View
                     key={seriesItem.key}

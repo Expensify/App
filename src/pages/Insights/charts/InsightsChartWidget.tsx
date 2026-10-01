@@ -70,8 +70,8 @@ function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGr
     const previousPeriodQueryJSON = isComparingPreviousPeriod ? buildSearchQueryJSON(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.PREVIOUS_PERIOD)) : undefined;
     const [previousPeriodSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${previousPeriodQueryJSON?.hash}`);
     const sortedData = useGroupedItems(snapshot, queryJSON);
-    // Both windows are grouped and sorted by the same query, so the previous period's rows are derived with it too.
-    const previousPeriodSortedData = useGroupedItems(previousPeriodSnapshot, queryJSON);
+    // Grouped by the current query but uncapped, since its top groups by previous spend may not be the ones plotted now.
+    const previousPeriodSortedData = useGroupedItems(previousPeriodSnapshot, queryJSON && {...queryJSON, limit: undefined});
     const {data, previousPeriodData, state} = resolveInsightsChartData({snapshot, queryJSON, sortedData, previousPeriodData: previousPeriodSortedData, isOffline});
     const groupBy = chart.groupBy ?? filters.groupBy;
     const windows = resolveComparisonWindows(filters.date, translate);
