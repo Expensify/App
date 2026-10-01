@@ -74,7 +74,7 @@ const getAuthenticationErrorKey = (err: string): TranslationPaths | null => {
         return null;
     }
 
-    if (err.includes('Invalid validateCode')) {
+    if (err.includes(CONST.MERGE_ACCOUNT_INVALID_CODE_ERROR)) {
         return 'mergeAccountsPage.accountValidate.errors.incorrectSecurityCode';
     }
 
