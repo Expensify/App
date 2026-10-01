@@ -48,10 +48,10 @@ type CategoryPickerModalProps = {
     /** Called when the user confirms a category selection */
     onSelected?: (item: ListItem) => void;
 
-    /** Width of the pop-over. Defaults to the standard dropdown width; a field row passes its own width instead */
+    /** Width of the pop-over. Defaults to the standard dropdown width, a field row passes its own width instead */
     popoverWidth?: number;
 
-    /** Height of the pop-over. Defaults to the standard dropdown height; a caller short on room passes a smaller one */
+    /** Height of the pop-over. Defaults to the standard dropdown height, a caller short on room passes a smaller one */
     popoverHeight?: number;
 
     /**

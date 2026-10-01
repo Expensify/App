@@ -42,7 +42,7 @@ const CONTAINER_BORDER = 2;
 /**
  * Least room a side needs before the container will open into it: one option, plus the search input and padding
  * around it. With less than this the row falls back to its full-page selector, rather than opening a container
- * too short to hold anything — which, having no height to hold it to, would size itself to its content and be
+ * too short to hold anything which having no height to hold it to, would size itself to its content and be
  * dragged back over the row to fit the window.
  */
 const MIN_USABLE_HEIGHT = variables.optionRowHeight + SEARCH_INPUT_HEIGHT + CONTENT_VERTICAL_PADDING;
@@ -104,8 +104,8 @@ type ExpenseFieldDropdownProps = Omit<ExpenseFieldRowProps, 'onPress' | 'anchorR
     renderDropdown: (props: ExpenseFieldDropdownRenderProps) => ReactNode;
 
     /**
-     * Whether the field's list opens in the container at all. A field that can't answer in place — one that has
-     * to send the user through an upgrade or a workspace choice first, or whose list isn't loaded — falls back
+     * Whether the field's list opens in the container at all. A field that can't answer in place one that has
+     * to send the user through an upgrade or a workspace choice first, or whose list isn't loaded falls back
      * to `onPress`, which opens the same full page the row opened before.
      */
     shouldOpenInDropdown: boolean;

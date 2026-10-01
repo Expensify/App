@@ -60,7 +60,7 @@ type UseUpdateTransactionCategoryResult = {
 /**
  * Writes a category onto an expense, from wherever the category is picked.
  *
- * The three stores an expense can live in — the split draft, a saved transaction, and the money request draft —
+ * The three stores an expense can live in, the split draft, a saved transaction, and the money request draft —
  * each take a different write, and each write needs the same wide set of policy and user data to recompute the
  * expense's violations. That is why this lives in one hook rather than in each surface that offers the list: the
  * full-page selector and the confirmation form's anchored dropdown both save through it, so a category picked in
