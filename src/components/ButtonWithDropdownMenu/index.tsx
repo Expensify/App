@@ -358,11 +358,13 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                         ...(item.switchProps
                             ? {
                                   shouldShowRightComponent: true,
-                                  // The Switch is display-only; the interactive row handles the toggle (mouse and keyboard) via onSelected, so there's no double-fire.
+                                  // `isNested` lets the Switch handle its own press (so it animates) while stopping the event from
+                                  // bubbling to the row — no double-toggle. The row's onSelected still toggles via keyboard/label.
                                   rightComponent: (
-                                      <View pointerEvents="none">
-                                          <Switch {...item.switchProps} />
-                                      </View>
+                                      <Switch
+                                          {...item.switchProps}
+                                          isNested
+                                      />
                                   ),
                               }
                             : {}),
