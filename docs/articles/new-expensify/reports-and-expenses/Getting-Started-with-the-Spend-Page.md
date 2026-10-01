@@ -1,7 +1,7 @@
 ---
 title: Getting Started with the Spend Page
 description: Learn how to use the Spend page in New Expensify to view, filter, and manage your expense data using report previews, tables, filters, and smart suggestions.
-keywords: [New Expensify, Spend page, report preview, report table, filters, advanced filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline, filter popover, apply filters, reset filters, total spend, total spend currency, change currency, currency converter, multi-currency total, sort by amount, Amount column, sort amount column, negative amount, credit, refund, negative expense sorting, selected total, total spend negative]
+keywords: [New Expensify, Spend page, report preview, report table, filters, advanced filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline, filter popover, apply filters, reset filters, total spend, total spend currency, change currency, currency converter, multi-currency total, sort by amount, Amount column, sort amount column, negative amount, credit, refund, negative expense sorting, selected total, total spend negative, shift click, select range of expenses]
 ---
 
 The Spend page in New Expensify gives you a full list of your reports and related expenses. From the Spend page you can explore, filter, and export your expense data.
@@ -51,7 +51,7 @@ Each row represents an expense and includes:
 ## Available Actions on the Table
 - **Click an expense** to view or edit it in the right-hand panel  
 - **Edit a cell directly:** Hover over **date**, **merchant**, **description**, **category**, **tag**, or **amount** and click the pencil icon to edit the value inline without opening the expense details. 
-- **Select multiple expenses** using checkboxes, then apply bulk actions such as:
+- **Select multiple expenses** using checkboxes (hold Shift and click a second checkbox to select every expense in between), then apply bulk actions such as:
   - **Move to another report:** When you need to have multiple reports or need to break up expenses across multiple weeks or months.
   - **Download:** For exporting to a CSV file for analysis or to share with your accountant.
   - **Hold:** Use this when you need to temporarily pause the approval of an expense until all required information is provided.
