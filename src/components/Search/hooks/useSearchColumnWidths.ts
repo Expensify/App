@@ -26,7 +26,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-const {MIN_FREE_TEXT_COLUMN_WIDTH, MAX_FREE_TEXT_COLUMN_WIDTH} = CONST.TABLES.DYNAMIC_COLUMNS;
+const {MIN_FREE_TEXT_COLUMN_WIDTH, SCROLLED_FREE_TEXT_COLUMN_WIDTH} = CONST.TABLES.DYNAMIC_COLUMNS;
 
 /** How wide a dynamically sized column was resolved to, and how far it may be squeezed before the table scrolls. */
 type SearchColumnSizing = {
@@ -223,7 +223,7 @@ function useSearchColumnWidths({
         // scrolls either way, and letting one unusually long value set the width would push every column after it out
         // of view for the sake of a single row. Below the cap nothing is capped at all, which is why this is applied
         // here rather than as the constraint the resolver sees.
-        const scrolledWidth = shouldHug ? contentWidth : Math.max(Math.min(contentWidth, MAX_FREE_TEXT_COLUMN_WIDTH + getSearchColumnExtraWidth(column)), constraint.minWidth);
+        const scrolledWidth = shouldHug ? contentWidth : Math.max(Math.min(contentWidth, SCROLLED_FREE_TEXT_COLUMN_WIDTH + getSearchColumnExtraWidth(column)), constraint.minWidth);
 
         columnSizing[column] = {
             shouldHug,

@@ -38,6 +38,7 @@ const SIMPLE_MESSAGE_ACTION_TYPES = new Set<string>([
     CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY,
     CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION,
     CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION,
+    CONST.REPORT.ACTIONS.TYPE.MERGED_EXPENSE_DELETED,
     CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION,
     CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES,
     CONST.REPORT.ACTIONS.TYPE.DEMOTED_FROM_WORKSPACE,
@@ -85,6 +86,9 @@ function SimpleMessageContent({action}: SimpleMessageContentProps) {
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION)) {
         return <ReportActionItemBasicMessage message={translate('systemMessage.mergedWithCashTransaction')} />;
+    }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MERGED_EXPENSE_DELETED)) {
+        return <ReportActionItemBasicMessage message={translate('systemMessage.mergedExpenseDeleted')} />;
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION)) {
         return <ReportActionItemBasicMessage message={getDismissedViolationMessageText(translate, getOriginalMessage(action))} />;

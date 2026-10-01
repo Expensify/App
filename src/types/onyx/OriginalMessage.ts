@@ -545,6 +545,9 @@ type OriginalMessagePolicyChangeLog = {
     /** Report field type */
     fieldType?: string;
 
+    /** Account ID of the workspace member named in a member-scoped change log */
+    accountID?: number;
+
     field?: string;
 
     /** Array of field changes for consolidated employee updates */
@@ -974,6 +977,9 @@ type OriginalMessageModifiedExpense = {
 
     /** The Concierge reasoning for the action */
     reasoning?: string;
+
+    /** Whether a receipt was added to the expense */
+    receiptAdded?: boolean;
 };
 
 /** Model of `concierge auto match vendor` report action — emitted on the transaction thread when the PHP fuzzy matcher auto-matches a non-reimbursable expense to a QBO vendor. */
@@ -1664,6 +1670,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION]: never;
     [CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED]: OriginalMessageMarkedReimbursed;
     [CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION]: never;
+    [CONST.REPORT.ACTIONS.TYPE.MERGED_EXPENSE_DELETED]: never;
     [CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE]: OriginalMessageModifiedExpense;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_MATCH_VENDOR]: OriginalMessageConciergeAutoMatchVendor;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE]: OriginalMessageConciergeAutoSelectDistanceRate;
