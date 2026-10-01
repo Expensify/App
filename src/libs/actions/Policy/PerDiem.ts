@@ -4,6 +4,7 @@ import {getImportFailedFinalModal} from '@libs/actions/ImportSpreadsheet';
 import * as API from '@libs/API';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import enhanceParameters from '@libs/Network/enhanceParameters';
@@ -250,14 +251,8 @@ function deleteWorkspacePerDiemRates(policyID: string, customUnit: CustomUnit | 
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT, parameters, onyxData);
 }
 
-function editPerDiemRateDestination(policyID: string, rateID: string, customUnit: CustomUnit | undefined, newDestination: string) {
-    if (!policyID || !rateID || isEmptyObject(customUnit) || !newDestination) {
-        return;
-    }
-
-    const newCustomUnit: CustomUnit = lodashDeepClone(customUnit);
-    newCustomUnit.rates[rateID].name = newDestination;
-
+function updateWorkspacePerDiemRate(policyID: string, customUnitID: string, currentRate: Rate, updatedRate: Rate) {
+    const rateID = updatedRate.customUnitRateID;
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -265,19 +260,86 @@ function editPerDiemRateDestination(policyID: string, rateID: string, customUnit
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     customUnits: {
-                        [customUnit.customUnitID]: newCustomUnit,
+                        [customUnitID]: {
+                            rates: {
+                                [rateID]: {
+                                    ...updatedRate,
+                                    errors: null,
+                                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    customUnits: {
+                        [customUnitID]: {
+                            rates: {
+                                [rateID]: {
+                                    errors: null,
+                                    pendingAction: null,
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    customUnits: {
+                        [customUnitID]: {
+                            rates: {
+                                [rateID]: {
+                                    ...currentRate,
+                                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                                    pendingAction: null,
+                                },
+                            },
+                        },
                     },
                 },
             },
         ],
     };
 
+    const customUnitRate = lodashDeepClone(updatedRate);
+    delete customUnitRate.pendingAction;
+    delete customUnitRate.pendingFields;
+    delete customUnitRate.errors;
+    delete customUnitRate.errorFields;
+
     const parameters = {
         policyID,
-        customUnit: JSON.stringify(newCustomUnit),
+        customUnitID,
+        customUnitRate: JSON.stringify(customUnitRate),
     };
 
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT, parameters, onyxData);
+}
+
+function editPerDiemRateDestination(policyID: string, rateID: string, customUnit: CustomUnit | undefined, newDestination: string) {
+    if (!policyID || !rateID || isEmptyObject(customUnit) || !newDestination) {
+        return;
+    }
+
+    const currentRate = customUnit.rates[rateID];
+    if (!currentRate) {
+        return;
+    }
+
+    const updatedRate = lodashDeepClone(currentRate);
+    updatedRate.name = newDestination;
+    updateWorkspacePerDiemRate(policyID, customUnit.customUnitID, currentRate, updatedRate);
 }
 
 function editPerDiemRateSubrate(policyID: string, rateID: string, subRateID: string, customUnit: CustomUnit | undefined, newSubrate: string) {
