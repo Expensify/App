@@ -10,6 +10,7 @@ import {
     sanitizeWaypointsForAPI,
     saveWaypoint,
     setSelectedRoute,
+    updateWaypoints,
 } from '@libs/actions/Transaction';
 import * as API from '@libs/API';
 import type {ChangeTransactionsReportParams} from '@libs/API/parameters';
@@ -2744,6 +2745,52 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, existingTransaction);
 
             await removeWaypoint(existingTransaction, '1', true);
+            await waitForBatchedUpdates();
+
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(transaction?.isReusedRoute ?? null).toBeNull();
+        });
+    });
+
+    describe('updateWaypoints', () => {
+        it('should clear extra existing waypoints when new waypoints are fewer', async () => {
+            const transactionID = 'txn-update-waypoints-fewer';
+            const existingTransaction = generateTransaction({transactionID, reportID: '1'});
+            existingTransaction.comment = {
+                ...existingTransaction.comment,
+                waypoints: {
+                    waypoint0: {address: 'A', lat: 1, lng: 1},
+                    waypoint1: {address: 'B', lat: 2, lng: 2},
+                    waypoint2: {address: 'C', lat: 3, lng: 3},
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, existingTransaction);
+
+            const newWaypoints: WaypointCollection = {
+                waypoint0: {address: 'X', lat: 10, lng: 20},
+                waypoint1: {address: 'Y', lat: 30, lng: 40},
+            };
+
+            await updateWaypoints(transactionID, newWaypoints, CONST.TRANSACTION.STATE.DRAFT);
+            await waitForBatchedUpdates();
+
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(Object.keys(transaction?.comment?.waypoints ?? {})).toEqual(['waypoint0', 'waypoint1']);
+            expect(transaction?.comment?.waypoints?.waypoint2).toBeUndefined();
+        });
+
+        it('should clear isReusedRoute so route fetching can run again', async () => {
+            const transactionID = 'txn-update-waypoints-reused';
+            const existingTransaction = generateTransaction({transactionID, reportID: '1'});
+            existingTransaction.isReusedRoute = true;
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, existingTransaction);
+
+            const newWaypoints: WaypointCollection = {
+                waypoint0: {address: 'X', lat: 10, lng: 20},
+                waypoint1: {address: 'Y', lat: 30, lng: 40},
+            };
+
+            await updateWaypoints(transactionID, newWaypoints, CONST.TRANSACTION.STATE.DRAFT);
             await waitForBatchedUpdates();
 
             const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
