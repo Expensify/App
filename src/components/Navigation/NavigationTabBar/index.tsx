@@ -61,6 +61,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true, should
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {expenses, reports} = useFlatNavSpendItems();
+    const firstExpensesSearch = expenses.at(0);
     const firstReportsSearch = reports.at(0);
 
     const StyleUtils = useStyleUtils();
@@ -187,10 +188,10 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true, should
                     selectedTab={selectedTab}
                     isWideLayout={false}
                 />
-                {!!expenses && (
+                {!!firstExpensesSearch && (
                     <CannedSearchTabButton
                         selectedTab={selectedTab}
-                        item={expenses}
+                        item={firstExpensesSearch}
                         label={translate('search.tabs.expenses')}
                         icon={expensifyIcons.Receipt}
                         searchKeys={EXPENSES_KEYS}

@@ -10075,7 +10075,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         tabs: {
             expenseReports: 'Notes de frais',
             reports: 'Notes de frais',
+            allExpenses: 'Toutes les dépenses',
             allReports: 'Toutes les notes de frais',
+            myExpenses: 'Mes dépenses',
             expenses: 'Dépenses',
             submit: 'Brouillons',
             approve: 'Nécessite une approbation',

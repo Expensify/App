@@ -43,7 +43,7 @@ import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
 import {getValidLastQuery} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import {formatBadgeText, getItemBadgeText, getLastSearchQuery, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
-import {ACCOUNTING_KEYS, getGroupedSearchTranslationPath, REPORTS_KEYS} from '@libs/SpendNavigationGroups';
+import {ACCOUNTING_KEYS, EXPENSES_KEYS, getGroupedSearchTranslationPath, REPORTS_KEYS} from '@libs/SpendNavigationGroups';
 
 import NavigationTabBarFloatingActionButton from '@pages/inbox/sidebar/NavigationTabBarFloatingActionButton';
 import ProfileAvatarWithIndicator from '@pages/inbox/sidebar/ProfileAvatarWithIndicator';
@@ -131,6 +131,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const navigateToWorkspaces = useRestoreWorkspacesTabOnNavigate();
 
     const isSpendTabSelected = selectedTab === NAVIGATION_TABS.SEARCH;
+    const isExpensesGroupSelected = isSpendTabSelected && EXPENSES_KEYS.some((key) => key === currentSearchKey);
     const isReportsGroupSelected = isSpendTabSelected && REPORTS_KEYS.some((key) => key === currentSearchKey);
     const isAccountingGroupSelected = isSpendTabSelected && ACCOUNTING_KEYS.some((key) => key === currentSearchKey);
     const isAccountSelected = selectedTab === NAVIGATION_TABS.SETTINGS;
@@ -293,7 +294,27 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
 
                                 <FlatNavDivider />
 
-                                {!!expenses && renderSearchItem(expenses, false)}
+                                {expenses.length > 0 && (
+                                    <>
+                                        <FlatNavItem
+                                            isCollapsed={isVisuallyCollapsed}
+                                            label={translate('search.tabs.expenses')}
+                                            icon={navIcons.Receipt}
+                                            isSelected={isExpensesGroupSelected}
+                                            badgeText={getGroupBadgeText(expenses, isExpensesGroupSelected)}
+                                            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.EXPENSES}
+                                            onPress={() => {
+                                                const firstExpense = expenses.at(0);
+                                                if (!firstExpense) {
+                                                    navigateToSpendRoot();
+                                                    return;
+                                                }
+                                                navigateToSearchItem(firstExpense);
+                                            }}
+                                        />
+                                        {isExpensesGroupSelected && !isVisuallyCollapsed && expenses.map((item) => renderSearchItem(item, true))}
+                                    </>
+                                )}
 
                                 {reports.length > 0 && (
                                     <>

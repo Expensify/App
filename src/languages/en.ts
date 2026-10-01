@@ -9937,7 +9937,9 @@ const translations = {
         tabs: {
             expenseReports: 'Expense reports',
             reports: 'Reports',
+            allExpenses: 'All expenses',
             allReports: 'All reports',
+            myExpenses: 'My expenses',
             expenses: 'Expenses',
             submit: 'Drafts',
             approve: 'Needs approval',

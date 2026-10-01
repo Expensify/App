@@ -10,8 +10,8 @@ import {searchKeyToSavedSearchID} from './SearchKeyUtils';
  * its searches nested under it; the narrow layout renders one group at a time as a row of tabs.
  */
 
-/** The single key the "Expenses" entry stands for. A list so every group has one shape. */
-const EXPENSES_KEYS: SearchKey[] = [CONST.SEARCH.SEARCH_KEYS.EXPENSES];
+/** Keys under "Expenses", in the order navigation renders them. */
+const EXPENSES_KEYS: SearchKey[] = [CONST.SEARCH.SEARCH_KEYS.EXPENSES, CONST.SEARCH.SEARCH_KEYS.MY_EXPENSES];
 
 /** Keys under "Reports", in the order navigation renders them. */
 const REPORTS_KEYS: SearchKey[] = [CONST.SEARCH.SEARCH_KEYS.REPORTS, CONST.SEARCH.SEARCH_KEYS.SUBMIT, CONST.SEARCH.SEARCH_KEYS.APPROVE, CONST.SEARCH.SEARCH_KEYS.PAY];
@@ -42,6 +42,7 @@ const GROUPS: Array<{keys: SearchKey[]; translationPath: TranslationPaths}> = [
  * that it holds all of them rather than repeating the group's label.
  */
 const GROUPED_TRANSLATION_PATH_OVERRIDES: Partial<Record<SearchKey, TranslationPaths>> = {
+    [CONST.SEARCH.SEARCH_KEYS.EXPENSES]: 'search.tabs.allExpenses',
     [CONST.SEARCH.SEARCH_KEYS.REPORTS]: 'search.tabs.allReports',
 };
 

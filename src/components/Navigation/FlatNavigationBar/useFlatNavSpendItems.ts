@@ -2,15 +2,13 @@ import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 
 import type {SearchKey} from '@libs/SearchKeyUtils';
 import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
-import {ACCOUNTING_KEYS, REPORTS_KEYS} from '@libs/SpendNavigationGroups';
-
-import CONST from '@src/CONST';
+import {ACCOUNTING_KEYS, EXPENSES_KEYS, REPORTS_KEYS} from '@libs/SpendNavigationGroups';
 
 import {useMemo} from 'react';
 
 type FlatNavSpendItems = {
-    /** The top-level "Expenses" row, absent when the user has no expense search to show */
-    expenses: SearchTypeMenuItem | undefined;
+    /** Children of the "Expenses" row */
+    expenses: SearchTypeMenuItem[];
 
     /** Children of the "Reports" row */
     reports: SearchTypeMenuItem[];
@@ -38,7 +36,7 @@ function useFlatNavSpendItems(): FlatNavSpendItems {
         const collect = (keys: SearchKey[]) => keys.map((key) => itemsByKey.get(key)).filter((item): item is SearchTypeMenuItem => !!item);
 
         return {
-            expenses: itemsByKey.get(CONST.SEARCH.SEARCH_KEYS.EXPENSES),
+            expenses: collect(EXPENSES_KEYS),
             reports: collect(REPORTS_KEYS),
             accounting: collect(ACCOUNTING_KEYS),
         };
