@@ -262,6 +262,8 @@ const overwrite: ReceiptStorage['overwrite'] = async (durableName, uriOrPath, sh
 
 const toLocalUri: ReceiptStorage['toLocalUri'] = (durableName) => `file://${getReceiptsUploadFolderPath()}/${durableName}`;
 
+const retain: ReceiptStorage['retain'] = () => {};
+
 const resolve: ReceiptStorage['resolve'] = (source) => {
     if (typeof source !== 'string') {
         return undefined;
@@ -348,6 +350,6 @@ const sweepLeftovers: ReceiptStorage['sweepLeftovers'] = async () => {
     }
 };
 
-const receiptStorage: ReceiptStorage = {adopt, overwrite, discard, locate, settle, recheckAfterSwap, toLocalUri, resolve, sweepLeftovers};
+const receiptStorage: ReceiptStorage = {adopt, overwrite, discard, locate, settle, recheckAfterSwap, toLocalUri, retain, resolve, sweepLeftovers};
 
 export default receiptStorage;

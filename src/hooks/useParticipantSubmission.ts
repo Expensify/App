@@ -396,7 +396,7 @@ function useParticipantSubmission({
 
         if ((isCategorizing || isShareAction) && numberOfParticipants.current === 0) {
             const email = userDetails.email ?? '';
-            const lastWorkspaceNumber = lastWorkspaceNumberSelector(policies, email, userDetails.displayName);
+            const lastWorkspaceNumber = lastWorkspaceNumberSelector(policies, email, userDetails.displayName, translate);
             const {expenseChatReportID, policyID, policyName} = createDraftWorkspace({
                 introSelected: intro,
                 workspaceName: generateDefaultWorkspaceName(email, userDetails.displayName, lastWorkspaceNumber, translate),
