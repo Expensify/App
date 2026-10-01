@@ -2,7 +2,7 @@ import AccountSwitcher from '@components/AccountSwitcher';
 import AccountSwitcherButton from '@components/AccountSwitcherButton';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
+import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
 import TopBarWithLoadingBar from '@components/Navigation/TopBarWithLoadingBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
@@ -50,8 +50,8 @@ type InitialSettingsPageProps = WithCurrentUserPersonalDetailsProps;
 function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPageProps) {
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const [canSwitchAccounts = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector: canSwitchAccountsSelector});
-    const tabBarContent = <TabBarBottomContent selectedTab={NAVIGATION_TABS.SETTINGS} />;
     const styles = useThemeStyles();
+    const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.SETTINGS);
     const {isExecuting, singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
@@ -166,8 +166,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             includeSafeAreaPaddingBottom
             testID="InitialSettingsPage"
             shouldEnableKeyboardAvoidingView={false}
-            bottomContent={tabBarContent}
-            bottomContentStyle={styles.overflowVisible}
+            {...tabRootScreenWrapperProps}
         >
             <TopBarWithLoadingBar
                 breadcrumbLabel={translate('initialSettingsPage.account')}
@@ -184,6 +183,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             </TopBarWithLoadingBar>
             <ScrollView
                 ref={scrollViewRef}
+                // Lets UIKit inset the end of the list past the translucent iOS tab bar that the content runs under.
+                contentInsetAdjustmentBehavior="automatic"
                 onScroll={onScroll}
                 scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
                 contentContainerStyle={[styles.w100]}

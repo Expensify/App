@@ -1,7 +1,7 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
+import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
 import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -109,6 +109,8 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
         return (
             <ScrollView
                 contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
+                // Lets UIKit inset the end of the list past the translucent iOS tab bar that the content runs under.
+                contentInsetAdjustmentBehavior="automatic"
                 addBottomSafeAreaPadding
             >
                 {state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES ? <InsightsNoExpensesState /> : <InsightsEmptyState />}
@@ -122,6 +124,8 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
     return (
         <ScrollView
             style={styles.insightsDashboardScrollView}
+            // Lets UIKit inset the end of the list past the translucent iOS tab bar that the content runs under.
+            contentInsetAdjustmentBehavior="automatic"
             contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb5]}
             addBottomSafeAreaPadding
         >
@@ -161,6 +165,7 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
 
 function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
     const {translate} = useLocalize();
+    const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.INSIGHTS);
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const {login} = useCurrentUserPersonalDetails();
@@ -209,7 +214,7 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
         <ScreenWrapper
             shouldShowOfflineIndicatorInWideScreen
             enableEdgeToEdgeBottomSafeAreaPadding={false}
-            bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.INSIGHTS} />}
+            {...tabRootScreenWrapperProps}
             testID="InsightsPage"
         >
             <TopBar

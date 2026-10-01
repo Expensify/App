@@ -33,6 +33,8 @@ function BaseSearchList({
     return (
         <AnimatedFlashListComponent
             data={data}
+            // Lets UIKit inset the end of the list past the translucent iOS tab bar that the content runs under.
+            contentInsetAdjustmentBehavior="automatic"
             renderItem={renderItemWithoutKeyboardFocus}
             keyExtractor={keyExtractor}
             onScroll={onScroll}
