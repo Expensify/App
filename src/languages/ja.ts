@@ -2380,6 +2380,7 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: 'アカウント設定',
         account: 'アカウント',
         general: '一般',
+        talkToAHuman: '担当者と話す',
         helpPage: {
             title: 'ヘルプとサポート',
             description: '24時間いつでもサポートします。',

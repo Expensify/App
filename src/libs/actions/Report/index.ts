@@ -4851,9 +4851,9 @@ function createNewReport(
     return {...optimisticReportData, reportPreviewReportActionID};
 }
 
-function openSupportTicket({assigneeAccountID}: {assigneeAccountID: number}) {
+function openSupportTicket() {
     const parameters: CreateSupportTicketParams = {
-        assigneeAccountID,
+        reportID: CONST.DEFAULT_NUMBER_ID.toString(),
     };
 
     // eslint-disable-next-line rulesdir/no-api-side-effects-method -- navigation requires the server-generated report ID.

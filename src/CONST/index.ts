@@ -1143,6 +1143,7 @@ const CONST = {
         INSIGHTS_PAGE: 'insightsPage',
         INSIGHTS_COMPARE: 'insightsCompare',
         PAYMENT_HISTORY: 'paymentHistory',
+        SUPPORT_TICKET: 'supportTicket',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -9558,6 +9559,7 @@ const CONST = {
             COPILOT: 'Account-Copilot',
             SECURITY: 'Account-Security',
             SUBSCRIPTION: 'Account-Subscription',
+            SUPPORT_TICKET: 'Account-SupportTicket',
         },
         HOME_PAGE: {
             WIDGET_ITEM: 'HomePage-WidgetItem',

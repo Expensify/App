@@ -16,6 +16,8 @@ import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 
 import InitialSettingsPage from '@pages/settings/InitialSettingsPage';
 
+import {openSupportTicket} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -65,6 +67,10 @@ jest.mock('@userActions/App', () => ({
     setLocale: jest.fn(),
 }));
 
+jest.mock('@userActions/Report', () => ({
+    openSupportTicket: jest.fn(() => Promise.resolve()),
+}));
+
 jest.mock('@libs/Navigation/helpers/useIsSidebarRouteActive', () => jest.fn(() => false));
 
 jest.mock('@hooks/useSubscriptionPlan', () => jest.fn(() => null));
@@ -110,17 +116,19 @@ jest.mock('@components/MenuItem', () => {
         badgeText,
         isBadgeSuccess,
         isBadgeCondensed,
+        onPress,
     }: {
         title: string;
         brickRoadIndicator?: string;
         badgeText?: string;
         isBadgeSuccess?: boolean;
         isBadgeCondensed?: boolean;
+        onPress?: () => void;
     }) =>
         ReactMock.createElement(
             ReactMock.Fragment,
             null,
-            ReactMock.createElement(Text, {testID: `menu-item-${String(title)}`}, title),
+            ReactMock.createElement(Text, {testID: `menu-item-${String(title)}`, onPress}, title),
             brickRoadIndicator ? ReactMock.createElement(Text, {testID: `decoration-${String(title)}-rbr`}, brickRoadIndicator) : null,
             badgeText ? ReactMock.createElement(Text, {testID: `decoration-${String(title)}-badge`}, badgeText) : null,
             isBadgeSuccess ? ReactMock.createElement(Text, {testID: `decoration-${String(title)}-badge-success`}) : null,
@@ -189,6 +197,7 @@ describe('InitialSettingsPage - agent account', () => {
         await act(async () => {
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
             await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+            await Onyx.set(ONYXKEYS.BETA_CONFIGURATION, {explicitOnly: [CONST.BETAS.SUPPORT_TICKET]});
         });
 
         await waitForBatchedUpdatesWithAct();
@@ -379,6 +388,26 @@ describe('InitialSettingsPage - agent account', () => {
             expect(screen.getByTestId('menu-item-Agents')).toBeDefined();
             expect(getMenuItemTitles().slice(0, 5)).toEqual(['Profile', 'Wallet', 'Expense rules', 'Agents', 'Preferences']);
         });
+    });
+
+    it('shows Talk to a human for the support ticket beta and creates a ticket', async () => {
+        // Given a customer without the support ticket beta
+        await setupUser('user@expensify.com');
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByTestId('menu-item-Talk to a human')).toBeNull();
+
+        // When the support ticket beta is enabled and the customer selects Talk to a human
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.ALL, CONST.BETAS.SUPPORT_TICKET]);
+        });
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByTestId('menu-item-Talk to a human'));
+
+        // Then the ticket creation action is started
+        expect(screen.getByTestId('menu-item-Talk to a human')).toBeDefined();
+        expect(openSupportTicket).toHaveBeenCalledWith();
     });
 });
 

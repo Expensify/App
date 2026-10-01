@@ -2452,6 +2452,7 @@ const translations: TranslationDeepObject<typeof en> = {
         versionLetter: 'ν',
         readTheTermsAndPrivacy: `Διαβάστε τους <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">όρους παροχής υπηρεσιών</a> και την <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">πολιτική απορρήτου</a>.`,
         help: 'Βοήθεια',
+        talkToAHuman: 'Μιλήστε με έναν άνθρωπο',
         helpPage: {
             title: 'Βοήθεια και υποστήριξη',
             description: 'Είμαστε εδώ για να σας βοηθάμε 24/7.',

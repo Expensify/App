@@ -2413,6 +2413,7 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: 'Paramètres du compte',
         account: 'Compte',
         general: 'Général',
+        talkToAHuman: 'Parler à une personne',
         helpPage: {
             title: 'Aide et assistance',
             description: 'Nous sommes là pour vous aider, à toute heure.',

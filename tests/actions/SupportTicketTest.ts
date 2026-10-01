@@ -26,9 +26,13 @@ describe('actions/Report', () => {
     });
 
     it('navigates to the server-created report after the support ticket is assigned', async () => {
-        await openSupportTicket({assigneeAccountID: 123});
+        // Given the server will create a support ticket for the available support rep
 
-        expect(mockMakeRequestWithSideEffects).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_SUPPORT_TICKET, {assigneeAccountID: 123});
+        // When the customer asks to talk to a human
+        await openSupportTicket();
+
+        // Then the App requests a fresh ticket and opens the server-created report
+        expect(mockMakeRequestWithSideEffects).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_SUPPORT_TICKET, {reportID: '0'});
         expect(mockGetReportRouteForCurrentContext).toHaveBeenCalledWith({reportID});
         expect(mockNavigate).toHaveBeenCalledWith(`r/${reportID}`);
     });

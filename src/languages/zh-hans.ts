@@ -2320,6 +2320,7 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: '账户设置',
         account: '账户',
         general: '常规',
+        talkToAHuman: '与人工客服交谈',
         helpPage: {
             title: '帮助与支持',
             description: '我们全天候为您提供帮助。',
