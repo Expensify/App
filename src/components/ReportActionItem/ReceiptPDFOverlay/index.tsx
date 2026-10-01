@@ -94,9 +94,6 @@ function ReceiptPDFOverlay({sourceURL, isAuthTokenRequired = true, onLoadFailure
     const [oversampleWidth, setOversampleWidth] = useState(0);
     const isSinglePage = page !== undefined;
 
-    // The page last drawn stays on screen while the next one renders, so the thumbnail underneath never flashes through
-    const [renderedPage, setRenderedPage] = useState(page);
-
     // A ResizeObserver reports the size as soon as it starts observing, unlike onLayout added after mount
     const observeOversampleWidth = useCallback(
         (container: HTMLDivElement | null) => {
@@ -130,6 +127,11 @@ function ReceiptPDFOverlay({sourceURL, isAuthTokenRequired = true, onLoadFailure
     // mirroring the pattern in ThumbnailImage. No useEffect needed — the comparison runs synchronously during render.
     const [failedURL, setFailedURL] = useState<string | null>(null);
     const hasFailed = failedURL !== null && failedURL === fileURL;
+
+    // The page last drawn stays on screen while the next one renders, so the thumbnail underneath never flashes
+    // through. Keyed to the URL so a replaced receipt doesn't briefly show the old page number from the new file.
+    const [renderedPageState, setRenderedPageState] = useState({fileURL, page});
+    const renderedPage = renderedPageState.fileURL === fileURL ? renderedPageState.page : undefined;
 
     // If the PDF can't be rendered, fall back to the thumbnail underneath by rendering nothing.
     if (hasFailed) {
@@ -196,7 +198,7 @@ function ReceiptPDFOverlay({sourceURL, isAuthTokenRequired = true, onLoadFailure
                                     key={page}
                                     pageNumber={page}
                                     width={pageWidth}
-                                    onRenderSuccess={() => setRenderedPage(page)}
+                                    onRenderSuccess={() => setRenderedPageState({fileURL, page})}
                                     {...canvasLimits}
                                 />
                             )}
@@ -209,3 +211,4 @@ function ReceiptPDFOverlay({sourceURL, isAuthTokenRequired = true, onLoadFailure
 }
 
 export default ReceiptPDFOverlay;
+export {PDF_PAGE_BORDER};

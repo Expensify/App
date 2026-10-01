@@ -40,7 +40,9 @@ jest.mock('@userActions/CanvasSize', () => ({
 }));
 
 // jest-expo resolves the native variant first, and this test covers the web implementation
-const {default: ReceiptPDFOverlay} = jest.requireActual<{default: ComponentType<ReceiptPDFOverlayProps>}>('@components/ReportActionItem/ReceiptPDFOverlay/index.tsx');
+const {default: ReceiptPDFOverlay, PDF_PAGE_BORDER} = jest.requireActual<{default: ComponentType<ReceiptPDFOverlayProps>; PDF_PAGE_BORDER: number}>(
+    '@components/ReportActionItem/ReceiptPDFOverlay/index.tsx',
+);
 
 const SOURCE_URL = 'https://example.com/receipt.pdf';
 const OVERSAMPLE_WIDTH = 500;
@@ -96,7 +98,7 @@ describe('ReceiptPDFOverlay', () => {
         expect(mockPDFPreviewer).not.toHaveBeenCalled();
         expect(screen.getByText('page-1')).toBeTruthy();
         expect(onLoadSuccess).toHaveBeenCalledTimes(1);
-        expect(mockRenderedThumbnails.at(-1)?.width).toBe(OVERSAMPLE_WIDTH + 18);
+        expect(mockRenderedThumbnails.at(-1)?.width).toBe(OVERSAMPLE_WIDTH + PDF_PAGE_BORDER * 2);
     });
 
     it('keeps the previous page on screen until the next one has rendered', () => {
@@ -119,6 +121,21 @@ describe('ReceiptPDFOverlay', () => {
 
         expect(screen.queryByText('page-1')).toBeNull();
         expect(screen.getByText('page-2')).toBeTruthy();
+    });
+
+    it('does not carry the last drawn page over to a replaced receipt', () => {
+        const {rerender} = renderOverlay({page: 2});
+
+        rerender(
+            <ReceiptPDFOverlay
+                sourceURL="https://example.com/replaced-receipt.pdf"
+                isAuthTokenRequired={false}
+                page={1}
+            />,
+        );
+
+        expect(screen.queryByText('page-2')).toBeNull();
+        expect(screen.getByText('page-1')).toBeTruthy();
     });
 
     // Page navigation switches on after the receipt loads, so the overlay first mounts without a page
