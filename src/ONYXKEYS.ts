@@ -52,6 +52,9 @@ const ONYXKEYS = {
     /** Whether the reimbursement countries needed by the collect deposit account flow are still loading */
     RAM_ONLY_IS_LOADING_DEPOSIT_ACCOUNT_SETUP: 'isLoadingDepositAccountSetup',
 
+    /** Ordered reportIDs from the latest SearchForReports response, used to display server search results in the tier order Auth returned. */
+    RAM_ONLY_SEARCH_RESULT_REPORT_IDS: 'searchResultReportIDs',
+
     /** Pagination state for tag filter search (hasMore, nextCursor). RAM-only so it resets on app restart. */
     RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION: 'searchTagFiltersPagination',
 
@@ -1795,6 +1798,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ONBOARDING_LAST_VISITED_PATH]: string;
     [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_LOADING_DEPOSIT_ACCOUNT_SETUP]: boolean;
+    [ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS]: string[] | null;
     [ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION]: OnyxTypes.SearchTagFiltersPaginationState;
     [ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS]: OnyxTypes.SearchTagFilterItem[];
     [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS]: boolean;
