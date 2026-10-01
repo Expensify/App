@@ -6,8 +6,8 @@ import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWith
 import MenuItem from '@components/MenuItem';
 import {useMenuItemConfig, useMenuItemInteraction} from '@components/MenuItem/MenuItemContext';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
 import MenuItemWithLabel from '@components/MenuItem/presets/MenuItemWithLabel';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -19,6 +19,7 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
 import usePressLoading from '@hooks/usePressLoading';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
@@ -29,6 +30,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {createTaskAndNavigate, dismissModalAndClearOutTaskInfo, getAssignee, getShareDestination, setShareDestinationValue} from '@libs/actions/Task';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import Parser from '@libs/Parser';
+import {getPersonalDetailsListByIDs} from '@libs/PersonalDetailsUtils';
 import {isAllowedToComment} from '@libs/ReportUtils';
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
@@ -36,7 +39,6 @@ import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import {personalDetailsListSelector} from '@src/selectors/PersonalDetails';
 import {pendingDeleteMemberAccountIDsSelector} from '@src/selectors/ReportMetaData';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -72,16 +74,14 @@ function DynamicNewTaskPage() {
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${task?.shareDestination}`);
     const [pendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${task?.shareDestination}`, {selector: pendingDeleteMemberAccountIDsSelector});
     const policy = usePolicy(parentReport?.policyID);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const derivedSharedDestinationReportName = useDerivedReportNameByReportID(parentReport?.reportID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
-    const [taskCreatorAndAssigneeDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: personalDetailsListSelector([currentUserPersonalDetails.accountID, task?.assigneeAccountID]),
-    });
+    const taskCreatorAndAssigneeDetails = getPersonalDetailsListByIDs([currentUserPersonalDetails.accountID, task?.assigneeAccountID], personalDetails);
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const assignee = getAssignee(task?.assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID, personalDetails, translate, formatPhoneNumber);
@@ -210,23 +210,17 @@ function DynamicNewTaskPage() {
                 >
                     <View style={styles.flex1}>
                         <View style={styles.mb5}>
-                            <MenuItemWithTopDescription
-                                description={translate('task.title')}
-                                title={task?.title}
+                            <MenuItemFieldHTML
+                                name={translate('task.title')}
+                                value={task?.title ? Parser.replace(task.title, {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]}) : undefined}
                                 onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_TITLE.path))}
-                                shouldShowRightIcon
-                                rightLabel={translate('common.required')}
-                                shouldParseTitle
-                                excludedMarkdownRules={[...CONST.TASK_TITLE_DISABLED_RULES]}
-                            />
-                            <MenuItemWithTopDescription
-                                description={translate('task.description')}
-                                title={task?.description}
+                            >
+                                {!task?.title && <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>}
+                            </MenuItemFieldHTML>
+                            <MenuItemFieldHTML
+                                name={translate('task.description')}
+                                value={task?.description ? Parser.replace(task.description) : undefined}
                                 onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_DESCRIPTION.path))}
-                                shouldShowRightIcon
-                                shouldParseTitle
-                                numberOfLinesTitle={2}
-                                titleStyle={styles.flex1}
                             />
                             {assignee?.displayName ? (
                                 <MenuItem.Root

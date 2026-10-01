@@ -1,4 +1,4 @@
-import type {SearchDatePreset} from '@components/Search/types';
+import type {SearchCompareMode, SearchDatePreset} from '@components/Search/types';
 
 import CONST from '@src/CONST';
 
@@ -14,6 +14,9 @@ type InsightsFilters = {
 
     /** Currency every amount is converted to, so graphs can sum across workspaces. */
     groupCurrency: string;
+
+    /** What the period on screen is drawn against, or nothing when the charts show it alone. */
+    compare?: SearchCompareMode;
 };
 
 const DEFAULT_INSIGHTS_FILTERS: Omit<InsightsFilters, 'groupCurrency'> = {
