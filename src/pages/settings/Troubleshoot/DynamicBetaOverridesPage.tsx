@@ -47,7 +47,8 @@ function DynamicBetaOverridesPage() {
     const [betaConfiguration] = useOnyx(ONYXKEYS.BETA_CONFIGURATION);
 
     // usePermissions applies the overrides, so the value the account has is resolved here without them
-    const isEnabledOnAccount = (beta: Beta) => Permissions.isBetaEnabled(beta, betas, betaConfiguration);
+    // Skips the overrides on purpose, since the row compares them against the account value
+    const isEnabledOnAccount = (beta: Beta) => Permissions.isBetaEnabled(beta, betas, betaConfiguration, undefined);
 
     // An override that matches the account resolves to the same answer, so it only counts as one while it differs.
     // Undefined betas mean the account values are unknown rather than off, so keep showing the override until they load

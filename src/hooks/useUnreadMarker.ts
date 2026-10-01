@@ -53,6 +53,7 @@ type UseUnreadMarkerResult = {
 };
 
 const lastReadTimeSelector = (report: OnyxTypes.Report | undefined) => report?.lastReadTime ?? '';
+const manuallyMarkedUnreadReportActionIDSelector = (report: OnyxTypes.Report | undefined) => report?.manuallyMarkedUnreadReportActionID ?? null;
 
 function useUnreadMarker({
     reportID,
@@ -73,6 +74,10 @@ function useUnreadMarker({
         selector: lastReadTimeSelector,
     });
     const reportLastReadTime = reportLastReadTimeValue ?? '';
+
+    const [manuallyMarkedUnreadReportActionID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        selector: manuallyMarkedUnreadReportActionIDSelector,
+    });
 
     const [unreadMarkerTime, setUnreadMarkerTime] = useState(reportLastReadTime);
 
@@ -131,6 +136,7 @@ function useUnreadMarker({
         isReversed,
         isAnonymousUser,
         prevUnreadMarkerReportActionID,
+        manuallyMarkedUnreadReportActionID,
         hasWindowFocus: Visibility.hasFocus(),
         newMessageBoundaryTime,
     });

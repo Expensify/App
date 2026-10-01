@@ -79,6 +79,9 @@ type OriginalMessageIOU = {
     /** Masked number (e.g., 'XXXXXX1234') of the bank account used to fund the payment */
     accountNumber?: string;
 
+    /** Estimated date the reimbursement will reach the recipient's bank account */
+    expectedDate?: string;
+
     /** True when the submitter marked the report as payment received outside Expensify */
     isSubmitterMarkedPaymentReceived?: boolean;
 
@@ -542,6 +545,9 @@ type OriginalMessagePolicyChangeLog = {
     /** Report field type */
     fieldType?: string;
 
+    /** Account ID of the workspace member named in a member-scoped change log */
+    accountID?: number;
+
     field?: string;
 
     /** Array of field changes for consolidated employee updates */
@@ -971,6 +977,9 @@ type OriginalMessageModifiedExpense = {
 
     /** The Concierge reasoning for the action */
     reasoning?: string;
+
+    /** Whether a receipt was added to the expense */
+    receiptAdded?: boolean;
 };
 
 /** Model of `concierge auto match vendor` report action — emitted on the transaction thread when the PHP fuzzy matcher auto-matches a non-reimbursable expense to a QBO vendor. */
@@ -980,6 +989,16 @@ type OriginalMessageConciergeAutoMatchVendor = {
 
     /** LLM-consumable explanation of why this vendor was matched — surfaced behind the "Explain" link */
     reasoning?: string;
+};
+
+/**
+ * Model of `concierge auto select distance rate` report action — posted on an expense report when the report's workspace changes and the distance rates of its expenses are
+ * re-selected automatically. The individual rate changes are described by a `MODIFIED_EXPENSE` action on each expense's transaction thread, so this action names no rate itself:
+ * one report can hold many distance expenses, and each can end up on a different rate.
+ */
+type OriginalMessageConciergeAutoSelectDistanceRate = {
+    /** Name of the workspace the report was moved to, whose rates were applied */
+    policyName?: string;
 };
 
 /** Policy rules modified fields. Each member holds the new value the rule wrote, not the current one */
@@ -1508,14 +1527,25 @@ type OriginalMessageTakeControl = {
     mentionedAccountIDs: number[];
     /** Whether this action was triggered automatically (e.g., during auto-pay) */
     automaticAction?: boolean;
+    /** Whether the new approver became the final approver, bypassing the remaining approvers in the chain */
+    isFinalApprover?: boolean;
+    /** Account ID of the new approver. Absent on OldDot take control actions, where the actor is the new approver */
+    newApproverID?: number;
+    /** Whether the new approver replaced the report's current approver instead of being added to the workflow */
+    isReassignment?: boolean;
+    /** Account ID of the approver the new one replaced. Only recorded for a reassignment */
+    previousApproverID?: number;
 };
 
 /**
  * Model of Reassign Approver action original message (system-generated when approval workflow changes)
  */
 type OriginalMessageReassignApprover = {
-    /** Account ID of the new approver assigned by the system */
+    /** Account ID of the new approver */
     newApproverID: number;
+
+    /** Account ID of the approver the new one replaced */
+    previousApproverID?: number;
 };
 
 /**
@@ -1642,6 +1672,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION]: never;
     [CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE]: OriginalMessageModifiedExpense;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_MATCH_VENDOR]: OriginalMessageConciergeAutoMatchVendor;
+    [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE]: OriginalMessageConciergeAutoSelectDistanceRate;
     [CONST.REPORT.ACTIONS.TYPE.MOVED]: OriginalMessageMoved;
     [CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION]: OriginalMessageMovedTransaction;
     [CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION]: OriginalMessageUnreportedTransaction;

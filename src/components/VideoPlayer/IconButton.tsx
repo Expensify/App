@@ -11,7 +11,7 @@ import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-import type {Ref} from 'react';
+import type {ComponentRef, Ref} from 'react';
 import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
 
 import React from 'react';
@@ -26,7 +26,7 @@ type IconButtonProps = WithSentryLabel & {
     small?: boolean;
     shouldForceRenderingTooltipBelow?: boolean;
     /** Forwarded to the underlying pressable so callers can use the button as a popover anchor. */
-    ref?: PressableRef | Ref<View>;
+    ref?: PressableRef | Ref<ComponentRef<typeof View>>;
 };
 
 function IconButton({src, fill = 'white', onPress, style, hoverStyle, tooltipText = '', small = false, shouldForceRenderingTooltipBelow = false, sentryLabel, ref}: IconButtonProps) {
