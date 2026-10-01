@@ -206,6 +206,14 @@ const restrictedPaidGroupPolicyImportPatterns = [
     },
 ];
 
+// `HeaderWithBackButton` is being migrated to the composed `Header` (`@components/Header`).
+const restrictedHeaderImportPatterns = [
+    {
+        group: ['**/HeaderWithBackButton'],
+        message: 'HeaderWithBackButton is being migrated to the composed Header. Please use `@components/Header` instead for new usages.',
+    },
+];
+
 // Headless email chart CLI cannot use useTheme; charts always render with the light theme.
 const victoryChartRendererRestrictedImportPaths = restrictedImportPaths.filter((restriction) => restriction.name !== '@styles/theme');
 const victoryChartRendererRestrictedImportPatterns = [
@@ -509,7 +517,7 @@ const config = defineConfig([
 
     // Rspack loaders receive their `this` from the bundler, and it's standard practice to use it
     {
-        files: ['config/rsbuild/loaders/*-loader.mjs'],
+        files: ['config/rsbuild/loaders/*-loader.mjs', 'config/repack/*-loader.mjs'],
         rules: {
             'no-invalid-this': 'off',
         },
@@ -664,7 +672,7 @@ const config = defineConfig([
             'src/libs/PersonalDetailsStore.ts',
             'src/libs/PersonalDetailsUtils.ts',
             'src/components/OnyxListItemProvider.tsx',
-            'src/libs/ExportOnyxState/common.ts',
+            'src/libs/ExportOnyxState/masking.ts',
             'tests/**/*.{ts,tsx}',
             'jest/**/*.{ts,tsx}',
             '__mocks__/**/*.{ts,tsx}',
@@ -704,7 +712,7 @@ const config = defineConfig([
                 'error',
                 {
                     paths: restrictedImportPaths,
-                    patterns: [...restrictedImportPatterns, ...restrictedReportNameImportPatterns, ...restrictedPaidGroupPolicyImportPatterns],
+                    patterns: [...restrictedImportPatterns, ...restrictedReportNameImportPatterns, ...restrictedPaidGroupPolicyImportPatterns, ...restrictedHeaderImportPatterns],
                 },
             ],
         },

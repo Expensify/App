@@ -1188,6 +1188,48 @@ const keywordTests = [
         },
     },
     {
+        query: 'transaction-status:pending',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'eq',
+                left: 'transactionStatus',
+                right: 'pending',
+            },
+        },
+    },
+    {
+        query: 'transactionStatus:pending,posted',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'eq',
+                left: 'transactionStatus',
+                right: ['pending', 'posted'],
+            },
+        },
+    },
+    {
+        query: '-transactionStatus:pending',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'neq',
+                left: 'transactionStatus',
+                right: 'pending',
+            },
+        },
+    },
+    {
         query: 'columns:per-diem,drafts,draft,tax-rate,policy-name,withdrawal-id,bank-account',
         expected: {
             type: 'expense',
@@ -1570,6 +1612,95 @@ const limitTests = [
     },
 ];
 
+const compareTests = [
+    {
+        // Given the previous-period compare mode
+        description: 'previousPeriod compare mode',
+        query: `type:expense compare:${CONST.SEARCH.COMPARE.PREVIOUS_PERIOD}`,
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            compare: CONST.SEARCH.COMPARE.PREVIOUS_PERIOD,
+            filters: null,
+        },
+    },
+    {
+        // Given the average compare mode
+        description: 'average compare mode',
+        query: `type:expense compare:${CONST.SEARCH.COMPARE.AVERAGE}`,
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            compare: CONST.SEARCH.COMPARE.AVERAGE,
+            filters: null,
+        },
+    },
+    {
+        // Given compare alongside another root key and a filter, it stays a distinct root key
+        description: 'compare combined with groupBy and a filter',
+        query: `type:expense groupBy:category compare:${CONST.SEARCH.COMPARE.PREVIOUS_PERIOD} merchant:Amazon`,
+        expected: {
+            type: 'expense',
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
+            sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
+            view: 'table',
+            groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
+            compare: CONST.SEARCH.COMPARE.PREVIOUS_PERIOD,
+            filters: {
+                operator: 'eq',
+                left: 'merchant',
+                right: 'Amazon',
+            },
+        },
+    },
+    {
+        // Given the key is typed in mixed case, it is matched case-insensitively
+        description: 'compare key is case-insensitive',
+        query: `type:expense COMPARE:${CONST.SEARCH.COMPARE.PREVIOUS_PERIOD}`,
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            compare: CONST.SEARCH.COMPARE.PREVIOUS_PERIOD,
+            filters: null,
+        },
+    },
+    {
+        // Given compare at the start of the query, it is still parsed as a root key
+        description: 'compare at the beginning of query',
+        query: `compare:${CONST.SEARCH.COMPARE.AVERAGE} category:travel`,
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            compare: CONST.SEARCH.COMPARE.AVERAGE,
+            filters: {
+                operator: 'eq',
+                left: 'category',
+                right: 'travel',
+            },
+        },
+    },
+    {
+        // Given no compare key, the parsed result omits compare entirely
+        description: 'no compare key leaves compare undefined',
+        query: 'type:expense',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: null,
+        },
+    },
+];
+
 function parseSearchQueryWithoutRawFilters(query: string): Record<string, unknown> {
     const parsed: unknown = parse(query);
     if (!isRecord(parsed)) {
@@ -1599,6 +1730,12 @@ describe('search parser - view and groupBy defaults', () => {
 
 describe('search parser - limit filter', () => {
     test.each(limitTests)('$description: $query', ({query, expected}) => {
+        expect(parseSearchQueryWithoutRawFilters(query)).toEqual(expected);
+    });
+});
+
+describe('search parser - compare root key', () => {
+    test.each(compareTests)('$description: $query', ({query, expected}) => {
         expect(parseSearchQueryWithoutRawFilters(query)).toEqual(expected);
     });
 });

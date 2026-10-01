@@ -32,6 +32,7 @@ import {
     updateLastLocationPermissionPrompt,
 } from '@libs/actions/IOU/MoneyRequest';
 import {setMoneyRequestReceipt} from '@libs/actions/IOU/Receipt';
+import signalExpenseAddedGrowl from '@libs/actions/IOU/signalExpenseAddedGrowl';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
 import type {GPSPoint as GpsPoint} from '@libs/actions/IOU/types/TrackExpenseTransactionParams';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -131,7 +132,6 @@ function SubmitDetailsPage({
     const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
     const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
 
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalPolicy = usePersonalPolicy();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
@@ -420,7 +420,6 @@ function SubmitDetailsPage({
                     conciergeChat,
                     quickAction,
                     recentWaypoints,
-                    betas,
                     draftTransactionIDs,
                     isSelfTourViewed,
                     optimisticTransactionID,
@@ -481,6 +480,10 @@ function SubmitDetailsPage({
                     rules,
                 });
             }
+
+            // requestMoney/trackExpense only signal the growl for the global-create flow and the share
+            // extension isn't flagged as such, so signal it here instead.
+            signalExpenseAddedGrowl(optimisticTransactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
         };
 
         const cleanupParams = {
@@ -692,26 +695,28 @@ function SubmitDetailsPage({
                         policyID={policy?.id}
                         isConfirming={isConfirming}
                         onConfirm={() => onConfirm(true)}
-                        receiptPath={currentReceiptSource}
-                        receiptFilename={currentReceiptName}
                         reportID={reportOrAccountID}
                         shouldShowSmartScanFields={false}
-                        shouldDisplayReceipt
-                        isReceiptEditable
                         action={CONST.IOU.ACTION.CREATE}
-                        onPDFLoadError={() => {
-                            if (errorTitle) {
-                                return;
-                            }
-                            setErrorTitle(translate('attachmentPicker.attachmentError'));
-                            setErrorMessage(translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
-                        }}
-                        onPDFPassword={() => {
-                            if (errorTitle) {
-                                return;
-                            }
-                            setErrorTitle(translate('attachmentPicker.attachmentError'));
-                            setErrorMessage(translate('attachmentPicker.protectedPDFNotSupported'));
+                        receiptOptions={{
+                            receiptPath: currentReceiptSource,
+                            receiptFilename: currentReceiptName,
+                            shouldDisplayReceipt: true,
+                            isReceiptEditable: true,
+                            onPDFLoadError: () => {
+                                if (errorTitle) {
+                                    return;
+                                }
+                                setErrorTitle(translate('attachmentPicker.attachmentError'));
+                                setErrorMessage(translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
+                            },
+                            onPDFPassword: () => {
+                                if (errorTitle) {
+                                    return;
+                                }
+                                setErrorTitle(translate('attachmentPicker.attachmentError'));
+                                setErrorMessage(translate('attachmentPicker.protectedPDFNotSupported'));
+                            },
                         }}
                     />
                 </View>

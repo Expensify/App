@@ -91,6 +91,7 @@ function useParticipantSubmission({
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const selfDMReportID = findSelfDMReportID();
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
+    const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -122,6 +123,7 @@ function useParticipantSubmission({
         lastSelectedDistanceRates,
         selfDMReportID,
         selfDMReport,
+        reportDrafts,
         introSelected,
         currentUserPersonalDetails,
         policyForMovingExpenses,
@@ -138,6 +140,7 @@ function useParticipantSubmission({
             lastSelectedDistanceRates,
             selfDMReportID,
             selfDMReport,
+            reportDrafts,
             introSelected,
             currentUserPersonalDetails,
             policyForMovingExpenses,
@@ -239,7 +242,16 @@ function useParticipantSubmission({
         }
 
         // Block selecting a workspace with commuter exclusions before participants/workspace are committed.
-        const selectedPolicyID = firstParticipant?.policyID ?? (firstParticipant?.reportID ? getReportOrDraftReport(firstParticipant.reportID)?.policyID : undefined);
+        const selectedPolicyID =
+            firstParticipant?.policyID ??
+            (firstParticipant?.reportID
+                ? getReportOrDraftReport(
+                      firstParticipant.reportID,
+                      undefined,
+                      undefined,
+                      dataRef.current.reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${firstParticipant.reportID}`] ?? {},
+                  )?.policyID
+                : undefined);
         if (blockDistanceRequestIfNeeded(selectedPolicyID)) {
             return;
         }
@@ -398,7 +410,7 @@ function useParticipantSubmission({
 
         if ((isCategorizing || isShareAction) && numberOfParticipants.current === 0) {
             const email = userDetails.email ?? '';
-            const lastWorkspaceNumber = lastWorkspaceNumberSelector(policies, email, userDetails.displayName);
+            const lastWorkspaceNumber = lastWorkspaceNumberSelector(policies, email, userDetails.displayName, translate);
             const {expenseChatReportID, policyID, policyName} = createDraftWorkspace({
                 introSelected: intro,
                 workspaceName: generateDefaultWorkspaceName(email, userDetails.displayName, lastWorkspaceNumber, translate),

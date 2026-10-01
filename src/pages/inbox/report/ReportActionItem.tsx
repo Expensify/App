@@ -15,8 +15,10 @@ import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -31,6 +33,7 @@ import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen, hasHoverSupport} from '@libs/DeviceCapabilities';
 import type {OnyxDataWithErrors} from '@libs/ErrorUtils';
 import {getLatestErrorMessageField, isReceiptError} from '@libs/ErrorUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -39,10 +42,12 @@ import {
     extractLinksFromMessageHtml,
     getIOUReportIDFromReportActionPreview,
     getOriginalMessage,
+    getPaymentMessageWithExpectedDate,
     getReportActionMessage,
     getReportActionText,
     getWhisperedTo,
     isCreatedTaskReportAction,
+    isActionOfType,
     isDeletedParentAction as isDeletedParentActionUtils,
     isMessageDeleted,
     isMoneyRequestAction,
@@ -72,6 +77,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {getStableReportSelector} from '@src/selectors/Report';
+import {getReimbursedExpectedDateSelector} from '@src/selectors/ReportAction';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
@@ -81,7 +87,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useNavigation} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import {personalDetailsDisplayNameSelector} from '@selectors/PersonalDetails';
+import {displayNameOrDefaultSelector} from '@selectors/PersonalDetails';
 import {deepEqual} from 'fast-equals';
 import mapValues from 'lodash/mapValues';
 import React, {useContext, useEffect, useRef, useState} from 'react';
@@ -180,12 +186,21 @@ function ReportActionItem({
 }: ReportActionItemProps) {
     const reportID = report?.reportID ?? action?.reportID;
     const originalReportID = useOriginalReportID(report?.reportID, action);
+    const {isOffline} = useNetwork();
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getIOUReportIDFromReportActionPreview(action)}`, {selector: getStableReportSelector});
     const [iouPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
 
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const transactionsOnIOUReport = useReportTransactionsCollection(iouReport?.reportID);
-    const transactionID = isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID;
+    const transactionsOnReportCollection = useReportTransactionsCollection(report?.reportID);
+    const transactionsOnReport = Object.values(transactionsOnReportCollection);
+    const IOUOriginalMessage = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) ? getOriginalMessage(action) : undefined;
+    const transactionID = isMoneyRequestAction(action) && IOUOriginalMessage?.IOUTransactionID;
+    const isACHPaymentAction = IOUOriginalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && IOUOriginalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA;
+    const reimbursedExpectedDateSelector = (reportActions: OnyxEntry<OnyxTypes.ReportActions>) =>
+        isACHPaymentAction && !IOUOriginalMessage?.expectedDate ? getReimbursedExpectedDateSelector(reportActions, action.created) : undefined;
+    const [reimbursedExpectedDate] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportID)}`, {selector: reimbursedExpectedDateSelector});
+    const paymentExpectedDate = isACHPaymentAction ? (IOUOriginalMessage?.expectedDate ?? reimbursedExpectedDate) : undefined;
 
     const getLinkedTransactionRouteError = (transaction: OnyxEntry<OnyxTypes.Transaction>) => {
         return linkedTransactionRouteErrorProp ?? transaction?.errorFields?.route;
@@ -198,11 +213,9 @@ function ReportActionItem({
     const isConciergeGreeting = action.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID;
     const shouldDisplayContextMenuValue = shouldDisplayContextMenu && !isConciergeGreeting;
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
-    const {translate, datetimeToCalendarTime, formatPhoneNumber} = useLocalize();
+    const {translate, datetimeToCalendarTime, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
-    const [actorDisplayName] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: personalDetailsDisplayNameSelector(action.actorAccountID ?? CONST.DEFAULT_NUMBER_ID, translate, formatPhoneNumber),
-    });
+    const [actorDisplayName] = usePersonalDetail(action.actorAccountID, displayNameOrDefaultSelector(translate, formatPhoneNumber));
     const {showConfirmModal} = useConfirmModal();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
@@ -256,10 +269,12 @@ function ReportActionItem({
                 reportID,
                 transactionThreadReport,
                 iouReport: report,
+                iouReportTransactions: transactionsOnReport,
                 chatReport,
                 isChatIOUReportArchived: undefined,
                 originalReportID,
                 getCurrencyDecimals,
+                isOffline,
                 isSingleTransactionView: true,
                 policy: iouPolicy,
             });
@@ -271,7 +286,7 @@ function ReportActionItem({
         if (transactionIDToDismiss) {
             clearErrorWithOriginalTransactionError(transactionIDToDismiss);
         }
-        clearAllRelatedReportActionErrors(reportID, action, originalReportID);
+        clearAllRelatedReportActionErrors(reportID, action, originalReportID, isOffline);
     };
 
     const showDismissReceiptErrorModal = async () => {
@@ -504,7 +519,7 @@ function ReportActionItem({
     const shouldDisplayThreadReplies = shouldDisplayThreadRepliesUtils(action, isThreadReportParentAction) && !isOnSearch;
 
     const formattedTimestamp = datetimeToCalendarTime(action.created, false);
-    const plainMessage = getReportActionText(action);
+    const plainMessage = getPaymentMessageWithExpectedDate(translate, dateFnsLocale, getReportActionText(action), paymentExpectedDate);
     const accessibilityLabel = `${actorDisplayName ?? ''}, ${formattedTimestamp}, ${plainMessage}`;
 
     return (
@@ -634,6 +649,7 @@ function ReportActionItem({
                                                                 updateHiddenState={updateHiddenState}
                                                                 isClosedExpenseReportWithNoExpenses={isClosedExpenseReportWithNoExpenses}
                                                                 isTrackIntentUser={isTrackIntentUser}
+                                                                paymentExpectedDate={paymentExpectedDate}
                                                                 isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReport}
                                                                 shouldShowBorder={shouldShowBorder}
                                                                 isOnSearch={isOnSearch}

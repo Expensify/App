@@ -22,6 +22,7 @@ import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {isSupportAuthToken} from '@libs/Network/NetworkStore';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as UserAvatarUtils from '@libs/UserAvatarUtils';
 
@@ -249,6 +250,10 @@ function updateAddress(addresses: Address[], street: string, street2: string, ci
  */
 function updateAutomaticTimezone(timezone: Timezone, currentUserAccountID: number) {
     if (!currentUserAccountID) {
+        return;
+    }
+
+    if (isSupportAuthToken()) {
         return;
     }
 
@@ -621,6 +626,11 @@ function setPersonalDetailsAndRevealExpensifyCard(
         })
             .then((response) => {
                 if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                    if (response?.jsonCode === CONST.JSON_CODE.TOO_MANY_REQUESTS) {
+                        // eslint-disable-next-line prefer-promise-reject-errors
+                        reject('validateCodeForm.error.tooManyAttempts');
+                        return;
+                    }
                     if (response?.jsonCode === CONST.JSON_CODE.INCORRECT_VALIDATE_CODE) {
                         // eslint-disable-next-line prefer-promise-reject-errors
                         reject('validateCodeForm.error.incorrectSecurityCode');

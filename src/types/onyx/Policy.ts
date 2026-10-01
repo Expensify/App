@@ -1,4 +1,4 @@
-import type HrSyncResult from '@libs/API/HrSyncResult';
+import type MergeSyncResult from '@libs/API/MergeSyncResult';
 
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
@@ -463,6 +463,13 @@ type TaxCode = {
  * TODO: QBO remaining comments will be handled here (https://github.com/Expensify/App/issues/43033)
  */
 type QBOConnectionData = {
+    /** Custom dimensions available in the connected IES entity */
+    customDimensions?: Array<{
+        id: string;
+        label: string;
+        active: boolean;
+    }>;
+
     /** Country code */
     country: ValueOf<typeof CONST.COUNTRY>;
 
@@ -587,6 +594,9 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Whether Quickbooks Online classes should be imported */
     syncClasses: IntegrationEntityMap;
+
+    /** Import mappings keyed by the connected IES entity's custom dimension IDs */
+    syncCustomDimensions?: Record<string, typeof CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG | typeof CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE>;
 
     /** Whether Quickbooks Online customers should be imported */
     syncCustomers: IntegrationEntityMap;
@@ -1438,8 +1448,8 @@ type FinancialForceSyncedEntity = {
 
 /** Data synced from Certinia (parent sync service); arrays may be empty until sync completes */
 type FinancialForceConnectionData = {
-    /** Salesforce Accounts used as Default Vendor options (FFA) */
-    vendors: FinancialForceSyncedEntity[];
+    /** Salesforce Accounts used as Default Vendor options (FFA); undefined means the sync has not written the list yet */
+    vendors?: FinancialForceSyncedEntity[];
 
     /** Certinia companies (c2g__codaCompany__c); FFA validates presence when applicable */
     companies: FinancialForceSyncedEntity[];
@@ -1449,6 +1459,9 @@ type FinancialForceConnectionData = {
 
     /** PSA: assignments synced for mapping (Release 2) */
     assignments?: FinancialForceSyncedEntity[];
+
+    /** FFA General Ledger expense accounts, offered as the account to book absorbed currency conversion costs to */
+    expenseAccounts?: FinancialForceSyncedEntity[];
 };
 
 /** Certinia credentials (Salesforce / Certinia org); fields populate as OAuth / sync complete */
@@ -1545,6 +1558,9 @@ type FinancialForceConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** FFA Accounting Company ID */
         company?: string;
+
+        /** FFA General Ledger Account the currency conversion costs the company absorbs are booked to */
+        fxExpenseAccount?: string;
 
         /** Certinia import / coding settings */
         coding: FinancialForceCodingConfig;
@@ -2185,7 +2201,7 @@ type DualEntryConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
  * A subsidiary (entity) configured in Campfire.
  */
 type CampfireSubsidiary = {
-    /** Unique identifier of the account. */
+    /** Unique identifier of the subsidiary. */
     id: string;
 
     /** Name of the account. */
@@ -2235,7 +2251,7 @@ type CampfireAccount = {
  * Field retrieved from Campfire.
  */
 type CampfireField = {
-    /** Unique identifier of the account. */
+    /** Unique identifier of the field. */
     id: string;
 
     /** Name of the field. */
@@ -2504,28 +2520,15 @@ type BusinessCentralCompany = {
 };
 
 /**
- * Value of a dimension retrieved from Business Central.
- */
-type BusinessCentralDimensionValue = {
-    /** Code identifying the value within its dimension */
-    code: string;
-
-    /** Name of the value */
-    name: string;
-};
-
-/**
  * Dimension retrieved from Business Central. Dimensions are imported as tags.
+ * Integration-Server caches only the code and the name, which is all the Import page needs to list a row per dimension.
  */
 type BusinessCentralDimension = {
-    /** Code identifying the dimension */
-    code: string;
+    /** Code identifying the dimension, also the key of its entry in `fieldMappings` */
+    id: string;
 
     /** Name of the dimension */
     name: string;
-
-    /** Values the dimension can take */
-    values: BusinessCentralDimensionValue[];
 };
 
 /**
@@ -2583,23 +2586,6 @@ type BusinessCentralBankAccount = {
 };
 
 /**
- * VAT posting setup retrieved from Business Central. VAT posting setups are imported as tax rates.
- */
-type BusinessCentralVATPostingSetup = {
-    /** VAT business posting group the setup applies to */
-    vatBusinessPostingGroup: string;
-
-    /** VAT product posting group the setup applies to */
-    vatProductPostingGroup: string;
-
-    /** Identifier of the VAT rate */
-    vatIdentifier: string;
-
-    /** VAT percentage the setup applies */
-    vatPercentage: number;
-};
-
-/**
  * Connection data retrieved from Business Central.
  */
 type BusinessCentralConnectionData = {
@@ -2618,8 +2604,8 @@ type BusinessCentralConnectionData = {
     /** Bank accounts of the selected company */
     bankAccounts?: BusinessCentralBankAccount[];
 
-    /** VAT posting setups of the selected company */
-    vatPostingSetups?: BusinessCentralVATPostingSetup[];
+    /** Whether the selected company has VAT posting setups that can be imported as tax rates. A US company has none, so it gets no tax row */
+    hasVATPostingSetups?: boolean;
 };
 
 /**
@@ -2683,6 +2669,44 @@ type BusinessCentralCodingFieldMappingsOfflineFeedbackKey = `${typeof CONST.BUSI
 type BusinessCentralCodingOfflineFeedbackKeys = keyof Omit<BusinessCentralCoding, 'fieldMappings'> | BusinessCentralCodingFieldMappingsOfflineFeedbackKey;
 
 /**
+ * Export configuration for Business Central.
+ */
+type BusinessCentralExport = {
+    /** Email of the workspace admin who exports reports to Business Central */
+    exporter: string;
+
+    /** Which date exported documents are dated with */
+    exportDate: ValueOf<typeof CONST.BUSINESS_CENTRAL_EXPORT_DATE>;
+
+    /** Business Central document reimbursable expenses export to */
+    reimbursable: ValueOf<typeof CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION>;
+
+    /** Business Central document non-reimbursable expenses export to */
+    nonReimbursable: ValueOf<typeof CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION>;
+
+    /** ID of the Business Central bank account reimbursable expenses export against */
+    reimbursableAccount: string;
+
+    /** ID of the Business Central bank account non-reimbursable expenses export against */
+    nonReimbursableAccount: string;
+
+    /** ID of the Business Central vendor company card expenses fall back to when no other vendor applies */
+    defaultVendorID: string;
+
+    /** Code of the Business Central payment method added to purchase invoices, empty when none is set */
+    paymentMethodCode: string;
+
+    /** Whether exported documents are only created or also posted in Business Central */
+    postingMode: ValueOf<typeof CONST.BUSINESS_CENTRAL_POSTING_MODE>;
+
+    /** Whether vendors and employees missing in Business Central are created on export */
+    autoCreateEntities: boolean;
+
+    /** Accounting method used during export */
+    accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
+};
+
+/**
  * Automatic synchronization settings for Business Central.
  */
 type BusinessCentralAutoSync = {
@@ -2713,6 +2737,9 @@ type BusinessCentralConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Coding settings */
         coding?: BusinessCentralCoding;
 
+        /** Export settings */
+        export?: BusinessCentralExport;
+
         /** Auto-sync settings */
         autoSync?: BusinessCentralAutoSync;
 
@@ -2722,7 +2749,7 @@ type BusinessCentralConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of form field errors  */
         errorFields?: OnyxCommon.ErrorFields;
     },
-    'companyID' | 'enableNewCategories' | BusinessCentralCodingOfflineFeedbackKeys | keyof BusinessCentralAutoSync
+    'companyID' | 'enableNewCategories' | BusinessCentralCodingOfflineFeedbackKeys | keyof BusinessCentralExport | keyof BusinessCentralAutoSync
 >;
 
 /** Gusto connection data */
@@ -2745,6 +2772,9 @@ type GustoConnectionConfig = HRConnectionConfigBase & {
     approvalMode: ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | null;
 };
 
+/** Approval mode controlling how reports are routed for approval in the Merge-backed integrations (Merge HR, Merge ATS) */
+type MergeApprovalMode = ValueOf<typeof CONST.MERGE.APPROVAL_MODE>;
+
 /** Shared config for the Merge-backed integrations (Merge HR, Merge ATS), parameterized by the union of provider slugs that integration supports */
 type MergeConnectionConfigBase<Integration> = HRConnectionConfigBase &
     OnyxCommon.OnyxValueWithOfflineFeedback<{
@@ -2752,7 +2782,7 @@ type MergeConnectionConfigBase<Integration> = HRConnectionConfigBase &
         integration: Integration;
 
         /** Approval mode controlling how reports are routed for approval */
-        approvalMode: ValueOf<typeof CONST.MERGE.APPROVAL_MODE> | null;
+        approvalMode: MergeApprovalMode | null;
     }>;
 
 /** A group of employees the admin can choose to import from (e.g. a company, cost center, department). */
@@ -2834,6 +2864,9 @@ type MergeATSFilters = {
     offices?: string[];
 };
 
+/** The ATS field a candidate's default approver is read from in the Merge ATS connection */
+type MergeATSApproverField = ValueOf<typeof CONST.MERGE.ATS_APPROVER_FIELD>;
+
 /** Merge ATS (recruiting) connection config */
 type MergeATSConnectionConfig = MergeConnectionConfigBase<MergeATSProviderSlug> &
     OnyxCommon.OnyxValueWithOfflineFeedback<
@@ -2846,7 +2879,7 @@ type MergeATSConnectionConfig = MergeConnectionConfigBase<MergeATSProviderSlug> 
             filters: MergeATSFilters | null;
 
             /** The ATS field whose value identifies the default approver for a candidate (e.g. the recruiter or hiring manager field), or `null` when not set */
-            approverField: string | null;
+            approverField: MergeATSApproverField | null;
         },
         'filters' | 'approverField'
     >;
@@ -2872,6 +2905,9 @@ type QBDConnectionData = {
     payableAccounts: Account[];
     bankAccounts: Account[];
     vendors: Vendor[];
+
+    /** Expense accounts, the only ones a currency conversion cost can be charged to */
+    expenseAccounts?: Account[];
 };
 
 /**
@@ -2924,6 +2960,9 @@ type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         shouldAutoCreateVendor: boolean;
         importItems: boolean;
         export: QBDExportConfig;
+
+        /** ID of the account cross-border currency conversion costs are charged to. Unset means the cost is not exported. */
+        fxExpenseAccount?: string;
 
         /** Configuration of import settings from QuickBooks Desktop to the app */
         mappings: {
@@ -3058,6 +3097,9 @@ type CommuterExclusions = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Distance unit stored alongside fixedDistance ('mi' or 'km'). Mirrors the policy distance custom unit at the time it was set. */
     fixedDistanceUnit?: string;
+
+    /** Default work arrangement for members without a per-member hasOfficeWorkArrangement. */
+    isOfficeWorkArrangement?: boolean;
 }>;
 
 /** Prohibited expense types */
@@ -3391,7 +3433,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         autoReportingOffset?: AutoReportingOffset;
 
         employeeList?: OnyxTypes.PolicyEmployeeList;
-        reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
+
+        /** How the workspace pays reimbursable expenses. Can hold a deprecated value, so read it through `PolicyUtils.getReimbursementChoice`. */
+        reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES> | ValueOf<typeof CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES>;
 
         /** The set reimburser for the policy */
         reimburser?: string;
@@ -3474,6 +3518,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether new transactions need to be categorized */
         requiresCategory?: boolean;
+
+        /** Whether new uncategorized expenses get a category picked for them automatically. Defaults to true when unset. */
+        autoCategorizeNewExpenses?: boolean;
 
         showCategoryGLCodes?: boolean;
 
@@ -3719,7 +3766,7 @@ type PolicyConnectionSyncProgress = {
     timestamp: string;
 
     /** Optional result payload shown after a completed sync */
-    result?: HrSyncResult;
+    result?: MergeSyncResult;
 };
 
 /** Workspace types a user can create directly (Team/Corporate/Submit), e.g. when creating a draft workspace on the fly. */
@@ -3794,10 +3841,13 @@ export type {
     ProhibitedExpenses,
     CommuterExclusions,
     NetSuiteConnectionData,
+    MergeApprovalMode,
     MergeHRConnectionConfig,
     MergeConnectionLastSync,
     MergeATSConnectionConfig,
+    MergeATSConnectionData,
     MergeATSFilters,
+    MergeATSApproverField,
     GustoConnectionConfig,
     ZenefitsConnectionConfig,
     Vendor,
@@ -3821,8 +3871,18 @@ export type {
     DualEntryExport,
     DualEntryAutoSync,
     DualEntrySync,
+    FinancialForceSyncedEntity,
     CampfireConnectionsConfig,
     CampfireSubsidiary,
     CampfireCoding,
+    CampfireExportDate,
+    CampfireVendor,
+    CampfireAccount,
+    CampfireExport,
+    CampfireAutoSync,
+    CampfireSync,
     BusinessCentralCompany,
+    BusinessCentralCoding,
+    BusinessCentralExport,
+    BusinessCentralCodingOfflineFeedbackKeys,
 };

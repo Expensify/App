@@ -9,6 +9,8 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
+import {useDerivedIsEmptyReport} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -39,7 +41,6 @@ import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {conciergePersonalDetailSelector, personalDetailsSelector} from '@selectors/PersonalDetails';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 
@@ -77,7 +78,6 @@ function DebugReportPage({
     });
     const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {isBetaEnabled} = usePermissions();
     const isDefaultRoomsBetaEnabled = isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -87,12 +87,13 @@ function DebugReportPage({
     });
     const currentUserPersonalDetail = useCurrentUserPersonalDetails();
     const {accountID: currentUserAccountID, login: currentUserLogin} = currentUserPersonalDetail;
-    const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: conciergePersonalDetailSelector});
-    const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(report?.ownerAccountID)});
+    const [conciergePersonalDetail] = usePersonalDetail(CONST.ACCOUNT_ID.CONCIERGE);
+    const [reportOwnerPersonalDetail] = usePersonalDetail(report?.ownerAccountID);
     const transactionID = DebugUtils.getTransactionID(report, reportActions);
     const isReportArchived = useReportIsArchived(reportID);
     const [guideAccountIDs] = useOnyx(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
     const hasGuidesEmails = hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number), guideAccountIDs);
+    const derivedIsEmptyReport = useDerivedIsEmptyReport(reportID);
 
     const metadata = useMemo<Metadata[]>(() => {
         if (!report) {
@@ -131,6 +132,7 @@ function DebugReportPage({
             currentUserAccountID,
             conciergeReportID,
             hasGuidesEmails,
+            derivedIsEmptyReport,
         });
 
         return [
@@ -193,6 +195,7 @@ function DebugReportPage({
         translate,
         conciergeReportID,
         hasGuidesEmails,
+        derivedIsEmptyReport,
     ]);
 
     const icons = useMemoizedLazyExpensifyIcons(['Eye']);
@@ -212,7 +215,6 @@ function DebugReportPage({
                         currentUserAccountID,
                         introSelected,
                         isSelfTourViewed,
-                        betas,
                         reportOwnerPersonalDetail,
                         currentUserPersonalDetail,
                         conciergePersonalDetail,
@@ -284,7 +286,6 @@ function DebugReportPage({
             conciergeReportID,
             introSelected,
             isSelfTourViewed,
-            betas,
             reportOwnerPersonalDetail,
             currentUserPersonalDetail,
             conciergePersonalDetail,
