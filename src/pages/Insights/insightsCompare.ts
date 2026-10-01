@@ -93,7 +93,7 @@ function resolveComparisonWindows(date: InsightsFilters['date'], translate: Loca
                 return {
                     current: {label: translate('insightsPage.compare.lastTwelveMonths'), range: currentRange},
                     previous: {
-                        label: translate('insightsPage.compare.priorMonths', 12),
+                        label: translate('insightsPage.compare.priorMonths', {count: 12}),
                         range: toRange(subMonths(currentStart, 12), endOfMonth(subMonths(currentEnd, 12))),
                     },
                 };
@@ -118,7 +118,7 @@ function resolveComparisonWindows(date: InsightsFilters['date'], translate: Loca
         if (isSameDay(start, end)) {
             return format(previousEnd, DAY_LABEL_FORMAT);
         }
-        return coversWholeMonths ? translate('insightsPage.compare.priorMonths', monthCount) : translate('insightsPage.compare.priorDays', dayCount);
+        return coversWholeMonths ? translate('insightsPage.compare.priorMonths', {count: monthCount}) : translate('insightsPage.compare.priorDays', {count: dayCount});
     })();
 
     // Years are shown only when the range crosses one.

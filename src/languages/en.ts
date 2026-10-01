@@ -1264,8 +1264,14 @@ const translations = {
             monthNumber: (month: number) => `Month ${month}`,
             quarterNumber: (quarter: number) => `Quarter ${quarter}`,
             yearNumber: (year: number) => `Year ${year}`,
-            priorMonths: (count: number) => `Prior ${count} months`,
-            priorDays: (count: number) => `Prior ${count} days`,
+            priorMonths: ({count}: {count: number}) => ({
+                one: 'Prior month',
+                other: `Prior ${count} months`,
+            }),
+            priorDays: ({count}: {count: number}) => ({
+                one: 'Prior day',
+                other: `Prior ${count} days`,
+            }),
         },
         emptyState: {
             title: 'Nothing to show',

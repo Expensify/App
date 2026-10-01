@@ -74,6 +74,14 @@ describe('resolveComparisonWindows', () => {
         expect(windows?.previous.label).toBe('Prior 3 months');
     });
 
+    it('names a custom range of one whole month in the singular', () => {
+        // When the page reports on a custom range covering exactly March
+        const windows = resolveComparisonWindows({from: '2026-03-01', to: '2026-03-31'}, translateLocal);
+
+        // Then the compared window is named "Prior month", not "Prior 1 months"
+        expect(windows?.previous.label).toBe('Prior month');
+    });
+
     it('compares a single day against the day before it', () => {
         // When the page reports on one day
         const windows = resolveComparisonWindows({on: '2026-12-03'}, translateLocal);
