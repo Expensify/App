@@ -72,7 +72,14 @@ function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGr
     const sortedData = useGroupedItems(snapshot, queryJSON);
     // Grouped by the current query but uncapped, since its top groups by previous spend may not be the ones plotted now.
     const previousPeriodSortedData = useGroupedItems(previousPeriodSnapshot, queryJSON && {...queryJSON, limit: undefined});
-    const {data, previousPeriodData, state} = resolveInsightsChartData({snapshot, queryJSON, sortedData, previousPeriodData: previousPeriodSortedData, isOffline});
+    const {data, previousPeriodData, state: currentPeriodState} = resolveInsightsChartData({snapshot, queryJSON, sortedData, previousPeriodData: previousPeriodSortedData, isOffline});
+    const previousPeriodState = isComparingPreviousPeriod
+        ? resolveInsightsChartData({snapshot: previousPeriodSnapshot, queryJSON: previousPeriodQueryJSON, sortedData: previousPeriodSortedData, isOffline}).state
+        : undefined;
+    // A compared chart is ready only once both periods are, so its second series never pops in or goes silently missing.
+    const isPreviousPeriodUnresolved =
+        previousPeriodState === INSIGHTS_CHART_STATE.LOADING || previousPeriodState === INSIGHTS_CHART_STATE.ERROR || previousPeriodState === INSIGHTS_CHART_STATE.OFFLINE;
+    const state = currentPeriodState === INSIGHTS_CHART_STATE.READY && previousPeriodState && isPreviousPeriodUnresolved ? previousPeriodState : currentPeriodState;
     const groupBy = chart.groupBy ?? filters.groupBy;
     const windows = resolveComparisonWindows(filters.date, translate);
     const comparison =
