@@ -12,7 +12,7 @@ jest.mock('@libs/API');
 jest.mock('@libs/Navigation/helpers/getReportRouteForCurrentContext');
 jest.mock('@libs/Navigation/Navigation');
 jest.mock('@libs/ReportUtils', () => ({
-    ...jest.requireActual('@libs/ReportUtils'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/ReportUtils'),
     generateReportID: jest.fn(),
 }));
 
