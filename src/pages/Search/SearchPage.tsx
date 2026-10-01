@@ -147,9 +147,8 @@ function SearchPage({route}: SearchPageProps) {
 
     const hasStaleHoldTimedOut = staleHoldTimedOutHash !== undefined && staleHoldTimedOutHash === currentQueryHash;
 
-    // Otherwise only a filter refinement is worth holding for, and only briefly. A sidebar item or saved search is a
-    // different search, so its results area starts from the skeleton rather than showing rows that belong to the query
-    // the user just left.
+    // Only a filter refinement is worth holding for. A sidebar item or saved search is a different search, so its
+    // results area starts from the skeleton rather than showing rows that belong to the query the user just left.
     const shouldHoldLastResolvedSearch = !isSearchResolvedForCurrentQuery && !!lastResolvedSearch && !hasStaleHoldTimedOut && isQueryARefinement(currentSearchQueryJSON?.inputQuery);
     const contentQueryJSON = shouldHoldLastResolvedSearch ? lastResolvedSearch.queryJSON : currentSearchQueryJSON;
     const contentSearchResults = shouldHoldLastResolvedSearch ? lastResolvedSearch.searchResults : searchResults;
