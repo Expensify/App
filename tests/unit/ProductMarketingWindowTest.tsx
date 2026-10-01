@@ -153,6 +153,8 @@ describe('ProductMarketingWindowManager', () => {
         mockUseSafeAreaPaddings.mockReturnValue({
             paddingTop: 0,
             paddingBottom: 0,
+            paddingLeft: 0,
+            paddingRight: 0,
             unmodifiedPaddings: {},
             insets: {top: 0, right: 0, bottom: 0, left: 0},
             safeAreaPaddingBottomStyle: {paddingBottom: 0},
@@ -949,6 +951,8 @@ describe('ProductMarketingWindowManager', () => {
         mockUseSafeAreaPaddings.mockReturnValue({
             paddingTop: 0,
             paddingBottom: 23.8,
+            paddingLeft: 0,
+            paddingRight: 0,
             unmodifiedPaddings: {},
             insets: {top: 0, right: 0, bottom: 34, left: 0},
             safeAreaPaddingBottomStyle: {paddingBottom: 23.8},

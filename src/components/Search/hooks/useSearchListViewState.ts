@@ -10,6 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
+import useShouldScrollMainHeader from '@hooks/useShouldScrollMainHeader';
 import useUndeleteTransactions from '@hooks/useUndeleteTransactions';
 
 import type {TransactionPreviewData} from '@libs/actions/Search';
@@ -65,6 +66,7 @@ function useSearchListViewState({data, listData = data, isMobileSelectionModeEna
     const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
     const contentHeaderHeight = isSmallScreenWidth ? variables.contentHeaderNarrowHeight : variables.contentHeaderHeight;
     const {isEditingCell, wasRecentlyEditingCell} = useEditingCellState();
+    const shouldScrollMainHeader = useShouldScrollMainHeader();
 
     const listRef = useRef<FlashListRef<SearchListItem>>(null);
     const prevDataLength = usePrevious(data.length);
@@ -103,7 +105,9 @@ function useSearchListViewState({data, listData = data, isMobileSelectionModeEna
         if (isEditingCell || wasRecentlyEditingCell) {
             return;
         }
-        listRef.current.scrollToIndex({index, animated, viewOffset: -contentHeaderHeight});
+        // The offset keeps the row clear of the header pinned above the list. Where the header scrolls as part of the
+        // list's content there is nothing pinned to clear — see useShouldScrollMainHeader.
+        listRef.current.scrollToIndex({index, animated, viewOffset: shouldScrollMainHeader ? 0 : -contentHeaderHeight});
     };
 
     useScrollRestoration(listRef);

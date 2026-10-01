@@ -18,9 +18,12 @@ import TabBarItem from './TabBarItem';
 type WorkspacesTabButtonProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
     isWideLayout: boolean;
+
+    /** Whether the button is rendered inside the floating (mWeb landscape) tab bar */
+    isFloating?: boolean;
 };
 
-function WorkspacesTabButton({selectedTab, isWideLayout}: WorkspacesTabButtonProps) {
+function WorkspacesTabButton({selectedTab, isWideLayout, isFloating = false}: WorkspacesTabButtonProps) {
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Buildings']);
@@ -61,8 +64,8 @@ function WorkspacesTabButton({selectedTab, isWideLayout}: WorkspacesTabButtonPro
             role={CONST.ROLE.TAB}
             accessibilityLabel={`${translate('common.workspacesTabTitle')}${workspacesTabIndicatorStatus ? `. ${translate('common.yourReviewIsRequired')}` : ''}`}
             accessibilityState={workspacesAccessibilityState}
-            wrapperStyle={styles.flex1}
-            style={styles.navigationTabBarItem}
+            wrapperStyle={isFloating ? undefined : styles.flex1}
+            style={isFloating ? styles.navigationTabBarFloatingItem : styles.navigationTabBarItem}
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.WORKSPACES}
         >
             <TabBarItem
@@ -71,6 +74,7 @@ function WorkspacesTabButton({selectedTab, isWideLayout}: WorkspacesTabButtonPro
                 isSelected={selectedTab === NAVIGATION_TABS.WORKSPACES}
                 statusIndicatorColor={workspacesStatusIndicatorColor}
                 numberOfLines={1}
+                isFloating={isFloating}
             />
         </PressableWithFeedback>
     );

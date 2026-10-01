@@ -45,6 +45,7 @@ function ChatSearchView({
     newTransactions,
     onSelectRow,
     ListFooterComponent,
+    ListHeaderComponent,
     onEndReached,
     onLayout,
     onScroll,
@@ -133,6 +134,7 @@ function ChatSearchView({
                 onEndReached={onEndReached}
                 onEndReachedThreshold={0.75}
                 ListFooterComponent={ListFooterComponent}
+                ListHeaderComponent={ListHeaderComponent}
                 onLayout={onLayout}
                 contentContainerStyle={contentContainerStyle}
                 newTransactions={newTransactions}

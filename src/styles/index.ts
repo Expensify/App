@@ -38,6 +38,7 @@ import editedLabelStyles from './utils/editedLabelStyles';
 import emojiDefaultStyles from './utils/emojiDefaultStyles';
 import flex from './utils/flex';
 import FontUtils from './utils/FontUtils';
+import getSearchNarrowHeaderHeight from './utils/getSearchNarrowHeaderHeight';
 import objectFit from './utils/objectFit';
 import optionAlternateTextPlatformStyles from './utils/optionAlternateTextPlatformStyles';
 import overflow from './utils/overflow';
@@ -423,6 +424,12 @@ const staticStyles = (theme: ThemeColors) =>
             lineHeight: 14,
         },
 
+        // The floating (mWeb landscape) tab bar lays the label out beside the icon on a single line,
+        // so it doesn't need the tight line height the two-line stacked label relies on.
+        navigationTabBarFloatingLabel: {
+            lineHeight: 16,
+        },
+
         link: link(theme),
 
         emailLink: emailLink(theme),
@@ -750,12 +757,39 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.appBG,
         },
 
+        /**
+         * The floating tab bar used on mobile web in landscape. It hugs its content instead of spanning the
+         * full width, so it can be pinned to the bottom-left corner and float above the screen content.
+         */
+        navigationTabBarFloatingContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            alignSelf: 'flex-start',
+            height: variables.floatingNavigationTabBarHeight,
+            paddingHorizontal: 8,
+            borderRadius: variables.componentBorderRadiusCircle,
+            borderWidth: 1,
+            borderColor: theme.border,
+            backgroundColor: theme.appBG,
+            boxShadow: theme.shadow,
+        },
+
         navigationTabBarItem: {
             height: '100%',
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
             paddingHorizontal: 4,
+        },
+
+        // Intentionally without `flex: 1` — items in the floating bar size to their own label.
+        navigationTabBarFloatingItem: {
+            height: '100%',
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 6,
+            paddingHorizontal: 10,
+            borderRadius: variables.componentBorderRadiusCircle,
         },
 
         navigationTabBarFABItem: {
@@ -4359,6 +4393,17 @@ const staticStyles = (theme: ThemeColors) =>
             paddingBottom: 20,
         },
 
+        /**
+         * Home page content container for when the TopBar scrolls away as part of the content. The horizontal padding
+         * moves onto the widget block instead, because the TopBar carries its own margins and would otherwise be
+         * inset twice — see useShouldScrollMainHeader.
+         */
+        homePageScrollAwayHeaderContentContainer: {
+            flexGrow: 1,
+            paddingTop: 0,
+            paddingBottom: 20,
+        },
+
         cardSectionIllustration: {
             width: 'auto',
             height: variables.sectionIllustrationHeight,
@@ -7282,7 +7327,7 @@ const dynamicStyles = (theme: ThemeColors) =>
         getEmptyStateCompanyCardsIllustration: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {width: 680, height: 220} : {width: '100%', height: '100%'}),
 
         searchListContentContainerStyles: (hasFilterBars: boolean) => ({
-            paddingTop: hasFilterBars ? variables.searchListContentWithFiltersMarginTop : variables.searchListContentMarginTop,
+            paddingTop: getSearchNarrowHeaderHeight(hasFilterBars),
         }),
 
         sectionMenuItem: (shouldUseNarrowLayout: boolean) => ({

@@ -3,9 +3,11 @@ import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import ROUTE_TO_NAVIGATION_TAB from '@components/Navigation/NavigationTabBar/ROUTE_TO_NAVIGATION_TAB';
 
+import useIsSoftKeyboardOpen from '@hooks/useIsSoftKeyboardOpen';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
+import useShouldUseFloatingNavigationTabBar from '@hooks/useShouldUseFloatingNavigationTabBar';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -15,6 +17,7 @@ import cancelTabNavigationSpans, {INBOX_TAB_SPAN_IDS, REPORTS_TAB_SPAN_IDS} from
 import SCREENS from '@src/SCREENS';
 
 import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
+import type {ViewProps} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import React, {useEffect, useState} from 'react';
@@ -34,6 +37,8 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBlockingViewVisible} = useFullScreenBlockingViewState();
     const {paddingBottom: safeAreaPaddingBottom} = useSafeAreaPaddings(true);
+    const shouldUseFloatingTabBar = useShouldUseFloatingNavigationTabBar();
+    const isSoftKeyboardOpen = useIsSoftKeyboardOpen();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const activeRoute = state.routes[state.index];
@@ -67,18 +72,39 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
         cancelTabNavigationSpans(NAVIGATION_TAB_TO_SPANS[selectedTab]);
     }, [selectedTab]);
 
-    const isHidden = shouldHide || (shouldApplyDelay && animationDoneKey !== stateKey);
+    // The floating bar and its buttons hover over the content rather than sitting in the layout, so when the soft
+    // keyboard opens they get pushed up with the shrinking viewport and end up riding on top of it. Hide them for as
+    // long as the keyboard is up so they stay out of the way behind it. The full width bar needs no such treatment:
+    // it takes real space in the layout, which the keyboard simply covers.
+    const isCoveredByKeyboard = shouldUseFloatingTabBar && isSoftKeyboardOpen;
+
+    const isHidden = shouldHide || isCoveredByKeyboard || (shouldApplyDelay && animationDoneKey !== stateKey);
+
+    // The floating wrapper spans the full width but is transparent outside the pill, so taps in that gutter have to
+    // reach the screen content underneath.
+    let narrowPointerEvents: ViewProps['pointerEvents'] = 'auto';
+    if (isHidden) {
+        narrowPointerEvents = 'none';
+    } else if (shouldUseFloatingTabBar) {
+        narrowPointerEvents = 'box-none';
+    }
 
     if (shouldUseNarrowLayout) {
         // Negative marginTop overlays the tab bar on content (zero flex space) to prevent layout shifts.
         return (
             <View
-                style={[StyleUtils.getTabBarNarrowStyle(safeAreaPaddingBottom), isHidden && styles.opacity0]}
-                pointerEvents={isHidden ? 'none' : 'auto'}
+                style={[
+                    shouldUseFloatingTabBar ? StyleUtils.getFloatingTabBarWrapperStyle(safeAreaPaddingBottom) : StyleUtils.getTabBarNarrowStyle(safeAreaPaddingBottom),
+                    isHidden && styles.opacity0,
+                ]}
+                pointerEvents={narrowPointerEvents}
             >
                 <NavigationTabBar
                     selectedTab={selectedTab}
                     shouldShowFloatingButtons={!isHidden}
+                    isFloating={shouldUseFloatingTabBar}
+                    floatingActionButtonStyle={StyleUtils.getFloatingTabBarFABStyle(safeAreaPaddingBottom)}
+                    floatingCameraButtonStyle={StyleUtils.getFloatingTabBarCameraButtonStyle(safeAreaPaddingBottom)}
                 />
             </View>
         );

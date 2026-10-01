@@ -18,6 +18,7 @@ import type {Report} from '@src/types/onyx';
 
 import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
+import type {LayoutChangeEvent} from 'react-native';
 
 import {useRoute} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
@@ -34,7 +35,16 @@ const keyExtractor = (item: Report) => `report_${item.reportID}`;
 const platform = getPlatform();
 const isWeb = platform === CONST.PLATFORM.WEB;
 
-function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions = false, onFirstItemRendered = () => {}}: LHNOptionsListProps) {
+function LHNOptionsList({
+    style,
+    contentContainerStyles,
+    data,
+    onSelectRow,
+    optionMode,
+    shouldDisableFocusOptions = false,
+    onFirstItemRendered = () => {},
+    listHeaderComponent,
+}: LHNOptionsListProps) {
     const {saveScrollOffset, getScrollOffset, saveScrollIndex, getScrollIndex} = useContext(ScrollOffsetContext);
     const {isOffline} = useNetwork();
     const flashListRef = useRef<FlashListRef<Report>>(null);
@@ -122,6 +132,12 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         flashListRef.current.scrollToOffset({offset: 0});
     }, [previousOptionMode, optionMode]);
 
+    // Kept in a ref rather than state: onScroll is the only reader, and the header's height must never trigger a re-render.
+    const listHeaderHeightRef = useRef(0);
+    const onListHeaderLayout = useCallback((event: LayoutChangeEvent) => {
+        listHeaderHeightRef.current = event.nativeEvent.layout.height;
+    }, []);
+
     const onScroll = useCallback<NonNullable<FlashListProps<string>['onScroll']>>(
         (e) => {
             // If the layout measurement is 0, it means the FlashList is not displayed but the onScroll may be triggered with offset value 0.
@@ -131,7 +147,10 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             }
             saveScrollOffset(route, e.nativeEvent.contentOffset.y);
             if (isWeb) {
-                saveScrollIndex(route, Math.floor(e.nativeEvent.contentOffset.y / estimatedItemSize));
+                // The list header is part of the content, so discount its height before converting the offset to a
+                // row index — otherwise the restored index overshoots by however many rows the header covers.
+                const rowsOffset = Math.max(e.nativeEvent.contentOffset.y - listHeaderHeightRef.current, 0);
+                saveScrollIndex(route, Math.floor(rowsOffset / estimatedItemSize));
             }
             triggerScrollEvent();
         },
@@ -157,6 +176,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const savedScrollIndex = getScrollIndex(route);
     const initialScrollIndex = isWeb && savedScrollIndex !== undefined && savedScrollIndex >= 0 && savedScrollIndex < data.length ? savedScrollIndex : undefined;
 
+    const listHeader = listHeaderComponent ? <View onLayout={onListHeaderLayout}>{listHeaderComponent}</View> : undefined;
+
     return (
         <View style={style ?? styles.flex1}>
             <LHNTooltipContextProvider data={data}>
@@ -175,6 +196,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     onLayout={onLayout}
                     onScroll={onScroll}
                     initialScrollIndex={initialScrollIndex}
+                    ListHeaderComponent={listHeader}
                     maintainVisibleContentPosition={{disabled: true}}
                     drawDistance={250}
                     removeClippedSubviews

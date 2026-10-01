@@ -54,6 +54,9 @@ function markNavigateToInboxTabWaitedOnOpenReport() {
 type InboxTabButtonProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
     isWideLayout: boolean;
+
+    /** Whether the button is rendered inside the floating (mWeb landscape) tab bar */
+    isFloating?: boolean;
 };
 
 function doesLastReportExistSelector(report: OnyxEntry<Report>) {
@@ -215,7 +218,7 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
     );
 }
 
-function InboxTabButton({selectedTab, isWideLayout}: InboxTabButtonProps) {
+function InboxTabButton({selectedTab, isWideLayout, isFloating = false}: InboxTabButtonProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -256,8 +259,8 @@ function InboxTabButton({selectedTab, isWideLayout}: InboxTabButtonProps) {
             role={CONST.ROLE.TAB}
             accessibilityLabel={accessibilityLabel}
             accessibilityState={{selected: selectedTab === NAVIGATION_TABS.INBOX}}
-            wrapperStyle={styles.flex1}
-            style={styles.navigationTabBarItem}
+            wrapperStyle={isFloating ? undefined : styles.flex1}
+            style={isFloating ? styles.navigationTabBarFloatingItem : styles.navigationTabBarItem}
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INBOX}
         >
             <TabBarItem
@@ -266,6 +269,7 @@ function InboxTabButton({selectedTab, isWideLayout}: InboxTabButtonProps) {
                 isSelected={selectedTab === NAVIGATION_TABS.INBOX}
                 statusIndicatorColor={statusIndicatorColor}
                 numberOfLines={1}
+                isFloating={isFloating}
             />
         </PressableWithFeedback>
     );

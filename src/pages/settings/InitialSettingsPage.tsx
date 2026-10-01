@@ -3,6 +3,7 @@ import AccountSwitcherButton from '@components/AccountSwitcherButton';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
+import useTabBarBottomContentStyle from '@components/Navigation/TabBarBottomContent/useTabBarBottomContentStyle';
 import TopBarWithLoadingBar from '@components/Navigation/TopBarWithLoadingBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
@@ -11,11 +12,13 @@ import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 
+import useFloatingNavigationTabBarPaddingStyle from '@hooks/useFloatingNavigationTabBarPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
+import useShouldScrollMainHeader from '@hooks/useShouldScrollMainHeader';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -49,7 +52,10 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const [canSwitchAccounts = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector: canSwitchAccountsSelector});
     const tabBarContent = <TabBarBottomContent selectedTab={NAVIGATION_TABS.SETTINGS} />;
+    const floatingTabBarPaddingStyle = useFloatingNavigationTabBarPaddingStyle();
+    const shouldScrollMainHeader = useShouldScrollMainHeader();
     const styles = useThemeStyles();
+    const tabBarBottomContentStyle = useTabBarBottomContentStyle();
     const {isExecuting, singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
@@ -149,33 +155,38 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         scrollViewRef.current.scrollTo({y: scrollOffset, animated: false});
     }, [getScrollOffset, route]);
 
+    const topBar = (
+        <TopBarWithLoadingBar
+            breadcrumbLabel={translate('initialSettingsPage.account')}
+            shouldDisplaySearch={shouldUseNarrowLayout}
+            shouldDisplayHelpButton={shouldUseNarrowLayout}
+        >
+            {!shouldUseNarrowLayout && !isPersonalDetailsEmpty && (
+                /* The top bar row ends 12px from the screen edge, so add 8px to sit the button 20px in. */
+                <View style={styles.mr2}>
+                    <AccountSwitcherButton isScreenFocused={isScreenFocused} />
+                </View>
+            )}
+        </TopBarWithLoadingBar>
+    );
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             testID="InitialSettingsPage"
             shouldEnableKeyboardAvoidingView={false}
             bottomContent={tabBarContent}
-            bottomContentStyle={styles.overflowVisible}
+            bottomContentStyle={tabBarBottomContentStyle}
         >
-            <TopBarWithLoadingBar
-                breadcrumbLabel={translate('initialSettingsPage.account')}
-                shouldDisplaySearch={shouldUseNarrowLayout}
-                shouldDisplayHelpButton={shouldUseNarrowLayout}
-            >
-                {!shouldUseNarrowLayout && !isPersonalDetailsEmpty && (
-                    /* The top bar row ends 12px from the screen edge, so add 8px to sit the button 20px in. */
-                    <View style={styles.mr2}>
-                        <AccountSwitcherButton isScreenFocused={isScreenFocused} />
-                    </View>
-                )}
-            </TopBarWithLoadingBar>
+            {!shouldScrollMainHeader && topBar}
             <ScrollView
                 ref={scrollViewRef}
                 onScroll={onScroll}
                 scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
-                contentContainerStyle={[styles.w100]}
+                contentContainerStyle={[styles.w100, floatingTabBarPaddingStyle]}
                 showsVerticalScrollIndicator={false}
             >
+                {shouldScrollMainHeader && topBar}
                 {headerContent}
                 {accountMenuItems}
                 {generalMenuItems}

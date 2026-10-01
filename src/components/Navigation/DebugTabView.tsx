@@ -35,6 +35,7 @@ import type {ReimbursementAccount} from '@src/types/onyx';
 import type IndicatorStatus from '@src/types/utils/IndicatorStatus';
 
 import type {NavigationState} from '@react-navigation/native';
+import type {DimensionValue} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
@@ -146,9 +147,12 @@ function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAcco
 
 type Props = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
+
+    /** Whether the parent tab bar is the floating pill (mWeb landscape), which is left aligned and overlays content */
+    isFloating?: boolean;
 };
 
-function DebugTabView({selectedTab}: Props) {
+function DebugTabView({selectedTab, isFloating = false}: Props) {
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -234,9 +238,13 @@ function DebugTabView({selectedTab}: Props) {
         return null;
     }
 
-    let positionStyle: {bottom?: number; top?: number; left: number; right?: number; width?: number};
+    let positionStyle: {bottom?: DimensionValue; top?: number; left: number; right?: number; width?: number};
     const verticalAnchor = selectedTab === NAVIGATION_TABS.SETTINGS && !shouldUseNarrowLayout ? {top: 0} : {bottom: 0};
-    if (shouldUseNarrowLayout) {
+    if (isFloating) {
+        // The floating tab bar's wrapper is left aligned and sized to the pill, so the debug strip has to be
+        // detached from it and anchored to the full width just above the whole wrapper.
+        positionStyle = {bottom: '100%', left: 0, right: 0};
+    } else if (shouldUseNarrowLayout) {
         positionStyle = {bottom: 0, left: 0, right: 0};
     } else if (isOnFullWidthTabRoot) {
         positionStyle = {...verticalAnchor, left: variables.navigationTabBarSize, width: windowWidth - variables.navigationTabBarSize - sidePanelOffset};
@@ -251,7 +259,7 @@ function DebugTabView({selectedTab}: Props) {
     return (
         <View
             testID="DebugTabViewContainer"
-            style={[shouldUseNarrowLayout ? positionStyle : {...styles.pAbsolute, ...positionStyle}]}
+            style={[shouldUseNarrowLayout && !isFloating ? positionStyle : {...styles.pAbsolute, ...positionStyle}]}
             pointerEvents="box-none"
         >
             <View

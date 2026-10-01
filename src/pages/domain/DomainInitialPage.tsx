@@ -3,11 +3,13 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
+import useTabBarBottomContentStyle from '@components/Navigation/TabBarBottomContent/useTabBarBottomContentStyle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
+import useFloatingNavigationTabBarPaddingStyle from '@hooks/useFloatingNavigationTabBarPaddingStyle';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -43,6 +45,8 @@ type DomainInitialPageProps = PlatformStackScreenProps<DomainSplitNavigatorParam
 function DomainInitialPage({route}: DomainInitialPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(DOMAIN_MENU_ICON_NAMES);
     const styles = useThemeStyles();
+    const tabBarBottomContentStyle = useTabBarBottomContentStyle();
+    const floatingTabBarPaddingStyle = useFloatingNavigationTabBarPaddingStyle();
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
     const activeRoute = useNavigationState((state) => findFocusedRoute(state)?.name);
@@ -103,7 +107,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
             testID="DomainInitialPage"
             enableEdgeToEdgeBottomSafeAreaPadding={false}
             bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.WORKSPACES} />}
-            bottomContentStyle={styles.overflowVisible}
+            bottomContentStyle={tabBarBottomContentStyle}
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.dismissModal()}
@@ -121,7 +125,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                     shouldDisplayAccountButton
                 />
 
-                <ScrollView contentContainerStyle={styles.flexColumn}>
+                <ScrollView contentContainerStyle={[styles.flexColumn, floatingTabBarPaddingStyle]}>
                     <View style={[styles.pb4, styles.mh3, styles.mt3]}>
                         {/*
                             Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.

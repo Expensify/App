@@ -22,9 +22,12 @@ type NavigationTabBarAvatarProps = {
 
     /** Additional styles to add to the button */
     style?: StyleProp<ViewStyle>;
+
+    /** Whether the avatar is rendered inside the floating (mWeb landscape) tab bar, which lays the label out beside it */
+    isFloating?: boolean;
 };
 
-function NavigationTabBarAvatar({onPress, isSelected = false, style}: NavigationTabBarAvatarProps) {
+function NavigationTabBarAvatar({onPress, isSelected = false, style, isFloating = false}: NavigationTabBarAvatarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -37,7 +40,7 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
             onPress={onPress}
             accessibilityLabel={`${translate('initialSettingsPage.account')}, ${translate('sidebarScreen.buttonMySettings')}. ${status ? `${translate('common.yourReviewIsRequired')}.` : ''}`}
             role={CONST.ROLE.TAB}
-            wrapperStyle={styles.flex1}
+            wrapperStyle={isFloating ? undefined : styles.flex1}
             accessibilityState={accountAccessibilityState}
             aria-selected={accountAccessibilityState.selected}
             style={({hovered}) => [style, !shouldUseNarrowLayout && hovered && styles.navigationTabBarItemHovered]}
@@ -52,8 +55,12 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
                         />
                     </View>
                     <Text
-                        numberOfLines={2}
-                        style={[styles.textSmall, styles.textAlignCenter, isSelected ? styles.textBold : styles.textSupporting, styles.mt0Half, styles.navigationTabBarLabel]}
+                        numberOfLines={isFloating ? 1 : 2}
+                        style={[
+                            styles.textSmall,
+                            isSelected ? styles.textBold : styles.textSupporting,
+                            isFloating ? styles.navigationTabBarFloatingLabel : [styles.textAlignCenter, styles.mt0Half, styles.navigationTabBarLabel],
+                        ]}
                     >
                         {translate('initialSettingsPage.account')}
                     </Text>

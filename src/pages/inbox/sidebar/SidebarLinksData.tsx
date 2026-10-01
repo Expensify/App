@@ -18,9 +18,12 @@ import SidebarLinks from './SidebarLinks';
 type SidebarLinksDataProps = {
     /** Safe area insets required for mobile devices margins */
     insets: EdgeInsets;
+
+    /** Header to render as the report list's first item so it scrolls away with the rows */
+    listHeaderComponent?: React.ReactNode;
 };
 
-function SidebarLinksData({insets}: SidebarLinksDataProps) {
+function SidebarLinksData({insets, listHeaderComponent}: SidebarLinksDataProps) {
     const isFocused = useIsFocused();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -41,6 +44,7 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
             <SidebarLinks
                 // Forwarded props:
                 insets={insets}
+                listHeaderComponent={listHeaderComponent}
                 priorityMode={priorityMode ?? CONST.PRIORITY_MODE.DEFAULT}
                 // Data props:
                 optionListItems={filteredReports}

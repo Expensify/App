@@ -48,9 +48,12 @@ function useSafeAreaPaddings(isUsingEdgeToEdgeBottomSafeAreaPadding = false) {
     );
 
     if (isUsingEdgeToEdgeBottomSafeAreaPadding) {
+        // The flag only concerns the bottom padding, so the side paddings are passed through unchanged.
         return {
             paddingTop,
             paddingBottom,
+            paddingLeft,
+            paddingRight,
             unmodifiedPaddings: {},
             insets,
             safeAreaPaddingBottomStyle,

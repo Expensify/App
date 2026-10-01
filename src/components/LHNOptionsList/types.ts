@@ -27,6 +27,12 @@ type CustomLHNOptionsListProps = {
 
     /** Callback to fire when the list is laid out */
     onFirstItemRendered: () => void;
+
+    /**
+     * Header rendered as the list's first item, so it scrolls away with the rows instead of staying pinned above
+     * them — see useShouldScrollMainHeader. Its height is measured and subtracted from the saved scroll index.
+     */
+    listHeaderComponent?: React.ReactNode;
 };
 
 type LHNOptionsListProps = CustomLHNOptionsListProps;

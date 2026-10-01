@@ -51,6 +51,7 @@ function ExpenseReportSearchView({
     newTransactions,
     onSelectRow,
     ListFooterComponent,
+    ListHeaderComponent,
     onEndReached,
     onLayout,
     onScroll,
@@ -169,6 +170,7 @@ function ExpenseReportSearchView({
                 onEndReached={onEndReached}
                 onEndReachedThreshold={0.75}
                 ListFooterComponent={ListFooterComponent}
+                ListHeaderComponent={ListHeaderComponent}
                 onLayout={onLayout}
                 contentContainerStyle={contentContainerStyle}
                 newTransactions={newTransactions}

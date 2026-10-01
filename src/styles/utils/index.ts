@@ -52,6 +52,7 @@ import getMoneyRequestReportPreviewStyle from './getMoneyRequestReportPreviewSty
 import getNavigationBarType from './getNavigationBarType/index';
 import getNavigationModalCardStyle from './getNavigationModalCardStyles';
 import getSafeAreaInsets from './getSafeAreaInsets';
+import getSearchNarrowHeaderHeight from './getSearchNarrowHeaderHeight';
 import getSuccessReportCardLostIllustrationStyle from './getSuccessReportCardLostIllustrationStyle';
 import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
@@ -1458,6 +1459,7 @@ const staticStyleUtils = {
     positioning,
     searchHeaderDefaultOffset,
     combineStyles,
+    getSearchNarrowHeaderHeight,
     displayIfTrue,
     getAmountFontSizeAndLineHeight,
     getAmountInputFontSize,
@@ -1552,6 +1554,15 @@ const staticStyleUtils = {
     getSuccessReportCardLostIllustrationStyle,
     getOptionMargin,
 };
+
+/**
+ * Total vertical space the floating (mWeb landscape) tab bar occupies: the pill itself plus the gap above and
+ * below it, and the bottom safe area. Used both to pull the bar out of the layout flow and to reserve the same
+ * amount of scroll room at the bottom of the tab root screens.
+ */
+function getFloatingTabBarOccupiedHeight(safeAreaPaddingBottom: number): number {
+    return variables.floatingNavigationTabBarHeight + variables.floatingNavigationTabBarMargin * 2 + safeAreaPaddingBottom;
+}
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     ...staticStyleUtils,
@@ -2532,6 +2543,44 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         ...style,
         paddingLeft: 'env(safe-area-inset-left)',
         paddingRight: 'env(safe-area-inset-right)',
+    }),
+
+    /**
+     * Same negative marginTop trick as getTabBarNarrowStyle (the bar takes zero flex space and overlays the
+     * content), but transparent and left aligned so only the pill itself is painted over the screen.
+     *
+     * Only the bottom safe area is added here. The tab navigator's card is already padded by
+     * `env(safe-area-inset-left/right)` in narrow layout (see useRootNavigatorScreenOptions), so adding the
+     * horizontal insets again would inset the pill twice — visible on iOS, where those insets are non-zero in
+     * landscape, and invisible on Android, where they are 0.
+     */
+    getFloatingTabBarWrapperStyle: (safeAreaPaddingBottom: number): ViewStyle => ({
+        overflow: 'visible',
+        alignItems: 'flex-start',
+        backgroundColor: 'transparent',
+        marginTop: -getFloatingTabBarOccupiedHeight(safeAreaPaddingBottom),
+        paddingTop: variables.floatingNavigationTabBarMargin,
+        paddingBottom: variables.floatingNavigationTabBarMargin + safeAreaPaddingBottom,
+        paddingLeft: variables.floatingNavigationTabBarMargin,
+    }),
+
+    /**
+     * The FAB sits in the same row as the pill but in the opposite (bottom-right) corner, so the two never collide.
+     * Positioned against the floating wrapper's padding box, hence the bottom safe area is added back here.
+     */
+    getFloatingTabBarFABStyle: (safeAreaPaddingBottom: number): ViewStyle => ({
+        position: 'absolute',
+        bottom: variables.floatingNavigationTabBarMargin + safeAreaPaddingBottom,
+        right: variables.floatingNavigationTabBarMargin,
+        zIndex: 10,
+    }),
+
+    /** Stacked directly above the FAB, matching the gap used by styles.floatingCameraButton. */
+    getFloatingTabBarCameraButtonStyle: (safeAreaPaddingBottom: number): ViewStyle => ({
+        position: 'absolute',
+        bottom: variables.floatingNavigationTabBarMargin + safeAreaPaddingBottom + variables.componentSizeLarge + 12,
+        right: variables.floatingNavigationTabBarMargin,
+        zIndex: 10,
     }),
 });
 

@@ -3,6 +3,7 @@ import {cleanup, render, screen} from '@testing-library/react-native';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import DebugTabView from '@components/Navigation/DebugTabView';
+import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
@@ -318,5 +319,57 @@ describe('DebugTabView', () => {
                 }),
             );
         });
+    });
+});
+
+describe('NavigationTabBar', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+        initOnyxDerivedValues();
+        Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
+    });
+
+    beforeEach(() => {
+        setMockFocusedTab(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
+        jest.mocked(useResponsiveLayout).mockReturnValue(createMock<ReturnType<typeof useResponsiveLayout>>({shouldUseNarrowLayout: true}));
+    });
+
+    afterEach(async () => {
+        cleanup();
+        jest.clearAllMocks();
+        await Onyx.clear();
+    });
+
+    it('renders the full width bar by default', async () => {
+        renderWithNavigation(
+            <NavigationTabBar
+                selectedTab={NAVIGATION_TABS.SETTINGS}
+                shouldShowFloatingButtons={false}
+            />,
+        );
+
+        const container = await screen.findByTestId('NavigationTabBar');
+        expect(container.props.style).toEqual(expect.objectContaining({height: variables.bottomTabHeight, flexDirection: 'row'}));
+    });
+
+    it('renders a bottom left pill that hugs its content when floating', async () => {
+        renderWithNavigation(
+            <NavigationTabBar
+                selectedTab={NAVIGATION_TABS.SETTINGS}
+                shouldShowFloatingButtons={false}
+                isFloating
+            />,
+        );
+
+        const container = await screen.findByTestId('NavigationTabBar');
+        expect(container.props.style).toEqual(
+            expect.objectContaining({
+                height: variables.floatingNavigationTabBarHeight,
+                borderRadius: variables.componentBorderRadiusCircle,
+                // Hugging its content is what keeps the pill in the corner instead of spanning the screen.
+                alignSelf: 'flex-start',
+                flexDirection: 'row',
+            }),
+        );
     });
 });

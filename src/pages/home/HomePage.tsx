@@ -1,17 +1,20 @@
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import QuickCreationActionsBar from '@components/Navigation/QuickCreationActionsBar';
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
+import useTabBarBottomContentStyle from '@components/Navigation/TabBarBottomContent/useTabBarBottomContentStyle';
 import TopBar from '@components/Navigation/TopBar';
 import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
 import useDocumentTitle from '@hooks/useDocumentTitle';
+import useFloatingNavigationTabBarPaddingStyle from '@hooks/useFloatingNavigationTabBarPaddingStyle';
 import {useAppLoadSkeletonVisibility} from '@hooks/useInFlightRequests';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldScrollMainHeader from '@hooks/useShouldScrollMainHeader';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import openHomePage from '@libs/actions/HomePage';
@@ -41,7 +44,10 @@ const RIGHT_COLUMN_TEST_ID = 'homePageRightColumn';
 
 function HomePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const floatingTabBarPaddingStyle = useFloatingNavigationTabBarPaddingStyle();
+    const shouldScrollMainHeader = useShouldScrollMainHeader();
     const styles = useThemeStyles();
+    const tabBarBottomContentStyle = useTabBarBottomContentStyle();
     const {translate} = useLocalize();
     useDocumentTitle(translate('common.home'));
     const {isOffline} = useNetwork({onReconnect: openHomePage});
@@ -127,6 +133,14 @@ function HomePage() {
         </>
     );
 
+    const topBar = (
+        <TopBar
+            breadcrumbLabel={translate('common.home')}
+            shouldShowLoadingBar={isForYouLoading}
+            shouldDisplayHelpButton
+        />
+    );
+
     return (
         <View
             ref={receiptDropTargetRef}
@@ -142,25 +156,22 @@ function HomePage() {
                     testID="HomePage"
                     enableEdgeToEdgeBottomSafeAreaPadding={false}
                     bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.HOME} />}
-                    bottomContentStyle={styles.overflowVisible}
+                    bottomContentStyle={tabBarBottomContentStyle}
                 >
-                    <TopBar
-                        breadcrumbLabel={translate('common.home')}
-                        shouldShowLoadingBar={isForYouLoading}
-                        shouldDisplayHelpButton
-                    />
+                    {!shouldScrollMainHeader && topBar}
                     <ScrollView
                         style={styles.homePageScrollView}
-                        contentContainerStyle={styles.homePageContentContainer}
+                        contentContainerStyle={[shouldScrollMainHeader ? styles.homePageScrollAwayHeaderContentContainer : styles.homePageContentContainer, floatingTabBarPaddingStyle]}
                         addBottomSafeAreaPadding
                         keyboardShouldPersistTaps="handled"
                     >
+                        {shouldScrollMainHeader && topBar}
                         {!shouldUseNarrowLayout && (
                             <View style={styles.centeredContentWidthLimiter}>
                                 <QuickCreationActionsBar />
                             </View>
                         )}
-                        <View style={styles.homePageMainLayout(shouldUseNarrowLayout)}>{homeLayout}</View>
+                        <View style={[styles.homePageMainLayout(shouldUseNarrowLayout), shouldScrollMainHeader && styles.ph5]}>{homeLayout}</View>
                     </ScrollView>
                     <PortalHost name="suggestions" />
                 </ScreenWrapper>

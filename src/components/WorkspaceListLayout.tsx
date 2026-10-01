@@ -2,6 +2,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
+import useShouldScrollMainHeader from '@hooks/useShouldScrollMainHeader';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -29,6 +30,9 @@ type WorkspaceListHeaderContentProps = {
     activeTabKey: WorkspaceListActiveTabKey;
     headerButton?: React.ReactNode;
     shouldShowHeaderButton?: boolean;
+
+    /** Whether this header is rendered inside the scrollable table, i.e. it is passed to WorkspaceListLayout's `scrollHeaderWithTable` screens */
+    scrollHeaderWithTable?: boolean;
 };
 
 type WorkspaceListLayoutProps = {
@@ -39,9 +43,10 @@ type WorkspaceListLayoutProps = {
     scrollHeaderWithTable?: boolean;
 };
 
-function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeaderButton = true}: WorkspaceListHeaderContentProps) {
+function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeaderButton = true, scrollHeaderWithTable = false}: WorkspaceListHeaderContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const shouldScrollMainHeader = useShouldScrollMainHeader();
     const icons = useMemoizedLazyExpensifyIcons(['Globe', 'Building']);
     const {badgeText: domainsBadgeText, hasDomainErrors} = useDomainsTabBadge();
     const navigationOptions = [
@@ -74,15 +79,26 @@ function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeade
         Navigation.navigate(matchingNavigationOption.route);
     };
 
+    // The top bar scrolls away with the rest of the header, so it is rendered here rather than staying pinned in WorkspaceListLayout.
+    const shouldRenderTopBar = scrollHeaderWithTable && shouldScrollMainHeader;
+
     return (
-        <View style={[styles.flexRow, styles.justifyContentBetween, styles.pr5, styles.pt1, styles.pb2]}>
-            <TabSelectorBase
-                tabs={navigationOptions}
-                activeTabKey={activeTabKey}
-                onTabPress={onTabPress}
-            />
-            {shouldShowHeaderButton && headerButton}
-        </View>
+        <>
+            {shouldRenderTopBar && (
+                <TopBarWithLoadingBar
+                    shouldDisplayHelpButton
+                    breadcrumbLabel={activeTabKey === 'workspaces' ? translate('common.workspaces') : translate('common.domains')}
+                />
+            )}
+            <View style={[styles.flexRow, styles.justifyContentBetween, styles.pr5, styles.pt1, styles.pb2]}>
+                <TabSelectorBase
+                    tabs={navigationOptions}
+                    activeTabKey={activeTabKey}
+                    onTabPress={onTabPress}
+                />
+                {shouldShowHeaderButton && headerButton}
+            </View>
+        </>
     );
 }
 
@@ -94,6 +110,10 @@ function WorkspaceListLayout({children, activeTabKey, headerButton, headerCompon
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const debugTabViewHeight = useDebugTabViewHeight();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
+    const shouldScrollMainHeader = useShouldScrollMainHeader();
+
+    // When the header scrolls with the table, the top bar is rendered by WorkspaceListHeaderContent inside the list instead.
+    const shouldScrollTopBarWithTable = scrollHeaderWithTable && shouldScrollMainHeader;
 
     const isWorkspacesListPage = activeTabKey === 'workspaces';
     const testID = isWorkspacesListPage ? 'WorkspacesListPage' : 'DomainsListPage';
@@ -103,6 +123,7 @@ function WorkspaceListLayout({children, activeTabKey, headerButton, headerCompon
             activeTabKey={activeTabKey}
             headerButton={headerButton}
             shouldShowHeaderButton={shouldDisplayButtonsInSeparateLine}
+            scrollHeaderWithTable={scrollHeaderWithTable}
         />
     );
 
@@ -124,12 +145,14 @@ function WorkspaceListLayout({children, activeTabKey, headerButton, headerCompon
         >
             <View style={[styles.flex1, styles.flexRow]}>
                 <View style={[styles.flex1]}>
-                    <TopBarWithLoadingBar
-                        shouldDisplayHelpButton
-                        breadcrumbLabel={activeTabLabel}
-                    >
-                        {!scrollHeaderWithTable && <View style={[styles.pr3]}>{!shouldDisplayButtonsInSeparateLine && headerButton}</View>}
-                    </TopBarWithLoadingBar>
+                    {!shouldScrollTopBarWithTable && (
+                        <TopBarWithLoadingBar
+                            shouldDisplayHelpButton
+                            breadcrumbLabel={activeTabLabel}
+                        >
+                            {!scrollHeaderWithTable && <View style={[styles.pr3]}>{!shouldDisplayButtonsInSeparateLine && headerButton}</View>}
+                        </TopBarWithLoadingBar>
+                    )}
 
                     {content}
                     {!shouldUseNarrowLayout && <OfflineIndicator style={styles.pl5} />}

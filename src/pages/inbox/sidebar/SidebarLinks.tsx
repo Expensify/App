@@ -2,6 +2,7 @@ import LHNEmptyState from '@components/LHNOptionsList/LHNEmptyState';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 
+import {useFloatingNavigationTabBarPadding} from '@hooks/useFloatingNavigationTabBarPaddingStyle';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {useSidebarOrderedReportsActions} from '@hooks/useSidebarOrderedReports';
@@ -38,12 +39,19 @@ type SidebarLinksProps = {
 
     /** The chat priority mode */
     priorityMode?: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>;
+
+    /**
+     * Header to render as the list's first item so it scrolls away with the rows. When set, it must also be rendered
+     * in the branches that show no list at all (empty LHN), otherwise the screen loses its header entirely.
+     */
+    listHeaderComponent?: React.ReactNode;
 };
 
-function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CONST.PRIORITY_MODE.DEFAULT}: SidebarLinksProps) {
+function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CONST.PRIORITY_MODE.DEFAULT, listHeaderComponent}: SidebarLinksProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
+    const floatingTabBarPadding = useFloatingNavigationTabBarPadding();
     const {setStickyReportID} = useSidebarOrderedReportsActions();
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
 
@@ -79,7 +87,10 @@ function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CO
 
     const viewMode = priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;
 
-    const contentContainerStyles = StyleSheet.flatten([styles.pt2, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]);
+    // getSafeAreaMargins is typed as ViewStyle, so narrow it before adding the floating tab bar's padding to it.
+    const safeAreaMarginBottom = StyleUtils.getSafeAreaMargins(insets).marginBottom;
+    const bottomPadding = (typeof safeAreaMarginBottom === 'number' ? safeAreaMarginBottom : 0) + floatingTabBarPadding;
+    const contentContainerStyles = StyleSheet.flatten([styles.pt2, {paddingBottom: bottomPadding}]);
 
     const shouldShowEmptyLHN = optionListItems.length === 0;
 
@@ -93,9 +104,12 @@ function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CO
         <View style={[styles.flex1, styles.h100]}>
             <View style={[styles.pRelative, styles.flex1]}>
                 {shouldShowEmptyLHN ? (
-                    <View style={[styles.flex1, isInLandscapeMode ? styles.pv4 : styles.emptyLHNWrapper]}>
-                        <LHNEmptyState />
-                    </View>
+                    <>
+                        {listHeaderComponent}
+                        <View style={[styles.flex1, isInLandscapeMode ? styles.pv4 : styles.emptyLHNWrapper]}>
+                            <LHNEmptyState />
+                        </View>
+                    </>
                 ) : (
                     <LHNOptionsList
                         style={styles.flex1}
@@ -105,6 +119,7 @@ function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CO
                         shouldDisableFocusOptions={shouldUseNarrowLayout}
                         optionMode={viewMode}
                         onFirstItemRendered={setSidebarLoaded}
+                        listHeaderComponent={listHeaderComponent}
                     />
                 )}
                 {shouldShowLoadingSkeleton && (

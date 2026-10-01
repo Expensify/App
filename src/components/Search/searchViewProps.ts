@@ -65,6 +65,12 @@ type CommonSearchViewProps = {
     /** The list footer (pagination / pending skeleton). */
     ListFooterComponent?: React.JSX.Element;
 
+    /**
+     * The page header, rendered as the list's own header so it scrolls away with the rows and a drag starting on it
+     * scrolls the list. Only set where the header is not pinned above the list — see useShouldScrollMainHeader.
+     */
+    ListHeaderComponent?: React.JSX.Element;
+
     /** Fires when the list scrolls near its end (router's fetchMoreResults). */
     onEndReached: () => void;
 
