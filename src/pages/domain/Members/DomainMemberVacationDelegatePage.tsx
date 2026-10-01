@@ -3,6 +3,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 
 import {setDraftValues} from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
@@ -23,7 +24,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useNavigationState} from '@react-navigation/native';
 import {vacationDelegateSelector} from '@selectors/Domain';
-import {personalDetailsSelector} from '@selectors/PersonalDetails';
 import React from 'react';
 
 type DomainMemberVacationDelegatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.VACATION_DELEGATE_SELECT>;
@@ -40,9 +40,7 @@ function DomainMemberVacationDelegatePage({route}: DomainMemberVacationDelegateP
     const [draftDelegate] = useOnyx(ONYXKEYS.FORMS.VACATION_DELEGATE_FORM_DRAFT, {selector: draftDelegateSelector});
     const isFormInStack = useNavigationState((state) => state.routes.some((stackRoute) => stackRoute.name === SCREENS.DOMAIN.VACATION_DELEGATE));
 
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: personalDetailsSelector(accountID),
-    });
+    const [personalDetails] = usePersonalDetail(accountID);
     const memberLogin = personalDetails?.login;
 
     const onSelectRow = (option: Participant) => {
