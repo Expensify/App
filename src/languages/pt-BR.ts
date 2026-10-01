@@ -523,6 +523,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noResultsFoundSubtitle: 'Nenhum resultado. Tente ajustar seus filtros ou termo de pesquisa',
         unableToDisplayChart: 'Não foi possível exibir o gráfico',
         webGLNotSupported: 'Seu navegador não é compatível com WebGL. Ative-o ou mude de navegador.',
+        chartFailedToLoad: 'Não foi possível carregar o gráfico. Atualize a página e tente novamente.',
         apiKey: 'Chave de API',
         exportsTo: 'Exportações para',
     },
@@ -6369,6 +6370,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             csvColumnType: 'Tipo',
             csvColumnLimitType: 'Tipo de limite',
             csvColumnLimit: 'Limite',
+            noCardFeedsAvailable: 'Nenhum feed de cartão disponível',
+            noCardFeedsAvailableDescription: 'Não há feeds de cartão disponíveis para este workspace.',
         },
         categories: {
             deleteCategories: 'Excluir categorias',

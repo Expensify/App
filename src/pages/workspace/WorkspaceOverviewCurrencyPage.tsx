@@ -34,9 +34,14 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CURRENCY>>();
     const {translate} = useLocalize();
     const isForcedToChangeCurrency = !!route.params?.isForcedToChangeCurrency;
+    const shouldStartExpensifyCardEnrollment = !!route.params?.shouldStartExpensifyCardEnrollment;
     const shouldBlockCurrencyChange = useShouldBlockCurrencyChange(policy?.id);
     const {showConfirmModal} = useConfirmModal();
     const applyWorkspaceCurrencyChange = useApplyWorkspaceCurrencyChange(policy);
+
+    const applyCurrencySelection = (currencyCode: string) => {
+        applyWorkspaceCurrencyChange(currencyCode, {isForcedToChangeCurrency, shouldStartExpensifyCardEnrollment});
+    };
 
     const onSelectCurrency = (item: CurrencyListItem) => {
         if (!policy) {
@@ -66,12 +71,12 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
                 if (result.action !== ModalActions.CONFIRM) {
                     return;
                 }
-                applyWorkspaceCurrencyChange(item.currencyCode, {isForcedToChangeCurrency});
+                applyCurrencySelection(item.currencyCode);
             });
             return;
         }
 
-        applyWorkspaceCurrencyChange(item.currencyCode, {isForcedToChangeCurrency});
+        applyCurrencySelection(item.currencyCode);
     };
 
     return (
@@ -105,4 +110,6 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
     );
 }
 
+export {WorkspaceOverviewCurrencyPage};
+export type {WorkspaceOverviewCurrencyPageProps};
 export default withPolicyAndFullscreenLoading(WorkspaceOverviewCurrencyPage);

@@ -523,6 +523,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noResultsFoundSubtitle: '結果がありません。フィルターや検索キーワードを調整してお試しください',
         unableToDisplayChart: 'グラフを表示できません',
         webGLNotSupported: 'お使いのブラウザは WebGL に対応していません。有効にするか、別のブラウザに切り替えてください。',
+        chartFailedToLoad: 'グラフを読み込めませんでした。ページを再読み込みして、もう一度お試しください。',
         apiKey: 'API キー',
         exportsTo: 'エクスポート先',
     },
@@ -6303,6 +6304,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             csvColumnType: 'タイプ',
             csvColumnLimitType: '限度タイプ',
             csvColumnLimit: '限度額',
+            noCardFeedsAvailable: '利用できるカードフィードがありません',
+            noCardFeedsAvailableDescription: 'このワークスペースで利用できるカードフィードはありません。',
         },
         categories: {
             deleteCategories: 'カテゴリを削除',

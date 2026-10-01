@@ -1,3 +1,4 @@
+import {getExpensifyCardEnrollmentRoute, isCurrencySupportedForECards} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
 
@@ -6,6 +7,7 @@ import {clearDraftValues} from '@userActions/FormActions';
 import {isCurrencySupportedForGlobalReimbursement, updateGeneralSettings} from '@userActions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
@@ -19,6 +21,8 @@ import useReviewWorkspaceSettingsTaskCompletion from './useReviewWorkspaceSettin
 type ApplyWorkspaceCurrencyChangeOptions = {
     /** Whether the currency change is forced by the global reimbursement setup, which continues to bank account connection */
     isForcedToChangeCurrency?: boolean;
+    /** Whether the currency change should proceed to Expensify Card enrollment */
+    shouldStartExpensifyCardEnrollment?: boolean;
     /** Country whose government mileage rates should auto-update, needed when several countries share the new currency */
     governmentRateCountry?: string;
     /** Where to go back to after the change, when the caller sits deeper than one screen in the stack */
@@ -31,10 +35,15 @@ type ApplyWorkspaceCurrencyChangeOptions = {
  */
 function useApplyWorkspaceCurrencyChange(policy: OnyxEntry<Policy>) {
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [supportedCountriesByCurrency] = useOnyx(ONYXKEYS.CARD_SUPPORTED_COUNTRIES);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [governmentMileageRates] = useOnyx(ONYXKEYS.GOVERNMENT_MILEAGE_RATES);
     const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
 
-    return (currencyCode: string, {isForcedToChangeCurrency = false, governmentRateCountry, backTo}: ApplyWorkspaceCurrencyChangeOptions = {}) => {
+    return (
+        currencyCode: string,
+        {isForcedToChangeCurrency = false, shouldStartExpensifyCardEnrollment = false, governmentRateCountry, backTo}: ApplyWorkspaceCurrencyChangeOptions = {},
+    ) => {
         if (!policy) {
             return;
         }
@@ -44,6 +53,23 @@ function useApplyWorkspaceCurrencyChange(policy: OnyxEntry<Policy>) {
             governmentMileageRates: governmentMileageRates ?? [],
         });
         clearCorpayBankAccountFields();
+
+        const isUkEuCurrencySupported = isCurrencySupportedForECards(currencyCode);
+        const canEnrollNewCardProgram = currencyCode === CONST.CURRENCY.USD || isUkEuCurrencySupported;
+        if (shouldStartExpensifyCardEnrollment && canEnrollNewCardProgram) {
+            Navigation.navigate(
+                getExpensifyCardEnrollmentRoute({
+                    policyID: policy.id,
+                    currencyCode,
+                    isUkEuCurrencySupported,
+                    bankAccountsList: bankAccountList,
+                    supportedCountriesByCurrency,
+                    achData: reimbursementAccount?.achData,
+                }),
+                {forceReplace: true},
+            );
+            return;
+        }
 
         const isSupportedForGlobalReimbursement = isCurrencySupportedForGlobalReimbursement(currencyCode);
         if (isForcedToChangeCurrency && isSupportedForGlobalReimbursement) {

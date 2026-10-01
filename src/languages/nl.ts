@@ -524,6 +524,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noResultsFoundSubtitle: 'Geen resultaten. Probeer je filters of zoekopdracht aan te passen',
         unableToDisplayChart: 'Grafiek kan niet worden weergegeven',
         webGLNotSupported: 'Je browser ondersteunt WebGL niet. Schakel het in of gebruik een andere browser.',
+        chartFailedToLoad: 'De grafiek kon niet worden geladen. Vernieuw de pagina en probeer het opnieuw.',
         apiKey: 'API-sleutel',
         exportsTo: 'Exporteert naar',
     },
@@ -6371,6 +6372,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             csvColumnType: 'Type',
             csvColumnLimitType: 'Limiettype',
             csvColumnLimit: 'Limiet',
+            noCardFeedsAvailable: 'Geen kaartfeeds beschikbaar',
+            noCardFeedsAvailableDescription: 'Er zijn geen kaartfeeds beschikbaar voor deze workspace.',
         },
         categories: {
             deleteCategories: 'Categorieën verwijderen',

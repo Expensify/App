@@ -527,6 +527,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noResultsFoundSubtitle: 'Brak wyników. Spróbuj zmienić filtry lub zapytanie wyszukiwania',
         unableToDisplayChart: 'Nie można wyświetlić wykresu',
         webGLNotSupported: 'Twoja przeglądarka nie obsługuje WebGL. Włącz ją albo zmień przeglądarkę.',
+        chartFailedToLoad: 'Nie udało się załadować wykresu. Odśwież stronę i spróbuj ponownie.',
         apiKey: 'Klucz API',
         exportsTo: 'Eksporty do',
     },
@@ -6394,6 +6395,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             csvColumnType: 'Typ',
             csvColumnLimitType: 'Typ limitu',
             csvColumnLimit: 'Limit',
+            noCardFeedsAvailable: 'Brak dostępnych kanałów kart',
+            noCardFeedsAvailableDescription: 'Dla tego obszaru roboczego nie ma dostępnych żadnych kanałów kart.',
         },
         categories: {
             deleteCategories: 'Usuń kategorie',
