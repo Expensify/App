@@ -14,6 +14,7 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getXeroSuppliers, isXeroVendorMatchingActive, settingsPendingAction, sortVendors} from '@libs/PolicyUtils';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
@@ -82,9 +83,12 @@ function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicy
     // doesn't need the extra search row.
     const shouldShowTextInput = supplierOptions.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
+    // Pin the selected supplier to the top of the full list before filtering, so it stays pinned while searching.
+    const orderedSupplierOptions = useMemo(() => moveInitialSelectionToTop(supplierOptions, currentContactID ? [currentContactID] : []), [supplierOptions, currentContactID]);
+
     const filteredSupplierOptions = useMemo(
-        () => (shouldShowTextInput ? tokenizedSearch(supplierOptions, searchText, (option) => [option.text ?? '']) : supplierOptions),
-        [shouldShowTextInput, supplierOptions, searchText],
+        () => (shouldShowTextInput ? tokenizedSearch(orderedSupplierOptions, searchText, (option) => [option.text ?? '']) : orderedSupplierOptions),
+        [shouldShowTextInput, orderedSupplierOptions, searchText],
     );
 
     // Only prepend the clear row when there's a default to clear or there are suppliers to choose

@@ -69,7 +69,7 @@ function screenElement(data: Array<SelectorType<string>>, {withSearch}: {withSea
     );
 }
 
-describe('SelectionScreen shared pin', () => {
+describe('SelectionScreen searchable list props', () => {
     const mockedSelectionList = jest.mocked(SelectionList);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- narrows the props captured from the mocked SelectionList in this test
     const getListProps = () => mockedSelectionList.mock.lastCall?.[0] as MockSelectionListProps | undefined;
@@ -78,37 +78,27 @@ describe('SelectionScreen shared pin', () => {
         mockedSelectionList.mockClear();
     });
 
-    it('pins the pre-selected option (matched by keyForList) to the top of a searchable list', () => {
-        // Given a searchable list of 13 options with the 7th pre-selected
+    it('enables the anti-jump list props for a searchable list without reordering the data', () => {
+        // Given a searchable list (pinning happens upstream, before filtering)
         render(screenElement(buildData(13, 6), {withSearch: true}));
 
-        // Then it is moved to the top and the anti-jump props are enabled
+        // Then SelectionScreen passes the data through unchanged...
         const props = getListProps();
-        expect(props?.data.at(0)?.keyForList).toBe('k07');
-        // "k01" would lead if nothing were pinned
-        expect(props?.data.at(0)?.keyForList).not.toBe('k01');
+        expect(props?.data.at(0)?.keyForList).toBe('k01');
+        // ...and enables the props that keep the pinned row visible on mount, on select, and after clearing search.
         expect(props?.shouldScrollToFocusedIndexOnMount).toBe(false);
         expect(props?.disableMaintainingScrollPosition).toBe(true);
         expect(props?.shouldUpdateFocusedIndex).toBe(true);
     });
 
-    it('does not reorder when the list is not searchable (no textInputOptions)', () => {
-        // Given a 13-option list with no search input
+    it('leaves the scroll props at their defaults for a non-searchable list', () => {
+        // Given a list with no search input
         render(screenElement(buildData(13, 6), {withSearch: false}));
 
-        // Then the natural order is preserved and scroll behavior is left at its defaults
+        // Then the data is untouched and scroll behavior is left at its defaults
         const props = getListProps();
         expect(props?.data.at(0)?.keyForList).toBe('k01');
         expect(props?.shouldScrollToFocusedIndexOnMount).toBe(true);
         expect(props?.disableMaintainingScrollPosition).toBe(false);
-    });
-
-    it('does not reorder when the list is under the item-limit threshold', () => {
-        // Given a searchable list shorter than the item-limit threshold
-        render(screenElement(buildData(CONST.STANDARD_LIST_ITEM_LIMIT - 2, 3), {withSearch: true}));
-
-        // Then moveInitialSelectionToTop is a no-op and the natural order is kept
-        const props = getListProps();
-        expect(props?.data.at(0)?.keyForList).toBe('k01');
     });
 });
