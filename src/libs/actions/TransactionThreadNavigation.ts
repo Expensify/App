@@ -159,20 +159,14 @@ function shouldRefreshActiveTransactionIDs(source: string, ids: string[]): boole
         // Nothing to defer to: only seed a carousel for a list there is actually something to page through.
         return ids.length > 1;
     }
+
     if (!lastSetSource) {
-        // A list left behind by `disownActiveTransactionIDs` has no mounted screen answering for it, so the screen
-        // that replaced its writer takes it over outright - including replacing it with a list that has nothing to
-        // page between. Refusing that write is what let the Spend > Expenses list outlive its own tab: switching to
-        // the Reports tab mounts a list of report groups with no transaction rows to seed from, so the old tab's
-        // expenses stayed active and any one-expense report paged onto later swapped its report arrows for them.
         return !areIDListsEqual(lastSetIDs, ids);
     }
     if (lastSetSource !== source) {
         return false;
     }
-    // The length check deliberately does not apply to the owner. Gating it on `ids.length > 1` up front let an
-    // owner grow its carousel but never shrink or release it, so a list that dropped to a single expense left the
-    // old, longer list active. Writing the short list through is what lets the consumers drop the arrows.
+
     return !areIDListsEqual(lastSetIDs, ids);
 }
 

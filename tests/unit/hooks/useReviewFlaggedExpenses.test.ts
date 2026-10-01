@@ -226,12 +226,6 @@ describe('useReviewFlaggedExpenses', () => {
         expect(mockNavigate.mock.calls.at(0)?.at(0)).toContain('r1');
     });
 
-    /**
-     * On narrow layout the report opens full-screen, where the carousel has nowhere to live: that route declares
-     * neither `backTo` nor `anchorTransactionID`, and a header outside the RHP doesn't render the arrows. A review
-     * of several expenses therefore has to keep the thread route, which does render them - otherwise the user lands
-     * on the first expense with no way to reach the rest of the review.
-     */
     it('keeps the thread route for a multi-expense review on narrow layout', async () => {
         mockShouldUseNarrowLayout = true;
         await act(async () => {

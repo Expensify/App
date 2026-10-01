@@ -256,13 +256,6 @@ describe('MoneyReportHeader transaction carousel anchor', () => {
         originalMessage: {IOUTransactionID: THREAD_TRANSACTION_ID, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
     };
 
-    /**
-     * Mirrors the failing state: the derived transactions index has nothing for this thread.
-     *
-     * `transactions` seeds the live `transactions_` collection the header validates the carousel against. It
-     * defaults to a live row per active ID, because leaving the collection empty would make the filtered list
-     * unconditionally empty and hide the very disagreement these tests are about.
-     */
     function mockThread({
         activeIDs,
         parentActions,
@@ -326,11 +319,6 @@ describe('MoneyReportHeader transaction carousel anchor', () => {
         expect(getHeaderRowTestIDs(toJSON())).not.toContain(TRANSACTIONS_CAROUSEL_TEST_ID);
     });
 
-    /**
-     * The header has to decide from the *validated* list, the same one the carousel renders from. Deciding from the
-     * raw Onyx list let it pick the expense branch while the carousel found nothing to page through, and since the
-     * report carousel sits in the other branch of that choice, the user was left with no arrows at all.
-     */
     it('falls through to the report carousel when a sibling has been deleted out from under the list', () => {
         mockThread({
             activeIDs: ['other-tx', THREAD_TRANSACTION_ID],
@@ -347,12 +335,6 @@ describe('MoneyReportHeader transaction carousel anchor', () => {
         expect(getHeaderRowTestIDs(toJSON())).toContain(REPORT_CAROUSEL_TEST_ID);
     });
 
-    /**
-     * The seeded carousel is a single global value that outlives the screen that wrote it, and it is persisted, so
-     * it even outlives a reload. Every entry point that seeds one opens the expense in an RHP, so a report opened
-     * from the LHN must never pick one up - otherwise the Inbox central pane shows a counter and arrows for a list
-     * of expenses the user last saw somewhere else entirely.
-     */
     it('does not render the expense carousel in the Inbox central pane', () => {
         mockThread({activeIDs: ['other-tx', THREAD_TRANSACTION_ID], parentActions: {[PARENT_ACTION_ID]: parentIOUAction}});
         mockedUseRoute.mockReturnValue({key: 'route-1', name: SCREENS.REPORT, params: {}});
@@ -363,12 +345,6 @@ describe('MoneyReportHeader transaction carousel anchor', () => {
         expect(getHeaderRowTestIDs(toJSON())).not.toContain(REPORT_CAROUSEL_TEST_ID);
     });
 
-    /**
-     * Regression guard for https://github.com/Expensify/App/pull/100331#issuecomment-5815107865: a report reached
-     * from the Reports list only ever gets there through SEARCH_MONEY_REQUEST_REPORT, so its own single expense
-     * must not anchor an expense carousel. Letting it did meant a leftover list from the Expenses tab took the
-     * report arrows over and paged the user onto an expense instead of the next report.
-     */
     it('keeps the report carousel on a report opened from the Reports list', () => {
         mockThread({activeIDs: ['other-tx', THREAD_TRANSACTION_ID], parentActions: {[PARENT_ACTION_ID]: parentIOUAction}});
         mockedUseRoute.mockReturnValue({key: 'route-1', name: SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, params: {}});
