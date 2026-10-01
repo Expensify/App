@@ -1,7 +1,7 @@
 ---
 title: Getting Started with the Spend Page
 description: Learn how to use the Spend page in New Expensify to view, filter, and manage your expense data using report previews, tables, filters, and smart suggestions.
-keywords: [New Expensify, Spend page, report preview, report table, filters, advanced filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline, filter popover, apply filters, reset filters, total spend, total spend currency, change currency, currency converter, multi-currency total, sort by amount, Amount column, sort amount column, negative amount, credit, refund, negative expense sorting, selected total, total spend negative, shift click, select range of expenses]
+keywords: [New Expensify, Spend page, report preview, report table, filters, advanced filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline, filter popover, apply filters, reset filters, total spend, total spend currency, change currency, currency converter, multi-currency total, sort by amount, Amount column, sort amount column, negative amount, credit, refund, negative expense sorting, selected total, total spend negative, shift click, select range of expenses, shift+click, select a range, select multiple expenses at once]
 ---
 
 The Spend page in New Expensify gives you a full list of your reports and related expenses. From the Spend page you can explore, filter, and export your expense data.
@@ -51,7 +51,7 @@ Each row represents an expense and includes:
 ## Available Actions on the Table
 - **Click an expense** to view or edit it in the right-hand panel  
 - **Edit a cell directly:** Hover over **date**, **merchant**, **description**, **category**, **tag**, or **amount** and click the pencil icon to edit the value inline without opening the expense details. 
-- **Select multiple expenses** using checkboxes (hold Shift and click a second checkbox to select every expense in between), then apply bulk actions such as:
+- **Select multiple expenses** using checkboxes, then apply bulk actions such as:
   - **Move to another report:** When you need to have multiple reports or need to break up expenses across multiple weeks or months.
   - **Download:** For exporting to a CSV file for analysis or to share with your accountant.
   - **Hold:** Use this when you need to temporarily pause the approval of an expense until all required information is provided.
@@ -142,6 +142,24 @@ On mobile, or in a narrow browser window, the column headers aren't shown, so so
 4. To change the direction, tap the **Display** icon again, tap **Sort by**, tap **Sort order**, select **Descending** (largest to smallest) or **Ascending** (smallest to largest), then tap **Apply**.
 
 The **Amount** column is only sortable when your results are shown as a table. When you group your results, this column reads **Total** instead of **Amount**.
+
+## How to select a range of expenses with Shift+click
+
+On web or desktop:
+
+1. On the **Spend** page, select **Expenses** or **Reports**, or open a report to see its list of expenses.
+2. Click the checkbox next to the first item you want to select.
+3. Hold **Shift** and click the checkbox next to the last item.
+
+Everything between the two checkboxes is selected. To change where the range ends, hold **Shift** and click a different checkbox.
+
+- Group header checkboxes and the **Select all** checkbox work as usual, even while you hold **Shift**. They don't select a range.
+- When your results are grouped, a range only includes expenses in groups that are expanded.
+- In **Reports**, a range selects whole reports.
+- If you've just used **Select all**, Shift+click narrows the selection to the range you click.
+- Items that can't be selected, such as expenses being deleted, are skipped.
+
+Shift+click isn't available in the mobile app.
 
 ## How negative amounts sort in the Amount column on the Spend page
 
