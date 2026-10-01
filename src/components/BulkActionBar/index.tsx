@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSidePanelState from '@hooks/useSidePanelState';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -92,7 +93,11 @@ function BulkActionBarContent<TValueType>({
     const [modal] = useOnyx(ONYXKEYS.MODAL);
     const isFocused = useIsFocused();
     const isCoveredByModal = !!modal?.isVisible && !isFocused;
-    const shouldClearSelectionOnEscape = !modal?.willAlertModalBecomeVisible && !isCoveredByModal;
+
+    // The Side Panel is not a `BaseModal`, so it is absent from both the modal state and the registry of open modals.
+    // Below extra large it is laid over the page and takes Esc for itself, so the bar has to stand down for it.
+    const {isSidePanelHiddenOrLargeScreen} = useSidePanelState();
+    const shouldClearSelectionOnEscape = !modal?.willAlertModalBecomeVisible && !isCoveredByModal && isSidePanelHiddenOrLargeScreen;
 
     // `willAlertModalBecomeVisible` is a single flag that every modal writes, so closing the topmost of a stack reads
     // as though nothing is open any more. The registry of open modals is the only answer that survives stacking, and
