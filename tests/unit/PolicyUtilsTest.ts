@@ -6,6 +6,7 @@ import useDefaultFundID from '@hooks/useDefaultFundID';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {
+    areApprovalsEnabled,
     arePolicyRulesEnabled,
     canEditWorkspaceSettings,
     canMemberAssignRole,
@@ -88,6 +89,7 @@ import {
     isInvoiceFieldsEnabled,
     isMatchingVendorListLoaded,
     isMaxExpenseAmountSet,
+    isMemberInHomeAndOfficeWorkspace,
     isMergeHRCompleteSetupNeededSelector,
     isQBORefreshTokenExpiringSoonSelector,
     isPerDiemEligiblePolicy,
@@ -2483,6 +2485,43 @@ describe('PolicyUtils', () => {
 
             // Then nobody is returned, because a disabled workspace has no payer no matter who is named on it
             expect(reimburserEmail).toBeUndefined();
+        });
+    });
+
+    describe('areApprovalsEnabled', () => {
+        it('should be false when there is no policy', () => {
+            // Given no policy, which happens while a workspace is still loading
+
+            // When approvals are resolved
+            // Then they read as off, rather than as on by virtue of the policy not saying they are off
+            expect(areApprovalsEnabled(undefined)).toBe(false);
+        });
+
+        it('should be false when the policy has no approval mode yet', () => {
+            // Given a workspace whose approval mode has not come back from the server
+            const policy = createMock<Policy>({id: '1'});
+
+            // When approvals are resolved
+            // Then they read as off, which is what separates this from `!isSubmitAndClose(policy)`
+            expect(areApprovalsEnabled(policy)).toBe(false);
+        });
+
+        it('should be false when the workspace submits and closes', () => {
+            // Given a workspace that has approvals turned off
+            const policy = createMock<Policy>({id: '1', approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL});
+
+            // When approvals are resolved
+            // Then they read as off
+            expect(areApprovalsEnabled(policy)).toBe(false);
+        });
+
+        it.each([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED])('should be true in %s mode', (approvalMode) => {
+            // Given a workspace on an approval mode that submits to an approver
+            const policy = createMock<Policy>({id: '1', approvalMode});
+
+            // When approvals are resolved
+            // Then they read as on
+            expect(areApprovalsEnabled(policy)).toBe(true);
         });
     });
 
@@ -6384,6 +6423,28 @@ describe('getConnectedIntegration', () => {
     it('ignores non-accounting connections (e.g. HR integrations)', () => {
         const policy = createMock<Policy>({connections: {gusto: {data: {}}}});
         expect(getConnectedIntegration(policy)).toBeUndefined();
+    });
+});
+
+describe('isMemberInHomeAndOfficeWorkspace', () => {
+    it('only allows members of home and office workspaces', () => {
+        // Given a workspace whose employee list contains one member
+        const memberLogin = 'member@example.com';
+        const policy = createMock<Policy>({
+            commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE},
+            employeeList: {[memberLogin]: {email: memberLogin}},
+        });
+        const otherWorkspace = {...policy, commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE}};
+
+        // When workspace mode and membership are checked
+        const isEligibleMember = isMemberInHomeAndOfficeWorkspace(policy, memberLogin);
+        const isEligibleForOtherWorkspaceMode = isMemberInHomeAndOfficeWorkspace(otherWorkspace, memberLogin);
+        const isEligibleForUnknownMember = isMemberInHomeAndOfficeWorkspace(policy, 'unknown@example.com');
+
+        // Then only the known member in a home and office workspace is eligible
+        expect(isEligibleMember).toBe(true);
+        expect(isEligibleForOtherWorkspaceMode).toBe(false);
+        expect(isEligibleForUnknownMember).toBe(false);
     });
 });
 

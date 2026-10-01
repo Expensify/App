@@ -75,6 +75,7 @@ import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowup
 import {getOriginalMessage, getReportActionHtml, getReportActionMessage, getReportActionText, getTextFromHtml} from './ReportActionMessageUtils';
 import {isActionOfType, isDynamicExternalWorkflowApproveFailedAction, isModifiedExpenseAction, isMoneyRequestAction} from './ReportActionTypeGuards';
 import StringUtils from './StringUtils';
+import {getWorkArrangementLabel} from './WorkArrangementUtils';
 import {getReportFieldTypeTranslationKey} from './WorkspaceReportFieldUtils';
 import {getUnitTranslationKey, getWorkspaceAddressStreetLines} from './WorkspacesSettingsUtils';
 
@@ -4585,6 +4586,27 @@ function getUpdatedCommuterExclusionsMessage(translate: LocalizedTranslate, repo
     return getReportActionText(reportAction);
 }
 
+function getUpdatedMemberWorkArrangementMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_WORK_ARRANGEMENT)) {
+        return getReportActionText(reportAction);
+    }
+    const {name, email, newValue, oldValue} = getOriginalMessage(reportAction) ?? {};
+
+    if (typeof newValue !== 'boolean' || typeof oldValue !== 'boolean') {
+        return getReportActionText(reportAction);
+    }
+
+    const newArrangement = getWorkArrangementLabel(translate, newValue);
+    const oldArrangement = getWorkArrangementLabel(translate, oldValue);
+
+    // Change logs without a named member describe the workspace default arrangement.
+    const displayName = name ?? (email ? formatPhoneNumber(email) : '');
+    if (!displayName) {
+        return translate('workspaceActions.updatedDefaultWorkArrangement', {newArrangement, oldArrangement});
+    }
+    return translate('workspaceActions.updatedMemberWorkArrangement', {displayName, newArrangement, oldArrangement});
+}
+
 function getUpdatedProhibitedExpensesMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>) {
     const {newProhibitedExpenses, oldProhibitedExpenses} =
         getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_PROHIBITED_EXPENSES>) ?? {};
@@ -5409,6 +5431,7 @@ export {
     getSendMoneyFlowAction,
     getUpdatedProhibitedExpensesMessage,
     getUpdatedCommuterExclusionsMessage,
+    getUpdatedMemberWorkArrangementMessage,
     getWorkspaceTagUpdateMessage,
     getWorkspaceReportFieldUpdateMessage,
     getWorkspaceReportFieldDeleteMessage,
