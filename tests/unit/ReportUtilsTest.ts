@@ -25770,13 +25770,36 @@ describe('ReportUtils', () => {
             expect(canMergeReports([makeOpenReport(), settled], USER_ID, undefined)).toBe(false);
         });
 
-        it('returns false when a report is approved', () => {
+        it('returns true when all reports are approved and the current user is an admin', () => {
             const approved: Report = {
                 ...makeOpenReport(),
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
             } as Report;
-            expect(canMergeReports([makeOpenReport(), approved], USER_ID, undefined)).toBe(false);
+            const approved2 = {...approved, reportID: String(reportCounter++)};
+            expect(canMergeReports([approved, approved2], USER_ID, undefined)).toBe(true);
+        });
+
+        it('returns false when all reports are approved and the current user is not an admin', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {...mockPolicy, role: CONST.POLICY.ROLE.USER});
+            await waitForBatchedUpdates();
+            const approved: Report = {
+                ...makeOpenReport(),
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            } as Report;
+            const approved2 = {...approved, reportID: String(reportCounter++)};
+            expect(canMergeReports([approved, approved2], USER_ID, undefined)).toBe(false);
+        });
+
+        it('returns false when approved and processing reports are mixed', () => {
+            const approved: Report = {
+                ...makeOpenReport(),
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            } as Report;
+            const processing = makeProcessingReport();
+            expect(canMergeReports([approved, processing], USER_ID, undefined)).toBe(false);
         });
 
         it('returns false when a report is closed', () => {

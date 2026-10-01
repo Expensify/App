@@ -228,6 +228,14 @@ function SearchMergeReports() {
                         onSubmit={mergeSelectedReports}
                         isDisabled={!isValidForMerge}
                         enabledWhenOffline
+                        shouldRenderFooterAboveSubmit
+                        footerContent={
+                            reportItems.some((report) => report.isExportedToIntegration) ? (
+                                <Text style={[styles.ph5, styles.pb3]}>
+                                    <Text style={[styles.textStrong, styles.noWrap]}>{translate('iou.headsUp')}</Text> <Text>{translate('search.mergeReports.exportedWarning')}</Text>
+                                </Text>
+                            ) : undefined
+                        }
                     />
                 }
             />
