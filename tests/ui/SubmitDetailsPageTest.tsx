@@ -71,6 +71,7 @@ jest.mock('@libs/ReceiptStorage', () => ({
     default: {
         adopt: jest.fn((uriOrPath: string) => Promise.resolve(uriOrPath)),
         toLocalUri: jest.fn((durableName: string) => durableName),
+        retain: jest.fn(),
         resolve: jest.fn((source: string) => source),
     },
 }));

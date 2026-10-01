@@ -182,16 +182,11 @@ function SubmitDetailsPage({
         showErrorAlert(errorTitle, errorMessage);
     }, [errorTitle, errorMessage]);
 
-    // The date / currency the user filled in behind "Show more". This effect re-runs every time late Onyx data lands
-    // (the policy resolving, the report updating), and `initMoneyRequest` otherwise re-seeds `created` to today and
-    // `currency` from the policy on every run, discarding what they just typed. Feeding their values back in keeps the
-    // rest of the seeding (reportID, participants) running.
+    // Feed the date / currency the user entered back into `initMoneyRequest`, which re-runs whenever late Onyx data
+    // lands and would otherwise re-seed them from the policy, discarding what they typed.
     const enteredDate = transaction?.isCreatedSet ? transaction.created : undefined;
-    // The currency can't be read off a flag the way the date is read off `isCreatedSet`: clearing the amount field puts
-    // `isAmountSet` back to false while the currency the user picked stays on the draft, so a live read would stop
-    // feeding the currency back and the next re-seed would silently swap it for the policy's output currency. Latch it
-    // the first time they set an amount or pick a currency (the picker writes both) so it stays theirs from then on,
-    // while an amount they never touched still lets a late-resolving policy seed its own currency.
+    // Latch the currency rather than reading it live: clearing the amount resets `isAmountSet` while the picked
+    // currency stays on the draft, so a live read would let the next re-seed swap it for the policy's currency.
     const enteredCurrencyRef = useRef<string | undefined>(undefined);
 
     useEffect(() => {
