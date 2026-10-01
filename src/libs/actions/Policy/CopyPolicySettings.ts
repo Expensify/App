@@ -385,7 +385,6 @@ function buildCopyPolicySettingsData(
     const isPerDiemSelected = parts.includes('perDiem');
     const isTimeTrackingSelected = parts.includes('timeTracking');
     const isReceiptPartnersSelected = parts.includes('receiptPartners');
-    const isCodingRulesSelected = parts.includes('codingRules');
     const isRulesSelected = parts.includes('rules');
     const isTravelSelected = parts.includes('travel');
     const timeTrackingPendingFields = isTimeTrackingSelected
@@ -407,18 +406,6 @@ function buildCopyPolicySettingsData(
     const sourceTagsKey = `${ONYXKEYS.COLLECTION.POLICY_TAGS}${sourcePolicy.id}` as const;
     const sourceCategories = allPolicyCategories?.[sourceCategoriesKey] ?? {};
     const sourceTags = allPolicyTags?.[sourceTagsKey] ?? {};
-    const filterPendingDeleteData = <T>(data?: Record<string, T>): Record<string, T> | undefined =>
-        data
-            ? (Object.fromEntries(
-                  Object.entries(data).filter(([, value]) => {
-                      if (!value || typeof value !== 'object' || !('pendingAction' in value)) {
-                          return true;
-                      }
-                      return value.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-                  }),
-              ) as Record<string, T>)
-            : undefined;
-    const codingRulesWithoutPendingDelete = filterPendingDeleteData(sourcePolicy.rules?.codingRules);
 
     for (const targetPolicy of targetPolicies) {
         const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${targetPolicy.id}` as const;
@@ -427,14 +414,9 @@ function buildCopyPolicySettingsData(
         const timeTrackingPatch = isTimeTrackingSelected ? buildTimeTrackingPatch(sourcePolicy) : undefined;
         const travelSettingsPatch = isTravelSelected ? buildTravelSettingsPatch(sourcePolicy, targetPolicy) : undefined;
         const receiptPartnersPatch = isReceiptPartnersSelected ? buildReceiptPartnersPatch(sourcePolicy) : undefined;
-        const codingRulesPatch = isCodingRulesSelected
-            ? {
-                  rules: {
-                      ...targetPolicy.rules,
-                      codingRules: codingRulesWithoutPendingDelete,
-                  },
-              }
-            : {};
+        // Coding (merchant) rules are intentionally not patched optimistically. Auth mints new rule IDs on
+        // the target and pushes them to Onyx as a merge, so copying the source's rules under the source's
+        // IDs would leave each rule on screen twice once the server push lands (see buildCustomUnitsPatch).
 
         // Step 1+2: SET the full policy with patched fields overlaid.
         // We use SET (not MERGE) because Onyx.merge deep-merges nested objects — source
@@ -456,7 +438,6 @@ function buildCopyPolicySettingsData(
                     : {}),
                 ...(travelSettingsPatch ?? {}),
                 ...(receiptPartnersPatch ? {receiptPartners: receiptPartnersPatch.receiptPartners} : {}),
-                ...codingRulesPatch,
                 pendingFields: {...targetPolicy.pendingFields, ...pendingFields, ...timeTrackingPendingFields, ...receiptPartnersPendingFields},
             },
         });

@@ -4,7 +4,7 @@ import type {Part} from '@src/libs/actions/Policy/CopyPolicySettings';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
 import type CopyPolicySettings from '@src/types/onyx/CopyPolicySettings';
-import type {CustomUnit} from '@src/types/onyx/Policy';
+import type {CodingRule, CustomUnit} from '@src/types/onyx/Policy';
 import type {WorkspaceTravelSettings} from '@src/types/onyx/TravelSettings';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -298,6 +298,23 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 expect(policy?.travelSettings?.spotnanaCompanyID).toBeUndefined();
                 expect(policy?.travelSettings?.associatedTravelDomainAccountID).toBeUndefined();
                 expect(policy?.travelSettings?.hasAcceptedTerms).toBeUndefined();
+            });
+
+            it('does not optimistically copy merchant rules, since Auth mints new rule IDs on the target', () => {
+                // Given a source with a merchant rule and a target with a merchant rule of its own
+                const sourceRule: CodingRule = {ruleID: 'SOURCE_RULE', filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Acme'}, category: 'Travel'};
+                const targetRule: CodingRule = {ruleID: 'TARGET_RULE', filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Globex'}, category: 'Meals'};
+                const sourcePolicy = makeSourcePolicy({rules: {codingRules: {SOURCE_RULE: sourceRule}}});
+                const targetPolicy = makeTargetPolicy({rules: {codingRules: {TARGET_RULE: targetRule}}});
+
+                // When merchant rules are copied
+                const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['codingRules'], {}, {});
+                const policy = getOptimisticPolicy(optimisticData);
+
+                // Then the target keeps only its own rules, because writing the source rule under the source's ID
+                // would show it twice once the server pushes the same rule under the ID Auth minted for it
+                expect(policy?.rules).toEqual(targetPolicy.rules);
+                expect(policy?.pendingFields?.rules).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
             });
         });
 
