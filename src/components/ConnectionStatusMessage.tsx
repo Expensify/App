@@ -22,6 +22,11 @@ type ConnectionStatusMessageProps = {
     statusTone?: 'default' | 'success' | 'danger';
     onLinkPress?: ComponentProps<typeof RenderHTML>['onLinkPress'];
     shouldIncludeHorizontalPadding?: boolean;
+
+    /**
+     * Accessible name for the action button
+     */
+    actionAccessibilityLabel?: string;
 };
 
 function ConnectionStatusMessage({
@@ -32,6 +37,7 @@ function ConnectionStatusMessage({
     statusTone = 'default',
     onLinkPress,
     shouldIncludeHorizontalPadding = true,
+    actionAccessibilityLabel,
 }: ConnectionStatusMessageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const theme = useTheme();
@@ -84,6 +90,7 @@ function ConnectionStatusMessage({
             style={styles.alignSelfStart}
             onPress={onActionPress}
             isDisabled={isActionDisabled}
+            accessibilityLabel={actionAccessibilityLabel}
         >
             <Button.Text>{actionText}</Button.Text>
         </Button>
