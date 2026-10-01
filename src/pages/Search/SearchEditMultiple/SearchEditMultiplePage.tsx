@@ -2,7 +2,6 @@ import Button from '@components/Button';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
