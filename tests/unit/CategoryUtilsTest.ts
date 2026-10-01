@@ -2,6 +2,7 @@ import {
     formatRequireItemizedReceiptsOverText,
     getAvailableNonPersonalPolicyCategories,
     getCategoryDefaultTaxRate,
+    getCategoryDescriptionHint,
     getCategoryGLCode,
     getDecodedFullCategoryName,
     getDecodedLeafCategoryName,
@@ -82,6 +83,39 @@ describe('formatRequireItemizedReceiptsOverText', () => {
         } as Policy;
         const result = formatRequireItemizedReceiptsOverText(translateLocal, policyWithUndefinedItemizedReceipt, undefined, convertToDisplayString);
         expect(result).toBe(translateLocal('workspace.rules.categoryRules.requireItemizedReceiptsOverList.never'));
+    });
+});
+
+describe('getCategoryDescriptionHint', () => {
+    const mockPolicyCategories: PolicyCategories = {
+        Advertising: {
+            commentHint: 'Client name',
+            enabled: true,
+            name: 'Advertising',
+        },
+        Meals: {
+            enabled: true,
+            name: 'Meals',
+        },
+    };
+
+    it('returns the hint when the category has one and rules are enabled', () => {
+        expect(getCategoryDescriptionHint(mockPolicyCategories, 'Advertising', true)).toBe('Client name');
+    });
+
+    it('returns an empty string when rules are not enabled, even if the category has a hint', () => {
+        expect(getCategoryDescriptionHint(mockPolicyCategories, 'Advertising', false)).toBe('');
+        expect(getCategoryDescriptionHint(mockPolicyCategories, 'Advertising', undefined)).toBe('');
+    });
+
+    it('returns an empty string when the category has no hint', () => {
+        expect(getCategoryDescriptionHint(mockPolicyCategories, 'Meals', true)).toBe('');
+    });
+
+    it('returns an empty string when no category is selected or categories are missing', () => {
+        expect(getCategoryDescriptionHint(mockPolicyCategories, undefined, true)).toBe('');
+        expect(getCategoryDescriptionHint(mockPolicyCategories, 'NonExistentCategory', true)).toBe('');
+        expect(getCategoryDescriptionHint(undefined, 'Advertising', true)).toBe('');
     });
 });
 
