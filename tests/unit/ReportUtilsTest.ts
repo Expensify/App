@@ -25919,13 +25919,20 @@ describe('ReportUtils', () => {
             expect(canMergeReports(reports, USER_ID, undefined)).toBe(true);
         });
 
-        it('returns false when one of the reports is archived', () => {
+        it('returns true for two valid Open reports when reportNameValuePairs is provided', () => {
             const r1 = makeOpenReport();
             const r2 = makeOpenReport();
             const reportNameValuePairs: OnyxCollection<ReportNameValuePairs> = {
-                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${r1.reportID}`]: {
-                    private_isArchived: DateUtils.getDBTime(),
-                },
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${r1.reportID}`]: {},
+            };
+            expect(canMergeReports([r1, r2], USER_ID, undefined, reportNameValuePairs)).toBe(true);
+        });
+
+        it('returns false when a report is not writable even when reportNameValuePairs is provided', () => {
+            const r1 = makeOpenReport({permissions: [CONST.REPORT.PERMISSIONS.READ]});
+            const r2 = makeOpenReport();
+            const reportNameValuePairs: OnyxCollection<ReportNameValuePairs> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${r1.reportID}`]: {},
             };
             expect(canMergeReports([r1, r2], USER_ID, undefined, reportNameValuePairs)).toBe(false);
         });
