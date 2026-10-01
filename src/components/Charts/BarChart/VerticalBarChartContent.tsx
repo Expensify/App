@@ -13,6 +13,7 @@ import {
     useChartLabelMeasurements,
     useDynamicYDomain,
     useLabelHitTesting,
+    useScaleChangeHandler,
 } from '@components/Charts/hooks';
 import {calculateMinDomainPadding, getPointValues, getSeriesValue, getXAxisLabel, getYAxisLabelWidth} from '@components/Charts/utils';
 import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING} from '@components/Charts/VictoryTheme';
@@ -187,7 +188,8 @@ function VerticalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxisU
         yZero,
     });
 
-    const handleScaleChange = (xScale: Scale, yScale: Scale) => {
+    /** Records where every data point sits on the canvas, which hover, press and the tooltip read */
+    const updateHitPositions = (xScale: Scale, yScale: Scale) => {
         yZero.set(yScale(0));
         updateTickPositions(xScale, data.length);
         const centers = chartData.map((point, index) => xScale(point.x ?? index));
@@ -199,6 +201,8 @@ function VerticalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxisU
             data.map((point) => Math.min(...seriesKeys.map((key) => yScale(getSeriesValue(point, key))))),
         );
     };
+
+    const handleScaleChange = useScaleChangeHandler(updateHitPositions, data, series);
 
     const cursorStyle = useAnimatedStyle(() => ({
         cursor: isCursorOverClickable.get() ? 'pointer' : 'auto',

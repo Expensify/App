@@ -16,6 +16,7 @@ import {
     useChartLabelMeasurements,
     useDynamicYDomain,
     useLabelHitTesting,
+    useScaleChangeHandler,
 } from '@components/Charts/hooks';
 import {getPointValues, getSeriesValue, getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
 import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING, LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
@@ -75,11 +76,12 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
     /** Canvas y position of every series at every point, so a press can be traced back to the line under the cursor. */
     const seriesPointY = useSharedValue<number[][]>([]);
 
-    /** The series whose dot sits closest to `cursorY` at the pressed point. */
+    /** The series of the topmost dot under the cursor at the pressed point, or of the closest dot when none is under it. Series are drawn primary on top. */
     const resolveSeriesKey = (index: number, cursorY: number): string => {
         const distances = seriesPointY.get().map((positions) => Math.abs((positions.at(index) ?? Infinity) - cursorY));
+        const topmostUnderCursor = distances.findIndex((distance) => distance <= DOT_RADIUS + DOT_HOVER_EXTRA_RADIUS);
         const closest = distances.indexOf(Math.min(...distances));
-        return seriesKeys.at(closest) ?? primarySeriesKey;
+        return seriesKeys.at(topmostUnderCursor >= 0 ? topmostUnderCursor : closest) ?? primarySeriesKey;
     };
 
     const handlePointPress = (index: number, cursor: {x: number; y: number}) => {
@@ -182,7 +184,8 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
         chartBottom,
     });
 
-    const handleScaleChange = (xScale: Scale, yScale: Scale) => {
+    /** Records where every data point sits on the canvas, which hover, press and the tooltip read */
+    const updateHitPositions = (xScale: Scale, yScale: Scale) => {
         updateTickPositions(xScale, data.length);
         seriesPointY.set(seriesKeys.map((key) => data.map((point) => yScale(getSeriesValue(point, key)))));
         setPointPositions(
@@ -191,6 +194,8 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
             data.map((point) => Math.min(...seriesKeys.map((key) => yScale(getSeriesValue(point, key))))),
         );
     };
+
+    const handleScaleChange = useScaleChangeHandler(updateHitPositions, data, series);
 
     const cursorStyle = useAnimatedStyle(() => ({
         cursor: isCursorOverClickable.get() ? 'pointer' : 'auto',

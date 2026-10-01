@@ -3,7 +3,7 @@ import ChartLegend from '@components/Charts/components/ChartLegend';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
 import type {HitTestArgs, ResolveTargetIndexArgs} from '@components/Charts/hooks';
-import {useChartFontManager, useChartInteractions, useChartLabelFormats, useChartParagraphs} from '@components/Charts/hooks';
+import {useChartFontManager, useChartInteractions, useChartLabelFormats, useChartParagraphs, useScaleChangeHandler} from '@components/Charts/hooks';
 import {findClosestPoint} from '@components/Charts/hooks/useChartInteractions';
 import {calculateMinDomainPadding, getFontLineMetrics, getNiceValueDomain, getNiceValueTicks, getSeriesValue, measureTextWidth} from '@components/Charts/utils';
 import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING, LABEL_PADDING, MAX_Y_AXIS_LABEL_WIDTH} from '@components/Charts/VictoryTheme';
@@ -285,7 +285,8 @@ function HorizontalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxi
         resolveTooltipPosition,
     });
 
-    const handleScaleChange = (xScale: Scale, yScale: Scale) => {
+    /** Records where every data point sits on the canvas, which hover, press and the tooltip read */
+    const updateHitPositions = (xScale: Scale, yScale: Scale) => {
         const zero = xScale(0);
         xZero.set(zero);
         const oy = data.map((point, index) => yScale(lastIndex - index));
@@ -307,6 +308,8 @@ function HorizontalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxi
         }
         rowHeight.set(minGap > 0 ? minGap : Number.MAX_SAFE_INTEGER);
     };
+
+    const handleScaleChange = useScaleChangeHandler(updateHitPositions, data, series);
 
     const cursorStyle = useAnimatedStyle(() => ({
         cursor: isCursorOverClickable.get() ? 'pointer' : 'auto',
