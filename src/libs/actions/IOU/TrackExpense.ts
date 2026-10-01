@@ -132,10 +132,10 @@ import {
     getReportPreviewReportAction,
     getTransactionWithPreservedLocalReceiptSource,
 } from './MoneyRequestBuilder';
-import {highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
 import {addPendingNewTransactionIDs, isOneToTwoTransactionTransition} from './PendingNewTransactions';
 import resolveWriteBarrier, {IMMEDIATE} from './resolveWriteBarrier';
 import {getSearchOnyxUpdate} from './SearchUpdate';
+import signalExpenseAddedGrowl from './signalExpenseAddedGrowl';
 
 type TrackExpenseInformation = {
     createdWorkspaceParams?: CreateWorkspaceParams;
@@ -223,6 +223,7 @@ type DeleteTrackExpenseParams = {
     transactionID: string | undefined;
     reportAction: OnyxTypes.ReportAction;
     iouReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportTransactions: OnyxTypes.Transaction[];
     chatIOUReport: OnyxEntry<OnyxTypes.Report>;
     transactions: OnyxCollection<OnyxTypes.Transaction>;
     violations: OnyxCollection<OnyxTypes.TransactionViolations>;
@@ -1192,7 +1193,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         if (reportPreviewAction) {
             reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, getCurrencyDecimals, false, comment, optimisticTransaction);
         } else {
-            reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimals, comment, optimisticTransaction, undefined, undefined, delegateAccountID);
+            reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimals, delegateAccountID, comment, optimisticTransaction);
             // Generated ReportPreview action is a parent report action of the iou report.
             // We are setting the iou report's parentReportActionID to display subtitle correctly in IOU page when offline.
             iouReport.parentReportActionID = reportPreviewAction.reportActionID;
@@ -1660,7 +1661,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
 /**
  * Submit expense to another user
  */
-function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouReport?: OnyxTypes.Report} {
+function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouReport?: OnyxTypes.Report; transactionID?: string} {
     const {
         report,
         existingIOUReport,
@@ -1795,6 +1796,9 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         moneyRequestReportID,
         existingTransactionID,
         optimisticTransactionID: requestMoneyInformation.optimisticTransactionID,
+        currentReportActionID: requestMoneyInformation.currentReportActionID,
+        existingTransactionThreadReportID: requestMoneyInformation.existingTransactionThreadReportID,
+        isTransactionAlreadyOnReport: requestMoneyInformation.isTransactionAlreadyOnReport,
         existingTransaction,
         retryParams,
         testDriveCommentReportActionID,
@@ -1996,11 +2000,11 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
 
     deferredAPIWrite?.();
 
-    if (!requestMoneyInformation.isRetry) {
-        highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transaction.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
+    if (!requestMoneyInformation.isRetry && isFromGlobalCreate) {
+        signalExpenseAddedGrowl(transaction.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
     }
 
-    return {iouReport};
+    return {iouReport, transactionID: transaction.transactionID};
 }
 
 /**
@@ -2959,13 +2963,15 @@ function trackExpense(params: CreateTrackExpenseParams) {
         }
     }
 
-    if (!params.isRetry) {
-        highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transaction?.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
+    if (!params.isRetry && isFromGlobalCreate) {
+        signalExpenseAddedGrowl(transaction?.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
     }
 
     if (!isNotificationDeferredToWrite) {
         notifyTrackedAction();
     }
+
+    return {iouReport, transactionID: transaction?.transactionID};
 }
 
 /**
@@ -3024,6 +3030,7 @@ function deleteTrackExpense({
     transactionID,
     reportAction,
     iouReport,
+    iouReportTransactions,
     chatIOUReport,
     transactions,
     violations,
@@ -3065,6 +3072,7 @@ function deleteTrackExpense({
             transactionThreadReportActions,
             violations,
             iouReport,
+            iouReportTransactions,
             chatReport: chatIOUReport,
             isChatIOUReportArchived,
             isSingleTransactionView,
