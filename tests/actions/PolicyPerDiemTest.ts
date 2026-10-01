@@ -1,4 +1,4 @@
-import {editPerDiemRateAmount, editPerDiemRateDestination, editPerDiemRateSubrate} from '@libs/actions/Policy/PerDiem';
+import {editPerDiemRateAmount, editPerDiemRateCurrency, editPerDiemRateDestination, editPerDiemRateSubrate} from '@libs/actions/Policy/PerDiem';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 
@@ -101,5 +101,16 @@ describe('actions/Policy/PerDiem', () => {
                 {id: 'lunch', name: 'Lunch', rate: 1904},
             ],
         });
+    });
+
+    it('sends only the changed rate when editing a currency', () => {
+        const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+        editPerDiemRateCurrency('policy', rateID, customUnit, 'EUR');
+
+        const [command, parameters] = writeSpy.mock.calls[0];
+        expect(command).toBe(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT);
+        expect(parameters).not.toHaveProperty('customUnit');
+        expect(JSON.parse(String(parameters.customUnitRate))).toEqual({...currentRate, currency: 'EUR'});
     });
 });
