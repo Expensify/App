@@ -69,10 +69,7 @@ function DynamicRoomMemberDetailsPage({report, route}: DynamicRoomMemberDetailsP
         selector: (parentReport) => isThreadMemberProtectedByParentReport(parentReport, policy, details.login, accountID),
     });
     const shouldDisableRemoveUser =
-        (isPolicyExpenseChat(report) && isSelectedMemberProtectedByPolicyRole) ||
-        isSelectedMemberCurrentUser ||
-        isSelectedMemberOwner ||
-        !!isSelectedMemberProtectedByParentReport;
+        (isPolicyExpenseChat(report) && isSelectedMemberProtectedByPolicyRole) || isSelectedMemberCurrentUser || isSelectedMemberOwner || !!isSelectedMemberProtectedByParentReport;
     const askForConfirmationToRemove = () => {
         showConfirmModal({
             buttonVariant: CONST.BUTTON_VARIANT.DANGER,
