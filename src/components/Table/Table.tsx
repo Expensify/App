@@ -29,7 +29,7 @@ import type {TableContextValue} from './TableContext';
 import type {TableHeaderProps} from './TableHeader';
 import type {TableData, TableHandle, TableMethods, TableProps, TableRow} from './types';
 
-import {getDataVisibleIndices, getListIndex, getTableListMetadata} from './buildTableListData';
+import {getDataVisibleIndices, getListIndex, getTableListMetadata, rendersColumnHeader} from './buildTableListData';
 import useFiltering from './middlewares/filtering';
 import useHighlighting from './middlewares/highlight';
 import useSearching from './middlewares/searching';
@@ -275,6 +275,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     selectionEnabled,
     shouldEnableSelectionInNarrowPaneModal,
     shouldUseDynamicColumns = false,
+    shouldAlwaysEnableSelection,
     shouldPreserveSelectionOnSearchAndFilter,
     shouldFooterRenderAsLastRow,
     onRowSelectionChange,
@@ -283,9 +284,18 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     ...listProps
 }: TableProps<DataType, ColumnKey, FilterKey>) {
     const {translate} = useLocalize();
-    const isMobileSelectionEnabled = useMobileSelectionMode();
+    const isGlobalMobileSelectionEnabled = useMobileSelectionMode();
+
+    // A table whose only purpose is picking rows is always in selection mode, so it shows its checkboxes from the
+    // start rather than hiding them behind a long press. It also leaves the app wide selection mode alone, which
+    // other screens write to and would otherwise clear the selection midway through.
+    const isMobileSelectionEnabled = !!shouldAlwaysEnableSelection || isGlobalMobileSelectionEnabled;
 
     const setMobileSelectionModeEnabled = (isEnabled: boolean) => {
+        if (shouldAlwaysEnableSelection) {
+            return;
+        }
+
         if (isEnabled) {
             turnOnMobileSelectionMode();
             return;
@@ -310,6 +320,8 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const {middleware: searchMiddleware, activeSearchString, methods: searchMethods, hasActiveSearchString} = useSearching<DataType>({isItemInSearch});
     const searchedData = searchMiddleware(filteredData);
 
+    const columnKeys = columns.map((column) => column.key);
+
     const {
         activeSorting,
         methods: sortMethods,
@@ -321,6 +333,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         narrowLayoutSortColumn,
         shouldUseNarrowTableLayout,
         onSortingChange,
+        columnKeys,
     });
     const sortedData = sortMiddleware(searchedData);
 
@@ -339,6 +352,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         isSelectionModeEnabled: isMobileSelectionEnabled,
         setSelectionModeEnabled: setMobileSelectionModeEnabled,
         shouldPreserveSelectionOnSearchAndFilter,
+        shouldAlwaysEnableSelection,
     });
     const selectionData = selectionMiddleware(sortedData);
 
@@ -419,16 +433,22 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
 
         return !isTableHeaderElement(child) && !(React.isValidElement(child) && (child.type === TableEmptyState || child.type === TableNoResultsState));
     });
-    const shouldRenderStickyHeader = processedData.length > 0 && !!tableHeaderElement && hasPageHeader && !(shouldUseNarrowTableLayout && !title);
+    const hasColumnHeaderElement = !!tableHeaderElement;
+    const hasRows = processedData.length > 0;
+    const isColumnHeaderHiddenInNarrowLayout = shouldUseNarrowTableLayout && !title;
+    const areColumnsScrollable = !!dynamicScrollWidth;
 
     const tableListMetadata = useMemo(
         () =>
             getTableListMetadata({
                 listHeaderElement,
                 listHeaderComponent: listProps.ListHeaderComponent,
-                shouldRenderStickyHeader,
+                hasColumnHeaderElement,
+                hasRows,
+                isColumnHeaderHiddenInNarrowLayout,
+                areColumnsScrollable,
             }),
-        [listHeaderElement, listProps.ListHeaderComponent, shouldRenderStickyHeader],
+        [listHeaderElement, listProps.ListHeaderComponent, hasColumnHeaderElement, hasRows, isColumnHeaderHiddenInNarrowLayout, areColumnsScrollable],
     );
     /**
      * Exposes table control methods through the ref.
@@ -466,6 +486,9 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         setMobileSelectionModeEnabled(true);
         selectionMethods.handleSingleRowSelection(mobileSelectionModalRowKey);
         selectionMethods.setMobileSelectionModalRowKey(null);
+        // This should only run when the user confirms the selection, so setMobileSelectionModeEnabled is left out of
+        // the dependencies below. It is redefined on every render, which would otherwise run this again straight away.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mobileSelectionModalRowKey, selectionMethods, shouldSkipMobileSelectionFocusRestore, shouldSubmitMobileSelection]);
 
     useEffect(
@@ -494,6 +517,8 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         originalDataLength,
         columns,
         dynamicGridTemplateColumns,
+        scrollWidth: dynamicScrollWidth,
+        tableWidth,
         filterConfig: filters,
         activeFilters: currentFilters,
         activeSorting,
@@ -533,7 +558,11 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
                 rowCount={processedData.length}
                 columnCount={semanticColumnCount}
                 rendersBodyWhenEmpty={rendersBodyWhenEmpty}
-                scrollWidth={dynamicScrollWidth}
+                shouldUseDynamicColumns={shouldUseDynamicColumns}
+                hasHeaderRow={rendersColumnHeader(tableListMetadata)}
+                // Only tables without a page header scroll here. With one, an ancestor scroller would drag the
+                // in-list filter bar sideways, so their list scrolls horizontally itself (see `TableBody`).
+                scrollWidth={hasPageHeader ? undefined : dynamicScrollWidth}
                 onLayout={isDynamicSizingEnabled ? handleTableLayout : undefined}
             >
                 {renderedChildren}

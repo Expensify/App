@@ -118,12 +118,10 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     shouldShowSwitchButton={canSwitchAccounts}
                 />
             ) : (
-                <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                    <AccountSwitcher
-                        isScreenFocused={isScreenFocused}
-                        shouldShowSwitchButton={shouldUseNarrowLayout}
-                    />
-                </View>
+                <AccountSwitcher
+                    isScreenFocused={isScreenFocused}
+                    shouldShowSwitchButton={shouldUseNarrowLayout}
+                />
             )}
         </View>
     );
