@@ -6,6 +6,7 @@ import useRefreshPendingDigitalWalletApproval from '@hooks/useRefreshPendingDigi
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import {isActingAsDelegateSelector} from '@selectors/Account';
 import {createTimeSensitiveAdminPoliciesSelector} from '@selectors/Policy';
 import React from 'react';
 
@@ -67,7 +68,8 @@ function useTimeSensitiveItems(): React.ReactNode[] {
 
     useRefreshPendingDigitalWalletApproval();
     const {shouldShowFixFailedBilling} = useTimeSensitiveBilling();
-    const [hasEmailDeliveryFailure] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.hasEmailDeliveryFailure});
+    // Hidden for delegates, since the fix flow writes to the delegator's account and contact method actions are blocked for them
+    const [hasEmailDeliveryFailure] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.hasEmailDeliveryFailure && !isActingAsDelegateSelector(account)});
     const {shouldShowOverdueInvoiceReminder, isOverdue: isInvoiceOverdue, invoiceGracePeriodEndUnixSeconds} = useTimeSensitiveOverdueInvoice();
     const {shouldShowAddHomeAddress} = useTimeSensitiveHomeAddress();
     const {shouldShowSubscriptionExpiring, subscriptionEndDate} = useTimeSensitiveSubscriptionExpiring();

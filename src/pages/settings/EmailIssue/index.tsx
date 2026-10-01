@@ -24,6 +24,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
+import {useIsFocused} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
@@ -33,6 +34,7 @@ function EmailIssuePage() {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {showConfirmModal} = useConfirmModal();
+    const isFocused = useIsFocused();
 
     const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -48,12 +50,13 @@ function EmailIssuePage() {
     // Leave whenever the flag is false while this page is mounted. This covers both a successful unblock
     // (the flag clears, so we dismiss) and landing here via a stale deep link when there was never a failure.
     // Wait for the account to finish loading first, otherwise a still-loading `false` triggers a spurious redirect.
+    // Only leave while this page is on top, so a flag that clears while Concierge is open doesn't close Concierge instead.
     useEffect(() => {
-        if (isLoadingOnyxValue(accountMetadata) || hasEmailDeliveryFailure) {
+        if (!isFocused || isLoadingOnyxValue(accountMetadata) || hasEmailDeliveryFailure) {
             return;
         }
         Navigation.goBack();
-    }, [accountMetadata, hasEmailDeliveryFailure]);
+    }, [isFocused, accountMetadata, hasEmailDeliveryFailure]);
 
     // The request has finished once isUnblockingEmail falls from true to false. A backend failure still
     // returns 200, so if the flag is still set the unblock did not take. Surface the single generic retry modal.

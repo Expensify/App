@@ -414,10 +414,10 @@ describe('actions/User', () => {
             UserActions.requestEmailUnblock();
             await waitForBatchedUpdates();
 
-            // Then API.write targets USER_UNBLOCK_EMAIL with an empty params object, per the backend spec
+            // Then API.write targets USER_UNBLOCK_EMAIL with null params, since the backend derives the email from the session
             expect(mockAPI.write).toHaveBeenCalledWith(
                 WRITE_COMMANDS.USER_UNBLOCK_EMAIL,
-                {},
+                null,
                 expect.objectContaining({
                     optimisticData: anyArray,
                     successData: anyArray,
@@ -426,16 +426,16 @@ describe('actions/User', () => {
             );
         });
 
-        it('should set isUnblockingEmail optimistically and clear account errors', async () => {
+        it('should set isUnblockingEmail optimistically', async () => {
             // When requestEmailUnblock is called
             UserActions.requestEmailUnblock();
             await waitForBatchedUpdates();
 
-            // Then the optimistic update flags the account as unblocking and clears any prior error
+            // Then the optimistic update flags the account as unblocking
             const onyxData = mockAPI.write.mock.calls.at(0)?.[2];
             const optimisticUpdate = onyxData?.optimisticData?.find((update) => update.key === ONYXKEYS.ACCOUNT);
 
-            expect(optimisticUpdate?.value).toEqual(expect.objectContaining({isUnblockingEmail: true, errors: null}));
+            expect(optimisticUpdate?.value).toEqual({isUnblockingEmail: true});
         });
 
         it('should clear isUnblockingEmail on both success and failure without writing to account.errors', async () => {

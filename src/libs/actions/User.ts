@@ -319,7 +319,7 @@ function requestEmailUnblock() {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
-            value: {isUnblockingEmail: true, errors: null},
+            value: {isUnblockingEmail: true},
         },
     ];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
@@ -338,7 +338,7 @@ function requestEmailUnblock() {
         },
     ];
 
-    API.write(WRITE_COMMANDS.USER_UNBLOCK_EMAIL, {}, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.USER_UNBLOCK_EMAIL, null, {optimisticData, successData, failureData});
 }
 
 /**

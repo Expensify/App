@@ -13,6 +13,7 @@ import * as UserActions from '@userActions/User';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type * as NativeNavigation from '@react-navigation/native';
 import type ReactNative from 'react-native';
 
 import React from 'react';
@@ -25,6 +26,7 @@ const LOGIN = 'test@user.com';
 
 let mockIsOffline = false;
 let mockAccountMetadataStatus: 'loading' | 'loaded' = 'loaded';
+let mockIsFocused = true;
 
 jest.mock('@hooks/useOnyx', () => {
     const actualUseOnyx = jest.requireActual<{default: typeof useOnyx}>('@hooks/useOnyx').default;
@@ -45,6 +47,13 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRoute: jest.fn(() => ''),
     getActiveRouteWithoutParams: jest.fn(() => ''),
     isNavigationReady: jest.fn(() => Promise.resolve()),
+}));
+
+// The page is rendered outside a NavigationContainer, so drive focus directly to model another screen (e.g. Concierge) on top.
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
+    useIsFocused: () => mockIsFocused,
+    usePreventRemove: jest.fn(),
 }));
 
 // `useNetwork` reads this through `useSyncExternalStore` without a notification, so set it before the render
@@ -103,6 +112,7 @@ describe('EmailIssuePage', () => {
     beforeEach(() => {
         mockIsOffline = false;
         mockAccountMetadataStatus = 'loaded';
+        mockIsFocused = true;
         mockShowConfirmModal.mockReset().mockResolvedValue({action: 'CLOSE'});
         mockRequestEmailUnblock.mockClear();
         jest.mocked(Navigation.goBack).mockClear();
@@ -158,6 +168,25 @@ describe('EmailIssuePage', () => {
 
         // Then the page leaves
         expect(Navigation.goBack).toHaveBeenCalled();
+    });
+
+    it('does not navigate back when the flag clears while another screen is on top', async () => {
+        // Given a user with an email delivery failure who opened Concierge from this page, so it is no longer focused
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {hasEmailDeliveryFailure: true});
+        });
+        mockIsFocused = false;
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the flag clears in the meantime
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {hasEmailDeliveryFailure: false});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then goBack is not called, since it would close the Concierge chat on top instead of this page
+        expect(Navigation.goBack).not.toHaveBeenCalled();
     });
 
     it('shows the retry modal when isUnblockingEmail settles false but the flag is still true, and retries on confirm', async () => {
