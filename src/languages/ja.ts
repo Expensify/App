@@ -4648,9 +4648,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             railCard:
                 'Expensify で電車の予約や管理ができることをご存じでしたか？しかも領収書も自動でアップロードされます。次回からは、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください 🚂',
             hotelBlockManual:
-                'Expensify では、このようなグループ旅行の予約と管理ができることをご存じですか？次回のグループ旅行は、経費を自動作成しながら、<a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> ツールで予約しましょう。',
+                'Expensify では、このようなグループ旅行の予約と管理を直接行えることをご存じでしたか？次回は面倒を省くために、ぜひ <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> ツールをお試しください。',
             hotelBlockCard:
-                'Expensify では、このようなグループ旅行の予約と管理ができることをご存じですか？次回のグループ旅行は、経費を自動作成しながら、<a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> ツールで予約しましょう。',
+                'Expensify では、このようなグループ旅行の予約と管理を直接行えることをご存じでしたか？次回は面倒を省くために、ぜひ <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> ツールをお試しください。',
         },
         defaultWorkspaceTravelDisabled: {
             title: '出張機能は有効になっていません',

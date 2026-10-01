@@ -4684,9 +4684,9 @@ ${amount} voor ${merchant} - ${date}`,
             railCard:
                 'Wist je dat je treinreizen rechtstreeks in Expensify kunt boeken en beheren? En dat bonnen automatisch voor je worden geüpload? Boek de volgende keer gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             hotelBlockManual:
-                'Wist je dat je groepsreizen zoals deze direct in Expensify kunt boeken en beheren? Boek je volgende groepsreis met onze tool <a href="https://help.expensify.com/travel/hubs/event-management/">Reisevenementen</a>, terwijl wij automatisch je uitgaven aanmaken.',
+                'Wist je dat je groepsreizen zoals deze direct in Expensify kunt boeken en beheren? Bespaar jezelf de moeite de volgende keer en probeer onze tool <a href="https://help.expensify.com/travel/hubs/event-management/">Reisevenementen</a> eens uit.',
             hotelBlockCard:
-                'Wist je dat je groepsreizen zoals deze direct in Expensify kunt boeken en beheren? Boek je volgende groepsreis met onze tool <a href="https://help.expensify.com/travel/hubs/event-management/">Reisevenementen</a>, terwijl wij automatisch je uitgaven aanmaken.',
+                'Wist je dat je groepsreizen zoals deze direct in Expensify kunt boeken en beheren? Bespaar jezelf de moeite de volgende keer en probeer onze tool <a href="https://help.expensify.com/travel/hubs/event-management/">Reisevenementen</a> eens uit.',
         },
         defaultWorkspaceTravelDisabled: {
             title: 'Reizen is niet ingeschakeld',

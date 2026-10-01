@@ -4821,13 +4821,13 @@ const translations = {
             hotelCard:
                 'Did you know you can book and manage hotel stays right in Expensify? Book through <a href="https://travel.expensify.com">Expensify Travel</a> with your own hotel loyalty account to keep earning points and status benefits while we automatically create your expense. 🏨',
             hotelBlockManual:
-                'Did you know you can book and manage group trips like this right in Expensify? Book your next group trip with our <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> tool while we automatically create your expenses.',
+                'Did you know you can book and manage group trips like this right in Expensify? Save yourself the hassle next time and try out our <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> tool.',
             hotelBlockCard:
-                'Did you know you can book and manage group trips like this right in Expensify? Book your next group trip with our <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> tool while we automatically create your expenses.',
+                'Did you know you can book and manage group trips like this right in Expensify? Save yourself the hassle next time and try out our <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> tool.',
             carManual:
-                'Did you know you can book and manage car rentals right in Expensify? Book through <a href="https://travel.expensify.com">Expensify Travel</a> with your own car rental loyalty account to keep earning points and status benefits while we automatically create your expense. 🚗',
+                'Did you know you can book and manage car rentals right in Expensify? Book through <a href="https://travel.expensify.com">Expensify Travel</a> with your own rental car rewards account to keep earning points and status benefits while we automatically create your expense. 🚗',
             carCard:
-                'Did you know you can book and manage car rentals right in Expensify? Book through <a href="https://travel.expensify.com">Expensify Travel</a> with your own car rental loyalty account to keep earning points and status benefits while we automatically create your expense. 🚗',
+                'Did you know you can book and manage car rentals right in Expensify? Book through <a href="https://travel.expensify.com">Expensify Travel</a> with your own rental car rewards account to keep earning points and status benefits while we automatically create your expense. 🚗',
             railManual:
                 'Did you know you can book and manage train rides right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:

@@ -4773,9 +4773,9 @@ ${amount} για ${merchant} - ${date}`,
             railCard:
                 'Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε ταξίδια με τρένο απευθείας στο Expensify; Και ότι ανεβάζει αυτόματα τις αποδείξεις για εσάς; Την επόμενη φορά απλώς κάντε κράτηση μέσω του <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             hotelBlockManual:
-                'Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε ομαδικά ταξίδια σαν αυτό απευθείας στο Expensify; Κλείστε το επόμενο ομαδικό σας ταξίδι με το εργαλείο μας <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> ενώ εμείς δημιουργούμε αυτόματα τα έξοδά σας.',
+                'Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε ομαδικά ταξίδια όπως αυτό απευθείας στο Expensify; Γλιτώστε ταλαιπωρία την επόμενη φορά και δοκιμάστε το εργαλείο μας <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a>.',
             hotelBlockCard:
-                'Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε ομαδικά ταξίδια σαν αυτό απευθείας στο Expensify; Κλείστε το επόμενο ομαδικό σας ταξίδι με το εργαλείο μας <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> ενώ εμείς δημιουργούμε αυτόματα τα έξοδά σας.',
+                'Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε ομαδικά ταξίδια όπως αυτό απευθείας στο Expensify; Γλιτώστε ταλαιπωρία την επόμενη φορά και δοκιμάστε το εργαλείο μας <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a>.',
         },
         defaultWorkspaceTravelDisabled: {
             title: 'Η ταξιδιωτική λειτουργία δεν είναι ενεργοποιημένη',
