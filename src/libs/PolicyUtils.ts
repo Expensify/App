@@ -2893,17 +2893,45 @@ function getMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] {
 
 /**
  * Sorts vendors alphabetically by name using the provided localeCompare.
- * Uses vendor id as a stable tie-breaker when names match.
+ * Uses vendor id or externalID as a stable tie-breaker when names match.
  * Non-mutating: returns a new sorted array.
  */
-function sortVendors<TVendor extends {id: string; name: string}>(vendors: TVendor[], localeCompare: LocaleContextProps['localeCompare']): TVendor[] {
+function sortVendors<TVendor extends {id?: string; externalID?: string; name: string}>(vendors: TVendor[], localeCompare: LocaleContextProps['localeCompare']): TVendor[] {
     return [...vendors].sort((a, b) => {
         const nameComparison = localeCompare(a.name ?? '', b.name ?? '');
         if (nameComparison !== 0) {
             return nameComparison;
         }
-        return localeCompare(a.id, b.id);
+        const keyA = a.id ?? a.externalID ?? '';
+        const keyB = b.id ?? b.externalID ?? '';
+        return localeCompare(keyA, keyB);
     });
+}
+
+/**
+ * Resolves the configured default vendor ID for the active integration that supports vendor enablement (QBO, Intacct, or Xero).
+ * Returns undefined if no default vendor is configured or if the integration does not have an active default fallback.
+ */
+function getDefaultVendorID(policy: OnyxEntry<Policy>, origin?: ConnectionName): string | undefined {
+    const integrationOrigin = origin ?? getActiveVendorMatchingIntegration(policy);
+    if (!policy?.connections || !integrationOrigin) {
+        return undefined;
+    }
+
+    if (integrationOrigin === CONST.POLICY.CONNECTIONS.NAME.QBO) {
+        const qboConfig = policy.connections[CONST.POLICY.CONNECTIONS.NAME.QBO]?.config;
+        if (qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD) {
+            return qboConfig.nonReimbursableCreditCardDefaultVendor || undefined;
+        }
+    } else if (integrationOrigin === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT) {
+        const intacctConfig = policy.connections[CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]?.config;
+        return intacctConfig?.export?.nonReimbursableCreditCardChargeDefaultVendor || undefined;
+    } else if (integrationOrigin === CONST.POLICY.CONNECTIONS.NAME.XERO) {
+        const xeroConfig = policy.connections[CONST.POLICY.CONNECTIONS.NAME.XERO]?.config;
+        return xeroConfig?.defaultVendor || undefined;
+    }
+
+    return undefined;
 }
 
 /**
@@ -3608,6 +3636,7 @@ export {
     getActiveVendorMatchingIntegration,
     getMatchingVendorByID,
     getMatchingVendors,
+    getDefaultVendorID,
     sortVendors,
     getVendorEmptyState,
     getVendorRuleDisplayValue,
