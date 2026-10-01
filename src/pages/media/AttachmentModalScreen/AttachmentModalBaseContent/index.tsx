@@ -57,7 +57,7 @@ function AttachmentModalBaseContent({
     reportID,
     isWorkspaceAvatar = false,
     headerTitle,
-    threeDotsMenuItems: threeDotsMenuItemsProp,
+    getThreeDotsMenuItems,
     isLoading = false,
     shouldShowNotFoundPage = false,
     shouldShowCarousel = true,
@@ -326,7 +326,7 @@ function AttachmentModalBaseContent({
         transaction,
         type,
     ]);
-    const threeDotsMenuItems = threeDotsMenuItemsProp?.({file: fileToDisplay, source, isLocalSource}) ?? [];
+    const threeDotsMenuItems = getThreeDotsMenuItems?.({file: fileToDisplay, source, isLocalSource}) ?? [];
     const singleThreeDotsMenuItem = threeDotsMenuItems.length === 1 && shouldMinimizeMenuButton ? threeDotsMenuItems.at(0) : undefined;
 
     return (

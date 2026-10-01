@@ -484,7 +484,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             });
     }, [transaction?.transactionID, sourceUri, isImage, cropRect, receiptFilename, fileName, fileType, exitCropMode, applyDurableReceipt]);
 
-    const threeDotsMenuItems: ThreeDotsMenuItemFactory = useCallback(
+    const getThreeDotsMenuItems: ThreeDotsMenuItemFactory = useCallback(
         ({file, source: innerSource, isLocalSource}) => {
             const menuItems = [];
             if ((!isOffline && allowDownload && !isLocalSource) || !!draftTransactionID) {
@@ -698,7 +698,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             originalFileName,
             report,
             headerTitle,
-            threeDotsMenuItems,
+            getThreeDotsMenuItems,
             isAuthTokenRequired,
             isTrackExpenseAction: isTrackExpenseActionValue,
             isLoading: !transaction && reportLoadingState?.isLoadingInitialReportActions,
@@ -718,7 +718,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             originalFileName,
             report,
             headerTitle,
-            threeDotsMenuItems,
+            getThreeDotsMenuItems,
             isAuthTokenRequired,
             isTrackExpenseActionValue,
             transaction,

@@ -66,8 +66,8 @@ type AttachmentModalBaseContentProps = {
     /** Title shown in the header of the modal */
     headerTitle?: string;
 
-    /** The menu items for the three dots button */
-    threeDotsMenuItems?: ThreeDotsMenuItemFactory;
+    /** Returns the menu items for the three dots button */
+    getThreeDotsMenuItems?: ThreeDotsMenuItemFactory;
 
     /** The report that has this attachment */
     report?: OnyxEntry<OnyxTypes.Report>;
