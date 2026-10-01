@@ -3193,6 +3193,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         currentSearchResults?.search?.isLoading,
         shouldCalculateTotalsOnRefresh,
         rules,
+        allReportNameValuePairs,
     ]);
 
     // When the dropdown surfaces the export options directly there is no "Export" row above them, so on its own the
