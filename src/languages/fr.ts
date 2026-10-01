@@ -412,9 +412,6 @@ const translations: TranslationDeepObject<typeof en> = {
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
         skip: 'Ignorer',
-        chatWithAccountManager: (accountManagerDisplayName: string) =>
-            `Vous avez besoin de quelque chose en particulier ? Discutez avec votre gestionnaire de compte, ${accountManagerDisplayName}.`,
-        chatNow: 'Discuter maintenant',
         workEmail: 'E-mail professionnel',
         destination: 'Destination',
         subrate: 'Sous-taux',
@@ -11147,7 +11144,18 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 invalid: "Ce code n'est pas valide",
             },
         },
-        paymentHistory: {title: 'Afficher l’historique des paiements', subtitle: 'Votre historique complet des paiements mensuels facturés sur ce compte.'},
+        paymentHistory: {
+            title: 'Afficher l’historique des paiements',
+            subtitle: 'Votre historique complet des paiements mensuels facturés sur ce compte.',
+            payments: 'Paiements',
+            inclTax: 'incl. taxes',
+            empty: 'Aucun paiement pour l’instant.',
+            activeUsers: ({count}: {count: number}) => ({
+                one: '1 utilisateur actif',
+                other: `${count} utilisateurs actifs`,
+            }),
+            state: {paid: 'Payé', cleared: 'Compensé', failed: 'Échec', refunded: 'Remboursé', disputed: 'Contesté', balanceTransfer: 'Virement de solde'},
+        },
         subscriptionSettings: {
             title: 'Paramètres d’abonnement',
             summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>

@@ -13,14 +13,14 @@ import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const POLICY_ID = 'policy1';
 
-function buildRule(overrides: Partial<Rule> = {}): Rule {
+function buildApprovalWorkflowRule(extra: Partial<Omit<Rule, 'actions' | 'filters' | 'triggers'>> = {}): Rule {
     return {
         scope: CONST.RULES.SCOPE.POLICY,
         scopeID: POLICY_ID,
-        triggers: {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT},
+        triggers: {'1': CONST.RULES.TRIGGERS.REPORT_SUBMIT},
         filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: 'a@example.com'},
-        actions: {'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: 'b@example.com'}},
-        ...overrides,
+        actions: {'1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: 'b@example.com'}},
+        ...extra,
     };
 }
 
@@ -35,11 +35,15 @@ describe('useHasApprovalWorkflowRules', () => {
     });
 
     it('only counts the rules that route reports', async () => {
-        // Given a workspace whose only rule is a merchant rule, which Auth sends to admins in the same collection even though the
-        // App types only describe approval workflow rules
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the test needs a rule shape the App types don't allow, which Auth still sends
-        const merchantRule = {...buildRule(), actions: {'1': {name: 'Set', field: 'category', value: 'Travel'}}} as unknown as Rule;
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.RULE}1`, merchantRule);
+        // Given a workspace whose only rule is an expense default, which shares the rules collection with approval workflows
+        const expenseDefaultRule: Rule = {
+            scope: CONST.RULES.SCOPE.POLICY,
+            scopeID: POLICY_ID,
+            triggers: {'1': CONST.RULES.TRIGGERS.CREATE_TRANSACTION},
+            filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS, right: 'Starbucks'},
+            actions: {'1': {name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, value: 'Coffee'}},
+        };
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RULE}1`, expenseDefaultRule);
         const {result} = renderHook(() => useHasApprovalWorkflowRules(POLICY_ID));
         await waitForBatchedUpdates();
 
@@ -47,7 +51,7 @@ describe('useHasApprovalWorkflowRules', () => {
         expect(result.current).toBe(false);
 
         // When the workspace gets a rule that forwards its reports
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.RULE}2`, buildRule());
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RULE}2`, buildApprovalWorkflowRule());
 
         // Then approval workflow rules route its reports
         await waitFor(() => expect(result.current).toBe(true));
@@ -55,8 +59,8 @@ describe('useHasApprovalWorkflowRules', () => {
 
     it("only counts the workspace's own rules that are not pending deletion", async () => {
         // Given an approval workflow rule of another workspace, and one of this workspace that is being deleted offline
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.RULE}1`, buildRule({scopeID: 'policy2'}));
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.RULE}2`, buildRule({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}));
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RULE}1`, buildApprovalWorkflowRule({scopeID: 'policy2'}));
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RULE}2`, buildApprovalWorkflowRule({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}));
         const {result} = renderHook(() => useHasApprovalWorkflowRules(POLICY_ID));
         await waitForBatchedUpdates();
 

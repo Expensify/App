@@ -412,8 +412,6 @@ const translations: TranslationDeepObject<typeof en> = {
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
         skip: 'スキップ',
-        chatWithAccountManager: (accountManagerDisplayName: string) => `特定のご要望がありますか？アカウントマネージャーの${accountManagerDisplayName}とチャットしましょう。`,
-        chatNow: '今すぐチャット',
         workEmail: '勤務先メール',
         destination: '宛先',
         subrate: 'サブレート',
@@ -10909,7 +10907,18 @@ ${reportName}`,
                 invalid: 'このコードは無効です',
             },
         },
-        paymentHistory: {title: '支払い履歴を表示', subtitle: 'このアカウントに請求された毎月の支払い履歴のすべてです。'},
+        paymentHistory: {
+            title: '支払い履歴を表示',
+            subtitle: 'このアカウントに請求された毎月の支払い履歴のすべてです。',
+            payments: '支払い',
+            inclTax: '税込み',
+            empty: 'まだ支払いはありません。',
+            activeUsers: ({count}: {count: number}) => ({
+                one: 'アクティブユーザー 1 人',
+                other: `アクティブユーザー ${count} 名`,
+            }),
+            state: {paid: '支払い済み', cleared: '決済済み', failed: '失敗しました', refunded: '返金済み', disputed: '異議あり', balanceTransfer: '残高振替'},
+        },
         subscriptionSettings: {
             title: 'サブスクリプション設定',
             summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>

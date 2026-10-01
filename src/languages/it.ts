@@ -413,8 +413,6 @@ const translations: TranslationDeepObject<typeof en> = {
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
         skip: 'Salta',
-        chatWithAccountManager: (accountManagerDisplayName: string) => `Hai bisogno di qualcosa in particolare? Chatta con il tuo account manager, ${accountManagerDisplayName}.`,
-        chatNow: 'Chatta ora',
         workEmail: 'Email di lavoro',
         destination: 'Destinazione',
         subrate: 'Tariffa secondaria',
@@ -11072,7 +11070,18 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 invalid: 'Questo codice non è valido',
             },
         },
-        paymentHistory: {title: 'Vedi cronologia pagamenti', subtitle: 'Il tuo storico completo dei pagamenti mensili addebitati su questo conto.'},
+        paymentHistory: {
+            title: 'Vedi cronologia pagamenti',
+            subtitle: 'Il tuo storico completo dei pagamenti mensili addebitati su questo conto.',
+            payments: 'Pagamenti',
+            inclTax: 'incl. tasse',
+            empty: 'Ancun pagamento finora.',
+            activeUsers: ({count}: {count: number}) => ({
+                one: '1 utente attivo',
+                other: `${count} utenti attivi`,
+            }),
+            state: {paid: 'Pagato', cleared: 'Compensato', failed: 'Non riuscito', refunded: 'Rimborsato', disputed: 'Contestata', balanceTransfer: 'Trasferimento di saldo'},
+        },
         subscriptionSettings: {
             title: 'Impostazioni abbonamento',
             summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>

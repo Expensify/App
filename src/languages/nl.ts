@@ -412,8 +412,6 @@ const translations: TranslationDeepObject<typeof en> = {
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
         skip: 'Overslaan',
-        chatWithAccountManager: (accountManagerDisplayName: string) => `Zoek je iets specifieks? Chat met je accountmanager, ${accountManagerDisplayName}.`,
-        chatNow: 'Nu chatten',
         workEmail: 'Zakelijk e-mailadres',
         destination: 'Bestemming',
         subrate: 'Subtarief',
@@ -11036,7 +11034,18 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 invalid: 'Deze code is ongeldig',
             },
         },
-        paymentHistory: {title: 'Bekijk betalingsgeschiedenis', subtitle: 'Je volledige maandelijkse betalingsgeschiedenis die op deze rekening in rekening is gebracht.'},
+        paymentHistory: {
+            title: 'Bekijk betalingsgeschiedenis',
+            subtitle: 'Je volledige maandelijkse betalingsgeschiedenis die op deze rekening in rekening is gebracht.',
+            payments: 'Betalingen',
+            inclTax: 'incl. btw',
+            empty: 'Nog geen betalingen.',
+            activeUsers: ({count}: {count: number}) => ({
+                one: '1 actieve gebruiker',
+                other: `${count} actieve gebruikers`,
+            }),
+            state: {paid: 'Betaald', cleared: 'Afgeboekt', failed: 'Mislukt', refunded: 'Terugbetaald', disputed: 'Betwist', balanceTransfer: 'Saldo-overboeking'},
+        },
         subscriptionSettings: {
             title: 'Abonnementsinstellingen',
             summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>

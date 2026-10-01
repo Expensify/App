@@ -1,23 +1,16 @@
 import {getApprovalWorkflowRulesForPolicy} from '@libs/WorkflowUtils';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import useOnyx from './useOnyx';
 
 /**
- * Whether approval workflow rules route the reports of the given workspace, i.e. it has a rule that forwards or approves them.
- *
- * Admins also receive the workspace's merchant rules in this collection, so only the rules that route reports count.
+ * Whether approval workflow rules route the reports of the given workspace.
  */
 function useHasApprovalWorkflowRules(policyID: string | undefined): boolean {
     const [hasApprovalWorkflowRules] = useOnyx(ONYXKEYS.COLLECTION.RULE, {
-        selector: (rules) =>
-            Object.values(getApprovalWorkflowRulesForPolicy(rules, policyID)).some((rule) =>
-                Object.values(rule.actions).some(
-                    (action) => action.name === CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO || action.name === CONST.RULES.APPROVAL_WORKFLOW.ACTION.APPROVE_REPORT,
-                ),
-            ),
+        selector: (rules) => !isEmptyObject(getApprovalWorkflowRulesForPolicy(rules, policyID)),
     });
 
     return !!hasApprovalWorkflowRules;
