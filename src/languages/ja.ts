@@ -3415,7 +3415,7 @@ ${date} の ${merchant} への ${amount}`,
             subtitle: (workEmail: string | undefined) =>
                 `${workEmail} を追加できませんでした。後で「設定」からもう一度お試しいただくか、ガイダンスについて Concierge にチャットでお問い合わせください。`,
             validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
-                `${workEmail} を追加できませんでした。これらのアカウントを統合するには、${workEmail} としてログインし、「アカウント」＞「セキュリティ」＞「アカウント統合」に進んで手続きを完了してください。`,
+                `${workEmail} を追加できませんでした。これらのアカウントを統合するには、${workEmail} としてログインし、「アカウント」＞「セキュリティ」＞「アカウントの統合」に進んで処理を完了してください。`,
             workAccountClosedSubtitle:
                 'このメールアドレスに関連付けられている業務用アカウントは停止されています。再有効化するには会社の管理者にご連絡いただくか、別のメールアドレスでサインアップしてください。',
             domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} は既存のExpensifyアカウントのドメイン管理ログインです。`,
@@ -3661,25 +3661,25 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                         1. [勤務先メールを追加](${workEmailLink}) を開きます。  
                         2. 会社のメールアドレスを入力します。  
                         3. お送りしたコードを入力します。  
-                        4. 参加するワークスペースを選ぶか、*参加をリクエスト* をクリックしてワークスペースのオーナーにリクエストを送信します。
+                        4. 参加するワークスペースを選ぶか、ワークスペースのオーナーにリクエストを送るには *参加をリクエスト* をクリックします。
                     `),
             },
             validateEmailTask: {
-                title: 'メールアドレスを確認してください',
+                title: 'メールを確認してください',
                 description: ({validateEmailLink = '', workEmail = ''}) =>
                     Str.dedent(`
-                        1. [アカウントを認証](${validateEmailLink}) を開きます。  
+                        1. [アカウントを認証](${validateEmailLink})を開きます。  
                         2. ${workEmail} に送信されたコードを入力します。  
-                        3. 参加するワークスペースを選択するか、ワークスペースのオーナーにリクエストを送信するには *参加リクエストを送信* をクリックします。
+                        3. 参加するワークスペースを選択するか、ワークスペースのオーナーにリクエストを送信するには「参加リクエストを送信」をクリックします。
                     `),
             },
             joinWorkspaceTask: {
                 title: '会社のワークスペースに参加する',
                 description: ({joinWorkspaceLink = ''}) =>
                     Str.dedent(`
-                        1. [ワークスペースに参加](${joinWorkspaceLink})を開きます。  
-                        2. 一覧から自分のチームを探します。各チームにはオーナー名とメンバー数が表示され、多い順に並んでいます。自分のチームが見つからない場合は、*さらに表示* をクリックします。  
-                        3. *今すぐ参加* をクリックします。管理者の承認が必要な場合は、*参加をリクエスト* をクリックします。
+                        1. [ワークスペースに参加](${joinWorkspaceLink}) を開きます。  
+                        2. 一覧から自分のチームを探します。各チームには、そのオーナー名と参加人数が表示され、多い順に並んでいます。見つからない場合は *Show more* をクリックします。  
+                        3. *Join now* をクリックします。管理者の承認が必要な場合は、*Ask to join* をクリックします。
                     `),
             },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
@@ -3705,12 +3705,12 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             onboardingAdminMessage: '管理者としてチームのワークスペースを管理し、自分の経費を提出する方法を学びましょう。',
             onboardingTestDriveReceiverMessage: '*3か月無料でご利用いただけます！下から始めましょう。*',
             onboardingJoinWorkspaceAddWorkEmailMessage:
-                '会社のワークスペースに参加しようとしているようですので、新しくワークスペースは作成していません。勤務先のメールアドレスを追加していただければ、参加できる会社のワークスペースを確認します。',
+                '会社のワークスペースに参加しようとしているため、新しいワークスペースは作成していません。勤務先のメールアドレスを追加してください。参加できる会社のワークスペースを確認します。',
             onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
-                `会社のワークスペースに参加しようとしているようなので、新しいワークスペースは作成していません。メールアドレスを認証していただければ、参加可能な ${companyDomain} のワークスペースを確認します。`,
+                `会社のワークスペースに参加しようとしているようですので、新しいワークスペースは作成していません。メールアドレスを確認していただければ、${companyDomain} のどのワークスペースに参加できるかをお調べします。`,
             onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
-                `あなたは会社のワークスペースに参加しようとしているため、新しいワークスペースは作成していません。${companyDomain} のチームはすでに Expensify を利用しています。[参加できるワークスペースを確認する](${joinWorkspaceLink})`,
-            onboardingJoinWorkspaceEmptyMessage: 'ご利用の会社には、参加可能なワークスペースがないようです。管理者に連絡して、ワークスペースへ招待してもらってください。',
+                `会社のワークスペースに参加しようとしているようですので、新しくワークスペースは作成していません。${companyDomain} のチームはすでに Expensify を利用中です。[参加できるワークスペースを確認しましょう](${joinWorkspaceLink})`,
+            onboardingJoinWorkspaceEmptyMessage: 'ご利用の会社には参加可能なワークスペースがないようです。管理者に連絡して、ワークスペースに招待してもらってください。',
         },
         workspace: {
             title: 'ワークスペースで整理整頓しよう',

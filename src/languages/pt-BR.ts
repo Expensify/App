@@ -3372,7 +3372,7 @@ ${amount} para ${merchant} - ${date}`,
             title: 'O que você quer fazer hoje?',
             errorContinue: 'Pressione continuar para concluir a configuração',
             errorBackButton: 'Conclua as perguntas de configuração para começar a usar o app',
-            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: 'Participar do espaço de trabalho da minha empresa',
+            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: 'Entrar no espaço de trabalho da minha empresa',
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Enviar despesas para meu empregador',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Gerenciar as despesas da minha equipe',
             [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Controlar despesas do meu negócio',
@@ -3679,9 +3679,9 @@ ${amount} para ${merchant} - ${date}`,
                 description: ({workEmailLink = ''}) =>
                     Str.dedent(`
                         1. Abra [Adicionar e-mail de trabalho](${workEmailLink}).
-                        2. Digite o seu e-mail corporativo.
+                        2. Digite o e-mail da sua empresa.
                         3. Digite o código que enviamos por e-mail.
-                        4. Escolha um workspace para entrar ou clique em *Pedir para entrar* para enviar uma solicitação ao proprietário do workspace.
+                        4. Escolha um workspace para participar ou clique em *Pedir para participar* para enviar uma solicitação ao proprietário do workspace.
                     `),
             },
             validateEmailTask: {
@@ -3689,17 +3689,17 @@ ${amount} para ${merchant} - ${date}`,
                 description: ({validateEmailLink = '', workEmail = ''}) =>
                     Str.dedent(`
                         1. Abra [Validar sua conta](${validateEmailLink}).
-                        2. Insira o código que enviamos para ${workEmail}.
+                        2. Digite o código que enviamos para ${workEmail}.
                         3. Escolha um workspace para entrar ou clique em *Pedir para entrar* para enviar uma solicitação ao proprietário do workspace.
                     `),
             },
             joinWorkspaceTask: {
-                title: 'Entre no espaço de trabalho da sua empresa',
+                title: 'Entre no workspace da sua empresa',
                 description: ({joinWorkspaceLink = ''}) =>
                     Str.dedent(`
-                        1. Abra [Participar de um espaço de trabalho](${joinWorkspaceLink}).
-                        2. Encontre sua equipe na lista. Cada uma mostra seu proprietário e quantas pessoas há nela, começando pelas maiores. Clique em *Mostrar mais* se você não encontrar a sua.
-                        3. Clique em *Participar agora* ou em *Pedir para participar* se for necessária aprovação do administrador.
+                        1. Abra [Participar de um workspace](${joinWorkspaceLink}).
+                        2. Encontre sua equipe na lista. Cada uma mostra seu proprietário e quantas pessoas estão nela, das maiores para as menores. Clique em *Mostrar mais* se você não encontrar a sua.
+                        3. Clique em *Participar agora* ou em *Pedir para participar* se precisar de aprovação de um administrador.
                     `),
             },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
@@ -3725,13 +3725,13 @@ ${amount} para ${merchant} - ${date}`,
             onboardingAdminMessage: 'Saiba como gerenciar o workspace da sua equipe como administrador e enviar suas próprias despesas.',
             onboardingTestDriveReceiverMessage: '*Você ganhou 3 meses grátis! Comece abaixo.*',
             onboardingJoinWorkspaceAddWorkEmailMessage:
-                'Como você quer entrar no espaço de trabalho da sua empresa, eu não criei um para você. Adicione seu e-mail corporativo e vou verificar em quais espaços de trabalho da sua empresa você pode entrar.',
+                'Como você está tentando entrar no espaço de trabalho da sua empresa, eu não criei um para você. Adicione seu e-mail de trabalho e vou verificar em quais espaços de trabalho da sua empresa você pode entrar.',
             onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
-                `Como você está tentando entrar no espaço de trabalho da sua empresa, eu não criei um para você. Verifique seu e-mail e eu vou conferir quais espaços de trabalho em ${companyDomain} você pode entrar.`,
+                `Como você quer entrar no espaço de trabalho da sua empresa, eu não criei um para você. Verifique seu e-mail e eu vou conferir quais espaços de trabalho em ${companyDomain} você pode acessar.`,
             onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
-                `Como você quer entrar no espaço de trabalho da sua empresa, eu não criei um para você. Sua equipe em ${companyDomain} já está no Expensify. [Dê uma olhada nos espaços de trabalho que você pode entrar.](${joinWorkspaceLink})`,
+                `Como você está querendo entrar no espaço de trabalho da sua empresa, eu não criei um para você. Sua equipe em ${companyDomain} já está no Expensify. [Dê uma olhada nos espaços de trabalho que você pode entrar.](${joinWorkspaceLink})`,
             onboardingJoinWorkspaceEmptyMessage:
-                'Parece que a sua empresa não tem nenhum espaço de trabalho ao qual você possa se juntar. Entre em contato com o seu administrador e peça para ele convidar você para o espaço de trabalho.',
+                'Parece que sua empresa não tem nenhum workspace ao qual você possa se juntar. Entre em contato com o seu administrador e peça para que ele convide você para o workspace.',
         },
         workspace: {
             title: 'Mantenha-se organizado com um workspace',

@@ -3447,7 +3447,7 @@ ${amount} voor ${merchant} - ${date}`,
             title: 'Werkmail kon niet worden toegevoegd',
             subtitle: (workEmail: string | undefined) => `We konden ${workEmail} niet toevoegen. Probeer het later opnieuw in Instellingen of chat met Concierge voor hulp.`,
             validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
-                `We konden ${workEmail} niet toevoegen. Log alsjeblieft in als ${workEmail} en ga naar Account > Beveiliging > Accounts samenvoegen om het proces te voltooien.`,
+                `We konden ${workEmail} niet toevoegen. Om deze accounts samen te voegen, log je in als ${workEmail} en ga je naar Account > Beveiliging > Accounts samenvoegen om het proces te voltooien.`,
             workAccountClosedSubtitle:
                 'De zakelijke account die aan dit e-mailadres is gekoppeld, is gesloten. Neem contact op met de beheerder van je bedrijf om het opnieuw te activeren, of meld je aan met een ander e-mailadres.',
             domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} is een door het domein beheerde login voor een bestaand Expensify-account.`,
@@ -3687,31 +3687,31 @@ ${amount} voor ${merchant} - ${date}`,
                 `),
             },
             addWorkEmailTask: {
-                title: 'Voeg je werkmail toe',
+                title: 'Voeg je werk-e-mailadres toe',
                 description: ({workEmailLink = ''}) =>
                     Str.dedent(`
                         1. Open [Werkmail toevoegen](${workEmailLink}).
-                        2. Vul je zakelijke e-mailadres in.
-                        3. Vul de code in die we je mailen.
-                        4. Kies een workspace om je bij aan te sluiten, of klik op *Toegang vragen* om een verzoek naar de eigenaar van de workspace te sturen.
+                        2. Voer je zakelijke e-mailadres in.
+                        3. Voer de code in die we je mailen.
+                        4. Kies een workspace om je bij aan te sluiten, of klik op *Verzoek om lid te worden* om een verzoek naar de eigenaar van de workspace te sturen.
                     `),
             },
             validateEmailTask: {
-                title: 'Valideer je e-mailadres',
+                title: 'Bevestig je e-mailadres',
                 description: ({validateEmailLink = '', workEmail = ''}) =>
                     Str.dedent(`
-                        1. Open [Verifieer je account](${validateEmailLink}).
+                        1. Open [Valideer je account](${validateEmailLink}).
                         2. Voer de code in die we naar ${workEmail} hebben gestuurd.
-                        3. Kies een workspace om je bij aan te sluiten, of klik op *Toegang vragen* om een verzoek naar de eigenaar van de workspace te sturen.
+                        3. Kies een workspace om je bij aan te sluiten, of klik op *Verzoek om lid te worden* om een verzoek naar de eigenaar van de workspace te sturen.
                     `),
             },
             joinWorkspaceTask: {
-                title: 'Word lid van de werkruimte van je bedrijf',
+                title: 'Word lid van de workspace van je bedrijf',
                 description: ({joinWorkspaceLink = ''}) =>
                     Str.dedent(`
-                        1. Open [Word lid van een workspace](${joinWorkspaceLink}).
-                        2. Zoek je team in de lijst. Bij elk team zie je de eigenaar en hoeveel mensen erop zitten, met de grootste teams bovenaan. Klik op *Meer weergeven* als je jouw team niet ziet.
-                        3. Klik op *Nu lid worden*, of op *Verzoek om lid te worden* als er goedkeuring van een admin nodig is.
+                        1. Open [Lid worden van een werkruimte](${joinWorkspaceLink}).
+                        2. Zoek je team in de lijst. Bij elk team zie je de eigenaar en hoeveel mensen erin zitten, de grootste eerst. Klik op *Meer weergeven* als je die van jou niet ziet.
+                        3. Klik op *Nu deelnemen*, of op *Verzoek om deelname* als er goedkeuring van een beheerder nodig is.
                     `),
             },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
@@ -3737,13 +3737,13 @@ ${amount} voor ${merchant} - ${date}`,
             onboardingAdminMessage: 'Leer hoe je als beheerder de werkruimte van je team beheert en je eigen onkosten indient.',
             onboardingTestDriveReceiverMessage: '*Je krijgt 3 maanden gratis! Ga hieronder aan de slag.*',
             onboardingJoinWorkspaceAddWorkEmailMessage:
-                'Omdat je je wilt aansluiten bij de werkruimte van je bedrijf, heb ik er geen voor je aangemaakt. Voeg je zakelijke e-mailadres toe en ik kijk bij welke werkruimtes van je bedrijf je je kunt aansluiten.',
+                'Omdat je je wilt aansluiten bij de workspace van je bedrijf, heb ik er geen voor je aangemaakt. Voeg je zakelijke e‑mail toe en dan kijk ik welke workspaces bij jouw bedrijf je kunt joinen.',
             onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
-                `Omdat je je wilt aansluiten bij de workspace van je bedrijf, heb ik er geen voor je aangemaakt. Verifieer je e‑mail, dan kijk ik welke workspaces bij ${companyDomain} je kunt joinen.`,
+                `Omdat je je bij de workspace van je bedrijf wilt aansluiten, heb ik er geen voor je aangemaakt. Bevestig je e-mailadres, dan kijk ik welke workspaces bij ${companyDomain} je kunt joinen.`,
             onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
-                `Omdat je je wilt aansluiten bij de workspace van je bedrijf, heb ik er geen voor je aangemaakt. Je team bij ${companyDomain} zit al op Expensify. [Bekijk de workspaces waaraan je kunt deelnemen.](${joinWorkspaceLink})`,
+                `Omdat je je wilt aansluiten bij de workspace van je bedrijf, heb ik er geen voor je aangemaakt. Je team bij ${companyDomain} zit al op Expensify. [Bekijk de workspaces waarbij je je kunt aansluiten.](${joinWorkspaceLink})`,
             onboardingJoinWorkspaceEmptyMessage:
-                'Het lijkt er niet op dat je bedrijf joinbare werkruimtes heeft. Neem contact op met je beheerder en laat die je uitnodigen voor hun werkruimte.',
+                'Het lijkt er niet op dat je bedrijf joinbare werkruimtes heeft. Neem contact op met je beheerder en vraag of die je wil uitnodigen voor de werkruimte.',
         },
         workspace: {
             title: 'Blijf georganiseerd met een werkruimte',
