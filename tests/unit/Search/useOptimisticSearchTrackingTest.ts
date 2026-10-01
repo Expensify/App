@@ -3,7 +3,7 @@ import {renderHook} from '@testing-library/react-native';
 import useOptimisticSearchTracking from '@components/Search/hooks/useOptimisticSearchTracking';
 import type {SearchQueryJSON} from '@components/Search/types';
 
-import {flushPendingSearchWrite, getSearchWriteWatchKey, hasPendingSearchWrite} from '@libs/pendingSearchWrite';
+import {acquireSearchWriteBarrier, flushPendingSearchWrite, hasPendingSearchWrite, markPendingSearchWrite, resetForTesting, setSearchWriteWatchKey} from '@libs/pendingSearchWrite';
 
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
@@ -11,32 +11,14 @@ import type SearchResults from '@src/types/onyx/SearchResults';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-jest.mock('@libs/pendingSearchWrite', () => ({
-    getSearchWriteWatchKey: jest.fn(),
-    hasPendingSearchWrite: jest.fn(),
-    flushPendingSearchWrite: jest.fn(),
-}));
-
-jest.mock('@libs/SearchUIUtils', () => ({
-    isSearchDataLoaded: jest.fn(() => true),
-    isTransactionSearchType: jest.fn((type: string | undefined) => type === 'expense' || type === 'invoice'),
-}));
-
-jest.mock('@libs/telemetry/submitFollowUpAction', () => ({
-    getPendingSubmitFollowUpAction: jest.fn(() => undefined),
-}));
-
-const mockGetSearchWriteWatchKey = jest.mocked(getSearchWriteWatchKey);
-const mockHasPendingSearchWrite = jest.mocked(hasPendingSearchWrite);
-
-const TRANSACTION_KEY = 'transactions_stale-tx-96982';
-const OTHER_TRANSACTION_KEY = 'transactions_other-tx';
+const TRANSACTION_ID = '9876543210';
+const TRANSACTION_KEY = 'transactions_9876543210';
 
 const queryJSON: SearchQueryJSON = {
-    inputQuery: 'type:expense description:Vampire',
-    hash: 96982,
-    recentSearchHash: 96982,
-    similarSearchHash: 96982,
+    inputQuery: 'type:expense',
+    hash: 111,
+    recentSearchHash: 111,
+    similarSearchHash: 111,
     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
     view: CONST.SEARCH.VIEW.TABLE,
     sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
@@ -51,42 +33,40 @@ const queryJSON: SearchQueryJSON = {
 
 function makeTransaction(overrides: Partial<Transaction> = {}): Transaction {
     const transaction: Transaction = {
-        amount: 100,
-        created: '2026-01-01',
+        amount: 4200,
+        created: '2026-09-29',
         currency: CONST.CURRENCY.USD,
-        merchant: 'Distance',
-        reportID: '42',
-        transactionID: 'stale-tx-96982',
+        merchant: 'Unique merchant',
+        reportID: '1',
+        transactionID: TRANSACTION_ID,
     };
     Object.assign(transaction, overrides);
     return transaction;
 }
 
-const snapshotData: SearchResults['data'] = {
-    [OTHER_TRANSACTION_KEY]: makeTransaction({transactionID: 'other-tx', reportID: '1'}),
-};
+function makeSearchResults(data: SearchResults['data'] = {}): SearchResults {
+    return {
+        data,
+        search: {
+            offset: 0,
+            hash: queryJSON.hash,
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            hasMoreResults: false,
+            hasResults: true,
+            isLoading: false,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+        },
+    };
+}
 
-const searchResults: SearchResults = {
-    data: snapshotData,
-    search: {
-        offset: 0,
-        hash: 96982,
-        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-        hasMoreResults: false,
-        hasResults: true,
-        isLoading: false,
-        sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
-        sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
-    },
-};
-
-function renderTrackingHook(transaction: Transaction) {
+function renderTracking(transaction: Transaction, data: SearchResults['data'] = {}) {
     const transactions: OnyxCollection<Transaction> = {
         [TRANSACTION_KEY]: transaction,
     };
     return renderHook(() =>
         useOptimisticSearchTracking({
-            searchResults,
+            searchResults: makeSearchResults(data),
             queryJSON,
             transactions,
             reportActions: {},
@@ -94,62 +74,86 @@ function renderTrackingHook(transaction: Transaction) {
     );
 }
 
+function markPendingWriteForTransaction() {
+    markPendingSearchWrite();
+    setSearchWriteWatchKey(TRANSACTION_KEY);
+}
+
+beforeEach(() => {
+    resetForTesting();
+});
+
+afterEach(() => {
+    resetForTesting();
+});
+
 describe('useOptimisticSearchTracking', () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
-        mockGetSearchWriteWatchKey.mockReturnValue(TRANSACTION_KEY);
-        mockHasPendingSearchWrite.mockReturnValue(false);
-    });
-
-    it('does not inject a settled transaction when the snapshot excludes it (#96982)', () => {
-        const settledTransaction = makeTransaction({pendingAction: undefined});
-        const {result} = renderTrackingHook(settledTransaction);
-
-        expect(result.current.searchDataWithOptimisticTransaction).toBe(snapshotData);
-        expect(result.current.searchDataWithOptimisticTransaction?.[TRANSACTION_KEY]).toBeUndefined();
-    });
-
-    it('still injects a transaction that is pending creation', () => {
+    it('adds the optimistic transaction while its write is still pending', () => {
+        // Given a submission that marked the signal and published its watch key
+        markPendingWriteForTransaction();
         const pendingTransaction = makeTransaction({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
-        const {result} = renderTrackingHook(pendingTransaction);
 
-        expect(result.current.searchDataWithOptimisticTransaction?.[TRANSACTION_KEY]).toBe(pendingTransaction);
+        // When Search mounts while that write is still pending
+        const {result} = renderTracking(pendingTransaction);
+
+        // Then the transaction is added to the snapshot, so its row shows before the server indexes it
+        expect(result.current.searchDataWithOptimisticTransaction).toHaveProperty(TRANSACTION_KEY);
+    });
+
+    it('does not add the transaction of a released write to a search mounted afterwards', () => {
+        // Given a submission whose write was already released, leaving its watch key readable
+        markPendingWriteForTransaction();
+        acquireSearchWriteBarrier();
+        flushPendingSearchWrite();
+        const pendingTransaction = makeTransaction({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
+
+        // When a different query mounts Search with no write of its own pending
+        const {result} = renderTracking(pendingTransaction);
+
+        // Then the earlier expense is left out, since it has no relation to this query's filters
+        expect(result.current.searchDataWithOptimisticTransaction).not.toHaveProperty(TRANSACTION_KEY);
+    });
+
+    it('does not inject a settled transaction even while its write is still pending', () => {
+        markPendingWriteForTransaction();
+        const settledTransaction = makeTransaction({pendingAction: undefined});
+
+        const {result} = renderTracking(settledTransaction);
+
+        expect(result.current.searchDataWithOptimisticTransaction).not.toHaveProperty(TRANSACTION_KEY);
     });
 
     it('does not inject a split-parent transaction even when pending creation', () => {
+        markPendingWriteForTransaction();
         const splitParent = makeTransaction({
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             reportID: CONST.REPORT.SPLIT_REPORT_ID,
         });
-        const {result} = renderTrackingHook(splitParent);
 
-        expect(result.current.searchDataWithOptimisticTransaction).toBe(snapshotData);
-        expect(result.current.searchDataWithOptimisticTransaction?.[TRANSACTION_KEY]).toBeUndefined();
+        const {result} = renderTracking(splitParent);
+
+        expect(result.current.searchDataWithOptimisticTransaction).not.toHaveProperty(TRANSACTION_KEY);
     });
 
     it('does not inject when the transaction is already present in the snapshot', () => {
+        markPendingWriteForTransaction();
         const pendingTransaction = makeTransaction({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
-        const snapshotWithTransaction: SearchResults['data'] = {
-            ...snapshotData,
+        const snapshotData: SearchResults['data'] = {
             [TRANSACTION_KEY]: pendingTransaction,
         };
-        const resultsWithTransaction: SearchResults = {...searchResults, data: snapshotWithTransaction};
 
-        const {result} = renderHook(() =>
-            useOptimisticSearchTracking({
-                searchResults: resultsWithTransaction,
-                queryJSON,
-                transactions: {[TRANSACTION_KEY]: pendingTransaction},
-                reportActions: {},
-            }),
-        );
+        const {result} = renderTracking(pendingTransaction, snapshotData);
 
-        expect(result.current.searchDataWithOptimisticTransaction).toBe(snapshotWithTransaction);
+        expect(result.current.searchDataWithOptimisticTransaction).toBe(snapshotData);
     });
 
     it('flushes the pending search write on unmount when not navigating to search', () => {
-        const {unmount} = renderTrackingHook(makeTransaction());
+        markPendingSearchWrite();
+        const {unmount} = renderTracking(makeTransaction());
+
         unmount();
-        expect(flushPendingSearchWrite).toHaveBeenCalled();
+        acquireSearchWriteBarrier();
+
+        expect(hasPendingSearchWrite()).toBe(false);
     });
 });
