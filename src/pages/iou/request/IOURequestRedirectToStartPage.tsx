@@ -26,7 +26,7 @@ function IOURequestRedirectToStartPage({route}: IOURequestRedirectToStartPagePro
     const {iouType: iouTypeParam, iouRequestType} = route.params ?? {};
 
     // `/start/request/…` and `/start/send/…` still exist in OldDot links and in links people paste into chat. The
-    // create flow they redirect to renders "Not found" for those deprecated aliases, so resolve them here — this is
+    // create flow they redirect to renders "Not found" for those deprecated aliases, so resolve them here. This is
     // the one place every `/start/…` link passes through before a create route is built.
     const iouType = getNonDeprecatedIOUType(iouTypeParam);
     const isIouTypeValid = Object.values(CONST.IOU.TYPE).includes(iouTypeParam);
