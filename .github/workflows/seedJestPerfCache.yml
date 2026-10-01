@@ -14,11 +14,20 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.sha }}
   cancel-in-progress: false
 
+# Same shards as reassurePerformanceTests.yml, whose validate job merges the slices.
+env:
+  REASSURE_SHARD_SELECTION_LIST: '/SelectionList\.perf-test\.tsx$'
+  REASSURE_SHARD_ALL_EXCEPT_SELECTION_LIST: '^(?!.*/SelectionList\.perf-test\.tsx$)'
+
 jobs:
   seedJestPerfCache:
-    name: Seed the Jest transform cache and main's baseline
+    name: Seed the Jest transform cache and main's baseline (${{ matrix.shard }})
     # Must match the perf measure jobs' class: transform output interchangeable, durations comparable.
     runs-on: blacksmith-4vcpu-ubuntu-2404
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [selection-list, all-except-selection-list]
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
@@ -35,7 +44,7 @@ jobs:
         uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb
         with:
           path: .reassure/baseline.perf
-          key: ${{ format('{0}-{1}-reassure-baseline-{2}', runner.os, runner.arch, github.sha) }}
+          key: ${{ format('{0}-{1}-reassure-baseline-{2}-{3}', runner.os, runner.arch, github.sha, matrix.shard) }}
           lookup-only: true
 
       # normalized-package-lock.json is the app-version-stripped lockfile, so deploy bumps do not rotate
@@ -57,7 +66,10 @@ jobs:
         id: measureBaseline
         if: steps.lookupBaseline.outputs.cache-hit != 'true' || steps.restoreJestCache.outputs.cache-hit != 'true'
         shell: bash
-        run: NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
+        env:
+          PATTERN: ${{ matrix.shard == 'selection-list' && env.REASSURE_SHARD_SELECTION_LIST || env.REASSURE_SHARD_ALL_EXCEPT_SELECTION_LIST }}
+        # Quoting as in reassurePerformanceTests.yml.
+        run: NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline -- --testPathPattern "'$PATTERN'"
 
       - name: Save this commit's baseline
         if: steps.lookupBaseline.outputs.cache-hit != 'true'
@@ -65,10 +77,11 @@ jobs:
         uses: actions/cache/save@9255dc7a253b0ccc959486e2bca901246202afeb
         with:
           path: .reassure/baseline.perf
-          key: ${{ format('{0}-{1}-reassure-baseline-{2}', runner.os, runner.arch, github.sha) }}
+          key: ${{ format('{0}-{1}-reassure-baseline-{2}-{3}', runner.os, runner.arch, github.sha, matrix.shard) }}
 
+      # One shard saves, so two don't race on one key. It covers all but two of selection-list's modules.
       - name: Save the Jest transform cache
-        if: steps.restoreJestCache.outputs.cache-hit != 'true'
+        if: matrix.shard == 'all-except-selection-list' && steps.restoreJestCache.outputs.cache-hit != 'true'
         # v5.0.1
         uses: actions/cache/save@9255dc7a253b0ccc959486e2bca901246202afeb
         with:
@@ -79,11 +92,11 @@ jobs:
         if: always()
         run: |
           if [[ "${{ steps.measureBaseline.outcome }}" == "failure" ]]; then
-            echo "::notice::Baseline for ${{ github.sha }}: measure failed, nothing cached"
+            echo "::notice::${{ matrix.shard }} baseline for ${{ github.sha }}: measure failed, nothing cached"
           elif [[ -f .reassure/baseline.perf ]]; then
-            echo "::notice::Baseline for ${{ github.sha }}: $(grep -c '"meanDuration"' .reassure/baseline.perf) measurements"
+            echo "::notice::${{ matrix.shard }} baseline for ${{ github.sha }}: $(grep -c '"meanDuration"' .reassure/baseline.perf) measurements"
           else
-            echo "::notice::Baseline for ${{ github.sha }}: not measured this run (cache-hit=${{ steps.lookupBaseline.outputs.cache-hit || 'false' }})"
+            echo "::notice::${{ matrix.shard }} baseline for ${{ github.sha }}: not measured this run (cache-hit=${{ steps.lookupBaseline.outputs.cache-hit || 'false' }})"
           fi
           if [[ -d .jest-cache ]]; then
             echo "::notice::Jest perf cache: $(du -sm .jest-cache | cut -f1)MB, $(find .jest-cache -type f | wc -l) files (cache-hit=${{ steps.restoreJestCache.outputs.cache-hit || 'false' }})"
