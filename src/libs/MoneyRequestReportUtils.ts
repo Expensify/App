@@ -9,6 +9,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {getLatestErrorField} from './ErrorUtils';
 import {hasPendingSubmitWriteForReport} from './pendingSubmitWrite';
 import {isPaidGroupPolicy} from './PolicyUtils';
 import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isDeletedParentAction, isMoneyRequestAction} from './ReportActionsUtils';
@@ -25,6 +26,33 @@ import {
     isReportTransactionThread,
 } from './ReportUtils';
 import {getSupersededPendingCardTransactionIDs, isTransactionPendingDelete} from './TransactionUtils';
+
+/**
+ * The key of a reject the backend recorded against an expense it has already moved. It reports those under the
+ * expense's own `reject` field rather than the generic `errors`, and it is what disables the row.
+ */
+function getTransactionRejectErrorKey(transaction: OnyxEntry<Transaction>): string | undefined {
+    return Object.keys(getLatestErrorField(transaction, 'reject')).at(0);
+}
+
+/** Whether a row can be selected. A click, Select All and a shift+click range all use this, so they agree on which rows are selectable. */
+function isSelectableReportTransaction(transaction: OnyxEntry<Transaction>): boolean {
+    return !isTransactionPendingDelete(transaction) && !getTransactionRejectErrorKey(transaction);
+}
+
+/**
+ * Whether every selectable transaction on the report is selected, which is when the report-level actions (Submit, Approve,
+ * Pay) are offered. Only selectable rows count: an expense the backend refused to reject stays on the report until its error
+ * is dismissed, and its checkbox is disabled, so counting it would hide those actions for good.
+ */
+function isEveryReportTransactionSelected(transactions: Transaction[], selectedTransactionIDs: string[]): boolean {
+    const selectableTransactions = transactions.filter(isSelectableReportTransaction);
+    if (selectedTransactionIDs.length === 0 || selectableTransactions.length === 0) {
+        return false;
+    }
+    const selectedTransactionIDSet = new Set(selectedTransactionIDs);
+    return selectableTransactions.every((transaction) => selectedTransactionIDSet.has(transaction.transactionID));
+}
 
 function isBillableEnabledOnPolicy(policy: Policy | OnyxEntry<Policy> | undefined): boolean {
     return !!policy && isPaidGroupPolicy(policy) && policy.disabledFields?.defaultBillable !== true;
@@ -227,4 +255,7 @@ export {
     shouldDisplayReportTableView,
     shouldWaitForTransactions,
     isBillableEnabledOnPolicy,
+    getTransactionRejectErrorKey,
+    isSelectableReportTransaction,
+    isEveryReportTransactionSelected,
 };

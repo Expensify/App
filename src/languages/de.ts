@@ -413,8 +413,6 @@ const translations: TranslationDeepObject<typeof en> = {
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
         skip: 'Überspringen',
-        chatWithAccountManager: (accountManagerDisplayName: string) => `Brauchen Sie etwas Bestimmtes? Chatten Sie mit Ihrer/Ihrem Kundenbetreuer·in, ${accountManagerDisplayName}.`,
-        chatNow: 'Jetzt chatten',
         workEmail: 'Arbeits-E-Mail',
         destination: 'Ziel',
         subrate: 'Nebensatzrate',
@@ -526,6 +524,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noResultsFoundSubtitle: 'Keine Ergebnisse. Bitte passen Sie Ihre Filter oder Suchanfrage an',
         unableToDisplayChart: 'Diagram kann nicht angezeigt werden',
         webGLNotSupported: 'Ihr Browser unterstützt WebGL nicht. Bitte aktivieren Sie es oder wechseln Sie den Browser.',
+        chartFailedToLoad: 'Das Diagramm konnte nicht geladen werden. Bitte aktualisieren Sie die Seite und versuchen Sie es erneut.',
         apiKey: 'API-Schlüssel',
         exportsTo: 'Exportiert nach',
     },
@@ -1164,6 +1163,7 @@ const translations: TranslationDeepObject<typeof en> = {
         viewOnSpend: 'In Ausgaben anzeigen',
         emptyState: {title: 'Nichts anzuzeigen', subtitle: 'Versuchen Sie, Ihre Kriterien oben anzupassen'},
         noExpensesState: {title: 'Sehen Sie, wohin Ihr Geld fließt', subtitle: 'Sobald Sie Ausgaben haben, finden Sie Ausgabentrends, Top-Händler und mehr.'},
+        compare: {label: 'Vergleichen', previousPeriod: 'Vorheriger Zeitraum', average: 'Durchschnitt'},
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -1342,6 +1342,8 @@ const translations: TranslationDeepObject<typeof en> = {
                     : 'Bevor Sie Entfernungen erfassen, müssen Sie Ihre Privatadresse in Ihrem privaten Profil hinzufügen. Dieser Arbeitsbereich verwendet diese Adresse für Pendlerabzüge.',
             cta: 'Heimatadresse hinzufügen',
         },
+        expenseAdded: 'Ausgabe hinzugefügt',
+        invoiceSent: 'Rechnung gesendet',
         amount: 'Betrag',
         percent: 'Prozent',
         date: 'Datum',
@@ -2202,7 +2204,7 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Profil-Avatar',
         customInstructions: 'Benutzerdefinierte Anweisungen',
         copilotIntoAccount: 'Copilot in Konto',
-        viewMemberHistory: 'Mitgliedsverlauf anzeigen',
+        seeChatHistory: 'Chatverlauf anzeigen',
         viewAgentHistory: 'Agentenverlauf anzeigen',
         publicSection: {
             title: 'Öffentlich',
@@ -3350,6 +3352,7 @@ ${amount} für ${merchant} – ${date}`,
         timeExpiredAnnouncement: 'Die Zeit ist abgelaufen',
         error: {
             pleaseFillSecurityCode: 'Bitte geben Sie Ihren Sicherheitscode ein',
+            tooManyAttempts: 'Zu viele Versuche. Bitte versuchen Sie es später erneut.',
             incorrectSecurityCode: 'Falscher oder ungültiger Sicherheitscode. Bitte versuchen Sie es erneut oder fordern Sie einen neuen Code an.',
             pleaseFillTwoFactorAuth: 'Bitte gib deinen Zwei-Faktor-Authentifizierungscode ein',
         },
@@ -6435,6 +6438,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             csvColumnType: 'Typ',
             csvColumnLimitType: 'Limittyp',
             csvColumnLimit: 'Limit',
+            noCardFeedsAvailable: 'Keine Kartenfeeds verfügbar',
+            noCardFeedsAvailableDescription: 'Für diesen Workspace sind keine Kartenfeeds verfügbar.',
         },
         categories: {
             deleteCategories: 'Kategorien löschen',
@@ -7154,6 +7159,16 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             peopleAdmins: 'Personaladministratoren',
             paymentsAdmins: 'Zahlungsadmins',
             members: 'Mitglieder',
+            workArrangement: 'Arbeitsvereinbarung',
+            officeBased: 'Bürobasiert',
+            noRegularWorkspace: 'Remote oder mobil',
+            workArrangementPage: {
+                title: 'Arbeitsvereinbarung',
+                optionOfficeBasedHelp: 'Mitglied pendelt zu einem Büro. Gewöhnliche Pendelfahrten sind von der Erstattung ausgeschlossen.',
+                optionNoRegularWorkspaceHelp:
+                    'Das Mitglied arbeitet von zu Hause aus oder reist zwischen verschiedenen Standorten ohne festes Büro, daher gelten die Pendelregelungen nicht.',
+                futureOnlyNote: 'Änderungen gelten nur für zukünftige Kilometerberechnungen. Bestehende Kilometerabrechnungen werden nicht neu berechnet.',
+            },
         },
         card: {
             getStartedIssuing: 'Beginne, indem du deine erste virtuelle oder physische Karte ausstellst.',
@@ -8912,6 +8927,35 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 description: 'Wählen Sie Ihr Verrechnungskonto aus, und wir erstellen die Zahlung in Campfire.',
             },
             travelInvoicingPayableAccount: {label: 'Verbindlichkeitskonto für Reiseabrechnungen'},
+            exportToMultipleAccounts: 'Export in mehrere Konten konfigurieren',
+            cardProgramAccount: {
+                label: 'Kartenprogramm-Konto',
+                description: 'Überschreiben Sie das Arbeitsbereichskonto für diese Kartenprogramme.',
+                descriptionLevel2: 'Überschreiben Sie das Workspace-Konto für dieses Kartenprogramm.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Alle Programme verwenden das Standardkonto';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} Programm mit benutzerdefiniertem Konto`;
+                    }
+                    return `${customAccountsCount} Programme mit benutzerdefinierten Konten`;
+                },
+            },
+            cardAccount: {
+                label: 'Konto pro Karte',
+                description: 'Programm-Konto für einzelne Karten überschreiben.',
+                descriptionLevel2: 'Programm-Konto für diese Karten überschreiben.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Alle Karten verwenden Programmkonten';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} Karte mit benutzerdefiniertem Konto`;
+                    }
+                    return `${customAccountsCount} Karten mit benutzerdefinierten Konten`;
+                },
+            },
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central-Einrichtung',
@@ -8928,6 +8972,51 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             importDescription: 'Wählen Sie, welche Buchungskonfigurationen aus Dynamics 365 Business Central importiert werden sollen.',
             items: 'Artikel',
             enableNewCategories: 'Neu importierte Kategorien aktivieren',
+            exportDescription: 'Konfigurieren Sie, wie Expensify-Daten nach Dynamics 365 Business Central exportiert werden.',
+            exportDate: {
+                label: 'Transaktionsdatum',
+                description: 'Verwenden Sie dieses Datum beim Exportieren von Berichten nach Dynamics 365 Business Central.',
+                values: {
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Datum der letzten Ausgabe',
+                        description: 'Datum der letzten im Bericht erfassten Ausgabe.',
+                    },
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Exportdatum',
+                        description: 'Datum, an dem der Bericht nach Dynamics 365 Business Central exportiert wurde.',
+                    },
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Einreichungsdatum',
+                        description: 'Datum, an dem der Bericht zur Genehmigung eingereicht wurde.',
+                    },
+                },
+            },
+            exportReimbursable: 'Erstattungsfähige Ausgaben exportieren als',
+            exportNonReimbursable: 'Firmenkartenausgaben exportieren als',
+            exportDestination: {
+                [CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.JOURNAL_ENTRY]: 'Fibu Buch.-Blatt',
+                [CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE]: 'Einkaufsrechnungen',
+            },
+            reimbursableAccount: {
+                label: 'Erstattungskonto',
+                description: 'Wählen Sie aus, wohin erstattungsfähige Ausgaben exportiert werden.',
+            },
+            defaultCompanyCardVendor: {
+                label: 'Standardanbieter für Firmenkarten',
+                description: 'Wählen Sie einen standardmäßigen Dynamics 365 Business Central-Anbieter für Ausgaben, die nicht automatisch zugeordnet werden.',
+            },
+            companyCardAccount: {
+                label: 'Firmenkartenkonto',
+                description: 'Wählen Sie aus, wohin Firmenkartentransaktionen exportiert werden.',
+            },
+            paymentMethod: {
+                label: 'Zahlungsform',
+                description: 'Wählen Sie eine Zahlungsform für Einkaufsrechnungen, damit Dynamics 365 Business Central sie mit Ihrer Bank abgleichen kann.',
+            },
+            noBankAccountsFound: 'Keine Bankkonten gefunden',
+            noBankAccountsFoundDescription: 'Bitte fügen Sie Bankkonten in Dynamics 365 Business Central hinzu und synchronisieren Sie die Verbindung erneut',
+            noPaymentMethodsFound: 'Keine Zahlungsformen gefunden',
+            noPaymentMethodsFoundDescription: 'Bitte fügen Sie Zahlungsformen in Dynamics 365 Business Central hinzu und synchronisieren Sie die Verbindung erneut',
         },
     },
     getAssistancePage: {
@@ -9617,6 +9706,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 : `hat den Genehmigungs-Workflow für ${member} so geändert, dass Berichte über ${previousLimit} nicht mehr weitergeleitet werden`,
         changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
             `hat den Genehmigungsworkflow für ${member} geändert, um Berichte über ${limit} weiterzuleiten (zuvor ${previousLimit})`,
+        updatedMemberWorkArrangement: ({displayName, newArrangement, oldArrangement}: {displayName: string; newArrangement: string; oldArrangement: string}) =>
+            `hat die Arbeitsregelung von ${displayName} auf ${newArrangement} geändert (zuvor ${oldArrangement})`,
+        updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
+            `hat die standardmäßige Arbeitsregelung in ${newArrangement} geändert (zuvor ${oldArrangement})`,
     },
     roomMembersPage: {
         memberNotFound: 'Mitglied nicht gefunden.',
@@ -11039,7 +11132,18 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 invalid: 'Dieser Code ist ungültig',
             },
         },
-        paymentHistory: {title: 'Zahlungsverlauf anzeigen', subtitle: 'Ihre vollständige monatliche Zahlungshistorie, die diesem Konto belastet wurde.'},
+        paymentHistory: {
+            title: 'Zahlungsverlauf anzeigen',
+            subtitle: 'Ihre vollständige monatliche Zahlungshistorie, die diesem Konto belastet wurde.',
+            payments: 'Zahlungen',
+            inclTax: 'inkl. Steuern',
+            empty: 'Noch keine Zahlungen.',
+            activeUsers: ({count}: {count: number}) => ({
+                one: '1 aktiver Benutzer',
+                other: `${count} aktive Benutzer`,
+            }),
+            state: {paid: 'Bezahlt', cleared: 'Ausgeglichen', failed: 'Fehlgeschlagen', refunded: 'Erstattet', disputed: 'Angefochten', balanceTransfer: 'Saldoübertrag'},
+        },
         subscriptionSettings: {
             title: 'Abonnementeinstellungen',
             summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>

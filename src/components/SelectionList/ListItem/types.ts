@@ -193,7 +193,7 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** The section list item */
     item: TItem;
 
-    onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
+    onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => void;
 
     /** Which side of the row to render the selection button on */
     selectionButtonPosition?: ValueOf<typeof CONST.SELECTION_BUTTON_POSITION>;
@@ -277,7 +277,7 @@ type SelectableListItemProps<TItem extends ListItem> = Omit<ListItemPressablePro
         wrapperStyle?: StyleProp<ViewStyle>;
 
         /** Callback to fire when the selection button is pressed */
-        onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
+        onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => void;
 
         selectionButtonPosition?: ValueOf<typeof CONST.SELECTION_BUTTON_POSITION>;
     };

@@ -412,8 +412,6 @@ const translations: TranslationDeepObject<typeof en> = {
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
         skip: 'Pular',
-        chatWithAccountManager: (accountManagerDisplayName: string) => `Precisa de algo específico? Converse com seu gerente de conta, ${accountManagerDisplayName}.`,
-        chatNow: 'Conversar agora',
         workEmail: 'E-mail profissional',
         destination: 'Destino',
         subrate: 'Subtaxa',
@@ -524,6 +522,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noResultsFoundSubtitle: 'Nenhum resultado. Tente ajustar seus filtros ou termo de pesquisa',
         unableToDisplayChart: 'Não foi possível exibir o gráfico',
         webGLNotSupported: 'Seu navegador não é compatível com WebGL. Ative-o ou mude de navegador.',
+        chartFailedToLoad: 'Não foi possível carregar o gráfico. Atualize a página e tente novamente.',
         apiKey: 'Chave de API',
         exportsTo: 'Exportações para',
     },
@@ -1163,6 +1162,7 @@ const translations: TranslationDeepObject<typeof en> = {
         viewOnSpend: 'Ver em Gastos',
         emptyState: {title: 'Nada para mostrar', subtitle: 'Tente ajustar seus critérios acima'},
         noExpensesState: {title: 'Veja para onde vai o seu dinheiro', subtitle: 'Quando você tiver despesas, vai encontrar tendências de gastos, principais estabelecimentos e muito mais.'},
+        compare: {label: 'Comparar', previousPeriod: 'Período anterior', average: 'Média'},
     },
     allSettingsScreen: {
         subscription: 'Assinatura',
@@ -1339,6 +1339,8 @@ const translations: TranslationDeepObject<typeof en> = {
                     : 'Antes de registrar a distância, você precisa adicionar seu endereço residencial ao seu perfil privado. Este workspace usa esse endereço para deduções de deslocamento.',
             cta: 'Adicionar endereço residencial',
         },
+        expenseAdded: 'Despesa adicionada',
+        invoiceSent: 'Fatura enviada',
         amount: 'Valor',
         percent: 'Porcentagem',
         date: 'Data',
@@ -2186,7 +2188,7 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Avatar do perfil',
         customInstructions: 'Instruções personalizadas',
         copilotIntoAccount: 'Copilot na conta',
-        viewMemberHistory: 'Ver histórico do membro',
+        seeChatHistory: 'Ver histórico do chat',
         viewAgentHistory: 'Ver histórico do agente',
         publicSection: {
             title: 'Público',
@@ -3328,6 +3330,7 @@ ${amount} para ${merchant} - ${date}`,
         timeExpiredAnnouncement: 'O tempo expirou',
         error: {
             pleaseFillSecurityCode: 'Insira seu código de segurança',
+            tooManyAttempts: 'Muitas tentativas. Tente novamente mais tarde.',
             incorrectSecurityCode: 'Código de segurança incorreto ou inválido. Tente novamente ou solicite um novo código.',
             pleaseFillTwoFactorAuth: 'Insira seu código de autenticação de dois fatores',
         },
@@ -6381,6 +6384,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             csvColumnType: 'Tipo',
             csvColumnLimitType: 'Tipo de limite',
             csvColumnLimit: 'Limite',
+            noCardFeedsAvailable: 'Nenhum feed de cartão disponível',
+            noCardFeedsAvailableDescription: 'Não há feeds de cartão disponíveis para este workspace.',
         },
         categories: {
             deleteCategories: 'Excluir categorias',
@@ -7101,6 +7106,15 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             peopleAdmins: 'Administradores de pessoas',
             paymentsAdmins: 'Administradores de pagamentos',
             members: 'Membros',
+            workArrangement: 'Arranjo de trabalho',
+            officeBased: 'Baseado em escritório',
+            noRegularWorkspace: 'Remoto ou móvel',
+            workArrangementPage: {
+                title: 'Arranjo de trabalho',
+                optionOfficeBasedHelp: 'Membro se desloca para um escritório. Deslocamentos habituais não são reembolsados.',
+                optionNoRegularWorkspaceHelp: 'O membro trabalha em casa ou viaja entre locais sem um escritório fixo, portanto as regras de deslocamento não se aplicam.',
+                futureOnlyNote: 'As alterações se aplicam apenas aos cálculos de quilometragem futuros. As despesas de quilometragem existentes não são recalculadas.',
+            },
         },
         card: {
             getStartedIssuing: 'Comece emitindo seu primeiro cartão virtual ou físico.',
@@ -8840,6 +8854,35 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 description: 'Escolha sua conta de liquidação e nós vamos criar o pagamento no Campfire.',
             },
             travelInvoicingPayableAccount: {label: 'Conta a pagar de faturamento de viagens'},
+            exportToMultipleAccounts: 'Configurar exportação para várias contas',
+            cardProgramAccount: {
+                label: 'Conta do programa de cartão',
+                description: 'Substituir a conta do workspace para estes programas de cartão.',
+                descriptionLevel2: 'Substituir a conta do workspace para este programa de cartão.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Todos os programas usam a conta padrão';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} programa com conta personalizada`;
+                    }
+                    return `${customAccountsCount} programas com contas personalizadas`;
+                },
+            },
+            cardAccount: {
+                label: 'Conta por cartão',
+                description: 'Substitua a conta do programa para cartões individuais.',
+                descriptionLevel2: 'Substituir a conta do programa para estes cartões.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Todos os cartões usam contas do programa';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} cartão com conta personalizada`;
+                    }
+                    return `${customAccountsCount} cartões com contas personalizadas`;
+                },
+            },
         },
         businessCentral: {
             businessCentralSetup: 'Configuração do Dynamics 365 Business Central',
@@ -8856,6 +8899,51 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             importDescription: 'Escolha quais configurações de codificação importar do Dynamics 365 Business Central.',
             items: 'Itens',
             enableNewCategories: 'Ativar novas categorias importadas',
+            exportDescription: 'Configure como os dados do Expensify são exportados para o Dynamics 365 Business Central.',
+            exportDate: {
+                label: 'Data da transação',
+                description: 'Use esta data ao exportar relatórios para o Dynamics 365 Business Central.',
+                values: {
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Data da última despesa',
+                        description: 'Data da despesa mais recente no relatório.',
+                    },
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Data de exportação',
+                        description: 'Data em que o relatório foi exportado para o Dynamics 365 Business Central.',
+                    },
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Data de envio',
+                        description: 'Data em que o relatório foi enviado para aprovação.',
+                    },
+                },
+            },
+            exportReimbursable: 'Exportar despesas reembolsáveis como',
+            exportNonReimbursable: 'Exportar despesas de cartão corporativo como',
+            exportDestination: {
+                [CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.JOURNAL_ENTRY]: 'Diário geral',
+                [CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE]: 'Faturas de compra',
+            },
+            reimbursableAccount: {
+                label: 'Conta de despesas reembolsáveis',
+                description: 'Escolha para onde exportar as despesas reembolsáveis.',
+            },
+            defaultCompanyCardVendor: {
+                label: 'Fornecedor padrão do cartão corporativo',
+                description: 'Escolha um fornecedor padrão do Dynamics 365 Business Central para despesas que não forem correspondidas automaticamente.',
+            },
+            companyCardAccount: {
+                label: 'Conta de cartão corporativo',
+                description: 'Escolha para onde exportar as transações de cartão corporativo.',
+            },
+            paymentMethod: {
+                label: 'Forma de pagamento',
+                description: 'Escolha uma forma de pagamento para as faturas de compra para que o Dynamics 365 Business Central possa conciliá-las com seu banco.',
+            },
+            noBankAccountsFound: 'Nenhuma conta bancária encontrada',
+            noBankAccountsFoundDescription: 'Adicione contas bancárias no Dynamics 365 Business Central e sincronize a conexão novamente',
+            noPaymentMethodsFound: 'Nenhuma forma de pagamento encontrada',
+            noPaymentMethodsFoundDescription: 'Adicione formas de pagamento no Dynamics 365 Business Central e sincronize a conexão novamente',
         },
     },
     getAssistancePage: {
@@ -9539,6 +9627,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 : `alterou o fluxo de aprovação de ${member} para parar de encaminhar relatórios acima de ${previousLimit}`,
         changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
             `alterou o fluxo de aprovação de ${member} para encaminhar relatórios acima de ${limit} (antes ${previousLimit})`,
+        updatedMemberWorkArrangement: ({displayName, newArrangement, oldArrangement}: {displayName: string; newArrangement: string; oldArrangement: string}) =>
+            `alterou o regime de trabalho de ${displayName} para ${newArrangement} (antes ${oldArrangement})`,
+        updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
+            `alterou o regime de trabalho padrão para ${newArrangement} (antes ${oldArrangement})`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',
@@ -10948,7 +11040,18 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 invalid: 'Este código é inválido',
             },
         },
-        paymentHistory: {title: 'Ver histórico de pagamento', subtitle: 'Seu histórico completo de pagamentos mensais cobrados nesta conta.'},
+        paymentHistory: {
+            title: 'Ver histórico de pagamento',
+            subtitle: 'Seu histórico completo de pagamentos mensais cobrados nesta conta.',
+            payments: 'Pagamentos',
+            inclTax: 'incl. impostos',
+            empty: 'Ainda não há pagamentos.',
+            activeUsers: ({count}: {count: number}) => ({
+                one: '1 usuário ativo',
+                other: `${count} usuários ativos`,
+            }),
+            state: {paid: 'Pago', cleared: 'Compensado', failed: 'Falhou', refunded: 'Reembolsado', disputed: 'Contestado', balanceTransfer: 'Transferência de saldo'},
+        },
         subscriptionSettings: {
             title: 'Configurações de assinatura',
             summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>
