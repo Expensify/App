@@ -10,6 +10,7 @@ export type {default as AddPaymentCardParams} from './AddPaymentCardParams';
 export type {default as VerifySetupIntentParams} from './VerifySetupIntentParams';
 export type {default as VerifySetupIntentAndRequestPolicyOwnerChangeParams} from './VerifySetupIntentAndRequestPolicyOwnerChangeParams';
 export type {default as AddPersonalBankAccountParams} from './AddPersonalBankAccountParams';
+export type {default as CreateCollectOnlyDepositAccountParams} from './CreateCollectOnlyDepositAccountParams';
 export type {default as RestartBankAccountSetupParams} from './RestartBankAccountSetupParams';
 export type {default as AddSchoolPrincipalParams} from './AddSchoolPrincipalParams';
 export type {default as AuthenticatePusherParams} from './AuthenticatePusherParams';
