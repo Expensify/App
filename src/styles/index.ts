@@ -752,8 +752,10 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.appBG,
             borderWidth: variables.hairlineBorderWidth,
             borderColor: theme.border,
-            // Insets the row so the selected item's capsule keeps a margin inside the bar's rounded edge.
-            ...spacing.p1,
+            // Insets the row so the selected item's capsule keeps the same margin inside the bar's rounded edge on
+            // every side, past the overhang it reaches beyond the first and last tabs.
+            ...spacing.pv1,
+            paddingHorizontal: spacing.p1.padding + variables.floatingTabBarSelectedOverhang,
             // Clips each item's hover and press background to the capsule's rounded ends.
             overflow: 'hidden',
         },

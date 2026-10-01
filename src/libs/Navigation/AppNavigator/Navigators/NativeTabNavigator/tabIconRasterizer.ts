@@ -11,9 +11,10 @@ type TabIconPair = {active: NativeBottomTabIcon; inactive: NativeBottomTabIcon};
 
 const TAB_ICONS = Object.entries(NATIVE_TAB_ICONS).map(([name, icon]) => [name, icon.source] as const);
 
+/** Skia reads URLs, file paths and, in Android release builds, bundled assets that resolve to a drawable name. */
 async function decodeImage(uri: string): Promise<SkImage | null> {
-    const response = await fetch(uri);
-    return Skia.Image.MakeImageFromEncoded(Skia.Data.fromBytes(new Uint8Array(await response.arrayBuffer())));
+    const data = await Skia.Data.fromURI(uri);
+    return Skia.Image.MakeImageFromEncoded(data);
 }
 
 async function decodeGlyph(source: ImageSourcePropType): Promise<{image: SkImage; scale: number} | undefined> {
