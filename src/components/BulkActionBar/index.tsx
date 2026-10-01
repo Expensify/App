@@ -190,6 +190,7 @@ function BulkActionBarContent<TValueType>({
                                 anchorRef={moreAnchorRef}
                                 anchorPosition={moreMenuAnchorPosition}
                                 anchorAlignment={MORE_MENU_ANCHOR_ALIGNMENT}
+                                headerStyles={styles.lineHeightNormal}
                                 onClose={() => setIsMoreMenuVisible(false)}
                                 onItemSelected={(selectedItem, index, event) => {
                                     onSubItemSelected?.(selectedItem, index, event);
