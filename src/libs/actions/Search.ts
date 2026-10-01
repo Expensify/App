@@ -56,7 +56,6 @@ import {
     generateReportID,
     getParsedComment,
     getReportOrDraftReport,
-    getReportTransactions,
     hasHeldExpenses,
     hasOnlyHeldExpenses,
     hasViolations as hasViolationsReportUtils,
@@ -94,6 +93,7 @@ import type {
     Transaction,
     TransactionViolations,
 } from '@src/types/onyx';
+import type {ReportTransactionsAndViolationsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {AnyOnyxUpdate, OnyxData} from '@src/types/onyx/Request';
@@ -782,6 +782,7 @@ function getOnyxLoadingData(
     offset?: number,
     isSearchAPI = false,
     shouldCalculateTotals?: boolean,
+    shouldShowLoading = true,
 ): OnyxData<typeof ONYXKEYS.COLLECTION.SNAPSHOT> {
     const shouldClearTotals = isSearchAPI && shouldCalculateTotals === false && offset === 0;
 
@@ -798,7 +799,7 @@ function getOnyxLoadingData(
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
             value: {
                 search: {
-                    ...(isSearchAPI && {isLoading: true}),
+                    ...(isSearchAPI && shouldShowLoading && {isLoading: true}),
                     ...(isSearchRequest && {state: CONST.SEARCH.SNAPSHOT_STATE.LOADING}),
                     ...(offset !== undefined ? {offset} : {}),
                     ...(shouldClearTotals ? {count: null, reportCount: null, total: null, currency: null} : {}),
@@ -1163,6 +1164,7 @@ type InFlightSearchRequest = {
     pendingShouldCalculateTotals?: boolean;
     pendingShouldSaveRecentSearch?: boolean;
     pendingUpgradeRequest?: () => Promise<string | number | undefined> | undefined;
+    didSucceed?: boolean;
 };
 
 // Tracks in-flight search requests by hash+offset to prevent duplicate API calls when both page-level
@@ -1170,6 +1172,27 @@ type InFlightSearchRequest = {
 // save-recent-search intent is not equivalent to an in-flight request without it, so preserve one such
 // request to run immediately afterward.
 const inFlightSearchRequests = new Map<string, InFlightSearchRequest>();
+
+// Search mounts only after the page's request has finished, so the map above no longer holds it.
+// One slot, not a set: a new query replaces the old token, so a token left behind by an abandoned query cannot skip a later refresh of it.
+let pageRequestedSearch: {hash: number; shouldCalculateTotals: boolean} | undefined;
+
+function markPageRequestedSearch(hash: number, shouldCalculateTotals: boolean) {
+    pageRequestedSearch = {hash, shouldCalculateTotals};
+}
+
+/** True once for the query the page just requested, and only if that request also asked for the totals wanted here. */
+function consumePageRequestedSearch(hash: number, shouldCalculateTotals: boolean) {
+    if (pageRequestedSearch?.hash !== hash || (shouldCalculateTotals && !pageRequestedSearch.shouldCalculateTotals)) {
+        return false;
+    }
+    pageRequestedSearch = undefined;
+    return true;
+}
+
+function clearPageRequestedSearch() {
+    pageRequestedSearch = undefined;
+}
 
 let shouldPreventSearchAPI = false;
 function handlePreventSearchAPI(hash: number | undefined) {
@@ -1225,6 +1248,7 @@ function search({
     shouldUpdateLastSearchParams = false,
     skipWaitForWrites = false,
     shouldSaveRecentSearch = false,
+    shouldShowLoading = true,
 }: {
     queryJSON: Readonly<SearchQueryJSON>;
     searchKey: SearchKey | undefined;
@@ -1248,6 +1272,8 @@ function search({
      * with an incomplete filter set and has to be re-fired once that data lands.
      */
     skipWaitForWrites?: boolean;
+    /** When false, the request leaves `search.isLoading` unset, so the current results stay on screen without a loading state. */
+    shouldShowLoading?: boolean;
 }): Promise<string | number | undefined> | undefined {
     if (isLoading || shouldPreventSearchAPI) {
         return;
@@ -1279,6 +1305,9 @@ function search({
                     shouldUpdateLastSearchParams,
                     skipWaitForWrites,
                     shouldSaveRecentSearch: inFlightRequest.pendingShouldSaveRecentSearch,
+                    // A re-fire that only adds the save flag returns the same results the finished request just showed,
+                    // so it must not show loading again (the footer would flash its skeleton over the totals).
+                    shouldShowLoading: !inFlightRequest.didSucceed || inFlightRequest.pendingShouldCalculateTotals !== inFlightRequest.shouldCalculateTotals,
                 });
         }
         return;
@@ -1286,7 +1315,7 @@ function search({
     const inFlightRequestState: InFlightSearchRequest = {shouldCalculateTotals, shouldSaveRecentSearch};
     inFlightSearchRequests.set(dedupeKey, inFlightRequestState);
 
-    const onyxLoadingData = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, true, shouldCalculateTotals);
+    const onyxLoadingData = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, true, shouldCalculateTotals, shouldShowLoading);
     const {backendQueryJSON, limit, exactMatchFilterKeys} = getBackendQueryJSON(queryJSON);
     const query = {
         ...backendQueryJSON,
@@ -1329,6 +1358,7 @@ function search({
         makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData})
             .then((result) => {
                 const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
+                inFlightRequestState.didSucceed = result?.jsonCode === CONST.JSON_CODE.SUCCESS;
 
                 // The UI treats a successful response with no snapshot data as an empty result, so record it for diagnosis.
                 if (result?.jsonCode === CONST.JSON_CODE.SUCCESS && response?.data === undefined) {
@@ -1819,21 +1849,33 @@ type TransactionReportInfo = {
     reportID?: string;
 };
 
-// Refactoring this to a params object would touch every call site and is out of scope here.
-// eslint-disable-next-line @typescript-eslint/max-params
-function rejectMoneyRequestsOnSearch(
-    hash: number,
-    selectedTransactions: Record<string, TransactionReportInfo>,
-    comment: string,
-    allPolicies: OnyxCollection<Policy>,
-    allReports: OnyxCollection<Report>,
-    currentUserAccountIDParam: number,
-    currentUserLogin: string,
-    isASAPSubmitBetaEnabled: boolean,
-    delegateAccountID: number | undefined,
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-    rules: OnyxCollection<Rule>,
-) {
+function rejectMoneyRequestsOnSearch({
+    hash,
+    selectedTransactions,
+    comment,
+    allPolicies,
+    allReports,
+    currentUserAccountIDParam,
+    currentUserLogin,
+    isASAPSubmitBetaEnabled,
+    delegateAccountID,
+    getCurrencyDecimals,
+    allReportsTransactionsAndViolations,
+    rules,
+}: {
+    hash: number;
+    selectedTransactions: Record<string, TransactionReportInfo>;
+    comment: string;
+    allPolicies: OnyxCollection<Policy>;
+    allReports: OnyxCollection<Report>;
+    currentUserAccountIDParam: number;
+    currentUserLogin: string;
+    isASAPSubmitBetaEnabled: boolean;
+    delegateAccountID: number | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    allReportsTransactionsAndViolations: ReportTransactionsAndViolationsDerivedValue | undefined;
+    rules: OnyxCollection<Rule>;
+}) {
     const transactionIDs = Object.keys(selectedTransactions);
 
     const transactionsByReport = transactionIDs.reduce<Record<string, string[]>>((acc, transactionID) => {
@@ -1862,7 +1904,9 @@ function rejectMoneyRequestsOnSearch(
         const totalReportTransactions = report?.transactionCount ?? 0;
 
         // Subtract pending deletes to get accurate count when transactions are deleted offline
-        const pendingDeleteCount = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
+        const pendingDeleteCount = Object.values(allReportsTransactionsAndViolations?.[reportID]?.transactions ?? {}).filter(
+            (transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        ).length;
         const effectiveTransactionCount = totalReportTransactions - pendingDeleteCount;
         const areAllExpensesSelected = selectedTransactionIDs.length === effectiveTransactionCount;
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
@@ -1933,11 +1977,12 @@ function exportSearchItemsToCSV(
     {jsonQuery, reportIDList, transactionIDList, excludedTransactionIDList, isBasicExport, exportColumnLabels, exportName, isGroupExport}: ExportSearchItemsToCSVParams,
     onDownloadFailed: () => void,
     translate: LocalizedTranslate,
+    allReportsTransactionsAndViolations: ReportTransactionsAndViolationsDerivedValue | undefined,
 ) {
     const reportIDSet = new Set<string>();
     const transactionIDSet = new Set(transactionIDList);
     for (const reportID of reportIDList) {
-        const allReportTransactions = getReportTransactions(reportID);
+        const allReportTransactions = Object.values(allReportsTransactionsAndViolations?.[reportID]?.transactions ?? {});
 
         // We'll include the report if all of its transactions are included in the transactionIDList
         let areAllTransactionsIncludedInList = true;
@@ -2468,6 +2513,7 @@ function setOptimisticDataForTransactionThreadPreview(
     item: TransactionListItemType,
     transactionPreviewData: TransactionPreviewData,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+    delegateAccountID: number | undefined,
     IOUTransactionID?: string,
 ) {
     const {reportID, report, amount, currency, transactionID, created, policyID, from} = item;
@@ -2499,8 +2545,7 @@ function setOptimisticDataForTransactionThreadPreview(
             linkedExpenseReportAction: {
                 childReportID: IOUTransactionID,
             } as ReportAction,
-            // delegateAccountIDParam: will be threaded in PR 15; buildOptimisticIOUReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
-            delegateAccountIDParam: undefined,
+            delegateAccountIDParam: delegateAccountID,
             getCurrencyDecimals,
         });
         optimisticIOUAction.pendingAction = undefined;
@@ -2572,5 +2617,8 @@ export {
     getReportFromSearchSnapshot,
     getReportActionsFromSearchSnapshot,
     resolveSearchPayPaymentMethod,
+    markPageRequestedSearch,
+    consumePageRequestedSearch,
+    clearPageRequestedSearch,
 };
 export type {TransactionPreviewData};
