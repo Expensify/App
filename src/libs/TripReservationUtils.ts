@@ -394,7 +394,7 @@ function getRailReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationIte
             const travelerIdx = ticket.passengerRefs.at(legIndex)!;
             const travelerInfo = pnrData.passengerInfos.at(travelerIdx);
 
-            const traveler = findTravelerInfo(travelers, travelerInfo?.userOrgId.userId.id);
+            const traveler = findTravelerInfo(travelers, travelerInfo?.userOrgId?.userId?.id);
 
             reservationList.push({
                 reservationIndex: legIndex,
