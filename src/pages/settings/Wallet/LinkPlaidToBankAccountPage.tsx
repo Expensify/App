@@ -6,7 +6,7 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import ConfirmationPage from '@components/ConfirmationPage';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import PlaidLink from '@components/PlaidLink';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -162,7 +162,7 @@ function LinkPlaidToBankAccountPage({route}: LinkPlaidToBankAccountPageProps) {
 
     return (
         <ScreenWrapper testID={'LinkPlaidToBankAccountPage'}>
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('walletPage.linkPlaid.title')}
                 onBackButtonPress={() => Navigation.goBack(backPath)}
             />
