@@ -417,8 +417,6 @@ const translations: TranslationDeepObject<typeof en> = {
         minuteAbbreviation: 'μ',
         secondAbbreviation: 'ς',
         skip: 'Παράλειψη',
-        chatWithAccountManager: (accountManagerDisplayName: string) => `Χρειάζεστε κάτι συγκεκριμένο; Συνομιλήστε με τον υπεύθυνο λογαριασμού σας, ${accountManagerDisplayName}.`,
-        chatNow: 'Συνομιλήστε τώρα',
         workEmail: 'Εταιρικό email',
         destination: 'Προορισμός',
         subrate: 'Δευτερεύουσα χρέωση',

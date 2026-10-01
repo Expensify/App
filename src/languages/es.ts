@@ -402,8 +402,6 @@ const translations: TranslationDeepObject<typeof en> = {
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
-        chatWithAccountManager: (accountManagerDisplayName) => `¿Necesitas algo específico? Habla con tu gerente de cuenta, ${accountManagerDisplayName}.`,
-        chatNow: 'Chatear ahora',
         workEmail: 'correo electrónico de trabajo',
         destination: 'Destino',
         subrate: 'Subtasa',

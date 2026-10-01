@@ -412,8 +412,6 @@ const translations: TranslationDeepObject<typeof en> = {
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
         skip: 'Overslaan',
-        chatWithAccountManager: (accountManagerDisplayName: string) => `Zoek je iets specifieks? Chat met je accountmanager, ${accountManagerDisplayName}.`,
-        chatNow: 'Nu chatten',
         workEmail: 'Zakelijk e-mailadres',
         destination: 'Bestemming',
         subrate: 'Subtarief',
