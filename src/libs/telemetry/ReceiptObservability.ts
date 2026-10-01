@@ -69,6 +69,7 @@ const RECEIPT_BEARING_COMMANDS = new Set<string>([
     WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE,
     WRITE_COMMANDS.SHARE_TRACKED_EXPENSE,
     WRITE_COMMANDS.ADD_TRACKED_EXPENSE_TO_POLICY,
+    WRITE_COMMANDS.CREATE_DISTANCE_REQUEST,
 ]);
 
 /** When each receipt was enqueued, keyed by transaction id, so a snapshot can report how long it has waited. */
@@ -178,23 +179,27 @@ function logReceiptEnqueued({receiptTraceId, transactionID, command, persistedQu
 /**
  * Records the dropped milestone: the receipt file was gone when we built the upload payload, so the request goes out
  * without it. Logged at alert level on the [Receipt] spine so it reaches Sentry and joins the capture, submit, and
- * enqueue lines by receiptTraceId. source and fileName are for the raw device log only; they are not whitelisted, so
- * they never reach Sentry.
+ * enqueue lines by receiptTraceId. source, localUri and fileName are for the raw device log only; they are not
+ * whitelisted, so they never reach Sentry.
  */
 function logReceiptDropped({
     receiptTraceId,
     transactionID,
     command,
     source,
+    localUri,
     fileName,
     statError,
+    receiptsFolder,
 }: {
     receiptTraceId: string | undefined;
     transactionID: string | undefined;
     command: string;
     source: string | undefined;
+    localUri: string | undefined;
     fileName: string | undefined;
     statError: {message: string; code?: string} | undefined;
+    receiptsFolder: {exists: boolean; entryCount?: number};
 }) {
     Log.alert(`${RECEIPT_LOG_PREFIX} dropped`, {
         event: 'dropped',
@@ -202,9 +207,12 @@ function logReceiptDropped({
         transactionID,
         command,
         source,
+        localUri,
         fileName,
         statErrorCode: statError?.code,
         statError: statError?.message,
+        receiptsFolderExists: String(receiptsFolder.exists),
+        receiptsFolderEntryCount: receiptsFolder.entryCount,
     });
 }
 

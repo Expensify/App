@@ -1,5 +1,6 @@
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import TextInput from '@components/TextInput';
@@ -119,21 +120,14 @@ function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESCRIPTION_FIELD}
         />
     ) : (
-        <MenuItemWithTopDescription
-            shouldShowRightIcon={!isReadOnly}
-            shouldParseTitle
-            excludedMarkdownRules={!policy ? ['reportMentions'] : []}
-            title={iouComment}
-            description={translate('common.description')}
-            onPress={openDescriptionPage}
-            style={[styles.moneyRequestMenuItem]}
-            titleStyle={styles.flex1}
-            disabled={didConfirm}
-            interactive={!isReadOnly}
-            numberOfLinesTitle={2}
-            rightLabel={isDescriptionRequired ? translate('common.required') : ''}
+        <MenuItemFieldHTML
+            name={translate('common.description')}
+            value={iouComment ? Parser.replace(iouComment, {disabledRules: !policy ? ['reportMentions'] : []}) : undefined}
+            isDisabled={didConfirm}
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESCRIPTION_FIELD}
-        />
+        >
+            {!iouComment && isDescriptionRequired && <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>}
+        </MenuItemFieldHTML>
     );
 
     return (
