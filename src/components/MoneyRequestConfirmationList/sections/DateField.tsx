@@ -49,7 +49,7 @@ type DateFieldProps = {
 
 function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, transactionID, action, iouType, reportID, reportActionID}: DateFieldProps) {
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
-    const {isEditingSplitBill, canEnterScanFieldsManually} = useConfirmationFields();
+    const {isEditingSplitBill, canEnterScanFieldsManually, onInputFocus, onInputBlur} = useConfirmationFields();
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -138,6 +138,8 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
                     label={translate('common.date')}
                     maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                     onInputChange={handleDateChange}
+                    onInputFocus={onInputFocus}
+                    onInputBlur={onInputBlur}
                     disabled={didConfirm}
                     errorText={inlineDateErrorText || dateErrorText}
                     shouldDeferShowUntilPositioned

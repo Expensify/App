@@ -2,6 +2,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {RestoreFocus} from '@components/MoneyRequestConfirmationFields/context';
 import ParticipantPickerOverlayHost from '@components/ParticipantPicker/OverlayHost';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -9,6 +10,7 @@ import TabSelector from '@components/TabSelector/TabSelector';
 
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -37,7 +39,8 @@ import type {SelectedTabRequest} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
@@ -82,8 +85,12 @@ function IOURequestStartPage({
     const isLoadingTransaction = isLoadingOnyxValue(transactionResult);
     const perDiemInputRef = useRef<AnimatedTextInputRef | null>(null);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const iouRequestStartPoliciesSelector = useMemo(
+        () => createIOURequestStartPoliciesSelector(currentUserPersonalDetails.login, iouType === CONST.IOU.TYPE.INVOICE),
+        [currentUserPersonalDetails.login, iouType],
+    );
     const [iouRequestStartPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: createIOURequestStartPoliciesSelector(currentUserPersonalDetails.login, iouType === CONST.IOU.TYPE.INVOICE),
+        selector: iouRequestStartPoliciesSelector,
     });
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.createExpense'),
@@ -180,8 +187,8 @@ function IOURequestStartPage({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const navigateBack = () => {
-        // The confirmation is embedded with its header hidden,
+    const cleanupPreInsertedDestination = () => {
+        // In the new manual expense beta the confirmation is embedded with its header hidden,
         // so this back button is the only way to abandon the flow. Cancel any active span
         // unconditionally (mirrors IOURequestStepConfirmation.navigateBack). No-op when no
         // tracking session is active.
@@ -192,7 +199,6 @@ function IOURequestStartPage({
         // confirmation's unmount cleanup restores the original tab a frame later, briefly flashing the
         // pre-inserted Search/Spend tab. This is a no-op when nothing was pre-inserted.
         Navigation.removePreInsertedFullscreenIfNeeded();
-        Navigation.closeRHPFlow();
     };
 
     const [headerWithBackBtnContainerElement, setHeaderWithBackButtonContainerElement] = useState<HTMLElement | null>(null);
@@ -203,13 +209,6 @@ function IOURequestStartPage({
         return [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element);
     }, [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement]);
 
-    const onBackButtonPress = () => {
-        navigateBack();
-        return true;
-    };
-
-    useAndroidBackButtonHandler(onBackButtonPress);
-
     const shouldShowWorkspaceSelectForPerDiem = moreThanOnePerDiemExist && !hasCurrentPolicyPerDiemEnabled;
 
     // Every flow that reaches this page embeds the confirmation as its landing step except INVOICE, which stays on the
@@ -218,6 +217,149 @@ function IOURequestStartPage({
     // The pay quick action still writes SKIP_CONFIRMATION, but IOURequestStepAmount is its only reader and no longer
     // mounts for PAY - the embedded confirmation carries the amount inline, so there is no separate step left to skip.
     const shouldEmbedConfirmation = shouldUseTab || iouType === CONST.IOU.TYPE.PAY;
+    // Scan opens its confirmation on a separate route after a receipt is selected. This page remains mounted below that route,
+    // but it must not guard the standalone confirmation's successful submit. The discard guard here belongs only to the
+    // confirmation rendered by this page: Manual in tabbed flows, or PAY which has no tabs.
+    const isEmbeddedConfirmationActive = shouldEmbedConfirmation && (!shouldUseTab || selectedTab === CONST.TAB_REQUEST.MANUAL);
+
+    const [isSignDirty, setIsSignDirty] = useState(false);
+    const [hasSubmitted, setHasSubmitted] = useState(false);
+    const hasSubmittedRef = useRef(false);
+    const lastFocusedInputRef = useRef<RestoreFocus | null>(null);
+    const isDiscardModalOpenRef = useRef(false);
+    const isDiscardNavigationPendingRef = useRef(false);
+    const focusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const isPayFlow = iouType === CONST.IOU.TYPE.PAY;
+    const [payAmountBaseline, setPayAmountBaseline] = useState<{isAmountSet: boolean; amount: number | undefined}>();
+    // `isLoadingTransaction` only describes the Onyx subscription state. It can already be false while
+    // `initMoneyRequest()` has not yet created this route's draft. Waiting for the draft ID avoids treating
+    // its normal empty initialization (`undefined` -> `0`) as a user amount change.
+    if (isPayFlow && !isLoadingTransaction && transaction?.transactionID && !payAmountBaseline) {
+        setPayAmountBaseline({isAmountSet: transaction?.isAmountSet === true, amount: transaction?.amount});
+    }
+    const hasAmountChanged = isPayFlow
+        ? !!payAmountBaseline && ((transaction?.isAmountSet === true && !payAmountBaseline.isAmountSet) || transaction?.amount !== payAmountBaseline.amount)
+        : transaction?.isAmountSet === true;
+
+    useFocusEffect(
+        useCallback(() => {
+            hasSubmittedRef.current = false;
+            setHasSubmitted(false);
+        }, []),
+    );
+
+    const getEmbeddedHasUnsavedChanges = () => isEmbeddedConfirmationActive && !hasSubmittedRef.current && (isSignDirty || hasAmountChanged);
+    const isEmbeddedDirty = isEmbeddedConfirmationActive && !hasSubmitted && (isSignDirty || hasAmountChanged);
+
+    const handleInputBlur = () => {
+        if (isDiscardModalOpenRef.current || isDiscardNavigationPendingRef.current) {
+            return;
+        }
+        if (blurTimeoutRef.current) {
+            clearTimeout(blurTimeoutRef.current);
+        }
+        blurTimeoutRef.current = setTimeout(() => {
+            if (isDiscardModalOpenRef.current) {
+                return;
+            }
+            lastFocusedInputRef.current = null;
+        }, 100);
+    };
+
+    const handleInputFocus = (restoreFocus: RestoreFocus) => {
+        if (blurTimeoutRef.current) {
+            clearTimeout(blurTimeoutRef.current);
+        }
+        lastFocusedInputRef.current = restoreFocus;
+    };
+
+    const restoreLastFocusedInput = () => {
+        const restoreFocus = lastFocusedInputRef.current;
+        if (!restoreFocus) {
+            isDiscardNavigationPendingRef.current = false;
+            return;
+        }
+
+        if (focusTimeoutRef.current) {
+            clearTimeout(focusTimeoutRef.current);
+        }
+
+        focusTimeoutRef.current = setTimeout(() => {
+            focusTimeoutRef.current = null;
+            if (isDiscardModalOpenRef.current) {
+                isDiscardNavigationPendingRef.current = false;
+                return;
+            }
+            restoreFocus();
+            isDiscardNavigationPendingRef.current = false;
+        }, CONST.ANIMATED_TRANSITION);
+    };
+
+    useEffect(
+        () => () => {
+            if (focusTimeoutRef.current) {
+                clearTimeout(focusTimeoutRef.current);
+            }
+            if (blurTimeoutRef.current) {
+                clearTimeout(blurTimeoutRef.current);
+            }
+        },
+        [],
+    );
+
+    const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
+        getHasUnsavedChanges: getEmbeddedHasUnsavedChanges,
+        shouldEnableNewFocusManagement: isEmbeddedConfirmationActive,
+        shouldPromptWhenUnfocused: isEmbeddedConfirmationActive,
+        onConfirmWhenUnfocused: () => Navigation.closeRHPFlow(),
+        onCancel: restoreLastFocusedInput,
+        onVisibilityChange: (isVisible) => {
+            isDiscardModalOpenRef.current = isVisible;
+            if (isVisible) {
+                if (focusTimeoutRef.current) {
+                    clearTimeout(focusTimeoutRef.current);
+                    focusTimeoutRef.current = null;
+                }
+                if (blurTimeoutRef.current) {
+                    clearTimeout(blurTimeoutRef.current);
+                }
+            }
+        },
+        onConfirm: cleanupPreInsertedDestination,
+    });
+
+    const suppressEmbeddedDiscardPrompt = () => {
+        hasSubmittedRef.current = true;
+        setHasSubmitted(true);
+        suppressDiscardPrompt();
+    };
+
+    const navigateBack = () => {
+        if (isEmbeddedDirty) {
+            // Pressing the header button blurs the active field before the discard modal has mounted.
+            // Preserve the field's restore callback through that transition so Cancel can reliably restore focus.
+            isDiscardNavigationPendingRef.current = true;
+            if (blurTimeoutRef.current) {
+                clearTimeout(blurTimeoutRef.current);
+                blurTimeoutRef.current = null;
+            }
+            // Let the discard guard decide whether this navigation may proceed. Cleaning up the pre-insert now
+            // would make cancelling the discard prompt destructive.
+            Navigation.closeRHPFlow();
+            return;
+        }
+
+        cleanupPreInsertedDestination();
+        Navigation.closeRHPFlow();
+    };
+
+    const onBackButtonPress = () => {
+        navigateBack();
+        return true;
+    };
+
+    useAndroidBackButtonHandler(onBackButtonPress);
 
     // The embedded confirmation renders its body without a ScreenWrapper of its own, so that this page's focus trap
     // stays the sole owner of the header + tab bar + content Tab cycle. Its viewport sizing has to move here with it:
@@ -263,6 +405,10 @@ function IOURequestStartPage({
                 route={route}
                 navigation={navigation}
                 shouldHideHeader
+                onSignDirtyChange={setIsSignDirty}
+                onInputFocus={handleInputFocus}
+                onInputBlur={handleInputBlur}
+                suppressDiscardPrompt={suppressEmbeddedDiscardPrompt}
             />
         );
     }
@@ -305,7 +451,11 @@ function IOURequestStartPage({
                                 <OnyxTabNavigator
                                     id={CONST.TAB.IOU_REQUEST_TYPE}
                                     defaultSelectedTab={defaultSelectedTab}
-                                    onTabSelected={resetIOUTypeIfChanged}
+                                    onTabSelected={(newIOUType) => {
+                                        setIsSignDirty(false);
+                                        lastFocusedInputRef.current = null;
+                                        resetIOUTypeIfChanged(newIOUType);
+                                    }}
                                     onTabSelect={onTabSelectFocusHandler}
                                     tabBar={TabSelector}
                                     onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}

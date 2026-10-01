@@ -150,7 +150,7 @@ function IOURequestStepAmount({
 
     const baselineAmount = transactionAmount ? convertToFrontendAmountAsString(transactionAmount, decimals) : '';
 
-    const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
+    const {suppressDiscardPrompt, confirmNavigation} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () =>
             getAmountHasUnsavedChanges({
                 typedAmount: typedAmount ?? baselineAmount,
@@ -211,9 +211,7 @@ function IOURequestStepAmount({
         setSelectedCurrency(originalCurrency);
     }, [originalCurrency]);
 
-    const navigateBack = () => {
-        Navigation.goBack(backTo);
-    };
+    const navigateBack = () => confirmNavigation(() => Navigation.goBack(backTo));
 
     const saveAndNavigateBack = () => {
         Navigation.goBack(backTo, {shouldSkipFocusRestore: true});

@@ -69,7 +69,8 @@ describe('useDiscardChangesConfirmation (native)', () => {
     const removeSubscription = jest.fn();
     let resolveModal: ((result: {action: string}) => void) | undefined;
 
-    const renderDiscardHook = (getHasUnsavedChanges: () => boolean) => renderHook(() => useDiscardChangesConfirmation({getHasUnsavedChanges}));
+    const renderDiscardHook = (getHasUnsavedChanges: () => boolean, options?: Partial<UseDiscardChangesConfirmationOptions>) =>
+        renderHook(() => useDiscardChangesConfirmation({getHasUnsavedChanges, ...options}));
 
     const pressHardwareBack = (): boolean | null | undefined => {
         let consumed: boolean | null | undefined;
@@ -146,6 +147,14 @@ describe('useDiscardChangesConfirmation (native)', () => {
         it('lets the back press through when the screen is not focused, even with a dirty form', () => {
             mockIsFocused = false;
             renderDiscardHook(() => true);
+
+            expect(pressHardwareBack()).toBe(false);
+            expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        });
+
+        it('lets the back press through when the screen is unfocused, even when it opts into unfocused removal protection', () => {
+            mockIsFocused = false;
+            renderDiscardHook(() => true, {shouldPromptWhenUnfocused: true});
 
             expect(pressHardwareBack()).toBe(false);
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
@@ -290,6 +299,41 @@ describe('useDiscardChangesConfirmation (native)', () => {
 
             expect(mockNavigationDispatch).not.toHaveBeenCalled();
             expect(mockNavigationGoBack).toHaveBeenCalledTimes(1);
+        });
+
+        it('does not prevent removal or prompt discard when the screen is unfocused by default', () => {
+            mockIsFocused = false;
+            renderDiscardHook(() => true);
+
+            expect(mockPreventRemoveFlag).toBe(false);
+
+            invokeBeforeRemove('RESET');
+
+            expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        });
+
+        it('prevents removal and prompts discard when unfocused if shouldPromptWhenUnfocused is true (e.g. child screen was opened on top)', () => {
+            mockIsFocused = false;
+            renderDiscardHook(() => true, {shouldPromptWhenUnfocused: true});
+
+            expect(mockPreventRemoveFlag).toBe(true);
+
+            invokeBeforeRemove('RESET');
+
+            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+        });
+
+        it('uses the flow-specific confirmation handler instead of replaying child navigation when unfocused', async () => {
+            mockIsFocused = false;
+            const onConfirmWhenUnfocused = jest.fn();
+            renderDiscardHook(() => true, {shouldPromptWhenUnfocused: true, onConfirmWhenUnfocused});
+
+            invokeBeforeRemove('POP');
+            await resolveModalWith('CONFIRM');
+
+            expect(onConfirmWhenUnfocused).toHaveBeenCalledTimes(1);
+            expect(mockNavigationDispatch).not.toHaveBeenCalled();
+            expect(mockNavigationGoBack).not.toHaveBeenCalled();
         });
     });
 });
