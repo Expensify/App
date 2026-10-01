@@ -235,8 +235,8 @@ function ReportActionItemImage({
     // isMapBasedDistanceRequest covers map, GPS, and manual-typed transactions that still carry waypoints.
     // Page navigation also needs the real PDF for local files, whose thumbnail only shows page 1.
     const pdfSourceURL = typeof originalImageSource === 'string' && !!originalImageSource ? originalImageSource : undefined;
-    const isOverlayablePDF = !!isPDF && !isEReceipt && !isMapBasedDistanceRequest(transaction) && !!pdfSourceURL;
-    const shouldOverlayHighResPDF = canZoomReceipt && isOverlayablePDF && hasHoverSupport() && (!effectiveIsLocalFile || pdfPage !== undefined);
+    const canOverlayPDF = !!isPDF && !isEReceipt && !isMapBasedDistanceRequest(transaction) && !!pdfSourceURL;
+    const shouldOverlayHighResPDF = canZoomReceipt && canOverlayPDF && hasHoverSupport() && (!effectiveIsLocalFile || pdfPage !== undefined);
 
     const renderReceiptContent = (receiptImage: React.ReactNode) =>
         shouldOverlayHighResPDF ? (
