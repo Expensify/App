@@ -54,7 +54,7 @@ const GROUPED_BAR_ROUNDED_CORNERS = {topLeft: BAR_CORNER_RADIUS, topRight: BAR_C
 /** A point as victory-native reads it: the x index plus one entry per series, keyed by the series' key. */
 type VerticalBarChartDatum = Record<string, number>;
 
-function VerticalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosition = 'left', color, onBarPress}: BarChartProps) {
+function VerticalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onBarPress}: BarChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const fontManager = useChartFontManager();
@@ -211,7 +211,7 @@ function VerticalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxisU
     const renderBar = (point: PointsArray[number], chartBounds: ChartBounds, barCount: number) => {
         const dataIndex = Number(point.xValue);
         const dataPoint = data.at(dataIndex);
-        const barColor = series.at(0)?.color ?? color ?? VictoryTheme.colors.getColor(dataIndex);
+        const barColor = series.at(0)?.color ?? VictoryTheme.colors.getColor(dataIndex);
 
         return (
             <Bar

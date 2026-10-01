@@ -126,7 +126,6 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, comp
                 onBarPress={(dataPoint, index, seriesKey) => handleItemPress(index, seriesKey)}
                 yAxisUnit={unit}
                 yAxisUnitPosition={unitPosition}
-                color={color}
             />
         ),
         [CONST.SEARCH.VIEW.LINE]: (

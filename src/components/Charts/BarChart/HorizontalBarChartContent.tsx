@@ -159,7 +159,7 @@ function ValueAxisLabels({xTicks, xScale, chartBottom, fontSize, fontManager, la
     });
 }
 
-function HorizontalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosition = 'left', color = colors.blue400, onBarPress}: BarChartProps) {
+function HorizontalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onBarPress}: BarChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const fontManager = useChartFontManager();
@@ -414,7 +414,7 @@ function HorizontalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxi
                     <Path
                         key={`horizontal-bar-${dataPoint.label}-${seriesItem.key}`}
                         path={path}
-                        color={series.length > 1 ? (seriesItem.color ?? VictoryTheme.colors.default) : (seriesItem.color ?? color)}
+                        color={seriesItem.color ?? (series.length > 1 ? VictoryTheme.colors.default : colors.blue400)}
                     />
                 );
             });

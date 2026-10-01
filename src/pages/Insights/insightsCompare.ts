@@ -1,6 +1,8 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {ChartBucketRange} from '@components/Search/chartGroupByConfig';
 
+import {getDateRangeForPreset} from '@libs/SearchQueryUtils';
+
 import CONST from '@src/CONST';
 
 import {
@@ -50,14 +52,12 @@ function toRange(start: Date, end: Date): ChartBucketRange {
 }
 
 /** A whole month and the month before it. */
-function resolveMonthWindows(month: Date): ComparisonWindows {
+function resolveMonthWindows(currentRange: ChartBucketRange): ComparisonWindows {
+    const month = parseISO(currentRange.start);
     const previousMonth = subMonths(month, 1);
 
     return {
-        current: {
-            label: format(month, MONTH_LABEL_FORMAT),
-            range: toRange(startOfMonth(month), endOfMonth(month)),
-        },
+        current: {label: format(month, MONTH_LABEL_FORMAT), range: currentRange},
         previous: {
             label: format(previousMonth, MONTH_LABEL_FORMAT),
             range: toRange(startOfMonth(previousMonth), endOfMonth(previousMonth)),
@@ -72,42 +72,38 @@ function resolveMonthWindows(month: Date): ComparisonWindows {
  * comparison being unavailable.
  */
 function resolveComparisonWindows(date: InsightsFilters['date'], translate: LocaleContextProps['translate']): ComparisonWindows | undefined {
-    const today = new Date();
-
     if ('preset' in date) {
+        // The period on screen comes from the same resolver the search query is built with, so only the one before it is worked out here.
+        const currentRange = getDateRangeForPreset(date.preset);
+        if (!currentRange.start || !currentRange.end) {
+            return undefined;
+        }
+        const currentStart = parseISO(currentRange.start);
+        const currentEnd = parseISO(currentRange.end);
+
         switch (date.preset) {
             case CONST.SEARCH.DATE_PRESETS.THIS_MONTH:
-                return resolveMonthWindows(today);
             case CONST.SEARCH.DATE_PRESETS.LAST_MONTH:
-                return resolveMonthWindows(subMonths(today, 1));
+                return resolveMonthWindows(currentRange);
             case CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE: {
-                const sameDayLastYear = subYears(today, 1);
+                const sameDayLastYear = subYears(currentEnd, 1);
 
                 return {
-                    current: {
-                        label: translate('insightsPage.compare.yearToDate', getYear(today)),
-                        range: toRange(startOfYear(today), today),
-                    },
+                    current: {label: translate('insightsPage.compare.yearToDate', getYear(currentEnd)), range: currentRange},
                     previous: {
                         label: translate('insightsPage.compare.yearToDate', getYear(sameDayLastYear)),
                         range: toRange(startOfYear(sameDayLastYear), sameDayLastYear),
                     },
                 };
             }
-            case CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS: {
-                const firstMonth = startOfMonth(subMonths(today, 11));
-
+            case CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS:
                 return {
-                    current: {
-                        label: translate('insightsPage.compare.lastTwelveMonths'),
-                        range: toRange(firstMonth, endOfMonth(today)),
-                    },
+                    current: {label: translate('insightsPage.compare.lastTwelveMonths'), range: currentRange},
                     previous: {
                         label: translate('insightsPage.compare.priorMonths', 12),
-                        range: toRange(subMonths(firstMonth, 12), endOfMonth(subMonths(today, 12))),
+                        range: toRange(subMonths(currentStart, 12), endOfMonth(subMonths(currentEnd, 12))),
                     },
                 };
-            }
             default:
                 return undefined;
         }

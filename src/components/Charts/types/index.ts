@@ -11,7 +11,7 @@ type ChartSeries = {
     /** Name shown in the legend and the tooltip, left out by a chart plotting a single unnamed dataset */
     label?: string;
 
-    /** Left out by a bar chart that colors each bar by its rank instead */
+    /** Left out, a lone series of vertical bars takes a palette color per bar, horizontal bars take blue, and anything else the default */
     color?: string;
 };
 
