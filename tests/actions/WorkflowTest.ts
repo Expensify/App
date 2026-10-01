@@ -2341,7 +2341,10 @@ describe('actions/Workflow', () => {
             // with the owner's default workflow on the draft the way the workflows page stores it
             await createForwardApproveRules(policyID, [employee1Email, employee2Email], employee3Email);
             const defaultApprovalWorkflow = {
-                members: [{email: ownerEmail, displayName: ownerEmail}, {email: employee3Email, displayName: employee3Email}],
+                members: [
+                    {email: ownerEmail, displayName: ownerEmail},
+                    {email: employee3Email, displayName: employee3Email},
+                ],
                 approvers: [{email: ownerEmail, displayName: ownerEmail, isCircularReference: false}],
                 isDefault: true,
             };

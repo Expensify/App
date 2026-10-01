@@ -680,7 +680,15 @@ type SelectApprovalWorkflowForEditParams = {
 };
 
 /** Commits a workflow to onyx in EDIT mode so any sub-page can be entered directly, skipping the Edit RHP. */
-function selectApprovalWorkflowForEdit({workflow, defaultWorkflowMembers, usedApproverEmails, approvers, memberEmail, defaultApprovalWorkflow, isFastEdit}: SelectApprovalWorkflowForEditParams) {
+function selectApprovalWorkflowForEdit({
+    workflow,
+    defaultWorkflowMembers,
+    usedApproverEmails,
+    approvers,
+    memberEmail,
+    defaultApprovalWorkflow,
+    isFastEdit,
+}: SelectApprovalWorkflowForEditParams) {
     setApprovalWorkflow({
         ...workflow,
         approvers: approvers ?? workflow.approvers,
