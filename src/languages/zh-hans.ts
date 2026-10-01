@@ -1018,8 +1018,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 broomDescription: '任务已清理完毕，但请留意更多待办事项。',
                 houseTitle: '全部完成',
                 houseDescription: '这里是你即将处理的待办事项的大本营。',
-                conciergeBotTitle: '暂无内容展示',
-                conciergeBotDescription: '哔哔啵啵，稍后再来查看更多任务！',
                 checkboxTextTitle: '全部完成',
                 checkboxTextDescription: '在这里勾选完成你即将要做的事项。',
                 flashTitle: '你已完成！',
@@ -2246,6 +2244,7 @@ const translations: TranslationDeepObject<typeof en> = {
             results: '结果',
             releaseOptions: '发布选项',
             testingPreferences: '测试偏好',
+            showExtraNavItems: '显示额外的导航项',
             server: '服务器',
             servers: {
                 production: {label: '生产', description: '真实用户所使用的线上环境'},

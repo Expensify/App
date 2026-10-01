@@ -18,6 +18,8 @@ import React from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
+import FlatNavMarqueeLabel from './FlatNavMarqueeLabel';
+import FlatNavRowActionBackdrop from './FlatNavRowActionBackdrop';
 import {useFlatNavSubItemHover} from './FlatNavSubItemList';
 
 type FlatNavItemProps = {
@@ -60,6 +62,9 @@ type FlatNavItemProps = {
     /** Position within the group, so the group's shared marker knows which row the pointer is on */
     subItemIndex?: number;
 
+    /** Whether a label too long for its row shows the full text in a tooltip. For rows the user named themselves. */
+    shouldShowTooltipWhenTruncated?: boolean;
+
     onPress: (event?: GestureResponderEvent | KeyboardEvent) => void;
 };
 
@@ -99,6 +104,7 @@ function FlatNavItem({
     isFirstSubItem = false,
     isLastSubItem = false,
     subItemIndex = 0,
+    shouldShowTooltipWhenTruncated = false,
     onPress,
 }: FlatNavItemProps) {
     const styles = useThemeStyles();
@@ -161,12 +167,28 @@ function FlatNavItem({
                     )}
                     {leftElement}
                     <Animated.View style={[styles.flex1, collapseFadeStyle]}>
-                        <Text
-                            numberOfLines={1}
-                            style={[styles.flatNavigationBarLabel, !isSelected && styles.flatNavigationBarLabelRegular, {color: isSelected || hovered ? theme.text : theme.textSupporting}]}
-                        >
-                            {label}
-                        </Text>
+                        {shouldShowTooltipWhenTruncated ? (
+                            <FlatNavMarqueeLabel
+                                text={label}
+                                isHovered={hovered}
+                                style={[
+                                    styles.flatNavigationBarLabel,
+                                    !isSelected && styles.flatNavigationBarLabelRegular,
+                                    {color: isSelected || hovered ? theme.text : theme.textSupporting},
+                                ]}
+                            />
+                        ) : (
+                            <Text
+                                numberOfLines={1}
+                                style={[
+                                    styles.flatNavigationBarLabel,
+                                    !isSelected && styles.flatNavigationBarLabelRegular,
+                                    {color: isSelected || hovered ? theme.text : theme.textSupporting},
+                                ]}
+                            >
+                                {label}
+                            </Text>
+                        )}
                     </Animated.View>
                     {!!badgeText && (
                         <Animated.View style={collapseFadeStyle}>
@@ -180,7 +202,12 @@ function FlatNavItem({
                         </Animated.View>
                     )}
                     {/* Hidden rather than unmounted, so the menu it opens survives the pointer leaving the row. */}
-                    {!isCollapsed && !!hoverActionComponent && <View style={[styles.flatNavigationBarRowAction, !hovered && styles.opacity0]}>{hoverActionComponent}</View>}
+                    {!isCollapsed && !!hoverActionComponent && (
+                        <View style={[styles.flatNavigationBarRowAction, !hovered && styles.flatNavigationBarRowActionHidden]}>
+                            <FlatNavRowActionBackdrop />
+                            {hoverActionComponent}
+                        </View>
+                    )}
                 </>
             )}
         </PressableWithFeedback>

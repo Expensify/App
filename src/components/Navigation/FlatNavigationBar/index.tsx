@@ -114,6 +114,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const [searchFilters] = useOnyx(ONYXKEYS.SEARCH_FILTERS);
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
+    const [shouldShowExtraNavItems = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_EXTRA_NAV_ITEMS);
     const [lastExpensesSearchQuery] = useOnyx(ONYXKEYS.SEARCH_FILTERS, {selector: lastExpensesSearchQuerySelector});
 
     const {chatTabBrickRoad} = useSidebarOrderedReportsState();
@@ -137,6 +138,12 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const isAccountingGroupSelected = isSpendTabSelected && ACCOUNTING_KEYS.some((key) => key === currentSearchKey);
     const isAccountSelected = selectedTab === NAVIGATION_TABS.SETTINGS;
     const isSavedGroupSelected = isSpendTabSelected && !!currentSearchKey?.startsWith(CONST.SEARCH.SAVED_SEARCH_PREFIX);
+    // A group holding one search has nothing to nest, so it renders as a plain top-level row instead of a parent
+    // with a single child. This is what Expenses and Reports fall back to for someone who only ever sees their own.
+    // Accounting is exempt: its searches always read as belonging under it, so it keeps its parent row either way.
+    const singleExpensesItem = expenses.length === 1 ? expenses.at(0) : undefined;
+    const singleReportsItem = reports.length === 1 ? reports.at(0) : undefined;
+
     // A collapsed bar hides every group's children, so a selected group is only expanded while the bar is open.
     // The badge follows the same rule: with its children hidden, the group has to carry their combined count again.
     const isExpensesGroupExpanded = isExpensesGroupSelected && !isVisuallyCollapsed;
@@ -304,7 +311,9 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
 
                                 <FlatNavDivider />
 
-                                {expenses.length > 0 && (
+                                {!!singleExpensesItem && renderSearchItem(singleExpensesItem, false)}
+
+                                {expenses.length > 1 && (
                                     <>
                                         <FlatNavItem
                                             isCollapsed={isVisuallyCollapsed}
@@ -330,7 +339,9 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                     </>
                                 )}
 
-                                {reports.length > 0 && (
+                                {!!singleReportsItem && renderSearchItem(singleReportsItem, false)}
+
+                                {reports.length > 1 && (
                                     <>
                                         <FlatNavItem
                                             isCollapsed={isVisuallyCollapsed}
@@ -382,16 +393,17 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                 )}
 
                                 {/* TODO: placeholders for design review - these rows have no destination yet. */}
-                                {PLACEHOLDER_DESTINATIONS.map(({label, iconName}) => (
-                                    <FlatNavItem
-                                        key={label}
-                                        isCollapsed={isVisuallyCollapsed}
-                                        label={label}
-                                        icon={navIcons[iconName]}
-                                        isSelected={false}
-                                        onPress={() => {}}
-                                    />
-                                ))}
+                                {shouldShowExtraNavItems &&
+                                    PLACEHOLDER_DESTINATIONS.map(({label, iconName}) => (
+                                        <FlatNavItem
+                                            key={label}
+                                            isCollapsed={isVisuallyCollapsed}
+                                            label={label}
+                                            icon={navIcons[iconName]}
+                                            isSelected={false}
+                                            onPress={() => {}}
+                                        />
+                                    ))}
 
                                 {isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE) && (
                                     <FlatNavItem

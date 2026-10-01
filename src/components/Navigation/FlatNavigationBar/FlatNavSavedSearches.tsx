@@ -100,6 +100,7 @@ function FlatNavSavedSearches() {
                     label={item.title}
                     isSelected={currentSearchKey === item.searchKey}
                     isSubItem
+                    shouldShowTooltipWhenTruncated
                     isFirstSubItem={index === 0}
                     isLastSubItem={index === items.length - 1}
                     subItemIndex={index}

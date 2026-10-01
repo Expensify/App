@@ -1056,8 +1056,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 broomDescription: 'Le attività sono a posto, ma resta in attesa di altre cose da fare.',
                 houseTitle: 'Tutto a posto',
                 houseDescription: 'Questa è la tua base per le prossime cose da fare.',
-                conciergeBotTitle: 'Niente da mostrare',
-                conciergeBotDescription: 'Beep boop beep boop, ricontrolla per altre attività!',
                 checkboxTextTitle: 'Tutto a posto',
                 checkboxTextDescription: 'Spunta qui le tue prossime cose da fare.',
                 flashTitle: 'Hai finito!',
@@ -2326,6 +2324,7 @@ const translations: TranslationDeepObject<typeof en> = {
             results: 'Risultati',
             releaseOptions: 'Opzioni di rilascio',
             testingPreferences: 'Preferenze di test',
+            showExtraNavItems: 'Mostra voci di navigazione extra',
             server: 'Server',
             servers: {
                 production: {label: 'Produzione', description: "L'ambiente live che vedono gli utenti reali"},

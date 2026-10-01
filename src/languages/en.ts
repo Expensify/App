@@ -1178,8 +1178,6 @@ const translations = {
                 broomDescription: 'Tasks are clean, though stay tuned for more to-dos.',
                 houseTitle: 'All caught up',
                 houseDescription: 'This is your home base for upcoming to-dos.',
-                conciergeBotTitle: 'Nothing to show',
-                conciergeBotDescription: 'Beep boop beep boop, check back for more tasks!',
                 checkboxTextTitle: 'All caught up',
                 checkboxTextDescription: 'Check off your upcoming to-dos here.',
                 flashTitle: "You're done!",
@@ -2446,6 +2444,7 @@ const translations = {
             results: 'Results',
             releaseOptions: 'Release options',
             testingPreferences: 'Testing preferences',
+            showExtraNavItems: 'Show extra nav items',
             server: 'Server',
             servers: {
                 production: {label: 'Production', description: 'The live environment real users see'},

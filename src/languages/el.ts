@@ -1125,8 +1125,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 broomDescription: 'Οι εργασίες είναι τακτοποιημένες, αλλά μείνετε συντονισμένοι για περισσότερα προς διεκπεραίωση.',
                 houseTitle: 'Είστε καλυμμένος',
                 houseDescription: 'Αυτή είναι η κεντρική σας σελίδα για τις επερχόμενες εκκρεμότητες.',
-                conciergeBotTitle: 'Τίποτα προς εμφάνιση',
-                conciergeBotDescription: 'Μπιπ μπουπ μπιπ μπουπ, ελάτε ξανά για περισσότερες εργασίες!',
                 checkboxTextTitle: 'Είστε καλυμμένος',
                 checkboxTextDescription: 'Σημειώστε εδώ τις επερχόμενες εκκρεμότητές σας.',
                 flashTitle: 'Ολοκληρώσατε!',
@@ -2382,6 +2380,7 @@ const translations: TranslationDeepObject<typeof en> = {
             results: 'Αποτελέσματα',
             releaseOptions: 'Επιλογές έκδοσης',
             testingPreferences: 'Προτιμήσεις δοκιμών',
+            showExtraNavItems: 'Εμφάνιση επιπλέον στοιχείων πλοήγησης',
             server: 'Διακομιστής',
             servers: {
                 production: {label: 'Παραγωγή', description: 'Το ζωντανό περιβάλλον που βλέπουν οι πραγματικοί χρήστες'},

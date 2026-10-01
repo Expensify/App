@@ -1043,8 +1043,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 broomDescription: 'タスクは順調です。新しい To-do をお楽しみに。',
                 houseTitle: 'すべて確認済みです',
                 houseDescription: 'ここが今後のやることのホームベースです。',
-                conciergeBotTitle: '表示するものがありません',
-                conciergeBotDescription: 'ピッピッ、ブッブッ。次のタスクをまた確認してください！',
                 checkboxTextTitle: 'すべて確認済みです',
                 checkboxTextDescription: 'ここで今後のやることにチェックを付けましょう。',
                 flashTitle: '完了しました！',
@@ -2306,6 +2304,7 @@ const translations: TranslationDeepObject<typeof en> = {
             results: '結果',
             releaseOptions: 'リリースオプション',
             testingPreferences: 'テスト設定',
+            showExtraNavItems: '追加のナビゲーション項目を表示',
             server: 'サーバー',
             servers: {
                 production: {label: '本番', description: '実際のユーザーが利用している環境'},

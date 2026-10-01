@@ -1056,8 +1056,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 broomDescription: 'Aufgaben sind erledigt, bleiben Sie aber gespannt auf weitere To-dos.',
                 houseTitle: 'Alles erledigt',
                 houseDescription: 'Hier ist Ihre Zentrale für anstehende Aufgaben.',
-                conciergeBotTitle: 'Nichts anzuzeigen',
-                conciergeBotDescription: 'Biep biep biep biep, schauen Sie später nach weiteren Aufgaben!',
                 checkboxTextTitle: 'Alles erledigt',
                 checkboxTextDescription: 'Haken Sie hier Ihre anstehenden Aufgaben ab.',
                 flashTitle: 'Sie sind fertig!',
@@ -2333,6 +2331,7 @@ const translations: TranslationDeepObject<typeof en> = {
             results: 'Ergebnisse',
             releaseOptions: 'Release-Optionen',
             testingPreferences: 'Testeinstellungen',
+            showExtraNavItems: 'Zusätzliche Navigationselemente anzeigen',
             server: 'Server',
             servers: {
                 production: {label: 'Produktion', description: 'Die Live-Umgebung, die echte Nutzer sehen'},

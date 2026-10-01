@@ -81,6 +81,7 @@ function MorePage() {
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const [searchFilters] = useOnyx(ONYXKEYS.SEARCH_FILTERS);
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
+    const [shouldShowExtraNavItems = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_EXTRA_NAV_ITEMS);
     const {indicatorColor: workspacesIndicatorColor, status: workspacesIndicatorStatus} = useWorkspacesTabIndicatorStatus();
     const navigateToWorkspaces = useRestoreWorkspacesTabOnNavigate();
 
@@ -130,7 +131,7 @@ function MorePage() {
     }
 
     // TODO: placeholders for design review - these rows have no destination yet.
-    for (const placeholder of PLACEHOLDER_DESTINATIONS) {
+    for (const placeholder of shouldShowExtraNavItems ? PLACEHOLDER_DESTINATIONS : []) {
         menuItems.push({
             key: placeholder.key,
             ...cardProps,

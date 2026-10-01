@@ -17,7 +17,7 @@ import variables from '@styles/variables';
 import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
 import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from '@userActions/Session';
 import {getBackToParam} from '@userActions/TestTool';
-import {setIsDebugModeEnabled, setShouldShowBranchNameInTitle} from '@userActions/User';
+import {setIsDebugModeEnabled, setShouldShowBranchNameInTitle, setShouldShowExtraNavItems} from '@userActions/User';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -48,6 +48,7 @@ function TestToolMenu({serverPageRoute}: TestToolMenuProps) {
     const {activeServer, isPinnedByEnvironment} = useActiveServer();
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const [shouldShowBranchNameInTitle = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE);
+    const [shouldShowExtraNavItems = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_EXTRA_NAV_ITEMS);
     const styles = useThemeStyles();
     const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
@@ -91,6 +92,15 @@ function TestToolMenu({serverPageRoute}: TestToolMenuProps) {
             </Text>
             {isAuthenticated && (
                 <>
+                    {/* When toggled off, the navigation bar drops the destinations that are still being designed. */}
+                    <TestToolRow title={translate('initialSettingsPage.troubleshoot.showExtraNavItems')}>
+                        <Switch
+                            accessibilityLabel={translate('initialSettingsPage.troubleshoot.showExtraNavItems')}
+                            isOn={shouldShowExtraNavItems}
+                            onToggle={() => setShouldShowExtraNavItems(!shouldShowExtraNavItems)}
+                        />
+                    </TestToolRow>
+
                     {/* When toggled the app will be put into debug mode. */}
                     <TestToolRow
                         title={translate('initialSettingsPage.troubleshoot.debugMode')}

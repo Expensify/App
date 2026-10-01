@@ -150,6 +150,9 @@ const navigationRowPaddingHorizontal = 12;
 
 /** How far a sub-row's left rule sits in from the row's own left edge. */
 const flatNavigationBarSubItemRuleInset = 20;
+
+/** Width of a row's hover control, counting the fade that ramps up to the left of the icon. */
+const flatNavigationBarRowActionWidth = 40;
 // to prevent vertical text offset in Safari for badges, new lineHeight values have been added
 const lineHeightBadge: Pick<TextStyle, 'lineHeight'> = isSafari() ? {lineHeight: variables.lineHeightXSmall} : {lineHeight: variables.lineHeightNormal};
 
@@ -967,17 +970,24 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.success,
         },
 
-        // A sub-row's indent is otherwise empty, so its hover control sits there and leaves the label its full width.
-        // Absolute so the label's own width never changes between the resting and hovered states.
+        // Absolute so the label keeps its full width whether or not the control is showing, rather than
+        // reflowing the moment the row is hovered.
         flatNavigationBarRowAction: {
             position: 'absolute',
-            left: navigationRowPaddingHorizontal,
+            right: navigationRowPaddingHorizontal,
             top: 0,
             bottom: 0,
-            // Same left edge and width as a parent row's icon, so the two line up down the column.
-            width: variables.iconSizeNormal,
-            alignItems: 'center',
+            // Wider than the icon so the fade behind it has room to ramp up before the icon itself.
+            width: flatNavigationBarRowActionWidth,
+            alignItems: 'flex-end',
             justifyContent: 'center',
+            ...(Platform.OS === 'web' && {transition: 'opacity 150ms ease, transform 150ms ease'}),
+        },
+
+        // Parked to the right of its resting place, so it slides in from the row's edge rather than appearing.
+        flatNavigationBarRowActionHidden: {
+            opacity: 0,
+            transform: [{translateX: 8}],
         },
 
         // Bold is reserved for the active row, so the rest fall back to the regular weight.

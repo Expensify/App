@@ -22,7 +22,6 @@ const ILLUSTRATIONS = [
     'Chair',
     'Broom',
     'House',
-    'ConciergeBot',
     'CheckboxText',
     'Flash',
     'Sunglasses',

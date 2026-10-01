@@ -1058,8 +1058,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 broomDescription: 'Les tâches sont terminées, mais restez à l’affût de nouvelles tâches.',
                 houseTitle: 'Tout est à jour',
                 houseDescription: 'Voici votre base pour les prochaines tâches à faire.',
-                conciergeBotTitle: 'Rien à afficher',
-                conciergeBotDescription: 'Bip bop bip bop, revenez pour plus de tâches !',
                 checkboxTextTitle: 'Tout est à jour',
                 checkboxTextDescription: 'Cochez vos prochaines tâches à faire ici.',
                 flashTitle: 'C’est terminé !',
@@ -2339,6 +2337,7 @@ const translations: TranslationDeepObject<typeof en> = {
             results: 'Résultats',
             releaseOptions: 'Options de version',
             testingPreferences: 'Préférences de test',
+            showExtraNavItems: 'Afficher les éléments de navigation supplémentaires',
             server: 'Serveur',
             servers: {
                 production: {label: 'Production', description: "L'environnement en direct que voient les vrais utilisateurs"},

@@ -1055,8 +1055,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 broomDescription: "Taken zijn afgerond, maar houd je klaar voor meer to-do's.",
                 houseTitle: 'Helemaal bij',
                 houseDescription: "Dit is je thuisbasis voor aankomende to-do's.",
-                conciergeBotTitle: 'Niets om weer te geven',
-                conciergeBotDescription: 'Biep boep biep boep, kom terug voor meer taken!',
                 checkboxTextTitle: 'Helemaal bij',
                 checkboxTextDescription: 'Vink hier je komende taken af.',
                 flashTitle: 'Je bent klaar!',
@@ -2324,6 +2322,7 @@ const translations: TranslationDeepObject<typeof en> = {
             results: 'Resultaten',
             releaseOptions: 'Opties voor vrijgeven',
             testingPreferences: 'Testvoorkeuren',
+            showExtraNavItems: 'Extra navigatie-items tonen',
             server: 'Server',
             servers: {
                 production: {label: 'Productie', description: 'De live-omgeving die echte gebruikers zien'},
