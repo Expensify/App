@@ -5254,8 +5254,26 @@ describe('PolicyUtils', () => {
                 expect(hasVendorFeature(buildIntacctPolicy(undefined), false)).toBe(false);
             });
 
-            it('returns false when beta is disabled and Xero is connected because Xero (R3) is still pre-GA', () => {
-                expect(hasVendorFeature(buildXeroPolicy(), false)).toBe(false);
+            it('returns true when beta is disabled and Xero is connected because Xero (R3) is generally available', () => {
+                // Given a workspace with a configured Xero connection
+                const policy = buildXeroPolicy();
+
+                // When the vendor feature is checked without the vendorMatching beta
+                const isVendorFeatureAvailable = hasVendorFeature(policy, false);
+
+                // Then the feature is available because Xero does not depend on the beta
+                expect(isVendorFeatureAvailable).toBe(true);
+            });
+
+            it('returns false when beta is disabled and Xero is connected but isConfigured=false because GA did not widen the configuration gate', () => {
+                // Given a Xero connection in the middle of a tenant switch, which Integration Server marks as not configured
+                const policy = buildXeroPolicy(undefined, {isConfigured: false});
+
+                // When the vendor feature is checked without the vendorMatching beta
+                const isVendorFeatureAvailable = hasVendorFeature(policy, false);
+
+                // Then the feature stays off so the contacts left over from the previous tenant are not offered
+                expect(isVendorFeatureAvailable).toBe(false);
             });
 
             it('returns true when beta is disabled and Rillet is connected because Rillet is generally available', () => {
@@ -5468,9 +5486,11 @@ describe('PolicyUtils', () => {
         describe('hasVendorFeatureOnAnyPolicy', () => {
             const qboPolicy: Policy = {...buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), id: 'qbo'};
             const xeroPolicy: Policy = {...buildXeroPolicy(), id: 'xero'};
+            const businessCentralPolicy: Policy = {...buildBusinessCentralPolicy(), id: 'businessCentral'};
             const plainPolicy: Policy = {...createRandomPolicy(3), connections: undefined, id: 'plain'};
             const qboKey = `${ONYXKEYS.COLLECTION.POLICY}qbo`;
             const xeroKey = `${ONYXKEYS.COLLECTION.POLICY}xero`;
+            const businessCentralKey = `${ONYXKEYS.COLLECTION.POLICY}businessCentral`;
             const plainKey = `${ONYXKEYS.COLLECTION.POLICY}plain`;
 
             it('is false when no workspace has the vendor feature', () => {
@@ -5481,12 +5501,37 @@ describe('PolicyUtils', () => {
                 expect(hasVendorFeatureOnAnyPolicy({[qboKey]: qboPolicy, [plainKey]: plainPolicy}, false)).toBe(true);
             });
 
-            it('is true for a Xero workspace with the beta', () => {
-                expect(hasVendorFeatureOnAnyPolicy({[xeroKey]: xeroPolicy, [plainKey]: plainPolicy}, true)).toBe(true);
+            it('is true for a Xero workspace without the beta', () => {
+                // Given a configured Xero workspace next to one with no accounting connection
+                const policies = {[xeroKey]: xeroPolicy, [plainKey]: plainPolicy};
+
+                // When the vendor feature is checked across the workspaces without the vendorMatching beta
+                const isVendorFeatureAvailable = hasVendorFeatureOnAnyPolicy(policies, false);
+
+                // Then the feature is available because Xero is generally available
+                expect(isVendorFeatureAvailable).toBe(true);
+            });
+
+            it('is true for a Business Central workspace with the beta', () => {
+                // Given a configured Business Central workspace, an integration that still depends on the beta
+                const policies = {[businessCentralKey]: businessCentralPolicy, [plainKey]: plainPolicy};
+
+                // When the vendor feature is checked across the workspaces with the vendorMatching beta
+                const isVendorFeatureAvailable = hasVendorFeatureOnAnyPolicy(policies, true);
+
+                // Then the feature is available because the beta unlocks Business Central
+                expect(isVendorFeatureAvailable).toBe(true);
             });
 
             it('ignores beta-gated integrations while the beta is off', () => {
-                expect(hasVendorFeatureOnAnyPolicy({[xeroKey]: xeroPolicy}, false)).toBe(false);
+                // Given only a Business Central workspace, an integration that still depends on the beta
+                const policies = {[businessCentralKey]: businessCentralPolicy};
+
+                // When the vendor feature is checked across the workspaces without the vendorMatching beta
+                const isVendorFeatureAvailable = hasVendorFeatureOnAnyPolicy(policies, false);
+
+                // Then the feature is not available on any workspace because Business Central still depends on the beta
+                expect(isVendorFeatureAvailable).toBe(false);
             });
         });
 
