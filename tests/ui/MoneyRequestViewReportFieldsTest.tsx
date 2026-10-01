@@ -5,7 +5,7 @@ import MoneyRequestViewReportFields from '@components/MoneyRequestReportView/Mon
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 
-import {updateReportField} from '@libs/actions/Report';
+import {deleteReportField, updateReportField} from '@libs/actions/Report';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
@@ -65,6 +65,14 @@ jest.mock('@react-navigation/core', () => ({
 jest.mock('@libs/actions/Report', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/actions/Report'),
     updateReportField: jest.fn(),
+    deleteReportField: jest.fn(),
+}));
+
+const mockShowConfirmModal = jest.fn(() => Promise.resolve({action: 'CONFIRM'}));
+
+jest.mock('@hooks/useConfirmModal', () => ({
+    __esModule: true,
+    default: () => ({showConfirmModal: mockShowConfirmModal}),
 }));
 
 TestHelper.setupGlobalFetchMock();
@@ -115,6 +123,15 @@ const buildListField = (): OnyxTypes.PolicyReportField => ({
     disabledOptions: [false, false],
 });
 
+// A field the admin deleted from the workspace. The report keeps its own copy, with `deletable` set, so the value it
+// already held is not lost.
+const buildDeletedField = (): OnyxTypes.PolicyReportField => ({
+    ...buildTextField(1),
+    name: 'DeletedField',
+    fieldID: 'deletedField',
+    value: 'Old value',
+});
+
 /** Every flattened style currently on screen, so a test can assert that some node does (or does not) carry one. */
 const getRenderedStyles = (): unknown[] => {
     const renderedStyles: unknown[] = [];
@@ -153,8 +170,9 @@ const buildPolicy = (fieldCount: number, extraFields: OnyxTypes.PolicyReportFiel
     };
 };
 
-const buildReport = (): OnyxTypes.Report => ({
+const buildReport = (reportOnlyFields: OnyxTypes.PolicyReportField[] = []): OnyxTypes.Report => ({
     ...LHNTestUtils.getFakeReport([accountID, 2]),
+    fieldList: Object.fromEntries(reportOnlyFields.map((field) => [`expensify_${field.fieldID}`, field])),
     reportID,
     type: CONST.REPORT.TYPE.EXPENSE,
     policyID,
@@ -165,9 +183,14 @@ const buildReport = (): OnyxTypes.Report => ({
     total: 0,
 });
 
-const renderReportFields = async (fieldCount: number, extraFields: OnyxTypes.PolicyReportField[] = [], shouldUseSingleColumn = false) => {
+const renderReportFields = async (
+    fieldCount: number,
+    extraFields: OnyxTypes.PolicyReportField[] = [],
+    shouldUseSingleColumn = false,
+    reportOnlyFields: OnyxTypes.PolicyReportField[] = [],
+) => {
     const policy = buildPolicy(fieldCount, extraFields);
-    const report = buildReport();
+    const report = buildReport(reportOnlyFields);
 
     await act(async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
@@ -519,5 +542,47 @@ describe('MoneyRequestViewReportFields', () => {
         // because a popover that narrow left the option labels cramped and truncated
         const popover = screen.UNSAFE_getByType(PopoverWithMeasuredContent);
         expect(popover.props.popoverDimensions).toEqual(expect.objectContaining({width: CONST.POPOVER_DROPDOWN_WIDTH}));
+    });
+
+    it('shows a delete button only on a field that was deleted from the workspace', async () => {
+        // Given a report holding one field that is still on the workspace and one the admin has since deleted. Both
+        // are `deletable`, so the button has to be decided by the field being gone from the workspace
+        await renderReportFields(1, [], false, [buildDeletedField()]);
+
+        // When the fields are rendered
+        // Then the deleted field still shows its value and carries a delete button, because the editor page with its
+        // Delete option is no longer reachable and this is the only way to clear the stale value off the report
+        expect(screen.getByLabelText('DeletedField')).toHaveProp('value', 'Old value');
+        expect(screen.getByLabelText('workspace.reportFields.delete, DeletedField')).toBeOnTheScreen();
+
+        // And the field that is still on the workspace has no delete button, since removing it would only bring it back
+        expect(screen.queryByLabelText('workspace.reportFields.delete, Field1')).not.toBeOnTheScreen();
+    });
+
+    it('deletes the field from the report once the delete is confirmed', async () => {
+        // Given a report holding a field that was deleted from the workspace
+        await renderReportFields(1, [], false, [buildDeletedField()]);
+
+        // When its delete button is pressed and the confirmation is accepted
+        fireEvent.press(screen.getByLabelText('workspace.reportFields.delete, DeletedField'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the user is asked first, as on the editor page, and the field is removed from this report
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+        expect(deleteReportField).toHaveBeenCalledTimes(1);
+        expect(deleteReportField).toHaveBeenCalledWith(reportID, expect.objectContaining({fieldID: 'deletedField'}));
+    });
+
+    it('keeps the field when the delete is cancelled', async () => {
+        // Given a report holding a field that was deleted from the workspace
+        await renderReportFields(1, [], false, [buildDeletedField()]);
+
+        // When its delete button is pressed but the confirmation is dismissed
+        mockShowConfirmModal.mockImplementationOnce(() => Promise.resolve({action: 'CLOSE'}));
+        fireEvent.press(screen.getByLabelText('workspace.reportFields.delete, DeletedField'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then nothing is deleted, so a stray tap on the button cannot wipe the value
+        expect(deleteReportField).not.toHaveBeenCalled();
     });
 });

@@ -1,13 +1,16 @@
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useSaveReportField from '@hooks/useSaveReportField';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {clearReportFieldKeyErrors} from '@libs/actions/Report';
+import {clearReportFieldKeyErrors, deleteReportField} from '@libs/actions/Report';
 import {resolveReportFieldValue} from '@libs/Formula';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
@@ -59,6 +62,9 @@ type MoneyRequestViewReportFieldsProps = {
 type EnrichedPolicyReportField = {
     fieldValue: string;
     isFieldDisabled: boolean;
+
+    /** Whether the field was deleted from the workspace but still holds a value on this report, so it can be removed */
+    isFieldDeletable: boolean;
     fieldKey: string;
     violation: ReportViolationName | undefined;
     violationTranslation: string;
@@ -70,6 +76,7 @@ function ReportFieldView(
     policy: OnyxEntry<Policy>,
     styles: ThemeStyles,
     onSaveValue: (reportField: PolicyReportField, value: string) => void,
+    onDelete: (reportField: EnrichedPolicyReportField) => Promise<void>,
     pendingAction?: PendingAction,
 ) {
     return (
@@ -93,6 +100,13 @@ function ReportFieldView(
                     errorText={reportField.violationTranslation}
                     fieldList={policy?.fieldList}
                     onSaveValue={(value) => onSaveValue(reportField, value)}
+                    onDelete={
+                        reportField.isFieldDeletable
+                            ? () => {
+                                  onDelete(reportField);
+                              }
+                            : undefined
+                    }
                 />
             </OfflineWithFeedback>
         </View>
@@ -107,6 +121,25 @@ function MoneyRequestViewReportFields({report, policy, pendingAction, style, sho
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(report?.reportID)}`);
     const {getCurrencyDecimals} = useCurrencyListActions();
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
+
+    const deleteField = async (reportField: EnrichedPolicyReportField) => {
+        const result = await showConfirmModal({
+            title: translate('workspace.reportFields.delete'),
+            prompt: translate('workspace.reportFields.deleteConfirmation'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+            shouldEnableNewFocusManagement: true,
+        });
+        if (result.action !== ModalActions.CONFIRM || !report?.reportID) {
+            return;
+        }
+        // The failure data restores whatever field is passed here, so it gets the field as stored on the report rather
+        // than the copy enriched for display.
+        deleteReportField(report.reportID, report.fieldList?.[reportField.fieldKey] ?? reportField);
+    };
 
     const sortedPolicyReportFields = useMemo<EnrichedPolicyReportField[]>((): EnrichedPolicyReportField[] => {
         const {fieldValues, fieldsByName} = getReportFieldMaps(report, policy?.fieldList ?? {}, reportNameValuePairs);
@@ -121,6 +154,8 @@ function MoneyRequestViewReportFields({report, policy, pendingAction, style, sho
                 const isFieldDisabled = isReportFieldDisabledForUser(report, field, policy, currentUserAccountID, rules);
                 const isDeletedFormulaField = field.type === CONST.REPORT_FIELD_TYPES.FORMULA && field.deletable;
                 const fieldKey = getReportFieldKey(field.fieldID);
+                const isFieldOnPolicy = !!(policy?.fieldList?.[fieldKey] ?? policy?.fieldList?.[field.fieldID]);
+                const isEditable = !isFieldDisabled || isDeletedFormulaField;
 
                 const violation = isFieldDisabled ? undefined : getFieldViolation(field);
                 const violationTranslation = getFieldViolationTranslation(field, violation);
@@ -128,7 +163,10 @@ function MoneyRequestViewReportFields({report, policy, pendingAction, style, sho
                 return {
                     ...field,
                     fieldValue,
-                    isFieldDisabled: isFieldDisabled && !isDeletedFormulaField,
+                    isFieldDisabled: !isEditable,
+                    // The same rule the report field editor page used for its Delete option, limited to fields that are
+                    // no longer on the workspace.
+                    isFieldDeletable: field.deletable && field.fieldID !== CONST.REPORT_FIELD_TITLE_FIELD_ID && !isFieldOnPolicy && isEditable,
                     fieldKey,
                     violation,
                     violationTranslation,
@@ -163,7 +201,7 @@ function MoneyRequestViewReportFields({report, policy, pendingAction, style, sho
                         // message grows downwards instead of stretching the cells beside it and shifting their inputs.
                         style={[styles.flexRow, styles.gap3, styles.alignItemsStart]}
                     >
-                        {fieldRow.map((reportField) => ReportFieldView(reportField, report, policy, styles, saveReportField, pendingAction))}
+                        {fieldRow.map((reportField) => ReportFieldView(reportField, report, policy, styles, saveReportField, deleteField, pendingAction))}
                         {/* A partly filled last row is padded out so its fields stay the same width as the rows above it. */}
                         {Array.from({length: columnCount - fieldRow.length}, (_unused, index) => (
                             <View

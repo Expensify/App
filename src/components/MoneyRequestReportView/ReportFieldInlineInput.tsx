@@ -6,6 +6,8 @@
  */
 
 import DatePicker from '@components/DatePicker';
+import Icon from '@components/Icon';
+import {PressableWithFeedback} from '@components/Pressable';
 import FilterPopupButton from '@components/Search/FilterDropdowns/FilterPopupButton';
 import type {FilterPopupButtonProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import TextInput from '@components/TextInput';
@@ -14,6 +16,7 @@ import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -51,15 +54,22 @@ type ReportFieldInlineInputProps = {
     fieldList?: FieldList;
 
     onSaveValue: (value: string) => void;
+
+    /**
+     * Removes the field from the report. Passed only for a field that was deleted from the workspace, so the field
+     * shows a delete button on its right edge. Without it the stale value could never be cleared off the report.
+     */
+    onDelete?: () => void;
 };
 
-function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, errorText, fieldList, onSaveValue}: ReportFieldInlineInputProps) {
+function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, errorText, fieldList, onSaveValue, onDelete}: ReportFieldInlineInputProps) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
     const isInLandscapeMode = useIsInLandscapeMode();
     const {isInNarrowPaneModal} = useResponsiveLayout();
-    const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
+    const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'Trashcan']);
 
     const [draftValue, setDraftValue] = useState(value);
     const [previousValue, setPreviousValue] = useState(value);
@@ -139,8 +149,38 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
         onSaveValue(selectedValue);
     };
 
-    if (reportField.type === CONST.REPORT_FIELD_TYPES.DATE && !isReadOnly) {
+    // The input's right corners are squared off so the delete button can sit flush against it, and the input's own
+    // right border becomes the divider between the two.
+    const textInputContainerStyles = onDelete ? styles.noRightBorderRadius : undefined;
+
+    const renderWithDeleteButton = (field: React.ReactNode) => {
+        if (!onDelete) {
+            return field;
+        }
+
         return (
+            // The button keeps the input's height and stays at the top, so an error message under the input grows the
+            // field downwards without stretching the button.
+            <View style={[styles.flexRow, styles.alignItemsStart]}>
+                <View style={styles.flex1}>{field}</View>
+                <PressableWithFeedback
+                    onPress={onDelete}
+                    style={styles.reportFieldDeleteButton}
+                    role={CONST.ROLE.BUTTON}
+                    accessibilityLabel={`${translate('workspace.reportFields.delete')}, ${label}`}
+                    sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_FIELD_DELETE_BUTTON}
+                >
+                    <Icon
+                        src={icons.Trashcan}
+                        fill={theme.icon}
+                    />
+                </PressableWithFeedback>
+            </View>
+        );
+    };
+
+    if (reportField.type === CONST.REPORT_FIELD_TYPES.DATE && !isReadOnly) {
+        return renderWithDeleteButton(
             <DatePicker
                 inputID={fieldKey}
                 label={label}
@@ -159,7 +199,8 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
                 // The Month/Year pickers are right-docked, and a right-docked modal opened from the RHP drops its
                 // backdrop by default, so the report behind them would not be dimmed.
                 shouldEnableMonthYearBackdropInNarrowPane={isInNarrowPaneModal}
-            />
+                textInputContainerStyles={textInputContainerStyles}
+            />,
         );
     }
 
@@ -208,7 +249,7 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
             </View>
         );
 
-        return (
+        return renderWithDeleteButton(
             // No `popoverWidth`, so the dropdown falls back to `CONST.POPOVER_DROPDOWN_WIDTH`, the same width every
             // Spend filter dropdown uses. Matching the field's own width instead made narrow fields open odd, cramped
             // popovers and wide ones open oversized.
@@ -249,15 +290,16 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
                                 // Keeps the label raised like the date field's, so a value that goes empty and back while
                                 // the next report loads does not drop the label into the field and animate it back up.
                                 forceActiveLabel
+                                textInputContainerStyles={textInputContainerStyles}
                             />
                         </View>
                     );
                 }}
-            />
+            />,
         );
     }
 
-    return (
+    return renderWithDeleteButton(
         <TextInput
             inputID={fieldKey}
             label={label}
@@ -275,7 +317,8 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
             // Keeps the label raised like the date field's, so a value that goes empty and back while the next report
             // loads does not drop the label into the field and animate it back up.
             forceActiveLabel
-        />
+            textInputContainerStyles={textInputContainerStyles}
+        />,
     );
 }
 

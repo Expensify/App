@@ -2199,6 +2199,21 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: variables.optionRowHeightCompact,
         },
 
+        // Sits flush against the right edge of a report field whose input has `noRightBorderRadius`, so the input's
+        // right border reads as a divider and the two look like one segmented field.
+        reportFieldDeleteButton: {
+            width: variables.componentSizeLarge,
+            height: variables.componentSizeLarge,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: theme.appBG,
+            borderWidth: 1,
+            borderLeftWidth: 0,
+            borderTopRightRadius: variables.componentBorderRadiusNormal,
+            borderBottomRightRadius: variables.componentBorderRadiusNormal,
+            borderColor: theme.bordersBold,
+        },
+
         optionsListSectionHeader: {
             marginTop: 8,
             marginBottom: 4,
