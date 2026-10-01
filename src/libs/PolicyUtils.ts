@@ -196,8 +196,13 @@ const isPolicyOwner = (policy: OnyxInputOrEntry<Pick<Policy, 'ownerAccountID'>>,
  *
  * Only a member who was invited to the chat can be removed from it. Everybody else is there by virtue of the
  * workspace configuration, so their membership is governed by that configuration and not by this screen — see the
- * expense chat rules in `contributingGuides/philosophies/SECURITY.md`. That covers admins, the policy owner and
- * approvers, who are auto-added to the chats of everybody who submits to them.
+ * expense chat rules in `contributingGuides/philosophies/SECURITY.md`. That covers admins, the policy owner,
+ * approvers, who are auto-added to the chats of everybody who submits to them, and auditors, who are default members
+ * of every workspace chat.
+ *
+ * The auditor role is read from the member's own `employeeList` entry via `getPolicyRole(..., false)`, not through
+ * `isPolicyAuditor`, which checks the viewer's global `policy.role` first and would report "not an auditor" for every
+ * member when an admin is viewing.
  *
  * Fails closed on a missing `login`: without one we cannot resolve the member's role, and offering removal for a
  * member whose role is unknown could remove a workspace admin. Both the member list and the member details page must
@@ -216,7 +221,7 @@ const isPolicyOwner = (policy: OnyxInputOrEntry<Pick<Policy, 'ownerAccountID'>>,
  * protection, so every caller must state it even when it is `undefined`.
  */
 const isRoomMemberProtectedByPolicyRole = (policy: OnyxInputOrEntry<Policy>, login: string | undefined, accountID: number | undefined): boolean =>
-    isPolicyOwner(policy, accountID) || !login || isPolicyAdmin(policy, login, false) || isPolicyApprover(policy, login);
+    isPolicyOwner(policy, accountID) || !login || isPolicyAdmin(policy, login, false) || getPolicyRole(policy, login, false) === CONST.POLICY.ROLE.AUDITOR || isPolicyApprover(policy, login);
 
 const WRITE_ALL_POLICY_FEATURES = Object.fromEntries(Object.values(CONST.POLICY.POLICY_FEATURE).map((feature) => [feature, CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE])) as Record<
     PolicyFeature,
