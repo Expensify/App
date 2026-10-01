@@ -767,7 +767,7 @@ describe('getExportMenuItem - Business Central', () => {
 
             // Then it shows the card's vendor for either destination, since card expenses export against a vendor for both,
             // and it leaves out the fully blocked vendor that Business Central would reject
-            expect(result?.title).toBe('Contoso');
+            expect(result?.title).toBe(`${translateLocal('common.exportsTo')} Contoso`);
             expect(result?.shouldShowMenuItem).toBe(true);
             expect(result?.exportType).toBe(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_BUSINESS_CENTRAL_EXPORT_VENDOR);
             expect(result?.data.map((option) => option.value)).toEqual([translateLocal('workspace.accounting.defaultVendor'), 'bc-vendor-1', 'bc-vendor-2']);
@@ -783,8 +783,21 @@ describe('getExportMenuItem - Business Central', () => {
         const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL, MOCK_POLICY_ID, translate, themeStyles, policy, card);
 
         // Then the row and the selected option both show the default vendor
-        expect(result?.title).toBe(translateLocal('workspace.accounting.defaultVendor'));
+        expect(result?.title).toBe(`${translateLocal('common.exportsTo')} ${translateLocal('workspace.accounting.defaultVendor')}`);
         expect(result?.data.find((option) => option.isSelected)?.value).toBe(translateLocal('workspace.accounting.defaultVendor'));
+    });
+
+    it('shows the row as a single "Exports to" line with the Business Central icon', () => {
+        // Given a card on a workspace connected to Business Central
+        const policy = createBusinessCentralPolicy(CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE);
+        const card = createCardWithExportNVP(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_BUSINESS_CENTRAL_EXPORT_VENDOR, 'bc-vendor-2');
+
+        // When the card's export menu item is built
+        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL, MOCK_POLICY_ID, translate, themeStyles, policy, card);
+
+        // Then the card details page hides the description and shows the integration icon, as in the design
+        expect(result?.shouldHideMenuItemDescription).toBe(true);
+        expect(result?.shouldShowMenuItemIcon).toBe(true);
     });
 });
 
