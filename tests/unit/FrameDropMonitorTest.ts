@@ -1,3 +1,4 @@
+import getPlatform from '@libs/getPlatform';
 import fetchFramesDelay from '@libs/telemetry/frameDrops/fetchFramesDelay';
 import {flush, report, startFrameDropMonitor, stopFrameDropMonitor, suspendFrameDropMonitor} from '@libs/telemetry/frameDrops/frameDropMonitor';
 import {clear, recordPress, recordScreen, startFlow, startOperation} from '@libs/telemetry/frameDrops/frameDropTimeline';
@@ -20,6 +21,7 @@ jest.mock('@sentry/react-native', () => ({
 }));
 
 const FRAME_DROPS = CONST.TELEMETRY.FRAME_DROPS;
+const PLATFORM = getPlatform();
 const PRESS_LABEL = CONST.SENTRY_LABEL.BULK_ACTION_BAR.MORE;
 // Date.now() - performance.now(), so timeline times map to Unix seconds as (time + offset) / 1000.
 const CLOCK_OFFSET_MS = 1_000_000;
@@ -57,8 +59,15 @@ function mockDelays(delays: Array<{start: number; end: number; delaySeconds: num
     });
 }
 
+/** Count calls of one metric. Every metric carries the platform; it is checked here and left out of the returned attributes. */
 function getCountCalls(metric: string) {
-    return mockCount.mock.calls.filter(([name]) => name === metric).map(([, value, options]) => ({value, attributes: options?.attributes}));
+    return mockCount.mock.calls
+        .filter(([name]) => name === metric)
+        .map(([, value, options]) => {
+            const {platform, ...attributes} = options?.attributes ?? {};
+            expect(platform).toBe(PLATFORM);
+            return {value, attributes};
+        });
 }
 
 function sumCounts(metric: string) {
@@ -244,7 +253,7 @@ describe('frameDropMonitor', () => {
         // Then the press still gets its own measured delay instead of being lost to the query budget
         expect(mockDistribution).toHaveBeenCalledWith(FRAME_DROPS.METRIC_INTERACTION_FRAME_DELAY, 100, {
             unit: 'millisecond',
-            attributes: {screen: 'Screen19', interaction: PRESS_LABEL},
+            attributes: {platform: PLATFORM, screen: 'Screen19', interaction: PRESS_LABEL},
         });
     });
 
@@ -271,7 +280,7 @@ describe('frameDropMonitor', () => {
         expect(mockDistribution).toHaveBeenCalledTimes(1);
         expect(mockDistribution).toHaveBeenCalledWith(FRAME_DROPS.METRIC_INTERACTION_FRAME_DELAY, 120, {
             unit: 'millisecond',
-            attributes: {screen: 'Home', interaction: PRESS_LABEL},
+            attributes: {platform: PLATFORM, screen: 'Home', interaction: PRESS_LABEL},
         });
     });
 

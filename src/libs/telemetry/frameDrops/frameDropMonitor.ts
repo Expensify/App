@@ -1,3 +1,5 @@
+import getPlatform from '@libs/getPlatform';
+
 import CONST from '@src/CONST';
 
 import type {NativeEventSubscription} from 'react-native';
@@ -66,6 +68,8 @@ const OVERFLOW_CONTEXT: FrameDropContext = {
     flow: CONST.TELEMETRY.FRAME_DROPS.OVERFLOW,
 };
 
+// Sentry doesn't attach the OS to metrics, so it is sent as an attribute to tell iOS and Android apart.
+const platform = getPlatform();
 const aggregates = new Map<string, Aggregate>();
 const interactionDelays = new Map<number, InteractionDelay>();
 const interactionCounts = new Map<string, InteractionCount>();
@@ -249,6 +253,7 @@ function reportEndedInteractions(endedInteractionIDs: Set<number>) {
         Sentry.metrics.distribution(CONST.TELEMETRY.FRAME_DROPS.METRIC_INTERACTION_FRAME_DELAY, delayMs, {
             unit: 'millisecond',
             attributes: {
+                [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_PLATFORM]: platform,
                 [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_SCREEN]: interactionDelay.screen,
                 [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_INTERACTION]: interactionDelay.label,
             },
@@ -386,6 +391,7 @@ function report() {
     console.debug('[FrameDrops] Reporting aggregates', [...aggregates.values()]);
     for (const aggregate of aggregates.values()) {
         const attributes = {
+            [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_PLATFORM]: platform,
             [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_SCREEN]: aggregate.screen,
             [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_INTERACTION]: aggregate.interaction,
             [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_OPERATION]: aggregate.operation,
@@ -405,6 +411,7 @@ function report() {
     for (const interactionCount of interactionCounts.values()) {
         Sentry.metrics.count(CONST.TELEMETRY.FRAME_DROPS.METRIC_INTERACTION_COUNT, interactionCount.count, {
             attributes: {
+                [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_PLATFORM]: platform,
                 [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_SCREEN]: interactionCount.screen,
                 [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_INTERACTION]: interactionCount.interaction,
             },

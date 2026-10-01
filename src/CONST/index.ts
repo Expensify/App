@@ -2436,6 +2436,7 @@ const CONST = {
             ATTRIBUTE_INTERACTION: 'interaction',
             ATTRIBUTE_OPERATION: 'operation',
             ATTRIBUTE_FLOW: 'flow',
+            ATTRIBUTE_PLATFORM: 'platform',
         },
         // Breadcrumb names
         BREADCRUMB_CATEGORY_MEMORY: 'system.memory',
