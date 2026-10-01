@@ -1660,7 +1660,7 @@ describe('actions/Report', () => {
         };
 
         const {result: ancestors, rerender} = renderHook(() => useAncestors(originalReport));
-        Report.editReportComment(originalReport, newReportAction, 'Testing an edited comment', undefined, '', undefined);
+        Report.editReportComment(originalReport, newReportAction, 'Testing an edited comment', undefined, '', undefined, TEST_USER_ACCOUNT_ID);
 
         await waitForBatchedUpdates();
 
@@ -1744,7 +1744,7 @@ describe('actions/Report', () => {
         const {result: ancestors, rerender} = renderHook(() => useAncestors(originalReport));
 
         const currentUserEmail = 'test@test.com';
-        Report.editReportComment(originalReport, newReportAction, 'Testing an edited comment', undefined, currentUserEmail, undefined);
+        Report.editReportComment(originalReport, newReportAction, 'Testing an edited comment', undefined, currentUserEmail, undefined, TEST_USER_ACCOUNT_ID);
         await waitForBatchedUpdates();
 
         const persistedRequests = await getOnyxValue(ONYXKEYS.PERSISTED_REQUESTS);
@@ -1805,7 +1805,7 @@ describe('actions/Report', () => {
         };
         const {result: ancestors, rerender} = renderHook(() => useAncestors(originalReport));
 
-        Report.editReportComment(originalReport, reportAction, 'Testing an edited comment', undefined, '', undefined);
+        Report.editReportComment(originalReport, reportAction, 'Testing an edited comment', undefined, '', undefined, TEST_USER_ACCOUNT_ID);
 
         await waitForBatchedUpdates();
 
@@ -2655,7 +2655,7 @@ describe('actions/Report', () => {
         const originalReport = {
             reportID: REPORT_ID,
         };
-        Report.editReportComment(originalReport, reportAction, 'Testing an edited comment', undefined, '', undefined);
+        Report.editReportComment(originalReport, reportAction, 'Testing an edited comment', undefined, '', undefined, TEST_USER_ACCOUNT_ID);
 
         await waitForBatchedUpdates();
 
@@ -2692,9 +2692,9 @@ describe('actions/Report', () => {
             reportID,
         };
 
-        Report.editReportComment(originalReport, action, 'value1', undefined, '', undefined);
-        Report.editReportComment(originalReport, action, 'value2', undefined, '', undefined);
-        Report.editReportComment(originalReport, action, 'value3', undefined, '', undefined);
+        Report.editReportComment(originalReport, action, 'value1', undefined, '', undefined, 1);
+        Report.editReportComment(originalReport, action, 'value2', undefined, '', undefined, 1);
+        Report.editReportComment(originalReport, action, 'value3', undefined, '', undefined, 1);
 
         const requests = PersistedRequests?.getAll();
 
@@ -2755,10 +2755,18 @@ describe('actions/Report', () => {
         };
 
         // Edit the comment to add a short mention
-        Report.editReportComment(originalReport, newReportAction, 'Initial comment with @bob', undefined, TEST_USER_LOGIN, {
-            [TEST_USER_ACCOUNT_ID]: {accountID: TEST_USER_ACCOUNT_ID, login: TEST_USER_LOGIN},
-            [MENTIONED_USER_ACCOUNT_ID]: {accountID: MENTIONED_USER_ACCOUNT_ID, login: MENTIONED_USER_LOGIN, displayName: 'Bob'},
-        });
+        Report.editReportComment(
+            originalReport,
+            newReportAction,
+            'Initial comment with @bob',
+            undefined,
+            TEST_USER_LOGIN,
+            {
+                [TEST_USER_ACCOUNT_ID]: {accountID: TEST_USER_ACCOUNT_ID, login: TEST_USER_LOGIN},
+                [MENTIONED_USER_ACCOUNT_ID]: {accountID: MENTIONED_USER_ACCOUNT_ID, login: MENTIONED_USER_LOGIN, displayName: 'Bob'},
+            },
+            TEST_USER_ACCOUNT_ID,
+        );
 
         await waitForBatchedUpdates();
 
@@ -2798,9 +2806,9 @@ describe('actions/Report', () => {
         const originalReport = {reportID: '123'};
         const currentUserEmail = 'user@test.com';
 
-        Report.editReportComment(originalReport, action, 'value1', undefined, currentUserEmail, undefined);
-        Report.editReportComment(originalReport, action, 'value2', undefined, currentUserEmail, undefined);
-        Report.editReportComment(originalReport, action, 'value3', undefined, currentUserEmail, undefined);
+        Report.editReportComment(originalReport, action, 'value1', undefined, currentUserEmail, undefined, 1);
+        Report.editReportComment(originalReport, action, 'value2', undefined, currentUserEmail, undefined, 1);
+        Report.editReportComment(originalReport, action, 'value3', undefined, currentUserEmail, undefined, 1);
 
         const requests = PersistedRequests?.getAll();
         expect(requests.length).toBe(1);
@@ -2812,6 +2820,57 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
 
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 1);
+    });
+
+    it("should update the report's last message only when the edited comment is the newest action the user can see", async () => {
+        global.fetch = TestHelper.createGlobalFetchMock();
+        const CURRENT_USER_ACCOUNT_ID = 1;
+        const OTHER_ACCOUNT_ID = 2;
+        const ORIGINAL_LAST_MESSAGE = 'original last message';
+
+        /** A report holding an older comment plus a newer actionable-mention whisper aimed at `whisperedToAccountID`. */
+        const setUpReport = async (reportID: string, whisperedToAccountID: number) => {
+            const comment: OnyxTypes.ReportAction = {
+                reportActionID: `comment_${reportID}`,
+                reportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID: CURRENT_USER_ACCOUNT_ID,
+                created: '2024-01-01 10:00:00.000',
+                message: [{type: 'COMMENT', html: 'before edit', text: 'before edit'}],
+                originalMessage: {html: 'before edit'},
+            };
+            const whisper: OnyxTypes.ReportAction = {
+                reportActionID: `whisper_${reportID}`,
+                reportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+                actorAccountID: OTHER_ACCOUNT_ID,
+                created: '2024-01-01 11:00:00.000',
+                message: [{type: 'COMMENT', html: 'invite them?', text: 'invite them?', whisperedTo: [whisperedToAccountID]}],
+                originalMessage: {inviteeAccountIDs: [OTHER_ACCOUNT_ID], whisperedTo: [whisperedToAccountID]},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, lastMessageText: ORIGINAL_LAST_MESSAGE});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[comment.reportActionID]: comment, [whisper.reportActionID]: whisper});
+            await waitForBatchedUpdates();
+            return comment;
+        };
+
+        // Given a whisper aimed at the user, which is newer than the comment being edited
+        const visibleWhisperReportID = '77001';
+        const commentUnderVisibleWhisper = await setUpReport(visibleWhisperReportID, CURRENT_USER_ACCOUNT_ID);
+        Report.editReportComment({reportID: visibleWhisperReportID}, commentUnderVisibleWhisper, 'after edit', undefined, '', undefined, CURRENT_USER_ACCOUNT_ID);
+        await waitForBatchedUpdates();
+
+        // Then editing the older comment leaves the report's last message alone
+        expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${visibleWhisperReportID}` as const))?.lastMessageText).toBe(ORIGINAL_LAST_MESSAGE);
+
+        // Given a whisper aimed at somebody else, which the user cannot see
+        const hiddenWhisperReportID = '77002';
+        const commentUnderHiddenWhisper = await setUpReport(hiddenWhisperReportID, OTHER_ACCOUNT_ID);
+        Report.editReportComment({reportID: hiddenWhisperReportID}, commentUnderHiddenWhisper, 'after edit', undefined, '', undefined, CURRENT_USER_ACCOUNT_ID);
+        await waitForBatchedUpdates();
+
+        // Then the edited comment is the last visible action, so the report's last message follows it
+        expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${hiddenWhisperReportID}` as const))?.lastMessageText).toBe('after edit');
     });
 
     it('should clears lastMentionedTime when all mentions to the current user are deleted', async () => {
