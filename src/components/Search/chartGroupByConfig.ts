@@ -114,7 +114,7 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
     [CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER]: {
         titleIconName: 'Users',
         getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER ? (item.formattedViolationApprover ?? '') : ''),
-        getFilterQuery: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER ? `violation-approver:${item.accountID}` : ''),
+        getFilterQuery: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER ? `${CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER}:${item.accountID}` : ''),
     },
 };
 

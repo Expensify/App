@@ -872,6 +872,28 @@ const tests = [
         },
     },
     {
+        query: 'type:expense has:approved-violation violation-approver:22982540',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            view: 'table',
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                left: {
+                    operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                    left: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
+                    right: CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION,
+                },
+                right: {
+                    operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                    left: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION_APPROVER,
+                    right: '22982540',
+                },
+            },
+        },
+    },
+    {
         query: 'type:chat is:read',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.CHAT,

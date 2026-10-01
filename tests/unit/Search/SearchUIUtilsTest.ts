@@ -748,6 +748,39 @@ const searchResultsGroupByCategory: OnyxTypes.SearchResults = {
     },
 };
 
+const violationApproverAccountID = 22982540;
+const searchResultsGroupByViolationApprover: OnyxTypes.SearchResults = {
+    data: {
+        personalDetailsList: {
+            [violationApproverAccountID]: {
+                accountID: violationApproverAccountID,
+                displayName: 'Approver',
+                login: 'approver@policy.com',
+            },
+        },
+        [`${CONST.SEARCH.GROUP_PREFIX}${violationApproverAccountID}` as const]: {
+            accountID: violationApproverAccountID,
+            approvalCount: 3,
+            count: 3,
+            currency: 'USD',
+            total: 150,
+        },
+    },
+    search: {
+        count: 3,
+        currency: 'USD',
+        hasMoreResults: false,
+        hasResults: true,
+        offset: 0,
+        hash: 0,
+        sortBy: 'date',
+        sortOrder: 'desc',
+        total: 150,
+        isLoading: false,
+        type: 'expense',
+    },
+};
+
 const withoutReportActionErrors = <T extends OnyxTypes.ReportAction>(reportAction: T): Omit<T, 'errors'> => {
     const reportActionWithoutErrors = {...reportAction};
     delete reportActionWithoutErrors.errors;
@@ -3824,6 +3857,59 @@ describe('SearchUIUtils', () => {
             expect(categorySection.transactionsQueryJSON?.groupBy).toBeUndefined();
             expect(categorySection.transactionsQueryJSON?.limit).toBeUndefined();
             expect(categorySection.transactionsQueryJSON?.inputQuery).not.toContain('limit:');
+        });
+
+        it('should build a violationApprover drill-down for a violation-approver group', () => {
+            // Given a violation-approver grouped query whose limit is meant to bound how many groups are shown
+            const parsedQuery = buildSearchQueryJSON(`type:expense has:approved-violation group-by:${CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER} limit:10`);
+            if (!parsedQuery) {
+                throw new Error('Failed to parse violation-approver grouped search query');
+            }
+            expect(parsedQuery.limit).toBe(10);
+
+            // When the violation-approver sections are built
+            const [sections] = getSectionsByType(
+                SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data: searchResultsGroupByViolationApprover.data,
+                    currentAccountID: 2074551,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    rules: undefined,
+                    groupBy: CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER,
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                    queryJSON: {...parsedQuery},
+                }),
+                SearchUIUtils.isTransactionViolationApproverGroupListItemType,
+            );
+
+            // Then the per-group query drops the grouping and limit, keeps has:approved-violation,
+            // and filters by the approver as a syntax filter
+            const violationApproverSection = sections.at(0);
+            if (!violationApproverSection) {
+                throw new Error('Expected a violation-approver group section');
+            }
+            expect(violationApproverSection.transactionsQueryJSON?.groupBy).toBeUndefined();
+            expect(violationApproverSection.transactionsQueryJSON?.limit).toBeUndefined();
+            expect(violationApproverSection.transactionsQueryJSON?.inputQuery).not.toContain('limit:');
+            expect(violationApproverSection.transactionsQueryJSON?.filters).toEqual({
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                left: {
+                    operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                    left: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
+                    right: CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION,
+                },
+                right: {
+                    operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                    left: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION_APPROVER,
+                    right: String(violationApproverAccountID),
+                },
+            });
         });
 
         // Every date granularity drills down through the same `buildDateRangeGroupQuery` builder, so they are

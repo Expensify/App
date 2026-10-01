@@ -452,7 +452,7 @@ const transactionViolationApproverGroupColumnNamesToSortingProperty: Transaction
     [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: null,
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_VIOLATION_APPROVER]: 'formattedViolationApprover' as const,
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVAL_COUNT]: 'approvalCount' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVED_TOTAL]: 'approvedTotal' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVED_TOTAL]: 'total' as const,
     ...transactionGroupBaseSortingProperties,
 };
 
@@ -3163,15 +3163,7 @@ function getActiveGroupSearchHashes(data: OnyxTypes.SearchResults['data'] | unde
             }
             case CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER: {
                 if ('approvalCount' in group && typeof group.accountID === 'number') {
-                    transactionsQueryJSON = buildSearchQueryJSON(
-                        `${buildSearchQueryString({
-                            ...queryJSON,
-                            groupBy: undefined,
-                            limit: undefined,
-                            sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
-                            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
-                        })} violation-approver:${group.accountID}`,
-                    );
+                    transactionsQueryJSON = buildViolationApproverGroupQuery(queryJSON, group.accountID);
                 }
                 break;
             }
@@ -3209,6 +3201,10 @@ function buildDateRangeGroupQuery(queryJSON: SearchQueryJSON, dateRange: {start:
     };
     const transactionsQueryJSON = buildSearchQueryJSON(buildSearchQueryString(newQueryJSON));
     return {transactionsQueryJSON, start, end};
+}
+
+function buildViolationApproverGroupQuery(queryJSON: SearchQueryJSON, accountID: number): SearchQueryJSON | undefined {
+    return buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION_APPROVER, accountID);
 }
 
 /**
@@ -3707,18 +3703,7 @@ function getViolationApproverSections(
             }
 
             const personalDetails = data.personalDetailsList?.[violationApproverGroup.accountID] ?? onyxPersonalDetailsList?.[violationApproverGroup.accountID] ?? emptyPersonalDetails;
-            const transactionsQueryJSON =
-                queryJSON && violationApproverGroup.accountID
-                    ? buildSearchQueryJSON(
-                          `${buildSearchQueryString({
-                              ...queryJSON,
-                              groupBy: undefined,
-                              limit: undefined,
-                              sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
-                              sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
-                          })} violation-approver:${violationApproverGroup.accountID}`,
-                      )
-                    : undefined;
+            const transactionsQueryJSON = queryJSON ? buildViolationApproverGroupQuery(queryJSON, violationApproverGroup.accountID) : undefined;
 
             violationApproverSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER,

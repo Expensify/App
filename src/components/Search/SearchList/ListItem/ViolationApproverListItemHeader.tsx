@@ -133,7 +133,7 @@ function ViolationApproverListItemHeader({
                 style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVED_TOTAL, {shouldRemoveTotalColumnFlex: true})}
             >
                 <TotalCell
-                    total={violationApproverItem.approvedTotal}
+                    total={violationApproverItem.total}
                     currency={violationApproverItem.currency}
                 />
             </View>
@@ -181,7 +181,7 @@ function ViolationApproverListItemHeader({
                 {!isLargeScreenWidth && (
                     <View style={[styles.flexShrink0, styles.flexRow, styles.alignItemsCenter]}>
                         <TotalCell
-                            total={violationApproverItem.approvedTotal}
+                            total={violationApproverItem.total}
                             currency={violationApproverItem.currency}
                         />
                         {!!onDownArrowClick && (

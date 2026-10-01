@@ -302,6 +302,7 @@ key "key"
       / submitterUserID
       / submitterPayrollID
       / orderDealNumbers
+      / violationApprover
       / assignee
       / createdBy
       / reimbursable

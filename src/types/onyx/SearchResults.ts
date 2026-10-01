@@ -277,9 +277,6 @@ type SearchViolationApproverGroup = SearchGroupBase & {
 
     /** How many expenses this approver approved */
     approvalCount: number;
-
-    /** Total amount of expenses this approver approved, in cents */
-    approvedTotal: number;
 };
 
 /** SearchResultDataType */
