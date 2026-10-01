@@ -41,7 +41,6 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {getStreetLines} from '@libs/PersonalDetailsUtils';
-// eslint-disable-next-line no-restricted-imports -- billing-only: gates the personal-card upgrade prompt on being on a paid plan, not general workspace feature access
 import {getActiveAdminWorkspaces, getDescriptionForPolicyDomainCard, hasActiveAdminWorkspaces, hasEligibleBankAccountShareRecipient, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 

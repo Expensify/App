@@ -16,8 +16,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {isControlPolicy} from '@libs/PolicyUtils';
+import sortAlphabetically from '@libs/sortAlphabetically';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import {getApprovalLimitDescription} from '@libs/WorkflowUtils';
 
