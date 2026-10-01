@@ -28,7 +28,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
-import {configureExpensifyCardsForPolicy, setIssueNewCardStepAndData} from '@userActions/Card';
+import {clearIssueNewCardFormData, configureExpensifyCardsForPolicy, setIssueNewCardStepAndData} from '@userActions/Card';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -129,6 +129,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
         if (!policyID) {
             return;
         }
+        clearIssueNewCardFormData();
         setIssueNewCardStepAndData({policyID, isChangeAssigneeDisabled: false});
         Navigation.dismissModal();
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.path, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)));
