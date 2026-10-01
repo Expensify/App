@@ -14556,6 +14556,28 @@ describe('SearchUIUtils', () => {
             // Then the action filter is listed so the user can see and remove it
             expect(result).toEqual([{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION, label: 'Action', value: 'Approve'}]);
         });
+
+        it('maps the negated action filter to a translated label and value', () => {
+            // Given a form with a negated action filter, like one typed as -action:approve
+            const form = {
+                [CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE]: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                [FILTER_KEYS.ACTION_NOT]: CONST.SEARCH.ACTION_FILTERS.APPROVE,
+            };
+
+            // When the form is mapped with the default skipped filters
+            const result = SearchUIUtils.mapFiltersFormToLabelValueList(
+                form,
+                new Set(),
+                SearchUIUtils.SKIPPED_SEARCH_FILTERS,
+                translateLocal,
+                undefined,
+                localeCompare,
+                convertToDisplayStringWithoutCurrency,
+            );
+
+            // Then the negated action filter is listed with the negation prefix and the translated action name
+            expect(result).toEqual([{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION, label: `${CONST.SEARCH.NOT_PREFIX}Action`, value: 'Approve'}]);
+        });
     });
 });
 

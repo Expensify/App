@@ -8,6 +8,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringWithResetFilters} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
+import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 
 const mockSetFilterQueryParams = jest.fn();
 const mockUpdateFilterQueryParams = jest.fn();
@@ -133,8 +134,9 @@ describe('useSearchFiltersBar', () => {
             // When the filters bar is built
             renderHook(() => useSearchFiltersBar(queryJSON));
 
-            // Then the action filter isn't skipped, so a carried-over action shows as a removable chip
+            // Then neither the action filter nor its negation is skipped, so either shows as a removable chip
             expect(getSkippedFilters()?.has(CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION)).toBe(false);
+            expect(getSkippedFilters()?.has(FILTER_KEYS.ACTION_NOT)).toBe(false);
         });
 
         it('hides the action filter when it is part of the default query', () => {
@@ -144,8 +146,9 @@ describe('useSearchFiltersBar', () => {
             // When the filters bar is built
             renderHook(() => useSearchFiltersBar(queryJSON));
 
-            // Then the action filter is skipped so the to-do view looks the same as before
+            // Then the action filter and its negation are skipped so the to-do view looks the same as before
             expect(getSkippedFilters()?.has(CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION)).toBe(true);
+            expect(getSkippedFilters()?.has(FILTER_KEYS.ACTION_NOT)).toBe(true);
         });
     });
 

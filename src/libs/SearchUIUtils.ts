@@ -5937,7 +5937,7 @@ function getDisplayValue(
         return transactionStatus ? translate(`search.filters.transactionStatus.${transactionStatus}`) : undefined;
     }
 
-    if (key === FILTER_KEYS.ACTION) {
+    if (key === FILTER_KEYS.ACTION || key === FILTER_KEYS.ACTION_NOT) {
         const action = form[key];
         return isSearchActionFilter(action) ? translate(`search.filters.action.${action}`) : action;
     }

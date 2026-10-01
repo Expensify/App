@@ -25,6 +25,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
@@ -152,9 +153,9 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
     const {shouldShowFiltersBarLoading, currentSearchResults} = useSearchResultsContext();
     const {currentSearchQueryJSON, currentDefaultSearchQueryJSON, currentDefaultSearchQueryFilterKeys} = useSearchQueryContext();
     const {updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
-    // The action filter defines the to-do views (e.g. Approve), so it's only shown when it isn't part of the default query
+    // The action filter defines the to-do views (e.g. Approve), so it (and its negation) is only shown when it isn't part of the default query
     const skippedFilters = currentDefaultSearchQueryFilterKeys.has(CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION)
-        ? new Set([...SKIPPED_SEARCH_FILTERS, CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION])
+        ? new Set([...SKIPPED_SEARCH_FILTERS, FILTER_KEYS.ACTION, FILTER_KEYS.ACTION_NOT])
         : SKIPPED_SEARCH_FILTERS;
     const filters = mapFiltersFormToLabelValueList(
         searchAdvancedFiltersForm,
