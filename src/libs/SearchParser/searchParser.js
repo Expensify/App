@@ -5511,9 +5511,6 @@ function peg$parse(input, options) {
   ]);
 
   function isDefaultSortValue(sortBy) {
-    // `date` is the implicit global default. A group-column sort is only implicit when it
-    // matches the groupBy already applied — so `sort-by:group-expenses` on `group-by:from`
-    // (Violations by submitter) stays explicit and is not rewritten to `groupFrom`.
     return sortBy === "date" || sortBy === GROUP_BY_DEFAULT_SORT[defaultValues.groupBy];
   }
 
