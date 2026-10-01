@@ -97,6 +97,8 @@ function renderHarness(shouldHighlight: boolean, {highlightKey = 'row-A', didScr
         endTransition: () => update({didScreenTransitionEnd: true}, {shouldRerenderRow: false}),
         unmountRow: () => update({isRowMounted: false}, {shouldRerenderRow: false}),
         uncoverAndRecycleInto: (key: string) => update({isScreenVisible: true, highlightKey: key, shouldHighlight: false}, {shouldRerenderRow: true}),
+        coverAndAskToHighlight: () => update({isScreenVisible: false, shouldHighlight: true}, {shouldRerenderRow: true}),
+        coverAndMountHighlighted: () => update({isScreenVisible: false, isRowMounted: true, shouldHighlight: true}, {shouldRerenderRow: true}),
     };
 }
 
@@ -363,5 +365,44 @@ describe('useAnimatedHighlightStyle', () => {
 
         // Then nothing pulses: the row dropped its wait before the screen was published as visible
         expect(pulsePlays()).toBe(0);
+    });
+
+    it('waits for the screen to be uncovered when a single update covers it and asks the row to highlight', () => {
+        // Given a row on a screen the user can see
+        const {coverAndAskToHighlight} = renderHarness(false);
+
+        // When one update covers the screen and asks the row to highlight
+        coverAndAskToHighlight();
+
+        // Then the row is revealed but its pulse waits, since the screen was published as covered before the row acted
+        expect(entryPlays()).toBe(0);
+        expect(revealPlays()).toBe(1);
+        expect(pulsePlays()).toBe(0);
+
+        // When the screen is uncovered
+        uncover();
+
+        // Then the row pulses where the user can see it
+        expect(pulsePlays()).toBe(1);
+    });
+
+    it('waits for the screen to be uncovered when a row mounts highlighted in the update that covers the screen', () => {
+        // Given a screen the user can see, before the list renders the row for a new item
+        const {unmountRow, coverAndMountHighlighted} = renderHarness(false);
+        unmountRow();
+
+        // When one update covers the screen and mounts the row already highlighted
+        coverAndMountHighlighted();
+
+        // Then the row is revealed but its pulse waits, rather than playing behind the cover
+        expect(entryPlays()).toBe(0);
+        expect(revealPlays()).toBe(1);
+        expect(pulsePlays()).toBe(0);
+
+        // When the screen is uncovered
+        uncover();
+
+        // Then the row pulses where the user can see it
+        expect(pulsePlays()).toBe(1);
     });
 });

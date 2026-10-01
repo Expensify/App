@@ -86,4 +86,13 @@ describe('useDeliveredReportTransactions', () => {
         // Then the list is handed over, since every expense the report claims has arrived
         expect(result.current).toEqual(nonDeletedRows);
     });
+
+    it('withholds a partial list while the report ID is still unknown, since no report has been delivered yet', () => {
+        // Given a caller that has transactions but no report ID yet
+        // When only one of the two expected transactions has arrived
+        const {result} = renderHarness({reportID: undefined, transactions: reportATransactions.slice(0, 1), arrivedTransactionCount: 1, expectedTransactionCount: 2});
+
+        // Then the list is withheld, so the partial list never becomes the baseline that makes the rest look new
+        expect(result.current).toBeUndefined();
+    });
 });

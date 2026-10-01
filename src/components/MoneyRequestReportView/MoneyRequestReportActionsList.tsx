@@ -39,7 +39,7 @@ import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsList
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {getStableReportSelector} from '@src/selectors/Report';
-import {pendingNewTransactionIDsSelector} from '@src/selectors/ReportMetaData';
+import {pendingNewTransactionsSelector} from '@src/selectors/ReportMetaData';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {LayoutChangeEvent} from 'react-native';
@@ -107,8 +107,8 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         unfilteredReportActions,
         isOffline,
     );
-    const [pendingNewTransactionIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {
-        selector: pendingNewTransactionIDsSelector,
+    const [pendingNewTransactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {
+        selector: pendingNewTransactionsSelector,
     });
     const newTransactions = useNewTransactions({
         hasOnceLoadedReportActions: reportLoadingState?.hasOnceLoadedReportActions,
@@ -116,7 +116,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         arrivedTransactionCount,
         expectedTransactionCount: report?.transactionCount ?? 0,
         transactionsReportID: reportIDFromRoute,
-        pendingNewTransactions: pendingNewTransactionIDs,
+        pendingNewTransactions,
         railReportID: reportIDFromRoute,
         isReportVisible,
     });

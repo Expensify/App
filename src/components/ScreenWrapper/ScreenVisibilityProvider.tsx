@@ -1,6 +1,6 @@
 import type {ReactNode} from 'react';
 
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useLayoutEffect, useState} from 'react';
 
 import type {ScreenVisibilityStore} from './ScreenVisibilityContext';
 
@@ -37,9 +37,18 @@ function createScreenVisibilityStore(isInitiallyVisible: boolean): ScreenVisibil
 function ScreenVisibilityProvider({isVisible, children}: ScreenVisibilityProviderProps) {
     const [store] = useState(() => createScreenVisibilityStore(isVisible));
 
-    // A passive effect, so a row recycled in this commit drops its wait before the screen is published as visible.
+    // Hidden is published before the rows act and visible after, so a row asked to highlight as the screen is covered waits, and one reused as it is uncovered drops its wait first.
+    useLayoutEffect(() => {
+        if (isVisible) {
+            return;
+        }
+        store.setIsVisible(false);
+    }, [store, isVisible]);
     useEffect(() => {
-        store.setIsVisible(isVisible);
+        if (!isVisible) {
+            return;
+        }
+        store.setIsVisible(true);
     }, [store, isVisible]);
 
     return <ScreenVisibilityContext.Provider value={store}>{children}</ScreenVisibilityContext.Provider>;

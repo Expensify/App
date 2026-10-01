@@ -63,16 +63,16 @@ type PendingNewTransactions = {
 };
 
 /** Freshness is checked when the selector runs, not on a timer, so a flag can expire while its consumer waits to show it. */
-const pendingNewTransactionIDsSelector = (reportMetadata: OnyxEntry<ReportMetadata>): PendingNewTransactions | undefined => {
-    const pendingNewTransactionIDs = reportMetadata?.pendingNewTransactionIDs;
-    if (!pendingNewTransactionIDs) {
+const pendingNewTransactionsSelector = (reportMetadata: OnyxEntry<ReportMetadata>): PendingNewTransactions | undefined => {
+    const storedFlags = reportMetadata?.pendingNewTransactionIDs;
+    if (!storedFlags) {
         return undefined;
     }
     const now = Date.now();
     const activeFlagKeys: Record<string, string> = {};
     const activeStamps: Record<string, number> = {};
     const expiredFlagKeys: string[] = [];
-    for (const [flagKey, isFlagged] of Object.entries(pendingNewTransactionIDs)) {
+    for (const [flagKey, isFlagged] of Object.entries(storedFlags)) {
         if (!isFlagged) {
             continue;
         }
@@ -114,7 +114,7 @@ export {
     reportActionsListLoadingStateSelector,
     isLoadingInitialReportActionsSelector,
     isOptimisticReportSelector,
-    pendingNewTransactionIDsSelector,
+    pendingNewTransactionsSelector,
     pendingChatMembersSelector,
     pendingDeleteMemberAccountIDsSelector,
     pendingDeleteMemberAccountIDsByReportIDSelector,

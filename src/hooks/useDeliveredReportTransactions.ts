@@ -25,7 +25,9 @@ function useDeliveredReportTransactions({reportID, transactions, arrivedTransact
         setDeliveredReportID(reportID);
     }
 
-    return hasEveryTransactionArrived || deliveredReportID === reportID ? transactions : undefined;
+    // Nothing has been delivered yet when `deliveredReportID` is still its initial `undefined`, so an unknown report must not match it.
+    const wasDelivered = reportID !== undefined && deliveredReportID === reportID;
+    return hasEveryTransactionArrived || wasDelivered ? transactions : undefined;
 }
 
 export default useDeliveredReportTransactions;

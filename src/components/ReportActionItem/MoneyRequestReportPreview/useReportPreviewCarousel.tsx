@@ -161,11 +161,11 @@ function useReportPreviewCarousel({
         onOrderedTransactionsChange?.(sortedTransactions);
     }, [onOrderedTransactionsChange, sortedTransactions]);
 
-    // Scrolled to once per transaction, so returning to the chat doesn't pull the user back from older cards.
+    // Scrolled to once while a transaction stays new, so returning to the chat doesn't pull the user back from older cards.
     const scrolledToNewTransactionIDRef = useRef<string | undefined>(undefined);
 
     const scrollToNewTransaction = useEffectEvent((index: number, transactionID: string | undefined) => {
-        if (!isScreenVisible || transactionID === scrolledToNewTransactionIDRef.current) {
+        if (!isScreenVisible || !transactionID || !newTransactionIDs?.has(transactionID) || transactionID === scrolledToNewTransactionIDRef.current) {
             return;
         }
 
@@ -175,8 +175,13 @@ function useReportPreviewCarousel({
             return;
         }
 
+        // Recorded only when the carousel is mounted to scroll, so a later run can still scroll to this transaction.
+        const carousel = carouselRef.current;
+        if (!carousel) {
+            return;
+        }
         scrolledToNewTransactionIDRef.current = transactionID;
-        carouselRef.current?.scrollToIndex({
+        carousel.scrollToIndex({
             index,
             viewOffset: -2 * styles.gap2.gap,
             animated: true,
@@ -184,6 +189,10 @@ function useReportPreviewCarousel({
     });
 
     useEffect(() => {
+        // A transaction that is no longer new can only become new again by leaving the report and coming back, which earns another scroll.
+        if (scrolledToNewTransactionIDRef.current && !newTransactionIDs?.has(scrolledToNewTransactionIDRef.current)) {
+            scrolledToNewTransactionIDRef.current = undefined;
+        }
         if (!isScreenVisible) {
             return;
         }

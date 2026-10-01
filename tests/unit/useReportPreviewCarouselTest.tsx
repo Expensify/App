@@ -20,6 +20,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 const TRANSACTIONS = ['1', '2', '3'].map((transactionID, index) => createMock<Transaction>({transactionID, reportID: 'report', created: `2026-09-0${index + 1}`}));
 const NEW_TRANSACTION_ID = '3';
 const NEW_TRANSACTION_INDEX = 2;
+const TRANSACTIONS_WITHOUT_NEW = TRANSACTIONS.filter(({transactionID}) => transactionID !== NEW_TRANSACTION_ID);
 
 let setChatVisible: (isVisible: boolean) => void = () => {};
 const scrollToIndex = jest.fn();
@@ -32,10 +33,9 @@ function Chat({isInitiallyVisible, children}: {isInitiallyVisible: boolean; chil
     return <ScreenVisibilityProvider isVisible={isVisible}>{children}</ScreenVisibilityProvider>;
 }
 
-function renderCarousel(newTransactionIDs: Set<string>, {isChatVisible = true}: {isChatVisible?: boolean} = {}) {
+function renderCarousel(newTransactionIDs: Set<string>, {isChatVisible = true, isCarouselMounted = true}: {isChatVisible?: boolean; isCarouselMounted?: boolean} = {}) {
     const wrapper = ({children}: {children: ReactNode}) => <Chat isInitiallyVisible={isChatVisible}>{children}</Chat>;
     const params = {
-        transactions: TRANSACTIONS,
         transactionViolations: undefined,
         iouReport: undefined,
         policy: undefined,
@@ -44,10 +44,19 @@ function renderCarousel(newTransactionIDs: Set<string>, {isChatVisible = true}: 
         currentWidth: 400,
         renderTransactionItem: () => null,
     };
-    const {result} = renderHook(({ids}: {ids: Set<string>}) => useReportPreviewCarousel({...params, newTransactionIDs: ids}), {wrapper, initialProps: {ids: newTransactionIDs}});
-    act(() => {
-        result.current.setCarouselRef(createMock<FlashListRef<Transaction>>({scrollToIndex}));
-    });
+    const {result, rerender} = renderHook(
+        ({ids, transactions}: {ids: Set<string>; transactions: Transaction[]}) => useReportPreviewCarousel({...params, transactions, newTransactionIDs: ids}),
+        {wrapper, initialProps: {ids: newTransactionIDs, transactions: TRANSACTIONS}},
+    );
+    const mountCarousel = () =>
+        act(() => {
+            result.current.setCarouselRef(createMock<FlashListRef<Transaction>>({scrollToIndex}));
+        });
+    if (isCarouselMounted) {
+        mountCarousel();
+    }
+    const showReport = (ids: Set<string>, transactions: Transaction[] = TRANSACTIONS) => rerender({ids, transactions});
+    return {mountCarousel, showReport};
 }
 
 const waitForScrollDelay = () => act(() => jest.advanceTimersByTime(CONST.PENDING_TRANSACTION_SCROLL_DELAY));
@@ -145,5 +154,48 @@ describe('useReportPreviewCarousel', () => {
 
         // Then the carousel is not pulled back to it
         expect(scrolledIndexes()).toEqual([NEW_TRANSACTION_INDEX]);
+    });
+
+    it('still scrolls to a new expense whose first scroll found no carousel, the next time the chat is uncovered', () => {
+        // Given a new expense whose scroll delay passes before the carousel has mounted
+        const {mountCarousel} = renderCarousel(new Set([NEW_TRANSACTION_ID]), {isCarouselMounted: false});
+        waitForScrollDelay();
+        expect(scrolledIndexes()).toEqual([]);
+
+        // When the carousel mounts and the chat is then covered and uncovered
+        mountCarousel();
+        act(() => setChatVisible(false));
+        act(() => setChatVisible(true));
+        waitForScrollDelay();
+
+        // Then the carousel scrolls to the expense, since the first attempt never scrolled and so must not count as done
+        expect(scrolledIndexes()).toEqual([NEW_TRANSACTION_INDEX]);
+    });
+
+    it('scrolls to an expense again when it leaves the report and comes back as new', () => {
+        // Given a carousel that has already scrolled to a new expense
+        const {showReport} = renderCarousel(new Set([NEW_TRANSACTION_ID]));
+        waitForScrollDelay();
+        expect(scrolledIndexes()).toEqual([NEW_TRANSACTION_INDEX]);
+
+        // When the expense is moved out of the report and later moved back in, which makes it new again
+        showReport(new Set(), TRANSACTIONS_WITHOUT_NEW);
+        showReport(new Set([NEW_TRANSACTION_ID]));
+        waitForScrollDelay();
+
+        // Then the carousel scrolls to it again, since this is a new addition and its highlight would otherwise play out of view
+        expect(scrolledIndexes()).toEqual([NEW_TRANSACTION_INDEX, NEW_TRANSACTION_INDEX]);
+    });
+
+    it('does not scroll to an expense that stopped being new before the scroll delay passed', () => {
+        // Given an expense that has just become new
+        const {showReport} = renderCarousel(new Set([NEW_TRANSACTION_ID]));
+
+        // When it stops being new before the delay passes, while still in the report
+        showReport(new Set());
+        waitForScrollDelay();
+
+        // Then nothing scrolls, so the carousel never remembers a scroll for an expense that is no longer new
+        expect(scrolledIndexes()).toEqual([]);
     });
 });
