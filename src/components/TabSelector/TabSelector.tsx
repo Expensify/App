@@ -2,6 +2,7 @@ import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerE
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useShouldHideHeaderForKeyboard from '@hooks/useShouldHideHeaderForKeyboard';
 
 import {TabActions} from '@react-navigation/native';
 import React from 'react';
@@ -24,6 +25,7 @@ function TabSelector({
 }: TabSelectorProps) {
     const icons = useMemoizedLazyExpensifyIcons(MEMOIZED_LAZY_TAB_SELECTOR_ICONS);
     const {translate} = useLocalize();
+    const shouldHideForKeyboard = useShouldHideHeaderForKeyboard();
 
     const tabs: TabSelectorBaseItem[] = state.routes.map((route) => {
         const {icon, title, testID, sentryLabel} = getIconTitleAndTestID(icons, route.name, translate);
@@ -61,6 +63,10 @@ function TabSelector({
 
         onTabPress(route.name);
     };
+
+    if (shouldHideForKeyboard) {
+        return null;
+    }
 
     return (
         <FocusTrapContainerElement onContainerElementChanged={onFocusTrapContainerElementChanged}>
