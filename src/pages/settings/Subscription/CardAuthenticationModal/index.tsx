@@ -90,7 +90,7 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
             >
                 <Header style={styles.borderBottom}>
                     {isSmallScreenWidth && <Header.BackButton onPress={onModalClose} />}
-                    <Header.Title title={headerTitle ?? ''} />
+                    <Header.Title title={headerTitle} />
                     <Header.Right>{!isSmallScreenWidth && <Header.CloseButton onPress={onModalClose} />}</Header.Right>
                 </Header>
                 <View style={[styles.flex1]}>
