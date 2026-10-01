@@ -64,7 +64,7 @@ import {getHRAdvancedModeFinalApprover, isAnyHRConnected, isMergeHRCompleteSetup
 import {isAnyRecruitingConnected} from './merge/RecruitingUtils';
 import Navigation from './Navigation/Navigation';
 import {getIsOffline} from './NetworkState';
-import {getAccountIDsByLogins, getKnownAccountIDByLogin} from './PersonalDetailsUtils';
+import {getAccountIDsByLogins} from './PersonalDetailsUtils';
 import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
 import {generateAccountID} from './UserUtils';
 import {isPublicDomain, isValidAccountRoute} from './ValidationUtils';
@@ -2229,7 +2229,13 @@ function getSubmitToAccountID(
     return submitToEmail ? (getAccountIDsByLogins([submitToEmail]).at(0) ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
 }
 
-function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>, submitterLogin: string | undefined, rules: OnyxCollection<Rule>): number | undefined {
+function getSubmitReportManagerAccountID(
+    policy: OnyxEntry<Policy>,
+    expenseReport: OnyxEntry<Report>,
+    submitterLogin: string | undefined,
+    rules: OnyxCollection<Rule>,
+    personalDetailsByLogins: PersonalDetailsByLogin,
+): number | undefined {
     const approvalRules = policy?.rules?.approvalRules;
     const ruleApprover = !isSubmitAndClose(policy) && approvalRules?.length ? getFirstRuleApprover(approvalRules, expenseReport, submitterLogin) : '';
     const hasReliablePolicyRoute =
@@ -2241,7 +2247,8 @@ function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseRepor
         return undefined;
     }
 
-    const submitToAccountID = getKnownAccountIDByLogin(getSubmitToEmail(policy, expenseReport, submitterLogin, rules, true));
+    const submitToEmail = getSubmitToEmail(policy, expenseReport, submitterLogin, rules, true);
+    const submitToAccountID = submitToEmail ? personalDetailsByLogins[submitToEmail]?.accountID : undefined;
     if (submitToAccountID === undefined || !isValidAccountRoute(submitToAccountID)) {
         return undefined;
     }

@@ -17,7 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import usePersonalDetailByLogin, {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
+import usePersonalDetailByLogin, {useGetPersonalDetailsByLogin, usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -100,6 +100,7 @@ function ReportSubmitToContent({
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {isOffline} = useNetwork();
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
@@ -332,6 +333,7 @@ function ReportSubmitToContent({
             delegateEmail,
             delegateAccountID,
             submitterLogin,
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
             managerEmail: trimmed,
             managerAccountID: resolvedManagerAccountID,
             isTrackIntentUser,
@@ -369,6 +371,7 @@ function ReportSubmitToContent({
         delegateEmail,
         delegateAccountID,
         submitterLogin,
+        getPersonalDetailsByLogin,
         currentSearchQueryJSON,
         isOffline,
         currentSearchKey,
