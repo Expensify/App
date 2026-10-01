@@ -3621,7 +3621,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         growlNotificationWrapper: {
-            zIndex: 2,
+            zIndex: variables.growlNotificationZIndex,
         },
 
         growlNotificationContainer: {
@@ -7546,6 +7546,15 @@ const plainStyles = (theme: ThemeColors) =>
             alignSelf: 'center',
             gap: variables.insightsCardGap,
         } satisfies ViewStyle,
+
+        insightsDashboardScrollView: {
+            ...scrollbarGutterStable,
+        },
+
+        insightsPageControlsContainer: {
+            ...scrollbarGutterStable,
+            overflow: 'hidden',
+        },
 
         insightsChartGrid: {
             flexDirection: 'row',

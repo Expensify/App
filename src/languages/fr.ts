@@ -525,6 +525,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noResultsFoundSubtitle: 'Aucun résultat. Veuillez essayer de modifier vos filtres ou votre requête de recherche',
         unableToDisplayChart: 'Impossible d’afficher le graphique',
         webGLNotSupported: 'Votre navigateur ne prend pas en charge WebGL. Veuillez l’activer ou changer de navigateur.',
+        chartFailedToLoad: 'Le graphique n’a pas pu être chargé. Veuillez actualiser la page et réessayer.',
         apiKey: 'Clé API',
         exportsTo: 'Exports vers',
     },
@@ -1168,6 +1169,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Voyez où va votre argent',
             subtitle: 'Une fois que vous aurez des dépenses, vous verrez des tendances de dépenses, les principaux marchands et plus encore.',
         },
+        compare: {label: 'Comparer', previousPeriod: 'Période précédente', average: 'Moyenne'},
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -1347,6 +1349,8 @@ const translations: TranslationDeepObject<typeof en> = {
                     : 'Avant de suivre une distance, vous devez ajouter votre adresse personnelle à votre profil privé. Cet espace de travail utilise cette adresse pour les déductions liées aux trajets domicile-travail.',
             cta: 'Ajouter une adresse domicile',
         },
+        expenseAdded: 'Dépense ajoutée',
+        invoiceSent: 'Facture envoyée',
         amount: 'Montant',
         percent: 'Pourcentage',
         date: 'Date',
@@ -2207,7 +2211,7 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Avatar de profil',
         customInstructions: 'Instructions personnalisées',
         copilotIntoAccount: 'Copilot dans le compte',
-        viewMemberHistory: 'Voir l’historique du membre',
+        seeChatHistory: 'Voir l’historique de discussion',
         viewAgentHistory: 'Voir l’historique de l’agent',
         publicSection: {
             title: 'Public',
@@ -3343,6 +3347,7 @@ ${amount} pour ${merchant} - ${date}`,
         timeExpiredAnnouncement: 'Le temps est écoulé',
         error: {
             pleaseFillSecurityCode: 'Veuillez saisir votre code de sécurité',
+            tooManyAttempts: 'Trop de tentatives. Veuillez réessayer plus tard.',
             incorrectSecurityCode: 'Code de sécurité incorrect ou non valide. Veuillez réessayer ou demander un nouveau code.',
             pleaseFillTwoFactorAuth: 'Veuillez saisir votre code d’authentification à deux facteurs',
         },
@@ -5516,11 +5521,6 @@ ${amount} pour ${merchant} - ${date}`,
             journalEntriesProvTaxPostingAccount: 'Compte de comptabilisation de la taxe provinciale des écritures de journal',
             foreignCurrencyAmount: 'Exporter le montant en devise étrangère',
             exportToNextOpenPeriod: 'Exporter vers la prochaine période ouverte',
-            exportToNextOpenPeriodLockedSubtitle:
-                "Pour désactiver l'exportation vers la prochaine période ouverte, désactivez d'abord la division des exportations non remboursables par période.",
-            splitExportsByPostingPeriod: 'Diviser les exportations par période comptable',
-            splitExportsByPostingPeriodSubtitle:
-                "Activez l'exportation vers la prochaine période ouverte pour activer la division des exportations non remboursables par période dans NetSuite",
             nonReimbursableJournalPostingAccount: 'Compte de saisie des écritures non remboursables',
             reimbursableJournalPostingAccount: 'Compte de comptabilisation des écritures remboursables',
             journalPostingPreference: {
@@ -6432,6 +6432,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             csvColumnType: 'Type',
             csvColumnLimitType: 'Type de limite',
             csvColumnLimit: 'Limite',
+            noCardFeedsAvailable: 'Aucun flux de carte disponible',
+            noCardFeedsAvailableDescription: 'Aucun flux de carte n’est disponible pour cet espace de travail.',
         },
         categories: {
             deleteCategories: 'Supprimer des catégories',
@@ -7164,6 +7166,16 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             peopleAdmins: 'Administrateurs des personnes',
             paymentsAdmins: 'Administrateurs des paiements',
             members: 'Membres',
+            workArrangement: 'Modalités de travail',
+            officeBased: 'Basé au bureau',
+            noRegularWorkspace: 'À distance ou mobile',
+            workArrangementPage: {
+                title: 'Modalités de travail',
+                optionOfficeBasedHelp: 'Le membre se rend au bureau. Les trajets domicile-travail ordinaires sont exclus du remboursement.',
+                optionNoRegularWorkspaceHelp:
+                    'Le membre travaille à domicile ou se déplace entre plusieurs sites sans bureau fixe, donc les règles relatives aux trajets domicile-travail ne s’appliquent pas.',
+                futureOnlyNote: 'Les modifications s’appliquent uniquement aux calculs de kilométrage futurs. Les dépenses de kilométrage existantes ne sont pas recalculées.',
+            },
         },
         card: {
             getStartedIssuing: 'Commencez par émettre votre première carte virtuelle ou physique.',
@@ -8927,6 +8939,35 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 description: 'Choisissez votre compte de règlement et nous créerons le paiement dans Campfire.',
             },
             travelInvoicingPayableAccount: {label: 'Compte fournisseur pour la facturation de voyage'},
+            exportToMultipleAccounts: 'Configurer l’exportation vers plusieurs comptes',
+            cardProgramAccount: {
+                label: 'Compte du programme de carte',
+                description: 'Remplacer le compte de l’espace de travail pour ces programmes de cartes.',
+                descriptionLevel2: 'Remplacer le compte de l’espace de travail pour ce programme de carte.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Tous les programmes utilisent le compte par défaut';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} programme avec compte personnalisé`;
+                    }
+                    return `${customAccountsCount} programmes avec comptes personnalisés`;
+                },
+            },
+            cardAccount: {
+                label: 'Compte par carte',
+                description: 'Remplacez le compte de programme pour des cartes individuelles.',
+                descriptionLevel2: 'Remplacer le compte de programme pour ces cartes.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Toutes les cartes utilisent des comptes de programme';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} carte avec un compte personnalisé`;
+                    }
+                    return `${customAccountsCount} cartes avec comptes personnalisés`;
+                },
+            },
         },
         businessCentral: {
             businessCentralSetup: 'Configuration de Dynamics 365 Business Central',
@@ -8943,6 +8984,51 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             importDescription: 'Choisissez quelles configurations de codage importer depuis Dynamics 365 Business Central.',
             items: 'Articles',
             enableNewCategories: 'Activer les nouvelles catégories importées',
+            exportDescription: 'Configurez comment les données Expensify sont exportées vers Dynamics 365 Business Central.',
+            exportDate: {
+                label: 'Date de transaction',
+                description: 'Utiliser cette date lors de l’exportation des notes de frais vers Dynamics 365 Business Central.',
+                values: {
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Date de la dernière dépense',
+                        description: 'Date de la dépense la plus récente figurant dans le rapport.',
+                    },
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: "Date d'exportation",
+                        description: "Date d'exportation du rapport vers Dynamics 365 Business Central.",
+                    },
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Date de soumission',
+                        description: 'Date de soumission du rapport pour approbation.',
+                    },
+                },
+            },
+            exportReimbursable: 'Exporter les dépenses remboursables en tant que',
+            exportNonReimbursable: 'Exporter les dépenses de carte d’entreprise en tant que',
+            exportDestination: {
+                [CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.JOURNAL_ENTRY]: 'Journal général',
+                [CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE]: 'Factures d’achat',
+            },
+            reimbursableAccount: {
+                label: 'Compte des dépenses remboursables',
+                description: 'Choisissez où exporter les dépenses remboursables.',
+            },
+            defaultCompanyCardVendor: {
+                label: 'Fournisseur de carte entreprise par défaut',
+                description: 'Choisissez un fournisseur Dynamics 365 Business Central par défaut pour les dépenses qui ne correspondent pas automatiquement.',
+            },
+            companyCardAccount: {
+                label: 'Compte de carte d’entreprise',
+                description: 'Choisissez où exporter les transactions de carte d’entreprise.',
+            },
+            paymentMethod: {
+                label: 'Mode de règlement',
+                description: 'Choisissez un mode de règlement pour les factures d’achat afin que Dynamics 365 Business Central puisse les rapprocher de votre banque.',
+            },
+            noBankAccountsFound: 'Aucun compte bancaire trouvé',
+            noBankAccountsFoundDescription: 'Veuillez ajouter des comptes bancaires dans Dynamics 365 Business Central et synchroniser à nouveau la connexion',
+            noPaymentMethodsFound: 'Aucun mode de règlement trouvé',
+            noPaymentMethodsFoundDescription: 'Veuillez ajouter des modes de règlement dans Dynamics 365 Business Central et synchroniser à nouveau la connexion',
         },
     },
     getAssistancePage: {
@@ -9636,6 +9722,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 : `a modifié le flux d'approbation pour ${member} afin d'arrêter de transférer les notes de frais au-delà de ${previousLimit}`,
         changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
             `a modifié le circuit d’approbation pour ${member} afin de transférer les notes de frais supérieures à ${limit} (auparavant ${previousLimit})`,
+        updatedMemberWorkArrangement: ({displayName, newArrangement, oldArrangement}: {displayName: string; newArrangement: string; oldArrangement: string}) =>
+            `a modifié l’organisation du travail de ${displayName} en ${newArrangement} (auparavant ${oldArrangement})`,
+        updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
+            `a modifié le mode de travail par défaut en ${newArrangement} (auparavant ${oldArrangement})`,
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',
