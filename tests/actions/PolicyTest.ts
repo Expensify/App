@@ -405,6 +405,7 @@ describe('actions/Policy', () => {
                     exportLayouts: true,
                 },
                 localCurrency: 'USD',
+                personalDetailsByLogins: {},
             };
 
             Policy.duplicateWorkspace(fakePolicy, options);
@@ -595,6 +596,7 @@ describe('actions/Policy', () => {
                     exportLayouts: false,
                 },
                 localCurrency: 'USD',
+                personalDetailsByLogins: {},
             };
 
             Policy.duplicateWorkspace(fakePolicy, options);
@@ -657,6 +659,7 @@ describe('actions/Policy', () => {
                     codingRules: true,
                 },
                 localCurrency: 'USD',
+                personalDetailsByLogins: {},
             };
 
             Policy.duplicateWorkspace(fakePolicy, options);
@@ -697,11 +700,11 @@ describe('actions/Policy', () => {
             const memberAID = 200;
             const memberBID = 201;
             const memberCID = 202;
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                [memberAID]: {accountID: memberAID, login: memberAEmail},
-                [memberBID]: {accountID: memberBID, login: memberBEmail},
-                [memberCID]: {accountID: memberCID, login: memberCEmail},
-            });
+            const personalDetailsByLogins = {
+                [memberAEmail]: {accountID: memberAID, login: memberAEmail},
+                [memberBEmail]: {accountID: memberBID, login: memberBEmail},
+                [memberCEmail]: {accountID: memberCID, login: memberCEmail},
+            };
             await waitForBatchedUpdates();
 
             const policyID = Policy.generatePolicyID();
@@ -727,6 +730,7 @@ describe('actions/Policy', () => {
                     exportLayouts: false,
                 },
                 localCurrency: 'USD',
+                personalDetailsByLogins,
             };
 
             Policy.duplicateWorkspace(fakePolicy, options);
@@ -780,6 +784,7 @@ describe('actions/Policy', () => {
                     exportLayouts: false,
                 },
                 localCurrency: 'USD',
+                personalDetailsByLogins: {},
             };
 
             Policy.duplicateWorkspace(fakePolicy, options);
@@ -829,6 +834,7 @@ describe('actions/Policy', () => {
                     exportLayouts: false,
                 },
                 localCurrency: 'USD',
+                personalDetailsByLogins: {},
             };
 
             Policy.duplicateWorkspace(fakePolicy, options);
@@ -911,6 +917,7 @@ describe('actions/Policy', () => {
                     exportLayouts: false,
                 },
                 localCurrency: 'USD',
+                personalDetailsByLogins: {},
             };
 
             // Pause the API call so successData (which clears the optimistic source rate IDs) does not

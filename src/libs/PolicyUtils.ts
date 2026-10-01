@@ -60,7 +60,7 @@ import {getHRAdvancedModeFinalApprover, isAnyHRConnected, isMergeHRCompleteSetup
 import {isAnyRecruitingConnected} from './merge/RecruitingUtils';
 import Navigation from './Navigation/Navigation';
 import {getIsOffline} from './NetworkState';
-import {getAccountIDsByLogins, getKnownAccountIDByLogin, getPersonalDetailByEmail} from './PersonalDetailsUtils';
+import {getAccountIDsByLogins} from './PersonalDetailsUtils';
 import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
 import {generateAccountID} from './UserUtils';
 import {isPublicDomain, isValidAccountRoute} from './ValidationUtils';
@@ -931,7 +931,7 @@ const isPolicyEmployee = (policyID: string | undefined, policy: OnyxEntry<Policy
  */
 function getMemberAccountIDsForWorkspace(
     employeeList: PolicyEmployeeList | undefined,
-    personalDetailsByLogins?: PersonalDetailsByLogin,
+    personalDetailsByLogins: PersonalDetailsByLogin,
     includeMemberWithErrors = false,
     includeMemberWithPendingDelete = true,
 ): MemberEmailsToAccountIDs {
@@ -950,7 +950,7 @@ function getMemberAccountIDsForWorkspace(
                 continue;
             }
         }
-        const personalDetail = personalDetailsByLogins?.[email] ?? getPersonalDetailByEmail(email);
+        const personalDetail = personalDetailsByLogins?.[email];
         if (!personalDetail?.login) {
             continue;
         }
@@ -964,13 +964,17 @@ function getMemberAccountIDsForWorkspace(
  * Uses personal details first, then the workspace employee list (same source as ReportSubmitToContent).
  * When the member is in employeeList but not yet in personal details, returns a stable optimistic accountID.
  */
-function getAccountIDForSubmitManagerEmail(managerEmail: string | undefined, employeeList: PolicyEmployeeList | undefined): number | undefined {
+function getAccountIDForSubmitManagerEmail(
+    managerEmail: string | undefined,
+    employeeList: PolicyEmployeeList | undefined,
+    personalDetailsByLogins: PersonalDetailsByLogin,
+): number | undefined {
     const trimmed = managerEmail?.trim();
     if (!trimmed) {
         return undefined;
     }
 
-    const fromPersonalDetails = getKnownAccountIDByLogin(trimmed);
+    const fromPersonalDetails = personalDetailsByLogins[trimmed]?.accountID;
     if (fromPersonalDetails !== undefined) {
         return fromPersonalDetails;
     }
@@ -980,7 +984,7 @@ function getAccountIDForSubmitManagerEmail(managerEmail: string | undefined, emp
     }
 
     const normalizedEmail = trimmed.toLowerCase();
-    const memberAccountIDs = getMemberAccountIDsForWorkspace(employeeList, undefined, true, false);
+    const memberAccountIDs = getMemberAccountIDsForWorkspace(employeeList, personalDetailsByLogins, true, false);
 
     for (const [email, accountID] of Object.entries(memberAccountIDs)) {
         if (email.toLowerCase() === normalizedEmail) {
@@ -2282,7 +2286,13 @@ function getSubmitToAccountID(
     return submitToEmail ? (getAccountIDsByLogins([submitToEmail]).at(0) ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
 }
 
-function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>, submitterLogin: string | undefined, rules: OnyxCollection<Rule>): number | undefined {
+function getSubmitReportManagerAccountID(
+    policy: OnyxEntry<Policy>,
+    expenseReport: OnyxEntry<Report>,
+    submitterLogin: string | undefined,
+    rules: OnyxCollection<Rule>,
+    personalDetailsByLogins: PersonalDetailsByLogin,
+): number | undefined {
     const approvalRules = policy?.rules?.approvalRules;
     const ruleApprover = !isSubmitAndClose(policy) && approvalRules?.length ? getFirstRuleApprover(approvalRules, expenseReport, submitterLogin) : '';
     const hasReliablePolicyRoute =
@@ -2294,7 +2304,8 @@ function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseRepor
         return undefined;
     }
 
-    const submitToAccountID = getKnownAccountIDByLogin(getSubmitToEmail(policy, expenseReport, submitterLogin, rules, true));
+    const submitToEmail = getSubmitToEmail(policy, expenseReport, submitterLogin, rules, true);
+    const submitToAccountID = submitToEmail ? personalDetailsByLogins[submitToEmail]?.accountID : undefined;
     if (submitToAccountID === undefined || !isValidAccountRoute(submitToAccountID)) {
         return undefined;
     }

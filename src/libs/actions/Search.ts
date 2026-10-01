@@ -1,6 +1,7 @@
 import type {FormOnyxValues} from '@components/Form/types';
 import type {ContinueActionParams, PaymentMethod, PaymentMethodType} from '@components/KYCWall/types';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {HoldMenuCallback} from '@components/Search';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
@@ -281,6 +282,7 @@ type HandleActionButtonPressParams = {
     isTrackIntentUser: boolean | undefined;
     allViolations: OnyxCollection<TransactionViolations>;
     rules: OnyxCollection<Rule>;
+    personalDetailsByLogins: PersonalDetailsByLogin;
     conciergeChat: OnyxEntry<Report>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
@@ -323,6 +325,7 @@ function handleActionButtonPress({
     isTrackIntentUser,
     allViolations,
     rules,
+    personalDetailsByLogins,
     conciergeChat,
     getCurrencyDecimals,
 }: HandleActionButtonPressParams) {
@@ -443,6 +446,7 @@ function handleActionButtonPress({
                             submitterLogin,
                             getCurrencyDecimals,
                             rules,
+                            personalDetailsByLogins,
                             currentSearchKey,
                             managerEmail,
                             managerAccountID,
@@ -460,6 +464,7 @@ function handleActionButtonPress({
                 submitterLogin,
                 getCurrencyDecimals,
                 rules,
+                personalDetailsByLogins,
                 currentSearchKey,
                 undefined,
                 undefined,
@@ -1536,6 +1541,7 @@ function submitMoneyRequestOnSearch(
     submitterLogin: string | undefined,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     rules: OnyxCollection<Rule>,
+    personalDetailsByLogins: PersonalDetailsByLogin,
     currentSearchKey?: SearchKey,
     managerEmail?: string,
     managerAccountID?: number,
@@ -1646,8 +1652,8 @@ function submitMoneyRequestOnSearch(
     }
 
     const trimmedManagerEmail = managerEmail?.trim();
-    const managerAccountIDFromEmail = trimmedManagerEmail ? getAccountIDForSubmitManagerEmail(trimmedManagerEmail, firstPolicy?.employeeList) : undefined;
-    const submitReportManagerAccountID = getSubmitReportManagerAccountID(firstPolicy, firstReport, submitterLogin, rules);
+    const managerAccountIDFromEmail = trimmedManagerEmail ? getAccountIDForSubmitManagerEmail(trimmedManagerEmail, firstPolicy?.employeeList, personalDetailsByLogins) : undefined;
+    const submitReportManagerAccountID = getSubmitReportManagerAccountID(firstPolicy, firstReport, submitterLogin, rules, personalDetailsByLogins);
 
     // When an explicit manager email can't be resolved to an accountID, send the email alone rather than a mismatched
     // accountID from the approval chain, which would point the server at someone other than the chosen approver.

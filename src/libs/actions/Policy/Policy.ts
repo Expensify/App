@@ -314,7 +314,7 @@ type DuplicatePolicyDataOptions = {
     file?: File | CustomRNImageManipulatorResult;
     policyCategories?: PolicyCategories;
     localCurrency: string;
-    personalDetailsByLogins?: PersonalDetailsByLogin;
+    personalDetailsByLogins: PersonalDetailsByLogin;
 };
 
 type SetWorkspaceReimbursementActionParams = {

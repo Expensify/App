@@ -1,10 +1,11 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import * as API from '@libs/API';
 import type {SetVacationDelegateParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import {getKnownAccountIDByLogin, getPersonalDetailsOnyxDataForOptimisticUsers} from '@libs/PersonalDetailsUtils';
+import {getPersonalDetailsOnyxDataForOptimisticUsers} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import {getAllReportActions} from '@libs/ReportActionsUtils';
@@ -188,6 +189,7 @@ type InviteVacationDelegateToWorkspacesOptions = {
     /** The current user, on whose behalf the invitations are sent */
     inviter: CurrentUser;
 
+    personalDetailsByLogins: PersonalDetailsByLogin;
     translate: LocalizedTranslate;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
@@ -196,9 +198,9 @@ type InviteVacationDelegateToWorkspacesOptions = {
  * Adds a vacation delegate as a member of every given workspace, one invitation per workspace. Workspaces the
  * current user does not administer are untouched here and are left for the backend to email their admins about.
  */
-function inviteVacationDelegateToWorkspaces({delegate, policies, inviter, translate, formatPhoneNumber}: InviteVacationDelegateToWorkspacesOptions) {
+function inviteVacationDelegateToWorkspaces({delegate, policies, inviter, personalDetailsByLogins, translate, formatPhoneNumber}: InviteVacationDelegateToWorkspacesOptions) {
     // The delegate may have been picked from the selector without existing in personal details yet, so fall back to an optimistic accountID.
-    const knownDelegateAccountID = getKnownAccountIDByLogin(delegate);
+    const knownDelegateAccountID = personalDetailsByLogins[delegate]?.accountID;
     const delegateAccountID = knownDelegateAccountID ?? generateAccountID(delegate);
     const invitedEmailsToAccountIDs = {[delegate]: delegateAccountID};
     const isNewDelegate = knownDelegateAccountID === undefined;
@@ -225,7 +227,7 @@ function inviteVacationDelegateToWorkspaces({delegate, policies, inviter, transl
             isLastInvite ? personalDetailsOnyxData : {optimisticData: personalDetailsOnyxData.optimisticData},
             `${translate('workspace.common.invitedYouToWorkspace', inviter.displayName ?? '', policy.name)}\n\n${translate('workspace.common.welcomeNote')}`,
             policy,
-            Object.values(getMemberAccountIDsForWorkspace(policy.employeeList, undefined, false, false)),
+            Object.values(getMemberAccountIDsForWorkspace(policy.employeeList, personalDetailsByLogins, false, false)),
             CONST.POLICY.ROLE.USER,
             inviter,
             policyExpenseChatReportActions,
