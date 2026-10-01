@@ -36,14 +36,14 @@ describe('PolicyVendorAction', () => {
 
         it('dispatches SetPolicyVendorsEnabled with optimistic, success, and failure data', () => {
             const initialPolicyVendors: PolicyVendors = {
-                vendor_1: {
-                    externalID: 'vendor_1',
+                vendor1: {
+                    externalID: 'vendor1',
                     name: 'Acme Corp',
                     enabled: false,
                     origin: CONST.POLICY.CONNECTIONS.NAME.QBO,
                 },
-                vendor_2: {
-                    externalID: 'vendor_2',
+                vendor2: {
+                    externalID: 'vendor2',
                     name: 'Beta LLC',
                     enabled: false,
                     origin: CONST.POLICY.CONNECTIONS.NAME.QBO,
@@ -52,7 +52,7 @@ describe('PolicyVendorAction', () => {
 
             setPolicyVendorsEnabled({
                 policyID,
-                vendorIDs: ['vendor_1', 'vendor_2'],
+                vendorIDs: ['vendor1', 'vendor2'],
                 enabled: true,
                 policyVendors: initialPolicyVendors,
             });
@@ -62,7 +62,7 @@ describe('PolicyVendorAction', () => {
                 WRITE_COMMANDS.SET_POLICY_VENDORS_ENABLED,
                 {
                     policyID,
-                    vendorIDs: JSON.stringify(['vendor_1', 'vendor_2']),
+                    vendorIDs: JSON.stringify(['vendor1', 'vendor2']),
                     enabled: true,
                 },
                 {
@@ -71,7 +71,7 @@ describe('PolicyVendorAction', () => {
                             onyxMethod: Onyx.METHOD.MERGE,
                             key: policyVendorsKey,
                             value: {
-                                vendor_1: expect.objectContaining({
+                                vendor1: expect.objectContaining({
                                     enabled: true,
                                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                     pendingFields: {
@@ -79,7 +79,7 @@ describe('PolicyVendorAction', () => {
                                     },
                                     errors: null,
                                 }),
-                                vendor_2: expect.objectContaining({
+                                vendor2: expect.objectContaining({
                                     enabled: true,
                                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                     pendingFields: {
@@ -95,7 +95,7 @@ describe('PolicyVendorAction', () => {
                             onyxMethod: Onyx.METHOD.MERGE,
                             key: policyVendorsKey,
                             value: {
-                                vendor_1: expect.objectContaining({
+                                vendor1: expect.objectContaining({
                                     enabled: true,
                                     pendingAction: null,
                                     pendingFields: {
@@ -103,7 +103,7 @@ describe('PolicyVendorAction', () => {
                                     },
                                     errors: null,
                                 }),
-                                vendor_2: expect.objectContaining({
+                                vendor2: expect.objectContaining({
                                     enabled: true,
                                     pendingAction: null,
                                     pendingFields: {
@@ -119,19 +119,19 @@ describe('PolicyVendorAction', () => {
                             onyxMethod: Onyx.METHOD.MERGE,
                             key: policyVendorsKey,
                             value: {
-                                vendor_1: expect.objectContaining({
+                                vendor1: expect.objectContaining({
                                     pendingAction: null,
                                     pendingFields: {
                                         enabled: null,
                                     },
-                                    errors: expect.any(Object),
+                                    errors: expect.anything() as unknown,
                                 }),
-                                vendor_2: expect.objectContaining({
+                                vendor2: expect.objectContaining({
                                     pendingAction: null,
                                     pendingFields: {
                                         enabled: null,
                                     },
-                                    errors: expect.any(Object),
+                                    errors: expect.anything() as unknown,
                                 }),
                             },
                         },
@@ -145,10 +145,10 @@ describe('PolicyVendorAction', () => {
         it('merges null errors and pending fields to Onyx', () => {
             const onyxMergeSpy = jest.spyOn(Onyx, 'merge');
 
-            clearVendorErrors(policyID, 'vendor_1');
+            clearVendorErrors(policyID, 'vendor1');
 
             expect(onyxMergeSpy).toHaveBeenCalledWith(policyVendorsKey, {
-                vendor_1: {
+                vendor1: {
                     errors: null,
                     pendingAction: null,
                     pendingFields: null,

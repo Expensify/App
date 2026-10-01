@@ -8,6 +8,7 @@ import type {WorkspaceVendorTableRowData} from '@components/Tables/WorkspaceVend
 import WorkspaceVendorsTable from '@components/Tables/WorkspaceVendorsTable';
 
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
+import useFilteredSelection from '@hooks/useFilteredSelection';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -37,7 +38,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type WorkspaceVendorsPageProps = WithPolicyConnectionsProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.VENDORS>;
@@ -46,7 +47,7 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
     const {policyID} = route.params;
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
-    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBetaEnabled} = usePermissions();
     const {isOffline} = useNetwork();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
@@ -55,7 +56,7 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close']);
 
     const [policyVendors] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${policyID}`);
-    const [selectedVendorKeys, setSelectedVendorKeys] = useState<string[]>([]);
+    const [selectedVendorKeys, setSelectedVendorKeys] = useFilteredSelection(policyVendors, (vendor) => !!vendor);
 
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.vendors');
 
@@ -65,7 +66,7 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
     const currentConnectionName = connectedIntegration ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectedIntegration] : undefined;
     const defaultVendorID = getDefaultVendorID(policy, connectedIntegration);
 
-    const canSelectMultiple = canWriteVendors && (isSmallScreenWidth ? isMobileSelectionModeEnabled : true);
+    const canSelectMultiple = canWriteVendors && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
 
     const clearTableSelection = () => {
         setSelectedVendorKeys((prev) => (prev.length > 0 ? [] : prev));
@@ -77,14 +78,6 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
         onClearSelection: clearTableSelection,
         onNavigationCallBack: () => Navigation.goBack(),
     });
-
-    useEffect(() => {
-        if (selectedVendorKeys.length === 0 || !canSelectMultiple) {
-            return;
-        }
-
-        setSelectedVendorKeys((prev) => prev.filter((key) => !!policyVendors?.[key]));
-    }, [canSelectMultiple, policyVendors, selectedVendorKeys.length]);
 
     const handleVendorToggle = (enabled: boolean, vendorID: string) => {
         if (!canWriteVendors) {

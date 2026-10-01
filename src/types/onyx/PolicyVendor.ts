@@ -1,7 +1,8 @@
-import type * as OnyxCommon from './OnyxCommon';
+import type {ErrorFields, Errors, OnyxValueWithOfflineFeedback} from './OnyxCommon';
 import type {PolicyConnectionName} from './Policy';
 
-type PolicyVendor = OnyxCommon.OnyxValueWithOfflineFeedback<{
+/** Model of policy vendor */
+type PolicyVendor = OnyxValueWithOfflineFeedback<{
     /** The vendor identifier scoped to its active accounting connection. */
     externalID: string;
 
@@ -15,10 +16,10 @@ type PolicyVendor = OnyxCommon.OnyxValueWithOfflineFeedback<{
     origin?: PolicyConnectionName;
 
     /** A list of errors keyed by microtime */
-    errors?: OnyxCommon.Errors | null;
+    errors?: Errors | null;
 
     /** Error fields */
-    errorFields?: OnyxCommon.ErrorFields | null;
+    errorFields?: ErrorFields | null;
 }>;
 
 /** Record of normalized policy vendors, indexed by externalID. */

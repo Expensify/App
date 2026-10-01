@@ -2902,8 +2902,11 @@ function sortVendors<TVendor extends {id?: string; externalID?: string; name: st
         if (nameComparison !== 0) {
             return nameComparison;
         }
-        const keyA = a.id ?? a.externalID ?? '';
-        const keyB = b.id ?? b.externalID ?? '';
+        const keyA = a.id ?? a.externalID;
+        const keyB = b.id ?? b.externalID;
+        if (!keyA || !keyB) {
+            return 0;
+        }
         return localeCompare(keyA, keyB);
     });
 }
@@ -2921,29 +2924,29 @@ function getDefaultVendorID(policy: OnyxEntry<Policy>, origin?: ConnectionName):
     if (integrationOrigin === CONST.POLICY.CONNECTIONS.NAME.QBO) {
         const qboConfig = policy.connections[CONST.POLICY.CONNECTIONS.NAME.QBO]?.config;
         if (qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD) {
-            return qboConfig.nonReimbursableCreditCardDefaultVendor || undefined;
+            return qboConfig.nonReimbursableCreditCardDefaultVendor ?? undefined;
         }
     } else if (integrationOrigin === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT) {
         const intacctConfig = policy.connections[CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]?.config;
-        return intacctConfig?.export?.nonReimbursableCreditCardChargeDefaultVendor || undefined;
+        return intacctConfig?.export?.nonReimbursableCreditCardChargeDefaultVendor ?? undefined;
     } else if (integrationOrigin === CONST.POLICY.CONNECTIONS.NAME.XERO) {
         const xeroConfig = policy.connections[CONST.POLICY.CONNECTIONS.NAME.XERO]?.config;
-        return xeroConfig?.defaultVendor || undefined;
+        return xeroConfig?.defaultVendor ?? undefined;
     } else if (integrationOrigin === CONST.POLICY.CONNECTIONS.NAME.RILLET) {
         const rilletConfig = policy.connections[CONST.POLICY.CONNECTIONS.NAME.RILLET]?.config;
-        return rilletConfig?.export?.defaultVendorID || undefined;
+        return rilletConfig?.export?.defaultVendorID ?? undefined;
     } else if (integrationOrigin === CONST.POLICY.CONNECTIONS.NAME.DUALENTRY) {
         const dualentryConfig = policy.connections[CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]?.config;
-        return dualentryConfig?.export?.defaultVendorID || undefined;
+        return dualentryConfig?.export?.defaultVendorID ?? undefined;
     } else if (integrationOrigin === CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE) {
         const campfireConfig = policy.connections[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]?.config;
-        return campfireConfig?.export?.defaultVendorID || undefined;
+        return campfireConfig?.export?.defaultVendorID ?? undefined;
     } else if (integrationOrigin === CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL) {
         const businessCentralConfig = policy.connections[CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]?.config;
-        return businessCentralConfig?.export?.defaultVendorID || undefined;
+        return businessCentralConfig?.export?.defaultVendorID ?? undefined;
     } else if (integrationOrigin === CONST.POLICY.CONNECTIONS.NAME.CERTINIA) {
         const certiniaConfig = policy.connections[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]?.config;
-        return certiniaConfig?.export?.vendorAccount || undefined;
+        return certiniaConfig?.export?.vendorAccount ?? undefined;
     }
 
     return undefined;

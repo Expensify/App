@@ -1,7 +1,7 @@
-import * as API from '@libs/API';
+import {write} from '@libs/API';
 import type {SetPolicyVendorsEnabledParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -59,7 +59,7 @@ function setPolicyVendorsEnabled({policyID, vendorIDs, enabled, policyVendors}: 
                 enabled: null,
             },
             pendingAction: null,
-            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.vendors.updateFailureMessage'),
+            errors: getMicroSecondOnyxErrorWithTranslationKey('workspace.vendors.updateFailureMessage'),
         };
     }
 
@@ -93,7 +93,7 @@ function setPolicyVendorsEnabled({policyID, vendorIDs, enabled, policyVendors}: 
         enabled,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_VENDORS_ENABLED, parameters, onyxData);
+    write(WRITE_COMMANDS.SET_POLICY_VENDORS_ENABLED, parameters, onyxData);
 }
 
 function clearVendorErrors(policyID: string, vendorID: string) {
