@@ -6,30 +6,21 @@ import type {TransactionWithOptionalSearchFields} from '@components/TransactionI
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
-import type {MergeDuplicatesParams} from '@libs/API/parameters';
 import {convertAttendeesToArray, normalizeAttendees} from '@libs/AttendeeUtils';
 import {isPersonalCard, isTravelCardTransaction} from '@libs/CardUtils';
-import {getCategoryDefaultTaxRate, isCategoryMissing} from '@libs/CategoryUtils';
-import {convertToBackendAmount} from '@libs/CurrencyUtils';
+import {isCategoryMissing} from '@libs/CategoryUtils';
 import type {MachineDateFormat} from '@libs/DateUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {translateLocal} from '@libs/Localize';
-import Log from '@libs/Log';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {
     canSubmitPerDiemExpenseFromWorkspace,
     getCommaSeparatedTagNameWithSanitizedColons,
-    getDistanceRateCustomUnit,
-    getDistanceRateCustomUnitRate,
     getPerDiemCustomUnit,
-    getTaxByID,
     isAttendeeTrackingEnabled as isAttendeeTrackingEnabledForPolicy,
     isInstantSubmitEnabled,
-    isMultiLevelTags as isMultiLevelTagsPolicyUtils,
     isPolicyAdmin,
     isPolicyMember as isPolicyMemberPolicyUtils,
-    resolveCurrentTaxCode,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
@@ -40,7 +31,6 @@ import {
     isInvoiceReport,
     isIOUReport,
     isOpenExpenseReport,
-    isOpenReport,
     isProcessingReport,
     isReportManager,
     isSettled,
@@ -48,8 +38,6 @@ import {
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {isInvalidMerchantValue} from '@libs/ValidationUtils';
-
-import type {UpdateMoneyRequestDataKeys} from '@userActions/IOU/UpdateMoneyRequest';
 
 import type {IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -61,13 +49,8 @@ import type {
     OnyxInputOrEntry,
     PersonalDetails,
     Policy,
-    PolicyCategories,
-    PolicyTagLists,
     RecentWaypoint,
     Report,
-    ReviewDuplicates,
-    TaxRate,
-    TaxRates,
     Transaction,
     TransactionViolation,
     TransactionViolations,
@@ -75,8 +58,6 @@ import type {
 } from '@src/types/onyx';
 import type {Attendee, DistanceExpenseType} from '@src/types/onyx/IOU';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {Unit} from '@src/types/onyx/Policy';
-import type {OnyxData} from '@src/types/onyx/Request';
 import type {Comment, UnreportedTransaction, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
@@ -84,18 +65,41 @@ import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {differenceInCalendarDays, format, isValid, parse, parseISO} from 'date-fns';
-import {SafeString, Str} from 'expensify-common';
+import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
-import Onyx from 'react-native-onyx';
 
-// These cycle imports are safe because buildOptimisticTransaction and getUpdatedTransaction were extracted from this file to keep it under the max-lines limit.
+// These cycle imports are safe because buildOptimisticTransaction, getUpdatedTransaction, and the duplicates and tax helpers were extracted from this file to keep it under the max-lines limit.
 // They import helper functions from this file, and this file re-exports them. Neither side calls the other at initialization time.
 // eslint-disable-next-line import/no-cycle
 import buildOptimisticTransaction from './buildOptimisticTransaction';
+// eslint-disable-next-line import/no-cycle
+import {
+    buildMergeDuplicatesParams,
+    buildNewTransactionAfterReviewingDuplicates,
+    canMergeDuplicates,
+    compareDuplicateTransactionFields,
+    removeSettledAndApprovedTransactions,
+    removeTransactionFromDuplicateTransactionViolation,
+} from './duplicates';
 import getDistanceInMeters from './getDistanceInMeters';
 import getSelectedRouteKey from './getSelectedRouteKey';
 // eslint-disable-next-line import/no-cycle
 import {getClearedPendingFields, getDistanceMerchantForTransaction, getUpdatedTransaction} from './getUpdatedTransaction';
+// eslint-disable-next-line import/no-cycle
+import {
+    calculateTaxAmount,
+    getCalculatedTaxAmount,
+    getCategoryTaxDetails,
+    getDefaultTaxCode,
+    getDistanceRateTaxUpdates,
+    getEnabledTaxRateCount,
+    getTaxName,
+    getTaxRateTitle,
+    getTaxValue,
+    getWorkspaceTaxesSettingsName,
+    hasTaxRateWithMatchingValue,
+    transformedTaxRates,
+} from './tax';
 
 function isDeletedTransaction(transaction: {reportID?: string}): boolean {
     return transaction.reportID === CONST.REPORT.TRASH_REPORT_ID;
@@ -1888,26 +1892,6 @@ function hasWarningTypeViolation(
 }
 
 /**
- * Calculates tax amount from the given expense amount and tax percentage
- */
-function calculateTaxAmount(percentage: string | undefined, amount: number, decimals: number) {
-    if (!percentage) {
-        return 0;
-    }
-
-    const divisor = Number(percentage.slice(0, -1)) / 100 + 1;
-    const taxAmount = (amount - amount / divisor) / 100;
-    return parseFloat(taxAmount.toFixed(decimals));
-}
-
-/**
- * Calculates count of all tax enabled options
- */
-function getEnabledTaxRateCount(options: TaxRates) {
-    return Object.values(options).filter((option: TaxRate) => !option.isDisabled).length;
-}
-
-/**
  * Check if the customUnitRateID has a value default for P2P distance requests
  */
 function isCustomUnitRateIDForP2P(transaction: OnyxInputOrEntry<Transaction>): boolean {
@@ -1955,562 +1939,6 @@ function getRateID(transaction: OnyxInputOrEntry<Transaction>): string {
     return transaction?.comment?.customUnit?.customUnitRateID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 }
 
-/**
- * Gets the tax code based on the type of transaction and selected currency.
- * If it is distance request, then returns the tax code corresponding to the custom unit rate
- * Else returns policy default tax rate if transaction is in policy default currency, otherwise foreign default tax rate
- */
-function getDefaultTaxCode(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, currency?: string | undefined, newCustomUnitRateID?: string): string | undefined {
-    if (isDistanceRequest(transaction)) {
-        // When editing a distance rate, the draft transaction's customUnitRateID
-        // does not reflect the newly selected rate until setMoneyRequestDistanceRate is called, and the draft transaction's is updated.
-        // Therefore, to correctly determine the tax code for the selected rate, we must use the newly selected distance rate's customUnitRateID (newCustomUnitRateID)
-        // instead of relying on the transaction's current customUnitRateID.
-        const customUnitRateID = newCustomUnitRateID ?? getRateID(transaction) ?? '';
-        const customUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
-        const customUnit = getDistanceRateCustomUnit(policy);
-        if (!customUnitRate?.attributes?.taxRateExternalID && customUnit?.attributes?.taxEnabled) {
-            return policy?.taxRates?.defaultExternalID;
-        }
-        return customUnitRate?.attributes?.taxRateExternalID;
-    }
-    const defaultExternalID = policy?.taxRates?.defaultExternalID;
-    const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
-    return policy?.outputCurrency === (currency ?? getCurrency(transaction)) ? defaultExternalID : foreignTaxDefault;
-}
-
-/**
- * Transforms tax rates to a new object format - to add codes and new name with concatenated name and value.
- *
- * @param  policy - The policy which the user has access to and which the report is tied to.
- * @returns The transformed tax rates object.g
- */
-function transformedTaxRates(policy: OnyxEntry<Policy> | undefined, transaction?: OnyxEntry<Transaction>): Record<string, TaxRate> {
-    const taxRates = policy?.taxRates;
-    const defaultExternalID = taxRates?.defaultExternalID;
-
-    const defaultTaxCode = () => {
-        if (!transaction) {
-            return defaultExternalID;
-        }
-
-        return policy && getDefaultTaxCode(policy, transaction);
-    };
-    const getModifiedName = (data: TaxRate, code: string) => `${data.name} (${data.value})${defaultTaxCode() === code ? ` ${CONST.DOT_SEPARATOR} ${translateLocal('common.default')}` : ''}`;
-    const taxes = Object.fromEntries(Object.entries(taxRates?.taxes ?? {}).map(([code, data]) => [code, {...data, code, modifiedName: getModifiedName(data, code), name: data.name}]));
-    return taxes;
-}
-
-/**
- * Gets the tax value of a selected tax
- */
-function getTaxValue(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, taxCode: string) {
-    const resolvedTaxCode = resolveCurrentTaxCode(policy, taxCode);
-    return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === resolvedTaxCode)?.value;
-}
-
-/**
- * Computes tax amount, code, and value when a workspace distance expense uses a given mileage rate.
- */
-function getDistanceRateTaxUpdates(
-    policy: OnyxEntry<Policy>,
-    transaction: OnyxEntry<Transaction>,
-    customUnitRateID: string,
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-    distanceUnit?: Unit,
-): {taxAmount: number; taxCode: string; taxValue: string | undefined} {
-    const policyCustomUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
-    const defaultTaxCode = getDefaultTaxCode(policy, transaction, undefined, customUnitRateID) ?? '';
-    // We use || instead of ?? because taxRateExternalID may be an empty string, which should also trigger the fallback to the default tax code.
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const taxCode = policyCustomUnitRate?.attributes?.taxRateExternalID || defaultTaxCode;
-    const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, getDistanceInMeters(transaction, distanceUnit ?? transaction?.comment?.customUnit?.distanceUnit));
-    const taxValue = taxCode ? getTaxValue(policy, transaction, taxCode) : undefined;
-    const mileageRates = DistanceRequestUtils.getMileageRates(policy);
-    const rateCurrency = mileageRates[customUnitRateID]?.currency ?? transaction?.currency ?? CONST.CURRENCY.USD;
-    const taxAmount = convertToBackendAmount(calculateTaxAmount(taxValue, taxableAmount, getCurrencyDecimals(rateCurrency)));
-
-    return {taxAmount, taxCode, taxValue};
-}
-
-/**
- * Returns the maximum allowed tax amount (in the smallest currency units) for a transaction,
- * i.e. the tax computed from the selected tax rate (or the policy default) and the expense amount.
- * Used to validate manually entered tax amounts so they can't exceed the calculated tax.
- */
-function getCalculatedTaxAmount(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, currency: string, decimals: number): number {
-    const taxableAmount = Math.abs(getAmount(transaction));
-    const taxCode = transaction?.taxCode ?? getDefaultTaxCode(policy, transaction, currency) ?? '';
-    const taxPercentage = getTaxValue(policy, transaction, taxCode) ?? '';
-    return convertToBackendAmount(calculateTaxAmount(taxPercentage, taxableAmount, decimals));
-}
-
-/**
- * Gets the tax name for Workspace Taxes Settings
- */
-function getWorkspaceTaxesSettingsName(policy: OnyxEntry<Policy>, taxCode: string) {
-    return Object.values(transformedTaxRates(policy)).find((taxRate) => taxRate.code === taxCode)?.modifiedName;
-}
-
-/**
- * Gets the name corresponding to the taxCode that is displayed to the user
- */
-function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, shouldFallbackToValue = false) {
-    const defaultTaxCode = getDefaultTaxCode(policy, transaction);
-
-    // Only fall back to the default tax code when tax tracking is enabled on the policy.
-    // When taxes are disabled and the user deletes a tax, taxCode becomes undefined (the API returns null, which Onyx strips).
-    // Without this check, getTaxName would fall back to defaultTaxCode and display the default tax rate instead of showing empty.
-    // We use || instead of ?? because taxCode may be an empty string, which should also trigger the fallback.
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const taxCodeToMatch = transaction?.taxCode || (policy?.tax?.trackingEnabled ? defaultTaxCode : undefined);
-    const resolvedTaxCode = taxCodeToMatch ? resolveCurrentTaxCode(policy, taxCodeToMatch) : taxCodeToMatch;
-    const taxRate = taxCodeToMatch ? Object.values(transformedTaxRates(policy, transaction)).find((rate) => rate.code === resolvedTaxCode) : undefined;
-
-    if (shouldFallbackToValue && transaction?.taxValue !== undefined && taxRate?.value !== transaction?.taxValue) {
-        return transaction?.taxValue;
-    }
-
-    return taxRate?.modifiedName;
-}
-
-/**
- * Checks if the tax rate with matching transaction's tax rate value exists in the policy tax rates
- */
-function hasTaxRateWithMatchingValue(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>) {
-    if (!policy || !transaction) {
-        return false;
-    }
-
-    const transactionTaxCode = getTaxCode(transaction);
-    const resolvedTaxCode = transactionTaxCode ? resolveCurrentTaxCode(policy, transactionTaxCode) : transactionTaxCode;
-    const transformedRates = transformedTaxRates(policy, transaction);
-    const taxRate = Object.values(transformedRates).find((rate) => rate.code === resolvedTaxCode);
-
-    if (!transaction?.taxValue) {
-        return !!taxRate;
-    }
-
-    return taxRate?.value === transaction?.taxValue;
-}
-
-/**
- * Gets the tax rate title for display, handling the case when moving expenses from track to submit
- */
-function getTaxRateTitle(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, isMovingFromTrackExpense: boolean, policyForMovingExpenses?: OnyxEntry<Policy>): string {
-    const currentTaxName = getTaxName(policy, transaction);
-
-    if (currentTaxName) {
-        // If moving from track expense show the tax name from the moving policy
-        if (isMovingFromTrackExpense && !hasTaxRateWithMatchingValue(policy, transaction)) {
-            return getTaxName(policyForMovingExpenses, transaction) ?? '';
-        }
-        return getTaxName(policy, transaction, true) ?? '';
-    }
-
-    // If no tax name on current policy but moving from track expense, use the moving policy
-    if (isMovingFromTrackExpense) {
-        return getTaxName(policyForMovingExpenses, transaction, true) ?? '';
-    }
-
-    return '';
-}
-
-type FieldsToCompare = Record<string, Array<keyof Transaction>>;
-type FieldsToChange = {
-    category?: Array<string | undefined>;
-    merchant?: Array<string | undefined>;
-    tag?: Array<string | undefined>;
-    description?: Array<Comment | undefined>;
-    taxCode?: Array<string | undefined>;
-    billable?: Array<boolean | undefined>;
-    reimbursable?: Array<boolean | undefined>;
-};
-
-/**
- * Extracts a set of valid duplicate transaction IDs associated with a given transaction,
- * excluding:
- * - the transaction itself
- * - duplicate IDs that appear more than once
- * - duplicates referencing missing or invalid transactions
- * - settled or approved transactions
- *
- * @param transactionID - The ID of the transaction being validated.
- * @param transactionCollection - A collection of all transactions and their duplicates.
- * @param currentTransactionViolations - The list of violations associated with this transaction.
- * @returns A set of valid duplicate transaction IDs.
- */
-function getValidDuplicateTransactionIDs(transactionID: string, transactionCollection: OnyxCollection<Transaction>, currentTransactionViolations: TransactionViolation[]): Set<string> {
-    const result = new Set<string>();
-    const seen = new Set<string>();
-    let foundDuplicateViolation = false;
-
-    if (!transactionCollection) {
-        return result;
-    }
-
-    for (const violation of currentTransactionViolations) {
-        if (violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION) {
-            continue;
-        }
-
-        // Skip further violations
-        if (foundDuplicateViolation) {
-            Log.warn(`Multiple duplicate violations found for transaction. Only one expected.`, {transactionID});
-            break;
-        }
-
-        foundDuplicateViolation = true;
-        const duplicatesIDs = violation.data?.duplicates ?? [];
-
-        const validTransactions: Transaction[] = [];
-
-        for (const duplicateID of duplicatesIDs) {
-            // Skip self-reference
-            if (duplicateID === transactionID || seen.has(duplicateID)) {
-                continue;
-            }
-            seen.add(duplicateID);
-
-            const transaction = transactionCollection?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicateID}`];
-            if (!transaction?.transactionID) {
-                Log.warn(`Transaction does not exist or is invalid. Found in transaction.`, {duplicateID, transactionID});
-                continue;
-            }
-
-            validTransactions.push(transaction);
-        }
-
-        // Filter out transactions assumed that they have be reviewed by removing settled and approved transactions
-        const filtered = removeSettledAndApprovedTransactions(validTransactions);
-
-        for (const transaction of filtered) {
-            result.add(transaction.transactionID);
-        }
-    }
-
-    return result;
-}
-
-/**
- * Adds onyx updates to the passed onyxData to update the DUPLICATED_TRANSACTION violation data
- * by removing the passed transactionID from any violation that referenced it.
- * @param onyxData - An object to store optimistic and failure updates.
- * @param transactionID - The ID of the transaction being deleted or updated.
- * @param transactions - A collection of all transactions and their duplicates.
- * @param transactionViolations - The collection of the transaction violations including the duplicates violations.
- *
- */
-function removeTransactionFromDuplicateTransactionViolation(
-    onyxData: OnyxData<UpdateMoneyRequestDataKeys>,
-    transactionID: string,
-    transactions: OnyxCollection<Transaction>,
-    transactionViolations: OnyxCollection<TransactionViolations>,
-) {
-    if (!transactionID || !transactions || !transactionViolations) {
-        return;
-    }
-    const violations = transactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
-
-    if (!violations) {
-        return;
-    }
-
-    const duplicateIDs = getValidDuplicateTransactionIDs(transactionID, transactions, violations);
-
-    for (const duplicateID of duplicateIDs) {
-        const duplicateViolations = transactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`];
-
-        if (!duplicateViolations) {
-            continue;
-        }
-
-        const duplicateTransactionViolations = duplicateViolations.filter((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
-
-        if (duplicateTransactionViolations.length === 0) {
-            continue;
-        }
-
-        if (duplicateTransactionViolations.length > 1) {
-            Log.warn(`There are  duplicate transaction violations for transactionID. This should not happen.`, {duplicateTransactionViolations, duplicateID});
-            continue;
-        }
-
-        const duplicateTransactionViolation = duplicateTransactionViolations.at(0);
-        if (!duplicateTransactionViolation?.data?.duplicates) {
-            continue;
-        }
-
-        // If the transactionID is not in the duplicates list, we don't need to update the violation
-        const duplicateTransactionIDs = duplicateTransactionViolation.data.duplicates.filter((duplicateTransactionID) => duplicateTransactionID !== transactionID);
-        if (duplicateTransactionIDs.length === duplicateTransactionViolation.data.duplicates.length) {
-            continue;
-        }
-
-        const optimisticViolations = duplicateViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
-
-        if (duplicateTransactionIDs.length > 0) {
-            optimisticViolations.push({
-                ...duplicateTransactionViolation,
-                data: {
-                    ...duplicateTransactionViolation.data,
-                    duplicates: duplicateTransactionIDs,
-                },
-            });
-        }
-
-        const cleanedValue = optimisticViolations.length > 0 ? optimisticViolations : null;
-
-        onyxData.optimisticData?.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`,
-            value: cleanedValue,
-        });
-
-        // Re-apply the cleaned violations on success so that stale data from a
-        // queued command (e.g. OpenReport resolving between optimistic apply and
-        // the server response) doesn't re-introduce one-sided duplicate violations.
-        onyxData.successData?.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`,
-            value: cleanedValue,
-        });
-
-        onyxData.failureData?.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`,
-            value: duplicateViolations,
-        });
-    }
-}
-
-/**
- * Whether a report is still editable for a duplicate merge, i.e. one that Auth's MergeTransactions command would
- * accept. A report is mergeable when it is open, awaiting first-level approval, or unresolved (unreported expenses
- * stay editable in Auth). Anything approved, closed (Submit & Close), or reimbursed is rejected server-side.
- */
-function isReportMergeableForDuplicates(report: OnyxEntry<Report>): boolean {
-    return !report || isOpenReport(report) || isProcessingReport(report);
-}
-
-/**
- * Keeps only transactions that Auth's MergeTransactions command would accept, so filtering here prevents sending a
- * merge request that would fail server-side.
- */
-function removeSettledAndApprovedTransactions(transactions: Array<OnyxEntry<Transaction>>): Transaction[] {
-    return transactions.filter((transaction) => !!transaction && isReportMergeableForDuplicates(getReportOrDraftReport(transaction.reportID))) as Transaction[];
-}
-
-/**
- * Whether a duplicate merge can be submitted. Auth's MergeTransactions rejects the merge when the kept expense's
- * report is no longer editable or when there are no duplicates left to merge, so callers should block the request
- * in those cases.
- */
-function canMergeDuplicates(keptReport: OnyxEntry<Report>, transactionIDList: string[]): boolean {
-    return isReportMergeableForDuplicates(keptReport) && transactionIDList.length > 0;
-}
-
-/**
- * This function compares fields of duplicate transactions and determines which fields should be kept and which should be changed.
- *
- * @returns An object with two properties: 'keep' and 'change'.
- * 'keep' is an object where each key is a field name and the value is the value of that field in the transaction that should be kept.
- * 'change' is an object where each key is a field name and the value is an array of different values of that field in the duplicate transactions.
- *
- * The function works as follows:
- * 1. It fetches the transaction violations for the given transaction ID.
- * 2. It finds the duplicate transactions.
- * 3. It creates two empty objects, 'keep' and 'change'.
- * 4. It defines the fields to compare in the transactions.
- * 5. It iterates over the fields to compare. For each field:
- *    - If the field is 'description', it checks if all comments are equal, exist, or are empty. If so, it keeps the first transaction's comment. Otherwise, it finds the different values and adds them to 'change'.
- *    - For other fields, it checks if all fields are equal. If so, it keeps the first transaction's field value. Otherwise, it finds the different values and adds them to 'change'.
- * 6. It returns the 'keep' and 'change' objects.
- */
-
-function compareDuplicateTransactionFields(
-    policyTags: PolicyTagLists,
-    reviewingTransaction: OnyxEntry<Transaction>,
-    duplicates: Array<OnyxEntry<Transaction>> | undefined,
-    report: OnyxEntry<Report>,
-    selectedTransactionID: string | undefined,
-    policy: OnyxEntry<Policy>,
-    policyCategories: OnyxEntry<PolicyCategories>,
-): {keep: Partial<ReviewDuplicates>; change: FieldsToChange} {
-    const reportID = report?.reportID;
-    const reviewingTransactionID = reviewingTransaction?.transactionID;
-    if (!reviewingTransactionID || !reportID) {
-        return {change: {}, keep: {}};
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const keep: Record<string, any> = {};
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const change: Record<string, any[]> = {};
-    if (!reviewingTransactionID || !reportID) {
-        return {keep, change};
-    }
-    const transactions = removeSettledAndApprovedTransactions([reviewingTransaction, ...(duplicates ?? [])]);
-
-    const fieldsToCompare: FieldsToCompare = {
-        merchant: ['modifiedMerchant', 'merchant'],
-        category: ['category'],
-        tag: ['tag'],
-        description: ['comment'],
-        taxCode: ['taxCode'],
-        billable: ['billable'],
-        reimbursable: ['reimbursable'],
-    };
-
-    // Helper function thats create an array of different values for a given key in the transactions
-    function getDifferentValues(items: Array<OnyxEntry<Transaction>>, keys: Array<keyof Transaction>) {
-        return [
-            ...new Set(
-                items
-                    .map((item) => {
-                        // Prioritize modifiedMerchant over merchant
-                        if (keys.includes('modifiedMerchant' as keyof Transaction) && keys.includes('merchant' as keyof Transaction)) {
-                            return getMerchant(item);
-                        }
-                        return keys.map((key) => item?.[key]);
-                    })
-                    .flat(),
-            ),
-        ];
-    }
-
-    // Helper function to check if all comments are equal
-    function areAllCommentsEqual(items: Array<OnyxEntry<Transaction>>, firstTransaction: OnyxEntry<Transaction>) {
-        return items.every((item) => deepEqual(getDescription(item), getDescription(firstTransaction)));
-    }
-
-    // Helper function to check if all fields are equal for a given key
-    function areAllFieldsEqual(items: Array<OnyxEntry<Transaction>>, keyExtractor: (item: OnyxEntry<Transaction>) => string) {
-        const firstTransaction = transactions.at(0);
-        return items.every((item) => keyExtractor(item) === keyExtractor(firstTransaction));
-    }
-
-    // Helper function to process changes
-    function processChanges(fieldName: string, items: Array<OnyxEntry<Transaction>>, keys: Array<keyof Transaction>) {
-        const differentValues = getDifferentValues(items, keys);
-        if (differentValues.length > 0) {
-            change[fieldName] = differentValues;
-        }
-    }
-
-    // The comment object needs to be stored only when selecting a specific transaction to keep.
-    // It contains details such as 'customUnit' and 'waypoints,' which remain unchanged during the review steps
-    // but are essential for displaying complete information on the confirmation page.
-    if (selectedTransactionID) {
-        const selectedTransaction = transactions.find((t) => t?.transactionID === selectedTransactionID);
-        keep.comment = selectedTransaction?.comment ?? {};
-    }
-
-    for (const fieldName in fieldsToCompare) {
-        if (Object.prototype.hasOwnProperty.call(fieldsToCompare, fieldName)) {
-            const keys = fieldsToCompare[fieldName];
-            const firstTransaction = transactions.at(0);
-            const isFirstTransactionCommentEmptyObject = typeof firstTransaction?.comment === 'object' && firstTransaction?.comment?.comment === '';
-
-            const areAllFieldsEqualForKey = areAllFieldsEqual(transactions, (item) => keys.map((key) => SafeString(item?.[key])).join('|'));
-            if (fieldName === 'description') {
-                const allCommentsAreEqual = areAllCommentsEqual(transactions, firstTransaction);
-                const allCommentsAreEmpty = isFirstTransactionCommentEmptyObject && transactions.every((item) => getDescription(item) === '');
-                if (allCommentsAreEqual || allCommentsAreEmpty) {
-                    keep[fieldName] = firstTransaction?.comment?.comment ?? firstTransaction?.comment;
-                } else {
-                    processChanges(fieldName, transactions, keys);
-                }
-            } else if (fieldName === 'merchant') {
-                if (areAllFieldsEqual(transactions, getMerchant)) {
-                    keep[fieldName] = getMerchant(firstTransaction);
-                } else {
-                    processChanges(fieldName, transactions, keys);
-                }
-            } else if (fieldName === 'taxCode') {
-                const differentValues = [
-                    ...new Set(
-                        getDifferentValues(transactions, keys).map((taxID) => {
-                            if (typeof taxID !== 'string') {
-                                return taxID;
-                            }
-                            return resolveCurrentTaxCode(policy, taxID);
-                        }),
-                    ),
-                ];
-                const validTaxes = differentValues?.filter((taxID) => {
-                    if (typeof taxID !== 'string') {
-                        return false;
-                    }
-                    const tax = getTaxByID(policy, taxID);
-                    return tax?.name && !tax.isDisabled && tax.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-                });
-                const areAllTaxCodesEqual = areAllFieldsEqual(transactions, (item) => resolveCurrentTaxCode(policy, item?.taxCode ?? ''));
-
-                if (!areAllTaxCodesEqual && validTaxes.length > 1) {
-                    change[fieldName] = validTaxes;
-                } else {
-                    const taxCodeToKeep = firstTransaction?.taxCode;
-                    keep[fieldName] = taxCodeToKeep ? resolveCurrentTaxCode(policy, taxCodeToKeep) : taxCodeToKeep;
-                }
-            } else if (fieldName === 'category') {
-                const differentValues = getDifferentValues(transactions, keys);
-                const availableCategories = Object.values(policyCategories ?? {})
-                    .filter((category) => differentValues.includes(category.name) && category.enabled && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-                    .map((e) => e.name);
-
-                if (!areAllFieldsEqualForKey && policy?.areCategoriesEnabled && (availableCategories.length > 1 || (availableCategories.length === 1 && differentValues.includes('')))) {
-                    change[fieldName] = [...availableCategories, ...(differentValues.includes('') ? [''] : [])];
-                } else {
-                    keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
-                }
-            } else if (fieldName === 'tag') {
-                const isMultiLevelTags = isMultiLevelTagsPolicyUtils(policyTags);
-                if (isMultiLevelTags) {
-                    if (areAllFieldsEqualForKey || !policy?.areTagsEnabled) {
-                        keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
-                    } else {
-                        processChanges(fieldName, transactions, keys);
-                    }
-                } else {
-                    const differentValues = getDifferentValues(transactions, keys);
-                    const policyTagsObj = Object.values(Object.values(policyTags).at(0)?.tags ?? {});
-                    const availableTags = policyTagsObj
-                        .filter((tag) => differentValues.includes(tag.name) && tag.enabled && tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-                        .map((e) => e.name);
-                    if (!areAllFieldsEqualForKey && policy?.areTagsEnabled && (availableTags.length > 1 || (availableTags.length === 1 && differentValues.includes('')))) {
-                        change[fieldName] = [...availableTags, ...(differentValues.includes('') ? [''] : [])];
-                    } else {
-                        keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
-                    }
-                }
-            } else if (fieldName === 'reimbursable') {
-                // Managed card transactions are always non-reimbursable. The resolved reimbursable value is applied to
-                // the transaction that is kept, so we only force it to false — and hide the reimbursable review step —
-                // when that kept transaction is itself a managed card. We gate on the selected (kept) transaction rather
-                // than the reviewing transaction: the Review* pages recompute this from the thread's transaction (which
-                // may be the cash expense) while the kept transaction is the managed card, so gating on the reviewing
-                // transaction would re-add the reimbursable step on back navigation. Gating on any duplicate in the set
-                // would instead wrongly convert a kept cash expense to non-reimbursable.
-                const selectedTransaction = transactions.find((transactionItem) => transactionItem?.transactionID === selectedTransactionID) ?? firstTransaction;
-                if (isManagedCardTransaction(selectedTransaction)) {
-                    keep[fieldName] = false;
-                } else if (areAllFieldsEqualForKey) {
-                    keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
-                } else {
-                    processChanges(fieldName, transactions, keys);
-                }
-            } else if (areAllFieldsEqualForKey) {
-                keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
-            } else {
-                processChanges(fieldName, transactions, keys);
-            }
-        }
-    }
-
-    return {keep, change};
-}
-
 function getTransactionID(report?: OnyxEntry<Report>): string | undefined {
     if (!report) {
         return;
@@ -2519,61 +1947,6 @@ function getTransactionID(report?: OnyxEntry<Report>): string | undefined {
     const IOUTransactionID = isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
 
     return IOUTransactionID;
-}
-
-function buildNewTransactionAfterReviewingDuplicates(reviewDuplicateTransaction: OnyxEntry<ReviewDuplicates>, duplicatedTransaction: OnyxEntry<Transaction>): Partial<Transaction> {
-    const {duplicates, taxAmount, ...restReviewDuplicateTransaction} = reviewDuplicateTransaction ?? {};
-    const hasUpdatedTaxCode = reviewDuplicateTransaction?.taxCode !== undefined && reviewDuplicateTransaction?.taxCode !== duplicatedTransaction?.taxCode;
-
-    return {
-        ...duplicatedTransaction,
-        ...restReviewDuplicateTransaction,
-        modifiedMerchant: reviewDuplicateTransaction?.merchant,
-        merchant: reviewDuplicateTransaction?.merchant,
-        comment: {...reviewDuplicateTransaction?.comment, comment: reviewDuplicateTransaction?.description},
-        // If the taxCode changes, apply the reviewed tax amount and clear stale taxName/taxValue so MoneyRequestView derives them fresh from the policy.
-        ...(hasUpdatedTaxCode && {taxAmount, taxName: undefined, taxValue: undefined}),
-    };
-}
-
-function buildMergeDuplicatesParams(
-    reviewDuplicates: OnyxEntry<ReviewDuplicates>,
-    duplicatedTransactions: Array<OnyxEntry<Transaction>>,
-    originalTransaction: Partial<Transaction>,
-): MergeDuplicatesParams {
-    return {
-        amount: -getAmount(originalTransaction as OnyxEntry<Transaction>, true),
-        reportID: originalTransaction?.reportID,
-        receiptID: originalTransaction?.receipt?.receiptID ?? CONST.DEFAULT_NUMBER_ID,
-        currency: getCurrency(originalTransaction as OnyxEntry<Transaction>),
-        created: getFormattedCreated(originalTransaction as OnyxEntry<Transaction>),
-        transactionID: reviewDuplicates?.transactionID,
-        transactionIDList: removeSettledAndApprovedTransactions(duplicatedTransactions ?? []).map((transaction) => transaction.transactionID),
-        billable: reviewDuplicates?.billable ?? false,
-        reimbursable: reviewDuplicates?.reimbursable ?? false,
-        category: reviewDuplicates?.category ?? '',
-        tag: reviewDuplicates?.tag ?? '',
-        merchant: reviewDuplicates?.merchant ?? '',
-        comment: reviewDuplicates?.description ?? '',
-    };
-}
-
-function getCategoryTaxDetails(category: string, transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>, getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals']) {
-    const taxRules = policy?.rules?.expenseRules?.filter((rule) => rule.tax);
-    if (!taxRules || taxRules?.length === 0 || isDistanceRequest(transaction)) {
-        return {categoryTaxCode: undefined, categoryTaxAmount: undefined, categoryTaxValue: undefined};
-    }
-
-    const defaultTaxCode = getDefaultTaxCode(policy, transaction, getCurrency(transaction));
-    const categoryTaxCode = getCategoryDefaultTaxRate(taxRules, category, defaultTaxCode);
-    const categoryTaxPercentage = getTaxValue(policy, transaction, categoryTaxCode ?? '');
-    let categoryTaxAmount;
-
-    if (categoryTaxPercentage) {
-        categoryTaxAmount = convertToBackendAmount(calculateTaxAmount(categoryTaxPercentage, getAmount(transaction), getCurrencyDecimals(getCurrency(transaction))));
-    }
-
-    return {categoryTaxCode, categoryTaxAmount, categoryTaxValue: categoryTaxPercentage};
 }
 
 /**
