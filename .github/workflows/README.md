@@ -88,6 +88,7 @@ git fetch origin tag 1.0.1-0 --no-tags --shallow-exclude=1.0.0-0 # This will fet
 ## Secrets
 The GitHub workflows require a large list of secrets to deploy, notify and test the code:
 1. `SLACK_WEBHOOK` - Sends Slack notifications via Slack WebHook https://expensify.slack.com/services/B01AX48D7MM
+1. `SLACK_RETEST_BOT_TOKEN` - Read-only Slack token with `channels:history` access to `#deployer` and `#retests`, used to link automated retest requests to their Cherry Pick Request threads
 1. `OS_BOTIFY_TOKEN` - Personal access token for @OSBotify user in GitHub
 1. `CLA_BOTIFY_TOKEN` - Personal access token for @CLABotify user in GitHub
 1. `CSC_LINK` - Required to be set for desktop code signing: https://www.electron.build/code-signing.html#travis-appveyor-and-other-ci-servers
