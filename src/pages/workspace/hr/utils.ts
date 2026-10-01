@@ -213,6 +213,18 @@ function getHRCards({
 
         // In Custom approval the connection sets no approvers, so it has no final approver either
         const isCustomApproval = getHRApprovalMode(policy, connectionName) === provider.customApprovalMode;
+        const finalApproverRows: MergeProviderConfigRow[] = isCustomApproval
+            ? []
+            : [
+                  {
+                      field: 'finalApprover',
+                      description: translate('workspace.merge.finalApprover'),
+                      title: getMergeFinalApproverDisplayName(config?.finalApprover, policyEmployeePersonalDetails, translate, formatPhoneNumber),
+                      route: provider.finalApproverRoute.getRoute(policyID),
+                      pendingAction: config?.pendingFields?.finalApprover,
+                      errors: config?.errorFields?.finalApprover,
+                  },
+              ];
         cards.push({
             key: provider.key,
             category: CONST.POLICY.CONNECTIONS.CATEGORY.HR,
@@ -231,18 +243,7 @@ function getHRCards({
                               pendingAction: config?.pendingFields?.approvalMode,
                               errors: config?.errorFields?.approvalMode,
                           },
-                          ...(isCustomApproval
-                              ? []
-                              : [
-                                    {
-                                        field: 'finalApprover',
-                                        description: translate('workspace.merge.finalApprover'),
-                                        title: getMergeFinalApproverDisplayName(config?.finalApprover, policyEmployeePersonalDetails, translate, formatPhoneNumber),
-                                        route: provider.finalApproverRoute.getRoute(policyID),
-                                        pendingAction: config?.pendingFields?.finalApprover,
-                                        errors: config?.errorFields?.finalApprover,
-                                    },
-                                ]),
+                          ...finalApproverRows,
                       ]
                     : [],
             ...state,
@@ -260,6 +261,18 @@ function getHRCards({
 
         // In Custom approval the connection sets no approvers, so it has no final approver either
         const isCustomApproval = mergeConfig?.approvalMode === CONST.MERGE.APPROVAL_MODE.CUSTOM;
+        const finalApproverRows: MergeProviderConfigRow[] = isCustomApproval
+            ? []
+            : [
+                  {
+                      field: 'finalApprover',
+                      description: translate('workspace.merge.finalApprover'),
+                      title: getMergeFinalApproverDisplayName(mergeConfig?.finalApprover, policyEmployeePersonalDetails, translate, formatPhoneNumber),
+                      route: ROUTES.WORKSPACE_HR_MERGE_FINAL_APPROVER.getRoute(policyID),
+                      pendingAction: mergeConfig?.pendingFields?.finalApprover,
+                      errors: mergeConfig?.errorFields?.finalApprover,
+                  },
+              ];
 
         const configRows: MergeProviderConfigRow[] =
             state.isConnected && !state.needsReconnect
@@ -280,18 +293,7 @@ function getHRCards({
                           pendingAction: mergeConfig?.pendingFields?.approvalMode,
                           errors: mergeConfig?.errorFields?.approvalMode,
                       },
-                      ...(isCustomApproval
-                          ? []
-                          : [
-                                {
-                                    field: 'finalApprover',
-                                    description: translate('workspace.merge.finalApprover'),
-                                    title: getMergeFinalApproverDisplayName(mergeConfig?.finalApprover, policyEmployeePersonalDetails, translate, formatPhoneNumber),
-                                    route: ROUTES.WORKSPACE_HR_MERGE_FINAL_APPROVER.getRoute(policyID),
-                                    pendingAction: mergeConfig?.pendingFields?.finalApprover,
-                                    errors: mergeConfig?.errorFields?.finalApprover,
-                                },
-                            ]),
+                      ...finalApproverRows,
                   ]
                 : [];
 

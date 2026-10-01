@@ -11,8 +11,8 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import useHasApprovalWorkflowRules from '@hooks/useHasApprovalWorkflowRules';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,13 +23,11 @@ import {getConnectedATSProvider, getMergeATSApprovalMode, getMergeATSApproverFie
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeATSApprovalNavigatorParamList} from '@libs/Navigation/types';
-import {getApprovalWorkflowRulesForPolicy} from '@libs/WorkflowUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {getApproverFieldName} from '@pages/workspace/recruiting/utils';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {MergeApprovalMode} from '@src/types/onyx/Policy';
@@ -61,15 +59,7 @@ function MergeATSApprovalModePage({
     const currentApprovalMode = getMergeATSApprovalMode(policy);
     const {approvalMode: selectedApprovalMode, approverField, finalApprover} = useMergeATSApprovalDraftState(policyID);
     const {setDraftApprovalMode} = useMergeATSApprovalDraftActions();
-    // Admins also receive the workspace's merchant rules in this collection, so only the rules that route reports count
-    const [hasApprovalWorkflowRules] = useOnyx(ONYXKEYS.COLLECTION.RULE, {
-        selector: (rules) =>
-            Object.values(getApprovalWorkflowRulesForPolicy(rules, policyID)).some((rule) =>
-                Object.values(rule.actions).some(
-                    (action) => action.name === CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO || action.name === CONST.RULES.APPROVAL_WORKFLOW.ACTION.APPROVE_REPORT,
-                ),
-            ),
-    });
+    const hasApprovalWorkflowRules = useHasApprovalWorkflowRules(policyID);
 
     // Advanced mode always has an approver field, since that one falls back to the recruiter field, and its final approver is optional.
     const isApproverMissing = selectedApprovalMode === CONST.MERGE.APPROVAL_MODE.BASIC && !finalApprover;
@@ -121,7 +111,7 @@ function MergeATSApprovalModePage({
         // Leaving custom replaces the approval routing the admin set up by hand. In every mode but custom the recruiting
         // provider's syncs set the approvers, so the backend also deletes the workspace's approval workflow rules. Those
         // are the only changes worth warning about.
-        const shouldDeleteApprovalWorkflowRules = !!hasApprovalWorkflowRules && selectedApprovalMode !== CONST.MERGE.APPROVAL_MODE.CUSTOM;
+        const shouldDeleteApprovalWorkflowRules = hasApprovalWorkflowRules && selectedApprovalMode !== CONST.MERGE.APPROVAL_MODE.CUSTOM;
         const shouldConfirm = shouldDeleteApprovalWorkflowRules || (currentApprovalMode === CONST.MERGE.APPROVAL_MODE.CUSTOM && selectedApprovalMode !== CONST.MERGE.APPROVAL_MODE.CUSTOM);
         if (!shouldConfirm) {
             saveApprovalMode();

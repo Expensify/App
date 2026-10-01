@@ -10,13 +10,13 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import useHasApprovalWorkflowRules from '@hooks/useHasApprovalWorkflowRules';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {getApprovalWorkflowRulesForPolicy} from '@libs/WorkflowUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
@@ -58,15 +58,7 @@ function HRApprovalModePageBase<T extends ApprovalModeValue>({policyID, config}:
     const {showConfirmModal} = useConfirmModal();
     const policy = usePolicy(policyID);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
-    // Admins also receive the workspace's merchant rules in this collection, so only the rules that route reports count
-    const [hasApprovalWorkflowRules] = useOnyx(ONYXKEYS.COLLECTION.RULE, {
-        selector: (rules) =>
-            Object.values(getApprovalWorkflowRulesForPolicy(rules, policyID)).some((rule) =>
-                Object.values(rule.actions).some(
-                    (action) => action.name === CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO || action.name === CONST.RULES.APPROVAL_WORKFLOW.ACTION.APPROVE_REPORT,
-                ),
-            ),
-    });
+    const hasApprovalWorkflowRules = useHasApprovalWorkflowRules(policyID);
 
     const providerName = config.getProviderName(policy);
     const currentApprovalMode = config.getCurrentApprovalMode(policy);
@@ -110,7 +102,7 @@ function HRApprovalModePageBase<T extends ApprovalModeValue>({policyID, config}:
 
     const confirmSaveApprovalMode = () => {
         // In every mode but custom the provider's syncs set the approvers, so the backend deletes the workspace's approval workflow rules
-        const shouldDeleteApprovalWorkflowRules = !!hasApprovalWorkflowRules && draftApprovalMode !== config.approvalModes.CUSTOM;
+        const shouldDeleteApprovalWorkflowRules = hasApprovalWorkflowRules && draftApprovalMode !== config.approvalModes.CUSTOM;
         showConfirmModal({
             title: translate('workspace.merge.approvalModeWarningTitle'),
             prompt: (
