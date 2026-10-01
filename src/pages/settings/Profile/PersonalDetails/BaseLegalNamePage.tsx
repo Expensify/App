@@ -13,7 +13,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import Navigation from '@libs/Navigation/Navigation';
 import {doesContainReservedWord, isValidDisplayName} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
@@ -23,7 +22,6 @@ import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 
 import type {ReactNode} from 'react';
 
-import React from 'react';
 import {View} from 'react-native';
 
 type BaseLegalNamePageProps<TFormID extends OnyxFormKey> = {
@@ -112,7 +110,7 @@ function BaseLegalNamePage<TFormID extends OnyxFormKey>({
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <HeaderWithBackButtonAndTitle
                     title={headerTitle ?? translate('privatePersonalDetails.legalName')}
-                    onBackButtonPress={onBackButtonPress ?? (() => Navigation.goBack())}
+                    onBackButtonPress={onBackButtonPress}
                 />
                 {isLoadingApp ? (
                     <View style={[styles.flex1, styles.fullScreenLoading]}>

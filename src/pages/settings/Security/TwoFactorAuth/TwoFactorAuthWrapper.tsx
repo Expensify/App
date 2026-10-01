@@ -1,7 +1,7 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
-import Header from '@components/Header';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useLocalize from '@hooks/useLocalize';
@@ -83,13 +83,11 @@ function TwoFactorAuthWrapper({stepName, title, stepCounter, onBackButtonPress, 
                     linkTranslationKey="securityPage.goToSecurity"
                     onLinkPress={defaultGoBack}
                 >
-                    <Header>
-                        <Header.BackButton onPress={onBackButtonPress ?? defaultGoBack} />
-                        <Header.Title
-                            title={title}
-                            subtitle={stepCounter ? translate('stepCounter', stepCounter.step, stepCounter.total, stepCounter.text) : undefined}
-                        />
-                    </Header>
+                    <HeaderWithBackButtonAndTitle
+                        title={title}
+                        subtitle={stepCounter ? translate('stepCounter', stepCounter.step, stepCounter.total, stepCounter.text) : undefined}
+                        onBackButtonPress={onBackButtonPress ?? defaultGoBack}
+                    />
                     <FullPageOfflineBlockingView>{children}</FullPageOfflineBlockingView>
                 </FullPageNotFoundView>
             </DelegateNoAccessWrapper>
