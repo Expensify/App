@@ -73,6 +73,8 @@ const action = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.HOME_ADD
     },
 });
 
+const CURRENT_USER_EMAIL = 'member@expensify.com';
+
 describe('HomeAddressRequiredContent', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -113,6 +115,47 @@ describe('HomeAddressRequiredContent', () => {
         // Then the CTA stays, because such a workspace measures every member's commute from their home
         await waitFor(() => {
             expect(screen.getByText('homePage.timeSensitiveSection.addHomeAddress.cta')).toBeTruthy();
+        });
+    });
+
+    it('keeps the CTA when the member is office-based on a workspace whose default is not', async () => {
+        // Given a workspace whose members have no regular workplace, except this one who was given their own
+        // office-based arrangement
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {email: CURRENT_USER_EMAIL});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policyID`, {
+                id: 'policyID',
+                commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE, isOfficeWorkArrangement: false},
+                employeeList: {[CURRENT_USER_EMAIL]: {email: CURRENT_USER_EMAIL, hasOfficeWorkArrangement: true}},
+            });
+        });
+
+        // When the prompt renders for a member who has no home address saved
+        render(<HomeAddressRequiredContent action={action} />);
+
+        // Then the CTA stays, because their commute is still measured from their home
+        await waitFor(() => {
+            expect(screen.getByText('homePage.timeSensitiveSection.addHomeAddress.cta')).toBeTruthy();
+        });
+    });
+
+    it('hides the CTA when the member has no regular workplace on an office-based workspace', async () => {
+        // Given an office-based workspace where this member was given their own no-regular-workplace arrangement
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {email: CURRENT_USER_EMAIL});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policyID`, {
+                id: 'policyID',
+                commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE, isOfficeWorkArrangement: true},
+                employeeList: {[CURRENT_USER_EMAIL]: {email: CURRENT_USER_EMAIL, hasOfficeWorkArrangement: false}},
+            });
+        });
+
+        // When the prompt renders
+        render(<HomeAddressRequiredContent action={action} />);
+
+        // Then nothing is measured against their home, so there is nothing left to ask them for
+        await waitFor(() => {
+            expect(screen.queryByText('homePage.timeSensitiveSection.addHomeAddress.cta')).toBeNull();
         });
     });
 

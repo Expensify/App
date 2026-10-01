@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -65,7 +65,7 @@ function PolicyWorkArrangementPage({route}: PolicyWorkArrangementPageProps) {
                 testID="PolicyWorkArrangementPage"
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton title={translate('workspace.distanceRates.commuterExclusions.workArrangement.title')} />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.distanceRates.commuterExclusions.workArrangement.title')} />
                 <OfflineWithFeedback
                     errors={getLatestErrorField(policyData ?? {}, 'commuterExclusions')}
                     pendingAction={policyData?.pendingFields?.commuterExclusions}

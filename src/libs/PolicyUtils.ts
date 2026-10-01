@@ -65,6 +65,7 @@ import {getAccountIDsByLogins, getKnownAccountIDByLogin, getPersonalDetailByEmai
 import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
 import {generateAccountID} from './UserUtils';
 import {isPublicDomain, isValidAccountRoute} from './ValidationUtils';
+import {getEffectiveWorkArrangement} from './WorkArrangementUtils';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 
@@ -409,14 +410,10 @@ function getDistanceRateCustomUnit(policy: OnyxEntry<Policy>): CustomUnit | unde
 }
 
 /**
- * Whether the workspace's members commute to an office, which is what gives them an ordinary commute to
- * measure against their home address.
- *
- * Workspaces that turned the home and office method on before this setting existed have nothing stored and
- * measured every member's commute, so a missing value reads as office-based.
+ * The workspace-wide work arrangement, which members follow unless they were given one of their own.
  */
 function hasOfficeWorkArrangement(commuterExclusions: CommuterExclusions | undefined): boolean {
-    return commuterExclusions?.isOfficeWorkArrangement ?? true;
+    return getEffectiveWorkArrangement(undefined, commuterExclusions?.isOfficeWorkArrangement);
 }
 
 /**
