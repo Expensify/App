@@ -28,7 +28,6 @@ type IllustratedHeaderPageLayoutProps = HeaderPageLayoutProps & {
 function IllustratedHeaderPageLayout({backgroundColor, children, illustration, testID, overlayContent, ...rest}: IllustratedHeaderPageLayoutProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const shouldLimitHeight = true;
 
     return (
         <HeaderPageLayout
@@ -38,7 +37,7 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, t
                     <Lottie
                         source={illustration}
                         style={styles.w100}
-                        webStyle={shouldLimitHeight ? styles.h100 : styles.w100}
+                        webStyle={styles.h100}
                         autoPlay
                         loop
                     />
@@ -46,7 +45,7 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, t
                 </>
             }
             testID={testID}
-            headerContainerStyles={[styles.justifyContentCenter, styles.w100, shouldLimitHeight && styles.centralPaneAnimation]}
+            headerContainerStyles={[styles.justifyContentCenter, styles.w100, styles.centralPaneAnimation]}
             {...rest}
         >
             {children}
