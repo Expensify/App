@@ -63,7 +63,7 @@ When a reimbursement is paid into a bank account with a different currency, fore
 - **Employee pays** (the default for existing Global Reimbursement setups): the employee absorbs the FX fees, and the company sees the report total on their statement.
 - **Company pays** (the default for new Global Reimbursement setups): the company absorbs the FX fees so the employee receives the full intended amount in their local currency, and the company's business bank account is debited more than the report total.
 
-Learn how to [choose who pays currency conversion fees](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Workflows#how-to-choose-who-pays-currency-conversion-fees).
+Learn how to [choose who pays currency conversion fees](/articles/new-expensify/workspaces/Workspace-Workflows#how-to-choose-who-pays-currency-conversion-fees).
 
 ## Why is the reimbursement amount different from the expense amount?
 If your workspace and employees use different currencies, the reimbursement amount received by the employee can differ from the original expense amount. Exchange rates set by different providers on different days can cause the final amount to differ slightly from the original expense, and transaction fees may also contribute to this difference. When your workspace's **Currency conversion fees** setting is set to **Company pays**, the company absorbs these costs so the employee receives the full intended amount.

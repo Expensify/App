@@ -75,7 +75,7 @@ When a reimbursement is paid into a bank account with a different currency, fore
 - **Employee pays:** The employee absorbs the FX fees, and the company sees the report total on their statement.
 - **Company pays:** The company absorbs the FX fees, so the employee receives the amount they originally paid in their local currency, and the company's business bank account is debited more than the report total.
 
-Learn how to [choose who pays currency conversion fees](https://help.expensify.com/articles/expensify-classic/workspaces/Configure-Reimbursement-Settings#choose-who-pays-currency-conversion-fees).
+Learn how to [choose who pays currency conversion fees](/articles/expensify-classic/workspaces/Configure-Reimbursement-Settings#choose-who-pays-currency-conversion-fees).
 
 ## Why does the payment message on a cross-border report show a different amount than the report total?
 When a report is paid across borders from a business bank account, the payment message on the report names the exact amount credited to the employee in their own deposit currency, along with the last four digits of the account the payment was sent from and the account it was deposited into. This credited amount can differ from the report total because of the currency conversion and any FX fees. Same-currency reimbursements will always show the report total.

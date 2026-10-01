@@ -24,7 +24,7 @@ Workspace Admins can reconcile reimbursements when Payments is enabled on the Wo
 3. Choose the **Withdrawn** filter to select a date range (for example, **Last month**).
 4. Review the list of reimbursements. Each row represents a reimbursement for a single report and shows the total amount, along with the **Amount debited** column showing what was actually withdrawn from your business bank account.
 
-**Note:** For cross-border reimbursements where your workspace is set to **Company pays** for currency conversion fees, the **Amount debited** can be greater than the report total because it includes the foreign exchange (FX) rate difference and conversion fee. Learn more about [who pays currency conversion fees](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Workflows#how-to-choose-who-pays-currency-conversion-fees).
+**Note:** For cross-border reimbursements where your workspace is set to **Company pays** for currency conversion fees, the **Amount debited** can be greater than the report total because it includes the foreign exchange (FX) rate difference and conversion fee. Learn more about [who pays currency conversion fees](/articles/new-expensify/workspaces/Workspace-Workflows#how-to-choose-who-pays-currency-conversion-fees).
 
 ---
 
