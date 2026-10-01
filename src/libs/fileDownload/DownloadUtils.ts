@@ -6,27 +6,8 @@ import CONST from '@src/CONST';
 
 import type {FileDownload} from './types';
 
+import createDownloadLink from './createDownloadLink';
 import {appendTimeToFileName, getFileName} from './FileUtils';
-
-const createDownloadLink = (href: string, fileName: string) => {
-    // creating anchor tag to initiate download
-    const link = document.createElement('a');
-    // adding href to anchor
-    link.href = href;
-    link.style.display = 'none';
-
-    link.download = fileName;
-
-    // Append to html link element page
-    document.body.appendChild(link);
-
-    // Start download
-    link.click();
-
-    // Clean up and remove the link
-    URL.revokeObjectURL(link.href);
-    link.parentNode?.removeChild(link);
-};
 
 /**
  * The function downloads an attachment on web platforms.
