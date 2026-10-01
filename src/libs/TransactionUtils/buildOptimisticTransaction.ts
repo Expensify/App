@@ -244,7 +244,8 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         cardName: existingTransaction?.cardName,
         cardNumber: existingTransaction?.cardNumber,
         ...(existingTransaction?.iouRequestType ? {iouRequestType: existingTransaction.iouRequestType} : {}),
-        wasAutoCategorizeEnabledOnCreation: policy?.autoCategorizeNewExpenses !== false,
+        // Splits rebuild this expense without a policy. A missing policy would otherwise read as enabled and erase a recorded false.
+        wasAutoCategorizeEnabledOnCreation: policy ? policy.autoCategorizeNewExpenses !== false : existingTransaction?.wasAutoCategorizeEnabledOnCreation !== false,
         routes,
     };
 }

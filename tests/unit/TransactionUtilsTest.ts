@@ -3428,6 +3428,29 @@ describe('TransactionUtils', () => {
             expect(transaction.wasAutoCategorizeEnabledOnCreation).toBe(false);
         });
 
+        it('should keep a recorded auto-categorize value when a rebuild has no policy', () => {
+            // Given an expense created while auto-categorize was off, rebuilt the way a split does, with the original expense and no policy
+            const existingTransaction = generateTransaction({
+                merchant: 'Starbucks',
+                wasAutoCategorizeEnabledOnCreation: false,
+            });
+
+            // When the expense is rebuilt
+            const transaction = TransactionUtils.buildOptimisticTransaction({
+                existingTransaction,
+                transactionParams: {
+                    amount: 50,
+                    currency: 'USD',
+                    reportID: '1',
+                    merchant: 'Starbucks',
+                    created: '2026-01-15',
+                },
+            });
+
+            // Then the recorded value survives, so the category row still does not show Analyzing
+            expect(transaction.wasAutoCategorizeEnabledOnCreation).toBe(false);
+        });
+
         it('should return true when within auto-categorization grace period', () => {
             // Set pendingAutoCategorizationTime to 30 seconds ago (within 1 minute grace period)
             const thirtySecondsAgo = new Date(Date.now() - 30 * 1000);
