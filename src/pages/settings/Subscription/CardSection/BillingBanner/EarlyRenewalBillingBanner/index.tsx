@@ -26,7 +26,7 @@ function EarlyRenewalBillingBanner() {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['MoneyBadge']);
+    const illustrations = useMemoizedLazyIllustrations(['SubscriptionAnnual']);
 
     return (
         <OfflineWithFeedback
@@ -38,7 +38,7 @@ function EarlyRenewalBillingBanner() {
             <BillingBanner
                 title={isIncentivizedPeriod ? translate('earlyRenewal.incentivizedTitle') : translate('earlyRenewal.title')}
                 subtitle={isIncentivizedPeriod ? translate('earlyRenewal.incentivizedSubtitle') : translate('earlyRenewal.subtitle')}
-                icon={illustrations.MoneyBadge}
+                icon={illustrations.SubscriptionAnnual}
                 rightComponent={
                     <Button
                         isDisabled={isOffline}
