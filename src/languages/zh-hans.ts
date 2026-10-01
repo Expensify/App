@@ -4529,16 +4529,19 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         },
         nudge: {
             airfareManual:
-                '你知道吗？你可以直接在 Expensify 中预订航班，同时照常累积常旅客里程。下次无需再手动创建报销，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 ✈️',
+                '你知道吗？你可以直接在 Expensify 预订机票，同时照常累积常旅客计划的里程！下次无需手动创建报销，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 ✈️',
             airfareCard:
-                '你知道吗？你可以直接在 Expensify 里预订机票，同时照常累积常旅客计划的里程！它还会自动为你上传收据。下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 ✈️',
+                '你知道吗？你可以直接在 Expensify 中预订机票，同时照常累积常旅客里程！系统还会自动为你上传收据。下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 ✈️',
             hotelManual:
-                '你知道吗？你可以直接在 Expensify 预订酒店入住，同时照常累积酒店会员积分！下次就不用再手动创建报销，直接通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🏨',
-            hotelCard: '你知道吗？你可以直接在 Expensify 预订酒店住宿，同时照常累积酒店会员积分！下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🏨',
-            carManual: '你知道吗？你可以直接在 Expensify 中预订和管理租车服务。下次就不用再手动创建报销了，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚗',
-            carCard: '你知道吗？你可以直接在 Expensify 中预订和管理租车！下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚗',
-            railManual: '你知道吗？你可以直接在 Expensify 中预订和管理火车行程！下次无需再手动创建报销，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚂',
-            railCard: '你知道吗？你可以直接在 Expensify 中预订和管理火车行程，而且还会自动为你上传收据。下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚂',
+                '你知道吗？你可以直接在 Expensify 预订酒店入住，同时照常累积酒店会员积分！下次无需再手动创建报销，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可。',
+            hotelCard: '你知道吗？你可以直接在 Expensify 预订酒店住宿，同时照常累积酒店会员积分。下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🏨',
+            carManual:
+                '你知道吗？你可以直接在 Expensify 预订租车，同时照常使用你的租车会员计划！下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订，就能省去手动创建报销的麻烦。',
+            carCard: '你知道吗？你可以直接在 Expensify 预订租车，并且照样使用你的租车会员计划。下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 进行预订 🚗',
+            railManual:
+                '你知道吗？你可以直接在 Expensify 中预订火车行程，同时照常使用你的铁路会员计划和铁路卡。下次就不用再手动创建报销了，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可。',
+            railCard:
+                '你知道吗？你可以直接在 Expensify 预订火车行程，同时照常使用铁路常旅客计划和铁路卡！系统还会自动为你上传收据。下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可。',
             hotelBlockManual:
                 '你知道吗？你可以直接在 Expensify 中预订和管理像这样的团队行程。下次就不用再费心了，试试我们的 <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> 工具吧。',
             hotelBlockCard:
