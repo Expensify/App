@@ -35,7 +35,7 @@ function PreTrialBillingBanner() {
         const reportUsedForOnboarding = getChatUsedForOnboarding(onboarding, conciergeReportID);
 
         if (!reportUsedForOnboarding) {
-            navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, personalDetails: conciergePersonalDetails, shouldDismissModal: false});
+            navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, conciergePersonalDetails, shouldDismissModal: false});
             return;
         }
 

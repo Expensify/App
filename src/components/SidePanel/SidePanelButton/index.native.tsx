@@ -55,7 +55,7 @@ function SidePanelButton({style}: SidePanelButtonProps) {
                         introSelected,
                         currentUserAccountID,
                         isSelfTourViewed,
-                        personalDetails: conciergePersonalDetails,
+                        conciergePersonalDetails,
                         sourceReportID: sourceReportID && sourceReportID !== conciergeReportID ? sourceReportID : undefined,
                     });
                 }}

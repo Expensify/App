@@ -4464,7 +4464,7 @@ type NavigateToConciergeChatParams = {
      * callers should pass a list narrowed to it (see `usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE])`) instead of
      * subscribing to the whole personal details list.
      */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
+    conciergePersonalDetails: OnyxEntry<PersonalDetailsList>;
 
     /**
      * The report the user was viewing when they opened Concierge from the side-pane button (native). Threaded onto
@@ -4485,7 +4485,7 @@ function navigateToConciergeChat({
     checkIfCurrentPageActive = () => true,
     linkToOptions,
     reportActionID,
-    personalDetails,
+    conciergePersonalDetails,
     sourceReportID,
 }: NavigateToConciergeChatParams): Promise<void> {
     // If conciergeReportID contains a concierge report ID, we navigate to the concierge chat using the stored report ID.
@@ -4502,7 +4502,11 @@ function navigateToConciergeChat({
             }
             navigateToAndOpenReport({
                 userLogins: [CONST.EMAIL.CONCIERGE],
-                personalDetails,
+                // The list was captured before onServerDataReady(), so it can be stale when OpenApp only just loaded Concierge.
+                // When Concierge is missing from it, pass undefined so openReport reads the live list instead of treating Concierge
+                // as a new account and merging an optimistic personal detail over the real one.
+                // TODO: Remove this fallback together with the allPersonalDetails Onyx.connect https://github.com/Expensify/App/issues/73656
+                personalDetails: conciergePersonalDetails?.[CONST.ACCOUNT_ID.CONCIERGE] ? conciergePersonalDetails : undefined,
                 currentUserAccountID,
                 introSelected,
                 // The Concierge chat does not exist yet on this path (it is being created here), so there is no report to thread.
@@ -4999,7 +5003,7 @@ function navigateToConciergeChatAndDeleteReport(
         isSelfTourViewed,
         shouldDismissModal: false,
         linkToOptions: {afterTransition: () => deleteReport(reportID, shouldDeleteChildReports)},
-        personalDetails,
+        conciergePersonalDetails: personalDetails,
     });
 }
 
@@ -5311,7 +5315,7 @@ function navigateToMostRecentReport(
             introSelected,
             currentUserAccountID,
             isSelfTourViewed,
-            personalDetails,
+            conciergePersonalDetails: personalDetails,
             shouldDismissModal: false,
             linkToOptions: {forceReplace: true},
         });

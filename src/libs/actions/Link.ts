@@ -433,7 +433,7 @@ function openReportFromDeepLink(
     isSelfTourViewed: boolean | undefined,
     callerAccountID: number,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
+    conciergePersonalDetails: OnyxEntry<PersonalDetailsList>,
 ) {
     const reportID = getReportIDFromLink(url);
 
@@ -607,7 +607,7 @@ function openReportFromDeepLink(
                                     Navigation.navigate(lastAccessedReportRoute, {forceReplace: Navigation.getTopmostReportId() === reportID, waitForTransition: true});
                                     return;
                                 }
-                                navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, personalDetails, shouldDismissModal: false});
+                                navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, conciergePersonalDetails, shouldDismissModal: false});
                                 return;
                             }
 

@@ -22,7 +22,7 @@ function useOpenConciergeAnywhere() {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const openConciergeAnywhere = (_options?: {forceConcierge?: boolean; reportID?: string}) => {
-        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, personalDetails: conciergePersonalDetails});
+        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, conciergePersonalDetails});
     };
 
     return {openConciergeAnywhere, isInSidePanel: false};

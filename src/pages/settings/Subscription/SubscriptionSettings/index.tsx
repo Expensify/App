@@ -362,7 +362,7 @@ function SubscriptionSettings() {
                                 introSelected,
                                 currentUserAccountID,
                                 isSelfTourViewed,
-                                personalDetails: conciergePersonalDetails,
+                                conciergePersonalDetails,
                                 shouldDismissModal: false,
                             });
                         }}

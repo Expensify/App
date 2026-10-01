@@ -62,7 +62,7 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const handleNavigateToConciergeChat = () => {
-        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, personalDetails: conciergePersonalDetails, shouldDismissModal: true});
+        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, conciergePersonalDetails, shouldDismissModal: true});
     };
     const bankAccountState = reimbursementAccount?.achData?.state ?? '';
     const pendingAction = reimbursementAccount?.pendingAction;

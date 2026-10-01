@@ -45,7 +45,7 @@ function ConciergeLinkRenderer({tnode, style}: ConciergeLinkRendererProps) {
      */
     const navigateToConciergeChat = () => {
         onPressFromProps?.();
-        navigateToConciergeChatAction({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, personalDetails: conciergePersonalDetails, shouldDismissModal: false});
+        navigateToConciergeChatAction({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, conciergePersonalDetails, shouldDismissModal: false});
     };
 
     // Define link style based on context

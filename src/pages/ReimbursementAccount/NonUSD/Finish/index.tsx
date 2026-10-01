@@ -44,7 +44,7 @@ function Finish() {
         Navigation.dismissModal();
     };
     const handleNavigateToConciergeChat = () =>
-        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, personalDetails: conciergePersonalDetails, shouldDismissModal: true});
+        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, conciergePersonalDetails, shouldDismissModal: true});
 
     return (
         <ScreenWrapper

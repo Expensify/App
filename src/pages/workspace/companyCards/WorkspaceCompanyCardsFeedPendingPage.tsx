@@ -46,7 +46,7 @@ function WorkspaceCompanyCardsFeedPendingPage() {
                                 introSelected,
                                 currentUserAccountID,
                                 isSelfTourViewed,
-                                personalDetails: conciergePersonalDetails,
+                                conciergePersonalDetails,
                                 shouldDismissModal: false,
                             });
                         }}

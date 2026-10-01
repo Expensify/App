@@ -70,7 +70,7 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, policy, se
             introSelected,
             currentUserAccountID,
             isSelfTourViewed,
-            personalDetails: conciergePersonalDetails,
+            conciergePersonalDetails,
             shouldDismissModal: true,
             reportActionID: reimbursementAccount?.achData?.ACHRequestReportActionID,
         });

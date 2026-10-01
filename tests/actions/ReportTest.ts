@@ -6086,7 +6086,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: undefined,
-                personalDetails: undefined,
+                conciergePersonalDetails: undefined,
                 shouldDismissModal: false,
             });
 
@@ -6104,7 +6104,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: undefined,
-                personalDetails: undefined,
+                conciergePersonalDetails: undefined,
                 shouldDismissModal: true,
             });
 
@@ -6126,7 +6126,7 @@ describe('actions/Report', () => {
                     introSelected: testIntroSelected,
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     isSelfTourViewed: undefined,
-                    personalDetails: undefined,
+                    conciergePersonalDetails: undefined,
                     shouldDismissModal: false,
                 });
             }).not.toThrow();
@@ -6142,7 +6142,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: undefined,
-                personalDetails: undefined,
+                conciergePersonalDetails: undefined,
                 shouldDismissModal: true,
                 reportActionID,
             });
@@ -6165,7 +6165,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: undefined,
-                personalDetails: undefined,
+                conciergePersonalDetails: undefined,
                 shouldDismissModal: false,
                 linkToOptions,
             });
@@ -6187,7 +6187,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: undefined,
-                personalDetails: undefined,
+                conciergePersonalDetails: undefined,
                 shouldDismissModal: false,
                 checkIfCurrentPageActive,
             });
@@ -6210,7 +6210,7 @@ describe('actions/Report', () => {
                     introSelected: testIntroSelected,
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     isSelfTourViewed: undefined,
-                    personalDetails: undefined,
+                    conciergePersonalDetails: undefined,
                     shouldDismissModal: false,
                 });
             }).not.toThrow();
@@ -6227,7 +6227,7 @@ describe('actions/Report', () => {
                     introSelected: testIntroSelected,
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     isSelfTourViewed: undefined,
-                    personalDetails: undefined,
+                    conciergePersonalDetails: undefined,
                     shouldDismissModal: false,
                 });
             }).not.toThrow();
@@ -6246,7 +6246,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: undefined,
-                personalDetails: undefined,
+                conciergePersonalDetails: undefined,
                 shouldDismissModal: true,
                 checkIfCurrentPageActive,
                 linkToOptions,
@@ -6273,7 +6273,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: undefined,
-                personalDetails: undefined,
+                conciergePersonalDetails: undefined,
                 shouldDismissModal: false,
             });
 
@@ -6302,7 +6302,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: undefined,
-                personalDetails: undefined,
+                conciergePersonalDetails: undefined,
                 shouldDismissModal: false,
             });
             await waitForBatchedUpdates();
@@ -6333,7 +6333,7 @@ describe('actions/Report', () => {
                     introSelected: testIntroSelected,
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     isSelfTourViewed: undefined,
-                    personalDetails: {[CONST.ACCOUNT_ID.CONCIERGE]: CONCIERGE_PERSONAL_DETAIL},
+                    conciergePersonalDetails: {[CONST.ACCOUNT_ID.CONCIERGE]: CONCIERGE_PERSONAL_DETAIL},
                     shouldDismissModal: false,
                 });
                 await waitForBatchedUpdates();
@@ -6344,27 +6344,23 @@ describe('actions/Report', () => {
                 expect(personalDetailsList?.[CONST.ACCOUNT_ID.CONCIERGE]).toEqual(CONCIERGE_PERSONAL_DETAIL);
             });
 
-            it('should create an optimistic personal detail for Concierge when it is missing from the personal details passed in', async () => {
-                // Given no Concierge chat exists yet and the personal details passed in do not contain Concierge,
-                // even though Onyx does: only the personal details passed in decide whether the account is optimistic.
+            it('should not create an optimistic personal detail for Concierge when the personal details passed in are stale', async () => {
+                // Given no Concierge chat exists yet and the personal details passed in were captured before OpenApp loaded Concierge,
+                // so they do not contain Concierge even though Onyx does by the time the server data is ready
                 Report.navigateToConciergeChat({
                     conciergeReportID: undefined,
                     introSelected: testIntroSelected,
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     isSelfTourViewed: undefined,
-                    personalDetails: {},
+                    conciergePersonalDetails: {},
                     shouldDismissModal: false,
                 });
                 await waitForBatchedUpdates();
 
-                // Then Concierge is written as an optimistic personal detail
+                // Then the Concierge chat is created and the real Concierge personal detail is not overwritten by an optimistic one
                 TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
                 const personalDetailsList = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
-                expect(personalDetailsList?.[CONST.ACCOUNT_ID.CONCIERGE]).toEqual({
-                    ...CONCIERGE_PERSONAL_DETAIL,
-                    displayName: CONST.EMAIL.CONCIERGE,
-                    isOptimisticPersonalDetail: true,
-                });
+                expect(personalDetailsList?.[CONST.ACCOUNT_ID.CONCIERGE]).toEqual(CONCIERGE_PERSONAL_DETAIL);
             });
         });
 
@@ -6378,7 +6374,7 @@ describe('actions/Report', () => {
                     introSelected: testIntroSelected,
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     isSelfTourViewed: true,
-                    personalDetails: undefined,
+                    conciergePersonalDetails: undefined,
                     shouldDismissModal: false,
                 });
             }).not.toThrow();
@@ -6389,7 +6385,7 @@ describe('actions/Report', () => {
                     introSelected: testIntroSelected,
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     isSelfTourViewed: false,
-                    personalDetails: undefined,
+                    conciergePersonalDetails: undefined,
                     shouldDismissModal: false,
                 });
             }).not.toThrow();
@@ -6400,7 +6396,7 @@ describe('actions/Report', () => {
                     introSelected: testIntroSelected,
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     isSelfTourViewed: undefined,
-                    personalDetails: undefined,
+                    conciergePersonalDetails: undefined,
                     shouldDismissModal: false,
                 });
             }).not.toThrow();
@@ -6414,7 +6410,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: true,
-                personalDetails: undefined,
+                conciergePersonalDetails: undefined,
                 shouldDismissModal: false,
                 checkIfCurrentPageActive,
             });
@@ -6435,7 +6431,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: undefined,
-                personalDetails: undefined,
+                conciergePersonalDetails: undefined,
                 shouldDismissModal: false,
                 checkIfCurrentPageActive,
             });
@@ -6455,7 +6451,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: true,
-                personalDetails: undefined,
+                conciergePersonalDetails: undefined,
                 shouldDismissModal: false,
             });
 
@@ -6474,7 +6470,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: undefined,
-                personalDetails: undefined,
+                conciergePersonalDetails: undefined,
                 shouldDismissModal: false,
             });
 
@@ -6493,7 +6489,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: true,
-                personalDetails: undefined,
+                conciergePersonalDetails: undefined,
                 shouldDismissModal: true,
             });
 

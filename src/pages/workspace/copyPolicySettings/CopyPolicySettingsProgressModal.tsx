@@ -124,7 +124,7 @@ function useCopyPolicySettingsProgressModal() {
             shouldShowCancelButton: true,
             onConfirm: () => {
                 clearCopyPolicySettings();
-                navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, personalDetails: conciergePersonalDetails, shouldDismissModal: false});
+                navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, conciergePersonalDetails, shouldDismissModal: false});
             },
             onCancel: () => {
                 clearCopyPolicySettings();

@@ -48,7 +48,7 @@ function ConciergePage() {
                         introSelected,
                         currentUserAccountID: session.accountID ?? CONST.DEFAULT_NUMBER_ID,
                         isSelfTourViewed,
-                        personalDetails: conciergePersonalDetails,
+                        conciergePersonalDetails,
                         shouldDismissModal: true,
                         checkIfCurrentPageActive: () => !isUnmounted.current,
                     });

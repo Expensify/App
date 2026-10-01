@@ -70,7 +70,7 @@ function KYBDocuments({onBackButtonPress, onSubmit}: KYBDocumentsProps) {
             introSelected,
             currentUserAccountID,
             isSelfTourViewed,
-            personalDetails: conciergePersonalDetails,
+            conciergePersonalDetails,
             shouldDismissModal: true,
             reportActionID: reimbursementAccount?.achData?.ACHRequestReportActionID,
         });
