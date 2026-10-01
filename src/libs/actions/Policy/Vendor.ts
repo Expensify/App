@@ -1,3 +1,6 @@
+/**
+ * Actions for enabling/disabling policy vendors and clearing their offline errors.
+ */
 import {write} from '@libs/API';
 import type {SetPolicyVendorsEnabledParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';

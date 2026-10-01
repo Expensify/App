@@ -18,7 +18,7 @@ type PolicyVendor = OnyxValueWithOfflineFeedback<{
     /** A list of errors keyed by microtime */
     errors?: Errors | null;
 
-    /** Error fields */
+    /** Error objects keyed by field name containing errors keyed by microtime */
     errorFields?: ErrorFields | null;
 }>;
 
