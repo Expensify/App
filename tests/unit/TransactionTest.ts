@@ -2680,6 +2680,25 @@ describe('Transaction', () => {
                 }),
             ).toBe(CONST.TRANSACTION.DEFAULT_ROUTE_KEY);
         });
+
+        it('should clear isReusedRoute so route fetching can run again', async () => {
+            const transactionID = 'txn-reuse-save';
+            const index = '2';
+            const waypoint: RecentWaypoint = {
+                address: 'New Waypoint',
+                lat: 10,
+                lng: 20,
+            };
+            const existingTransaction = generateTransaction({transactionID, reportID: '1'});
+            existingTransaction.isReusedRoute = true;
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, existingTransaction);
+
+            saveWaypoint({transactionID, index, waypoint, isDraft: true, recentWaypointsList: []});
+            await waitForBatchedUpdates();
+
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(transaction?.isReusedRoute ?? null).toBeNull();
+        });
     });
 
     describe('removeWaypoint', () => {
@@ -2708,6 +2727,27 @@ describe('Transaction', () => {
             const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
             expect(transaction?.comment?.selectedRouteKey ?? null).toBeNull();
             expect(transaction?.comment?.customUnit?.routeDistanceMeters ?? null).toBeNull();
+        });
+
+        it('should clear isReusedRoute so route fetching can run again', async () => {
+            const transactionID = 'txn-reuse-remove';
+            const existingTransaction = generateTransaction({transactionID, reportID: '1'});
+            existingTransaction.isReusedRoute = true;
+            existingTransaction.comment = {
+                ...existingTransaction.comment,
+                waypoints: {
+                    waypoint0: {address: 'A', lat: 1, lng: 1},
+                    waypoint1: {address: 'B', lat: 2, lng: 2},
+                    waypoint2: {address: 'C', lat: 3, lng: 3},
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, existingTransaction);
+
+            await removeWaypoint(existingTransaction, '1', true);
+            await waitForBatchedUpdates();
+
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(transaction?.isReusedRoute ?? null).toBeNull();
         });
     });
 

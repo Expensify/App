@@ -558,7 +558,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         iouRequestType?: IOURequestType;
 
         /** Draft-only marker set when waypoints come from a reused route, so the client must not refetch the route from the map SDK */
-        isReusedRoute?: boolean;
+        isReusedRoute?: boolean | null;
 
         /**
          * Tracks whether the user has explicitly set an amount in the new manual expense flow.
