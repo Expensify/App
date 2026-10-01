@@ -104,6 +104,61 @@ describe('CategoryPicker', () => {
         expect(findRow('Benefits')?.alternateText).toBeUndefined();
     });
 
+    describe('reported rendered row count', () => {
+        it('counts one row per category when none of them are nested', () => {
+            // Given three flat categories
+            mockedUseOnyxWithoutSnapshots.mockReturnValue([false, {status: 'loaded'}]);
+            mockedUseOnyx.mockImplementation((key) => {
+                if (key === `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`) {
+                    return [{Flights: makeCategory('Flights', ''), Hotels: makeCategory('Hotels', ''), Meals: makeCategory('Meals', '')}, {status: 'loaded'}];
+                }
+                return [undefined, {status: 'loaded'}];
+            });
+            const onRenderedRowCountChange = jest.fn();
+
+            // When the picker renders
+            render(
+                <CategoryPicker
+                    policyID={POLICY_ID}
+                    onSubmit={jest.fn()}
+                    onRenderedRowCountChange={onRenderedRowCountChange}
+                />,
+            );
+
+            // Then it reports the three rows it drew
+            expect(onRenderedRowCountChange).toHaveBeenLastCalledWith(3);
+        });
+
+        it('counts the parent rows a nested category hangs off', () => {
+            // Given the same three categories, two of them under one parent
+            mockedUseOnyxWithoutSnapshots.mockReturnValue([false, {status: 'loaded'}]);
+            mockedUseOnyx.mockImplementation((key) => {
+                if (key === `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`) {
+                    const nestedCategories: PolicyCategories = {};
+                    for (const name of ['Meals', 'Travel: Flights', 'Travel: Hotels']) {
+                        nestedCategories[name] = makeCategory(name, '');
+                    }
+                    return [nestedCategories, {status: 'loaded'}];
+                }
+                return [undefined, {status: 'loaded'}];
+            });
+            const onRenderedRowCountChange = jest.fn();
+
+            // When the picker renders
+            render(
+                <CategoryPicker
+                    policyID={POLICY_ID}
+                    onSubmit={jest.fn()}
+                    onRenderedRowCountChange={onRenderedRowCountChange}
+                />,
+            );
+
+            // Then it reports four rows, not three: the `Travel` parent takes a row of its own. Sizing a pop-over
+            // from the category count here left it a row short and hid an option behind a scroll.
+            expect(onRenderedRowCountChange).toHaveBeenLastCalledWith(4);
+        });
+    });
+
     it('never reads a bare collection key when the policy ID is an empty string', () => {
         mockedUseOnyxWithoutSnapshots.mockReturnValue([false, {status: 'loaded'}]);
 

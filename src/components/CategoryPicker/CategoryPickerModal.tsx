@@ -10,27 +10,17 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-
-import variables from '@styles/variables';
+import getSelectionListPopoverContentHeight from '@libs/getSelectionListPopoverContentHeight';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ComponentRef} from 'react';
 
-import React, {useRef} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import CategoryPicker from '.';
-
-/** Height the search input takes when the list is long enough to show one, mirroring `getSelectionListPopoverHeight` */
-const SEARCH_INPUT_HEIGHT = 64;
-
-/** Vertical padding the pop-over draws around the list */
-const CONTENT_VERTICAL_PADDING = 32;
-
-/** Shortest the list area may be: one full row, so a one-option list is exactly as tall as its one option */
-const MIN_LIST_HEIGHT = variables.optionRowHeight;
 
 const DEFAULT_ANCHOR_ALIGNMENT = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
@@ -91,13 +81,16 @@ function CategoryPickerModal({
     const anchorRef = useRef<ComponentRef<typeof View>>(null);
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`, {selector: getEnabledCategoriesCount});
+    const [renderedRowCount, setRenderedRowCount] = useState<number>();
 
-    // Estimated the same way `getSelectionListPopoverHeight` estimates the Spend filters' pop-overs: off the
-    // option count rather than off a measurement, so the pop-over opens at its final size instead of resizing
-    // once the list has laid out. Under-estimating only means the list scrolls, which it is built to do.
+    // The pop-over is sized from the rows the list reports it renders, not from the category count: a nested
+    // name adds a row for each parent it hangs off, so counting categories leaves the pop-over shorter than its
+    // own list and hides options behind a scroll with empty space below. Until the list has reported, the
+    // category count is the closest guess available. One row is the floor, so a one-row list is exactly as tall
+    // as its one row.
     const categoriesCount = policyCategories ?? 0;
     const isSearchable = categoriesCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
-    const estimatedContentHeight = Math.max(categoriesCount * variables.optionRowHeight, MIN_LIST_HEIGHT) + (isSearchable ? SEARCH_INPUT_HEIGHT : 0) + CONTENT_VERTICAL_PADDING;
+    const estimatedContentHeight = getSelectionListPopoverContentHeight({optionCount: Math.max(renderedRowCount ?? categoriesCount, 1), isSearchable});
 
     // A bottom sheet is sized by the screen, so the content estimate only applies to the pop-over.
     const resolvedHeight = shouldFitContentHeight && !isSmallScreenWidth ? Math.min(popoverHeight, estimatedContentHeight) : popoverHeight;
@@ -133,6 +126,7 @@ function CategoryPickerModal({
         >
             <View style={[StyleUtils.getHeight(popoverDimensions.height), styles.flexColumn, styles.pt4]}>
                 <CategoryPicker
+                    onRenderedRowCountChange={setRenderedRowCount}
                     selectedCategory={selectedCategory}
                     policyID={policyID}
                     onSubmit={handleCategorySelect}

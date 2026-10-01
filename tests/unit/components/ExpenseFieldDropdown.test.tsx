@@ -16,9 +16,10 @@ import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
-// The container is a bottom sheet below this width, where none of the row's geometry applies. These tests are
-// about the pop-over, so they pin the layout wide and the viewport to a known height.
-jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({isSmallScreenWidth: false, shouldUseNarrowLayout: false})));
+// The container is a bottom sheet below this width, where none of the row's geometry applies. Most of these
+// tests are about the pop-over, so the layout defaults to wide and the viewport to a known height.
+let mockIsSmallScreenWidth = false;
+jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({isSmallScreenWidth: mockIsSmallScreenWidth, shouldUseNarrowLayout: mockIsSmallScreenWidth})));
 // Read lazily so a test can shrink the viewport, which is the only way to leave the row short of room on both
 // sides at once — the case where the container used to ask for more height than it had.
 let mockWindowHeight = 800;
@@ -66,6 +67,7 @@ describe('ExpenseFieldDropdown', () => {
         renderedProps = undefined;
         renderCount = 0;
         mockWindowHeight = WINDOW_HEIGHT;
+        mockIsSmallScreenWidth = false;
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
@@ -198,6 +200,24 @@ describe('ExpenseFieldDropdown', () => {
         // to hold it to sizes itself to its content, and is then dragged back over the row to fit the window.
         expect(onPress).toHaveBeenCalledTimes(1);
         expect(renderCount).toBe(0);
+    });
+
+    it('opens the bottom sheet on a narrow layout however little room the row has', () => {
+        // Given a narrow layout, where the container is a bottom sheet, and a row with too little room on either
+        // side for a pop-over — a mid-form row on a phone in landscape, or with the keyboard up
+        const onPress = jest.fn();
+        mockIsSmallScreenWidth = true;
+        mockWindowHeight = 300;
+        mockRowAt(120);
+        renderField(true, onPress);
+
+        // When the row is pressed
+        act(() => pressRow());
+
+        // Then the sheet opens anyway. It is placed and sized by the screen, so the room around the row has no
+        // bearing on whether it fits.
+        expect(screen.getByText(DROPDOWN_TEXT)).toBeOnTheScreen();
+        expect(onPress).not.toHaveBeenCalled();
     });
 
     it('closes the list when the row is pressed again', () => {

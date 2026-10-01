@@ -3,7 +3,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import variables from '@styles/variables';
+import getSelectionListPopoverContentHeight from '@libs/getSelectionListPopoverContentHeight';
 
 import CONST from '@src/CONST';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
@@ -23,18 +23,12 @@ const CONTAINER_GAP = 4;
 /** How many options the container shows before the list starts scrolling */
 const MAX_VISIBLE_OPTIONS = 4;
 
-/** Height the search input takes when the list is long enough to show one */
-const SEARCH_INPUT_HEIGHT = 64;
-
-/** Vertical padding the container draws around its list */
-const CONTENT_VERTICAL_PADDING = 32;
-
 /**
- * Tallest the container may be: `MAX_VISIBLE_OPTIONS` rows plus the chrome around them. One row shorter than
- * `CONST.POPOVER_DROPDOWN_MAX_HEIGHT`, because a row inside an RHP shares its panel with the container rather
- * than having the whole window to open into.
+ * Tallest the container may be: `MAX_VISIBLE_OPTIONS` options plus the chrome around them. One option shorter
+ * than `CONST.POPOVER_DROPDOWN_MAX_HEIGHT`, because a row inside an RHP shares its panel with the container
+ * rather than having the whole window to open into.
  */
-const MAX_CONTAINER_HEIGHT = MAX_VISIBLE_OPTIONS * variables.optionRowHeight + SEARCH_INPUT_HEIGHT + CONTENT_VERTICAL_PADDING;
+const MAX_CONTAINER_HEIGHT = getSelectionListPopoverContentHeight({optionCount: MAX_VISIBLE_OPTIONS});
 
 /** The container's own border, which sits outside the height it is given */
 const CONTAINER_BORDER = 2;
@@ -45,7 +39,7 @@ const CONTAINER_BORDER = 2;
  * too short to hold anything which having no height to hold it to, would size itself to its content and be
  * dragged back over the row to fit the window.
  */
-const MIN_USABLE_HEIGHT = variables.optionRowHeight + SEARCH_INPUT_HEIGHT + CONTENT_VERTICAL_PADDING;
+const MIN_USABLE_HEIGHT = getSelectionListPopoverContentHeight({optionCount: 1});
 
 const ANCHOR_ALIGNMENT_BELOW: AnchorAlignment = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
@@ -149,6 +143,14 @@ function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, ..
     const closeDropdown = () => setIsVisible(false);
 
     const openDropdown = () => {
+        // A bottom sheet is placed and sized by the screen, so none of the row's geometry applies to it: there is
+        // nothing to measure, and no amount of room around the row can rule it out.
+        if (isSmallScreenWidth) {
+            setHasEverOpened(true);
+            setIsVisible(true);
+            return;
+        }
+
         anchorRef.current?.measureInWindow((x, y, width, height) => {
             const spaceBelow = windowHeight - (y + height + CONTAINER_GAP);
             // The page's header holds the back button, so the container stops short of it rather than opening

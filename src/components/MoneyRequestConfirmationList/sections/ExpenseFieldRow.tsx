@@ -191,6 +191,7 @@ function ExpenseFieldRow({
                 onPress={isInteractive ? callFunctionIfActionIsAllowed(onPress) : undefined}
                 isDisabled={isDisabled}
                 accessibilityLabel={accessibilityLabel}
+                accessibilityState={isExpanded === undefined ? undefined : {expanded: isExpanded}}
                 sentryLabel={sentryLabel}
                 testID={testID}
             >
@@ -201,18 +202,7 @@ function ExpenseFieldRow({
 
     return (
         <View style={[styles.mh4, styles.mv2]}>
-            {anchorRef ? (
-                <View
-                    ref={anchorRef}
-                    // A row whose list opens in place is a dropdown rather than a link, so it says so and reports
-                    // whether the list is open. The state sits on the measured box, which is the pressable row.
-                    accessibilityState={{expanded: isExpanded}}
-                >
-                    {borderedBox}
-                </View>
-            ) : (
-                borderedBox
-            )}
+            {anchorRef ? <View ref={anchorRef}>{borderedBox}</View> : borderedBox}
             {messages}
         </View>
     );

@@ -8,6 +8,7 @@ import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDecodedLeafCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
@@ -68,7 +69,7 @@ function CategoryField({
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles']);
 
     const categoryState = useTransactionSelector(transactionID, categoryStateSelector);
-    const [hasEnabledCategories = false] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`, {selector: hasEnabledCategoriesSelector});
+    const [hasEnabledCategories = false] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policy?.id)}`, {selector: hasEnabledCategoriesSelector});
 
     const shouldDisplayCategoryError = formError === 'violations.categoryOutOfPolicy';
     const iouCategory = categoryState?.category ?? '';

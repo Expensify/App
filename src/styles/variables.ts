@@ -144,6 +144,8 @@ export default {
     gutterWidth: 12,
     optionRowHeight: 64,
     optionRowHeightCompact: 52,
+    popoverSearchInputHeight: 64,
+    popoverVerticalPadding: 32,
     tableHeaderContentHeight: 20,
     tableRowHeight: 56,
     tableRowHeightCompact: 60,
