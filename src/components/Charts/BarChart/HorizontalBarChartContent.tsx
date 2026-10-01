@@ -193,6 +193,7 @@ function HorizontalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxi
     const barTips = useSharedValue<number[][]>([]);
     const xZero = useSharedValue(0);
     const plotLeft = useSharedValue(0);
+    const plotAreaHeight = useSharedValue(0);
 
     const rowPadding = series.length > 1 ? MULTI_SERIES_BAR_PADDING : HORIZONTAL_BAR_PADDING;
 
@@ -248,9 +249,8 @@ function HorizontalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxi
     })();
 
     const handleChartBoundsChange = (bounds: ChartBounds) => {
-        const plotHeight = bounds.bottom - bounds.top;
-        setBarAreaHeight(plotHeight);
-        barThickness.set(getGroupThickness(plotHeight));
+        setBarAreaHeight(bounds.bottom - bounds.top);
+        plotAreaHeight.set(bounds.bottom - bounds.top);
         plotLeft.set(bounds.left);
     };
 
@@ -287,6 +287,8 @@ function HorizontalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxi
 
     /** Stores canvas positions for hover, press and the tooltip */
     const updateHitPositions = (xScale: Scale, yScale: Scale) => {
+        // The row thickness depends on the series count, so it is recomputed with the positions rather than only on a bounds change.
+        barThickness.set(getGroupThickness(plotAreaHeight.get()));
         const zero = xScale(0);
         xZero.set(zero);
         const oy = data.map((point, index) => yScale(lastIndex - index));
