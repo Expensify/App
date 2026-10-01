@@ -33,6 +33,7 @@ import type {OnViewableItemsChangedInfo} from '@legendapp/list/react-native';
 import type * as ReactNavigation from '@react-navigation/native';
 import type {StyleProp, ViewStyle} from 'react-native';
 
+import {useRoute} from '@react-navigation/native';
 import React from 'react';
 import {StyleSheet} from 'react-native';
 import Onyx from 'react-native-onyx';
@@ -78,6 +79,7 @@ jest.mock('@pages/inbox/ConciergeDraftContext', () => ({
 }));
 
 const mockUseNetwork = useNetwork as jest.MockedFunction<typeof useNetwork>;
+const mockUseRoute = useRoute as jest.MockedFunction<typeof useRoute>;
 const mockUseIsReportLoadPending = useIsReportLoadPending as jest.MockedFunction<typeof useIsReportLoadPending>;
 const mockUseOnyx = useOnyx as jest.MockedFunction<typeof useOnyx>;
 const mockUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
@@ -375,6 +377,7 @@ describe('ReportActionsList (body)', () => {
         mockShouldCallLegendListOnLoad = true;
         mockUseUnreadMarker.mockReturnValue({unreadMarkerReportActionID: null, unreadMarkerReportActionIndex: -1});
         mockUseIsReportLoadPending.mockReturnValue(false);
+        mockUseRoute.mockReturnValue({key: 'report', name: 'Report', params: {}});
 
         mockUseCurrentUserPersonalDetails.mockReturnValue({
             accountID: 100,
@@ -714,6 +717,66 @@ describe('ReportActionsList (body)', () => {
         act(() => getCapturedListProps()?.onLoad?.());
         expect(screen.getByTestId('ReportActionsSkeletonCover')).toBeTruthy();
 
+        act(() => getCapturedListProps()?.onReady?.());
+        expect(screen.queryByTestId('ReportActionsSkeletonCover')).toBeNull();
+    });
+
+    it('keeps the positioned list mounted when sending a message clears the linked action', async () => {
+        // Given a linked message has finished its initial positioning.
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        mockUseRoute.mockReturnValue({key: 'report', name: 'Report', params: {reportActionID: '2'}});
+        const view = renderReportActionsList();
+        expect(screen.queryByTestId('ReportActionsSkeletonCover')).toBeNull();
+
+        // When the live-tail jump clears the link, a new mount would have to position again.
+        mockShouldCallLegendListOnLoad = false;
+        mockUseRoute.mockReturnValue({key: 'report', name: 'Report', params: {reportActionID: ''}});
+        view.rerender(
+            <ReportActionsList
+                reportID={mockReport.reportID}
+                conciergeChat={undefined}
+                onLayout={jest.fn()}
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the existing list stays visible without another initial skeleton.
+        expect(mockLegendListMount).toHaveBeenCalledTimes(1);
+        expect(mockLegendListUnmount).not.toHaveBeenCalled();
+        expect(screen.queryByTestId('ReportActionsSkeletonCover')).toBeNull();
+    });
+
+    it.each(['2', 'another-action'])('positions a newly opened link after the previous link was cleared: %s', async (reportActionID) => {
+        // Given a positioned linked list is kept mounted when returning to its latest messages.
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        mockUseRoute.mockReturnValue({key: 'report', name: 'Report', params: {reportActionID: '2'}});
+        const view = renderReportActionsList();
+        mockUseRoute.mockReturnValue({key: 'report', name: 'Report', params: {reportActionID: ''}});
+        view.rerender(
+            <ReportActionsList
+                reportID={mockReport.reportID}
+                conciergeChat={undefined}
+                onLayout={jest.fn()}
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+        expect(mockLegendListMount).toHaveBeenCalledTimes(1);
+
+        // When the reader opens a link, even if it targets the same action again.
+        mockShouldCallLegendListOnLoad = false;
+        mockUseRoute.mockReturnValue({key: 'report', name: 'Report', params: {reportActionID}});
+        view.rerender(
+            <ReportActionsList
+                reportID={mockReport.reportID}
+                conciergeChat={undefined}
+                onLayout={jest.fn()}
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then fresh positioning is covered until the new list is ready.
+        expect(mockLegendListMount).toHaveBeenCalledTimes(2);
+        expect(screen.getByTestId('ReportActionsSkeletonCover')).toBeTruthy();
         act(() => getCapturedListProps()?.onReady?.());
         expect(screen.queryByTestId('ReportActionsSkeletonCover')).toBeNull();
     });

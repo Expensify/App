@@ -30,26 +30,25 @@ function LinkedActionNotFoundGuard({children}: LinkedActionNotFoundGuardProps) {
     const routeParams = route.params as {reportActionID?: string} | undefined;
     const reportActionIDFromRoute = routeParams?.reportActionID;
 
-    if (!reportActionIDFromRoute) {
-        return children;
-    }
-
     return (
-        <LinkedActionNotFoundGate
-            key={reportActionIDFromRoute}
-            reportActionIDFromRoute={reportActionIDFromRoute}
-        >
+        <>
+            {/* Reset the link checks without remounting the report list and composer. */}
+            {!!reportActionIDFromRoute && (
+                <LinkedActionNotFoundGate
+                    key={reportActionIDFromRoute}
+                    reportActionIDFromRoute={reportActionIDFromRoute}
+                />
+            )}
             {children}
-        </LinkedActionNotFoundGate>
+        </>
     );
 }
 
 type LinkedActionNotFoundGateProps = {
     reportActionIDFromRoute: string;
-    children: ReactNode;
 };
 
-function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedActionNotFoundGateProps) {
+function LinkedActionNotFoundGate({reportActionIDFromRoute}: LinkedActionNotFoundGateProps) {
     const route = useRoute();
     const navigation = useNavigation();
     const navigatorKey = navigation.getState()?.key;
@@ -147,7 +146,7 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedAct
 
     useAutoNavigateForDeletedLinkedAction(isLinkedActionUnavailable, navigateToEndOfReport);
 
-    return children;
+    return null;
 }
 
 LinkedActionNotFoundGuard.displayName = 'LinkedActionNotFoundGuard';

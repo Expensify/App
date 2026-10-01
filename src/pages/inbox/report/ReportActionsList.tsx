@@ -203,11 +203,21 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     // Owned here rather than by the callout, which unmounts as the layout and composer change size.
     useRetireMerchantRuleSuggestionOnLeave(reportID);
 
+    // Clearing a link after sending returns to the live tail of the same list. Only opening a link
+    // needs fresh initial positioning, including reopening the same action after its link was cleared.
+    const [linkedActionListState, setLinkedActionListState] = useState({reportActionID: reportActionIDFromRoute, version: 0});
+    if (linkedActionListState.reportActionID !== reportActionIDFromRoute) {
+        setLinkedActionListState({
+            reportActionID: reportActionIDFromRoute,
+            version: linkedActionListState.version + (reportActionIDFromRoute ? 1 : 0),
+        });
+    }
+
     // OpenReport can first provide a tiny cached page and then replace it with the hydrated page. Remounting
     // gives the complete dataset a fresh initial layout so initialScrollAtEnd targets its actual end.
     const listID = [
         reportID,
-        reportActionIDFromRoute,
+        linkedActionListState.version,
         hasOnceLoadedReportActions ? 'hydrated' : 'initial',
         hasOnceLoadedReportActions ? undefined : oldestUnreadReportAction?.reportActionID,
     ].join(':');
