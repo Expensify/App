@@ -546,7 +546,7 @@ function getPolicyCardExportSettings(
             const type = translate(`workspace.businessCentral.exportDestination.${businessCentralExport?.nonReimbursable ?? CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE}`);
             const description = currentConnectionName ? translate('workspace.moreFeatures.companyCards.integrationExport', currentConnectionName, type) : undefined;
 
-            // Card expenses export against a vendor for both purchase invoices and general journal lines, so the override applies to either destination.
+            // Card expenses export against a vendor for both destinations
             return {
                 description,
                 shouldShowMenuItem: true,
