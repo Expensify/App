@@ -1,4 +1,5 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -204,9 +205,9 @@ function getKnownAccountIDByLogin(login: string | undefined): number | undefined
  * @param logins Array of user logins
  * @returns Array of accountIDs according to passed logins
  */
-function getAccountIDsByLogins(logins: string[]): number[] {
+function getAccountIDsByLogins(logins: string[], personalDetailsByLogins?: PersonalDetailsByLogin): number[] {
     return logins.reduce<number[]>((foundAccountIDs, login) => {
-        const currentDetail = getPersonalDetailByEmail(login);
+        const currentDetail = personalDetailsByLogins ? personalDetailsByLogins[login] : getPersonalDetailByEmail(login);
         if (!currentDetail) {
             // generate an account ID because in this case the detail is probably new, so we don't have a real accountID yet
             foundAccountIDs.push(generateAccountID(login));
