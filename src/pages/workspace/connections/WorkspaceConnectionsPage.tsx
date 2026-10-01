@@ -142,6 +142,8 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
     // The results only switch once the debounced search has run, so the tab's full list doesn't flash while typing
     const isSearching = !!searchValue.trim() && !!appliedSearchValue.trim();
     const visibleListings = isSearching ? searchResults : getListingsForTab(availableListings, activeTab);
+    // Search results span every tab, so no tab is highlighted. Clearing the search returns to the last tab.
+    const selectedTab = isSearching ? undefined : activeTab;
     const noResultsMessage = translate('common.noResultsFoundMatching', searchValue);
     const shouldShowNoResults = isSearching && !searchResults.length;
     useDebouncedAccessibilityAnnouncement(noResultsMessage, shouldShowNoResults, searchValue);
@@ -289,10 +291,10 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
                 )}
                 <View style={[connectedListings.length > 0 ? styles.mt6 : styles.mt3, !shouldUseSingleColumn && [styles.flexRow, styles.alignItemsCenter, styles.gap5]]}>
                     <View style={[styles.flex1, styles.flexRow, shouldUseNarrowLayout && styles.mhn5]}>
-                        <TabSelectorContextProvider activeTabKey={activeTab}>
+                        <TabSelectorContextProvider activeTabKey={selectedTab}>
                             <TabSelectorBase
                                 tabs={tabs}
-                                activeTabKey={activeTab}
+                                activeTabKey={selectedTab}
                                 onTabPress={(tab) => {
                                     setSearchValue('');
                                     setActiveTab(tab);
@@ -301,7 +303,8 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
                                 // On mobile the tabs scroll edge to edge, so the page gutter moves inside the scroll content
                                 contentContainerStyles={shouldUseNarrowLayout ? styles.pb0 : [styles.ph0, styles.pb0]}
                                 tabButtonStyles={styles.connectionsTabButton}
-                                shouldShowScrollFade
+                                // On mobile a hard edge shows more clearly that the tabs scroll
+                                shouldShowScrollFade={!shouldUseNarrowLayout}
                             />
                         </TabSelectorContextProvider>
                     </View>

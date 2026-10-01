@@ -41,7 +41,7 @@ function ConnectionCard({listing, columnCount}: ConnectionCardProps) {
     const {title, icon, status, onConnect, onConfigure, registerConnectButton, isLoading} = listing;
 
     const connectIcon = (
-        <View style={[styles.justifyContentCenter, styles.ml3]}>
+        <View style={[styles.justifyContentCenter, styles.ml3, styles.mr2]}>
             {isLoading ? (
                 <ActivityIndicator />
             ) : (
