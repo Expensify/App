@@ -56,7 +56,7 @@
 
 - Upstream PR/issue: https://github.com/callstack/repack/issues/1472 - delete this patch once a release fixes it.
 - E/App issue: https://github.com/Expensify/App/issues/102619
-- PR Introducing Patch: TBD
+- PR Introducing Patch: https://github.com/Expensify/App/pull/102766
 
 ### [@callstack+repack+5.3.0+004+android-keep-xml.patch](@callstack+repack+5.3.0+004+android-keep-xml.patch)
 
@@ -73,4 +73,4 @@
 
 - Upstream PR/issue: https://github.com/callstack/repack/issues/1472 - delete this patch once a release fixes it.
 - E/App issue: None. Found while comparing Re.Pack and Metro Android release asset output for https://github.com/Expensify/App/issues/102619.
-- PR Introducing Patch: TBD
+- PR Introducing Patch: https://github.com/Expensify/App/pull/102766
