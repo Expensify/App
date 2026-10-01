@@ -92,12 +92,7 @@ function DynamicReceiptReviewPage({route}: DynamicReceiptReviewPageProps) {
             includeSafeAreaPaddingBottom
         >
             <FullPageNotFoundView shouldShow={!mergeTransaction}>
-                <HeaderWithBackButtonAndTitle
-                    title={translate('transactionMerge.receiptPage.header')}
-                    onBackButtonPress={() => {
-                        Navigation.goBack();
-                    }}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('transactionMerge.receiptPage.header')} />
                 <ScrollView style={[styles.pv3, styles.ph5]}>
                     <View style={[styles.mb5]}>
                         <Text>{translate('transactionMerge.receiptPage.pageTitle')}</Text>

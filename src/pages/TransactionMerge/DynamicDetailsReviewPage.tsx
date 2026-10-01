@@ -221,12 +221,7 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
             includeSafeAreaPaddingBottom
         >
             <FullPageNotFoundView shouldShow={!mergeTransaction}>
-                <HeaderWithBackButtonAndTitle
-                    title={translate('transactionMerge.detailsPage.header')}
-                    onBackButtonPress={() => {
-                        Navigation.goBack();
-                    }}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('transactionMerge.detailsPage.header')} />
                 <ScrollView style={[styles.flex1, styles.ph5]}>
                     <View style={[styles.mb5]}>
                         <Text>{translate('transactionMerge.detailsPage.pageTitle')}</Text>

@@ -219,12 +219,7 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
             includeSafeAreaPaddingBottom
         >
             <FullPageNotFoundView shouldShow={!mergeTransaction && !isMergingExpenses}>
-                <HeaderWithBackButtonAndTitle
-                    title={translate('transactionMerge.confirmationPage.header')}
-                    onBackButtonPress={() => {
-                        Navigation.goBack();
-                    }}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('transactionMerge.confirmationPage.header')} />
                 <ScrollView>
                     <View style={[styles.ph5, styles.pb8]}>
                         <Text>{translate('transactionMerge.confirmationPage.pageTitle')}</Text>
