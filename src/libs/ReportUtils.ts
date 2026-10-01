@@ -14276,7 +14276,7 @@ function getInvoiceReportFieldsFromReportNameValuePairs(reportNameValuePairs: On
 function getReportFieldMaps(
     report: OnyxEntry<Report>,
     fieldList: Record<string, PolicyReportField>,
-    reportNameValuePairs?: OnyxEntry<ReportNameValuePairs>,
+    reportNameValuePairs: OnyxEntry<ReportNameValuePairs>,
 ): {fieldValues: Record<string, string>; fieldsByName: Record<string, PolicyReportField>} {
     const availableFields = getAvailableReportFields(report, Object.values(fieldList ?? {}));
     const invoiceReportFields = report?.type === CONST.REPORT.TYPE.INVOICE ? getInvoiceReportFieldsFromReportNameValuePairs(reportNameValuePairs) : [];

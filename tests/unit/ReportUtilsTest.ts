@@ -23102,7 +23102,7 @@ describe('ReportUtils', () => {
             expect(hasVisibleReportFieldViolations(paidInvoiceReport, policyWithEmptyInvoiceField, currentUserAccountID, undefined)).toBe(false);
         });
 
-        it('should return false when an unpaid invoice report required field has value in reportNameValuePairs', async () => {
+        it('should return false when an unpaid invoice report required field has value in reportNameValuePairs', () => {
             const fieldWithNoValue: PolicyReportField = {
                 ...baseField,
                 target: CONST.REPORT.TYPE.INVOICE,
@@ -23132,9 +23132,6 @@ describe('ReportUtils', () => {
                     value: 'Sample Value',
                 },
             };
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithEmptyInvoiceField);
-            await waitForBatchedUpdates();
 
             expect(hasVisibleReportFieldViolations(unpaidInvoiceReport, policyWithEmptyInvoiceField, currentUserAccountID, undefined, reportNameValuePairs)).toBe(false);
         });
