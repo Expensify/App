@@ -1150,6 +1150,7 @@ const translations: TranslationDeepObject<typeof en> = {
         viewOnSpend: '支出で表示',
         emptyState: {title: '表示するものはありません', subtitle: '上の条件を調整してみてください'},
         noExpensesState: {title: 'お金の使い道を確認する', subtitle: '経費が登録されると、支出の傾向や上位の加盟店など、さまざまな情報を確認できるようになります。'},
+        compare: {label: '比較', previousPeriod: '前の期間', average: '平均'},
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
@@ -2175,7 +2176,7 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'プロフィールアバター',
         customInstructions: 'カスタム指示',
         copilotIntoAccount: 'アカウントにCopilot',
-        viewMemberHistory: 'メンバー履歴を表示',
+        seeChatHistory: 'チャット履歴を表示',
         viewAgentHistory: 'エージェント履歴を表示',
         publicSection: {
             title: '公開',
@@ -2536,7 +2537,7 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredForAdminsHeader: '2要素認証が必要です',
         twoFactorAuthIsRequiredForAdminsTitle: '2要素認証を有効にしてください',
         twoFactorAuthIsRequiredXero: 'Xero 会計連携には二要素認証が必要です。',
-        twoFactorAuthIsRequiredCompany: 'あなたの会社では、2 要素認証が必須です。',
+        twoFactorAuthIsRequiredCompany: 'お客様の会社では、2 要素認証（2FA）が必須です。',
         twoFactorAuthCannotDisable: '2要素認証を無効にできません',
         twoFactorAuthRequired: 'Xero 連携には二要素認証（2FA）が必須で、無効にすることはできません。',
         replaceDevice: 'デバイスを交換',
@@ -2548,6 +2549,7 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceDescription: '新しいデバイスでQRコードをスキャンし、表示されたコードを入力して設定を完了してください。',
         downloadCodes: 'コードをダウンロード',
         copyCodes: 'コードをコピー',
+        enable2FA: '有効にする',
     },
     recoveryCodeForm: {
         error: {
@@ -3293,6 +3295,7 @@ ${date} の ${merchant} への ${amount}`,
         timeExpiredAnnouncement: '時間切れです',
         error: {
             pleaseFillSecurityCode: 'セキュリティコードを入力してください',
+            tooManyAttempts: '試行回数が多すぎます。しばらくしてからもう一度お試しください。',
             incorrectSecurityCode: 'セキュリティコードが正しくないか無効です。もう一度お試しいただくか、新しいコードをリクエストしてください。',
             pleaseFillTwoFactorAuth: '2 要素認証コードを入力してください',
         },
@@ -5417,9 +5420,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             journalEntriesProvTaxPostingAccount: '仕訳の地方税計上勘定',
             foreignCurrencyAmount: '外貨金額をエクスポート',
             exportToNextOpenPeriod: '次の未締め期間にエクスポート',
-            exportToNextOpenPeriodLockedSubtitle: '次の未締め期間へのエクスポートを無効にするには、先に立替精算対象外エクスポートの期間ごとの分割を無効にしてください。',
-            splitExportsByPostingPeriod: '転記期間ごとにエクスポートを分割',
-            splitExportsByPostingPeriodSubtitle: 'NetSuiteで立替精算対象外エクスポートの期間ごとの分割を有効にするには、次の未締め期間へのエクスポートを有効にしてください',
             nonReimbursableJournalPostingAccount: '立替精算対象外の仕訳計上勘定',
             reimbursableJournalPostingAccount: '立替精算用仕訳計上勘定',
             journalPostingPreference: {
@@ -6304,6 +6304,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             csvColumnType: 'タイプ',
             csvColumnLimitType: '限度タイプ',
             csvColumnLimit: '限度額',
+            noCardFeedsAvailable: '利用できるカードフィードがありません',
+            noCardFeedsAvailableDescription: 'このワークスペースで利用できるカードフィードはありません。',
         },
         categories: {
             deleteCategories: 'カテゴリを削除',
@@ -6319,6 +6321,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             deleteFailureMessage: 'カテゴリの削除中にエラーが発生しました。もう一度お試しください',
             categoryName: 'カテゴリ名',
             requiresCategory: 'メンバーはすべての経費を分類する必要があります',
+            autoCategorizeNewExpenses: '新しい経費を自動分類する',
             showCategoryGLCodes: '経費を分類するときに GL コードを表示する',
             needCategoryForExportToIntegration: (connectionName: string) => `${connectionName} にエクスポートするには、すべての経費にカテゴリを指定する必要があります。`,
             subtitle: 'お金がどこで使われているかを、より分かりやすく把握しましょう。デフォルトのカテゴリを使うか、自分用のカテゴリを追加できます。',
@@ -7013,6 +7016,15 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             peopleAdmins: 'People 管理者',
             paymentsAdmins: '支払い管理者',
             members: 'メンバー',
+            workArrangement: '勤務形態',
+            officeBased: 'オフィス勤務',
+            noRegularWorkspace: 'リモートまたはモバイル',
+            workArrangementPage: {
+                title: '勤務形態',
+                optionOfficeBasedHelp: 'メンバーはオフィスへ通勤します。通常の通勤は払い戻しの対象外です。',
+                optionNoRegularWorkspaceHelp: 'メンバーは在宅勤務、または決まったオフィスがなく拠点間を移動しているため、通勤規程は適用されません。',
+                futureOnlyNote: '変更は今後の走行距離計算にのみ適用されます。既存の走行距離経費は再計算されません。',
+            },
         },
         card: {
             getStartedIssuing: 'まずは最初のバーチャルカードまたは物理カードを発行しましょう。',
@@ -7398,6 +7410,8 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'ロックを解除するには、自動同期を有効にしてください。',
             campfire: 'Campfire',
             businessCentral: 'Dynamics 365 Business Central',
+            qboConnectionExpiring: ({date}: {date: string}) => `QuickBooks Online との接続は ${date} に有効期限が切れます。`,
+            qboConnectionExpired: ({date}: {date: string}) => `QuickBooks Online との接続は ${date} に期限切れになりました。`,
         },
         export: {
             notReadyHeading: 'エクスポートの準備ができていません',
@@ -8723,6 +8737,35 @@ ${reportName}`,
             syncTravelInvoicingSettlements: '出張請求の精算を同期',
             travelInvoicingSettlementAccount: {label: '出張請求精算口座', description: '精算に使う口座を選択してください。選択された口座で、Campfire に支払いを作成します。'},
             travelInvoicingPayableAccount: {label: '旅行請求買掛金勘定'},
+            exportToMultipleAccounts: '複数の勘定科目へのエクスポートを設定する',
+            cardProgramAccount: {
+                label: 'カードプログラム口座',
+                description: 'これらのカードプログラムのワークスペースアカウントを上書きします。',
+                descriptionLevel2: 'このカードプログラムのワークスペース口座を上書きします。',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'すべてのプログラムはデフォルトアカウントを使用します';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `カスタム勘定科目を使用するプログラム：${customAccountsCount} 件`;
+                    }
+                    return `${customAccountsCount} 件のプログラム（カスタムアカウントあり）`;
+                },
+            },
+            cardAccount: {
+                label: 'カード単位の口座',
+                description: '個々のカードに対してプログラム口座を上書きします。',
+                descriptionLevel2: 'これらのカードのプログラム口座を上書きします。',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'すべてのカードはプログラムアカウントを使用します';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `カスタム口座付きカード ${customAccountsCount} 枚`;
+                    }
+                    return `カスタム口座のあるカードが ${customAccountsCount} 枚`;
+                },
+            },
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central のセットアップ',
@@ -8739,6 +8782,51 @@ ${reportName}`,
             importDescription: 'Dynamics 365 Business Central からインポートするコーディング構成を選択してください。',
             items: 'アイテム',
             enableNewCategories: '新しくインポートされたカテゴリを有効にする',
+            exportDescription: 'Expensify のデータを Dynamics 365 Business Central にエクスポートする方法を設定します。',
+            exportDate: {
+                label: '取引日',
+                description: 'レポートを Dynamics 365 Business Central にエクスポートするときは、この日付を使用します。',
+                values: {
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: '最終支出日',
+                        description: 'レポートに記載されている最新の支出日。',
+                    },
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'エクスポート日',
+                        description: 'レポートが Dynamics 365 Business Central にエクスポートされた日付。',
+                    },
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: '提出日',
+                        description: 'レポートが承認のために提出された日付。',
+                    },
+                },
+            },
+            exportReimbursable: '返金対象経費の書き出し形式',
+            exportNonReimbursable: '会社カード経費のエクスポート形式',
+            exportDestination: {
+                [CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.JOURNAL_ENTRY]: '一般仕訳帳',
+                [CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE]: '購入請求書',
+            },
+            reimbursableAccount: {
+                label: '返金対象経費の口座',
+                description: '返金対象経費のエクスポート先を選択してください。',
+            },
+            defaultCompanyCardVendor: {
+                label: 'デフォルトの会社カードベンダー',
+                description: '自動的に一致しない経費に使用する、デフォルトの Dynamics 365 Business Central ベンダーを選択してください。',
+            },
+            companyCardAccount: {
+                label: '会社カード口座',
+                description: '会社カード取引のエクスポート先を選択してください。',
+            },
+            paymentMethod: {
+                label: '支払方法',
+                description: 'Dynamics 365 Business Central が銀行と照合できるよう、購入請求書の支払方法を選択してください。',
+            },
+            noBankAccountsFound: '銀行口座が見つかりません',
+            noBankAccountsFoundDescription: 'Dynamics 365 Business Central で銀行口座を追加し、接続を再度同期してください',
+            noPaymentMethodsFound: '支払方法が見つかりません',
+            noPaymentMethodsFoundDescription: 'Dynamics 365 Business Central で支払方法を追加し、接続を再度同期してください',
         },
     },
     getAssistancePage: {
@@ -9383,6 +9471,7 @@ ${reportName}`,
             invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> から請求書の設定をコピーしました`,
             travel: (sourcePolicyName: string, sourcePolicyURL: string) => `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> から出張設定をコピーしました`,
         },
+        updatedAutoCategorizeNewExpenses: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} 新しい経費の自動分類`,
         updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} 経費の分類要件`,
         updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} の経費タグ付け要件`,
         updatedCurrencyConversionFee: ({preferenceLabel}: {preferenceLabel: string}) => `通貨換算手数料の設定を「${preferenceLabel}」に更新しました`,
@@ -9419,6 +9508,10 @@ ${reportName}`,
                 : `${member} さんの承認ワークフローを変更し、${previousLimit} を超えるレポートを転送しないようにしました`,
         changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
             `${member} さんの承認ワークフローを、${limit} を超えるレポートを転送するように変更しました（以前は ${previousLimit}）。`,
+        updatedMemberWorkArrangement: ({displayName, newArrangement, oldArrangement}: {displayName: string; newArrangement: string; oldArrangement: string}) =>
+            `${displayName}さんの勤務形態を${newArrangement}（以前は${oldArrangement}）に変更しました`,
+        updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
+            `デフォルトの勤務形態を${newArrangement}（以前は${oldArrangement}）に変更しました`,
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',
@@ -10930,6 +11023,8 @@ ${reportName}`,
         removeCopilotAccessConfirmation: (delegatorName: string) => `${delegatorName}のExpensifyアカウントへのコパイロットアクセスを削除してもよろしいですか？この操作は元に戻せません。`,
         removeCopilotAccessConfirm: 'アクセスを削除',
         copilotAccess: 'Copilot へのアクセス',
+        leaveAccount: 'アカウントを退出',
+        leaveAccountConfirmationText: 'ご自身のアカウントに戻りますが、完全にはサインアウトされません。',
     },
     debug: {
         debug: 'デバッグ',
