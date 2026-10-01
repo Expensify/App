@@ -4,7 +4,7 @@ import {
     getConnectedHRProvider,
     getHRApprovalMode,
     getNonRenderableMergeHRGroupIDs,
-    getSelectableMergeHRGroupIDs,
+    getValidMergeHRGroupIDs,
     hasStaleMergeHRGroups,
     isAnyHRConnected,
     isAnyHRReadOnlyWorkflowMode,
@@ -400,9 +400,9 @@ describe('HRUtils', () => {
         });
     });
 
-    describe('getSelectableMergeHRGroupIDs', () => {
+    describe('getValidMergeHRGroupIDs', () => {
         it('returns an empty list when the admin has not chosen groups yet', () => {
-            expect(getSelectableMergeHRGroupIDs(makePolicy())).toEqual([]);
+            expect(getValidMergeHRGroupIDs(makePolicy())).toEqual([]);
         });
 
         it('keeps the selection intact when every selected group is still in the cached list', () => {
@@ -419,7 +419,7 @@ describe('HRUtils', () => {
                     }),
                 },
             });
-            expect(getSelectableMergeHRGroupIDs(policy)).toEqual(['g1', 'g2']);
+            expect(getValidMergeHRGroupIDs(policy)).toEqual(['g1', 'g2']);
         });
 
         it('drops a selected group the cached list no longer has', () => {
@@ -431,10 +431,10 @@ describe('HRUtils', () => {
                     }),
                 },
             });
-            expect(getSelectableMergeHRGroupIDs(policy)).toEqual(['g1']);
+            expect(getValidMergeHRGroupIDs(policy)).toEqual(['g1']);
         });
 
-        it('drops a selected group that still exists upstream but is no longer renderable', () => {
+        it('keeps a selected group that still exists upstream even when it has no renderable row', () => {
             const policy = makePolicy({
                 connections: {
                     [MERGE_HR]: makeMergeHRConnection({
@@ -443,21 +443,21 @@ describe('HRUtils', () => {
                     }),
                 },
             });
-            expect(getSelectableMergeHRGroupIDs(policy)).toEqual(['g1']);
+            expect(getValidMergeHRGroupIDs(policy)).toEqual(['g1', 'g2']);
         });
 
         it('leaves the selection alone when the cache has never synced', () => {
             const policy = makePolicy({
                 connections: {[MERGE_HR]: makeMergeHRConnection({config: {groups: ['g1', 'g2']}, data: {}})},
             });
-            expect(getSelectableMergeHRGroupIDs(policy)).toEqual(['g1', 'g2']);
+            expect(getValidMergeHRGroupIDs(policy)).toEqual(['g1', 'g2']);
         });
 
-        it('drops the whole selection when a synced cache legitimately has zero renderable groups', () => {
+        it('drops the whole selection when a synced cache legitimately has zero groups and allGroupIDs has not synced', () => {
             const policy = makePolicy({
                 connections: {[MERGE_HR]: makeMergeHRConnection({config: {groups: ['g1', 'g2']}, data: {groups: []}})},
             });
-            expect(getSelectableMergeHRGroupIDs(policy)).toEqual([]);
+            expect(getValidMergeHRGroupIDs(policy)).toEqual([]);
         });
     });
 

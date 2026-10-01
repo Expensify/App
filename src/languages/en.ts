@@ -7771,6 +7771,7 @@ const translations = {
                     noGroupsFound: 'No groups found',
                     noGroupsFoundDescription:
                         'There are no groups to select right now. Save with no groups selected to sync all employees, or sync the connection again once new groups exist.',
+                    unnamedGroup: (groupID: string) => `Unnamed group (${groupID})`,
                 },
             },
         },

@@ -14,7 +14,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateMergeHRGroups} from '@libs/actions/connections/merge/HR';
-import {getNonRenderableMergeHRGroupIDs, getSelectableMergeHRGroupIDs} from '@libs/merge/HRUtils';
+import {getNonRenderableMergeHRGroupIDs, getValidMergeHRGroupIDs} from '@libs/merge/HRUtils';
 import {isMergeConnected} from '@libs/merge/MergeUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -50,22 +50,37 @@ function MergeHRGroupsPage({
     const policy = usePolicy(policyID);
     const availableGroups = policy?.connections?.merge_hris?.data?.groups ?? [];
     const currentGroups = policy?.connections?.merge_hris?.config?.groups;
+    const nonRenderableGroupIDs = getNonRenderableMergeHRGroupIDs(policy);
+    const hasAnyGroups = availableGroups.length > 0 || nonRenderableGroupIDs.length > 0;
 
     // null until the admin touches a checkbox, so the selection keeps tracking policy data (which may still be
     // loading on a cold open) instead of freezing on whatever was available at mount.
     const [manualSelection, setManualSelection] = useState<Set<string> | null>(null);
-    const selectedIds = manualSelection ?? new Set(getSelectableMergeHRGroupIDs(policy));
+    const selectedIds = manualSelection ?? new Set(getValidMergeHRGroupIDs(policy));
     const [searchText, setSearchText] = useState('');
 
     const filteredGroups = tokenizedSearch(availableGroups, searchText, (group) => [group.name, group.type]);
 
-    const listData: GroupListItem[] = filteredGroups.map((group) => ({
-        text: group.name,
-        alternateText: group.type.charAt(0).toUpperCase() + group.type.slice(1).toLowerCase(),
-        keyForList: group.id,
-        value: group.id,
-        isSelected: selectedIds.has(group.id),
-    }));
+    // Groups the HR system still has but that Merge sent back without a name or type are labelled with their ID,
+    // so that ID is the only thing there is to search them by.
+    const filteredNonRenderableGroupIDs = tokenizedSearch(nonRenderableGroupIDs, searchText, (groupID) => [groupID]);
+
+    const listData: GroupListItem[] = [
+        ...filteredGroups.map((group) => ({
+            text: group.name,
+            alternateText: group.type.charAt(0).toUpperCase() + group.type.slice(1).toLowerCase(),
+            keyForList: group.id,
+            value: group.id,
+            isSelected: selectedIds.has(group.id),
+        })),
+        ...filteredNonRenderableGroupIDs.map((groupID) => ({
+            text: translate('workspace.hr.mergeHR.groups.unnamedGroup', groupID),
+            keyForList: groupID,
+            value: groupID,
+            isSelected: selectedIds.has(groupID),
+        })),
+    ];
+    const visibleGroupIDs = [...filteredGroups.map((group) => group.id), ...filteredNonRenderableGroupIDs];
 
     const toggleItem = (item: GroupListItem) => {
         const next = new Set(selectedIds);
@@ -79,22 +94,19 @@ function MergeHRGroupsPage({
 
     const toggleSelectAll = () => {
         const next = new Set(selectedIds);
-        const allVisibleSelected = filteredGroups.length > 0 && filteredGroups.every((group) => next.has(group.id));
-        for (const group of filteredGroups) {
+        const allVisibleSelected = visibleGroupIDs.length > 0 && visibleGroupIDs.every((groupID) => next.has(groupID));
+        for (const groupID of visibleGroupIDs) {
             if (allVisibleSelected) {
-                next.delete(group.id);
+                next.delete(groupID);
             } else {
-                next.add(group.id);
+                next.add(groupID);
             }
         }
         setManualSelection(next);
     };
 
     const handleSave = () => {
-        // Groups the HR system still has but that can't render a row (missing a name/type) never got a
-        // checkbox to toggle, so they're carried over as-is instead of being dropped by the save.
-        const preservedGroupIDs = getNonRenderableMergeHRGroupIDs(policy);
-        updateMergeHRGroups(policyID, [...selectedIds, ...preservedGroupIDs], currentGroups);
+        updateMergeHRGroups(policyID, [...selectedIds], currentGroups);
         Navigation.goBack();
     };
 
@@ -132,14 +144,14 @@ function MergeHRGroupsPage({
                         ListItem={MultiSelectListItem}
                         canSelectMultiple
                         onSelectRow={toggleItem}
-                        onSelectAll={toggleSelectAll}
+                        onSelectAll={listData.length > 0 ? toggleSelectAll : undefined}
                         listEmptyContent={listEmptyContent}
-                        shouldShowListEmptyContent={availableGroups.length === 0}
+                        shouldShowListEmptyContent={!hasAnyGroups}
                         textInputOptions={{
                             label: translate('common.search'),
                             value: searchText,
                             onChangeText: setSearchText,
-                            headerMessage: availableGroups.length > 0 && filteredGroups.length === 0 ? translate('common.noResultsFound') : undefined,
+                            headerMessage: listData.length === 0 && hasAnyGroups ? translate('common.noResultsFound') : undefined,
                             style: {containerStyle: styles.pb5},
                         }}
                         style={{listHeaderSelectAllTextStyle: styles.textLabelSupporting, listItemWrapperStyle: styles.pv4}}

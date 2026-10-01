@@ -82,24 +82,9 @@ function getValidMergeHRGroupIDs(policy?: OnyxEntry<Policy>): string[] {
 }
 
 /**
- * The subset of getValidMergeHRGroupIDs that also has a renderable row in data.groups, so the admin can see
- * and uncheck it. Used to seed the group selector's checkbox state — a group missing a name/type has no row
- * to check, and the API rejects a selection carrying an ID with no row, so it is excluded here even though
- * it's still valid.
- */
-function getSelectableMergeHRGroupIDs(policy?: OnyxEntry<Policy>): string[] {
-    const availableGroups = policy?.connections?.merge_hris?.data?.groups;
-    const validGroupIDs = getValidMergeHRGroupIDs(policy);
-    if (!availableGroups) {
-        return validGroupIDs;
-    }
-    return validGroupIDs.filter((groupID) => availableGroups.some((group) => group.id === groupID));
-}
-
-/**
  * The subset of getValidMergeHRGroupIDs with no renderable row — a group the HR system still has, but that
- * Merge sent back without a name or type. The selector has nothing to show or uncheck for these, so they
- * must ride along unchanged on save instead of being silently dropped from config.groups.
+ * Merge sent back without a name or type. The selector shows these with a fallback label so the admin can
+ * still see and deselect them, instead of silently dropping or silently preserving them on save.
  */
 function getNonRenderableMergeHRGroupIDs(policy?: OnyxEntry<Policy>): string[] {
     const availableGroups = policy?.connections?.merge_hris?.data?.groups;
@@ -239,7 +224,7 @@ export {
     getHRAdvancedModeFinalApprover,
     getHRFinalApprover,
     getNonRenderableMergeHRGroupIDs,
-    getSelectableMergeHRGroupIDs,
+    getValidMergeHRGroupIDs,
     hasStaleMergeHRGroups,
     isAnyHRConnected,
     isAnyHRReadOnlyWorkflowMode,
