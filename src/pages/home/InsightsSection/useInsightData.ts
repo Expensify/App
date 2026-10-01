@@ -1,55 +1,20 @@
 import useGroupedItems from '@components/Search/hooks/useGroupedItems';
-import type {ChartView, GroupedItem, SearchQueryJSON, SearchView} from '@components/Search/types';
+import type {ChartView, SearchView} from '@components/Search/types';
 
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useTabFocusedRefresh from '@hooks/useTabFocusedRefresh';
 
 import {search} from '@libs/actions/Search';
+import {INSIGHTS_CHART_STATE, resolveInsightsChartData} from '@libs/resolveInsightsChartData';
 import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
-import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import type SearchResults from '@src/types/onyx/SearchResults';
-
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
-
-const INSIGHT_STATE = {
-    OFFLINE: 'offline',
-    ERROR: 'error',
-    LOADING: 'loading',
-    EMPTY: 'empty',
-    READY: 'ready',
-} as const;
 
 function isChartView(view: SearchView): view is ChartView {
     return view === CONST.SEARCH.VIEW.BAR || view === CONST.SEARCH.VIEW.LINE || view === CONST.SEARCH.VIEW.PIE;
-}
-
-function getInsightState(
-    isOffline: boolean,
-    searchResults: OnyxEntry<SearchResults>,
-    queryJSON: SearchQueryJSON | undefined,
-    sortedData: GroupedItem[] | undefined,
-): ValueOf<typeof INSIGHT_STATE> {
-    const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
-
-    if (isOffline && !isDataLoaded) {
-        return INSIGHT_STATE.OFFLINE;
-    }
-    if (!isOffline && Object.keys(searchResults?.errors ?? {}).length > 0) {
-        return INSIGHT_STATE.ERROR;
-    }
-    if (!isDataLoaded) {
-        return INSIGHT_STATE.LOADING;
-    }
-    if (!sortedData?.length) {
-        return INSIGHT_STATE.EMPTY;
-    }
-    return INSIGHT_STATE.READY;
 }
 
 function useInsightData(config: SearchTypeMenuItem | undefined, isConfigResolved = true) {
@@ -85,17 +50,16 @@ function useInsightData(config: SearchTypeMenuItem | undefined, isConfigResolved
 
     const sortedData = useGroupedItems(searchResults, queryJSON);
 
-    const state = isConfigResolved ? getInsightState(isOffline, searchResults, queryJSON, sortedData) : INSIGHT_STATE.LOADING;
+    const {data, state} = isConfigResolved ? resolveInsightsChartData({snapshot: searchResults, queryJSON, sortedData, isOffline}) : {data: [], state: INSIGHTS_CHART_STATE.LOADING};
 
     return {
         queryJSON,
         groupBy,
         view,
-        sortedData,
+        data,
         state,
         retry,
     };
 }
 
-export {INSIGHT_STATE, getInsightState};
 export default useInsightData;
