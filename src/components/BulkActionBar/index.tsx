@@ -94,10 +94,12 @@ function BulkActionBarContent<TValueType>({
     const isFocused = useIsFocused();
     const isCoveredByModal = !!modal?.isVisible && !isFocused;
 
+    const canOwnEscape = !modal?.willAlertModalBecomeVisible && !isCoveredByModal;
+
     // The Side Panel is not a `BaseModal`, so it is absent from both the modal state and the registry of open modals.
     // Below extra large it is laid over the page and takes Esc for itself, so the bar has to stand down for it.
     const {isSidePanelHiddenOrLargeScreen} = useSidePanelState();
-    const shouldClearSelectionOnEscape = !modal?.willAlertModalBecomeVisible && !isCoveredByModal && isSidePanelHiddenOrLargeScreen;
+    const shouldClearSelectionOnEscape = canOwnEscape && isSidePanelHiddenOrLargeScreen;
 
     // `willAlertModalBecomeVisible` is a single flag that every modal writes, so closing the topmost of a stack reads
     // as though nothing is open any more. The registry of open modals is the only answer that survives stacking, and
@@ -114,15 +116,19 @@ function BulkActionBarContent<TValueType>({
         {isActive: shouldClearSelectionOnEscape},
     );
 
-    // The bar is only up while rows are selected, and that selection owns Escape, so Escape must not dismiss the
-    // screen underneath it. The flag is held for as long as the bar is mounted rather than tracked against whatever
-    // is open over it, because each write to it resubscribes the app's own Escape handler to the top of the stack,
-    // over the handler of anything laid above the page in the meantime.
+    // Escape must not dismiss the screen the selection sits on while the bar is the one answering it. The Side Panel
+    // is deliberately left out of the condition, because each write to this flag resubscribes the app's own Escape
+    // handler to the top of the stack, over the Side Panel's, and that one Escape would then both dismiss the screen
+    // and close the panel.
     useEffect(() => {
+        if (!canOwnEscape) {
+            return;
+        }
+
         setDisableDismissOnEscape(true);
 
         return () => setDisableDismissOnEscape(false);
-    }, []);
+    }, [canOwnEscape]);
 
     useEffect(() => {
         if (!moreAnchorRef.current || !isMoreMenuVisible) {
