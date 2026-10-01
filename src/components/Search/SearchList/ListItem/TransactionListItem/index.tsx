@@ -222,7 +222,13 @@ function TransactionListItemInner<TItem extends ListItem>({
 
     const filteredViolationsCollection: OnyxCollection<TransactionViolations> = {[transactionViolationsKey]: transactionViolations};
     const liveReportActionsForViolations = useLiveReportActionsForViolations(transactionItem.reportID);
-    const confirmSubmitReportViolations = useConfirmSubmitReportViolations([transaction], filteredViolationsCollection, liveReportActionsForViolations, reportForViolations);
+    const confirmSubmitReportViolations = useConfirmSubmitReportViolations(
+        [transaction],
+        filteredViolationsCollection,
+        liveReportActionsForViolations,
+        reportForViolations,
+        policyForViolations,
+    );
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();

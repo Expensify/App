@@ -2,11 +2,11 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
-import {hasPendingRTERViolation, hasTransactionBeenRejected, isBrokenConnectionViolation} from '@libs/TransactionUtils';
+import {hasPendingRTERViolation, hasTransactionBeenRejected, isBrokenConnectionViolation, shouldShowViolation} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {Policy, Report, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -39,6 +39,9 @@ function getReportSubmitViolationSummary(
     transactions: Array<OnyxEntry<Transaction>>,
     violationsCollection: OnyxCollection<TransactionViolations>,
     report: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    currentUserEmail: string,
+    currentUserAccountID: number,
 ): ReportSubmitViolationSummary {
     let hasRejectedExpense = false;
     let hasPendingCardMatch = false;
@@ -63,9 +66,22 @@ function getReportSubmitViolationSummary(
                 continue;
             }
 
+            // Hold is surfaced via its own dedicated "on hold" UI elsewhere, not as a generic policy violation.
+            if (violation.name === CONST.VIOLATIONS.HOLD) {
+                continue;
+            }
+
             if (violation.name === CONST.VIOLATIONS.RTER && violation.data?.pendingPattern && !isBrokenConnectionViolation(violation)) {
                 continue;
             }
+
+            // Mirrors the filtering expense rows already apply, so the modal never lists a violation that's
+            // hidden from (or stale for) the current user elsewhere in the app. Skipped when there's no single
+            // report (bulk submit spans multiple reports/policies) - that caller pre-filters per report instead.
+            if (report && !shouldShowViolation(report, policy, violation.name, currentUserEmail, currentUserAccountID, true, transaction)) {
+                continue;
+            }
+
             if (!otherViolations.has(violation.name)) {
                 otherViolations.set(violation.name, violation);
             }

@@ -72,7 +72,7 @@ describe('useConfirmSubmitReportViolations', () => {
 
     it('calls onProceed immediately with no flag when there are no violations', () => {
         // Given a report with no transaction violations at all
-        const {result} = renderHook(() => useConfirmSubmitReportViolations([transaction1], {}, reportActions, report));
+        const {result} = renderHook(() => useConfirmSubmitReportViolations([transaction1], {}, reportActions, report, undefined));
         const onProceed = jest.fn();
 
         // When the caller tries to submit
@@ -86,7 +86,7 @@ describe('useConfirmSubmitReportViolations', () => {
     it('shows the confirm modal with the rejected-expense bullet and does not call onProceed until confirmed', () => {
         // Given a report whose only transaction has a rejected-expense violation
         const violationsCollection = {[violationsKey('1')]: [violation(CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE)]};
-        const {result} = renderHook(() => useConfirmSubmitReportViolations([transaction1], violationsCollection, reportActions, report));
+        const {result} = renderHook(() => useConfirmSubmitReportViolations([transaction1], violationsCollection, reportActions, report, undefined));
         const onProceed = jest.fn();
 
         // When the caller tries to submit
@@ -102,7 +102,7 @@ describe('useConfirmSubmitReportViolations', () => {
     it('does not call onProceed or mark-as-cash when the user cancels', async () => {
         // Given a report with a pending RTER card-match violation
         const violationsCollection = {[violationsKey('1')]: [violation(CONST.VIOLATIONS.RTER, {pendingPattern: true})]};
-        const {result} = renderHook(() => useConfirmSubmitReportViolations([transaction1], violationsCollection, reportActions, report));
+        const {result} = renderHook(() => useConfirmSubmitReportViolations([transaction1], violationsCollection, reportActions, report, undefined));
         const onProceed = jest.fn();
 
         // When the user cancels the confirmation modal
@@ -119,7 +119,7 @@ describe('useConfirmSubmitReportViolations', () => {
     it('marks pending RTER transactions as cash and calls onProceed(true) when the user confirms', async () => {
         // Given a report with a pending RTER card-match violation
         const violationsCollection = {[violationsKey('1')]: [violation(CONST.VIOLATIONS.RTER, {pendingPattern: true})]};
-        const {result} = renderHook(() => useConfirmSubmitReportViolations([transaction1], violationsCollection, reportActions, report));
+        const {result} = renderHook(() => useConfirmSubmitReportViolations([transaction1], violationsCollection, reportActions, report, undefined));
         const onProceed = jest.fn();
 
         // When the user confirms "Submit anyway"
@@ -137,7 +137,7 @@ describe('useConfirmSubmitReportViolations', () => {
         // Given a report whose only violation is an "other" one (e.g. over category limit), which is informational only
         // and has nothing for the backend to resolve, unlike rejected-expense or pending-card-match
         const violationsCollection = {[violationsKey('1')]: [violation(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT)]};
-        const {result} = renderHook(() => useConfirmSubmitReportViolations([transaction1], violationsCollection, reportActions, report));
+        const {result} = renderHook(() => useConfirmSubmitReportViolations([transaction1], violationsCollection, reportActions, report, undefined));
         const onProceed = jest.fn();
 
         // When the user confirms "Submit anyway"
@@ -154,7 +154,7 @@ describe('useConfirmSubmitReportViolations', () => {
     it('renders the violations with SubmitViolationsList (dot icon, not a unicode bullet) and keeps the danger button variant', () => {
         // Given a report whose only transaction has a rejected-expense violation
         const violationsCollection = {[violationsKey('1')]: [violation(CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE)]};
-        const {result} = renderHook(() => useConfirmSubmitReportViolations([transaction1], violationsCollection, reportActions, report));
+        const {result} = renderHook(() => useConfirmSubmitReportViolations([transaction1], violationsCollection, reportActions, report, undefined));
         const onProceed = jest.fn();
 
         // When the caller tries to submit
@@ -176,7 +176,7 @@ describe('useConfirmSubmitReportViolations', () => {
             stateNum: CONST.REPORT.STATE_NUM.OPEN,
             nextStep: {icon: CONST.NEXT_STEP.ICONS.HOURGLASS, messageKey: CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT},
         });
-        const {result} = renderHook(() => useConfirmSubmitReportViolations([transaction1], {}, reportActions, rejectedReport));
+        const {result} = renderHook(() => useConfirmSubmitReportViolations([transaction1], {}, reportActions, rejectedReport, undefined));
         const onProceed = jest.fn();
 
         // When the caller tries to submit

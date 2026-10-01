@@ -99,7 +99,7 @@ function SubmitActionButtonContent() {
             getTransactionViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, iouReport, submitterLogin, policy) ?? [];
     }
 
-    const confirmSubmitReportViolations = useConfirmSubmitReportViolations(transactions, filteredTransactionViolations, Object.values(reportActions ?? {}), iouReport);
+    const confirmSubmitReportViolations = useConfirmSubmitReportViolations(transactions, filteredTransactionViolations, Object.values(reportActions ?? {}), iouReport, policy);
 
     const isBlockSubmitDueToPreventSelfApproval = shouldBlockSubmitDueToPreventSelfApproval(iouReport, policy, rules);
     const isBlockSubmitDueToStrictPolicyRules = shouldBlockSubmitDueToStrictPolicyRules(

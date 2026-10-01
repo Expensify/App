@@ -110,6 +110,7 @@ import {
     isPending,
     isPerDiemRequest,
     isScanning,
+    shouldShowViolation,
 } from '@libs/TransactionUtils';
 import {buildSubmitViolationBullets, getReportSubmitViolationSummary, hasReportBeenRejectedToSubmitter} from '@libs/Violations/getReportSubmitViolationSummary';
 
@@ -2774,8 +2775,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             hasAnyReportBeenRejectedToSubmitter = true;
                         }
                         for (const transaction of transactionsByReportID.get(reportID) ?? []) {
-                            filteredViolationsCollection[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] =
+                            const transactionViolationsForReport =
                                 getTransactionViolations(transaction, allTransactionViolations, email ?? '', accountID, reportForViolations, reportOwnerLogin, policyForViolations) ?? [];
+                            // Each report has its own policy, so this filter (unlike the dismissal filter above) can't be
+                            // delegated to getReportSubmitViolationSummary - it's called once across every selected report.
+                            filteredViolationsCollection[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] = transactionViolationsForReport.filter((violation) =>
+                                shouldShowViolation(reportForViolations, policyForViolations, violation.name, email ?? '', accountID, true, transaction),
+                            );
                         }
                     }
 
@@ -2841,7 +2847,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     // Consolidate unique violations across every report being submitted, so the modal lists each
                     // violation once even if it appears on multiple selected reports.
                     const submitTransactions = [...reportIDsToSubmit].flatMap((reportID) => transactionsByReportID.get(reportID) ?? []);
-                    const summary = getReportSubmitViolationSummary(submitTransactions, filteredViolationsCollection, undefined);
+                    const summary = getReportSubmitViolationSummary(submitTransactions, filteredViolationsCollection, undefined, undefined, email ?? '', accountID);
                     if (hasAnyReportBeenRejectedToSubmitter) {
                         summary.hasReportBeenRejected = true;
                     }

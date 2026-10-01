@@ -113,7 +113,7 @@ function ReportSubmitToContent({
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`);
     const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(report?.reportID);
     const reportSubmitTransactions = useMemo(() => Object.values(reportTransactions), [reportTransactions]);
-    const confirmSubmitReportViolations = useConfirmSubmitReportViolations(reportSubmitTransactions, violations, Object.values(reportActions ?? {}), report);
+    const confirmSubmitReportViolations = useConfirmSubmitReportViolations(reportSubmitTransactions, violations, Object.values(reportActions ?? {}), report, policy);
 
     const prepopulatedEmail = getSubmitToEmail(policy, report, submitterLogin, rules);
 

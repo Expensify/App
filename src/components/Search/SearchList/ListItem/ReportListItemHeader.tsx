@@ -290,6 +290,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
         reportListHeaderViolations,
         liveReportActionsForViolations,
         parentReport ?? snapshotReport,
+        parentPolicy,
     );
     const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         policy: parentPolicy,

@@ -6,7 +6,7 @@ import {buildSubmitViolationBullets, getReportSubmitViolationSummary} from '@lib
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 
 import CONST from '@src/CONST';
-import type {Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -14,6 +14,7 @@ import React from 'react';
 
 import useConfirmModal from './useConfirmModal';
 import {useCurrencyListActions} from './useCurrencyList';
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
 
 /**
@@ -26,13 +27,15 @@ function useConfirmSubmitReportViolations(
     violationsCollection: OnyxCollection<TransactionViolations>,
     reportActions: ReportAction[],
     report: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
 ) {
     const {showConfirmModal} = useConfirmModal();
     const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
+    const {accountID: currentUserAccountID, email: currentUserEmail} = useCurrentUserPersonalDetails();
 
     return (onProceed: (shouldResolveAcknowledgedViolations?: boolean) => void) => {
-        const summary = getReportSubmitViolationSummary(transactions, violationsCollection, report);
+        const summary = getReportSubmitViolationSummary(transactions, violationsCollection, report, policy, currentUserEmail ?? '', currentUserAccountID);
         if (!summary.hasRejectedExpense && !summary.hasReportBeenRejected && !summary.hasPendingCardMatch && summary.otherViolations.size === 0) {
             onProceed();
             return;

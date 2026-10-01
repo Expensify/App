@@ -222,7 +222,13 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const {transactions: reportTransactions, violations: reportViolations} = useTransactionsAndViolationsForReport(reportItem.reportID);
     const liveReportTransactions = useMemo(() => Object.values(reportTransactions), [reportTransactions]);
     const liveReportActionsForViolations = useLiveReportActionsForViolations(reportItem.reportID);
-    const confirmSubmitReportViolations = useConfirmSubmitReportViolations(liveReportTransactions, reportViolations, liveReportActionsForViolations, reportForViolations);
+    const confirmSubmitReportViolations = useConfirmSubmitReportViolations(
+        liveReportTransactions,
+        reportViolations,
+        liveReportActionsForViolations,
+        reportForViolations,
+        policyForViolations,
+    );
 
     // Recompute the violations badge from live data at the row, replacing the screen-level
     // violations merge that getSections previously did. Policy comes from the live `policyForViolations`

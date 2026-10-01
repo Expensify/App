@@ -43,7 +43,7 @@ function rejectedReport(): Report {
 describe('getReportSubmitViolationSummary', () => {
     it('returns all-false/empty when there are no violations', () => {
         // Given a transaction with an empty violations array (the shape Onyx reports once violations have been computed and none apply)
-        const summary = getReportSubmitViolationSummary([transaction('1')], {[violationsKey('1')]: []}, undefined);
+        const summary = getReportSubmitViolationSummary([transaction('1')], {[violationsKey('1')]: []}, undefined, undefined, '', 0);
 
         // When the summary is built
         // Then the "Submit report?" modal has nothing to show, so every bucket must be empty
@@ -52,7 +52,14 @@ describe('getReportSubmitViolationSummary', () => {
 
     it('flags a rejected expense violation', () => {
         // Given a transaction whose expense was rejected by the backend
-        const summary = getReportSubmitViolationSummary([transaction('1')], {[violationsKey('1')]: [violation(CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE)]}, undefined);
+        const summary = getReportSubmitViolationSummary(
+            [transaction('1')],
+            {[violationsKey('1')]: [violation(CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE)]},
+            undefined,
+            undefined,
+            '',
+            0,
+        );
 
         // When the summary is built
         // Then it must surface as the dedicated "rejected expense" bucket, not get lumped into the generic "other" bucket,
@@ -64,7 +71,7 @@ describe('getReportSubmitViolationSummary', () => {
 
     it('flags a pending RTER card-match violation', () => {
         // Given a transaction awaiting a potential match with a card transaction (pendingPattern, no rterType)
-        const summary = getReportSubmitViolationSummary([transaction('1')], {[violationsKey('1')]: [violation(CONST.VIOLATIONS.RTER, {pendingPattern: true})]}, undefined);
+        const summary = getReportSubmitViolationSummary([transaction('1')], {[violationsKey('1')]: [violation(CONST.VIOLATIONS.RTER, {pendingPattern: true})]}, undefined, undefined, '', 0);
 
         // When the summary is built
         // Then it must land in the dedicated "pending card match" bucket, since that's the one the caller uses to
@@ -83,6 +90,9 @@ describe('getReportSubmitViolationSummary', () => {
                 [violationsKey('1')]: [rterViolation],
             },
             undefined,
+            undefined,
+            '',
+            0,
         );
 
         // When the summary is built
@@ -96,7 +106,7 @@ describe('getReportSubmitViolationSummary', () => {
     it('buckets any other violation name into otherViolations', () => {
         // Given a transaction with a violation that isn't rejected-expense or RTER (e.g. a policy category limit)
         const overCategoryLimitViolation = violation(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT);
-        const summary = getReportSubmitViolationSummary([transaction('1')], {[violationsKey('1')]: [overCategoryLimitViolation]}, undefined);
+        const summary = getReportSubmitViolationSummary([transaction('1')], {[violationsKey('1')]: [overCategoryLimitViolation]}, undefined, undefined, '', 0);
 
         // When the summary is built
         // Then it must be collected as an informational-only bullet, since the modal only needs to warn the user, not resolve anything
@@ -113,6 +123,9 @@ describe('getReportSubmitViolationSummary', () => {
                 [violationsKey('2')]: [overCategoryLimitViolation],
             },
             undefined,
+            undefined,
+            '',
+            0,
         );
 
         // When the summary is built for the whole report
@@ -123,7 +136,7 @@ describe('getReportSubmitViolationSummary', () => {
 
     it('ignores transactions with no violations entry', () => {
         // Given a transaction whose violations haven't been fetched into Onyx yet (key absent from the collection)
-        const summary = getReportSubmitViolationSummary([transaction('1')], {}, undefined);
+        const summary = getReportSubmitViolationSummary([transaction('1')], {}, undefined, undefined, '', 0);
 
         // When the summary is built
         // Then it must not throw or treat the missing key as a violation, so a report just isn't flagged instead of crashing
@@ -135,7 +148,7 @@ describe('getReportSubmitViolationSummary', () => {
         // where the individual transactions carry no AUTO_REPORTED_REJECTED_EXPENSE violation of their own - the PO
         // asked for these two cases to use different copy, since a report-level rejection has no per-expense
         // "Mark as resolved" action, unlike a transaction-level rejected-expense violation
-        const summary = getReportSubmitViolationSummary([transaction('1')], {[violationsKey('1')]: []}, rejectedReport());
+        const summary = getReportSubmitViolationSummary([transaction('1')], {[violationsKey('1')]: []}, rejectedReport(), undefined, '', 0);
 
         // When the summary is built
         // Then it must surface the report-level rejection in its own bucket, and must NOT also flag the
@@ -154,6 +167,9 @@ describe('getReportSubmitViolationSummary', () => {
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 nextStep: {icon: CONST.NEXT_STEP.ICONS.HOURGLASS, messageKey: CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT},
             }),
+            undefined,
+            '',
+            0,
         );
 
         // When the summary is built
