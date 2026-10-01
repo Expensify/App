@@ -8768,6 +8768,9 @@ const CONST = {
             POLICY: 'policy',
             ACCOUNT: 'account',
         },
+        FILTERS: {
+            MERCHANT: 'merchant',
+        },
         TRIGGERS: RULE_TRIGGERS,
         /** Every action a rule can perform, across all rule kinds. */
         ACTIONS: {

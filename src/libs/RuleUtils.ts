@@ -59,8 +59,9 @@ function isExpenseDefaultRule(rule: Rule | undefined): rule is Rule & ExpenseDef
     const actions = fromIndexMap(actionsByIndex);
     const hasCreateTransactionTrigger = getRuleTriggers(rule).some((trigger) => trigger === CONST.RULES.TRIGGERS.CREATE_TRANSACTION);
     const hasSetAction = actions.some((action) => action?.name === CONST.RULES.ACTIONS.SET);
+    const hasMerchantFilter = getRuleFilterLeaves(rule.filters).some((filter) => filter.left === CONST.RULES.FILTERS.MERCHANT);
 
-    return hasCreateTransactionTrigger && hasSetAction;
+    return hasCreateTransactionTrigger && hasSetAction && !hasMerchantFilter;
 }
 
 /** Whether an unknown value read off a rule is shaped like a node of its filter tree. */
