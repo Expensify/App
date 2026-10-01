@@ -1,0 +1,22 @@
+import buildingsIcon from '@assets/images/native-tab-icons/buildings.png';
+import homeIcon from '@assets/images/native-tab-icons/home.png';
+import inboxIcon from '@assets/images/native-tab-icons/inbox.png';
+import insightsIcon from '@assets/images/native-tab-icons/insights.png';
+import profileIcon from '@assets/images/native-tab-icons/profile.png';
+import receiptMultipleIcon from '@assets/images/native-tab-icons/receipt-multiple.png';
+
+import NAVIGATORS from '@src/NAVIGATORS';
+import SCREENS from '@src/SCREENS';
+
+import type {NativeBottomTabIcon} from '@react-navigation/bottom-tabs/unstable';
+
+const NATIVE_TAB_ICONS = {
+    [SCREENS.HOME]: {type: 'image', source: homeIcon},
+    [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: {type: 'image', source: inboxIcon},
+    [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: {type: 'image', source: receiptMultipleIcon},
+    [SCREENS.INSIGHTS]: {type: 'image', source: insightsIcon},
+    [NAVIGATORS.WORKSPACE_NAVIGATOR]: {type: 'image', source: buildingsIcon},
+    [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: {type: 'image', source: profileIcon},
+} as const satisfies Record<string, NativeBottomTabIcon>;
+
+export default NATIVE_TAB_ICONS;

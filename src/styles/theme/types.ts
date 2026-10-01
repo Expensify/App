@@ -65,6 +65,8 @@ type ThemeColors = {
     signInSidebar: Color;
     sidebar: Color;
     sidebarHover: Color;
+    floatingTabBarSelectedBG: Color;
+    androidTabBarActiveIndicatorBG: Color;
     heading: Color;
     textLight: Color;
     textDark: Color;

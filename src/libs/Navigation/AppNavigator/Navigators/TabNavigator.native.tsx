@@ -1,128 +1,80 @@
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
-
-import {getPreservedNavigatorState, setPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import {bottomTabScreenLayoutWrapper} from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
 
 import HomePage from '@pages/home/HomePage';
 import InsightsPage from '@pages/Insights/InsightsPage';
 
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
-/**
- * Tab Navigator containing Home, Inbox (Reports), Search, Insights, Settings, and Workspaces pages.
- */
-import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
-import type {NavigationAction, NavigationState, Router, TabNavigationState} from '@react-navigation/native';
+import {createNativeBottomTabNavigator} from '@react-navigation/bottom-tabs/unstable';
+import React from 'react';
 
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import {findFocusedRoute, useNavigation, useNavigationState, useRoute} from '@react-navigation/native';
-import React, {useEffect} from 'react';
+import type {NativeTabLayoutProps} from './NativeTabNavigator/NativeTabLayout';
 
+import NativeTabLayout from './NativeTabNavigator/NativeTabLayout';
+import tabScreenListeners from './NativeTabNavigator/tabScreenListeners';
+import useNativeTabBarOptions from './NativeTabNavigator/useNativeTabBarOptions';
+import useNativeTabNavigator from './NativeTabNavigator/useNativeTabNavigator';
 import ReportsSplitNavigator from './ReportsSplitNavigator';
 import SearchFullscreenNavigator from './SearchFullscreenNavigator';
 import SettingsSplitNavigator from './SettingsSplitNavigator';
-import TabNavigatorBar from './TabNavigatorBar';
 import WorkspaceNavigator from './WorkspaceNavigator';
 
-const renderTabBar = ({state}: BottomTabBarProps) => <TabNavigatorBar state={state} />;
-
-const Tab = createBottomTabNavigator<TabNavigatorParamList>();
-
 /**
- * Root-level tab screens where the swipe-back gesture should be disabled.
- * Swiping from these screens would pop the entire TAB_NAVIGATOR, which feels wrong.
- * WORKSPACE.INITIAL is intentionally excluded — swiping back from it returns to the workspace list.
+ * Tab Navigator backed by the platform's own tab bar: UITabBar with the liquid glass material on iOS 26, and
+ * Material's BottomNavigationView on Android. Wide layouts keep the JS side bar, since neither native bar can be
+ * moved to the side of the screen.
  */
-const TAB_ROOT_SCREENS_WITHOUT_GESTURE = new Set<string>([SCREENS.HOME, SCREENS.INBOX, SCREENS.SEARCH.ROOT, SCREENS.INSIGHTS, SCREENS.SETTINGS.ROOT]);
+const Tab = createNativeBottomTabNavigator<TabNavigatorParamList>();
 
-const TAB_SCREEN_OPTIONS_BASE = {
-    headerShown: false,
-    lazy: true,
-    animation: 'none' as const,
-    freezeOnBlur: true,
-    tabBarPosition: 'bottom' as const,
-} as const;
+const renderNativeTabLayout = (props: NativeTabLayoutProps) => <NativeTabLayout {...props} />;
 
 function TabNavigator() {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const theme = useTheme();
-    const navigation = useNavigation();
-    const parentNavigation = navigation.getParent();
-    const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
-    const route = useRoute();
-    // The Tab.Navigator's own state lives at `parentState.routes[i].state`. We can't read it via
-    // `useNavigationState((s) => s)` here because TabNavigator's body runs before <Tab.Navigator>
-    // mounts, so the nearest navigation listener context is still the parent stack's.
-    const tabState = useNavigationState((parentState) => parentState.routes.find((r) => r.key === route.key)?.state as NavigationState | undefined);
-
-    useEffect(() => {
-        if (!shouldUseNarrowLayout || !parentNavigation) {
-            return;
-        }
-        const isRootScreen = TAB_ROOT_SCREENS_WITHOUT_GESTURE.has(focusedRouteName ?? '');
-        parentNavigation.setOptions({gestureEnabled: !isRootScreen});
-    }, [focusedRouteName, shouldUseNarrowLayout, parentNavigation]);
-
-    useEffect(() => {
-        // stale === false distinguishes a fully realized NavigationState from a PartialState.
-        if (!tabState || tabState.stale !== false) {
-            return;
-        }
-        setPreservedNavigatorState(route.key, tabState);
-    }, [tabState, route.key]);
-
-    // The slicing optimization in useCustomRootStackNavigatorState can unmount and later remount
-    // this TAB_NAVIGATOR. Without restoration it would default to index 0. We restore the saved
-    // state by overriding the bottom-tab router's getInitialState — the same pattern SplitRouter
-    // uses for its split navigators.
-    const tabRouterOverride = <Action extends NavigationAction>(
-        originalRouter: Router<TabNavigationState<TabNavigatorParamList>, Action>,
-    ): Partial<Router<TabNavigationState<TabNavigatorParamList>, Action>> => ({
-        getInitialState: (configOptions) => {
-            const preserved = getPreservedNavigatorState<TabNavigationState<TabNavigatorParamList>>(route.key);
-            return preserved ? originalRouter.getRehydratedState(preserved, configOptions) : originalRouter.getInitialState(configOptions);
-        },
-    });
-
-    const screenOptions = {
-        ...TAB_SCREEN_OPTIONS_BASE,
-        sceneStyle: {flex: 1, backgroundColor: theme.appBG},
-    };
+    const {shouldShowNativeTabBar, dotColors, tabLabels, isInsightsTabVisible, tabRouterOverride} = useNativeTabNavigator();
+    const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, dotColors, tabLabels});
 
     return (
         <Tab.Navigator
             backBehavior="fullHistory"
-            tabBar={renderTabBar}
-            screenOptions={screenOptions}
+            layout={renderNativeTabLayout}
             screenLayout={bottomTabScreenLayoutWrapper}
+            screenOptions={screenOptions}
             UNSTABLE_router={tabRouterOverride}
+            screenListeners={tabScreenListeners}
         >
             <Tab.Screen
                 name={SCREENS.HOME}
                 component={HomePage}
+                options={getTabOptions(SCREENS.HOME)}
             />
             <Tab.Screen
                 name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
                 component={ReportsSplitNavigator}
+                options={getTabOptions(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR)}
             />
             <Tab.Screen
                 name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
                 component={SearchFullscreenNavigator}
+                options={getTabOptions(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR)}
             />
             <Tab.Screen
                 name={SCREENS.INSIGHTS}
                 component={InsightsPage}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
-                component={SettingsSplitNavigator}
+                // The Insights tab button opens the Spend dashboard, so a tap on the native tab lands on it too.
+                initialParams={{dashboardID: CONST.INSIGHTS.DASHBOARD.SPEND}}
+                options={{...getTabOptions(SCREENS.INSIGHTS), tabBarItemHidden: !isInsightsTabVisible}}
             />
             <Tab.Screen
                 name={NAVIGATORS.WORKSPACE_NAVIGATOR}
                 component={WorkspaceNavigator}
+                options={getTabOptions(NAVIGATORS.WORKSPACE_NAVIGATOR)}
+            />
+            <Tab.Screen
+                name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
+                component={SettingsSplitNavigator}
+                options={{...getTabOptions(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR), tabBarItemHidden: isInsightsTabVisible}}
             />
         </Tab.Navigator>
     );

@@ -1,6 +1,6 @@
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import QuickCreationActionsBar from '@components/Navigation/QuickCreationActionsBar';
-import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
+import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
 import TopBar from '@components/Navigation/TopBar';
 import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -42,6 +42,7 @@ const RIGHT_COLUMN_TEST_ID = 'homePageRightColumn';
 function HomePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
+    const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.HOME);
     const {translate} = useLocalize();
     useDocumentTitle(translate('common.home'));
     const {isOffline} = useNetwork({onReconnect: openHomePage});
@@ -141,8 +142,7 @@ function HomePage() {
                     shouldShowOfflineIndicatorInWideScreen
                     testID="HomePage"
                     enableEdgeToEdgeBottomSafeAreaPadding={false}
-                    bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.HOME} />}
-                    bottomContentStyle={styles.overflowVisible}
+                    {...tabRootScreenWrapperProps}
                 >
                     <TopBar
                         breadcrumbLabel={translate('common.home')}
@@ -151,6 +151,8 @@ function HomePage() {
                     />
                     <ScrollView
                         style={styles.homePageScrollView}
+                        // Lets UIKit inset the end of the list past the translucent iOS tab bar that the content runs under.
+                        contentInsetAdjustmentBehavior="automatic"
                         contentContainerStyle={styles.homePageContentContainer}
                         addBottomSafeAreaPadding
                         keyboardShouldPersistTaps="handled"

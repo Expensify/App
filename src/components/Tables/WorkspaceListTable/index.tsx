@@ -207,6 +207,8 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
             keyExtractor={(row, index) => `${row.policyID}-${index}`}
             filters={filterConfig}
             isItemInFilter={isItemInFilter}
+            // Lets UIKit inset the end of the list past the translucent iOS tab bar that the content runs under.
+            contentInsetAdjustmentBehavior="automatic"
         >
             <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.NoResultsState />

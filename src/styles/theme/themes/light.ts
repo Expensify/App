@@ -58,6 +58,9 @@ const lightTheme = {
     signInSidebar: colors.green800,
     sidebar: colors.productLight100,
     sidebarHover: colors.productLight300,
+    floatingTabBarSelectedBG: 'rgba(230,225,218,0.50)',
+    // selectedOptionBG (green100) at 40%
+    androidTabBarActiveIndicatorBG: 'rgba(177,242,214,0.40)',
     heading: colors.productLight900,
     textLight: colors.white,
     textDark: colors.productLight900,

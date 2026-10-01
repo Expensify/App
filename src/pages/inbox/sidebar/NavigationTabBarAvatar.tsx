@@ -44,20 +44,29 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.ACCOUNT}
         >
             {({hovered}) => (
-                <>
-                    <View style={styles.tn0Half}>
+                <View style={[styles.navigationTabBarItem, shouldUseNarrowLayout && isSelected && styles.navigationTabBarItemSelected]}>
+                    <View style={shouldUseNarrowLayout ? styles.navigationTabBarAvatar : styles.tn0Half}>
                         <AccountNavigationAvatar
-                            isSelected={isSelected || (!shouldUseNarrowLayout && hovered)}
+                            // The floating bar marks the selected tab with a pill behind the whole item, so the
+                            // avatar's own ring would double up on it. The side bar has no pill and keeps it.
+                            isSelected={!shouldUseNarrowLayout && (isSelected || hovered)}
                             isHovered={hovered}
+                            size={shouldUseNarrowLayout ? CONST.AVATAR_SIZE.X_SMALL : CONST.AVATAR_SIZE.SMALL}
                         />
                     </View>
                     <Text
                         numberOfLines={2}
-                        style={[styles.textSmall, styles.textAlignCenter, isSelected ? styles.textBold : styles.textSupporting, styles.mt0Half, styles.navigationTabBarLabel]}
+                        style={[
+                            styles.textSmall,
+                            styles.textAlignCenter,
+                            isSelected ? styles.textBold : styles.textSupporting,
+                            shouldUseNarrowLayout ? styles.mt1 : styles.mt0Half,
+                            styles.navigationTabBarLabel,
+                        ]}
                     >
                         {translate('initialSettingsPage.account')}
                     </Text>
-                </>
+                </View>
             )}
         </PressableWithFeedback>
     );

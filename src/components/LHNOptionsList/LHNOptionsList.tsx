@@ -162,6 +162,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             <LHNTooltipContextProvider data={data}>
                 <FlashList
                     ref={flashListRef}
+                    // Lets UIKit inset the end of the list past the translucent iOS tab bar that the content runs under.
+                    contentInsetAdjustmentBehavior="automatic"
                     indicatorStyle="white"
                     keyboardShouldPersistTaps="always"
                     CellRendererComponent={OptionRowRendererComponent}

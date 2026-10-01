@@ -742,20 +742,55 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'visible',
         },
 
+        // The narrow tab bar on mobile web is a flat capsule floating above the screen content. iOS and Android hand
+        // the bottom bar over to their native tab bars, so nothing here reaches them.
         navigationTabBarContainer: {
             flexDirection: 'row',
-            height: variables.bottomTabHeight,
-            borderTopWidth: 1,
-            borderTopColor: theme.border,
+            height: variables.floatingTabBarHeight,
+            marginHorizontal: variables.floatingTabBarHorizontalInset,
+            borderRadius: variables.componentBorderRadiusCircle,
             backgroundColor: theme.appBG,
+            borderWidth: variables.hairlineBorderWidth,
+            borderColor: theme.border,
+            // Insets the row so the selected item's capsule keeps the same margin inside the bar's rounded edge on
+            // every side, past the overhang it reaches beyond the first and last tabs.
+            ...spacing.pv1,
+            paddingHorizontal: spacing.p1.padding + variables.floatingTabBarSelectedOverhang,
+            // Clips each item's hover and press background to the capsule's rounded ends.
+            overflow: 'hidden',
         },
 
+        navigationTabBarItemSelected: {
+            backgroundColor: theme.floatingTabBarSelectedBG,
+            borderRadius: variables.componentBorderRadiusCircle,
+            // Spans the whole tab and a little past it, the way the native iOS bar draws its selection. The padding
+            // matches the negative margin, so the label keeps the tab's width to wrap in, selected or not.
+            alignSelf: 'stretch',
+            paddingHorizontal: variables.floatingTabBarSelectedOverhang,
+            marginHorizontal: -variables.floatingTabBarSelectedOverhang,
+        },
+
+        androidNativeTabBarSpacer: {
+            height: variables.androidNativeTabBarHeight,
+        },
+
+        // The gap between the floating bar and the bottom edge of the screen.
+        floatingTabBarBottomInset: {
+            paddingBottom: variables.floatingTabBarBottomInset,
+        },
+
+        // Used both for a tab's pressable and for the wrapper around its icon and label.
         navigationTabBarItem: {
             height: '100%',
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            paddingHorizontal: 4,
+        },
+
+        // Lets the floating bar's avatar overflow the glyph box evenly above and below, so its label lines up
+        // with the labels of the icons next to it and its centre with theirs.
+        navigationTabBarAvatar: {
+            marginVertical: (variables.iconFloatingTabBar - variables.avatarFloatingTabBar) / 2,
         },
 
         navigationTabBarFABItem: {
@@ -6875,6 +6910,18 @@ const staticStyles = (theme: ThemeColors) =>
 
 const dynamicStyles = (theme: ThemeColors) =>
     ({
+        // Zero-height strip anchored above the native tab bar, so the floating buttons can be positioned
+        // against it without taking part in the tab screen's layout.
+        nativeTabBarFloatingButtons: (bottom: number) =>
+            ({
+                position: 'absolute',
+                right: 0,
+                bottom,
+                left: 0,
+                height: 0,
+                zIndex: 10,
+            }) satisfies ViewStyle,
+
         getSplitListItemAmountStyle: (inputMarginLeft: number, amountWidth: number | string) => ({
             marginLeft: inputMarginLeft,
             width: amountWidth,
