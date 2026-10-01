@@ -204,7 +204,7 @@ describe('ContextMenuActions copy message', () => {
             ),
         );
 
-        expect(mockGetClipboardText).toHaveBeenCalledWith('workspaceActions.updatedMemberWorkArrangement');
+        expect(mockGetClipboardText).toHaveBeenCalledWith('workspaceActions.updatedMemberWorkArrangement', undefined);
         expect(mockSetString).toHaveBeenCalledWith('updated work arrangement');
     });
 
@@ -228,7 +228,7 @@ describe('ContextMenuActions copy message', () => {
             ),
         );
 
-        expect(mockGetClipboardText).toHaveBeenCalledWith('workspaceActions.updatedMemberWorkArrangement');
+        expect(mockGetClipboardText).toHaveBeenCalledWith('workspaceActions.updatedMemberWorkArrangement', undefined);
         expect(mockSetHtml).toHaveBeenCalledWith('workspaceActions.updatedMemberWorkArrangement', 'updated work arrangement');
         expect(mockSetString).not.toHaveBeenCalled();
     });
