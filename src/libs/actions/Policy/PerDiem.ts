@@ -367,34 +367,20 @@ function editPerDiemRateAmount(policyID: string, rateID: string, subRateID: stri
         return;
     }
 
-    const newCustomUnit: CustomUnit = lodashDeepClone(customUnit);
-    newCustomUnit.rates[rateID].subRates = newCustomUnit.rates[rateID].subRates?.map((subRate) => {
+    const currentRate = customUnit.rates[rateID];
+    if (!currentRate) {
+        return;
+    }
+
+    const updatedRate = lodashDeepClone(currentRate);
+    updatedRate.subRates = updatedRate.subRates?.map((subRate) => {
         if (subRate.id === subRateID) {
             return {...subRate, rate: newAmount};
         }
         return subRate;
     });
 
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    customUnits: {
-                        [customUnit.customUnitID]: newCustomUnit,
-                    },
-                },
-            },
-        ],
-    };
-
-    const parameters = {
-        policyID,
-        customUnit: JSON.stringify(newCustomUnit),
-    };
-
-    API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT, parameters, onyxData);
+    updateWorkspacePerDiemRate(policyID, customUnit.customUnitID, currentRate, updatedRate);
 }
 
 function editPerDiemRateCurrency(policyID: string, rateID: string, customUnit: CustomUnit | undefined, newCurrency: string) {
