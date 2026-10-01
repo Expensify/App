@@ -701,7 +701,6 @@
 "../../src/libs/ComposerFocusManager.ts"	"@typescript-eslint/no-deprecated/TextInput.State.currentlyFocusedField"	1
 "../../src/libs/ComposerFocusManager.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/ComposerUtils/index.ts"	"no-restricted-syntax"	1
-"../../src/libs/compoundParamsKey.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/CountryUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/CurrencyUtils.ts"	"rulesdir/no-onyx-connect"	1
 "../../src/libs/DateUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
