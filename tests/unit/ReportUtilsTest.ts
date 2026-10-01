@@ -121,6 +121,7 @@ import {
     getOneOnOneChatParticipants,
     getOriginalReportID,
     getOutstandingChildRequest,
+    getOutstandingReportsForUser,
     getParentNavigationSubtitle,
     getParentReport,
     getParsedComment,
@@ -7621,6 +7622,7 @@ describe('ReportUtils', () => {
                     transaction,
                     report: openExpenseReport,
                     policy: policyWithWorkflow,
+                    reportNameValuePairs: undefined,
                 }),
             ).toBe(false);
         });
@@ -7691,6 +7693,7 @@ describe('ReportUtils', () => {
                     transaction,
                     report: openExpenseReport,
                     policy: policyWithWorkflow,
+                    reportNameValuePairs: undefined,
                 }),
             ).toBe(true);
             expect(
@@ -7701,6 +7704,7 @@ describe('ReportUtils', () => {
                     transaction,
                     report: openExpenseReport,
                     policy: policyWithWorkflow,
+                    reportNameValuePairs: undefined,
                 }),
             ).toBe(true);
         });
@@ -7762,6 +7766,7 @@ describe('ReportUtils', () => {
                     transaction,
                     report: openExpenseReport,
                     policy: policyWithWorkflow,
+                    reportNameValuePairs: undefined,
                 }),
             ).toBe(true);
 
@@ -7774,6 +7779,7 @@ describe('ReportUtils', () => {
                     report: workspaceChat,
                     policy: policyWithWorkflow,
                     rules: undefined,
+                    reportNameValuePairs: undefined,
                 }),
             ).toBe(false);
         });
@@ -7870,6 +7876,7 @@ describe('ReportUtils', () => {
                     transaction,
                     report: openExpenseReport,
                     policy: policyWithWorkflow,
+                    reportNameValuePairs: undefined,
                 }),
             ).toBe(true);
         });
@@ -7933,6 +7940,7 @@ describe('ReportUtils', () => {
                     transaction,
                     report: openExpenseReport,
                     policy: submitAndClosePolicy,
+                    reportNameValuePairs: undefined,
                 }),
             ).toBe(false);
         });
@@ -8012,6 +8020,7 @@ describe('ReportUtils', () => {
                     transaction,
                     report: openExpenseReport,
                     policy: ruleOnlyPolicy,
+                    reportNameValuePairs: undefined,
                 }),
             ).toBe(false);
         });
@@ -8070,6 +8079,7 @@ describe('ReportUtils', () => {
                     transaction,
                     report: openExpenseReport,
                     policy: policyWithWorkflow,
+                    reportNameValuePairs: undefined,
                 }),
             ).toBe(false);
         });
@@ -8142,6 +8152,7 @@ describe('ReportUtils', () => {
                     transaction,
                     report: openExpenseReport,
                     policy: failClosedPolicy,
+                    reportNameValuePairs: undefined,
                 }),
             ).toBe(false);
         });
@@ -11578,7 +11589,7 @@ describe('ReportUtils', () => {
                     login: currentUserEmail,
                 },
             });
-            expect(isReportOutstanding(report, policy.id, undefined)).toBe(true);
+            expect(isReportOutstanding(report, policy.id, undefined, {})).toBe(true);
         });
         it('should return false for submitted reports if we specify it', () => {
             const report: Report = {
@@ -11588,7 +11599,7 @@ describe('ReportUtils', () => {
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
-            expect(isReportOutstanding(report, policy.id, undefined, undefined, false)).toBe(false);
+            expect(isReportOutstanding(report, policy.id, undefined, {}, false)).toBe(false);
         });
         it('should return true for submitted reports if top most report ID is processing', async () => {
             const report: Report = {
@@ -11617,7 +11628,7 @@ describe('ReportUtils', () => {
                 },
             });
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${activeReport.reportID}`, activeReport);
-            expect(isReportOutstanding(report, policy.id, undefined)).toBe(true);
+            expect(isReportOutstanding(report, policy.id, undefined, {})).toBe(true);
         });
         it('should return false for archived report', async () => {
             const report: Report = {
@@ -11630,6 +11641,38 @@ describe('ReportUtils', () => {
 
             const reportNameValuePair = {private_isArchived: '2024-01-01 00:00:00.000'};
             expect(isReportOutstanding(report, policy.id, undefined, reportNameValuePair)).toBe(false);
+        });
+    });
+
+    describe('getOutstandingReportsForUser', () => {
+        it('should return outstanding reports and exclude archived reports', () => {
+            const activeReport: Report = {
+                ...createRandomReport(1, undefined),
+                policyID: policy.id,
+                ownerAccountID: currentUserAccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const archivedReport: Report = {
+                ...createRandomReport(2, undefined),
+                policyID: policy.id,
+                ownerAccountID: currentUserAccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${activeReport.reportID}`]: activeReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${archivedReport.reportID}`]: archivedReport,
+            };
+            const reportNameValuePairs = {
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${activeReport.reportID}`]: {},
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`]: {private_isArchived: '2024-01-01 00:00:00.000'},
+            };
+
+            const result = getOutstandingReportsForUser(policy.id, currentUserAccountID, undefined, reportNameValuePairs, reports);
+            expect(result).toEqual([activeReport]);
         });
     });
 

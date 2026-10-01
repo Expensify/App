@@ -227,7 +227,7 @@ function MoneyRequestReportTransactionList({
     const shouldShowGroupedTransactions = isExpenseReport(report) && !isIOUReport(report);
     const {currentSelection, currentGroupBy, shouldGroupTransactions, selectLayout} = useMoneyRequestReportLayout(shouldShowGroupedTransactions);
 
-    const {groupedTransactions, listItems, visualOrderTransactionIDs, lastTransactionID} = useMoneyRequestReportGroupedTransactions({
+    const {groupedTransactions, listItems, visualOrderTransactions, visualOrderTransactionIDs, lastTransactionID} = useMoneyRequestReportGroupedTransactions({
         reportCurrency: report.currency ?? '',
         sortedTransactions,
         resolvedTransactions,
@@ -237,10 +237,12 @@ function MoneyRequestReportTransactionList({
     });
     useMoneyRequestReportActiveTransactionIDs(visualOrderTransactionIDs);
 
-    const {isMobileSelectionModeEnabled, toggleTransaction, isTransactionSelected, groupSelectionState, toggleGroupSelection} = useMoneyRequestReportTransactionSelection({
-        reportID,
-        groupedTransactions,
-    });
+    const {isMobileSelectionModeEnabled, toggleTransaction, isTransactionSelected, groupSelectionState, toggleGroupSelection, selectableTransactionIDs, toggleAll} =
+        useMoneyRequestReportTransactionSelection({
+            reportID,
+            groupedTransactions,
+            visualOrderTransactions,
+        });
 
     const {columnsToShow, dateColumnSize, postedColumnSize, amountColumnSize, taxAmountColumnSize, minTableWidth, shouldScrollHorizontally, isExpenseReportViewFromIOUReport} =
         useMoneyRequestReportColumns({report, policy, transactions, reportActions});
@@ -406,7 +408,8 @@ function MoneyRequestReportTransactionList({
     const tableColumnHeader =
         isEmptyTransactions || shouldUseNarrowLayout ? null : (
             <MoneyRequestReportTableHeaderRow
-                transactions={transactions}
+                selectableTransactionIDs={selectableTransactionIDs}
+                onToggleAll={toggleAll}
                 pendingAction={reportPendingAction}
                 columns={columnsToShow}
                 sortBy={sortBy}

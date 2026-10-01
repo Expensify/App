@@ -861,9 +861,6 @@ function getTransactionItemCommonFormattedProperties(
     };
 }
 
-/**
- * @private
- */
 function isReportEntry(key: string): key is ReportKey {
     return key.startsWith(ONYXKEYS.COLLECTION.REPORT);
 }
@@ -886,9 +883,6 @@ function isReportActionEntry(key: string): key is ReportActionKey {
     return key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
 }
 
-/**
- * @private
- */
 function isTransactionEntry(key: string): key is TransactionKey {
     return key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION);
 }
@@ -4984,7 +4978,7 @@ function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON:
     const hasResolved = searchResults?.data != null || searchResults?.errors != null || isTerminal;
     const hasResponseSortMetadata = searchResults?.search?.sortBy !== undefined && searchResults.search.sortOrder !== undefined;
     const hasMatchingRequestedHash = searchResults?.search?.hash === queryJSON?.hash;
-    // finallyData stores the requested hash when the request settles, so it remains authoritative even when cached data or old sort metadata remain.
+    // Search's finallyData and GetInsights' successData store the requested hash on response, so it remains authoritative even when cached data or old sort metadata remain.
     const canUseRequestedHash = isTerminal || !hasResponseSortMetadata;
     const hasMatchingHash = (canUseRequestedHash && hasMatchingRequestedHash) || searchResults?.search?.hash === responseAdjustedQueryHash;
 
@@ -7271,6 +7265,8 @@ export {
     isTransactionQuarterGroupListItemType,
     isGroupedItemArray,
     isGroupEntry,
+    isReportEntry,
+    isTransactionEntry,
     isSearchResultsEmpty,
     isTransactionListItemType,
     isReportActionListItemType,
