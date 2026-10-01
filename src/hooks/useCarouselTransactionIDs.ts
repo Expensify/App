@@ -7,8 +7,6 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import {useCallback} from 'react';
-
 import useOnyx from './useOnyx';
 
 type CarouselTransactionIDs = {
@@ -25,24 +23,19 @@ function useCarouselTransactionIDs(): CarouselTransactionIDs {
     const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`);
     const [siblingDescriptors] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS);
 
-    const validTransactionIDsSelector = useCallback(
-        (allTransactions: OnyxCollection<OnyxTypes.Transaction>) =>
-            seededTransactionIDs.filter((transactionID) => {
-                const key = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const;
+    const validTransactionIDsSelector = (allTransactions: OnyxCollection<OnyxTypes.Transaction>) =>
+        seededTransactionIDs.filter((transactionID) => {
+            const key = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const;
 
-                const liveTransaction = allTransactions?.[key];
-                if (liveTransaction === null) {
-                    return false;
-                }
-                const transaction = liveTransaction ?? snapshot?.data?.[key];
+            // A sibling that hasn't landed in the live collection yet (snapshot-backed flows) is read from the snapshot instead.
+            const transaction = allTransactions?.[key] ?? snapshot?.data?.[key];
 
-                if (!transaction) {
-                    return !!siblingDescriptors?.[transactionID];
-                }
-                return !isTransactionPendingDelete(transaction) && !isDeletedTransaction(transaction);
-            }),
-        [seededTransactionIDs, snapshot, siblingDescriptors],
-    );
+            if (!transaction) {
+                // Nothing to inspect, so keep the ID only while a descriptor still vouches for the sibling.
+                return !!siblingDescriptors?.[transactionID];
+            }
+            return !isTransactionPendingDelete(transaction) && !isDeletedTransaction(transaction);
+        });
     const [validTransactionIDs = getEmptyArray<string>(), transactionsMetadata] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {selector: validTransactionIDsSelector});
 
     return {transactionIDs: isLoadingOnyxValue(transactionsMetadata) ? seededTransactionIDs : validTransactionIDs, snapshot};

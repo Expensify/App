@@ -99,8 +99,14 @@ function areDescriptorMapsEqual(a: Record<string, TransactionThreadNavigationDes
     });
 }
 
-function areIDListsEqual(a: string[] | null, b: string[]) {
-    return a?.length === b.length && a.every((id, index) => id === b.at(index));
+function areIDListsEqual(a: string[] | null, b: string[] | null) {
+    if (a === b) {
+        return true;
+    }
+    if (!a || !b) {
+        return false;
+    }
+    return a.length === b.length && a.every((id, index) => id === b.at(index));
 }
 
 /**
