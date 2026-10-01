@@ -12782,10 +12782,10 @@ describe('SearchUIUtils', () => {
             backTo,
             currentUserLogin,
             currentUserAccountID,
-            betas: undefined,
             personalDetails,
             isSelfTourViewed: false,
             hasCompletedGuidedSetupFlow: true,
+            delegateAccountID: undefined,
             IOUTransactionID: threadReportID,
         };
 
@@ -12805,7 +12805,6 @@ describe('SearchUIUtils', () => {
                 conciergeChat: undefined,
                 currentUserLogin,
                 currentUserAccountID,
-                betas: undefined,
                 iouReport: report1,
                 iouReportAction: reportAction1,
                 transaction: undefined,
@@ -12814,6 +12813,51 @@ describe('SearchUIUtils', () => {
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: true,
             });
+        });
+
+        test("Should not create a transaction thread in the current user's self DM for another user's unreported expense", () => {
+            // Given an unreported expense owned by another user
+            const unreportedTransaction = {
+                ...transactionListItem,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                report: undefined,
+                reportAction: {...reportAction1, actorAccountID: currentUserAccountID + 1},
+            };
+
+            // When the current user opens the expense from Search
+            const targetReportID = SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, item: unreportedTransaction});
+
+            // Then no optimistic data, transaction thread, or navigation is created
+            expect(targetReportID).toBeUndefined();
+            expect(setOptimisticDataForTransactionThreadPreview).not.toHaveBeenCalled();
+            expect(createTransactionThreadReport).not.toHaveBeenCalled();
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
+        test("Should create a transaction thread in the current user's self DM for their own unreported expense", () => {
+            // Given an unreported expense owned by the current user
+            jest.mocked(createTransactionThreadReport).mockReturnValue(threadReport);
+            const unreportedTransaction = {
+                ...transactionListItem,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                report: undefined,
+                reportAction: {...reportAction1, actorAccountID: currentUserAccountID},
+            };
+
+            // When the current user opens the expense from Search
+            const targetReportID = SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, item: unreportedTransaction, shouldNavigate: false});
+
+            // Then the transaction thread is created using the unreported transaction data
+            expect(targetReportID).toBe(threadReportID);
+            expect(setOptimisticDataForTransactionThreadPreview).toHaveBeenCalled();
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    currentUserAccountID,
+                    iouReport: undefined,
+                    iouReportAction: unreportedTransaction.reportAction,
+                    transaction: expect.objectContaining({reportID: CONST.REPORT.UNREPORTED_REPORT_ID}),
+                }),
+            );
         });
 
         test('Should not navigate if shouldNavigate = false', () => {
@@ -12893,7 +12937,7 @@ describe('SearchUIUtils', () => {
 
         it('Should create an optimistic parent report if the hasParentReport is false', async () => {
             const transactionListItem = getTransactionListItem(0);
-            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasParentReport: false}, getCurrencyDecimalsLocal);
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasParentReport: false}, getCurrencyDecimalsLocal, undefined);
 
             await waitForBatchedUpdates();
 
@@ -12905,7 +12949,7 @@ describe('SearchUIUtils', () => {
 
         it('Should create an optimistic parent report action if the hasParentReportAction is false', async () => {
             const transactionListItem = getTransactionListItem(0);
-            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasParentReportAction: false}, getCurrencyDecimalsLocal);
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasParentReportAction: false}, getCurrencyDecimalsLocal, undefined);
 
             await waitForBatchedUpdates();
 
@@ -12915,9 +12959,26 @@ describe('SearchUIUtils', () => {
             expect(parentReportAction).toBeTruthy();
         });
 
+        it('Should set delegateAccountID on the optimistic parent report action', async () => {
+            // Given a transaction opened from Search by a copilot
+            const transactionListItem = getTransactionListItem(0);
+            const delegateAccountID = 99;
+
+            // When the optimistic parent report action is built
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasParentReportAction: false}, getCurrencyDecimalsLocal, delegateAccountID);
+
+            await waitForBatchedUpdates();
+
+            // Then it carries the copilot so the "on behalf of" label renders before the API responds
+            const parentReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionListItem.reportID}`);
+            const parentReportAction = transactionListItem?.reportAction?.reportActionID && parentReport?.[transactionListItem?.reportAction?.reportActionID];
+
+            expect(parentReportAction).toMatchObject({delegateAccountID});
+        });
+
         it('Should create an optimistic transaction if the hasTransaction is false', async () => {
             const transactionListItem = getTransactionListItem(0);
-            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasTransaction: false}, getCurrencyDecimalsLocal);
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasTransaction: false}, getCurrencyDecimalsLocal, undefined);
 
             await waitForBatchedUpdates();
 
@@ -12928,7 +12989,7 @@ describe('SearchUIUtils', () => {
 
         it('Should create an optimistic transaction thread if the hasTransactionThreadReport is false', async () => {
             const transactionListItem = getTransactionListItem(0);
-            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasTransactionThreadReport: false}, getCurrencyDecimalsLocal, '456');
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasTransactionThreadReport: false}, getCurrencyDecimalsLocal, undefined, '456');
 
             await waitForBatchedUpdates();
 
