@@ -51,6 +51,14 @@ const UNATTRIBUTED_CONTEXT: FrameDropContext = {
     flow: CONST.TELEMETRY.FRAME_DROPS.UNATTRIBUTED,
 };
 
+// The first window after launch, reported as one total (see flushWindow).
+const STARTUP_CONTEXT: FrameDropContext = {
+    screen: CONST.TELEMETRY.FRAME_DROPS.STARTUP,
+    interaction: CONST.TELEMETRY.FRAME_DROPS.STARTUP,
+    operation: CONST.TELEMETRY.FRAME_DROPS.STARTUP,
+    flow: CONST.TELEMETRY.FRAME_DROPS.STARTUP,
+};
+
 const OVERFLOW_CONTEXT: FrameDropContext = {
     screen: CONST.TELEMETRY.FRAME_DROPS.OVERFLOW,
     interaction: CONST.TELEMETRY.FRAME_DROPS.OVERFLOW,
@@ -69,6 +77,7 @@ let isSuspended = false;
 let windowStart: number | undefined;
 let lastReportTime = 0;
 let unmeasuredFlushCount = 0;
+let hasFlushedStartupWindow = false;
 // Flushes run one after another, so a flush requested while another is waiting for native data is queued, not dropped.
 let flushQueue: Promise<void> = Promise.resolve();
 let flushIntervalID: ReturnType<typeof setInterval> | undefined;
@@ -264,6 +273,8 @@ function stopMonitoring() {
 
 /** Matches the timeline of [start, end) against the native frame delay store. */
 async function flushWindow(start: number, end: number) {
+    const isStartupWindow = !hasFlushedStartupWindow;
+    hasFlushedStartupWindow = true;
     const timeline = getTimeline();
     const {interactions} = timeline;
     const segments = buildSegments(start, end, timeline);
@@ -299,6 +310,25 @@ async function flushWindow(start: number, end: number) {
             return;
         }
         unmeasuredFlushCount = 0;
+
+        // Right after launch almost everything drops frames at once (OpenApp/ReconnectApp, Pusher, the first navigations), so
+        // splitting this window would spend the whole query budget on startup, which ManualAppStartup and its stage
+        // spans already measure. It is reported as one "startup" total instead.
+        if (isStartupWindow) {
+            const aggregate = getAggregate(STARTUP_CONTEXT);
+            aggregate.activeTimeMs += end - start;
+            aggregate.frameDelayMs += totalDelaySeconds * 1000;
+            for (const task of windowLongTasks) {
+                aggregate.longTaskCount++;
+                aggregate.longTaskTimeMs += task.duration;
+            }
+            for (const segment of segments) {
+                if (segment.interactionID !== undefined) {
+                    getInteractionDelay(segment, segment.interactionID).isMeasured = false;
+                }
+            }
+            return;
+        }
 
         const {delays, queryCount} = await splitDelay(segments, totalDelaySeconds, toUnixSeconds, CONST.TELEMETRY.FRAME_DROPS.MAX_QUERIES_PER_FLUSH);
         console.debug('[FrameDrops] Flushed window', {
@@ -520,6 +550,7 @@ function stopFrameDropMonitor() {
     longTasks = [];
     lastReportTime = 0;
     unmeasuredFlushCount = 0;
+    hasFlushedStartupWindow = false;
     flushQueue = Promise.resolve();
     isStarted = false;
     isSuspended = false;

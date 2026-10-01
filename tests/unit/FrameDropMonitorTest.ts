@@ -65,8 +65,18 @@ function sumCounts(metric: string) {
     return getCountCalls(metric).reduce((sum, {value}) => sum + (value ?? 0), 0);
 }
 
-beforeEach(() => {
-    now = 0;
+/** The launch window is reported as one "startup" total, so tests flush it first and then work with regular windows. */
+async function flushStartupWindow() {
+    mockFetchFramesDelay.mockResolvedValueOnce(0);
+    await flush(0);
+    report();
+    mockFetchFramesDelay.mockClear();
+    mockCount.mockClear();
+    mockDistribution.mockClear();
+}
+
+beforeEach(async () => {
+    now = -1_000;
     appStateListener = undefined;
     jest.spyOn(performance, 'now').mockImplementation(() => now);
     jest.spyOn(Date, 'now').mockImplementation(() => now + CLOCK_OFFSET_MS);
@@ -84,6 +94,8 @@ beforeEach(() => {
     jest.spyOn(Math, 'random').mockReturnValue(0);
     clear();
     startFrameDropMonitor();
+    await flushStartupWindow();
+    now = 0;
 });
 
 afterEach(() => {
@@ -115,6 +127,32 @@ describe('frameDropMonitor', () => {
         expect(getCountCalls(FRAME_DROPS.METRIC_FRAME_DELAY)).toEqual([]);
         expect(mockDistribution).not.toHaveBeenCalled();
         expect(getCountCalls(FRAME_DROPS.METRIC_INTERACTION_COUNT)).toEqual([{value: 1, attributes: {screen: 'Home', interaction: PRESS_LABEL}}]);
+    });
+
+    it('reports the first window after launch as one startup total with a single query', async () => {
+        // Given a fresh launch with jank everywhere: a screen, a press, an API response and a long task
+        stopFrameDropMonitor();
+        now = 0;
+        startFrameDropMonitor();
+        mockDelays([], 1.2);
+        recordScreen('Home');
+        now = 1_000;
+        recordPress(PRESS_LABEL);
+        startOperation(`${FRAME_DROPS.OPERATION_API_PREFIX}ReconnectApp`);
+        longTaskCallback?.({getEntries: () => [{startTime: 1_500, duration: 400}]});
+
+        // When the launch window is flushed and reported
+        now = 30_000;
+        await flush(30_000);
+        report();
+
+        // Then it costs one native query and everything goes to "startup", which ManualAppStartup measures in detail
+        const startup = {screen: FRAME_DROPS.STARTUP, interaction: FRAME_DROPS.STARTUP, operation: FRAME_DROPS.STARTUP, flow: FRAME_DROPS.STARTUP};
+        expect(mockFetchFramesDelay).toHaveBeenCalledTimes(1);
+        expect(getCountCalls(FRAME_DROPS.METRIC_FRAME_DELAY)).toEqual([{value: 1_200, attributes: startup}]);
+        expect(getCountCalls(FRAME_DROPS.METRIC_ACTIVE_TIME)).toEqual([{value: 30_000, attributes: startup}]);
+        expect(getCountCalls(FRAME_DROPS.METRIC_LONG_TASK_COUNT)).toEqual([{value: 1, attributes: startup}]);
+        expect(mockDistribution).not.toHaveBeenCalled();
     });
 
     it('attributes dropped frames to the context they happened in', async () => {

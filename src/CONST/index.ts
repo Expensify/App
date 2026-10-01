@@ -2421,6 +2421,7 @@ const CONST = {
             NONE: 'none',
             UNATTRIBUTED: 'unattributed',
             OVERFLOW: 'overflow',
+            STARTUP: 'startup',
             INTERACTION_SCROLL: 'scroll',
             INTERACTION_UNLABELED_PRESS: 'press',
             OPERATION_API_PREFIX: 'api.',
