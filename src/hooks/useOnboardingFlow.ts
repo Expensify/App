@@ -32,6 +32,10 @@ import useShouldSuppressPromotionalUI from './useShouldSuppressPromotionalUI';
 function useOnboardingFlowRouter() {
     const currentUrl = getCurrentUrl();
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    // IS_LOADING_APP survives sign-out, so right after sign-in it can still read `false` while the cleared onboarding NVP
+    // reads as completed. HAS_LOADED_APP is cleared on sign-out and set once OpenApp lands, so it tells us this session's
+    // onboarding status is known.
+    const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
     const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
     const [onboardingValues, isOnboardingCompletedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -105,18 +109,28 @@ function useOnboardingFlowRouter() {
                     }
                 }
 
+                // Opens a share sent before sign-in for a user who won't onboard. Until OpenApp lands, a new user's
+                // onboarding NVP is still empty and reads as completed, and opening the share then would flash it and
+                // use it up before onboarding starts.
+                const openPendingShareWhenSkippingOnboarding = () => {
+                    if (!hasLoadedApp) {
+                        return;
+                    }
+                    openPendingShareIntentAfterSignIn();
+                };
+
                 const isMigratedUser = hasBeenAddedToNudgeMigration ?? false;
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 const isInvitedOrGroupMember = (hasNonPersonalPolicy || wasInvitedToNewDot) ?? false;
                 if (isMigratedUser || isInvitedOrGroupMember || shouldSuppressPromotionalUI) {
-                    openPendingShareIntentAfterSignIn();
+                    openPendingShareWhenSkippingOnboarding();
                     return;
                 }
 
                 // Test builds skip the onboarding UI entirely; the flag is absent from production env files.
                 // Gate only the auto-entry into onboarding here so unrelated behaviour (e.g. hybrid-app transitions above) is unaffected.
                 if (CONFIG.SKIP_ONBOARDING) {
-                    openPendingShareIntentAfterSignIn();
+                    openPendingShareWhenSkippingOnboarding();
                     return;
                 }
 
@@ -144,7 +158,7 @@ function useOnboardingFlowRouter() {
                     return;
                 }
 
-                openPendingShareIntentAfterSignIn();
+                openPendingShareWhenSkippingOnboarding();
             },
         });
 
@@ -153,6 +167,7 @@ function useOnboardingFlowRouter() {
         };
     }, [
         isLoadingApp,
+        hasLoadedApp,
         isHybridAppOnboardingCompleted,
         isOnboardingCompletedMetadata,
         tryNewDotMetadata,
