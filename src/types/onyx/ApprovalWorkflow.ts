@@ -165,6 +165,11 @@ type ApprovalWorkflowOnyx = Omit<ApprovalWorkflow, 'approvers'> & {
     originalMembers?: Member[];
 
     /**
+     * The policy's default workflow, where members taken out of this workflow go back to
+     */
+    defaultApprovalWorkflow?: ApprovalWorkflow;
+
+    /**
      * Email of the member whose workflow this edit session belongs to.
      */
     memberEmail?: string;

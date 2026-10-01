@@ -2278,21 +2278,33 @@ describe('actions/Workflow', () => {
         it('drops a deselected member from the workflow rules when the rules beta is on', async () => {
             mockFetch.pause();
 
-            // Given the [employee1, employee2] -> employee3 workflow stored as rules, and a "+N more" edit where employee2 was deselected
+            // Given the [employee1, employee2] -> employee3 workflow stored as rules, and a "+N more" edit where employee2 was deselected,
+            // with the owner's default workflow on the draft the way the workflows page stores it
             await createForwardApproveRules(policyID, [employee1Email, employee2Email], employee3Email);
-            const approvalWorkflow = buildFastEditDraft([employee1Member]);
+            const defaultApprovalWorkflow = {
+                members: [{email: ownerEmail, displayName: ownerEmail}, {email: employee3Email, displayName: employee3Email}],
+                approvers: [{email: ownerEmail, displayName: ownerEmail, isCircularReference: false}],
+                isDefault: true,
+            };
+            const approvalWorkflow = {...buildFastEditDraft([employee1Member]), defaultApprovalWorkflow};
             await seed(approvalWorkflow);
 
             // When the fast edit is saved with the rules beta on
             saveFastEditApprovalWorkflow({approvalWorkflow, policy, rules: await getRulesCollection(), isMultipleApproversBetaEnabled: true});
             await waitForBatchedUpdates();
 
-            // Then the rules that route to employee3 only list employee1 as a submitter, and the draft is gone
+            // Then the rules that route to employee3 only list employee1 as a submitter, every rule of the default workflow
+            // lists employee2 so their reports go to the owner, and the draft is gone
             const rules = await getActivePolicyRules(policyID);
             const workflowRules = rules.filter((rule) => Object.values(rule.actions).some((action) => action.approver === employee3Email));
             expect(workflowRules.length).toBeGreaterThan(0);
             for (const rule of workflowRules) {
                 expect(extractSubmitterEmails(rule)).toEqual([employee1Email]);
+            }
+            const defaultRules = rules.filter((rule) => rule.isDefaultApprovalWorkflow);
+            expect(defaultRules.length).toBeGreaterThan(0);
+            for (const rule of defaultRules) {
+                expect(extractSubmitterEmails(rule)).toContain(employee2Email);
             }
             await expect(getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW)).resolves.toBeUndefined();
 
