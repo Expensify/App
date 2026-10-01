@@ -17,6 +17,7 @@ import {
     isMatchingVendorListLoaded,
     isPerDiemEnabled,
     isPolicyAdmin,
+    isQBORefreshTokenExpiringSoonSelector,
     isTimeTrackingEnabled,
     shouldShowEmployeeListError,
     shouldShowSyncError,
@@ -146,7 +147,7 @@ function getWorkspaceMenuItems({
         if (hasSyncError || shouldShowQBOReimbursableExportDestinationAccountError(policy) || hasHRError || shouldShowEnterCredentialsError) {
             return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
         }
-        if (isMergeHRCompleteSetupNeeded(policy)) {
+        if (isMergeHRCompleteSetupNeeded(policy) || isQBORefreshTokenExpiringSoonSelector(policy)) {
             return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
         }
     };

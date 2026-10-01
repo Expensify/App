@@ -26,9 +26,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
+import {getQBORefreshTokenExpiryDate, getQBORefreshTokenExpiryStatus} from '@libs/AccountingUtils';
 import {isAuthenticationError, isConnectionInProgress, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
+import DateUtils from '@libs/DateUtils';
 import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
 import {
     areSettingsInErrorFields,
@@ -78,7 +80,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const hasReusablePoliciesConnectedToCampfire = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE, policy?.id);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
     const styles = useThemeStyles();
-    const {translate, datetimeToRelative: getDatetimeToRelative, getLocalDateFromDatetime} = useLocalize();
+    const {translate, datetimeToRelative: getDatetimeToRelative, getLocalDateFromDatetime, dateFnsLocale} = useLocalize();
     const {environment} = useEnvironment();
     const oldDotEnvironmentURL = getOldDotURLFromEnvironment(environment);
     const {isOffline} = useNetwork();
@@ -135,7 +137,12 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
     const isSageIntacct = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT;
     const hasAuthError = !!connectedIntegration && !!synchronizationError && isAuthenticationError(policy, connectedIntegration);
-    const shouldShowEnterCredentials = !!connectedIntegration && (hasAuthError || isSageIntacct);
+    // A QBO refresh token that is about to expire (or already has, without a sync failing yet) is warned about while the connection still looks healthy
+    const qboTokenExpiryStatus =
+        connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.QBO && !synchronizationError && !isSyncInProgress ? getQBORefreshTokenExpiryStatus(policy) : undefined;
+    const isQBOTokenExpiringSoon = !!qboTokenExpiryStatus;
+    const qboTokenExpiryDate = isQBOTokenExpiringSoon ? getQBORefreshTokenExpiryDate(policy) : undefined;
+    const shouldShowEnterCredentials = !!connectedIntegration && (hasAuthError || isSageIntacct || isQBOTokenExpiringSoon);
 
     // Get the last successful date of the integration. Then, if `connectionSyncProgress` is the same integration displayed and the state is 'jobDone', get the more recent update time of the two.
     const successfulDate = getIntegrationLastSuccessfulDate(
@@ -156,7 +163,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const shouldShowCardReconciliationOption = Object.values(allCardSettings ?? {})?.some((cardSetting) => isExpensifyCardFullySetUp(policy, cardSetting));
     const shouldShowReconnect = hasAuthError && connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.CERTINIA;
     let credentialsMenuTextKey: Parameters<typeof translate>[0] = 'workspace.accounting.enterCredentials';
-    if (shouldShowReconnect) {
+    if (shouldShowReconnect || isQBOTokenExpiringSoon) {
         credentialsMenuTextKey = 'workspace.accounting.reconnect';
     } else if (isSageIntacct && !hasAuthError) {
         credentialsMenuTextKey = 'workspace.accounting.updateCredentials';
@@ -185,7 +192,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                               Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS.getRoute(policyID));
                               return;
                           }
-                          startIntegrationFlow({name: connectedIntegration});
+                          startIntegrationFlow({name: connectedIntegration, isIntuitEnterpriseSuite: isConnectedToIntuitEnterpriseSuite});
                       },
                       shouldCallAfterModalHide: true,
                       disabled: isOffline,
@@ -513,6 +520,24 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const connectionDetails = getConnectionDetails();
     const connectionsMenuItems = connectionDetails?.menuItems ?? [];
 
+    let qboTokenExpiryHint;
+    if (qboTokenExpiryDate && canWriteAccounting) {
+        const formattedExpiryDate = DateUtils.formatWithUTCTimeZone(qboTokenExpiryDate.toISOString(), CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale);
+        qboTokenExpiryHint = (
+            <>
+                {translate(
+                    qboTokenExpiryStatus === CONST.POLICY.CONNECTIONS.QBO_REFRESH_TOKEN_EXPIRY_STATUS.EXPIRED
+                        ? 'workspace.accounting.qboConnectionExpired'
+                        : 'workspace.accounting.qboConnectionExpiring',
+                    {date: formattedExpiryDate},
+                )}{' '}
+                <TextLink onPress={() => startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.QBO, isIntuitEnterpriseSuite: isConnectedToIntuitEnterpriseSuite})}>
+                    {translate('workspace.accounting.reconnect')}
+                </TextLink>
+            </>
+        );
+    }
+
     const oldDotPolicyConnectionsURL = policyID ? `${oldDotEnvironmentURL}/${CONST.OLDDOT_URLS.POLICY_CONNECTIONS_URL_ENCODED(policyID)}` : '';
 
     return (
@@ -551,6 +576,14 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                             <FormHelpMessage
                                 isError
                                 message={synchronizationError}
+                                style={[styles.ph5, styles.mb3]}
+                            />
+                        )}
+                        {!!qboTokenExpiryHint && (
+                            <FormHelpMessage
+                                isError={false}
+                                shouldShowRedDotIndicator={false}
+                                message={qboTokenExpiryHint}
                                 style={[styles.ph5, styles.mb3]}
                             />
                         )}
