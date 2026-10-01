@@ -1,6 +1,6 @@
 import ListSelectionButton from '@components/SelectionList/components/ListSelectionButton';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
-import {useListItemContext} from '@components/SelectionList/ListItemContext';
+import {useListItemContext, useListItemTooltipAnchor} from '@components/SelectionList/ListItemContext';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -27,6 +27,7 @@ type ListItemSelectionButtonProps<TItem extends ListItem> = {
 /** A checkbox (multi-select) or radio (single-select) selection button */
 function ListItemSelectionButton<TItem extends ListItem>({item, onPress, canSelectMultiple = false, position = CONST.SELECTION_BUTTON_POSITION.RIGHT}: ListItemSelectionButtonProps<TItem>) {
     const {isDisabled} = useListItemContext();
+    const tooltipAnchorRef = useListItemTooltipAnchor();
     const styles = useThemeStyles();
 
     return (
@@ -38,6 +39,7 @@ function ListItemSelectionButton<TItem extends ListItem>({item, onPress, canSele
             // Radio buttons are removed from the tab order - the row itself is the single-select tab stop.
             tabIndex={canSelectMultiple ? undefined : -1}
             style={position === CONST.SELECTION_BUTTON_POSITION.LEFT ? styles.mr3 : styles.ml3}
+            ref={tooltipAnchorRef}
         />
     );
 }

@@ -3,7 +3,8 @@ import type {ListItem} from '@components/SelectionList/ListItem/types';
 
 import CONST from '@src/CONST';
 
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {ComponentRef, ForwardedRef} from 'react';
+import type {StyleProp, View, ViewStyle} from 'react-native';
 
 import React, {useState} from 'react';
 
@@ -32,6 +33,9 @@ type ListSelectionButtonProps<TItem extends ListItem> = {
 
     /** Tab index for the button, pass -1 to remove it from the tab order */
     tabIndex?: -1 | 0;
+
+    /** Optional ref to the selection control, used to position a row-level tooltip over the checkbox */
+    ref?: ForwardedRef<ComponentRef<typeof View>>;
 };
 
 function ListSelectionButton<TItem extends ListItem>({
@@ -46,6 +50,7 @@ function ListSelectionButton<TItem extends ListItem>({
     shouldUseOptimisticSelection = false,
     testID,
     tabIndex,
+    ref,
 }: ListSelectionButtonProps<TItem>) {
     const label = accessibilityLabel ?? item.text ?? '';
 
@@ -80,6 +85,7 @@ function ListSelectionButton<TItem extends ListItem>({
             sentryLabel={CONST.SENTRY_LABEL.USER_LIST_ITEM.CHECKBOX}
             testID={testID ?? `${CONST.SELECTION_BUTTON_TEST_ID}${label}`}
             tabIndex={tabIndex}
+            ref={ref}
             accessible={false}
         />
     );

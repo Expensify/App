@@ -1,3 +1,6 @@
+import type {RefObject} from 'react';
+import type {View} from 'react-native';
+
 import {createContext, useContext} from 'react';
 
 type ListItemContextValue = {
@@ -43,6 +46,9 @@ const ListItemContext = createContext<ListItemContextValue>({
  */
 const ListItemHoverContext = createContext<boolean>(false);
 
+/** Host used to position a row-level tooltip against a child, e.g. the checkbox. */
+const ListItemTooltipAnchorContext = createContext<RefObject<View | null> | null>(null);
+
 function useListItemContext() {
     return useContext(ListItemContext);
 }
@@ -51,4 +57,8 @@ function useListItemHovered() {
     return useContext(ListItemHoverContext);
 }
 
-export {ListItemContext, ListItemHoverContext, useListItemContext, useListItemHovered};
+function useListItemTooltipAnchor() {
+    return useContext(ListItemTooltipAnchorContext);
+}
+
+export {ListItemContext, ListItemHoverContext, ListItemTooltipAnchorContext, useListItemContext, useListItemHovered, useListItemTooltipAnchor};

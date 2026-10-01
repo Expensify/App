@@ -81,6 +81,9 @@ type TooltipProps = ChildrenProps &
          */
         shouldUseNativeHoverEvents?: boolean;
 
+        /** Override the hover wrapper bounds so the tooltip can be positioned against a child, e.g. a checkbox */
+        getTargetBounds?: () => LayoutRectangle | undefined;
+
         /** Whether the current screen or component is actively focused via navigation */
         isFocused?: boolean;
 
