@@ -85,7 +85,9 @@ function useAndroidTabIcons() {
     const circularAvatar = useRasterizedTabIcons(lastCircularAvatar, avatarURI, (uri) => createCircularAvatarIcon(uri).then((icon) => icon && {uri, icon}));
 
     // An avatar drawn for another user is never shown; until the current one is drawn, the account glyph stands in.
-    const accountAvatarIcon = circularAvatar?.uri === avatarURI ? circularAvatar?.icon : undefined;
+    const avatarIcon = circularAvatar?.uri === avatarURI ? circularAvatar?.icon : undefined;
+    // A function, because React Navigation derives the selected icon only from a function.
+    const accountAvatarIcon = avatarIcon ? () => avatarIcon : undefined;
 
     return {
         getTabBarIcon: (name: keyof typeof NATIVE_TAB_ICONS) => getTabBarIcon(tintedIcons, name),
