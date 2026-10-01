@@ -85,6 +85,7 @@ describe('Support tickets', () => {
                     displayName: 'John Smith',
                     firstName: 'John',
                     login: 'john.smith@expensify.com',
+                    avatar: 'https://example.com/support-rep.png',
                 },
             });
         });
@@ -119,8 +120,10 @@ describe('Support tickets', () => {
         renderSupportTicketView();
         await waitForBatchedUpdatesWithAct();
 
-        // When the ticket is shown
-        fireEvent.press(screen.getByLabelText(translateLocal('supportTicket.checkboxTooltip')));
+        // When the customer presses the read-only ticket checkbox
+        const checkbox = screen.getByLabelText(translateLocal('supportTicket.checkboxTooltip'));
+        expect(checkbox).toBeEnabled();
+        fireEvent.press(checkbox);
 
         // Then it shows the localized title, description, and read-only assignee
         expect(screen.getByText('Support ticket, Sep 30, 2026: Jane Doe and John Smith')).toBeOnTheScreen();
@@ -132,7 +135,13 @@ describe('Support tickets', () => {
         ).toBeOnTheScreen();
         expect(screen.getByText(translateLocal('task.assignee'))).toBeOnTheScreen();
         expect(screen.getByText('John Smith')).toBeOnTheScreen();
-        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        expect(mockShowConfirmModal).toHaveBeenCalledWith({
+            title: translateLocal('workspace.common.readOnlyActionTitle'),
+            prompt: translateLocal('supportTicket.checkboxTooltip'),
+            confirmText: translateLocal('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
+        expect(checkbox).not.toBeChecked();
     });
 
     it('uses the support rep email when their display name is unavailable', async () => {
@@ -158,8 +167,9 @@ describe('Support tickets', () => {
     });
 
     it('uses the derived title in the preview and keeps the checkbox press in place', async () => {
-        // Given a support ticket whose derived title is localized
+        // Given a support ticket assigned to John whose derived title is localized
         await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${SUPPORT_TICKET_REPORT_ID}`, supportTicketReport);
             await Onyx.set(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
                 locale: 'en',
                 reports: {
@@ -197,6 +207,7 @@ describe('Support tickets', () => {
 
         // Then the preview updates its localized title and opens the checkbox explanation without navigating away
         expect(screen.getByText('Localized support ticket title')).toBeOnTheScreen();
+        expect(screen.getByTestId('SingleAvatar')).toBeOnTheScreen();
         expect(mockShowConfirmModal).toHaveBeenCalled();
         expect(mockNavigate).not.toHaveBeenCalled();
     });

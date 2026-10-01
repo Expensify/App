@@ -6,6 +6,7 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import UserPill from '@components/UserPill';
 
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -29,6 +30,7 @@ type SupportTicketViewProps = {
 
 function SupportTicketView({report, action}: SupportTicketViewProps) {
     const {translate, formatPhoneNumber} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const styles = useThemeStyles();
     const personalDetails = usePersonalDetails();
     const isResolved = isResolvedSupportTicket(report, action);
@@ -52,6 +54,15 @@ function SupportTicketView({report, action}: SupportTicketViewProps) {
         dismissFailedSupportTicket(report.reportID, report.parentReportID, report.parentReportActionID);
     };
 
+    const showCheckboxInfo = () => {
+        showConfirmModal({
+            title: translate('workspace.common.readOnlyActionTitle'),
+            prompt: translate('supportTicket.checkboxTooltip'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
+    };
+
     return (
         <OfflineWithFeedback
             shouldShowErrorMessages
@@ -65,8 +76,9 @@ function SupportTicketView({report, action}: SupportTicketViewProps) {
                             <View>
                                 <Checkbox
                                     isChecked={isResolved}
-                                    onPress={() => {}}
-                                    disabled
+                                    onPress={showCheckboxInfo}
+                                    style={styles.cursorDisabled}
+                                    shouldSelectOnPressEnter
                                     accessibilityLabel={translate('supportTicket.checkboxTooltip')}
                                     sentryLabel={CONST.SENTRY_LABEL.SUPPORT_TICKET.VIEW_CHECKBOX}
                                 />

@@ -1,3 +1,4 @@
+import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -45,6 +46,7 @@ function SupportTicketPreview({action, isHovered, style}: SupportTicketPreviewPr
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const [supportTicket] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(action?.childReportID)}`);
     const supportTicketReportID = supportTicket?.reportID ?? action?.childReportID;
+    const supportRepAccountID = supportTicket?.managerID ?? CONST.DEFAULT_NUMBER_ID;
     const derivedSupportTicketName = useDerivedReportNameByReportID(supportTicketReportID);
     const isResolved = isResolvedSupportTicket(supportTicket, action);
     const errors = typeof action?.errors === 'object' ? action.errors : undefined;
@@ -85,6 +87,7 @@ function SupportTicketPreview({action, isHovered, style}: SupportTicketPreviewPr
                         <View>
                             <Checkbox
                                 isChecked={isResolved}
+                                style={[supportRepAccountID > 0 && styles.mr2, styles.cursorDisabled]}
                                 onPress={(event) => {
                                     event?.stopPropagation();
                                     showCheckboxInfo();
@@ -96,7 +99,14 @@ function SupportTicketPreview({action, isHovered, style}: SupportTicketPreviewPr
                             />
                         </View>
                     </Tooltip>
-                    <Text style={[styles.ml3, styles.flex1]}>{supportTicketName}</Text>
+                    {supportRepAccountID > 0 && (
+                        <AccountAvatar
+                            accountID={supportRepAccountID}
+                            size={CONST.AVATAR_SIZE.SMALL}
+                            containerStyle={styles.mr2}
+                        />
+                    )}
+                    <Text style={[supportRepAccountID <= 0 && styles.ml3, styles.flex1]}>{supportTicketName}</Text>
                     <Icon
                         src={icons.ArrowRight}
                         fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: isHovered})})}
