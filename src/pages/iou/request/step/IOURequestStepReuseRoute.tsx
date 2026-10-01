@@ -29,7 +29,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {ReusableDistanceRoute} from '@src/types/onyx';
 
-import React, {useEffect, useMemo, useState} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
 import type {ReuseRouteListItemData} from './ReuseRouteListItem';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -72,6 +73,19 @@ function IOURequestStepReuseRoute({
     const [isLoadingReusableDistanceRoutes] = useOnyx(ONYXKEYS.IS_LOADING_REUSABLE_DISTANCE_ROUTES);
     const [searchValue, setSearchValue] = useState('');
     const [selectedRoute, setSelectedRoute] = useState<ReusableDistanceRoute | null>(null);
+    const isNavigatingRef = useRef(false);
+
+    useFocusEffect(
+        useCallback(() => {
+            setSelectedRoute(null);
+            isNavigatingRef.current = false;
+
+            return () => {
+                setSelectedRoute(null);
+                isNavigatingRef.current = false;
+            };
+        }, []),
+    );
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const customUnitRateID = getRateID(transaction);
@@ -135,10 +149,15 @@ function IOURequestStepReuseRoute({
     }, [selectedRoute]);
 
     const selectRoute = (item: ReuseRouteListItemData) => {
-        if (selectedRoute) {
+        if (isNavigatingRef.current || selectedRoute) {
             return;
         }
-        selectReusableRoute(transactionID, item.route).then(() => setSelectedRoute(item.route));
+        isNavigatingRef.current = true;
+        selectReusableRoute(transactionID, item.route)
+            .then(() => setSelectedRoute(item.route))
+            .catch(() => {
+                isNavigatingRef.current = false;
+            });
     };
 
     const routes = reusableDistanceRoutes ?? [];
