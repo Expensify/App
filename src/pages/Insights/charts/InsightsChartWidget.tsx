@@ -61,12 +61,12 @@ function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGr
     const {isOffline} = useNetwork();
     const sortedData = useGroupedItems(snapshot, queryJSON);
     const {data, state: currentPeriodState} = resolveInsightsChartData({snapshot, queryJSON, sortedData, isOffline});
-    const {comparison, blockingState} = useInsightsChartComparison(chart, filters, queryJSON);
+    const {isComparing, comparison, blockingState} = useInsightsChartComparison(chart, filters, queryJSON);
     // Show a compared chart only once both periods resolve.
     const state = currentPeriodState === INSIGHTS_CHART_STATE.READY && blockingState ? blockingState : currentPeriodState;
     const groupBy = chart.groupBy ?? filters.groupBy;
     // Pies show one period, so compared pies render as bars.
-    const view = comparison && chart.view === CONST.SEARCH.VIEW.PIE ? CONST.SEARCH.VIEW.BAR : chart.view;
+    const view = isComparing && chart.view === CONST.SEARCH.VIEW.PIE ? CONST.SEARCH.VIEW.BAR : chart.view;
     const isLoading = state === INSIGHTS_CHART_STATE.LOADING;
     const shouldShowTable = view === CONST.SEARCH.VIEW.BAR || view === CONST.SEARCH.VIEW.PIE;
 

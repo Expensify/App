@@ -1,6 +1,7 @@
 import type {ChartSeries} from '@components/Charts/types';
 import Text from '@components/Text';
 
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import React from 'react';
@@ -14,6 +15,7 @@ type ChartLegendProps = {
 /** Legend for a bar or line chart's series. Renders nothing for fewer than two named series. */
 function ChartLegend({series}: ChartLegendProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const namedSeries = series.filter((seriesItem) => !!seriesItem.label);
 
     if (namedSeries.length < 2) {
@@ -27,7 +29,7 @@ function ChartLegend({series}: ChartLegendProps) {
                     key={seriesItem.key}
                     style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}
                 >
-                    <View style={[styles.pieChartLegendDot, {backgroundColor: seriesItem.color}]} />
+                    <View style={[styles.pieChartLegendDot, !!seriesItem.color && StyleUtils.getBackgroundColorStyle(seriesItem.color)]} />
                     <Text style={styles.textLabel}>{seriesItem.label}</Text>
                 </View>
             ))}

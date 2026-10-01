@@ -6,6 +6,9 @@ import useLocalize from '@hooks/useLocalize';
 import {formatPercentOfTotal} from '@libs/PercentageUtils';
 
 type TooltipRow = {
+    /** The series' key */
+    key: string;
+
     /** Series name, absent for a single unnamed series */
     label?: string;
 
@@ -44,6 +47,7 @@ function useTooltipData(activeDataIndex: number, data: ChartDataPoint[], series:
             const value = getSeriesValue(dataPoint, seriesItem.key);
 
             return {
+                key: seriesItem.key,
                 label: seriesItem.label,
                 amount: formatAmount(value),
                 percentage: series.length === 1 && dataPoint.percentOfTotal !== undefined ? formatPercentOfTotal(dataPoint.percentOfTotal, value, preferredLocale) : undefined,

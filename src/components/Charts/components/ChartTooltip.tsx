@@ -121,11 +121,11 @@ function ChartTooltip({title, rows, chartWidth, initialTooltipPosition}: ChartTo
                     <View style={styles.chartTooltipRows}>
                         {rows.map((row) => (
                             <Text
-                                key={row.label}
+                                key={row.key}
                                 style={styles.chartTooltipText}
                                 numberOfLines={1}
                             >
-                                {`${row.label} • ${getRowContent(row)}`}
+                                {row.label && row.amount ? `${row.label} • ${getRowContent(row)}` : getRowContent(row)}
                             </Text>
                         ))}
                     </View>

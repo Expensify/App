@@ -25,6 +25,9 @@ import {applyInsightsFilters} from './insightsQueries';
 type InsightsChartState = ValueOf<typeof INSIGHTS_CHART_STATE>;
 
 type InsightsChartComparison = {
+    /** Whether the chart compares periods, known before the previous period loads */
+    isComparing: boolean;
+
     /** Second series, absent when not comparing or the previous period isn't ready */
     comparison: ChartComparison | undefined;
 
@@ -48,15 +51,16 @@ function useInsightsChartComparison(chart: InsightsChartSpec, filters: InsightsF
     const windows = resolveComparisonWindows(filters.date, translate);
 
     if (!isComparing || !windows) {
-        return {comparison: undefined, blockingState: undefined};
+        return {isComparing: false, comparison: undefined, blockingState: undefined};
     }
 
     const {data, state} = resolveInsightsChartData({snapshot: previousPeriodSnapshot, queryJSON: previousPeriodQueryJSON, sortedData, isOffline});
     if (BLOCKING_STATES.has(state)) {
-        return {comparison: undefined, blockingState: state};
+        return {isComparing: true, comparison: undefined, blockingState: state};
     }
 
     return {
+        isComparing: true,
         // The page's current and previous periods are the chart's primary and comparison series.
         comparison: {
             rows: data,

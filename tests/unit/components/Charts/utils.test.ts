@@ -24,21 +24,6 @@ import VictoryTheme, {CHART_Y_SCALE_HEIGHT, DIAGONAL_ANGLE_RADIAN_THRESHOLD, LAB
 /** Key of the single series every point in these tests plots */
 const SERIES_KEY = 'primary';
 
-type MockRect = {x: number; y: number; width: number; height: number};
-type MockRRect = {rect: MockRect; rx: number; ry: number};
-
-// The global Skia mock has no `Skia` object; record the rounded rects added to paths so bar geometry can be asserted.
-const mockAddedRRects: MockRRect[] = [];
-jest.mock('@shopify/react-native-skia', () => ({
-    FontStyle: {},
-    FontWeight: {},
-    Skia: {
-        Path: {Make: () => ({addRRect: (roundedRect: MockRRect) => mockAddedRRects.push(roundedRect)})},
-        XYWHRect: (x: number, y: number, width: number, height: number): MockRect => ({x, y, width, height}),
-        RRectXY: (rect: MockRect, rx: number, ry: number): MockRRect => ({rect, rx, ry}),
-    },
-}));
-
 const LINE_HEIGHT = 16;
 
 describe('truncateLabel', () => {
