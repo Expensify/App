@@ -8,7 +8,7 @@ type ReceiptPDFOverlayProps = {
     /** Called when the PDF fails to load so the caller can fall back to the thumbnail */
     onLoadFailure?: () => void;
 
-    /** Called once the PDF's pages are ready to display */
+    /** Called once the PDF has loaded and its pages can be shown */
     onLoadSuccess?: () => void;
 
     /** 1-indexed page to show at the top of the overlay */
