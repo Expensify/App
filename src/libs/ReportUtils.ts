@@ -170,6 +170,7 @@ import {
     shouldShowPolicy,
 } from './PolicyUtils';
 import {
+    didMessageMentionCurrentUser,
     formatLastMessageText,
     getActionableJoinRequestPendingReportAction,
     getAllReportActions,
@@ -4617,12 +4618,6 @@ function getReasonAndReportActionThatRequiresAttention(
         };
     }
 
-    if (isUnreadWithMention(optionOrReport)) {
-        return {
-            reason: CONST.REQUIRES_ATTENTION_REASONS.IS_UNREAD_WITH_MENTION,
-        };
-    }
-
     const optionReportMetadata = reportMetadataParam ?? allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${optionOrReport.reportID}`];
     // Prefer the policies collection callers already have on hand (e.g. reportAttributes.ts's own OnyxDerived
     // dependency) over the deprecated allPolicies module cache, which is populated by its own independently-timed
@@ -4666,54 +4661,68 @@ function getReasonAndReportActionThatRequiresAttention(
         !hasOnlyPendingTransactions &&
         !isFallbackReportExcludedForHeldExpenses;
 
-    if (actionTypeForAssigneeToComplete) {
-        const isAssigneeExpenseAction = actionTypeForAssigneeToComplete === CONST.REPORT.ACTION_TYPES_FOR_ASSIGNEE_TO_COMPLETE.EXPENSE;
-        if (isAssigneeExpenseAction) {
-            const assigneeBadge = getBadgeFromIOUReport(
-                optionOrReport,
-                undefined,
-                policy,
-                optionReportMetadata,
-                invoiceReceiverPolicy,
-                currentUserLogin,
-                currentUserAccountID,
-                reportActions,
-            );
-            return {
-                reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,
-                ...(assigneeBadge ? {actionBadge: assigneeBadge} : {}),
-            };
-        }
+    // Task, IOU and mention badge candidates - the one with the oldest report action wins
+    const candidates: ReasonAndReportActionThatRequiresAttention[] = [];
+    const isAssigneeExpenseAction = actionTypeForAssigneeToComplete === CONST.REPORT.ACTION_TYPES_FOR_ASSIGNEE_TO_COMPLETE.EXPENSE;
 
-        // Task badge candidate - compare with IOU candidate and pick the oldest report action
+    if (isAssigneeExpenseAction) {
+        const assigneeBadge = getBadgeFromIOUReport(optionOrReport, undefined, policy, optionReportMetadata, invoiceReceiverPolicy, currentUserLogin, currentUserAccountID, reportActions);
+        candidates.push({
+            reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,
+            ...(assigneeBadge ? {actionBadge: assigneeBadge} : {}),
+        });
+    } else if (actionTypeForAssigneeToComplete) {
         const oldestTaskAction = Object.values(reportActions)
             .filter((action) => action.childType === CONST.REPORT.TYPE.TASK && !isTaskCompleted(action) && action.childManagerAccountID === deprecatedCurrentUserAccountID)
             // eslint-disable-next-line rulesdir/prefer-locale-compare-from-context
             .sort((a, b) => (!a.created || !b.created ? 0 : a.created.localeCompare(b.created)))
             .at(0);
 
-        // If there's a valid IOU action that is older than the task, use the IOU badge instead
-        if (hasValidIOUAction && iouReportActionToApproveOrPay?.created && (!oldestTaskAction || iouReportActionToApproveOrPay.created < oldestTaskAction.created)) {
-            return {
-                reason: CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION,
-                reportAction: iouReportActionToApproveOrPay,
-                actionBadge,
-            };
-        }
-
-        return {
+        candidates.push({
             reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,
             reportAction: oldestTaskAction,
             actionBadge: CONST.REPORT.ACTION_BADGE.TASK,
-        };
+        });
     }
 
-    if (hasValidIOUAction) {
-        return {
+    if (hasValidIOUAction && !isAssigneeExpenseAction) {
+        candidates.push({
             reason: CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION,
             reportAction: iouReportActionToApproveOrPay,
             actionBadge,
-        };
+        });
+    }
+
+    if (isUnreadWithMention(optionOrReport)) {
+        // Target the oldest unread message that mentions the current user so the LHN row deep links to it
+        const lastReadTime = optionOrReport.lastReadTime ?? '';
+        let oldestUnreadMentionAction: ReportAction | undefined;
+        for (const action of Object.values(reportActions)) {
+            if (!action.created || action.created <= lastReadTime || isDeletedAction(action) || !didMessageMentionCurrentUser(action, currentUserLogin)) {
+                continue;
+            }
+            if (!oldestUnreadMentionAction || isOlderReportAction(action, oldestUnreadMentionAction)) {
+                oldestUnreadMentionAction = action;
+            }
+        }
+        candidates.push({
+            reason: CONST.REQUIRES_ATTENTION_REASONS.IS_UNREAD_WITH_MENTION,
+            reportAction: oldestUnreadMentionAction,
+            actionBadge: CONST.REPORT.ACTION_BADGE.MENTION,
+        });
+    }
+
+    // A candidate without a known report action only wins when no other candidate has one, and ties keep the Task, IOU, mention order
+    let oldestCandidate = candidates.at(0);
+    for (const candidate of candidates) {
+        const created = candidate.reportAction?.created;
+        const oldestCreated = oldestCandidate?.reportAction?.created;
+        if (created && (!oldestCreated || created < oldestCreated)) {
+            oldestCandidate = candidate;
+        }
+    }
+    if (oldestCandidate) {
+        return oldestCandidate;
     }
 
     if (hasMissingInvoiceBankAccount(optionOrReport.reportID) && !isSettled(optionOrReport.reportID)) {

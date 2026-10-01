@@ -12392,6 +12392,152 @@ describe('ReportUtils', () => {
             expect(result).toBe(null);
         });
 
+        describe('unread mention', () => {
+            const buildMentionAction = (reportActionID: string, created: string): ReportAction => ({
+                reportActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created,
+                message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: `<mention-user>@${currentUserEmail}</mention-user> hello`, text: `@${currentUserEmail} hello`}],
+            });
+
+            const buildTaskAction = (reportActionID: string, created: string): ReportAction => ({
+                reportActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
+                childType: CONST.REPORT.TYPE.TASK,
+                childReportID: `task-${reportActionID}`,
+                childManagerAccountID: currentUserAccountID,
+                created,
+                originalMessage: {
+                    assigneeAccountID: currentUserAccountID,
+                    cardID: 11010,
+                },
+            });
+
+            it('should return the Mention badge targeting the oldest unread mention', async () => {
+                // Given a chat with one mention that was already read and two unread mentions, so we can verify that
+                // only unread mentions are considered and the oldest of them becomes the deep link target
+                const chat = {
+                    ...createPolicyExpenseChat(41010),
+                    lastReadTime: '2024-01-02 00:00:00',
+                    lastMentionedTime: '2024-01-04 00:00:00',
+                };
+                const readMention = buildMentionAction('read-mention', '2024-01-01 00:00:00');
+                const olderUnreadMention = buildMentionAction('older-unread-mention', '2024-01-03 00:00:00');
+                const newerUnreadMention = buildMentionAction('newer-unread-mention', '2024-01-04 00:00:00');
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chat.reportID}`, chat);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chat.reportID}`, {
+                    [newerUnreadMention.reportActionID]: newerUnreadMention,
+                    [readMention.reportActionID]: readMention,
+                    [olderUnreadMention.reportActionID]: olderUnreadMention,
+                });
+                await waitForBatchedUpdates();
+
+                // When the reason is retrieved
+                const result = getReasonAndReportActionThatRequiresAttention(chat, currentUserEmail, currentUserAccountID, undefined, false);
+
+                // Then the Mention badge is returned and it targets the oldest unread mention, because the user should
+                // read forward through what they missed
+                expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_UNREAD_WITH_MENTION);
+                expect(result?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.MENTION);
+                expect(result?.reportAction?.reportActionID).toBe(olderUnreadMention.reportActionID);
+            });
+
+            it('should return the Mention badge without a target when the mention message is not loaded', async () => {
+                // Given a chat with an unread mention whose report actions are not in Onyx yet
+                const chat = {
+                    ...createPolicyExpenseChat(41011),
+                    lastReadTime: '2024-01-02 00:00:00',
+                    lastMentionedTime: '2024-01-04 00:00:00',
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chat.reportID}`, chat);
+                await waitForBatchedUpdates();
+
+                // When the reason is retrieved
+                const result = getReasonAndReportActionThatRequiresAttention(chat, currentUserEmail, currentUserAccountID, undefined, false);
+
+                // Then the Mention badge is still returned so the row never falls back to a bare green dot, and there is
+                // no target so the row opens the report normally
+                expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_UNREAD_WITH_MENTION);
+                expect(result?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.MENTION);
+                expect(result?.reportAction).toBeUndefined();
+            });
+
+            it('should return the Mention badge when the unread mention is older than the outstanding task', async () => {
+                // Given a chat with an unread mention followed by a newer outstanding task assigned to the current user
+                const chat = {
+                    ...createPolicyExpenseChat(41012),
+                    hasOutstandingChildTask: true,
+                    lastReadTime: '2024-01-01 00:00:00',
+                    lastMentionedTime: '2024-01-02 00:00:00',
+                };
+                const mention = buildMentionAction('mention-before-task', '2024-01-02 00:00:00');
+                const task = buildTaskAction('task-after-mention', '2024-01-03 00:00:00');
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chat.reportID}`, chat);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chat.reportID}`, {
+                    [task.reportActionID]: task,
+                    [mention.reportActionID]: mention,
+                });
+                await waitForBatchedUpdates();
+
+                // When the reason is retrieved
+                const result = getReasonAndReportActionThatRequiresAttention(chat, currentUserEmail, currentUserAccountID, undefined, false);
+
+                // Then the mention wins because the badge is picked by the oldest report action
+                expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_UNREAD_WITH_MENTION);
+                expect(result?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.MENTION);
+                expect(result?.reportAction?.reportActionID).toBe(mention.reportActionID);
+            });
+
+            it('should return the Task badge when the outstanding task is older than the unread mention', async () => {
+                // Given a chat with an outstanding task assigned to the current user followed by a newer unread mention
+                const chat = {
+                    ...createPolicyExpenseChat(41013),
+                    hasOutstandingChildTask: true,
+                    lastReadTime: '2024-01-01 00:00:00',
+                    lastMentionedTime: '2024-01-03 00:00:00',
+                };
+                const task = buildTaskAction('task-before-mention', '2024-01-02 00:00:00');
+                const mention = buildMentionAction('mention-after-task', '2024-01-03 00:00:00');
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chat.reportID}`, chat);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chat.reportID}`, {
+                    [mention.reportActionID]: mention,
+                    [task.reportActionID]: task,
+                });
+                await waitForBatchedUpdates();
+
+                // When the reason is retrieved
+                const result = getReasonAndReportActionThatRequiresAttention(chat, currentUserEmail, currentUserAccountID, undefined, false);
+
+                // Then the task wins because it is the oldest action waiting on the user, instead of being hidden by the mention
+                expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
+                expect(result?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.TASK);
+                expect(result?.reportAction?.reportActionID).toBe(task.reportActionID);
+            });
+
+            it('should keep the Task badge when the unread mention message is not loaded', async () => {
+                // Given a chat with an outstanding task and an unread mention whose message is not in Onyx
+                const chat = {
+                    ...createPolicyExpenseChat(41014),
+                    hasOutstandingChildTask: true,
+                    lastReadTime: '2024-01-01 00:00:00',
+                    lastMentionedTime: '2024-01-03 00:00:00',
+                };
+                const task = buildTaskAction('task-with-unloaded-mention', '2024-01-02 00:00:00');
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chat.reportID}`, chat);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chat.reportID}`, {
+                    [task.reportActionID]: task,
+                });
+                await waitForBatchedUpdates();
+
+                // When the reason is retrieved
+                const result = getReasonAndReportActionThatRequiresAttention(chat, currentUserEmail, currentUserAccountID, undefined, false);
+
+                // Then the task wins because a candidate without a known report action only wins when no other has one
+                expect(result?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.TASK);
+                expect(result?.reportAction?.reportActionID).toBe(task.reportActionID);
+            });
+        });
+
         it('should require attention when a workspace chat awaits Expensify Card shipping details', async () => {
             const workspaceChat = {
                 ...createPolicyExpenseChat(41000),

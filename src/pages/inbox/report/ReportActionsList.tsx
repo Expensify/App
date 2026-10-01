@@ -343,6 +343,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         isProduction,
         reportID,
         actionTargetReportActionID: reportAttributes?.actionTargetReportActionID,
+        actionBadge: reportAttributes?.actionBadge,
         actionBadgeTargetIndex,
         renderedVisibleReportActions,
         scrollToActionBadgeTarget,

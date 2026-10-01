@@ -2,7 +2,10 @@ import usePrevious from '@hooks/usePrevious';
 
 import Navigation from '@libs/Navigation/Navigation';
 
+import type CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {ValueOf} from 'type-fest';
 
 import {useEffect, useRef} from 'react';
 
@@ -17,6 +20,9 @@ type UseFollowActionBadgeTargetParams = {
 
     /** The report action the badge currently targets (the oldest preview still requiring action) */
     actionTargetReportActionID: string | undefined;
+
+    /** The action badge currently shown for the report */
+    actionBadge: ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined;
 
     /** Index of the current target in the rendered (inverted) list, or -1 when it is not rendered */
     actionBadgeTargetIndex: number;
@@ -36,11 +42,13 @@ function useFollowActionBadgeTarget({
     isProduction,
     reportID,
     actionTargetReportActionID,
+    actionBadge,
     actionBadgeTargetIndex,
     renderedVisibleReportActions,
     scrollToActionBadgeTarget,
 }: UseFollowActionBadgeTargetParams) {
     const prevActionTargetReportActionID = usePrevious(actionTargetReportActionID);
+    const prevActionBadge = usePrevious(actionBadge);
     // Keep the latest scroll callback in a ref so a scroll scheduled on the next frame targets the current badge index rather than a
     // stale one, in case the list shifts (new message, pagination, resolved preview collapsing) before the frame runs.
     const scrollToActionBadgeTargetRef = useRef(scrollToActionBadgeTarget);
@@ -49,7 +57,7 @@ function useFollowActionBadgeTarget({
     });
     useEffect(() => {
         const prevActionBadgeTargetIndex = renderedVisibleReportActions.findIndex((action) => action.reportActionID === prevActionTargetReportActionID);
-        if (!shouldFollowActionBadgeTarget({isProduction, actionTargetReportActionID, prevActionTargetReportActionID, actionBadgeTargetIndex, prevActionBadgeTargetIndex})) {
+        if (!shouldFollowActionBadgeTarget({isProduction, actionTargetReportActionID, prevActionTargetReportActionID, actionBadgeTargetIndex, prevActionBadgeTargetIndex, prevActionBadge})) {
             return;
         }
         // Only follow the badge when the resolving action happened on this report's preview while this report is the one on
