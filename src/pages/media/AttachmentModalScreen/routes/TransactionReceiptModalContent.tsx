@@ -704,7 +704,6 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             isLoading: !transaction && reportLoadingState?.isLoadingInitialReportActions,
             shouldShowNotFoundPage,
             shouldShowCarousel: false,
-            shouldShowRotateButton: false,
             pdfRotation,
             onDownloadAttachment: allowDownload ? undefined : onDownloadAttachment,
             transaction,

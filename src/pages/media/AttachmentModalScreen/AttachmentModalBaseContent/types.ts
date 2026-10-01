@@ -89,14 +89,8 @@ type AttachmentModalBaseContentProps = {
     shouldShowNotFoundPage?: boolean;
     shouldShowCarousel?: boolean;
     shouldShowDownloadButton?: boolean;
-    shouldShowRotateButton?: boolean;
-    onRotateButtonPress?: () => void;
-
-    /** Whether we should show a loading indicator replacing the rotate button */
-    isRotating?: boolean;
 
     shouldDisableSendButton?: boolean;
-    shouldDisplayHelpButton?: boolean;
     shouldMinimizeMenuButton?: boolean;
     attachmentLink?: string;
 
