@@ -56,6 +56,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isPersonalDetailsReady} from '@libs/OptionsListUtils';
 import {getPersonalDetailsByID, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {isPolicyReimburser} from '@libs/PolicyMemberRoleUtils';
 import {
     areApprovalsEnabled,
     canEditWorkspaceSettings as canEditWorkspaceSettingsUtil,
@@ -420,7 +421,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const isSubmitWorkspace = isSubmitPolicy(policy);
 
     const isSelectionModeActive = selectedEmployees.length > 0 || isMobileSelectionModeEnabled;
-    const workspaceReimburserEmail = getReimburserEmail(policy);
     // Role assignment is a Collect/Control capability. Submit locks every member to Editor.
     const canAssignMemberRole = isGroupPolicy(policy) && !isSubmitWorkspace;
 
@@ -439,7 +439,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             const memberName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber});
             const isOwner = policy?.owner === login;
             const isCurrentUser = accountID === session?.accountID;
-            const isReimburser = !!workspaceReimburserEmail && workspaceReimburserEmail === login;
+            const isReimburser = isPolicyReimburser(policy, login);
             const canReimburserChangeRole = assignablePayerRoles.some((payerRole) => payerRole !== policyEmployee.role);
             const canEditRole =
                 canAssignMemberRole &&
@@ -494,7 +494,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         policy,
         isSubmitWorkspace,
         isSelectionModeActive,
-        workspaceReimburserEmail,
         formatPhoneNumber,
         translate,
         session?.accountID,
