@@ -137,6 +137,12 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const isAccountingGroupSelected = isSpendTabSelected && ACCOUNTING_KEYS.some((key) => key === currentSearchKey);
     const isAccountSelected = selectedTab === NAVIGATION_TABS.SETTINGS;
     const isSavedGroupSelected = isSpendTabSelected && !!currentSearchKey?.startsWith(CONST.SEARCH.SAVED_SEARCH_PREFIX);
+    // A collapsed bar hides every group's children, so a selected group is only expanded while the bar is open.
+    // The badge follows the same rule: with its children hidden, the group has to carry their combined count again.
+    const isExpensesGroupExpanded = isExpensesGroupSelected && !isVisuallyCollapsed;
+    const isReportsGroupExpanded = isReportsGroupSelected && !isVisuallyCollapsed;
+    const isAccountingGroupExpanded = isAccountingGroupSelected && !isVisuallyCollapsed;
+    const isSavedGroupExpanded = isSavedGroupSelected && !isVisuallyCollapsed;
     // A saved search pending deletion still shows until the server confirms, matching the Spend page's own list.
     const hasSavedSearches = Object.keys(savedSearches ?? {}).length > 0;
 
@@ -305,7 +311,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                             label={translate('search.tabs.expenses')}
                                             icon={navIcons.Receipt}
                                             isSelected={isExpensesGroupSelected}
-                                            badgeText={getGroupBadgeText(expenses, isExpensesGroupSelected)}
+                                            badgeText={getGroupBadgeText(expenses, isExpensesGroupExpanded)}
                                             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.EXPENSES}
                                             onPress={() => {
                                                 const firstExpense = expenses.at(0);
@@ -316,7 +322,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                                 navigateToSearchItem(firstExpense);
                                             }}
                                         />
-                                        {isExpensesGroupSelected && !isVisuallyCollapsed && (
+                                        {isExpensesGroupExpanded && (
                                             <FlatNavSubItemList selectedIndex={expenses.findIndex((item) => item.key === currentSearchKey)}>
                                                 {expenses.map((item, index) => renderSearchItem(item, true, index, expenses.length))}
                                             </FlatNavSubItemList>
@@ -331,7 +337,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                             label={translate('common.reports')}
                                             icon={navIcons.Document}
                                             isSelected={isReportsGroupSelected}
-                                            badgeText={getGroupBadgeText(reports, isReportsGroupSelected)}
+                                            badgeText={getGroupBadgeText(reports, isReportsGroupExpanded)}
                                             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
                                             onPress={() => {
                                                 const firstReport = reports.at(0);
@@ -342,7 +348,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                                 navigateToSearchItem(firstReport);
                                             }}
                                         />
-                                        {isReportsGroupSelected && !isVisuallyCollapsed && (
+                                        {isReportsGroupExpanded && (
                                             <FlatNavSubItemList selectedIndex={reports.findIndex((item) => item.key === currentSearchKey)}>
                                                 {reports.map((item, index) => renderSearchItem(item, true, index, reports.length))}
                                             </FlatNavSubItemList>
@@ -357,7 +363,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                             label={translate('search.tabs.accounting')}
                                             icon={navIcons.Connect}
                                             isSelected={isAccountingGroupSelected}
-                                            badgeText={getGroupBadgeText(accounting, isAccountingGroupSelected)}
+                                            badgeText={getGroupBadgeText(accounting, isAccountingGroupExpanded)}
                                             onPress={() => {
                                                 const firstAccounting = accounting.at(0);
                                                 if (!firstAccounting) {
@@ -367,7 +373,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                                 navigateToSearchItem(firstAccounting);
                                             }}
                                         />
-                                        {isAccountingGroupSelected && !isVisuallyCollapsed && (
+                                        {isAccountingGroupExpanded && (
                                             <FlatNavSubItemList selectedIndex={accounting.findIndex((item) => item.key === currentSearchKey)}>
                                                 {accounting.map((item, index) => renderSearchItem(item, true, index, accounting.length))}
                                             </FlatNavSubItemList>
@@ -407,7 +413,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                             isSelected={isSavedGroupSelected}
                                             onPress={navigateToFirstSavedSearch}
                                         />
-                                        {isSavedGroupSelected && !isVisuallyCollapsed && <FlatNavSavedSearches />}
+                                        {isSavedGroupExpanded && <FlatNavSavedSearches />}
                                     </>
                                 )}
 
