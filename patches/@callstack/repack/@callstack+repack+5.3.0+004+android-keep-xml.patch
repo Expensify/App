@@ -1,0 +1,46 @@
+diff --git a/node_modules/@callstack/repack/dist/plugins/utils/AssetsCopyProcessor.js b/node_modules/@callstack/repack/dist/plugins/utils/AssetsCopyProcessor.js
+--- a/node_modules/@callstack/repack/dist/plugins/utils/AssetsCopyProcessor.js
++++ b/node_modules/@callstack/repack/dist/plugins/utils/AssetsCopyProcessor.js
+@@ -9,6 +9,7 @@
+ function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+ class AssetsCopyProcessor {
+   queue = [];
++  androidResources = new Set();
+   constructor(config, filesystem = _nodeFs.default) {
+     this.config = config;
+     this.filesystem = filesystem;
+@@ -101,6 +102,14 @@
+     // Copy regular assets
+     const mediaAssets = [...chunk.auxiliaryFiles].filter(file => !/\.(map|bundle\.json)$/.test(file)).filter(file => !/^remote-assets/.test(file));
+     this.queue.push(...mediaAssets.map(asset => () => this.copyAsset(_nodePath.default.join(outputPath, asset), _nodePath.default.join(assetsDest, asset))));
++    if (platform === 'android') {
++      mediaAssets.forEach(asset => {
++        const match = asset.match(/^(drawable|raw|font)(?:-[^/]+)?\/([^/]+?)(?:\.[^./]+)?$/);
++        if (match) {
++          this.androidResources.add(`@${match[1]}/${match[2]}`);
++        }
++      });
++    }
+ 
+     // Manifest file name e.g: `index.bundle.json`, src_App_js.chunk.bundle.json`
+     const [manifest] = [...chunk.auxiliaryFiles].filter(file => /\.bundle\.json$/.test(file));
+@@ -126,6 +135,19 @@
+     }
+   }
+   execute() {
++    if (this.androidResources.size) {
++      // Like Metro, list every bundled resource in `raw/keep.xml` so `shrinkResources` keeps them:
++      // JS looks them up by name at runtime, which the resource shrinker cannot see.
++      const keepPath = _nodePath.default.join(this.config.assetsDest, 'raw/keep.xml');
++      const content = `<resources xmlns:tools="http://schemas.android.com/tools" tools:keep="${[...this.androidResources].join(',')}" />\n`;
++      this.androidResources = new Set();
++      this.queue.push(async () => {
++        await this.filesystem.promises.mkdir(_nodePath.default.dirname(keepPath), {
++          recursive: true
++        });
++        await this.filesystem.promises.writeFile(keepPath, content);
++      });
++    }
+     const queue = this.queue;
+     this.queue = [];
+     return queue.map(work => work());
