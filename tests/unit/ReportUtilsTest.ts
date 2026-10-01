@@ -1760,6 +1760,28 @@ describe('ReportUtils', () => {
         const senderAccountID = 1;
         const receiverAccountID = 2;
         const invitedAccountID = 3;
+        const adminAccountID = 4;
+        const previousApproverAccountID = 5;
+        const senderLogin = 'sender@test.com';
+        const adminLogin = 'admin@test.com';
+        const previousApproverLogin = 'previousapprover@test.com';
+        const currentApproverLogin = 'currentapprover@test.com';
+        const invitedLogin = 'invited@test.com';
+
+        // A workspace where the sender submits to the previous approver, who forwards to the current approver
+        const approvalChainPolicy: Policy = {
+            ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+            ownerAccountID: adminAccountID,
+            owner: adminLogin,
+            approver: undefined,
+            employeeList: {
+                [senderLogin]: {email: senderLogin, role: CONST.POLICY.ROLE.USER, submitsTo: previousApproverLogin},
+                [adminLogin]: {email: adminLogin, role: CONST.POLICY.ROLE.ADMIN},
+                [previousApproverLogin]: {email: previousApproverLogin, role: CONST.POLICY.ROLE.USER, forwardsTo: currentApproverLogin},
+                [currentApproverLogin]: {email: currentApproverLogin, role: CONST.POLICY.ROLE.USER},
+                [invitedLogin]: {email: invitedLogin, role: CONST.POLICY.ROLE.USER},
+            },
+        };
 
         it('should protect the sender and receiver of the parent IOU report', () => {
             // Given an IOU report where the sender owns the report and the receiver manages it
@@ -1772,8 +1794,8 @@ describe('ReportUtils', () => {
 
             // When checking whether they can be removed from one of the report's expense threads
             // Then both are protected, because they keep access through the IOU report and would be added back
-            expect(isThreadMemberProtectedByParentReport(iouReport, senderAccountID)).toBe(true);
-            expect(isThreadMemberProtectedByParentReport(iouReport, receiverAccountID)).toBe(true);
+            expect(isThreadMemberProtectedByParentReport(iouReport, undefined, senderLogin, senderAccountID)).toBe(true);
+            expect(isThreadMemberProtectedByParentReport(iouReport, undefined, currentApproverLogin, receiverAccountID)).toBe(true);
         });
 
         it('should protect the submitter and current approver of the parent expense report', () => {
@@ -1787,37 +1809,103 @@ describe('ReportUtils', () => {
 
             // When checking whether they can be removed from one of the report's expense threads
             // Then both are protected
-            expect(isThreadMemberProtectedByParentReport(expenseReport, senderAccountID)).toBe(true);
-            expect(isThreadMemberProtectedByParentReport(expenseReport, receiverAccountID)).toBe(true);
+            expect(isThreadMemberProtectedByParentReport(expenseReport, approvalChainPolicy, senderLogin, senderAccountID)).toBe(true);
+            expect(isThreadMemberProtectedByParentReport(expenseReport, approvalChainPolicy, currentApproverLogin, receiverAccountID)).toBe(true);
+        });
+
+        it('should protect workspace admins and earlier approvers of the parent expense report', () => {
+            // Given a workspace expense report that the previous approver already approved, so managerID now points at the current approver
+            const expenseReport: Report = {
+                ...createRandomReport(3, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: senderAccountID,
+                managerID: receiverAccountID,
+            };
+
+            // When checking whether the admin or the previous approver can be removed from one of the report's expense threads
+            // Then both are protected, because they keep access to the expense report and would be added back
+            expect(isThreadMemberProtectedByParentReport(expenseReport, approvalChainPolicy, adminLogin, adminAccountID)).toBe(true);
+            expect(isThreadMemberProtectedByParentReport(expenseReport, approvalChainPolicy, previousApproverLogin, previousApproverAccountID)).toBe(true);
+        });
+
+        it('should protect the sender and receiver of the parent invoice report', () => {
+            // Given an invoice report where the sender owns the report and the receiver manages it
+            const invoiceReport: Report = {
+                ...createRandomReport(4, undefined),
+                type: CONST.REPORT.TYPE.INVOICE,
+                ownerAccountID: senderAccountID,
+                managerID: receiverAccountID,
+            };
+
+            // When checking whether they can be removed from one of the invoice's threads
+            // Then both are protected, because they keep access through the invoice report
+            expect(isThreadMemberProtectedByParentReport(invoiceReport, undefined, senderLogin, senderAccountID)).toBe(true);
+            expect(isThreadMemberProtectedByParentReport(invoiceReport, undefined, currentApproverLogin, receiverAccountID)).toBe(true);
         });
 
         it('should not protect a member who was invited into the thread', () => {
-            // Given an IOU report that the invited member isn't part of
+            // Given an IOU report and an expense report that the invited member isn't part of
             const iouReport: Report = {
-                ...createRandomReport(3, undefined),
+                ...createRandomReport(5, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: senderAccountID,
+                managerID: receiverAccountID,
+            };
+            const expenseReport: Report = {...iouReport, type: CONST.REPORT.TYPE.EXPENSE};
+
+            // When checking whether the invited member can be removed from an expense thread
+            // Then they aren't protected, so removing invited members keeps working
+            expect(isThreadMemberProtectedByParentReport(iouReport, undefined, invitedLogin, invitedAccountID)).toBe(false);
+            expect(isThreadMemberProtectedByParentReport(expenseReport, approvalChainPolicy, invitedLogin, invitedAccountID)).toBe(false);
+        });
+
+        it('should not protect a workspace admin when the parent is an IOU report', () => {
+            // Given an IOU report, which has no workspace admins or approvers with access to it
+            const iouReport: Report = {
+                ...createRandomReport(6, undefined),
                 type: CONST.REPORT.TYPE.IOU,
                 ownerAccountID: senderAccountID,
                 managerID: receiverAccountID,
             };
 
-            // When checking whether the invited member can be removed from the expense thread
-            // Then they aren't protected, so removing invited members keeps working
-            expect(isThreadMemberProtectedByParentReport(iouReport, invitedAccountID)).toBe(false);
+            // When checking whether someone who is an admin on the thread's policy can be removed from the expense thread
+            // Then they aren't protected, because the policy role check only applies to workspace expense reports
+            expect(isThreadMemberProtectedByParentReport(iouReport, approvalChainPolicy, adminLogin, adminAccountID)).toBe(false);
         });
 
-        it('should not protect anyone when the parent is not a money request or invoice report', () => {
+        it('should not protect anyone when the parent is a chat report', () => {
             // Given a chat report, which is the parent of regular comment threads
             const chatReport: Report = {
-                ...createRandomReport(4, undefined),
+                ...createRandomReport(7, undefined),
                 type: CONST.REPORT.TYPE.CHAT,
                 ownerAccountID: senderAccountID,
                 managerID: receiverAccountID,
             };
 
-            // When checking whether its members can be removed from a thread, or when the parent report is missing
+            // When checking whether its members can be removed from a thread
             // Then nobody is protected, so the existing room member rules still apply
-            expect(isThreadMemberProtectedByParentReport(chatReport, senderAccountID)).toBe(false);
-            expect(isThreadMemberProtectedByParentReport(undefined, senderAccountID)).toBe(false);
+            expect(isThreadMemberProtectedByParentReport(chatReport, approvalChainPolicy, senderLogin, senderAccountID)).toBe(false);
+        });
+
+        it('should not protect anyone when the parent report is missing', () => {
+            // Given a thread whose parent report isn't loaded
+            // When checking whether a member can be removed from the thread
+            // Then nobody is protected, so the existing room member rules still apply
+            expect(isThreadMemberProtectedByParentReport(undefined, approvalChainPolicy, senderLogin, senderAccountID)).toBe(false);
+        });
+
+        it('should not protect anyone when the accountID is missing', () => {
+            // Given an IOU report with a sender and a receiver
+            const iouReport: Report = {
+                ...createRandomReport(8, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: senderAccountID,
+                managerID: receiverAccountID,
+            };
+
+            // When checking a member whose accountID is unknown
+            // Then they aren't protected, so an unknown member can't match a missing ownerAccountID or managerID
+            expect(isThreadMemberProtectedByParentReport(iouReport, undefined, senderLogin, undefined)).toBe(false);
         });
     });
 

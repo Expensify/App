@@ -50,7 +50,6 @@ function DynamicRoomMemberDetailsPage({report, route}: DynamicRoomMemberDetailsP
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const policy = usePolicy(report?.policyID);
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.ROOM_MEMBER_DETAILS.path);
     const {showConfirmModal} = useConfirmModal();
 
@@ -65,11 +64,15 @@ function DynamicRoomMemberDetailsPage({report, route}: DynamicRoomMemberDetailsP
     // Check the selected member's own role on the policy, not the viewer's, and fail closed when their login is missing.
     // Kept in sync with the members list through the shared helper.
     const isSelectedMemberProtectedByPolicyRole = isRoomMemberProtectedByPolicyRole(policy, details.login, accountID);
+    // Select only the derived boolean so this page doesn't re-render on every unrelated change to the parent report.
+    const [isSelectedMemberProtectedByParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {
+        selector: (parentReport) => isThreadMemberProtectedByParentReport(parentReport, policy, details.login, accountID),
+    });
     const shouldDisableRemoveUser =
         (isPolicyExpenseChat(report) && isSelectedMemberProtectedByPolicyRole) ||
         isSelectedMemberCurrentUser ||
         isSelectedMemberOwner ||
-        isThreadMemberProtectedByParentReport(parentReport, accountID);
+        !!isSelectedMemberProtectedByParentReport;
     const askForConfirmationToRemove = () => {
         showConfirmModal({
             buttonVariant: CONST.BUTTON_VARIANT.DANGER,
