@@ -143,9 +143,9 @@ On mobile, or in a narrow browser window, the column headers aren't shown, so so
 
 The **Amount** column is only sortable when your results are shown as a table. When you group your results, this column reads **Total** instead of **Amount**.
 
-## How to select a range of expenses with Shift+click
+## How to select a range of expenses with Shift+click on the Spend page
 
-On web or desktop:
+Web:
 
 1. On the **Spend** page, open a list of expenses or reports, such as **Expenses** or **Reports**, or open a report to see its list of expenses.
 2. Click the checkbox next to the first item you want to select.
@@ -161,7 +161,7 @@ Everything between the two checkboxes is selected. To adjust the range, hold **S
 - In **Reports**, a range selects whole reports. To select a range of expenses inside a report, open the report.
 - Items that can't be selected, such as expenses being deleted, are skipped.
 
-Shift+click isn't available in the mobile app.
+This feature is not available on mobile.
 
 ## How negative amounts sort in the Amount column on the Spend page
 
