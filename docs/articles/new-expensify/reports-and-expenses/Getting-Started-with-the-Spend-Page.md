@@ -147,17 +147,18 @@ The **Amount** column is only sortable when your results are shown as a table. W
 
 On web or desktop:
 
-1. On the **Spend** page, select **Expenses** or **Reports**, or open a report to see its list of expenses.
+1. On the **Spend** page, open a list of expenses or reports, such as **Expenses** or **Reports**, or open a report to see its list of expenses.
 2. Click the checkbox next to the first item you want to select.
 3. Hold **Shift** and click the checkbox next to the last item.
 
 Everything between the two checkboxes is selected. To adjust the range, hold **Shift** and click a different checkbox.
 
 - Group header checkboxes and the **Select all** checkbox work as usual, even while you hold **Shift**. They don't select a range.
+- After you check a group's header, Shift+click an expense in that group to keep only the expenses from the top of the group down to that one.
+- After you check **Select all**, or choose **Select all on this page**, Shift+click a row to keep only the rows from the top of the list down to that one. Groups that are collapsed stay selected.
+- When there are more results than fit on the page, the **Select all** checkbox opens a menu. If you choose **Select all** there, every matching item is selected, and Shift+click doesn't narrow that selection.
 - When your results are grouped, a range only includes expenses in groups that are expanded.
-- In **Reports**, a range selects whole reports.
-- If you've just used **Select all**, Shift+click narrows the selection to the range you click. Groups that are collapsed stay selected.
-- After **Select all matching items**, Shift+click doesn't narrow the selection.
+- In **Reports**, a range selects whole reports. To select a range of expenses inside a report, open the report.
 - Items that can't be selected, such as expenses being deleted, are skipped.
 
 Shift+click isn't available in the mobile app.
