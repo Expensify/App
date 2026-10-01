@@ -20,6 +20,8 @@ import getReportRouteForCurrentContext from '@libs/Navigation/helpers/getReportR
 import Navigation from '@libs/Navigation/Navigation';
 import {isResolvedSupportTicket} from '@libs/ReportUtils';
 
+import variables from '@styles/variables';
+
 import {dismissFailedSupportTicket} from '@userActions/Report';
 
 import CONST from '@src/CONST';
@@ -83,7 +85,10 @@ function SupportTicketPreview({action, isHovered, style}: SupportTicketPreviewPr
                     accessibilityLabel={supportTicketName}
                     sentryLabel={CONST.SENTRY_LABEL.SUPPORT_TICKET.PREVIEW_CARD}
                 >
-                    <Tooltip text={translate('supportTicket.checkboxTooltip')}>
+                    <Tooltip
+                        text={translate('supportTicket.checkboxTooltip')}
+                        maxWidth={variables.w130}
+                    >
                         <View>
                             <Checkbox
                                 isChecked={isResolved}

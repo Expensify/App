@@ -13,6 +13,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDisplayNameForParticipant, isResolvedSupportTicket} from '@libs/ReportUtils';
 
+import variables from '@styles/variables';
+
 import {dismissFailedSupportTicket} from '@userActions/Report';
 
 import CONST from '@src/CONST';
@@ -72,7 +74,10 @@ function SupportTicketView({report, action}: SupportTicketViewProps) {
             <>
                 <View style={[styles.ph5, styles.pv2]}>
                     <View style={[styles.flexRow, styles.alignItemsStart]}>
-                        <Tooltip text={translate('supportTicket.checkboxTooltip')}>
+                        <Tooltip
+                            text={translate('supportTicket.checkboxTooltip')}
+                            maxWidth={variables.w130}
+                        >
                             <View>
                                 <Checkbox
                                     isChecked={isResolved}
