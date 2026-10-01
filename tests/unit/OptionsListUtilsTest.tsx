@@ -1952,6 +1952,49 @@ describe('OptionsListUtils', () => {
 
             expect(hasMore).toBe(false);
         });
+
+        it('should return the self DM when searching "me"', () => {
+            // Given options with a self DM, whose title and login don't contain "me"
+            const optionsWithSelfDM = createFilteredOptionList(
+                PERSONAL_DETAILS,
+                REPORTS_WITH_SELF_DM,
+                undefined,
+                EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+                undefined,
+                {
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    dateFnsLocale: undefined,
+                    convertToDisplayString,
+                    conciergeReportID: undefined,
+                    isSearching: true,
+                },
+                undefined,
+            );
+
+            // When we call getValidOptions with includeSelfDM and the localized word the current user uses to refer to themselves,
+            // without includeCurrentUser, like New chat does
+            const {options: results} = getValidOptions(
+                {reports: optionsWithSelfDM.reports, personalDetails: optionsWithSelfDM.personalDetails},
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {
+                    getReportByID: getReportByIDFromOnyx,
+                    dateFnsLocale: undefined,
+                    convertToDisplayString,
+                    includeSelfDM: true,
+                    searchString: 'me',
+                },
+                translateLocal,
+                undefined,
+            );
+
+            // Then the self DM should be returned, because it is the only row that represents the current user
+            expect(results.recentReports.some((option) => option.isSelfDM)).toBe(true);
+        });
     });
 
     describe('getValidOptions() with lazy contact options', () => {
@@ -5619,6 +5662,63 @@ describe('OptionsListUtils', () => {
 
             // Then the self dm should be on top.
             expect(filteredOptions.recentReports.at(0)?.isSelfDM).toBe(true);
+        });
+
+        it('should return the self DM when searching "me"', () => {
+            // Given a set of options with a self DM, whose title and login don't contain "me"
+            const optionsWithSelfDM = createFilteredOptionList(
+                PERSONAL_DETAILS,
+                REPORTS_WITH_SELF_DM,
+                undefined,
+                EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+                undefined,
+                {
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    dateFnsLocale: undefined,
+                    convertToDisplayString,
+                    conciergeReportID: undefined,
+                    isSearching: true,
+                },
+                undefined,
+            );
+            const {options} = getSearchOptions({
+                getReportByID: getReportByIDFromOnyx,
+                rules: undefined,
+                dateFnsLocale: undefined,
+                convertToDisplayString,
+                translate: translateLocal,
+                options: optionsWithSelfDM,
+                draftComments: {},
+                loginList,
+                isDefaultRoomsBetaEnabled: true,
+                policyCollection: allPolicies,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
+                conciergeReportID: undefined,
+            });
+
+            // When we call filterAndOrderOptions with the localized word the current user uses to refer to themselves
+            const filteredOptions = filterAndOrderOptions(
+                options,
+                'me',
+                COUNTRY_CODE,
+                loginList,
+                CURRENT_USER_EMAIL,
+                CURRENT_USER_ACCOUNT_ID,
+                PERSONAL_DETAILS,
+                {
+                    dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    convertToDisplayString,
+                },
+                translateLocal,
+                undefined,
+            );
+
+            // Then the self DM should be returned so the current user can find their own chat
+            expect(filteredOptions.recentReports.some((option) => option.isSelfDM)).toBe(true);
         });
 
         it('should return the same matches for normalized multi-word queries with extra spaces', () => {
