@@ -91,7 +91,11 @@ function BulkActionBarButton<TValueType>({option, onSubItemSelected}: BulkAction
                         anchorRef={anchorRef}
                         anchorPosition={anchorPosition}
                         anchorAlignment={SUB_MENU_ANCHOR_ALIGNMENT}
-                        menuItems={subMenuItems.map((subItem) => ({...subItem, shouldCallAfterModalHide: true}))}
+                        headerText={option.subMenuHeaderText}
+                        menuItems={subMenuItems.map((subItem) => ({
+                            ...subItem,
+                            shouldCallAfterModalHide: true,
+                        }))}
                         onClose={() => setIsMenuVisible(false)}
                         onItemSelected={(selectedSubItem, index, event) => {
                             onSubItemSelected?.(selectedSubItem, index, event);
