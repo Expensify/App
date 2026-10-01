@@ -1816,7 +1816,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         formatPhoneNumber,
         getCurrencyDecimals,
         rules,
-        // Real report actions are not available at this call site yet; see #66522.
+        // Refactor this call site to pass real report actions instead of undefined in https://github.com/Expensify/App/issues/66522
         allReportActionsList: undefined,
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
