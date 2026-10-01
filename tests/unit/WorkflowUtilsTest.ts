@@ -2393,10 +2393,10 @@ describe('WorkflowUtils', () => {
             });
         });
 
-        it('leaves out a member who is their own first approver, such as the workspace owner', () => {
+        it('maps a member who is their own first approver, such as the workspace owner, to themselves', () => {
             const workflows = [buildWorkflow([1, 2], [1])];
 
-            expect(getFirstApproverByMemberEmail(workflows)).toEqual({'2@example.com': buildApprover(1)});
+            expect(getFirstApproverByMemberEmail(workflows)).toEqual({'1@example.com': buildApprover(1), '2@example.com': buildApprover(1)});
         });
 
         it('leaves out workflows that have no approvers', () => {

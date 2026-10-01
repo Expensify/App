@@ -666,9 +666,9 @@ describe('WorkspaceMembers', () => {
     describe('Approver column', () => {
         const approverHeaderLabel = () => TestHelper.translateLocal('workflowsPage.approver');
 
-        it("shows each member's first approver, blank for the self-approving admin", async () => {
+        it("shows each member's first approver, including the admin who approves themselves", async () => {
             // Given a policy with approvals on and every member (including the admin) submitting to the admin:
-            // the admin's own first approver resolves to themselves, so their row is treated as having no approver.
+            // the admin's own first approver resolves to themselves, which is what the Workflows tab shows too.
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
@@ -690,11 +690,7 @@ describe('WorkspaceMembers', () => {
             const ownerRow = await screen.findByLabelText(new RegExp(`^Owner User, ${ownerEmail}, ${TestHelper.translateLocal('common.approver')}: Admin User`));
             expect(ownerRow).toBeOnTheScreen();
 
-            // No "Approver: ..." segment between the email and the role label proves the admin's own row was
-            // treated as having no approver, rather than the assertion just missing a rendered Text node (the
-            // segment lives only in the row's accessibilityLabel, nothing else renders it).
-            const adminRoleLabel = TestHelper.translateLocal('workspace.common.roleName', CONST.POLICY.ROLE.ADMIN);
-            const adminRow = screen.getByLabelText(new RegExp(`^Admin User, ${adminEmail}, ${adminRoleLabel}$`));
+            const adminRow = screen.getByLabelText(new RegExp(`^Admin User, ${adminEmail}, ${TestHelper.translateLocal('common.approver')}: Admin User`));
             expect(adminRow).toBeOnTheScreen();
 
             unmount();
@@ -739,8 +735,8 @@ describe('WorkspaceMembers', () => {
         });
 
         it('hides the column when approvals are on but no member has an approver', async () => {
-            // Given approvals are on while no member resolves to an approver other than themselves, so the derived
-            // approver map is empty and the column would render blank for every row.
+            // Given approvals are on while no member submits to anyone, so the derived approver map is empty and the
+            // column would render blank for every row.
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC});
             });
@@ -815,9 +811,8 @@ describe('WorkspaceMembers', () => {
             expect(await screen.findByLabelText(new RegExp(`^Auditor User, ${auditorEmail}, ${approverLabel}: Owner User`))).toBeOnTheScreen();
             expect(screen.getByLabelText(new RegExp(`^Admin User, ${adminEmail}, ${approverLabel}: Owner User`))).toBeOnTheScreen();
 
-            // The owner is the default approver, so they approve their own expenses and no approver shows.
-            const roleLabel = TestHelper.translateLocal('workspace.common.roleName', CONST.POLICY.ROLE.OWNER);
-            expect(screen.getByLabelText(new RegExp(`^Owner User, ${ownerEmail}, ${roleLabel}$`))).toBeOnTheScreen();
+            // The owner is the default approver, so they approve their own expenses and show as their own approver.
+            expect(screen.getByLabelText(new RegExp(`^Owner User, ${ownerEmail}, ${approverLabel}: Owner User`))).toBeOnTheScreen();
 
             unmount();
         });

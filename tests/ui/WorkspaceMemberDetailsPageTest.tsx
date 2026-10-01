@@ -450,6 +450,30 @@ describe('WorkspaceMemberDetailsPage', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should show a self-approving member as their own approver', async () => {
+        // Given the owner submits to themselves, which is how the Workflows tab presents them too.
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                approver: ownerEmail,
+                employeeList: {
+                    [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: ownerEmail},
+                    [invitedEmail]: {email: invitedEmail, role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
+                },
+            });
+        });
+
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(ownerAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        const approverItem = await screen.findByTestId('member-approver-menu-item');
+
+        expect(within(approverItem).getByText('Owner User')).toBeOnTheScreen();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should open the workflow the member belongs to when they have an approver', async () => {
         const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
 
@@ -496,8 +520,8 @@ describe('WorkspaceMemberDetailsPage', () => {
         fireEvent.press(await screen.findByTestId('member-approver-menu-item'), {nativeEvent: {}});
         await waitForBatchedUpdatesWithAct();
 
-        // The owner sits at the top of their own chain, so the row reads as having no approver. Opening the workflow
-        // they approve would let an admin reassign the approver for every other member on it.
+        // The owner approves themselves, so the editor would open the workflow the rest of the workspace is on and
+        // let an admin reassign every other member's approver from the owner's own profile.
         expect(navigateSpy).toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policy.id));
         expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policy.id, ownerEmail, ownerEmail));
 

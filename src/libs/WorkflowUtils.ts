@@ -366,7 +366,7 @@ function getEnforcedApprovalWorkflowsForMembers(approvalWorkflows: ApprovalWorkf
 
 /**
  * Map every workflow member's email to the first approver of the workflow they belong to.
- * Members who approve their own expenses are left out, since they sit at the top of their own chain.
+ * A member who approves their own expenses maps to themselves, matching what the Workflows tab shows.
  */
 function getFirstApproverByMemberEmail(approvalWorkflows: ApprovalWorkflow[]): Record<string, Approver> {
     const firstApproverByMemberEmail: Record<string, Approver> = {};
@@ -379,7 +379,7 @@ function getFirstApproverByMemberEmail(approvalWorkflows: ApprovalWorkflow[]): R
         }
 
         for (const member of workflow.members) {
-            if (!member.email || member.email === firstApprover.email) {
+            if (!member.email) {
                 continue;
             }
 
