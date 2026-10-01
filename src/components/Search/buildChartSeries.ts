@@ -18,11 +18,15 @@ import {
     differenceInCalendarQuarters,
     differenceInCalendarYears,
     format,
+    getDay,
     isSameMonth,
     parseISO,
+    startOfMonth,
+    startOfQuarter,
+    startOfYear,
 } from 'date-fns';
 
-import type {ChartBucketUnit} from './chartGroupByConfig';
+import type {ChartBucketRange, ChartBucketUnit} from './chartGroupByConfig';
 import type {ChartView, GroupedItem, SearchChartDataRow, SearchGroupBy} from './types';
 
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
@@ -150,6 +154,28 @@ function getPairingKey(item: GroupedItem, windowStart: string | undefined, group
 }
 
 /**
+ * The dates of the bucket paired with a bucket of the window on screen, for when the compared window returned no row for it.
+ * The paired bucket sits at the same position in its own window and is as long as the bucket on screen.
+ */
+function getCounterpartBucketRange(bucketRange: ChartBucketRange, primaryStart: string, comparisonStart: string, bucketUnit: ChartBucketUnit): ChartBucketRange {
+    const bucketStart = parseISO(bucketRange.start);
+    const offset = BUCKET_OFFSET[bucketUnit](bucketStart, parseISO(primaryStart));
+    const dateInBucket = BUCKET_ADD[bucketUnit](parseISO(comparisonStart), offset);
+    // A week starts on the same weekday as the bucket on screen, so the date is moved back to it.
+    const toBucketStart: Record<ChartBucketUnit, (date: Date) => Date> = {
+        day: (date) => date,
+        week: (date) => addDays(date, -((getDay(date) - getDay(bucketStart) + DAYS_IN_WEEK) % DAYS_IN_WEEK)),
+        month: startOfMonth,
+        quarter: startOfQuarter,
+        year: startOfYear,
+    };
+    const counterpartStart = toBucketStart[bucketUnit](dateInBucket);
+    const counterpartEnd = addDays(BUCKET_ADD[bucketUnit](counterpartStart, 1), -1);
+
+    return {start: format(counterpartStart, CONST.DATE.FNS_FORMAT_STRING), end: format(counterpartEnd, CONST.DATE.FNS_FORMAT_STRING)};
+}
+
+/**
  * The calendar name a window's buckets can go by, like "January" or "Mon", as a date-fns pattern.
  * Undefined when the window is long enough for the name to repeat, or for a unit that has no such name.
  */
@@ -249,5 +275,5 @@ function buildChartSeries({primary, comparison, view, groupBy, getLabel, getShor
     };
 }
 
-export {buildChartSeries, getSliceColorsByDataIndex, CHART_SERIES_KEY};
+export {buildChartSeries, getCounterpartBucketRange, getSliceColorsByDataIndex, CHART_SERIES_KEY};
 export type {SearchChartModel};

@@ -1,5 +1,6 @@
 import Log from '@libs/Log';
 import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {adjustTimeRangeToDateFilters} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 
@@ -47,6 +48,24 @@ function buildChartDrillDownQuery(queryJSON: Readonly<SearchQueryJSON>, {groupFi
     });
 }
 
+/**
+ * The dates a pressed time bucket opens: its own, cut to the period its series plots, since a week or month can start
+ * before the period or end after it. A bucket of the period on screen is cut to the query's own date filters.
+ */
+function getBucketDrillDownRange(queryJSON: Readonly<SearchQueryJSON>, bucketRange: ChartBucketRange, windowRange?: ChartBucketRange): ChartBucketRange {
+    if (!windowRange) {
+        return adjustTimeRangeToDateFilters(
+            bucketRange,
+            queryJSON.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE),
+        );
+    }
+
+    return {
+        start: bucketRange.start > windowRange.start ? bucketRange.start : windowRange.start,
+        end: bucketRange.end < windowRange.end ? bucketRange.end : windowRange.end,
+    };
+}
+
 /** Builds the Spend table query behind a chart's "View on Spend", which opens the rows the chart plots as they are grouped and sorted, over the whole period. */
 function buildViewOnSpendQuery(queryJSON: Readonly<SearchQueryJSON>): SearchQueryString {
     return buildSearchQueryString({
@@ -56,4 +75,4 @@ function buildViewOnSpendQuery(queryJSON: Readonly<SearchQueryJSON>): SearchQuer
     });
 }
 
-export {buildChartDrillDownQuery, buildViewOnSpendQuery};
+export {buildChartDrillDownQuery, buildViewOnSpendQuery, getBucketDrillDownRange};

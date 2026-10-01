@@ -1,4 +1,4 @@
-import {buildChartDrillDownQuery, buildViewOnSpendQuery} from '@components/Search/chartDrillDown';
+import {buildChartDrillDownQuery, buildViewOnSpendQuery, getBucketDrillDownRange} from '@components/Search/chartDrillDown';
 
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
@@ -60,6 +60,30 @@ describe('chartDrillDown', () => {
             expect(query).toContain('date>=2025-01-01 date<=2025-03-31');
             expect(query).not.toContain('2026-01-01');
             expect(query).toContain('from:1234');
+        });
+    });
+
+    describe('getBucketDrillDownRange', () => {
+        it('cuts a week that starts before the page range to the dates the chart plotted', () => {
+            // Given September plotted by week, whose first week starts on Sunday August 30
+            const queryJSON = buildSearchQueryJSON('type:expense groupBy:week view:bar date>=2026-09-01 date<=2026-09-30');
+
+            // When that week is drilled into
+            const range = queryJSON ? getBucketDrillDownRange(queryJSON, {start: '2026-08-30', end: '2026-09-05'}) : undefined;
+
+            // Then it opens September 1 to 5, matching the bar, rather than pulling in August's expenses
+            expect(range).toEqual({start: '2026-09-01', end: '2026-09-05'});
+        });
+
+        it('cuts a previous-period bucket to the previous period, not to the page range', () => {
+            // Given September compared with August, and August's first week, which starts on Sunday July 26
+            const queryJSON = buildSearchQueryJSON('type:expense groupBy:week view:bar date>=2026-09-01 date<=2026-09-30');
+
+            // When that week is drilled into
+            const range = queryJSON ? getBucketDrillDownRange(queryJSON, {start: '2026-07-26', end: '2026-08-01'}, {start: '2026-08-01', end: '2026-08-31'}) : undefined;
+
+            // Then it opens only August 1, the part of the week inside the compared period
+            expect(range).toEqual({start: '2026-08-01', end: '2026-08-01'});
         });
     });
 

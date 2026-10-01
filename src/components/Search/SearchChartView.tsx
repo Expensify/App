@@ -17,10 +17,10 @@ import {View} from 'react-native';
 
 import type {SearchChartModel} from './buildChartSeries';
 import type {ChartBucketRange} from './chartGroupByConfig';
-import type {ChartView, GroupedItem, SearchGroupBy, SearchQueryJSON} from './types';
+import type {ChartView, GroupedItem, SearchChartDataRow, SearchGroupBy, SearchQueryJSON} from './types';
 
-import {buildChartSeries, CHART_SERIES_KEY} from './buildChartSeries';
-import {buildChartDrillDownQuery} from './chartDrillDown';
+import {buildChartSeries, CHART_SERIES_KEY, getCounterpartBucketRange} from './buildChartSeries';
+import {buildChartDrillDownQuery, getBucketDrillDownRange} from './chartDrillDown';
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
 import {useSearchQueryContext} from './SearchContext';
 
@@ -82,7 +82,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, comp
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {currentSearchKey} = useSearchQueryContext();
 
-    const {getLabel, getShortLabel, getFilterQuery, getBucketRange} = CHART_GROUP_BY_CONFIG[groupBy];
+    const {getLabel, getShortLabel, getFilterQuery, getBucketRange, bucketUnit} = CHART_GROUP_BY_CONFIG[groupBy];
 
     const model = buildChartSeries({
         primary: {rows: data, label: comparison?.current.label, color: comparison?.current.color ?? color, start: comparison?.current.range.start, end: comparison?.current.range.end},
@@ -98,6 +98,18 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, comp
     const {series, rows} = model;
     const points = rows.map((row) => row.point);
 
+    /** A compared bucket with no expenses has no row of its own, so its dates are worked out from its position */
+    const getPressedBucketRange = (row: SearchChartDataRow, isComparisonSeries: boolean): ChartBucketRange => {
+        const bucketRange = getBucketRange?.(row.item) ?? {start: '', end: ''};
+        if (!isComparisonSeries) {
+            return bucketRange;
+        }
+        if (row.comparisonItem) {
+            return getBucketRange?.(row.comparisonItem) ?? bucketRange;
+        }
+        return comparison && bucketUnit ? getCounterpartBucketRange(bucketRange, comparison.current.range.start, comparison.previous.range.start, bucketUnit) : bucketRange;
+    };
+
     const handleItemPress = (index: number, seriesKey: string) => {
         const row = rows.at(index);
         if (!row || !queryJSON) {
@@ -108,7 +120,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, comp
         const pressedWindow = isComparisonSeries ? comparison?.previous : comparison?.current;
         const pressedItem = (isComparisonSeries ? row.comparisonItem : row.item) ?? row.item;
         // A time bucket opens the dates it covers; a ranking group opens its own rows over the period its series plots.
-        const dateRange = getBucketRange ? getBucketRange(pressedItem) : pressedWindow?.range;
+        const dateRange = getBucketRange ? getBucketDrillDownRange(queryJSON, getPressedBucketRange(row, isComparisonSeries), pressedWindow?.range) : pressedWindow?.range;
         const query = buildChartDrillDownQuery(queryJSON, {groupFilter: getBucketRange ? undefined : getFilterQuery(pressedItem), dateRange});
 
         if (!query) {
