@@ -27,8 +27,8 @@ type NumericInputStateContextValue = {
 };
 
 type NumericInputActionsContextValue = {
-    /** Normalizes, validates, and commits displayed text. */
-    setNumber: (text: string) => void;
+    /** Normalizes, validates, and commits displayed text. Returns whether the change was accepted. */
+    setNumber: (text: string) => boolean;
 
     /** Places the caret at the selection end, clearing any highlighted range. */
     clearSelection: () => void;

@@ -286,6 +286,47 @@ describe('NumericInput.BigNumberPad', () => {
         expect(screen.getByTestId(INPUT_TEST_ID)).toHaveDisplayValue('1');
     });
 
+    it('does not buffer rejected inputs and correctly deletes the last character on backspace', async () => {
+        // Given an input with maxLength 4 and decimals 0
+        renderInputWithPad({value: '', maxLength: 4, decimals: 0});
+        await waitForBatchedUpdatesWithAct();
+
+        // When filling the input up to maxLength with digits 1, 2, 3, 4
+        fireEvent.press(screen.getByTestId('button_1'));
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByTestId('button_2'));
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByTestId('button_3'));
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByTestId('button_4'));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId(INPUT_TEST_ID)).toHaveDisplayValue('1234');
+
+        // And pressing extra digits beyond maxLength (5, 6, 7, 8, 9)
+        fireEvent.press(screen.getByTestId('button_5'));
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByTestId('button_6'));
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByTestId('button_7'));
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByTestId('button_8'));
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByTestId('button_9'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the display value remains '1234'
+        expect(screen.getByTestId(INPUT_TEST_ID)).toHaveDisplayValue('1234');
+
+        // When backspace is pressed once on the number pad
+        fireEvent.press(screen.getByTestId('button_<'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the last valid character '4' is deleted immediately, leaving '123'
+        expect(screen.getByTestId(INPUT_TEST_ID)).toHaveDisplayValue('123');
+        expect(onInputChange).toHaveBeenLastCalledWith('123');
+    });
+
     it('calls custom numberPressed callback when a key is pressed', async () => {
         // Given an input with a custom numberPressed callback
         const customNumberPressed = jest.fn();

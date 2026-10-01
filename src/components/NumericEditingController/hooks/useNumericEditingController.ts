@@ -96,7 +96,7 @@ function useNumericEditingController({
 
         if (!validateAmount(numberWithLeadingZero, decimals, maxLength, allowNegative)) {
             rejectEdit();
-            return;
+            return false;
         }
 
         // The change event lands before the native selection event, so this is still the selection the edit replaced.
@@ -104,6 +104,7 @@ function useNumericEditingController({
         const previousValue = applyValue(nextValue);
 
         syncAfterEdit({previousText: toDisplayText(previousValue), nextText: toDisplayText(nextValue)});
+        return true;
     };
 
     // Replaces the canonical value without validation or notification and moves the caret to the end.

@@ -60,17 +60,21 @@ function NumericBigNumberPad({longPressHandlerStateChanged, numberPressed, style
 
             const deleteStart = isCollapsed ? currentSelection.start - 1 : currentSelection.start;
             const newMagnitude = `${currentFormattedNumber.slice(0, deleteStart)}${currentFormattedNumber.slice(currentSelection.end)}`;
+            if (!setNumber(newMagnitude)) {
+                return;
+            }
             currentNumberRef.current = newMagnitude;
             currentSelectionRef.current = {start: deleteStart, end: deleteStart};
-            setNumber(newMagnitude);
             return;
         }
 
         const newMagnitude = `${currentFormattedNumber.slice(0, currentSelection.start)}${key}${currentFormattedNumber.slice(currentSelection.end)}`;
         const nextOffset = currentSelection.start + key.length;
+        if (!setNumber(newMagnitude)) {
+            return;
+        }
         currentNumberRef.current = newMagnitude;
         currentSelectionRef.current = {start: nextOffset, end: nextOffset};
-        setNumber(newMagnitude);
     };
 
     const handleLongPressHandlerStateChanged = (isUserLongPressingBackspace: boolean) => {

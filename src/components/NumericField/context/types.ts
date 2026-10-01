@@ -17,8 +17,8 @@ type NumericFieldStateContextValue = {
 };
 
 type NumericFieldActionsContextValue = {
-    /** Normalizes, validates, and commits displayed text. */
-    setNumber: (text: string) => void;
+    /** Normalizes, validates, and commits displayed text. Returns whether the change was accepted. */
+    setNumber: (text: string) => boolean;
 
     /** Toggles the sign of the value, shifting the caret with the sign it adds or removes. */
     toggleSign: () => void;
