@@ -118,6 +118,8 @@ function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGr
 
     return (
         <WidgetContainer
+            // A multi-row tooltip on the top bar rises past the card's edge, so the card must not clip it.
+            containerStyles={styles.overflowVisible}
             title={translate(chart.titleKey)}
             titleRightContent={
                 !!groupByControl || !!headerMenu ? (

@@ -185,6 +185,9 @@ function HorizontalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxi
 
     /** Canvas y position of each row's center, so a press can be traced back to the bar under the cursor */
     const rowCenters = useSharedValue<number[]>([]);
+
+    /** Canvas x position of each row's longest bar tip, so hovering any of the row's bars hits it */
+    const rowTips = useSharedValue<number[]>([]);
     const xZero = useSharedValue(0);
     const plotLeft = useSharedValue(0);
 
@@ -248,7 +251,8 @@ function HorizontalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxi
         const rowBottom = args.targetY + band / 2;
         const isWithinRow = args.cursorY >= rowTop && args.cursorY <= rowBottom;
         const zero = xZero.get();
-        const tipEnd = args.targetX >= zero ? args.targetX + HOVER_TIP_TOLERANCE : args.targetX - HOVER_TIP_TOLERANCE;
+        const tipX = rowTips.get().at(args.targetIndex) ?? args.targetX;
+        const tipEnd = tipX >= zero ? tipX + HOVER_TIP_TOLERANCE : tipX - HOVER_TIP_TOLERANCE;
         const barStart = Math.min(zero, tipEnd);
         const barEnd = Math.max(zero, tipEnd);
         const isWithinBar = args.cursorX >= barStart && args.cursorX <= barEnd;
@@ -284,12 +288,19 @@ function HorizontalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxi
     });
 
     const handleScaleChange = (xScale: Scale, yScale: Scale) => {
-        xZero.set(xScale(0));
+        const zero = xScale(0);
+        xZero.set(zero);
         const oy = data.map((point, index) => yScale(lastIndex - index));
         rowCenters.set(oy);
+        rowTips.set(
+            data.map((point) => {
+                const tips = seriesKeys.map((key) => xScale(getSeriesValue(point, key)));
+                return tips.reduce((farthest, tip) => (Math.abs(tip - zero) > Math.abs(farthest - zero) ? tip : farthest), zero);
+            }),
+        );
         setPointPositions(
-            // The tooltip hangs off the longest bar of the row, so it clears every series.
-            data.map((point) => Math.max(...seriesKeys.map((key) => xScale(getSeriesValue(point, key))))),
+            // The tooltip sits above the row and points at the top bar, the first series.
+            data.map((point) => xScale(getSeriesValue(point, primarySeriesKey))),
             oy,
         );
 
