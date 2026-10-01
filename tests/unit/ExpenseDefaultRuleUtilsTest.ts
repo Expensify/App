@@ -391,8 +391,8 @@ describe('ExpenseDefaultRuleUtils', () => {
     });
 
     describe('getExpenseDefaultRuleSummaryFields', () => {
-        it('lists the fields a rule sets in action-key order, including rules the form cannot open', () => {
-            // Keys are deliberately out of numeric order, and "10" would sort before "2" as a string.
+        it('lists the fields a rule sets in the editor field order, including rules the form cannot open', () => {
+            // Given actions whose keys are out of numeric order, where "10" would also sort before "2" as a string
             const rule = buildRuleWithOverrides({
                 actions: Object.fromEntries([
                     ['0', setCategoryAction],
@@ -401,10 +401,29 @@ describe('ExpenseDefaultRuleUtils', () => {
                 ]),
             });
 
+            // When the summary fields are read back
+            // Then they come out in editor field order rather than key order
             expect(getExpenseDefaultRuleSummaryFields(rule)).toEqual([
                 {field: FIELD.CATEGORY, value: 'Coffee'},
                 {field: FIELD.COMMENT, value: 'A description'},
                 {field: FIELD.BILLABLE, value: true},
+            ]);
+        });
+
+        it('orders the same rule identically however the actions are indexed', () => {
+            // Given one rule indexed the way the editor writes it and the same rule indexed the way the backend returns it
+            const setMerchant = {name: ACTION.SET, field: FIELD.MERCHANT, value: 'Starbucks'};
+            const setComment = {name: ACTION.SET, field: FIELD.COMMENT, value: Parser.replace('A description')};
+            const asWritten = buildRuleWithOverrides({actions: toIndexMap([setMerchant, setCategoryAction, setComment])});
+            const asReturned = buildRuleWithOverrides({actions: toIndexMap([setCategoryAction, setComment, setMerchant])});
+
+            // When both are summarized
+            // Then the reindexing does not reshuffle the summary, so the row text does not jump when a save comes back
+            expect(getExpenseDefaultRuleSummaryFields(asReturned)).toEqual(getExpenseDefaultRuleSummaryFields(asWritten));
+            expect(getExpenseDefaultRuleSummaryFields(asReturned)).toEqual([
+                {field: FIELD.MERCHANT, value: 'Starbucks'},
+                {field: FIELD.CATEGORY, value: 'Coffee'},
+                {field: FIELD.COMMENT, value: 'A description'},
             ]);
         });
 

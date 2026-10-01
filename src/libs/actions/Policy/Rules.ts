@@ -17,6 +17,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {buildMerchantRule} from '@libs/ExpenseDefaultRuleUtils';
 import type {MerchantRuleFormValues} from '@libs/ExpenseDefaultRuleUtils';
 import Log from '@libs/Log';
+import {getIsOffline} from '@libs/NetworkState';
 import {rand64} from '@libs/NumberUtils';
 
 import CONST from '@src/CONST';
@@ -34,6 +35,11 @@ import Onyx from 'react-native-onyx';
 /** A coding rule parsed from an imported spreadsheet row, keyed by a client-generated ruleID */
 type ImportedMerchantRule = Omit<CodingRule, 'ruleID' | 'pendingAction' | 'errors'>;
 
+/** How long a `GetRules` read may stay marked in flight before the flag is treated as stale. */
+const RULES_FETCH_TIMEOUT_MS = 30 * 1000;
+
+let staleRulesFetchTimeoutID: ReturnType<typeof setTimeout> | undefined;
+
 /**
  * Fetches every rule the user has access to. The response SETs the whole `rules_` collection.
  *
@@ -42,6 +48,13 @@ type ImportedMerchantRule = Omit<CodingRule, 'ruleID' | 'pendingAction' | 'error
  * not-found. The fetched flag is only set once the collection has actually arrived.
  */
 function getRules() {
+    // A read is discarded rather than queued when there is no connectivity, and a discarded request applies
+    // neither its success nor its failure data. Sending one offline would leave the in-flight flag set for the
+    // rest of the session, which blocks every later fetch.
+    if (getIsOffline()) {
+        return;
+    }
+
     type RulesFetchKey = typeof ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED | typeof ONYXKEYS.RAM_ONLY_IS_LOADING_RULES;
 
     const optimisticData: Array<OnyxUpdate<RulesFetchKey>> = [
@@ -70,13 +83,36 @@ function getRules() {
             value: false,
         },
         {
+            // A failed attempt still counts as one. Left false, the prefetch hook sees a fetch as needed again the
+            // moment the in-flight flag clears, so a server error retries for as long as the screen stays mounted.
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED,
-            value: false,
+            value: true,
         },
     ];
 
     API.read(READ_COMMANDS.GET_RULES, {}, {optimisticData, successData, failureData});
+
+    // A read that throws, which is what a 5xx, a 429 or a socket error does, applies neither its success nor its
+    // failure data, and `API.read` reports nothing back to the caller. Without a bound the in-flight flag would
+    // outlive its request and block every later fetch for the session. Clearing a flag that is already false once
+    // the response has landed costs nothing, so the timer runs either way.
+    clearTimeout(staleRulesFetchTimeoutID);
+    staleRulesFetchTimeoutID = setTimeout(() => {
+        Onyx.set(ONYXKEYS.RAM_ONLY_IS_LOADING_RULES, false);
+    }, RULES_FETCH_TIMEOUT_MS);
+}
+
+/**
+ * Clears the fetch flags so the next screen that needs the collection fetches it again.
+ *
+ * A read that never settles, such as one sent as the connection drops, applies neither its success nor its
+ * failure data, which leaves the in-flight flag set and blocks every later fetch. Connectivity returning is the
+ * point at which that stale state is known to be wrong.
+ */
+function resetRulesFetchState() {
+    Onyx.set(ONYXKEYS.RAM_ONLY_IS_LOADING_RULES, false);
+    Onyx.set(ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED, false);
 }
 
 /**
@@ -554,6 +590,7 @@ export {
     openPolicyRulesPage,
     getAgentRuleSuggestions,
     getRules,
+    resetRulesFetchState,
     setMerchantRule,
     importMerchantRulesSpreadsheet,
     deleteMerchantRule,

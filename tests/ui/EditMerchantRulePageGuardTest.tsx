@@ -151,7 +151,7 @@ describe('EditMerchantRulePage route guard', () => {
         readSpy.mockRestore();
     });
 
-    it('waits for the fetch instead of showing not-found before the collection arrives', async () => {
+    it('waits for the fetch instead of showing not-found or an empty form before the collection arrives', async () => {
         // Given the request is in flight, so Onyx has hydrated the collection as empty but nothing has answered yet
         const readSpy = stubRulesFetch();
         await seedOnyx();
@@ -163,8 +163,10 @@ describe('EditMerchantRulePage route guard', () => {
         renderEditMerchantRulePage();
         await waitForBatchedUpdatesWithAct();
 
-        // Then it stays on the editor, because an empty collection here means "not loaded", not "no such rule"
-        expect(screen.getByTestId('EditMerchantRulePage')).toBeOnTheScreen();
+        // Then it holds on a loader, because an empty collection here means "not loaded", not "no such rule", and a
+        // form filled in now would save over the rule the link points at
+        expect(screen.getByTestId('EditMerchantRulePageLoading')).toBeOnTheScreen();
+        expect(screen.queryByTestId('EditMerchantRulePage')).toBeNull();
         readSpy.mockRestore();
     });
 
