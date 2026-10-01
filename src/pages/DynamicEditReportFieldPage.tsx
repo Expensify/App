@@ -4,7 +4,6 @@ import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWith
 import HeaderThreeDotsMenu from '@components/Header/primitives/HeaderThreeDotsMenu';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {useSession} from '@components/OnyxListItemProvider';
-import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -165,20 +164,7 @@ function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
         }
     };
 
-    const menuItems: PopoverMenuItem[] = [];
-
     const isReportFieldDeletable = reportField.deletable && reportField?.fieldID !== CONST.REPORT_FIELD_TITLE_FIELD_ID;
-
-    if (isReportFieldDeletable) {
-        menuItems.push({
-            icon: icons.Trashcan,
-            text: translate('common.delete'),
-            onSelected: () => {
-                handleReportFieldDelete();
-            },
-            shouldCallAfterModalHide: true,
-        });
-    }
 
     const fieldName = Str.UCFirst(reportField.name);
 
@@ -192,7 +178,20 @@ function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
                 title={fieldName}
                 onBackButtonPress={goBack}
             >
-                {!!menuItems?.length && <HeaderThreeDotsMenu items={menuItems} />}
+                {isReportFieldDeletable && (
+                    <HeaderThreeDotsMenu
+                        items={[
+                            {
+                                icon: icons.Trashcan,
+                                text: translate('common.delete'),
+                                onSelected: () => {
+                                    handleReportFieldDelete();
+                                },
+                                shouldCallAfterModalHide: true,
+                            },
+                        ]}
+                    />
+                )}
             </HeaderWithBackButtonAndTitle>
 
             {(reportField.type === CONST.REPORT_FIELD_TYPES.TEXT || isReportFieldTitle) && (
