@@ -1,6 +1,6 @@
 import {act, render} from '@testing-library/react-native';
 
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginProvider';
 import SelectionList from '@components/SelectionList';
 
@@ -26,7 +26,15 @@ import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-jest.mock('@components/HeaderWithBackButton', () => jest.fn(() => null));
+jest.mock('@components/Header', () => {
+    const ComposedHeader = jest.fn(({children}: PropsWithChildren) => children);
+    const BackButton = jest.fn(() => null);
+    const Title = jest.fn(() => null);
+
+    Object.assign(ComposedHeader, {BackButton, Title});
+
+    return {__esModule: true, default: ComposedHeader};
+});
 jest.mock('@components/ScreenWrapper', () => jest.fn(({children}: PropsWithChildren) => children));
 jest.mock('@components/SelectionList', () => jest.fn(() => null));
 jest.mock('@components/SelectionList/ListItem/SingleSelectListItem', () => jest.fn(() => null));
@@ -54,8 +62,8 @@ type MockSelectionListProps = {
     onSelectRow?: (item: MockWorkArrangementOption) => void;
 };
 
-type MockHeaderWithBackButtonProps = {
-    onBackButtonPress?: () => void;
+type MockHeaderBackButtonProps = {
+    onPress?: () => void;
 };
 
 type WorkArrangementPageTestProps = React.ComponentProps<typeof WorkArrangementPage> & {policy: Policy; personalDetails: PersonalDetailsList};
@@ -65,7 +73,7 @@ describe('WorkArrangementPage', () => {
     const accountID = 12345;
     const memberLogin = 'member@example.com';
     const personalDetails: PersonalDetailsList = {[accountID]: createMock<PersonalDetails>({accountID, login: memberLogin})};
-    const mockedHeader = jest.mocked(HeaderWithBackButton);
+    const mockedHeaderBackButton = jest.mocked(Header.BackButton);
     const policy = {
         id: policyID,
         employeeList: {[memberLogin]: {email: memberLogin}},
@@ -236,9 +244,9 @@ describe('WorkArrangementPage', () => {
         expect(getSelectionListProps()).toBeDefined();
 
         // And the admin presses back
-        const headerProps = mockedHeader.mock.lastCall?.[0] as MockHeaderWithBackButtonProps | undefined;
+        const headerProps = mockedHeaderBackButton.mock.lastCall?.[0] as MockHeaderBackButtonProps | undefined;
         act(() => {
-            headerProps?.onBackButtonPress?.();
+            headerProps?.onPress?.();
         });
 
         // Then navigation targets the member profile with the synced account ID

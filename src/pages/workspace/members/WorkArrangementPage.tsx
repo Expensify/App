@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -129,10 +129,10 @@ function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPa
                 testID="WorkArrangementPage"
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.people.workArrangementPage.title')}
-                    onBackButtonPress={navigateBackToDetails}
-                />
+                <Header>
+                    <Header.BackButton onPress={navigateBackToDetails} />
+                    <Header.Title title={translate('workspace.people.workArrangementPage.title')} />
+                </Header>
                 <View style={[styles.flex1]}>
                     <SelectionList
                         ListItem={SingleSelectListItem}
