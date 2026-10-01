@@ -1,8 +1,7 @@
-import {clearMoneyRequest, clearMoneyRequestAmount} from '@libs/actions/IOU/MoneyRequest';
+import {clearQuickActionDraft, clearQuickActionDraftAmount} from '@libs/actions/IOU/QuickActionDraft';
 import {hasAuthToken} from '@libs/actions/Session';
 import subscribe from '@libs/Navigation/linkingConfig/subscribe';
 
-import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import {Linking} from 'react-native';
@@ -11,9 +10,9 @@ jest.mock('@libs/actions/Session', () => ({
     hasAuthToken: jest.fn(),
 }));
 
-jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
-    clearMoneyRequest: jest.fn(),
-    clearMoneyRequestAmount: jest.fn(),
+jest.mock('@libs/actions/IOU/QuickActionDraft', () => ({
+    clearQuickActionDraft: jest.fn(),
+    clearQuickActionDraftAmount: jest.fn(),
 }));
 
 // subscribe() only reads the ref to resolve the focused screen for its skip rules. It stays empty unless a
@@ -24,8 +23,8 @@ jest.mock('@libs/Navigation/navigationRef', () => ({
 }));
 
 const mockedHasAuthToken = jest.mocked(hasAuthToken);
-const mockedClearMoneyRequest = jest.mocked(clearMoneyRequest);
-const mockedClearMoneyRequestAmount = jest.mocked(clearMoneyRequestAmount);
+const mockedClearQuickActionDraft = jest.mocked(clearQuickActionDraft);
+const mockedClearQuickActionDraftAmount = jest.mocked(clearQuickActionDraftAmount);
 const mockedNavigationRef = jest.requireMock<{default: {current: unknown}}>('@libs/Navigation/navigationRef').default;
 
 /**
@@ -139,7 +138,7 @@ describe('linkingConfig subscribe', () => {
             const listener = deliverDeepLink(url);
 
             // Then the old draft is removed so the screen builds a fresh one, and the link still navigates
-            expect(mockedClearMoneyRequest).toHaveBeenCalledWith(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, [CONST.IOU.OPTIMISTIC_TRANSACTION_ID]);
+            expect(mockedClearQuickActionDraft).toHaveBeenCalledTimes(1);
             expect(listener).toHaveBeenCalledWith(url);
         });
 
@@ -155,7 +154,7 @@ describe('linkingConfig subscribe', () => {
             const listener = deliverDeepLink(url);
 
             // Then the draft is left alone and the link is forwarded
-            expect(mockedClearMoneyRequest).not.toHaveBeenCalled();
+            expect(mockedClearQuickActionDraft).not.toHaveBeenCalled();
             expect(listener).toHaveBeenCalledWith(url);
         });
 
@@ -168,8 +167,8 @@ describe('linkingConfig subscribe', () => {
 
             // Then the link is still dropped to avoid re-navigating, but the old amount is cleared
             expect(listener).not.toHaveBeenCalled();
-            expect(mockedClearMoneyRequestAmount).toHaveBeenCalledWith(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
-            expect(mockedClearMoneyRequest).not.toHaveBeenCalled();
+            expect(mockedClearQuickActionDraftAmount).toHaveBeenCalledTimes(1);
+            expect(mockedClearQuickActionDraft).not.toHaveBeenCalled();
         });
 
         it('keeps the draft when the scan tab is already open', () => {
@@ -181,8 +180,8 @@ describe('linkingConfig subscribe', () => {
 
             // Then the link is dropped and the draft is not touched, since there is no amount on screen to clear
             expect(listener).not.toHaveBeenCalled();
-            expect(mockedClearMoneyRequestAmount).not.toHaveBeenCalled();
-            expect(mockedClearMoneyRequest).not.toHaveBeenCalled();
+            expect(mockedClearQuickActionDraftAmount).not.toHaveBeenCalled();
+            expect(mockedClearQuickActionDraft).not.toHaveBeenCalled();
         });
     });
 });

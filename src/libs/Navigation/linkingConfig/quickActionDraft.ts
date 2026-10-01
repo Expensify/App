@@ -1,4 +1,4 @@
-import {clearMoneyRequest, clearMoneyRequestAmount} from '@libs/actions/IOU/MoneyRequest';
+import {clearQuickActionDraft, clearQuickActionDraftAmount} from '@libs/actions/IOU/QuickActionDraft';
 
 import CONST from '@src/CONST';
 
@@ -23,7 +23,7 @@ function clearDraftForQuickActionLink(url: string) {
     if (!isQuickActionCreateLink(url)) {
         return;
     }
-    clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, [CONST.IOU.OPTIMISTIC_TRANSACTION_ID]);
+    clearQuickActionDraft();
 }
 
 /**
@@ -34,7 +34,7 @@ function clearAmountForQuickActionLink(url: string) {
     if (!isQuickActionCreateLink(url)) {
         return;
     }
-    clearMoneyRequestAmount(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
+    clearQuickActionDraftAmount();
 }
 
-export {isQuickActionCreateLink, clearDraftForQuickActionLink, clearAmountForQuickActionLink};
+export {clearDraftForQuickActionLink, clearAmountForQuickActionLink};
