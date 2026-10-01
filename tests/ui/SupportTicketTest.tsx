@@ -121,6 +121,28 @@ describe('Support tickets', () => {
         });
     });
 
+    it('uses the support rep email when their display name is unavailable', async () => {
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [SUPPORT_REP_ACCOUNT_ID]: {
+                    accountID: SUPPORT_REP_ACCOUNT_ID,
+                    displayName: '',
+                    login: 'support.rep@expensify.com',
+                },
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderSupportTicketView();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(
+            screen.getByText(
+                "Hi, I'm support.rep@expensify.com, and I'll work with you until this is fully resolved. If you've already shared details with us, I'll review them before responding so you don't need to repeat yourself. If this is a new issue, let me know what you need help with.",
+            ),
+        ).toBeOnTheScreen();
+    });
+
     it('uses the derived title in the preview and keeps the checkbox press in place', async () => {
         // Given a support ticket whose derived title is localized
         await act(async () => {

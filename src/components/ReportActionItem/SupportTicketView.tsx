@@ -31,7 +31,8 @@ function SupportTicketView({report, action}: SupportTicketViewProps) {
     const styles = useThemeStyles();
     const personalDetails = usePersonalDetails();
     const isResolved = isResolvedSupportTicket(report, action);
-    const supportRepFirstName = personalDetails?.[report?.managerID ?? CONST.DEFAULT_NUMBER_ID]?.firstName ?? '';
+    const supportRepPersonalDetails = personalDetails?.[report?.managerID ?? CONST.DEFAULT_NUMBER_ID];
+    const supportRepName = supportRepPersonalDetails?.displayName ? (supportRepPersonalDetails.firstName ?? supportRepPersonalDetails.displayName) : (supportRepPersonalDetails?.login ?? '');
 
     const dismissSupportTicket = () => {
         if (!report?.reportID || !report.parentReportID || !report.parentReportActionID) {
@@ -68,7 +69,7 @@ function SupportTicketView({report, action}: SupportTicketViewProps) {
                             />
                         </View>
                     </Tooltip>
-                    <Text style={[styles.ml3, styles.flex1]}>{translate('supportTicket.description', {supportRep: supportRepFirstName})}</Text>
+                    <Text style={[styles.ml3, styles.flex1]}>{translate('supportTicket.description', {supportRep: supportRepName})}</Text>
                 </View>
             </View>
         </OfflineWithFeedback>
