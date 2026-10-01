@@ -59,7 +59,6 @@ import {
     isManualDistanceRequest,
     isOdometerDistanceRequest,
     isOnHold,
-    isSplitContainerTransaction,
     shouldClearConvertedAmount,
     waypointHasValidAddress,
 } from '@libs/TransactionUtils';
@@ -92,12 +91,10 @@ import type TransactionState from '@src/types/utils/TransactionStateType';
 
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 
-import {originalTransactionIDSelector} from '@selectors/Transaction';
 import {getUnixTime} from 'date-fns';
 import lodashClone from 'lodash/clone';
 import Onyx from 'react-native-onyx';
 
-import {getAllTransactions} from './IOU';
 import {getSearchOnyxUpdate} from './IOU/SearchUpdate';
 
 type SaveWaypointProps = {
@@ -737,11 +734,9 @@ function clearError(transactionID: string) {
  * Clears a transaction's error and, when it is a split child whose original is still the hidden split
  * container (`SPLIT_REPORT_ID`), clears the original's error too
  */
-function clearErrorWithOriginalTransactionError(transactionID: string) {
+function clearErrorWithOriginalTransactionError(transactionID: string, originalTransactionID: string | undefined, isOriginalTransactionSplitContainer: boolean | undefined) {
     clearError(transactionID);
-    const transactions = getAllTransactions();
-    const originalTransactionID = originalTransactionIDSelector(transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]);
-    if (!originalTransactionID || !isSplitContainerTransaction(transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`])) {
+    if (!originalTransactionID || !isOriginalTransactionSplitContainer) {
         return;
     }
     clearError(originalTransactionID);
@@ -913,6 +908,7 @@ function getChangeTransactionsReportOnyxData({
 
     const transactionIDToReportActionAndThreadData: Record<string, TransactionThreadInfo> = {};
     const updatedReportTotals: Record<string, number> = {};
+    const updatedReportUnheldTotals: Record<string, number> = {};
     const updatedReportTransactionCounts: Record<string, number> = {};
     const updatedReportNonReimbursableTotals: Record<string, number> = {};
     const updatedReportUnheldNonReimbursableTotals: Record<string, number> = {};
@@ -1085,6 +1081,7 @@ function getChangeTransactionsReportOnyxData({
     };
     const clearAccumulatedReportTotals = (reportIDToUpdate: string) => {
         delete updatedReportTotals[reportIDToUpdate];
+        delete updatedReportUnheldTotals[reportIDToUpdate];
         delete updatedReportNonReimbursableTotals[reportIDToUpdate];
         delete updatedReportUnheldNonReimbursableTotals[reportIDToUpdate];
         delete updatedReportReimbursableTotals[reportIDToUpdate];
@@ -1453,6 +1450,7 @@ function getChangeTransactionsReportOnyxData({
             if (willBeEmpty) {
                 clearStaleReportState(oldReportID);
                 updatedReportTotals[oldReportID] = 0;
+                updatedReportUnheldTotals[oldReportID] = 0;
                 updatedReportNonReimbursableTotals[oldReportID] = 0;
                 updatedReportUnheldNonReimbursableTotals[oldReportID] = 0;
                 updatedReportStateNums[oldReportID] = CONST.REPORT.STATE_NUM.OPEN;
@@ -1462,6 +1460,14 @@ function getChangeTransactionsReportOnyxData({
             } else if (oldReport.currency === sourceTransactionCurrency) {
                 const currentTotal = updatedReportTotals[oldReportID] ?? oldReportTotal;
                 updatedReportTotals[oldReportID] = currentTotal + sourceTransactionAmount;
+
+                // `unheldTotal` only tracks transactions that are not on hold, so a held expense leaving the report
+                // does not change it. `getNonHeldAndFullAmount` reads it in preference to the derived sum, so it is
+                // only updated when already set; writing it for a report that lacks it would replace the derived sum.
+                const currentUnheldTotal = updatedReportUnheldTotals[oldReportID] ?? oldReport?.unheldTotal;
+                if (typeof currentUnheldTotal === 'number') {
+                    updatedReportUnheldTotals[oldReportID] = currentUnheldTotal + (!isOnHold(transaction) ? sourceTransactionAmount : 0);
+                }
 
                 const currentNonReimbursableTotal = updatedReportNonReimbursableTotals[oldReportID] ?? oldReport?.nonReimbursableTotal ?? 0;
                 updatedReportNonReimbursableTotals[oldReportID] = currentNonReimbursableTotal + (transaction?.reimbursable ? 0 : sourceTransactionAmount);
@@ -1492,6 +1498,11 @@ function getChangeTransactionsReportOnyxData({
                 const currentTotal = updatedReportTotals[targetReportID] ?? targetReport?.total ?? 0;
                 updatedReportTotals[targetReportID] = currentTotal - targetTransactionAmount;
 
+                const currentUnheldTotal = updatedReportUnheldTotals[targetReportID] ?? targetReport?.unheldTotal;
+                if (typeof currentUnheldTotal === 'number') {
+                    updatedReportUnheldTotals[targetReportID] = currentUnheldTotal - (!isOnHold(transaction) ? targetTransactionAmount : 0);
+                }
+
                 const currentNonReimbursableTotal = updatedReportNonReimbursableTotals[targetReportID] ?? targetReport?.nonReimbursableTotal ?? 0;
                 updatedReportNonReimbursableTotals[targetReportID] = currentNonReimbursableTotal - (transactionReimbursable ? 0 : targetTransactionAmount);
 
@@ -1509,6 +1520,11 @@ function getChangeTransactionsReportOnyxData({
                 const {convertedAmount} = transactionForViolations;
                 const currentTotal = updatedReportTotals[targetReportID] ?? targetReport?.total ?? 0;
                 updatedReportTotals[targetReportID] = currentTotal + convertedAmount;
+
+                const currentUnheldTotal = updatedReportUnheldTotals[targetReportID] ?? targetReport?.unheldTotal;
+                if (typeof currentUnheldTotal === 'number') {
+                    updatedReportUnheldTotals[targetReportID] = currentUnheldTotal + (!isOnHold(transaction) ? convertedAmount : 0);
+                }
 
                 const currentNonReimbursableTotal = updatedReportNonReimbursableTotals[targetReportID] ?? targetReport?.nonReimbursableTotal ?? 0;
                 updatedReportNonReimbursableTotals[targetReportID] = currentNonReimbursableTotal + (transactionReimbursable ? 0 : convertedAmount);
@@ -1604,6 +1620,7 @@ function getChangeTransactionsReportOnyxData({
                 key: `${ONYXKEYS.COLLECTION.REPORT}${newIOUAction.childReportID}`,
                 value: {
                     parentReportID: targetReportID,
+                    chatReportID: targetReportID,
                     parentReportActionID: optimisticMoneyRequestReportActionID,
                     policyID: reportID !== CONST.REPORT.UNREPORTED_REPORT_ID && newReport ? newReport.policyID : CONST.POLICY.ID_FAKE,
                     participants: isUnreported && shouldRemoveOtherParticipants ? {[accountID]: participants?.[accountID]} : participants,
@@ -1617,6 +1634,7 @@ function getChangeTransactionsReportOnyxData({
                 key: `${ONYXKEYS.COLLECTION.REPORT}${oldIOUAction.childReportID}`,
                 value: {
                     parentReportID: isUnreportedExpense ? selfDMReportID : oldReportID,
+                    chatReportID: reports?.[`${ONYXKEYS.COLLECTION.REPORT}${oldIOUAction.childReportID}`]?.chatReportID,
                     parentReportActionID: oldIOUAction.reportActionID,
                     policyID: reports?.[`${ONYXKEYS.COLLECTION.REPORT}${oldIOUAction.childReportID}`]?.policyID,
                 },
@@ -1826,6 +1844,22 @@ function getChangeTransactionsReportOnyxData({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
             value: {total: reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.total},
+        });
+    }
+    for (const [reportIDToUpdate, unheldTotal] of Object.entries(updatedReportUnheldTotals)) {
+        if (skippedReportIDsSet.has(reportIDToUpdate)) {
+            continue;
+        }
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
+            value: {unheldTotal},
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
+            value: {unheldTotal: reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.unheldTotal},
         });
     }
     for (const [reportIDToUpdate, transactionCount] of Object.entries(updatedReportTransactionCounts)) {
@@ -2070,6 +2104,7 @@ function getChangeTransactionsReportOnyxData({
         transactionIDToReportActionAndThreadData,
         transactionIDToUpdatedCustomUnitRateID,
         updatedReportTotals,
+        updatedReportUnheldTotals,
         updatedReportTransactionCounts,
         updatedReportNonReimbursableTotals,
         updatedReportUnheldNonReimbursableTotals,
@@ -2201,8 +2236,8 @@ function getDefaultP2PMileageRate() {
     API.read(READ_COMMANDS.GET_DEFAULT_P2P_MILEAGE_RATE, null);
 }
 
-function mergeTransactionIdsHighlightOnSearchRoute(type: SearchDataTypes, data: Record<string, boolean> | null) {
-    return Onyx.merge(ONYXKEYS.TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE, {[type]: data});
+function mergeExpenseAddedGrowlTransactionIDs(data: Record<string, SearchDataTypes | null>) {
+    return Onyx.merge(ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS, data);
 }
 
 function getDuplicateTransactionDetails(transactionID?: string) {
@@ -2240,7 +2275,7 @@ export {
     getChangeTransactionsReportOnyxData,
     setTransactionReport,
     getDefaultP2PMileageRate,
-    mergeTransactionIdsHighlightOnSearchRoute,
+    mergeExpenseAddedGrowlTransactionIDs,
     getDuplicateTransactionDetails,
     setSelectedRoute,
 };
