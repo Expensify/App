@@ -12,13 +12,16 @@ import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 
-import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import type {SettingsNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
+import WorkspaceMembersRolePage from '@pages/workspace/members/WorkspaceMembersRolePage';
 import WorkspaceMembersPage from '@pages/workspace/WorkspaceMembersPage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+
+import type {ValueOf} from 'type-fest';
 
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
@@ -48,6 +51,26 @@ const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.MEMBERS, initialP
                             initialParams={initialParams}
                         />
                     </Stack.Navigator>
+                </NavigationContainer>
+            </PortalProvider>
+        </ComposeProviders>,
+    );
+};
+
+const RoleStack = createPlatformStackNavigator<SettingsNavigatorParamList>();
+
+const renderRolePage = (policyID: string) => {
+    return render(
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider, CurrentReportIDContextProvider, ModalProvider]}>
+            <PortalProvider>
+                <NavigationContainer>
+                    <RoleStack.Navigator initialRouteName={SCREENS.WORKSPACE.MEMBERS_ROLE}>
+                        <RoleStack.Screen
+                            name={SCREENS.WORKSPACE.MEMBERS_ROLE}
+                            component={WorkspaceMembersRolePage}
+                            initialParams={{policyID}}
+                        />
+                    </RoleStack.Navigator>
                 </NavigationContainer>
             </PortalProvider>
         </ComposeProviders>,
@@ -94,7 +117,6 @@ describe('WorkspaceMembers', () => {
     const selfAccountID = 1206;
     const selfEmail = 'test@example.com';
     const ADMIN_OPTION = 'Admin User';
-    const AUDITOR_OPTION = 'Auditor User';
     const USER_OPTION = 'Member User';
     const policy = {
         ...LHNTestUtils.getFakePolicy(),
@@ -147,161 +169,34 @@ describe('WorkspaceMembers', () => {
     });
 
     describe('Changing roles options', () => {
-        it('should show Make member/auditor/card admin when admin is selected', async () => {
+        it('should offer one Change role action instead of one action per role', async () => {
+            // Given the members page with an admin selected
             const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
             await waitForBatchedUpdatesWithAct();
 
-            // Wait for initial render and verify members are visible
             await waitFor(() => {
                 expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
             });
 
-            // Select admin option by clicking the checkbox
             selectCheckboxByMemberName('Admin');
 
-            // Open the actions the bar moved behind "More", so every action the selection supports is on screen
+            // When the actions the bar moved behind "More" are opened
             await openBulkActions();
 
-            // Find and verify the "Make member" action
-            const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember', {count: 1});
-            expect(screen.getByText(makeMemberText)).toBeOnTheScreen();
-
-            // Find and verify the "Make auditor" action
-            const makeAuditorText = TestHelper.translateLocal('workspace.people.makeAuditor', {count: 1});
-            expect(screen.getByText(makeAuditorText)).toBeOnTheScreen();
-
-            // Find and verify the "Make card admin" action
-            const makeCardAdminText = TestHelper.translateLocal('workspace.people.makeCardAdmin', {count: 1});
-            expect(screen.getByText(makeCardAdminText)).toBeOnTheScreen();
-
-            // Find and verify the "Make admin" action is not present
-            const makeAdminText = TestHelper.translateLocal('workspace.people.makeAdmin', {count: 1});
-            expect(screen.queryByText(makeAdminText)).not.toBeOnTheScreen();
+            // Then the bar offers Change role alongside Remove, and none of the per-role actions it replaced
+            expect(screen.getByText(TestHelper.translateLocal('workspace.people.changeRole'))).toBeOnTheScreen();
+            expect(screen.getByText(TestHelper.translateLocal('workspace.people.removeMembersTitle', {count: 1}))).toBeOnTheScreen();
+            expect(screen.queryByText(TestHelper.translateLocal('workspace.people.makeMember', {count: 1}))).not.toBeOnTheScreen();
+            expect(screen.queryByText(TestHelper.translateLocal('workspace.people.makeAdmin', {count: 1}))).not.toBeOnTheScreen();
 
             unmount();
             await waitForBatchedUpdatesWithAct();
         });
 
-        it('should show Make admin/auditor/card admin when member is selected', async () => {
-            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
-            await waitForBatchedUpdatesWithAct();
-
-            // Wait for initial render and verify members are visible
-            await waitFor(() => {
-                expect(screen.getByText(USER_OPTION)).toBeOnTheScreen();
-            });
-
-            // Select member option by clicking the checkbox
-            selectCheckboxByMemberName('Member');
-
-            // Open the actions the bar moved behind "More", so every action the selection supports is on screen
-            await openBulkActions();
-
-            // Find and verify the "Make admin" action
-            const makeAdminText = TestHelper.translateLocal('workspace.people.makeAdmin', {count: 1});
-            expect(screen.getByText(makeAdminText)).toBeOnTheScreen();
-
-            // Find and verify the "Make auditor" action
-            const makeAuditorText = TestHelper.translateLocal('workspace.people.makeAuditor', {count: 1});
-            expect(screen.getByText(makeAuditorText)).toBeOnTheScreen();
-
-            // Find and verify the "Make card admin" action
-            const makeCardAdminText = TestHelper.translateLocal('workspace.people.makeCardAdmin', {count: 1});
-            expect(screen.getByText(makeCardAdminText)).toBeOnTheScreen();
-
-            // Find and verify the "Make member" action is not present
-            const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember', {count: 1});
-            expect(screen.queryByText(makeMemberText)).not.toBeOnTheScreen();
-
-            unmount();
-            await waitForBatchedUpdatesWithAct();
-        });
-
-        it('should show Make member/admin/card admin when auditor is selected', async () => {
-            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
-            await waitForBatchedUpdatesWithAct();
-
-            // Wait for initial render and verify members are visible
-            await waitFor(() => {
-                expect(screen.getByText(AUDITOR_OPTION)).toBeOnTheScreen();
-            });
-
-            // Select auditor option by clicking the checkbox
-            selectCheckboxByMemberName('Auditor');
-
-            // Open the actions the bar moved behind "More", so every action the selection supports is on screen
-            await openBulkActions();
-
-            // Find and verify the "Make member" action
-            const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember', {count: 1});
-            expect(screen.getByText(makeMemberText)).toBeOnTheScreen();
-
-            // Find and verify the "Make admin" action
-            const makeAdminText = TestHelper.translateLocal('workspace.people.makeAdmin', {count: 1});
-            expect(screen.getByText(makeAdminText)).toBeOnTheScreen();
-
-            // Find and verify the "Make card admin" action
-            const makeCardAdminText = TestHelper.translateLocal('workspace.people.makeCardAdmin', {count: 1});
-            expect(screen.getByText(makeCardAdminText)).toBeOnTheScreen();
-
-            // Find and verify the "Make auditor" action is not present
-            const makeAuditorText = TestHelper.translateLocal('workspace.people.makeAuditor', {count: 1});
-            expect(screen.queryByText(makeAuditorText)).not.toBeOnTheScreen();
-
-            unmount();
-            await waitForBatchedUpdatesWithAct();
-        });
-
-        it('should show Make member/admin/auditor/card admin when mix is selected', async () => {
-            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
-            await waitForBatchedUpdatesWithAct();
-
-            // Wait for initial render and verify members are visible
-            await waitFor(() => {
-                expect(screen.getByText(AUDITOR_OPTION)).toBeOnTheScreen();
-            });
-            await waitFor(() => {
-                expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
-            });
-
-            // Select options by clicking the checkboxes
-            selectCheckboxByMemberName('Auditor');
-            selectCheckboxByMemberName('Admin');
-
-            // Open the actions the bar moved behind "More", so every action the selection supports is on screen
-            await openBulkActions();
-
-            // Find and verify the "Make members" action (plural form for 2 selected items)
-            const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember', {count: 2});
-            expect(screen.getByText(makeMemberText)).toBeOnTheScreen();
-
-            // Find and verify the "Make admins" action (plural form for 2 selected items)
-            const makeAdminText = TestHelper.translateLocal('workspace.people.makeAdmin', {count: 2});
-            expect(screen.getByText(makeAdminText)).toBeOnTheScreen();
-
-            // Find and verify the "Make auditors" action (plural form for 2 selected items)
-            const makeAuditorText = TestHelper.translateLocal('workspace.people.makeAuditor', {count: 2});
-            expect(screen.getByText(makeAuditorText)).toBeOnTheScreen();
-
-            // Find and verify the "Make card admins" action (plural form for 2 selected items)
-            const makeCardAdminText = TestHelper.translateLocal('workspace.people.makeCardAdmin', {count: 2});
-            expect(screen.getByText(makeCardAdminText)).toBeOnTheScreen();
-
-            unmount();
-            await waitForBatchedUpdatesWithAct();
-        });
-
-        it('should only show member and auditor role actions for People Admin', async () => {
-            const peopleAdminPolicy = {
-                ...policy,
-                role: CONST.POLICY.ROLE.PEOPLE_ADMIN,
-                employeeList: {
-                    ...policy.employeeList,
-                    [selfEmail]: {email: selfEmail, role: CONST.POLICY.ROLE.PEOPLE_ADMIN},
-                },
-            };
+        it('should not offer Change role on a workspace without paid roles', async () => {
+            // Given a Submit workspace, which has no roles to move a member between
             await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, peopleAdminPolicy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {type: CONST.POLICY.TYPE.SUBMIT});
             });
 
             const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
@@ -311,148 +206,97 @@ describe('WorkspaceMembers', () => {
                 expect(screen.getByText(USER_OPTION)).toBeOnTheScreen();
             });
 
+            // When a member is selected and the actions are opened
             selectCheckboxByMemberName('Member');
             await openBulkActions();
 
-            const removeText = TestHelper.translateLocal('workspace.people.removeMembersTitle', {count: 1});
-            expect(screen.getByText(removeText)).toBeOnTheScreen();
-
-            const makeAuditorText = TestHelper.translateLocal('workspace.people.makeAuditor', {count: 1});
-            expect(screen.getByText(makeAuditorText)).toBeOnTheScreen();
-
-            const makeAdminText = TestHelper.translateLocal('workspace.people.makeAdmin', {count: 1});
-            expect(screen.queryByText(makeAdminText)).not.toBeOnTheScreen();
-
-            const makeCardAdminText = TestHelper.translateLocal('workspace.people.makeCardAdmin', {count: 1});
-            expect(screen.queryByText(makeCardAdminText)).not.toBeOnTheScreen();
-
-            const makePeopleAdminText = TestHelper.translateLocal('workspace.people.makePeopleAdmin', {count: 1});
-            expect(screen.queryByText(makePeopleAdminText)).not.toBeOnTheScreen();
+            // Then only Remove is offered
+            expect(screen.getByText(TestHelper.translateLocal('workspace.people.removeMembersTitle', {count: 1}))).toBeOnTheScreen();
+            expect(screen.queryByText(TestHelper.translateLocal('workspace.people.changeRole'))).not.toBeOnTheScreen();
 
             unmount();
             await waitForBatchedUpdatesWithAct();
         });
+    });
 
-        it('should let People Admin make auditors members', async () => {
-            const peopleAdminPolicy = {
-                ...policy,
-                role: CONST.POLICY.ROLE.PEOPLE_ADMIN,
-                employeeList: {
-                    ...policy.employeeList,
-                    [selfEmail]: {email: selfEmail, role: CONST.POLICY.ROLE.PEOPLE_ADMIN},
-                },
-            };
+    describe('Role selection screen', () => {
+        const roleName = (role: ValueOf<typeof CONST.POLICY.ROLE>) => TestHelper.translateLocal('workspace.common.roleName', role);
+        const memberRoleName = () => TestHelper.translateLocal('common.member');
+
+        const selectForRoleChange = async (logins: string[]) => {
             await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, peopleAdminPolicy);
+                await Onyx.set(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_ROLE_CHANGE, logins);
             });
+        };
 
-            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+        it('should offer every role the current member may assign', async () => {
+            // Given an admin selected for a role change on a Control workspace
+            await selectForRoleChange([adminEmail]);
+
+            const {unmount} = renderRolePage(policy.id);
             await waitForBatchedUpdatesWithAct();
 
+            // Then the screen lists all of the Control roles, with the selection's shared role already picked
             await waitFor(() => {
-                expect(screen.getByText(AUDITOR_OPTION)).toBeOnTheScreen();
+                expect(screen.getByText(roleName(CONST.POLICY.ROLE.ADMIN))).toBeOnTheScreen();
             });
-
-            selectCheckboxByMemberName('Auditor');
-            await openBulkActions();
-
-            const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember', {count: 1});
-            expect(screen.getByText(makeMemberText)).toBeOnTheScreen();
-
-            const makeAdminText = TestHelper.translateLocal('workspace.people.makeAdmin', {count: 1});
-            expect(screen.queryByText(makeAdminText)).not.toBeOnTheScreen();
+            expect(screen.getByText(roleName(CONST.POLICY.ROLE.AUDITOR))).toBeOnTheScreen();
+            expect(screen.getByText(roleName(CONST.POLICY.ROLE.CARD_ADMIN))).toBeOnTheScreen();
+            expect(screen.getByText(roleName(CONST.POLICY.ROLE.PEOPLE_ADMIN))).toBeOnTheScreen();
+            expect(screen.getByText(roleName(CONST.POLICY.ROLE.PAYMENTS_ADMIN))).toBeOnTheScreen();
+            expect(screen.getByText(memberRoleName())).toBeOnTheScreen();
 
             unmount();
             await waitForBatchedUpdatesWithAct();
         });
 
-        it('should hide demotions but offer Make payments admin when the selected member is the Authorized Payer resolved via policy.reimburser', async () => {
-            // Given a workspace whose Authorized Payer is an admin configured through policy.reimburser
-            // (the canonical resolution) rather than achAccount.reimburser. Demotions to roles that cannot
-            // pay must stay hidden, but changing to Payments Admin (the other valid payer role) must be offered.
+        it('should only offer member and auditor to a People Admin', async () => {
+            // Given a People Admin, who may assign no role above auditor
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    role: CONST.POLICY.ROLE.PEOPLE_ADMIN,
+                    employeeList: {[selfEmail]: {email: selfEmail, role: CONST.POLICY.ROLE.PEOPLE_ADMIN}},
+                });
+            });
+            await selectForRoleChange([userEmail]);
+
+            const {unmount} = renderRolePage(policy.id);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then only the two roles they may assign are listed
+            await waitFor(() => {
+                expect(screen.getByText(roleName(CONST.POLICY.ROLE.AUDITOR))).toBeOnTheScreen();
+            });
+            expect(screen.getByText(memberRoleName())).toBeOnTheScreen();
+            expect(screen.queryByText(roleName(CONST.POLICY.ROLE.ADMIN))).not.toBeOnTheScreen();
+            expect(screen.queryByText(roleName(CONST.POLICY.ROLE.CARD_ADMIN))).not.toBeOnTheScreen();
+            expect(screen.queryByText(roleName(CONST.POLICY.ROLE.PEOPLE_ADMIN))).not.toBeOnTheScreen();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should only offer the roles that can pay when the selection holds the Authorized Payer', async () => {
+            // Given a selection holding the Authorized Payer, who must stay a valid payer
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
                     reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
                     reimburser: adminEmail,
                 });
             });
+            await selectForRoleChange([adminEmail]);
 
-            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            const {unmount} = renderRolePage(policy.id);
             await waitForBatchedUpdatesWithAct();
 
+            // Then only Admin and Payments Admin are offered, and every role that cannot pay is withheld
             await waitFor(() => {
-                expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
+                expect(screen.getByText(roleName(CONST.POLICY.ROLE.PAYMENTS_ADMIN))).toBeOnTheScreen();
             });
-
-            // When that payer is bulk-selected and the actions dropdown is opened
-            selectCheckboxByMemberName('Admin');
-            await openBulkActions();
-
-            // Then the Remove option is still available
-            const removeText = TestHelper.translateLocal('workspace.people.removeMembersTitle', {count: 1});
-            await waitFor(() => {
-                expect(screen.getByText(removeText)).toBeOnTheScreen();
-            });
-
-            // ...the demotions that would strip the payer of pay capability are hidden
-            const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember', {count: 1});
-            expect(screen.queryByText(makeMemberText)).not.toBeOnTheScreen();
-
-            const makeAuditorText = TestHelper.translateLocal('workspace.people.makeAuditor', {count: 1});
-            expect(screen.queryByText(makeAuditorText)).not.toBeOnTheScreen();
-
-            const makeCardAdminText = TestHelper.translateLocal('workspace.people.makeCardAdmin', {count: 1});
-            expect(screen.queryByText(makeCardAdminText)).not.toBeOnTheScreen();
-
-            // ...but Make payments admin IS offered, since Payments Admin is a valid payer role
-            const makePaymentsAdminText = TestHelper.translateLocal('workspace.people.makePaymentsAdmin', {count: 1});
-            expect(screen.getByText(makePaymentsAdminText)).toBeOnTheScreen();
-
-            unmount();
-            await waitForBatchedUpdatesWithAct();
-        });
-
-        it('should offer Make workspace admin but hide demotions when the selected member is a Payments Admin who is the Authorized Payer', async () => {
-            // Given a Payments Admin who is also the Authorized Payer. Admin and Payments Admin are both valid
-            // payer roles, so promoting this payer to Admin keeps them a valid payer and must be offered.
-            // Every demotion to a role that cannot pay (Member, Auditor, Card Admin) stays gated on the payer.
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
-                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
-                    reimburser: userEmail,
-                    employeeList: {
-                        [userEmail]: {email: userEmail, role: CONST.POLICY.ROLE.PAYMENTS_ADMIN},
-                    },
-                });
-            });
-
-            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
-            await waitForBatchedUpdatesWithAct();
-
-            await waitFor(() => {
-                expect(screen.getByText(USER_OPTION)).toBeOnTheScreen();
-            });
-
-            // When that payer is bulk-selected and the actions dropdown is opened
-            selectCheckboxByMemberName('Member');
-            await openBulkActions();
-
-            // Then the Remove option is still available
-            const removeText = TestHelper.translateLocal('workspace.people.removeMembersTitle', {count: 1});
-            await waitFor(() => {
-                expect(screen.getByText(removeText)).toBeOnTheScreen();
-            });
-
-            // ...and "Make workspace admin" IS offered, since Admin is a valid payer role
-            const makeAdminText = TestHelper.translateLocal('workspace.people.makeAdmin', {count: 1});
-            expect(screen.getByText(makeAdminText)).toBeOnTheScreen();
-
-            // ...but the demotions that would strip the payer of pay capability stay hidden
-            const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember', {count: 1});
-            expect(screen.queryByText(makeMemberText)).not.toBeOnTheScreen();
-
-            const makeAuditorText = TestHelper.translateLocal('workspace.people.makeAuditor', {count: 1});
-            expect(screen.queryByText(makeAuditorText)).not.toBeOnTheScreen();
+            expect(screen.getByText(roleName(CONST.POLICY.ROLE.ADMIN))).toBeOnTheScreen();
+            expect(screen.queryByText(memberRoleName())).not.toBeOnTheScreen();
+            expect(screen.queryByText(roleName(CONST.POLICY.ROLE.AUDITOR))).not.toBeOnTheScreen();
+            expect(screen.queryByText(roleName(CONST.POLICY.ROLE.CARD_ADMIN))).not.toBeOnTheScreen();
 
             unmount();
             await waitForBatchedUpdatesWithAct();
@@ -545,22 +389,35 @@ describe('WorkspaceMembers', () => {
         });
 
         it('should show the unable-to-change-role modal when demoting a RuleBot enforcing agent rules', async () => {
+            // Given the RuleBot selected for a role change
             await makeAdminTheRuleBot();
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_ROLE_CHANGE, [adminEmail]);
+            });
 
-            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            const {unmount} = renderRolePage(policy.id);
             await waitForBatchedUpdatesWithAct();
 
-            await selectAdminAndOpenBulkActions();
-
-            const makeMemberMenuItem = screen.getByText(TestHelper.translateLocal('workspace.people.makeMember', {count: 1}));
-            fireEvent.press(makeMemberMenuItem, {
+            // When a role below admin is picked and saved
+            const memberRow = await screen.findByText(TestHelper.translateLocal('common.member'));
+            fireEvent.press(memberRow, {
                 nativeEvent: {},
                 type: 'press',
-                target: makeMemberMenuItem,
-                currentTarget: makeMemberMenuItem,
+                target: memberRow,
+                currentTarget: memberRow,
             });
             await waitForBatchedUpdatesWithAct();
 
+            const saveButton = screen.getByText(TestHelper.translateLocal('common.save'));
+            fireEvent.press(saveButton, {
+                nativeEvent: {},
+                type: 'press',
+                target: saveButton,
+                currentTarget: saveButton,
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the role change is refused with the agent rules modal
             await waitFor(() => {
                 expect(screen.getByText(TestHelper.translateLocal('workspace.rules.agentRules.unableToChangeRoleTitle'))).toBeOnTheScreen();
             });

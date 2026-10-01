@@ -7390,6 +7390,7 @@ const translations = {
             removeMemberPrompt: (memberName: string) => `Are you sure you want to remove ${memberName}?`,
             removeMemberTitle: 'Remove member',
             transferOwner: 'Transfer owner',
+            changeRole: 'Change role',
             makeMember: () => ({
                 one: 'Make member',
                 other: 'Make members',

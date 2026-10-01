@@ -1144,6 +1144,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE]: {
                             path: ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.route,
                         },
+                        [SCREENS.WORKSPACE.MEMBERS_ROLE]: {
+                            path: ROUTES.WORKSPACE_MEMBERS_ROLE.route,
+                        },
                         [SCREENS.WORKSPACE.MEMBER_WORK_ARRANGEMENT]: {
                             path: ROUTES.WORKSPACE_MEMBER_WORK_ARRANGEMENT.route,
                         },
