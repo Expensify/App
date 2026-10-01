@@ -4813,12 +4813,13 @@ const translations = {
         },
         nudge: {
             airfareManual:
-                'Did you know you can book and manage flights right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Book your next flight through <a href="https://travel.expensify.com">Expensify Travel</a> using your own frequent-flyer account. Keep earning miles and enjoying your status benefits, and we’ll automatically create your expense, too. ✈️',
             airfareCard:
-                'Did you know you can book and manage flights right in Expensify? And it automatically uploads receipts for you? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Book your next flight through <a href="https://travel.expensify.com">Expensify Travel</a> using your own frequent-flyer account. Keep earning miles and enjoying your status benefits, and we’ll automatically create your expense, too. ✈️',
             hotelManual:
-                'Did you know you can book and manage hotel stays right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
-            hotelCard: 'Did you know you can book and manage hotel stays right in Expensify? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Book your next hotel stay through <a href="https://travel.expensify.com">Expensify Travel</a> using your own hotel loyalty account. Keep earning points and enjoying your status benefits, and we’ll automatically create your expense, too. 🏨',
+            hotelCard:
+                'Book your next hotel stay through <a href="https://travel.expensify.com">Expensify Travel</a> using your own hotel loyalty account. Keep earning points and enjoying your status benefits, and we’ll automatically create your expense, too. 🏨',
             hotelBlockManual:
                 'Did you know you can book and manage group trips like this right in Expensify? Save yourself the hassle next time and try out our <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> tool.',
             hotelBlockCard:
