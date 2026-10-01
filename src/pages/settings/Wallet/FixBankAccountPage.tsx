@@ -8,6 +8,7 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -55,6 +56,8 @@ function FixBankAccountPage() {
     const isLoading = !!bankAccount?.pendingFields?.accountData;
     const resendErrorMessage = getLatestErrorMessage(bankAccount);
     const didSend = hasSubmitted && !isLoading && !isValidationFailed && !resendErrorMessage;
+
+    useAccessibilityAnnouncement(translate('walletPage.fixBankAccount.successTitle'), didSend, {shouldAnnounceOnNative: true, shouldAnnounceOnWeb: true});
 
     // Clear stale errors when the RHP unmounts so the next open starts clean.
     useEffect(
