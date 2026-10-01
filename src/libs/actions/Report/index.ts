@@ -137,6 +137,7 @@ import {
     getChildReportNotificationPreference,
     getDefaultNotificationPreferenceForReport,
     getLastVisibleMessage,
+    getNegatedReportTotals,
     getNextApproverAccountID,
     getOptimisticDataForAncestors,
     getOriginalReportID,
@@ -7659,7 +7660,7 @@ function convertIOUReportToExpenseReport(
         policyName: policy.name,
         parentReportID: optimisticPolicyExpenseChatReportID,
         type: CONST.REPORT.TYPE.EXPENSE,
-        total: -(iouReport?.total ?? 0),
+        ...getNegatedReportTotals(iouReport),
     };
 
     const nextApproverAccountID = getNextApproverAccountID(iouReport, rules, true);
@@ -8318,6 +8319,7 @@ function buildOptimisticChangePolicyData({
     // Only include transactions that match the destination currency (their amounts can be used directly)
     if (sourceCurrency && destinationCurrency && sourceCurrency !== destinationCurrency) {
         let newTotal = 0;
+        let newUnheldTotal = 0;
         let newNonReimbursableTotal = 0;
         let newUnheldNonReimbursableTotal = 0;
         let newReimbursableTotal = 0;
@@ -8330,6 +8332,12 @@ function buildOptimisticChangePolicyData({
             if (transactionCurrency === destinationCurrency) {
                 const transactionAmount = getAmount(transaction, true);
                 newTotal -= transactionAmount;
+                // `unheldTotal` is the signed sum of the transactions that are not on hold, so it has to be
+                // recomputed here too. `getNonHeldAndFullAmount` prefers it over the derived sum, so leaving the
+                // old-currency value behind would show the hold and Pay amounts in the source currency.
+                if (!isOnHold(transaction)) {
+                    newUnheldTotal -= transactionAmount;
+                }
                 if (!transaction.reimbursable) {
                     newNonReimbursableTotal -= transactionAmount;
                 } else {
@@ -8350,6 +8358,7 @@ function buildOptimisticChangePolicyData({
             value: {
                 currency: destinationCurrency,
                 total: newTotal,
+                unheldTotal: newUnheldTotal,
                 nonReimbursableTotal: newNonReimbursableTotal,
                 unheldNonReimbursableTotal: newUnheldNonReimbursableTotal,
                 reimbursableTotal: newReimbursableTotal,
@@ -8375,6 +8384,7 @@ function buildOptimisticChangePolicyData({
             value: {
                 currency: report.currency,
                 total: report.total,
+                unheldTotal: report.unheldTotal,
                 nonReimbursableTotal: report.nonReimbursableTotal,
                 unheldNonReimbursableTotal: report.unheldNonReimbursableTotal,
                 reimbursableTotal: report.reimbursableTotal,
@@ -8808,6 +8818,7 @@ function mergeReports({
         failureData: moveFailureData = [],
         transactionIDToReportActionAndThreadData = {},
         updatedReportTotals,
+        updatedReportUnheldTotals,
         updatedReportTransactionCounts,
         updatedReportNonReimbursableTotals,
         updatedReportUnheldNonReimbursableTotals,
@@ -8921,6 +8932,7 @@ function mergeReports({
             optimisticSnapshotData[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`] = {
                 ...destinationReport,
                 total: updatedReportTotals?.[destinationReportID] ?? destinationReport.total,
+                unheldTotal: updatedReportUnheldTotals?.[destinationReportID] ?? destinationReport.unheldTotal,
                 transactionCount: updatedReportTransactionCounts?.[destinationReportID] ?? destinationReport.transactionCount,
                 reimbursableTotal: updatedReportReimbursableTotals?.[destinationReportID] ?? destinationReport.reimbursableTotal,
                 unheldReimbursableTotal: updatedReportUnheldReimbursableTotals?.[destinationReportID] ?? destinationReport.unheldReimbursableTotal,

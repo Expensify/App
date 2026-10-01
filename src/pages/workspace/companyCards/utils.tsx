@@ -84,7 +84,10 @@ type ProgramAccountExport = {
     type: typeof CONST.COMPANY_CARDS.EXPORT_RESOLVER.PROGRAM_ACCOUNT;
 
     /** The card NVP holding this integration's export account */
-    nvpKey: typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT | typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_DUALENTRY_EXPORT_ACCOUNT;
+    nvpKey:
+        | typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT
+        | typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_DUALENTRY_EXPORT_ACCOUNT
+        | typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_CAMPFIRE_EXPORT_ACCOUNT;
 
     /** Every account, in connection order, because an account that is no longer offered can still be the resolved one */
     accounts: ProgramAccountOption[];
@@ -496,6 +499,42 @@ function getPolicyCardExportSettings(
                     })),
                     workspaceProgramAccountKey: dualentryConfig?.export?.creditCardAccountID,
                     programAccountKeysByFeed: dualentryConfig?.export?.cardProgramAccounts,
+                    exportsToLabel: translate('common.exportsTo'),
+                    defaultTitleSuffix: translate('common.default').toLocaleLowerCase(),
+                    defaultOptionPrefix: translate('common.default'),
+                },
+            };
+        }
+        case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE: {
+            const campfireConfig = policy?.connections?.campfire?.config;
+            const campfireData = policy?.connections?.campfire?.data;
+            const exportReimbursable = campfireConfig?.export?.reimbursable ?? CONST.CAMPFIRE_EXPORT_REIMBURSABLE.VENDOR_BILL;
+            const exportNonReimbursable = campfireConfig?.export?.nonReimbursable ?? CONST.CAMPFIRE_EXPORT_NON_REIMBURSABLE.JOURNAL_ENTRY;
+
+            return {
+                description: currentConnectionName
+                    ? translate('workspace.moreFeatures.companyCards.integrationExport', currentConnectionName, translate('workspace.campfire.cardAccount.label'))
+                    : undefined,
+                exportType: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_CAMPFIRE_EXPORT_ACCOUNT,
+                shouldHideMenuItemDescription: true,
+                shouldShowMenuItemIcon: true,
+                shouldShowMenuItem:
+                    campfireConfig?.export?.exportToMultipleAccounts &&
+                    exportReimbursable === CONST.CAMPFIRE_EXPORT_REIMBURSABLE.VENDOR_BILL &&
+                    exportNonReimbursable === CONST.CAMPFIRE_EXPORT_NON_REIMBURSABLE.JOURNAL_ENTRY,
+                accountSelection: {
+                    type: CONST.COMPANY_CARDS.EXPORT_RESOLVER.PROGRAM_ACCOUNT,
+                    nvpKey: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_CAMPFIRE_EXPORT_ACCOUNT,
+                    accounts: (campfireData?.accounts ?? []).map((account) => ({
+                        id: account.id,
+                        label: `${account.id} ${account.name}`,
+                        keyForList: account.id,
+                        configKey: account.id,
+                        isSelectable:
+                            account.isActive && (account.accountSubtype === CONST.CAMPFIRE_ACCOUNT_SUBTYPE.CREDIT_CARD || account.accountSubtype === CONST.CAMPFIRE_ACCOUNT_SUBTYPE.BANK),
+                    })),
+                    workspaceProgramAccountKey: campfireConfig?.export?.creditCardAccountID,
+                    programAccountKeysByFeed: campfireConfig?.export?.cardProgramAccounts,
                     exportsToLabel: translate('common.exportsTo'),
                     defaultTitleSuffix: translate('common.default').toLocaleLowerCase(),
                     defaultOptionPrefix: translate('common.default'),

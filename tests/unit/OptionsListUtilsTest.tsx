@@ -42,12 +42,12 @@ import {
     orderPersonalDetailsOptions,
     orderWorkspaceOptions,
     recentReportComparator,
-    sortAlphabetically,
 } from '@libs/OptionsListUtils';
 import {getCurrentUserSearchTerms, getPersonalDetailSearchTerms} from '@libs/OptionsListUtils/searchMatchUtils';
 import {canCreateTaskInReport, canUserPerformWriteAction, isCanceledTaskReport, isExpensifyOnlyParticipantInReport} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
+import sortAlphabetically from '@libs/sortAlphabetically';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
@@ -1462,6 +1462,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -2118,6 +2119,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -3556,6 +3558,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -3600,6 +3603,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     sortByReportTypeInSearch: true,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -3650,6 +3654,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -3713,6 +3718,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -3774,6 +3780,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     sortByReportTypeInSearch: true,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -3818,6 +3825,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -3862,6 +3870,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -3916,6 +3925,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -3960,6 +3970,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -4006,6 +4017,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -4049,6 +4061,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -4092,6 +4105,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -4135,6 +4149,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     maxRecentReportsToShow: 2,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -4157,6 +4172,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     maxRecentReportsToShow: 0,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -4199,6 +4215,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -4261,6 +4278,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -4326,6 +4344,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -4391,6 +4410,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -4430,6 +4450,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -4772,6 +4793,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -4812,6 +4834,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -4854,6 +4877,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -4896,6 +4920,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -4937,6 +4962,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -4976,6 +5002,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -5020,6 +5047,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -5064,6 +5092,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -5108,6 +5137,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -5154,6 +5184,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     shouldAcceptName: false,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -5197,6 +5228,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     shouldAcceptName: true,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -5236,6 +5268,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -5276,6 +5309,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     sortByReportTypeInSearch: true,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -5320,6 +5354,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     maxRecentReportsToShow: 5,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -5367,6 +5402,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -5409,6 +5445,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -5465,6 +5502,7 @@ describe('OptionsListUtils', () => {
                         CURRENT_USER_ACCOUNT_ID,
                         PERSONAL_DETAILS_WITH_PERIODS,
                         {dateFnsLocale: undefined, convertToDisplayString, sortByReportTypeInSearch: true, currentUserAccountID: CURRENT_USER_ACCOUNT_ID},
+                        translateLocal,
                         undefined,
                     );
 
@@ -5514,6 +5552,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
             );
             const matchingEntries = filteredOptions.personalDetails.filter((detail) => detail.login === login);
@@ -5574,6 +5613,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -5614,6 +5654,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
             );
             const spaceSeparatedQueryResults = filterAndOrderOptions(
@@ -5629,6 +5670,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -7534,9 +7576,9 @@ describe('OptionsListUtils', () => {
     describe('getPersonalDetailSearchTerms', () => {
         it('should include display name', () => {
             const displayName = 'test';
-            const searchTerms = getPersonalDetailSearchTerms({displayName}, CURRENT_USER_ACCOUNT_ID);
+            const searchTerms = getPersonalDetailSearchTerms({displayName}, CURRENT_USER_ACCOUNT_ID, translateLocal);
             expect(searchTerms.includes(displayName)).toBe(true);
-            const searchTerms2 = getPersonalDetailSearchTerms({participantsList: [{displayName, accountID: 123}]}, CURRENT_USER_ACCOUNT_ID);
+            const searchTerms2 = getPersonalDetailSearchTerms({participantsList: [{displayName, accountID: 123}]}, CURRENT_USER_ACCOUNT_ID, translateLocal);
             expect(searchTerms2.includes(displayName)).toBe(true);
         });
     });
@@ -7544,9 +7586,9 @@ describe('OptionsListUtils', () => {
     describe('getCurrentUserSearchTerms', () => {
         it('should include display name', () => {
             const displayName = 'test';
-            const searchTerms = getCurrentUserSearchTerms({displayName});
+            const searchTerms = getCurrentUserSearchTerms({displayName}, translateLocal);
             expect(searchTerms.includes(displayName)).toBe(true);
-            const searchTerms2 = getCurrentUserSearchTerms({text: displayName});
+            const searchTerms2 = getCurrentUserSearchTerms({text: displayName}, translateLocal);
             expect(searchTerms2.includes(displayName)).toBe(true);
         });
     });
@@ -10138,6 +10180,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -10173,6 +10216,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -10207,6 +10251,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
             );
 
@@ -10403,6 +10448,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
             );
 

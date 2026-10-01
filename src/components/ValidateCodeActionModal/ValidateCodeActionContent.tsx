@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -76,17 +76,20 @@ function ValidateCodeActionContent({
             offlineIndicatorStyle={themeStyles.mtAuto}
             shouldShowOfflineIndicatorInWideScreen
         >
-            <HeaderWithBackButton
-                title={title}
-                onBackButtonPress={hide}
-                onCloseButtonPress={hide}
-                shouldShowBackButton={!shouldShowCloseButton}
-                shouldShowCloseButton={shouldShowCloseButton}
-                threeDotsMenuItems={threeDotsMenuItems}
-                shouldShowThreeDotsButton={threeDotsMenuItems.length > 0}
-                shouldOverlayDots
-                onThreeDotsButtonPress={onThreeDotsButtonPress}
-            />
+            <Header>
+                {!shouldShowCloseButton && <Header.BackButton onPress={hide} />}
+                <Header.Title title={title} />
+                <Header.Right>
+                    {threeDotsMenuItems.length > 0 && (
+                        <Header.ThreeDotsMenu
+                            items={threeDotsMenuItems}
+                            onIconPress={onThreeDotsButtonPress}
+                            shouldOverlay
+                        />
+                    )}
+                    {shouldShowCloseButton && <Header.CloseButton onPress={hide} />}
+                </Header.Right>
+            </Header>
 
             <ScrollView
                 style={[themeStyles.w100, themeStyles.h100, themeStyles.flex1]}

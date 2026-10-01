@@ -1091,6 +1091,14 @@ const DYNAMIC_ROUTES = {
         path: 'rules/require-fields',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
     },
+    WORKSPACE_CATEGORY_RULES_TAX_NEW: {
+        path: 'tax-default',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_RULES_NEW],
+    },
+    WORKSPACE_CATEGORY_RULES_TAX_EDIT: {
+        path: 'rules/tax',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
+    },
     RULES_MERCHANT_NEW_FROM_EXPENSE: {
         path: 'merchant-rule/new',
         entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
@@ -1120,7 +1128,7 @@ const DYNAMIC_ROUTES = {
     },
     RULES_MERCHANT_TAX_FROM_EXPENSE: {
         path: 'rule-tax',
-        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW, SCREENS.WORKSPACE.DYNAMIC_CATEGORY_TAX_RULE_NEW, SCREENS.WORKSPACE.DYNAMIC_CATEGORY_TAX_RULE_EDIT],
     },
     RULES_MERCHANT_VENDOR_FROM_EXPENSE: {
         path: 'rule-vendor',
@@ -1377,6 +1385,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_DETAILS,
             SCREENS.WORKSPACE.ACCOUNTING.RILLET_CARD_ACCOUNT_CARD_LIST,
             SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_CARD_ACCOUNT_CARD_LIST,
+            SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_CARD_ACCOUNT_CARD_LIST,
         ],
         getRoute: (feed: CardFeedWithDomainID, cardID: string) => `edit/export/${encodeURIComponent(feed)}/${encodeURIComponent(cardID)}` as const,
     },
@@ -3033,12 +3042,19 @@ const ROUTES = {
     },
     WORKSPACE_OVERVIEW_CURRENCY: {
         route: 'workspaces/:policyID/overview/currency',
-        getRoute: (policyID: string, isForcedToChangeCurrency?: boolean) => {
-            let queryParams = '';
+        getRoute: (
+            policyID: string,
+            {isForcedToChangeCurrency, shouldStartExpensifyCardEnrollment}: {isForcedToChangeCurrency?: boolean; shouldStartExpensifyCardEnrollment?: boolean} = {},
+        ) => {
+            const params = new URLSearchParams();
             if (isForcedToChangeCurrency) {
-                queryParams += `?isForcedToChangeCurrency=true`;
+                params.set('isForcedToChangeCurrency', 'true');
             }
-            return `workspaces/${policyID}/overview/currency${queryParams}` as const;
+            if (shouldStartExpensifyCardEnrollment) {
+                params.set('shouldStartExpensifyCardEnrollment', 'true');
+            }
+            const query = params.toString();
+            return `workspaces/${policyID}/overview/currency${query ? `?${query}` : ''}` as const;
         },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT: {
@@ -3630,6 +3646,10 @@ const ROUTES = {
     WORKSPACE_MEMBER_DETAILS_ROLE: {
         route: 'workspaces/:policyID/members/:accountID/role',
         getRoute: (policyID: string, accountID: number) => `workspaces/${policyID}/members/${accountID}/role` as const,
+    },
+    WORKSPACE_MEMBER_WORK_ARRANGEMENT: {
+        route: 'workspaces/:policyID/members/:accountID/work-arrangement',
+        getRoute: (policyID: string, accountID: number) => `workspaces/${policyID}/members/${accountID}/work-arrangement` as const,
     },
     WORKSPACE_CUSTOM_FIELDS: {
         route: 'workspaces/:policyID/members/:accountID/:customFieldType',
@@ -5103,6 +5123,22 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/campfire/export/company-card-account',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/export/company-card-account` as const,
     },
+    POLICY_ACCOUNTING_CAMPFIRE_CARD_PROGRAM_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/campfire/export/card-program-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/export/card-program-account` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_CARD_PROGRAM_ACCOUNT_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/campfire/export/card-program-account/:feed',
+        getRoute: (policyID: string, feed: CardFeedWithDomainID) => `workspaces/${policyID}/accounting/campfire/export/card-program-account/${encodeURIComponent(feed)}` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_CARD_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/campfire/export/card-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/export/card-account` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_CARD_ACCOUNT_CARD_LIST: {
+        route: 'workspaces/:policyID/accounting/campfire/export/card-account/:feed',
+        getRoute: (policyID: string, feed: CardFeedWithDomainID) => `workspaces/${policyID}/accounting/campfire/export/card-account/${encodeURIComponent(feed)}` as const,
+    },
     POLICY_ACCOUNTING_CAMPFIRE_ADVANCED: {
         route: 'workspaces/:policyID/accounting/campfire/advanced',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/advanced` as const,
@@ -5142,6 +5178,42 @@ const ROUTES = {
     POLICY_ACCOUNTING_BUSINESS_CENTRAL_IMPORT: {
         route: 'workspaces/:policyID/accounting/business-central/import',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/import` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT: {
+        route: 'workspaces/:policyID/accounting/business-central/export',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/export` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_PREFERRED_EXPORTER: {
+        route: 'workspaces/:policyID/accounting/business-central/export/preferred-exporter',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/export/preferred-exporter` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_DATE: {
+        route: 'workspaces/:policyID/accounting/business-central/export/date',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/export/date` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: {
+        route: 'workspaces/:policyID/accounting/business-central/export/reimbursable-destination',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/export/reimbursable-destination` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_REIMBURSABLE_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/business-central/export/reimbursable-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/export/reimbursable-account` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_NONREIMBURSABLE_EXPENSES_EXPORT_DESTINATION: {
+        route: 'workspaces/:policyID/accounting/business-central/export/non-reimbursable-destination',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/export/non-reimbursable-destination` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_COMPANY_CARD_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/business-central/export/company-card-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/export/company-card-account` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_DEFAULT_VENDOR: {
+        route: 'workspaces/:policyID/accounting/business-central/export/default-vendor',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/export/default-vendor` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_PAYMENT_METHOD: {
+        route: 'workspaces/:policyID/accounting/business-central/export/payment-method',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/export/payment-method` as const,
     },
     ADD_EXISTING_EXPENSE: {
         route: 'search/r/:reportID/add-existing-expense/:backToReport?',
