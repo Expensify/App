@@ -11,6 +11,24 @@ function getValueUsingPixelRatio(defaultValue: number, maxValue: number): number
     return PixelRatio.getFontScale() * defaultValue > maxValue ? maxValue : defaultValue * PixelRatio.getFontScale();
 }
 
+/** Rendered width of the Expensify wordmark in the flat navigation bar's header. */
+const flatNavigationBarLogoWidth = 92;
+
+/** expensify-wordmark.svg has a 78x19 viewBox, so deriving the height keeps the wordmark exactly that wide. */
+const flatNavigationBarLogoHeight = (flatNavigationBarLogoWidth * 19) / 78;
+
+/**
+ * Height the narrow Spend tab row occupies: its wrapper's 4px top padding, the tab buttons, and tabSelector's 12px
+ * bottom padding. The search list's top offset subtracts this when the row is hidden.
+ */
+const searchTabRowHeight = 4 + 40 + 12;
+
+/**
+ * How much the narrow Spend header shrinks when the tab row is hidden: the row itself, plus the 4px the search input
+ * gains back by sitting 4px below the header instead of 8px.
+ */
+const searchHiddenTabRowOffset = searchTabRowHeight + 4;
+
 const avatarSizes = {
     avatarSizeXxxxSmall: 12,
     avatarSizeXxxSmall: 16,
@@ -51,7 +69,7 @@ export default {
     componentBorderRadiusNormal: 8,
     componentBorderRadiusLarge: 16,
     componentBorderRadiusXLarge: 28,
-    componentBorderRadiusCard: 20,
+    componentBorderRadiusCard: 12,
     componentBorderRadiusRounded: 24,
     componentBorderRadiusCircle: 999,
     componentBorderWidth: 8,
@@ -138,6 +156,22 @@ export default {
     searchSidebarExpandedWidth: 260,
     searchSidebarCollapsedWidth: 76,
     navigationTabBarSize: 72,
+    flatNavigationBarWidth: 220,
+    // Collapsed, a row shows only its icon: the row's own margin and padding on each side, around a 20px icon.
+    flatNavigationBarCollapsedWidth: 60,
+    flatNavigationBarItemHeight: 40,
+    // Horizontal inset every row's background sits at, inside the bar's own width.
+    flatNavigationBarRowInset: 8,
+    // Fixed so the header keeps its height whether or not the wordmark is showing.
+    flatNavigationBarHeaderHeight: 72,
+    flatNavigationBarHeaderMarginBottom: 4,
+    flatNavigationBarCreateRowMarginHorizontal: 14,
+    // Shorter than a standard medium button; collapsed, the same value makes it a square.
+    flatNavigationBarCreateButtonHeight: 32,
+    flatNavigationBarAccountItemHeight: 56,
+    flatNavigationBarHeaderPaddingRight: 20,
+    flatNavigationBarLogoWidth,
+    flatNavigationBarLogoHeight,
     popoverMargin: 18,
     pdfPageMaxWidth: 992,
     tooltipZIndex: 10050,
@@ -172,7 +206,8 @@ export default {
     workspaceTableActionColumnWidth: 64,
     workspaceMembersRoleColumnWidth: 148,
     sectionMenuItemHeight: 52,
-    sectionMenuItemHeightCompact: 44,
+    // Wide layouts match the global navigation bar's row height; narrow layouts keep the taller touch target.
+    sectionMenuItemHeightCompact: 40,
     optionsListSectionHeaderHeight: getValueUsingPixelRatio(32, 38),
     overlayOpacity: 0.72,
     // Lighter scrim for the floating RHP card. Other modal backdrops keep overlayOpacity.
@@ -248,6 +283,8 @@ export default {
     signInLogoWidthLargeScreen: 144,
     signInLogoHeightLargeScreen: 108,
     signInLogoWidthPill: 132,
+    searchTabRowHeight,
+    searchHiddenTabRowOffset,
     tabSelectorButtonHeight: 40,
     tabSelectorButtonPadding: 12,
     tabSelectorScrollMarginInline: 20,

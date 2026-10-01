@@ -1056,8 +1056,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 broomDescription: 'Les tâches sont terminées, mais restez à l’affût de nouvelles tâches.',
                 houseTitle: 'Tout est à jour',
                 houseDescription: 'Voici votre base pour les prochaines tâches à faire.',
-                conciergeBotTitle: 'Rien à afficher',
-                conciergeBotDescription: 'Bip bop bip bop, revenez pour plus de tâches !',
                 checkboxTextTitle: 'Tout est à jour',
                 checkboxTextDescription: 'Cochez vos prochaines tâches à faire ici.',
                 flashTitle: 'C’est terminé !',
@@ -2339,6 +2337,7 @@ const translations: TranslationDeepObject<typeof en> = {
             results: 'Résultats',
             releaseOptions: 'Options de version',
             testingPreferences: 'Préférences de test',
+            showExtraNavItems: 'Afficher les éléments de navigation supplémentaires',
             server: 'Serveur',
             servers: {
                 production: {label: 'Production', description: "L'environnement en direct que voient les vrais utilisateurs"},
@@ -3275,6 +3274,12 @@ ${amount} pour ${merchant} - ${date}`,
         title: 'Bienvenue dans le mode #focus !',
         prompt: (priorityModePageUrl: string) =>
             `Gardez le contrôle en n’affichant que les discussions non lues ou celles qui nécessitent votre attention. Ne vous inquiétez pas, vous pouvez modifier ce réglage à tout moment dans les <a href="${priorityModePageUrl}">paramètres</a>.`,
+    },
+    morePage: {
+        accountingDescription: 'Exports, charges à payer, relevés et rapprochement',
+        savedSearchesDescription: 'Revenez à une recherche enregistrée',
+        insightsDescription: 'Voyez où passent vos dépenses',
+        workspacesDescription: 'Gérez vos espaces de travail et domaines',
     },
     inboxTabs: {
         all: 'Tout',
@@ -10069,6 +10074,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         tabs: {
             expenseReports: 'Notes de frais',
             reports: 'Notes de frais',
+            allExpenses: 'Toutes les dépenses',
+            allReports: 'Toutes les notes de frais',
+            myReports: 'Mes notes de frais',
+            myExpenses: 'Mes dépenses',
             expenses: 'Dépenses',
             submit: 'Brouillons',
             approve: 'Nécessite une approbation',

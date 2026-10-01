@@ -7,7 +7,7 @@ import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import Search from '@components/Search';
-import {useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
 import SearchPageHeaderNarrow from '@components/Search/SearchPageHeader/SearchPageHeaderNarrow';
 import SearchSelectionFooter from '@components/Search/SearchSelectionFooter';
@@ -30,6 +30,7 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {isSearchDataLoaded, isSearchPending} from '@libs/SearchUIUtils';
+import {shouldHideSpendTabRow} from '@libs/SpendNavigationGroups';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 
 import variables from '@styles/variables';
@@ -112,6 +113,10 @@ function SearchPageNarrow({
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const receiptDropTargetRef = useRef<ComponentRef<typeof View>>(null);
 
+    // The header reserves room for the tab row, so the list's offset has to shrink when that row isn't rendered.
+    const {currentSearchKey} = useSearchQueryContext();
+    const isTabRowHidden = shouldHideSpendTabRow(currentSearchKey);
+
     const scrollOffset = useSharedValue(0);
     const topBarOffset = useSharedValue<number>(StyleUtils.searchHeaderDefaultOffset);
 
@@ -150,7 +155,7 @@ function SearchPageNarrow({
                     topBarOffset.set(
                         clamp(
                             topBarOffset.get() - distanceScrolled,
-                            hasFilterBars ? variables.minimalTopBarWithFiltersOffset : variables.minimalTopBarOffset,
+                            (hasFilterBars ? variables.minimalTopBarWithFiltersOffset : variables.minimalTopBarOffset) + (isTabRowHidden ? variables.searchHiddenTabRowOffset : 0),
                             StyleUtils.searchHeaderDefaultOffset,
                         ),
                     );
@@ -160,7 +165,7 @@ function SearchPageNarrow({
                 scrollOffset.set(currentOffset);
             },
         },
-        [hasFilterBars, windowHeight],
+        [hasFilterBars, isTabRowHidden, windowHeight],
     );
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery(), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
@@ -245,7 +250,7 @@ function SearchPageNarrow({
     const isDataLoaded = shouldUseLiveData || isSearchDataLoaded(searchResults, queryJSON);
     // Use the request state because `isLoading` also covers temporary UI loading that should not keep this bar visible.
     const shouldShowLoadingState = !isOffline && (!isDataLoaded || isSearchPending(searchResults));
-    const contentContainerStyle = !isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles(hasFilterBars) : undefined;
+    const contentContainerStyle = !isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles(hasFilterBars, isTabRowHidden) : undefined;
 
     const shouldRenderLayoutProbe = (isOverlayActive || !isHeaderInteractive) && !searchOverlayContent;
 
@@ -288,7 +293,7 @@ function SearchPageNarrow({
                                                 showStatic={!isHeaderInteractive}
                                                 queryJSON={queryJSON}
                                             />
-                                            <View style={[styles.flex1, styles.flexRow, styles.pt2, styles.mh5, styles.mb3, styles.gap3]}>
+                                            <View style={[styles.flex1, styles.flexRow, isTabRowHidden ? styles.pt1 : styles.pt2, styles.mh3, styles.mb3, styles.gap3]}>
                                                 <SearchPageInputSwitch
                                                     showStatic={!isHeaderInteractive}
                                                     queryJSON={queryJSON}
@@ -362,7 +367,7 @@ function SearchPageNarrow({
                                         style={StyleSheet.absoluteFill}
                                     >
                                         {shouldShowLoadingSkeleton ? (
-                                            <SearchLoadingSkeleton containerStyle={styles.searchListContentContainerStyles(hasFilterBars)} />
+                                            <SearchLoadingSkeleton containerStyle={styles.searchListContentContainerStyles(hasFilterBars, isTabRowHidden)} />
                                         ) : (
                                             <SearchWithNavigationDeferredMount
                                                 isReplacingContent={isReplacingPreviousContent}

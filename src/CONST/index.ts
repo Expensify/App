@@ -8277,7 +8277,9 @@ const CONST = {
         SNAPSHOT_ONYX_KEYS: CONST_RUNTIME.SEARCH_SNAPSHOT_ONYX_KEYS,
         SEARCH_KEYS: {
             EXPENSES: 'expenses',
+            MY_EXPENSES: 'myExpenses',
             REPORTS: 'reports',
+            MY_REPORTS: 'myReports',
             SUBMIT: 'submit',
             APPROVE: 'approve',
             PAY: 'pay',
@@ -9285,6 +9287,9 @@ const CONST = {
             WORKSPACES: 'NavigationTabBar-Workspaces',
             ACCOUNT: 'NavigationTabBar-Account',
             HOME: 'NavigationTabBar-Home',
+            EXPENSES: 'NavigationTabBar-Expenses',
+            MORE: 'NavigationTabBar-More',
+            COLLAPSE: 'NavigationTabBar-Collapse',
             FLOATING_ACTION_BUTTON: 'NavigationTabBar-FloatingActionButton',
             FLOATING_RECEIPT_BUTTON: 'NavigationTabBar-FloatingReceiptButton',
             FLOATING_GPS_BUTTON: 'NavigationTabBar-FloatingGpsButton',
@@ -9344,6 +9349,7 @@ const CONST = {
         TOP_BAR: {
             CANCEL_BUTTON: 'TopBar-CancelButton',
             ACCOUNT_BUTTON: 'TopBar-AccountButton',
+            BACK_BUTTON: 'TopBar-BackButton',
         },
         COLLAPSIBLE_SECTION: {
             TOGGLE: 'CollapsibleSection-Toggle',

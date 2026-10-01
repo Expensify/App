@@ -1055,8 +1055,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 broomDescription: 'Aufgaben sind erledigt, bleiben Sie aber gespannt auf weitere To-dos.',
                 houseTitle: 'Alles erledigt',
                 houseDescription: 'Hier ist Ihre Zentrale für anstehende Aufgaben.',
-                conciergeBotTitle: 'Nichts anzuzeigen',
-                conciergeBotDescription: 'Biep biep biep biep, schauen Sie später nach weiteren Aufgaben!',
                 checkboxTextTitle: 'Alles erledigt',
                 checkboxTextDescription: 'Haken Sie hier Ihre anstehenden Aufgaben ab.',
                 flashTitle: 'Sie sind fertig!',
@@ -2334,6 +2332,7 @@ const translations: TranslationDeepObject<typeof en> = {
             results: 'Ergebnisse',
             releaseOptions: 'Release-Optionen',
             testingPreferences: 'Testeinstellungen',
+            showExtraNavItems: 'Zusätzliche Navigationselemente anzeigen',
             server: 'Server',
             servers: {
                 production: {label: 'Produktion', description: 'Die Live-Umgebung, die echte Nutzer sehen'},
@@ -3269,6 +3268,12 @@ ${amount} für ${merchant} – ${date}`,
         title: 'Willkommen im #Focus-Modus!',
         prompt: (priorityModePageUrl: string) =>
             `Behalten Sie den Überblick, indem Sie nur ungelesene Chats oder Chats sehen, die Ihre Aufmerksamkeit erfordern. Keine Sorge, Sie können dies jederzeit in den <a href="${priorityModePageUrl}">Einstellungen</a> ändern.`,
+    },
+    morePage: {
+        accountingDescription: 'Exporte, Abgrenzungen, Abrechnungen und Abstimmung',
+        savedSearchesDescription: 'Zurück zu einer gespeicherten Suche',
+        insightsDescription: 'Sehen Sie, wohin Ihre Ausgaben fließen',
+        workspacesDescription: 'Verwalten Sie Ihre Arbeitsbereiche und Domains',
     },
     inboxTabs: {
         all: 'Alle',
@@ -10045,6 +10050,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         tabs: {
             expenseReports: 'Spesenabrechnungen',
             reports: 'Berichte',
+            allExpenses: 'Alle Ausgaben',
+            allReports: 'Alle Berichte',
+            myReports: 'Meine Berichte',
+            myExpenses: 'Meine Ausgaben',
             expenses: 'Ausgaben',
             submit: 'Entwürfe',
             approve: 'Genehmigung erforderlich',

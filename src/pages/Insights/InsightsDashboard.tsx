@@ -18,11 +18,14 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getInsights} from '@libs/actions/Insights';
+import {clearLastVisitedMoreDestination, setLastVisitedInsightsDashboard} from '@libs/MoreDestinationHistory';
+import Navigation from '@libs/Navigation/Navigation';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {InsightsDashboardID} from '@src/types/onyx';
 
 import {useIsFocused} from '@react-navigation/native';
@@ -162,6 +165,7 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
 function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isFocused = useIsFocused();
     const {login} = useCurrentUserPersonalDetails();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -190,6 +194,11 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
         onRequestConditionsChanged();
     }, [dashboardID, jsonQuery, hash, isFocused, isOffline]);
 
+    // Remember the dashboard so the More menu can return the user to it.
+    useEffect(() => {
+        setLastVisitedInsightsDashboard(dashboardID);
+    }, [dashboardID]);
+
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
     const {headlineChart: headlineSpec, supportingCharts: supportingSpecs} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
     const eligibleCharts = getVisibleCharts(supportingSpecs, policies, filters.policyIDs, login);
@@ -214,6 +223,15 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
         >
             <TopBar
                 breadcrumbLabel={translate('common.insights')}
+                // Insights has no tab of its own on narrow layouts - it is reached through More.
+                onBackButtonPress={
+                    shouldUseNarrowLayout
+                        ? () => {
+                              clearLastVisitedMoreDestination();
+                              Navigation.navigate(ROUTES.MORE);
+                          }
+                        : undefined
+                }
                 shouldDisplayHelpButton
             />
             {state !== INSIGHTS_DASHBOARD_STATE.NO_EXPENSES && (

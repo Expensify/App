@@ -652,6 +652,9 @@ const ONYXKEYS = {
     /** Indicates whether the git branch name should be shown in the browser tab title */
     SHOULD_SHOW_BRANCH_NAME_IN_TITLE: 'shouldShowBranchNameInTitle',
 
+    /** Whether the navigation bar lists the destinations that are still being designed. Defaults to on. */
+    SHOULD_SHOW_EXTRA_NAV_ITEMS: 'shouldShowExtraNavItems',
+
     /** Indicates whether Sentry debug mode is enabled - logs Sentry requests to console */
     IS_SENTRY_DEBUG_ENABLED: 'isSentryDebugEnabled',
 
@@ -1828,6 +1831,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_DEBUG_MODE_ENABLED]: boolean;
     [ONYXKEYS.BETA_OVERRIDES]: OnyxTypes.BetaOverrides;
     [ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE]: boolean;
+    [ONYXKEYS.SHOULD_SHOW_EXTRA_NAV_ITEMS]: boolean;
     [ONYXKEYS.IS_SENTRY_DEBUG_ENABLED]: boolean;
     [ONYXKEYS.IS_SENTRY_SEND_ENABLED]: boolean;
     [ONYXKEYS.SENTRY_DEBUG_HIGHLIGHTED_SPAN_OPS]: string[];

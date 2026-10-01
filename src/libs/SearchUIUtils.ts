@@ -706,13 +706,13 @@ function getSuggestedSearchesVisibility(
     hasReportAwaitingApproval = false,
     isTrackIntentUser = false,
     policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>,
+    hasOthersExpenses = false,
 ): {visibility: Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, boolean>; hasEligibleGroupPolicies: boolean; shouldShowExpensifyCard: boolean} {
     let shouldShowSubmitSuggestion = false;
     let shouldShowPaySuggestion = false;
     let shouldShowApproveSuggestion = hasReportAwaitingApproval;
     let shouldShowExportSuggestion = false;
     let shouldShowStatementsSuggestion = false;
-    let shouldShowUnapprovedCashSuggestion = false;
     let shouldShowUnapprovedCardSuggestion = false;
     let shouldShowExpensifyCardSuggestion = false;
     let shouldShowReimbursementsSuggestion = false;
@@ -758,7 +758,6 @@ function getSuggestedSearchesVisibility(
         const isPolicyEligibleForApproveSuggestion = isGroupPolicyEligible && isEligibleForApproveSuggestion(policy.approvalMode, isUserApprover, isSubmittedTo);
         const isEligibleForExportSuggestion = isExporter && !hasExportError;
         const isEligibleForStatementsSuggestion = isPaidPolicy && (hasCardFeed || !!defaultExpensifyCard);
-        const isEligibleForUnapprovedCashSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isApprovalEnabled && isPaymentEnabled;
         const isEligibleForUnapprovedCardSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isApprovalEnabled && (hasCardFeed || !!defaultExpensifyCard);
         const isEligibleForExpensifyCardSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isECardEnabled;
         const isEligibleForReimbursementsSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isPaymentEnabled && hasVBBA && hasReimburser;
@@ -777,7 +776,6 @@ function getSuggestedSearchesVisibility(
         shouldShowApproveSuggestion ||= isPolicyEligibleForApproveSuggestion;
         shouldShowExportSuggestion ||= isEligibleForExportSuggestion;
         shouldShowStatementsSuggestion ||= isEligibleForStatementsSuggestion;
-        shouldShowUnapprovedCashSuggestion ||= isEligibleForUnapprovedCashSuggestion;
         shouldShowUnapprovedCardSuggestion ||= isEligibleForUnapprovedCardSuggestion;
         shouldShowExpensifyCardSuggestion ||= isEligibleForExpensifyCardSuggestion;
         shouldShowReimbursementsSuggestion ||= isEligibleForReimbursementsSuggestion;
@@ -796,13 +794,17 @@ function getSuggestedSearchesVisibility(
     return {
         visibility: {
             [CONST.SEARCH.SEARCH_KEYS.EXPENSES]: true,
+            [CONST.SEARCH.SEARCH_KEYS.MY_EXPENSES]: hasOthersExpenses,
             [CONST.SEARCH.SEARCH_KEYS.REPORTS]: true,
+            [CONST.SEARCH.SEARCH_KEYS.MY_REPORTS]: hasOthersExpenses,
             [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: shouldShowSubmitSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.PAY]: shouldShowPaySuggestion,
             [CONST.SEARCH.SEARCH_KEYS.APPROVE]: shouldShowApproveSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.EXPORT]: shouldShowExportSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.STATEMENTS]: shouldShowStatementsSuggestion,
-            [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]: shouldShowUnapprovedCashSuggestion,
+            // Cash accruals always sits under Accounting, whether or not a workspace qualifies it on its own.
+            // Without a workspace there is no accounting to do, so the group stays away entirely.
+            [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]: hasEligibleGroupPolicies,
             [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]: shouldShowUnapprovedCardSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]: shouldShowExpensifyCardSuggestion || shouldShowReimbursementsSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS]: shouldShowTopSpendersSuggestion && !isTrackIntentWithWorkflowsDisabled,
@@ -4692,6 +4694,7 @@ type TypeMenuSectionsParams = {
     draftTransactionIDs: string[] | undefined;
     isTrackIntentUser: boolean;
     hasReportAwaitingApproval?: boolean;
+    hasOthersExpenses?: boolean;
     policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>;
 };
 
@@ -4709,6 +4712,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
         draftTransactionIDs,
         isTrackIntentUser,
         hasReportAwaitingApproval = false,
+        hasOthersExpenses = false,
         policyCategories,
     } = params;
     const typeMenuSections: SearchTypeMenuSection[] = [];
@@ -4717,7 +4721,16 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
         visibility: suggestedSearchesVisibility,
         hasEligibleGroupPolicies,
         shouldShowExpensifyCard,
-    } = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies, defaultExpensifyCard, hasReportAwaitingApproval, isTrackIntentUser, policyCategories);
+    } = getSuggestedSearchesVisibility(
+        currentUserEmail,
+        cardFeedsByPolicy,
+        policies,
+        defaultExpensifyCard,
+        hasReportAwaitingApproval,
+        isTrackIntentUser,
+        policyCategories,
+        hasOthersExpenses,
+    );
     const suggestedSearches = getSuggestedSearches(currentUserAccountID, defaultCardFeed?.id, shouldShowExpensifyCard, activeExpensifyCardFeedID);
     const hasAnyPolicyWithWorkflowsEnabled = Object.values(policies ?? {}).some((policy) => policy?.areWorkflowsEnabled);
     const isTrackIntentWithWorkflowsDisabled = isTrackIntentUser && !hasAnyPolicyWithWorkflowsEnabled;
@@ -4732,8 +4745,14 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.EXPENSES]) {
             expenseReportsSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.EXPENSES]);
         }
+        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.MY_EXPENSES]) {
+            expenseReportsSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.MY_EXPENSES]);
+        }
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.REPORTS]) {
             expenseReportsSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.REPORTS]);
+        }
+        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.MY_REPORTS]) {
+            expenseReportsSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.MY_REPORTS]);
         }
 
         if (!isTrackIntentWithWorkflowsDisabled) {

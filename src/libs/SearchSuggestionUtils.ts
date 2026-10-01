@@ -150,12 +150,56 @@ function getSuggestedSearches(
     // falling back to the company/bank feed otherwise. Other feed-based searches keep using `defaultFeedID`.
     const unapprovedCardFeedID = activeExpensifyCardFeedID ?? defaultFeedID;
     return {
+        [CONST.SEARCH.SEARCH_KEYS.MY_EXPENSES]: {
+            key: CONST.SEARCH.SEARCH_KEYS.MY_EXPENSES,
+            translationPath: 'search.tabs.myExpenses',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: 'Receipt',
+            searchQuery: buildQueryStringFromFilterFormValues({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                from: [`${accountID}`],
+            }),
+            get searchQueryJSON() {
+                return buildSearchQueryJSON(this.searchQuery);
+            },
+            get hash() {
+                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get similarSearchHash() {
+                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get recentSearchHash() {
+                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
         [CONST.SEARCH.SEARCH_KEYS.EXPENSES]: {
             key: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
             translationPath: 'search.tabs.expenses',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: 'Receipt',
             searchQuery: buildCannedSearchQuery(),
+            get searchQueryJSON() {
+                return buildSearchQueryJSON(this.searchQuery);
+            },
+            get hash() {
+                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get similarSearchHash() {
+                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get recentSearchHash() {
+                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
+        [CONST.SEARCH.SEARCH_KEYS.MY_REPORTS]: {
+            key: CONST.SEARCH.SEARCH_KEYS.MY_REPORTS,
+            translationPath: 'search.tabs.myReports',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+            icon: 'Document',
+            searchQuery: buildQueryStringFromFilterFormValues({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                from: [`${accountID}`],
+            }),
             get searchQueryJSON() {
                 return buildSearchQueryJSON(this.searchQuery);
             },
