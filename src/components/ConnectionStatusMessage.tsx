@@ -13,7 +13,6 @@ import {View} from 'react-native';
 import Button from './Button';
 import Icon from './Icon';
 import RenderHTML from './RenderHTML';
-import Text from './Text';
 
 type ConnectionStatusMessageProps = {
     message?: string;
