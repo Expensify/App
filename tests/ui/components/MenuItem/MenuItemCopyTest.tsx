@@ -5,6 +5,7 @@ import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 
+import type * as CopyableTextRowPress from '@hooks/useCopyableTextRowPress';
 import useCopyableTextRowPress from '@hooks/useCopyableTextRowPress';
 
 import Clipboard from '@libs/Clipboard';
@@ -68,11 +69,11 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
 jest.mock('@libs/getPlatform', () => jest.fn());
 
 jest.mock('@hooks/useCopyableTextRowPress', () => {
-    const actual = jest.requireActual<typeof import('@hooks/useCopyableTextRowPress')>('@hooks/useCopyableTextRowPress');
+    const actual = jest.requireActual<typeof CopyableTextRowPress>('@hooks/useCopyableTextRowPress');
     return {...actual, __esModule: true, default: jest.fn(actual.default)};
 });
 
-const actualUseCopyableTextRowPress = jest.requireActual<typeof import('@hooks/useCopyableTextRowPress')>('@hooks/useCopyableTextRowPress').default;
+const actualUseCopyableTextRowPress = jest.requireActual<typeof CopyableTextRowPress>('@hooks/useCopyableTextRowPress').default;
 const mockedUseCopyableTextRowPress = jest.mocked(useCopyableTextRowPress);
 const mockedGetPlatform = jest.mocked(getPlatform);
 const mockedHasHoverSupport = jest.mocked(hasHoverSupport);

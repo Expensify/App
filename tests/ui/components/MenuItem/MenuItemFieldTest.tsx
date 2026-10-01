@@ -83,7 +83,12 @@ describe('MenuItemField', () => {
                     [CONST.COPYABLE_TEXT_ELEMENT]: true,
                 }),
             );
-            expect(screen.getByText(NAME).props.dataSet?.[CONST.COPYABLE_TEXT_ELEMENT]).not.toBe(true);
+            expect(screen.getByText(NAME)).not.toHaveProp(
+                'dataSet',
+                expect.objectContaining({
+                    [CONST.COPYABLE_TEXT_ELEMENT]: true,
+                }),
+            );
             expect(screen.getByText(NAME)).toHaveStyle({userSelect: 'none'});
             expect(screen.getByText(NAME)).toHaveProp(
                 'dataSet',
@@ -112,8 +117,18 @@ describe('MenuItemField', () => {
 
             // Then native text stays unmarked and ordinary row presses still work
             expect(screen.getByText(VALUE)).not.toHaveStyle({userSelect: 'text'});
-            expect(screen.getByText(VALUE).props.dataSet?.[CONST.COPYABLE_TEXT_ELEMENT]).not.toBe(true);
-            expect(screen.getByText(NAME).props.dataSet?.[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]).not.toBe(true);
+            expect(screen.getByText(VALUE)).not.toHaveProp(
+                'dataSet',
+                expect.objectContaining({
+                    [CONST.COPYABLE_TEXT_ELEMENT]: true,
+                }),
+            );
+            expect(screen.getByText(NAME)).not.toHaveProp(
+                'dataSet',
+                expect.objectContaining({
+                    [CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true,
+                }),
+            );
             fireEvent.press(await screen.findByLabelText(`${NAME}, ${VALUE}`), pressEvent);
             expect(onPress).toHaveBeenCalledTimes(1);
         });
@@ -141,7 +156,12 @@ describe('MenuItemField', () => {
                     [CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true,
                 }),
             );
-            expect(screen.getByText(VALUE).props.dataSet?.[CONST.COPYABLE_TEXT_ELEMENT]).not.toBe(true);
+            expect(screen.getByText(VALUE)).not.toHaveProp(
+                'dataSet',
+                expect.objectContaining({
+                    [CONST.COPYABLE_TEXT_ELEMENT]: true,
+                }),
+            );
         });
     });
 
@@ -204,8 +224,18 @@ describe('MenuItemField', () => {
 
             // Then the placeholder remains a label rather than a copyable value
             expect(screen.getByText(NAME)).toHaveStyle({userSelect: 'none'});
-            expect(screen.getByText(NAME).props.dataSet?.[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]).toBe(true);
-            expect(screen.getByText(NAME).props.dataSet?.[CONST.COPYABLE_TEXT_ELEMENT]).not.toBe(true);
+            expect(screen.getByText(NAME)).toHaveProp(
+                'dataSet',
+                expect.objectContaining({
+                    [CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true,
+                }),
+            );
+            expect(screen.getByText(NAME)).not.toHaveProp(
+                'dataSet',
+                expect.objectContaining({
+                    [CONST.COPYABLE_TEXT_ELEMENT]: true,
+                }),
+            );
         });
 
         it.each([
