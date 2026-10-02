@@ -1,3 +1,4 @@
+import {useActivePolicyContext} from '@components/ActivePolicyProvider';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
@@ -50,6 +51,7 @@ function ShareTab() {
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const {activePolicyID} = useActivePolicyContext();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
     const sortedReportActionsData = useSortedReportActionsData();
@@ -63,7 +65,11 @@ function ShareTab() {
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
-    const {options: listOptions, isLoading} = useFilteredOptions({
+    const {
+        options: listOptions,
+        isLoading,
+        getReportByID,
+    } = useFilteredOptions({
         enabled: didScreenTransitionEnd,
         isSearching: !!debouncedTextInputValue.trim(),
         includeP2P: true,
@@ -97,6 +103,7 @@ function ShareTab() {
               conciergeReportID,
               isTrackIntentUser,
               translate,
+              getReportByID,
               rules,
           }).options
         : defaultListOptions;
@@ -105,7 +112,7 @@ function ShareTab() {
     if (textInputValue.trim() === '') {
         recentReportsOptions = optionsOrderBy(searchOptions.recentReports, recentReportComparator, 20).options;
     } else {
-        const orderedOptions = combineOrderingOfReportsAndPersonalDetails(searchOptions, textInputValue, {
+        const orderedOptions = combineOrderingOfReportsAndPersonalDetails(searchOptions, textInputValue, activePolicyID, {
             sortByReportTypeInSearch: true,
             preferChatRoomsOverThreads: true,
         });
