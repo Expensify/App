@@ -5884,7 +5884,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
 
 _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε το κέντρο βοήθειάς μας](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS})_.`,
                             customSegmentScriptIDTitle: 'Ποιο είναι το ID του σεναρίου;',
-                            customSegmentScriptIDFooter: `Μπορείτε να βρείτε τα script ID προσαρμοσμένων τμημάτων στο NetSuite στο: 
+                            customSegmentScriptIDFooter: `Μπορείτε να βρείτε τα script ID προσαρμοσμένων τμημάτων στο NetSuite στο:
 
 1. *Customization > Lists, Records, & Fields > Custom Segments*.
 2. Κάντε κλικ σε ένα προσαρμοσμένο τμήμα.
@@ -7678,6 +7678,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Για να το ενεργοποιήσετε, ορίστε έναν λογαριασμό για τις εξαγωγές σας.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Για να το ξεκλειδώσετε, ενεργοποιήστε τον αυτόματο συγχρονισμό.',
             campfire: 'Campfire',
+            continuousReconciliationFeedSelection:
+                '<muted-text-label>Η συνεχής συμφωνία είναι ρυθμισμένη ανά ροή καρτών. Επιλέξτε μια ροή για να αλλάξετε ποια ρυθμίζετε.</muted-text-label>',
             businessCentral: 'Dynamics 365 Business Central',
             qboConnectionExpiring: ({date}: {date: string}) => `Η σύνδεσή σας με το QuickBooks Online λήγει στις ${date}.`,
             qboConnectionExpired: ({date}: {date: string}) => `Η σύνδεσή σας με το QuickBooks Online έληξε στις ${date}.`,
