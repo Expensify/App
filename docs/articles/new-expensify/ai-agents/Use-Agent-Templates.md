@@ -29,7 +29,7 @@ When you create an agent from a template, you can edit its instructions at any t
 
 ## What TipMaster does
 
-TipMaster flags restaurant receipts where the tip exceeds 20%. 
+TipMaster flags restaurant receipts where the tip exceeds 20%.
 
 When you add a restaurant receipt, TipMaster calculates the tip percentage using the pre-tax subtotal. If the tip is greater than 20%, it adds a comment showing the subtotal, tip amount, and calculated percentage. It ignores receipts that aren't from restaurants and tips that are 20% or less.
 
@@ -57,7 +57,7 @@ HotelSplitBot is useful for itemizing hotel stays and categorizing room charges 
 
 ---
 
-## What Description Dan Does 
+## What Description Dan Does
 
 Description Dan automatically adds descriptions to expenses based on descriptions you've previously used for the same merchant.
 
