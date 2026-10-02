@@ -3,6 +3,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import DateUtils from '@libs/DateUtils';
 import {translate as translateWithLocale} from '@libs/Localize';
 import {doesMoneyRequestDraftHaveUserInput, shouldShowBrokenConnectionViolation, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
+import hasDistanceRouteErrors from '@libs/TransactionUtils/hasDistanceRouteErrors';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -1892,6 +1893,47 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('hasDistanceRouteErrors', () => {
+        it('returns false when the route is clean', () => {
+            expect(hasDistanceRouteErrors(generateTransaction())).toBe(false);
+            expect(hasDistanceRouteErrors(generateTransaction({errors: {}, errorFields: {}}))).toBe(false);
+        });
+
+        it('returns true for a route or waypoint error', () => {
+            expect(hasDistanceRouteErrors(generateTransaction({errorFields: {route: {someError: 'No route found'}}}))).toBe(true);
+            expect(hasDistanceRouteErrors(generateTransaction({errorFields: {waypoints: {someError: 'Bad waypoint'}}}))).toBe(true);
+        });
+
+        it('ignores errors that say nothing about the route, such as a failed payment', () => {
+            expect(hasDistanceRouteErrors(generateTransaction({errors: {someError: 'Something went wrong'}}))).toBe(false);
+        });
+    });
+
+    describe('isMapBasedDistanceRequest', () => {
+        const UPDATE = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+        const PDF_RECEIPT = {source: 'https://www.expensify.com/receipts/w_abc123.pdf', filename: 'w_abc123.pdf'};
+
+        function generateMapDistanceTransaction(values: Partial<Transaction> = {}): Transaction {
+            return generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, receipt: PDF_RECEIPT, ...values});
+        }
+
+        // New Expensify draws its own distance e-receipt for these, so the generated PDF beside them is never shown.
+        it('is true for a map distance expense whichever receipt it stores', () => {
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateMapDistanceTransaction())).toBe(true);
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateMapDistanceTransaction({receipt: undefined}))).toBe(true);
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateMapDistanceTransaction({pendingFields: {merchant: UPDATE}}))).toBe(true);
+        });
+
+        it('is true for a GPS distance expense, which also has a route to draw', () => {
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateMapDistanceTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS}))).toBe(true);
+        });
+
+        it('is false for odometer and non-distance expenses, which keep their own receipt', () => {
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateMapDistanceTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER}))).toBe(false);
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateTransaction({receipt: undefined}))).toBe(false);
+        });
+    });
+
     describe('calculateTaxAmount', () => {
         it('returns 0 for undefined percentage', () => {
             const result = TransactionUtils.calculateTaxAmount(undefined, 10000, 2);
@@ -3352,6 +3394,30 @@ describe('TransactionUtils', () => {
             expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined)).toBe(true);
         });
 
+        it('should return false when auto-categorize new expenses is disabled on the policy', () => {
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
+            const policy = {...createRandomPolicy(0), autoCategorizeNewExpenses: false};
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined, policy)).toBe(false);
+        });
+
+        it('should return true when auto-categorize new expenses is enabled on the policy', () => {
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
+            const policy = {...createRandomPolicy(0), autoCategorizeNewExpenses: true};
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined, policy)).toBe(true);
+        });
+
         it('should return true when within auto-categorization grace period', () => {
             // Set pendingAutoCategorizationTime to 30 seconds ago (within 1 minute grace period)
             const thirtySecondsAgo = new Date(Date.now() - 30 * 1000);
@@ -3367,6 +3433,22 @@ describe('TransactionUtils', () => {
             });
 
             expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined)).toBe(true);
+        });
+
+        it('should return false during the grace period when auto-categorize new expenses is disabled', () => {
+            const thirtySecondsAgo = new Date(Date.now() - 30 * 1000);
+            const pendingAutoCategorizationTime = thirtySecondsAgo.toISOString().replace('T', ' ').replace('Z', '');
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                comment: {
+                    pendingAutoCategorizationTime,
+                },
+            });
+            const policy = {...createRandomPolicy(0), autoCategorizeNewExpenses: false};
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined, policy)).toBe(false);
         });
 
         it('should return false when auto-categorization grace period has passed', () => {
