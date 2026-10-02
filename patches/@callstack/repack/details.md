@@ -41,3 +41,36 @@
 - Upstream PR/issue: https://github.com/callstack/repack/pull/1430 - merged into `main`, not in any release yet; staged for 5.4.0 by https://github.com/callstack/repack/pull/1441. Delete this patch when a release containing it is pinned.
 - E/App issue: None. Found while answering review on the PR below.
 - PR Introducing Patch: https://github.com/Expensify/App/pull/99407
+
+### [@callstack+repack+5.3.0+003+android-fonts-raw.patch](@callstack+repack+5.3.0+003+android-fonts-raw.patch)
+
+- Reason:
+
+    ```
+    In Android release builds Re.Pack's assets loader writes `.ttf`/`.otf`/`.ttc` files to `res/font/`,
+    while Metro writes every non-image asset to `res/raw/`. Fonts loaded from JS with `require()` (Skia's
+    `useFont`/`matchFont`, used by the Home charts) resolve the asset as an Android resource and only look
+    in `drawable` and `raw`, so they never load and the chart spinner never stops. This patch sends font
+    files to `raw`, as Metro does. XML font-family resources still go to `font/`.
+    ```
+
+- Upstream PR/issue: https://github.com/callstack/repack/issues/1472 - delete this patch once a release fixes it.
+- E/App issue: https://github.com/Expensify/App/issues/102619
+- PR Introducing Patch: https://github.com/Expensify/App/pull/102766
+
+### [@callstack+repack+5.3.0+004+android-keep-xml.patch](@callstack+repack+5.3.0+004+android-keep-xml.patch)
+
+- Reason:
+
+    ```
+    Metro writes `res/raw/keep.xml` next to the Android assets, listing every bundled resource with
+    `tools:keep`. JS loads these resources by name at runtime, which Android's resource shrinker cannot
+    see, so without the file a release build with `shrinkResources` (the standalone Android app) can
+    strip images and fonts that are still in use. Re.Pack writes no such file. This patch makes the
+    assets copy step write the same `raw/keep.xml` for Android, with one `@drawable/...`, `@raw/...` or
+    `@font/...` entry per copied resource.
+    ```
+
+- Upstream PR/issue: https://github.com/callstack/repack/issues/1472 - delete this patch once a release fixes it.
+- E/App issue: None. Found while comparing Re.Pack and Metro Android release asset output for https://github.com/Expensify/App/issues/102619.
+- PR Introducing Patch: https://github.com/Expensify/App/pull/102766
