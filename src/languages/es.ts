@@ -37,6 +37,7 @@ const translations: TranslationDeepObject<typeof en> = {
         cancel: 'Cancelar',
         unableToDisplayChart: 'No se puede mostrar el gráfico',
         webGLNotSupported: 'Tu navegador no es compatible con WebGL. Por favor, habilítalo o cambia de navegador.',
+        chartFailedToLoad: 'No se pudo cargar el gráfico. Actualiza la página e inténtalo de nuevo.',
         dismiss: 'Descartar',
         proceed: 'Proceder',
         unshare: 'Dejar de compartir',
@@ -401,8 +402,6 @@ const translations: TranslationDeepObject<typeof en> = {
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
-        chatWithAccountManager: (accountManagerDisplayName) => `¿Necesitas algo específico? Habla con tu gerente de cuenta, ${accountManagerDisplayName}.`,
-        chatNow: 'Chatear ahora',
         workEmail: 'correo electrónico de trabajo',
         destination: 'Destino',
         subrate: 'Subtasa',
@@ -1158,6 +1157,7 @@ const translations: TranslationDeepObject<typeof en> = {
         viewOnSpend: 'Ver en Gastos',
         emptyState: {title: 'Nada que mostrar', subtitle: 'Prueba a ajustar tus criterios de arriba'},
         noExpensesState: {title: 'Ve adónde va tu dinero', subtitle: 'Una vez que tengas gastos, encontrarás tendencias de gasto, principales comercios y mucho más.'},
+        compare: {label: 'Comparar', previousPeriod: 'Periodo anterior', average: 'Promedio'},
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',
@@ -1335,6 +1335,8 @@ const translations: TranslationDeepObject<typeof en> = {
                     : 'Antes de registrar distancias, tienes que añadir tu dirección de casa a tu perfil privado. Este espacio de trabajo utiliza esta dirección para las deducciones por desplazamientos al trabajo.',
             cta: 'Añadir dirección de domicilio',
         },
+        expenseAdded: 'Gasto añadido',
+        invoiceSent: 'Factura enviada',
         amount: 'Importe',
         percent: 'Porcentaje',
         date: 'Fecha',
@@ -2117,7 +2119,7 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Perfil avatar',
         customInstructions: 'Instrucciones personalizadas',
         copilotIntoAccount: 'Copilot a la cuenta',
-        viewMemberHistory: 'Ver historial del miembro',
+        seeChatHistory: 'Ver historial del chat',
         viewAgentHistory: 'Ver historial del agente',
         publicSection: {
             title: 'Público',
@@ -5436,6 +5438,9 @@ ${amount} para ${merchant} - ${date}`,
             journalEntriesProvTaxPostingAccount: 'Cuenta de registro de impuestos provinciales de asientos contables',
             foreignCurrencyAmount: 'Exportar importe en moneda extranjera',
             exportToNextOpenPeriod: 'Exportar al siguiente período abierto',
+            exportToNextOpenPeriodLockedSubtitle: 'Para desactivar la exportación al siguiente período abierto, primero desactiva la división de exportaciones no reembolsables por período.',
+            splitExportsByPostingPeriod: 'Dividir exportaciones por período contable',
+            splitExportsByPostingPeriodSubtitle: 'Activa la exportación al siguiente período abierto para habilitar la división de exportaciones no reembolsables por período en NetSuite',
             nonReimbursableJournalPostingAccount: 'Cuenta de registro de diario no reembolsable',
             reimbursableJournalPostingAccount: 'Cuenta de registro de diario reembolsable',
             journalPostingPreference: {
@@ -6291,6 +6296,8 @@ ${amount} para ${merchant} - ${date}`,
             oneMoreStepDescription: 'Parece que tenemos que verificar manualmente tu cuenta bancaria. Dirígete a Concierge, donde te esperan las instrucciones.',
             gotIt: 'Entendido',
             goToConcierge: 'Ir a Concierge',
+            noCardFeedsAvailable: 'No hay feeds de tarjetas disponibles',
+            noCardFeedsAvailableDescription: 'No hay feeds de tarjetas disponibles para este espacio de trabajo.',
         },
         categories: {
             deleteCategories: 'Eliminar categorías',
@@ -8742,6 +8749,35 @@ ${reportName}`,
             syncTravelInvoicingSettlements: 'Sincroniza las liquidaciones de facturación de viajes',
             travelInvoicingSettlementAccount: {label: 'Cuenta de liquidación de facturación de viajes', description: 'Elige tu cuenta de liquidación y crearemos el pago en Campfire.'},
             travelInvoicingPayableAccount: {label: 'Cuenta a pagar de facturación de viajes'},
+            exportToMultipleAccounts: 'Configura la exportación a varias cuentas',
+            cardProgramAccount: {
+                label: 'Cuenta del programa de tarjetas',
+                description: 'Sobrescribe la cuenta del espacio de trabajo para estos programas de tarjetas.',
+                descriptionLevel2: 'Anular la cuenta del espacio de trabajo para este programa de tarjetas.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Todos los programas usan la cuenta predeterminada';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} programa con cuenta personalizada`;
+                    }
+                    return `${customAccountsCount} programas con cuentas personalizadas`;
+                },
+            },
+            cardAccount: {
+                label: 'Cuenta por tarjeta',
+                description: 'Anula la cuenta del programa para tarjetas individuales.',
+                descriptionLevel2: 'Sobrescribe la cuenta del programa para estas tarjetas.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Todas las tarjetas usan cuentas del programa';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} tarjeta con cuenta personalizada`;
+                    }
+                    return `${customAccountsCount} tarjetas con cuentas personalizadas`;
+                },
+            },
         },
         businessCentral: {
             businessCentralSetup: 'Configuración de Dynamics 365 Business Central',
@@ -8758,6 +8794,51 @@ ${reportName}`,
             importDescription: 'Elige qué configuraciones de codificación quieres importar desde Dynamics 365 Business Central.',
             items: 'Artículos',
             enableNewCategories: 'Activar categorías recién importadas',
+            exportDescription: 'Configura cómo se exportan los datos de Expensify a Dynamics 365 Business Central.',
+            exportDate: {
+                label: 'Fecha de la transacción',
+                description: 'Usa esta fecha al exportar informes a Dynamics 365 Business Central.',
+                values: {
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Fecha del último gasto',
+                        description: 'Fecha del gasto más reciente del informe.',
+                    },
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Fecha de exportación',
+                        description: 'Fecha en que se exportó el informe a Dynamics 365 Business Central.',
+                    },
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Fecha de envío',
+                        description: 'Fecha en que se envió el informe para su aprobación.',
+                    },
+                },
+            },
+            exportReimbursable: 'Exportar gastos reembolsables como',
+            exportNonReimbursable: 'Exportar gastos de tarjetas de empresa como',
+            exportDestination: {
+                [CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.JOURNAL_ENTRY]: 'Diario general',
+                [CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE]: 'Facturas de compra',
+            },
+            reimbursableAccount: {
+                label: 'Cuenta de gastos reembolsables',
+                description: 'Elige a dónde exportar los gastos reembolsables.',
+            },
+            defaultCompanyCardVendor: {
+                label: 'Proveedor predeterminado de la tarjeta de empresa',
+                description: 'Elige un proveedor predeterminado de Dynamics 365 Business Central para los gastos que no se asignen automáticamente.',
+            },
+            companyCardAccount: {
+                label: 'Cuenta de tarjeta de empresa',
+                description: 'Elige a dónde exportar las transacciones de tarjetas de empresa.',
+            },
+            paymentMethod: {
+                label: 'Forma de pago',
+                description: 'Elige una forma de pago para las facturas de compra para que Dynamics 365 Business Central pueda conciliarlas con tu banco.',
+            },
+            noBankAccountsFound: 'No se encontraron cuentas bancarias',
+            noBankAccountsFoundDescription: 'Añade cuentas bancarias en Dynamics 365 Business Central y vuelve a sincronizar la conexión',
+            noPaymentMethodsFound: 'No se encontraron formas de pago',
+            noPaymentMethodsFoundDescription: 'Añade formas de pago en Dynamics 365 Business Central y vuelve a sincronizar la conexión',
         },
     },
     getAssistancePage: {
@@ -11240,7 +11321,18 @@ ${reportName}`,
                 invalid: 'Este código no es válido',
             },
         },
-        paymentHistory: {title: 'Ver historial de pagos', subtitle: 'Tu historial completo de pagos mensuales cargados a esta cuenta.'},
+        paymentHistory: {
+            title: 'Ver historial de pagos',
+            subtitle: 'Tu historial completo de pagos mensuales cargados a esta cuenta.',
+            payments: 'Pagos',
+            inclTax: 'incl. impuestos',
+            empty: 'Aún no hay pagos.',
+            activeUsers: ({count}: {count: number}) => ({
+                one: '1 usuario activo',
+                other: `${count} usuarios activos`,
+            }),
+            state: {paid: 'Pagado', cleared: 'Borrado', failed: 'Error', refunded: 'Reembolsado', disputed: 'En disputa', balanceTransfer: 'Transferencia de saldo'},
+        },
         subscriptionSettings: {
             title: 'Configuración de suscripción',
             summary: (subscriptionType, subscriptionSize, expensifyCode, autoRenew, autoIncrease) =>
@@ -11887,6 +11979,13 @@ ${reportName}`,
             title: 'Crea tus propios agentes',
             description: `<muted-text>Crea agentes personalizados para revisar, aprobar y asignar gastos según las reglas que configures. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Más información</a>.</muted-text>`,
         },
+    },
+    earlyRenewal: {
+        confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Renueva tu suscripción por un período de 12 meses, desde ${startDate} hasta ${endDate}.`,
+        title: 'Renueva tu suscripción de Expensify',
+        subtitle: 'Una cosa menos que hacer antes del nuevo año.',
+        confirmTitle: 'Confirmar renovación',
+        renew: 'Renovar',
     },
 };
 export default translations;
