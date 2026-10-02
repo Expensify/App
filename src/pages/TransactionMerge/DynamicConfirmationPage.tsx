@@ -31,7 +31,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
-import {getFilteredReportActionsForReportView, getIOUActionForReportID, getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {getFilteredReportActionsForReportView, getIOUActionForReportID, getIOUActionForTransactionID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {findSelfDMReportID} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -101,6 +101,9 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
     const sourceThreadReportID = sourceIOUAction?.childReportID ?? selfDMSourceIOUAction?.childReportID;
     const [sourceTransactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(sourceThreadReportID)}`);
     const [sourceIOUActionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(sourceThreadReportID)}`);
+    const sourceIOUReportID = isMoneyRequestAction(sourceIOUAction) ? sourceIOUAction?.reportID : undefined;
+    const [sourceActionIOUReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(sourceIOUReportID)}`);
+    const [sourceActionChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(sourceActionIOUReport?.chatReportID)}`);
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(conciergeReportID)}`);
@@ -181,6 +184,8 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
             sourceTransactionThreadReportActions,
             sourceIOUAction,
             sourceIOUActionThreadReport,
+            sourceActionIOUReport,
+            sourceActionChatReport,
             rules,
         });
 
