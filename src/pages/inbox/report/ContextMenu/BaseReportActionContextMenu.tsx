@@ -305,6 +305,7 @@ function BaseReportActionContextMenu({
                 isHarvestReport,
                 currentUserAccountID: currentUserPersonalDetails?.accountID,
                 rules,
+                personalDetails,
             }),
     );
 

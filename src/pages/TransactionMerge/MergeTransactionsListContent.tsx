@@ -77,6 +77,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             report: targetTransactionReport,
             currentUserLogin,
             rules,
+            personalDetails,
         });
     }, [
         transactions,
@@ -88,6 +89,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
         targetTransaction,
         targetReportTransactions,
         rules,
+        personalDetails,
     ]);
 
     const data = !eligibleTransactions
