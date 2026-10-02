@@ -3630,7 +3630,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         growlNotificationWrapper: {
-            zIndex: 2,
+            zIndex: variables.growlNotificationZIndex,
         },
 
         growlNotificationContainer: {
@@ -7202,6 +7202,11 @@ const dynamicStyles = (theme: ThemeColors) =>
             top: 0,
             bottom: 0,
             width,
+        }),
+
+        getSplashScreenHiderPosition: (left: number, right: number): ViewStyle => ({
+            left: -left,
+            right: -right,
         }),
 
         getSelectionListPopoverHeight: ({
