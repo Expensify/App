@@ -58,7 +58,9 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
             if (!selectedTransaction.transactionID) {
                 return reportCollection;
             }
-            // eslint-disable-next-line no-param-reassign mutate as recreation is not allowed
+
+            // Mutating the accumulator in-place is intentional here to build the reports map in a single reduce pass
+            // eslint-disable-next-line no-param-reassign
             reportCollection[selectedTransaction.transactionID] = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedTransaction?.reportID}`];
             return reportCollection;
         },
