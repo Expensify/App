@@ -512,7 +512,7 @@ function handleReplaceFullscreenUnderRHP(
         return null;
     }
 
-    const routesWithoutRHP = state.routes.slice(0, -1).filter((r) => r.name !== SCREENS.PRE_MOUNT_BUFFER);
+    const routesWithoutRHP = state.routes.slice(0, -1);
 
     // When the target is a TAB_NAVIGATOR screen, switch tabs within the existing instance
     // rather than pushing a duplicate navigator.
@@ -576,16 +576,7 @@ function handleReplaceFullscreenUnderRHP(
     }
 
     const rehydratedStateAfterPop = stackRouter.getRehydratedState(stateAfterPop, configOptions);
-    const routesWithoutBuffer = rehydratedStateAfterPop.routes.filter((route) => route.name !== SCREENS.PRE_MOUNT_BUFFER);
-    const stateAfterPush = stackRouter.getStateForAction(
-        {
-            ...rehydratedStateAfterPop,
-            routes: routesWithoutBuffer,
-            index: routesWithoutBuffer.length - 1,
-        },
-        StackActions.push(targetRoute.name, pushParams),
-        configOptions,
-    );
+    const stateAfterPush = stackRouter.getStateForAction(rehydratedStateAfterPop, StackActions.push(targetRoute.name, pushParams), configOptions);
     if (!stateAfterPush) {
         return null;
     }
