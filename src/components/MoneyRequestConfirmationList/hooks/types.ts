@@ -1,5 +1,6 @@
 import type {MoneyRequestConfirmationListProps} from '@components/MoneyRequestConfirmationList/types';
 
+import type CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -54,8 +55,14 @@ type UseParticipantSectionParams = {
     /** Transaction that represents the expense */
     transaction?: OnyxEntry<OnyxTypes.Transaction>;
 
+    /** The create/edit action, forwarded to the participants step for non-manual expenses. */
+    action: IOUAction;
+
+    /** Report the confirmation is for. The participants step writes the chosen report back onto this one. */
+    reportID?: string;
+
     /** The IOU flow. CREATE forces the "To:" section back on even when the caller asked for it hidden. */
-    iouType: IOUType;
+    iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
 
     /** Forces the top sections on even when the "To" section is hidden, because the amount shown is a scan's */
     isScanRequest: boolean;
