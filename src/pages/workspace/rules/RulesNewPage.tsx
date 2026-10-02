@@ -1,5 +1,5 @@
 import type {FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -7,6 +7,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -17,6 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDraftValues, setDraftValues} from '@libs/actions/FormActions';
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {setDraftFlagForReviewRule, setDraftMerchantRule, setDraftRequireFieldsRule, setDraftSpendRule} from '@libs/actions/User';
+import {categoryHasTaxRule, hasSelectableCategoryTaxRate, hasUsableTaxRates} from '@libs/CategoryTaxRulesUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -133,7 +135,27 @@ function RulesNewPage({route}: RulesNewPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['CardReaderAlt', 'Flag', 'CheckboxText', 'ReportReceipt', 'AiBot']);
-    const isCategoryScopedCreate = route.name === SCREENS.WORKSPACE.DYNAMIC_CATEGORY_RULES_NEW || !!categoryName;
+    const isCategorySettingsFlow = route.name === SCREENS.WORKSPACE.DYNAMIC_CATEGORY_RULES_NEW;
+    const isCategoryScopedCreate = isCategorySettingsFlow || !!categoryName;
+    const policy = usePolicy(policyID);
+    const {showConfirmModal} = useConfirmModal();
+
+    // From category settings the only expense default is the category's tax rate, so the type chooser is skipped. It
+    // can't be set without a rate to pick, so that case gets the chooser's explainer instead of an empty picker.
+    const openCategoryTaxRule = () => {
+        const hasCategoryTaxRule = !!categoryName && categoryHasTaxRule(policy?.rules?.expenseRules, categoryName);
+        if (!hasCategoryTaxRule && !hasSelectableCategoryTaxRate(policy)) {
+            const areTaxesEnabled = hasUsableTaxRates(policy);
+            showConfirmModal({
+                title: translate(areTaxesEnabled ? 'workspace.rules.merchantRules.addTaxRateFirstTitle' : 'workspace.rules.merchantRules.turnOnTaxesFirstTitle'),
+                prompt: translate(areTaxesEnabled ? 'workspace.rules.merchantRules.addTaxRateFirstPrompt' : 'workspace.rules.merchantRules.turnOnTaxesFirstPrompt'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            });
+            return;
+        }
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_TAX_NEW.path));
+    };
 
     const canDescribeRule = !isCategoryScopedCreate;
     const [shouldShowRuleTypes, setShouldShowRuleTypes] = useState(!canDescribeRule);
@@ -142,7 +164,6 @@ function RulesNewPage({route}: RulesNewPageProps) {
     const [promptDraft] = useOnyx(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM_DRAFT);
     const [generatedRule] = useOnyx(ONYXKEYS.GENERATED_RULE);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-    const policy = usePolicy(policyID);
 
     const fetchPolicyCategories = () => {
         if (!policy?.areCategoriesEnabled || policyCategories) {
@@ -241,9 +262,10 @@ function RulesNewPage({route}: RulesNewPageProps) {
             icon: illustrations.ReportReceipt,
             title: translate('workspace.rules.newRule.applyExpenseDefaults'),
             description: translate('workspace.rules.newRule.applyExpenseDefaultsDescription'),
-            onPress: () => Navigation.navigate(ROUTES.RULES_EXPENSE_DEFAULT_TYPE.getRoute(policyID)),
+            onPress: () => (isCategorySettingsFlow ? openCategoryTaxRule() : Navigation.navigate(ROUTES.RULES_EXPENSE_DEFAULT_TYPE.getRoute(policyID))),
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM_APPLY_EXPENSE_DEFAULTS,
-            isWorkspaceOnly: true,
+            // Only category settings can scope the editor to its category, so a category passed any other way drops it.
+            isWorkspaceOnly: !isCategorySettingsFlow,
         },
         {
             key: 'createAgentRule',
@@ -271,7 +293,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('workspace.rules.newRule.title')}
                     onBackButtonPress={handleBackButtonPress}
                 />
