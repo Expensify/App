@@ -52,6 +52,19 @@ describe('MenuItemField', () => {
 
             expect(await screen.findByLabelText(`${NAME}, ${VALUE}`)).toBeOnTheScreen();
         });
+
+        it('announces all parts of a combined value', async () => {
+            render(
+                <Wrapper>
+                    <MenuItemField
+                        name={NAME}
+                        value={`${VALUE}, Main office`}
+                    />
+                </Wrapper>,
+            );
+
+            expect(await screen.findByLabelText(`${NAME}, ${VALUE}, Main office`)).toBeOnTheScreen();
+        });
     });
 
     describe('value line count', () => {

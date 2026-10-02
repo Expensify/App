@@ -20,7 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {openExternalLink} from '@libs/actions/Link';
-import {addMembersToWorkspace, clearWorkspaceInviteApproverDraft, clearWorkspaceInviteRoleDraft} from '@libs/actions/Policy/Member';
+import {addMembersToWorkspace, clearWorkspaceInviteApproverDraft, clearWorkspaceInviteRoleDraft, clearWorkspaceInviteWorkArrangementDraft} from '@libs/actions/Policy/Member';
 import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -97,11 +97,11 @@ function WorkspaceInviteMessageComponent({
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
 
     const [welcomeNote, setWelcomeNote] = useState<string>();
-
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
 
     const [invitedEmailsToAccountIDsDraft, invitedEmailsToAccountIDsDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`);
     const [workspaceInviteMessageDraft, workspaceInviteMessageDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${policyID}`);
+    const [workspaceInviteWorkArrangementDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_WORK_ARRANGEMENT_DRAFT}${policyID}`);
     const [workspaceInviteRoleDraftFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`);
     const currentUserLogin = currentUserPersonalDetails.login ?? '';
     const canManageUserRole = canMemberAssignRole(policy, currentUserLogin, CONST.POLICY.ROLE.USER);
@@ -120,12 +120,22 @@ function WorkspaceInviteMessageComponent({
 
     const isControl = isControlPolicy(policy);
     const shouldShowApproverRow = isControl && policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED && policy?.areWorkflowsEnabled;
+    const shouldShowWorkArrangement = policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE;
+    const selectedHasOfficeWorkArrangement = workspaceInviteWorkArrangementDraft ?? policy?.commuterExclusions?.isOfficeWorkArrangement ?? true;
+    const officeLocations = Object.values(policy?.officeLocations ?? {});
+    const defaultOfficeName = officeLocations.find((office) => office.isDefault)?.name;
+    const selectedWorkArrangementLabel = translate(selectedHasOfficeWorkArrangement ? 'workspace.people.officeBased' : 'workspace.people.noRegularWorkspace');
+    const defaultOfficeLabel = officeLocations.length > 1 ? defaultOfficeName : undefined;
 
     const isApproverValid = !!workspaceInviteApproverDraft && workspaceInviteApproverDraft in (policy?.employeeList ?? {});
     const validatedApprover = isApproverValid ? workspaceInviteApproverDraft : undefined;
 
     const navigateToApproverPage = () => {
         Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE_APPROVER.getRoute(policyID, Navigation.getActiveRoute()));
+    };
+
+    const navigateToWorkArrangementPage = () => {
+        Navigation.navigate(ROUTES.WORKSPACE_INVITE_WORK_ARRANGEMENT.getRoute(policyID));
     };
 
     const isOnyxLoading = isLoadingOnyxValue(workspaceInviteMessageDraftResult, invitedEmailsToAccountIDsDraftResult, formDataResult);
@@ -203,8 +213,10 @@ function WorkspaceInviteMessageComponent({
             },
             filteredReportActions,
             shouldShowApproverRow ? validatedApprover : undefined,
+            shouldShowWorkArrangement ? selectedHasOfficeWorkArrangement : undefined,
         );
         setWorkspaceInviteMessageDraft(policyID, welcomeNote ?? null);
+        clearWorkspaceInviteWorkArrangementDraft(policyID);
         clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
 
         if (goToNextStep) {
@@ -264,6 +276,7 @@ function WorkspaceInviteMessageComponent({
         return () => {
             clearWorkspaceInviteRoleDraft(policyID);
             clearWorkspaceInviteApproverDraft(policyID);
+            clearWorkspaceInviteWorkArrangementDraft(policyID);
         };
     }, [policyID]);
 
@@ -350,6 +363,13 @@ function WorkspaceInviteMessageComponent({
                                     name={translate('workflowsPage.approver')}
                                     onPress={navigateToApproverPage}
                                     value={approverName}
+                                />
+                            )}
+                            {shouldShowWorkArrangement && (
+                                <MenuItemField
+                                    name={translate('workspace.people.workArrangement')}
+                                    onPress={navigateToWorkArrangementPage}
+                                    value={defaultOfficeLabel ? `${selectedWorkArrangementLabel}, ${defaultOfficeLabel}` : selectedWorkArrangementLabel}
                                 />
                             )}
                         </View>
