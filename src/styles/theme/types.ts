@@ -67,6 +67,7 @@ type ThemeColors = {
     sidebarHover: Color;
     floatingTabBarSelectedBG: Color;
     androidTabBarActiveIndicatorBG: Color;
+    androidTabBarShadow: Color;
     heading: Color;
     textLight: Color;
     textDark: Color;

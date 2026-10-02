@@ -23,6 +23,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 
+import NativeTabBarShadow from './NativeTabBarShadow';
 import {getFloatingButtonsBottom} from './useNativeTabBarOptions';
 
 type NativeTabLayoutProps = Parameters<NonNullable<NativeBottomTabNavigatorProps['layout']>>[0];
@@ -49,6 +50,7 @@ function NativeTabLayout({children, state, descriptors}: NativeTabLayoutProps) {
     return (
         <View style={styles.flex1}>
             {children}
+            {shouldShowNativeTabBar && <NativeTabBarShadow />}
             {!!isDebugModeEnabled && shouldShowNativeTabBar && <DebugTabView selectedTab={selectedTab} />}
             {shouldShowNativeTabBar && (
                 // The buttons belong to the bar, so they fade with it rather than appearing in place. They leave

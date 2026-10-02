@@ -32,7 +32,7 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, dotColors, tabLabels}: 
         tabBarActiveIndicatorColor: theme.androidTabBarActiveIndicatorBG,
         tabBarLabelVisibilityMode: 'labeled',
         // Every tab shares one style, so the bar reads the current visibility in the same render that changed it.
-        tabBarStyle: {display: shouldShowNativeTabBar && areTabIconsReady ? 'flex' : 'none', backgroundColor: theme.highlightBG},
+        tabBarStyle: {display: shouldShowNativeTabBar && areTabIconsReady ? 'flex' : 'none', backgroundColor: theme.appBG},
     };
 
     const getTabOptions = (name: keyof typeof NATIVE_TAB_ICONS): NativeBottomTabNavigationOptions => {

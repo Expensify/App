@@ -6922,6 +6922,17 @@ const dynamicStyles = (theme: ThemeColors) =>
                 zIndex: 10,
             }) satisfies ViewStyle,
 
+        // Covers Material's bar and the gesture inset under it, and casts the shadow up over the screen content.
+        androidNativeTabBarShadow: (bottomInset: number) =>
+            ({
+                position: 'absolute',
+                right: 0,
+                bottom: 0,
+                left: 0,
+                height: variables.androidNativeTabBarHeight + bottomInset,
+                boxShadow: theme.androidTabBarShadow,
+            }) satisfies ViewStyle,
+
         getSplitListItemAmountStyle: (inputMarginLeft: number, amountWidth: number | string) => ({
             marginLeft: inputMarginLeft,
             width: amountWidth,

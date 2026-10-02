@@ -61,6 +61,7 @@ const lightTheme = {
     floatingTabBarSelectedBG: 'rgba(230,225,218,0.50)',
     // selectedOptionBG (green100) at 40%
     androidTabBarActiveIndicatorBG: 'rgba(177,242,214,0.40)',
+    androidTabBarShadow: '0px -4px 12px 0px rgba(2,18,4,0.06)',
     heading: colors.productLight900,
     textLight: colors.white,
     textDark: colors.productLight900,
