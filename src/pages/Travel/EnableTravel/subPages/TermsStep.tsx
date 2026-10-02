@@ -11,7 +11,6 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -30,6 +29,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {isTravelOptedOutSelector} from '@src/selectors/Account';
 
 import {Str} from 'expensify-common';
 import React, {useState} from 'react';
@@ -51,8 +51,7 @@ function TermsStep({policyID, resolvedDomain, firstIncompletePrerequisitePageNam
     const {showConfirmModal, closeModal} = useConfirmModal();
     const StyleUtils = useStyleUtils();
     const illustrations = useMemoizedLazyIllustrations(['RocketDude']);
-    const {isBetaEnabled} = usePermissions();
-    const isBlockedFromSpotnanaTravel = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
+    const [isBlockedFromSpotnanaTravel] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isTravelOptedOutSelector});
     const [hasAcceptedTravelTerms, setHasAcceptedTravelTerms] = useState(false);
     const [travelProvisioning] = useOnyx(ONYXKEYS.TRAVEL_PROVISIONING);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);

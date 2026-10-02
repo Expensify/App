@@ -6,6 +6,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useDefaultWorkspaceTravelGuard from '@hooks/useDefaultWorkspaceTravelGuard';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
@@ -21,6 +22,8 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import colors from '@styles/theme/colors';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {isTravelOptedOutSelector} from '@src/selectors/Account';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -42,7 +45,7 @@ function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
     const {isBetaEnabled} = usePermissions();
     const {showConfirmModal} = useConfirmModal();
     const blockIfDefaultWorkspaceLacksTravel = useDefaultWorkspaceTravelGuard();
-    const isPreventSpotnanaTravelEnabled = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
+    const [isPreventSpotnanaTravelEnabled] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isTravelOptedOutSelector});
 
     const autoAddTripName = policy?.travelSettings?.autoAddTripName !== false;
 

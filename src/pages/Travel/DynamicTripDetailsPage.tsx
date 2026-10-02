@@ -9,7 +9,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -27,6 +26,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {isTravelOptedOutSelector} from '@src/selectors/Account';
 import type {PersonalDetailsList} from '@src/types/onyx';
 
 import type {StackScreenProps} from '@react-navigation/stack';
@@ -64,8 +64,7 @@ function DynamicTripDetailsPage({route}: DynamicTripDetailsPageProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
-    const isBlockedFromSpotnanaTravel = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
+    const [isBlockedFromSpotnanaTravel] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isTravelOptedOutSelector});
     const {isOffline} = useNetwork();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TRAVEL_TRIP_DETAILS.path);
 

@@ -33,7 +33,7 @@ import {clearLastSearchParams} from '@userActions/ReportNavigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import {primaryLoginSelector} from '@src/selectors/Account';
+import {isTravelOptedOutSelector, primaryLoginSelector} from '@src/selectors/Account';
 import {isTrackIntentUserSelector} from '@src/selectors/Onboarding';
 import {emailSelector} from '@src/selectors/Session';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
@@ -116,7 +116,7 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
     const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy([...groupPoliciesWithChatEnabled], activePolicy);
     const isInvoiceVisible = canSendInvoice(allPolicies ?? null, sessionEmail);
     const isTravelVisible = !!activePolicy?.isTravelEnabled;
-    const isBlockedFromSpotnanaTravel = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
+    const [isBlockedFromSpotnanaTravel] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isTravelOptedOutSelector});
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
     const isTravelEnabled =
         !isBlockedFromSpotnanaTravel &&
