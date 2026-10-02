@@ -51,7 +51,7 @@ function InsightsDataTable({rows, isLoading}: InsightsDataTableProps) {
                     key={item.keyForList}
                     style={[styles.flexRow, styles.alignItemsStart, styles.gap5]}
                 >
-                    <View style={[styles.flex1, styles.mnw0, styles.flexRow, styles.alignItemsStart, styles.gap4]}>
+                    <View style={[styles.flex1, styles.mnw0, styles.flexRow, styles.alignItemsStart, styles.gap5]}>
                         {isMemberGroup(item) ? (
                             <View style={[styles.chartInlineTableAvatarBorder, !!color && StyleUtils.getBorderColorStyle(color)]}>
                                 <UserAvatar

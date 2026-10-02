@@ -8,7 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {View} from 'react-native';
 
 const INDICATOR_SIZE = 20;
-const INDICATOR_GAP_X = 16;
+const INDICATOR_GAP_X = 20;
 const AMOUNT_GAP_X = 20;
 const ROW_GAP_Y = 24;
 const ROW_PADDING_X_NARROW = 20;
