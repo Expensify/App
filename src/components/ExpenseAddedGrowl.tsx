@@ -4,6 +4,7 @@ import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useReportTransactions from '@hooks/useReportTransactions';
 
+import {close} from '@libs/actions/Modal';
 import {createTransactionThreadReport, setOptimisticTransactionThread} from '@libs/actions/Report';
 import {mergeExpenseAddedGrowlTransactionIDs} from '@libs/actions/Transaction';
 import Log from '@libs/Log';
@@ -154,7 +155,8 @@ function ExpenseAddedGrowlContent({transactionID, signal, active, setActive}: Ex
             Log.warn('[ExpenseAddedGrowl] Unable to resolve transaction thread reportID on View press.');
             return;
         }
-        navigateToCreatedExpense({threadReportID, transactionID: active.transactionID, iouReportID, reportTransactions});
+        // The growl sits above popovers, so close any open one first, the same as tapping a notification.
+        close(() => navigateToCreatedExpense({threadReportID, transactionID: active.transactionID, iouReportID, reportTransactions}));
     };
 
     return (
