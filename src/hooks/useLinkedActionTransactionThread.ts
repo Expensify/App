@@ -27,7 +27,8 @@ function useLinkedActionTransactionThread(
     reportActionID: string | undefined,
 ): UseLinkedActionTransactionThreadResult {
     const {isOffline} = useNetwork();
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
+    // Only subscribe when the route links to an action — most callers don't.
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionID ? getNonEmptyStringOnyxID(report?.chatReportID) : undefined}`);
 
     const linkedActionTransactionThreadReportID = reportActionID ? getOneTransactionThreadReportID(report, chatReport, sortedAllReportActions ?? [], isOffline) : undefined;
 

@@ -69,8 +69,7 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
 let mockIsReportActionVisible = true;
 
 // `undefined` means "this report is not a one-transaction expense", so the guard falls back to looking the linked action
-// up in the route's own report — the behaviour every case below exercises. The transaction-thread lookup itself is
-// covered separately in tests/unit/shouldRedirectLinkedActionToParentReportTest.ts.
+// up in the route's own report. The cases below set it when they need the transaction-thread lookup instead.
 let mockTransactionThreadReportID: string | undefined;
 
 jest.mock('@libs/ReportActionsUtils', () => ({

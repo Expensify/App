@@ -1,7 +1,14 @@
 import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getCombinedReportActions, getFilteredReportActionsForReportView, getSortedReportActionsForDisplay, isCreatedAction} from '@libs/ReportActionsUtils';
-import {isConciergeChatReport, isInvoiceReport, isMoneyRequestReport, isReportTransactionThread as isReportTransactionThreadUtil, shouldReportAlignToTop} from '@libs/ReportUtils';
+import {getCombinedReportActions, getFilteredReportActionsForReportView, isCreatedAction} from '@libs/ReportActionsUtils';
+import {
+    canUserPerformWriteAction,
+    isConciergeChatReport,
+    isInvoiceReport,
+    isMoneyRequestReport,
+    isReportTransactionThread as isReportTransactionThreadUtil,
+    shouldReportAlignToTop,
+} from '@libs/ReportUtils';
 
 import getReportActionsToDisplay from '@pages/inbox/report/getReportActionsToDisplay';
 
@@ -14,11 +21,13 @@ import {useMemo, useState} from 'react';
 
 import {useCurrencyListActions} from './useCurrencyList';
 import useDelegateAccountID from './useDelegateAccountID';
+import useLinkedActionTransactionThread from './useLinkedActionTransactionThread';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePaginatedReportActions from './usePaginatedReportActions';
 import useParentReportAction from './useParentReportAction';
-import useTransactionThread from './useTransactionThread';
+import useReportIsArchived from './useReportIsArchived';
+import useTransactionThread, {selectTransactionThreadReportActions} from './useTransactionThread';
 
 type UseReportActionsPaginationResult = {
     reportActions: ReportAction[];
@@ -56,8 +65,6 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
         hasNewerActions,
         sortedAllReportActions,
         oldestUnreadReportAction,
-        isLinkedActionInMergedTransactionThread,
-        linkedActionTransactionThreadReportID,
     } = usePaginatedReportActions(reportID, reportActionIDFromRoute, {
         shouldLinkToOldestUnreadReportAction: !shouldBeAlignedToTop,
         treatAsNoPaginationAnchor,
@@ -66,6 +73,8 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
         shouldSnapshotInitialLastReadTime: isConciergeChat,
     });
     const allReportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
+
+    const {linkedActionTransactionThreadReportID, isLinkedActionInMergedTransactionThread} = useLinkedActionTransactionThread(report, sortedAllReportActions, reportActionIDFromRoute);
 
     const thread = useTransactionThread({reportID, report, allReportActions, isOffline});
 
@@ -81,10 +90,13 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
     );
 
     // useTransactionThread resolves the thread from the paginated window, so it comes back empty when the IOU action sits in an older page.
+    const isReportArchived = useReportIsArchived(reportID);
+    const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
     const fallbackThreadReportID = !thread.transactionThreadReportID && isLinkedActionInMergedTransactionThread ? linkedActionTransactionThreadReportID : undefined;
     const [fallbackThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(fallbackThreadReportID)}`);
     const [fallbackThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(fallbackThreadReportID)}`, {
-        selector: (actions: OnyxEntry<ReportActions>) => getSortedReportActionsForDisplay(actions, true, true, undefined, fallbackThreadReportID),
+        // Mirror useTransactionThread's write permission so a read-only user doesn't see actionable whispers here.
+        selector: (actions: OnyxEntry<ReportActions>) => selectTransactionThreadReportActions(!!canPerformWriteAction, fallbackThreadReportID, actions),
     });
 
     const transactionThreadReportID = thread.transactionThreadReportID ?? fallbackThreadReportID;

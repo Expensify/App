@@ -138,8 +138,6 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
         hasOlderActions: hasNextPage,
         hasNewerActions: hasPreviousPage,
         report,
-        isLinkedActionInMergedTransactionThread,
-        linkedActionTransactionThreadReportID,
     };
 }
 
