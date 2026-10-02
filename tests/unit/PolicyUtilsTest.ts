@@ -1754,6 +1754,25 @@ describe('PolicyUtils', () => {
             // When / Then one code is enough to keep the cell editable
             expect(hasAnyTagGLCode(policyTagLists)).toBe(true);
         });
+
+        it('returns false when the only GL codes are on disabled or pending-deletion tags', () => {
+            // Given GL codes only on tags the tag picker won't let the user select
+            const policyTagLists: PolicyTagLists = {
+                Department: {
+                    name: 'Department',
+                    orderWeight: 0,
+                    required: false,
+                    tags: {
+                        Engineering: {name: 'Engineering', enabled: false, 'GL Code': '1234'},
+                        Marketing: {name: 'Marketing', enabled: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, 'GL Code': '5678'},
+                        Sales: {name: 'Sales', enabled: true},
+                    },
+                },
+            };
+
+            // When / Then the cell stays read-only, because the picker would offer no GL code to pick
+            expect(hasAnyTagGLCode(policyTagLists)).toBe(false);
+        });
     });
     describe('getTagGLCode', () => {
         // Tag lists are intentionally declared out of orderWeight order to verify levels resolve by orderWeight

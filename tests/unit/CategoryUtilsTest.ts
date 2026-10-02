@@ -506,6 +506,18 @@ describe('hasAnyCategoryGLCode', () => {
         // When / Then one code is enough to keep the cell editable
         expect(hasAnyCategoryGLCode(categories)).toBe(true);
     });
+
+    it('returns false when the only GL codes are on disabled or pending-deletion categories', () => {
+        // Given GL codes only on categories the category picker won't let the user select
+        const categories: PolicyCategories = {
+            Meals: {enabled: true, name: 'Meals', pendingAction: null},
+            Travel: {enabled: false, name: 'Travel', pendingAction: null, 'GL Code': '1200'}, // eslint-disable-line @typescript-eslint/naming-convention
+            Fuel: {enabled: true, name: 'Fuel', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, 'GL Code': '1300'}, // eslint-disable-line @typescript-eslint/naming-convention
+        };
+
+        // When / Then the cell stays read-only, because the picker would offer no GL code to pick
+        expect(hasAnyCategoryGLCode(categories)).toBe(false);
+    });
 });
 
 describe('getCategoryDefaultTaxRate', () => {

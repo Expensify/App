@@ -135,10 +135,14 @@ function getCategoryGLCode(policyCategories: PolicyCategories | undefined, categ
 }
 
 /**
- * Whether at least one category on the workspace has a non-blank GL code.
+ * Whether at least one selectable category on the workspace has a non-blank GL code. Disabled and pending-deletion
+ * categories can't be picked in the category picker, so their GL codes don't count.
  */
 function hasAnyCategoryGLCode(policyCategories: PolicyCategories | undefined): boolean {
-    return Object.keys(policyCategories ?? {}).some((categoryName) => !!getCategoryGLCode(policyCategories, categoryName).trim());
+    return Object.entries(policyCategories ?? {}).some(
+        ([categoryName, category]) =>
+            !!category?.enabled && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!getCategoryGLCode(policyCategories, categoryName).trim(),
+    );
 }
 
 function getDecodedCategoryName(categoryName: string) {
