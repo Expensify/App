@@ -1,6 +1,5 @@
 import type CONST from '@src/CONST';
 
-import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
 
 /** Workspace member custom field key types */
@@ -16,15 +15,6 @@ type PolicyEmployee = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Custom field 2 of the member in the policy */
     employeePayrollID?: string;
-
-    /** The member's default deposit bank account, only sent to workspace admins, null when the member has none */
-    bankAccount?: {
-        /** Name of the bank, used to pick its icon */
-        bankName?: BankName;
-
-        /** Last four digits of the account number */
-        bankAccountLastFour?: string;
-    } | null;
 
     email?: string;
 

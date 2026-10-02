@@ -171,6 +171,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const [outstandingReportsForPolicy] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {selector: outstandingReportsForPolicySelector});
     const privateIsArchivedMap = usePrivateIsArchivedMap();
     const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`);
+    const [memberBankAccounts] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_BANK_ACCOUNTS}${policyID}`);
 
     const accountIDs = useMemo(() => Object.values(policyMemberEmailsToAccountIDs ?? {}).map((accountID) => Number(accountID)), [policyMemberEmailsToAccountIDs]);
     const prevAccountIDs = usePrevious(accountIDs);
@@ -216,10 +217,13 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         });
     }, [selectedEmployees, policyMemberEmailsToAccountIDs, translate, policy, formatPhoneNumber, personalDetails, outstandingReportsForPolicy, privateIsArchivedMap]);
 
+    const shouldShowMemberBankAccounts = isPolicyAdmin(policy) && (arePaymentsEnabled(policy) || !!policy?.isCollectDepositAccountsEnabled);
     const getWorkspaceMembersEvent = useEffectEvent(() => getWorkspaceMembers());
+
+    // The bank accounts are only returned while the workspace shows them, so load the members again when that changes.
     useEffect(() => {
         getWorkspaceMembersEvent();
-    }, []);
+    }, [shouldShowMemberBankAccounts]);
 
     /**
      * Open the modal to invite a user
@@ -387,7 +391,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const hasAnyCustomField2 = useMemo(() => filteredMembers.some(({policyEmployee}) => !!policyEmployee.employeePayrollID), [filteredMembers]);
     const shouldShowCustomField1Column = isControlPolicyWithWideLayout && hasAnyCustomField1;
     const shouldShowCustomField2Column = isControlPolicyWithWideLayout && hasAnyCustomField2;
-    const shouldShowBankAccountColumn = hasWideTableLayout && isPolicyAdmin(policy) && (arePaymentsEnabled(policy) || !!policy?.isCollectDepositAccountsEnabled);
+    const shouldShowBankAccountColumn = hasWideTableLayout && shouldShowMemberBankAccounts;
 
     // Unlike the custom fields, this column applies to every workspace type, so it isn't gated on Control.
     const isApprovalsEnabled = areApprovalsEnabled(policy);
@@ -423,7 +427,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 email: memberEmail,
                 employeeUserID: policyEmployee.employeeUserID,
                 employeePayrollID: policyEmployee.employeePayrollID,
-                bankAccountLastFour: policyEmployee.bankAccount?.bankAccountLastFour,
+                bankAccountLastFour: memberBankAccounts?.[accountID]?.bankAccountLastFour,
                 isInteractive: !details.isOptimisticPersonalDetail,
                 isSelectionDisabled:
                     !canWriteMembers ||
@@ -455,6 +459,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         shouldShowCustomField2Column,
         shouldShowApproverColumn,
         firstApproverByMemberEmail,
+        memberBankAccounts,
         policyMemberEmailsToAccountIDs,
         invitedPrimaryToSecondaryLogins,
         openMemberDetails,
