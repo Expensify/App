@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import VacationDelegateForm from '@components/VacationDelegateForm';
 
@@ -108,7 +108,7 @@ function VacationDelegateFormPage() {
             testID="VacationDelegateFormPage"
             shouldEnableMaxHeight
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('common.vacationDelegate')}
                 onBackButtonPress={goBack}
             />

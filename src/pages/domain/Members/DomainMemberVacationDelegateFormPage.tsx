@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import VacationDelegateForm from '@components/VacationDelegateForm';
 
@@ -22,7 +22,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import {vacationDelegateSelector} from '@selectors/Domain';
-import React from 'react';
+import React, {useMemo} from 'react';
 
 type DomainMemberVacationDelegateFormPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.VACATION_DELEGATE>;
 
@@ -32,8 +32,9 @@ function DomainMemberVacationDelegateFormPage({route}: DomainMemberVacationDeleg
 
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
+    const memberVacationDelegateSelector = useMemo(() => vacationDelegateSelector(accountID), [accountID]);
     const [vacationDelegate] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
-        selector: vacationDelegateSelector(accountID),
+        selector: memberVacationDelegateSelector,
     });
 
     const [personalDetails] = usePersonalDetail(accountID);
@@ -75,7 +76,7 @@ function DomainMemberVacationDelegateFormPage({route}: DomainMemberVacationDeleg
                 testID="DomainMemberVacationDelegateFormPage"
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('common.vacationDelegate')}
                     onBackButtonPress={goBack}
                 />
