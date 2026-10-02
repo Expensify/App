@@ -128,7 +128,7 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
                 shouldValidateOnBlur
                 keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
             >
-                <Text style={[styles.textNormal, styles.mb5]}>{translate('workspace.rules.newRule.describeRule')}</Text>
+                <Text style={[styles.textNormal, styles.textSupporting, styles.mb5]}>{translate('workspace.rules.newRule.describeRule')}</Text>
                 <View style={styles.describeRulePromptInput}>
                     <InputWrapper
                         InputComponent={TextInput}
