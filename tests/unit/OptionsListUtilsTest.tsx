@@ -18,6 +18,7 @@ import {
     createFilteredOptionList,
     createOption,
     createOptionFromReport,
+    doesReportMatchSearchTerms,
     filterAndOrderOptions,
     filterReports,
     filterSelfDMChat,
@@ -41,12 +42,12 @@ import {
     orderPersonalDetailsOptions,
     orderWorkspaceOptions,
     recentReportComparator,
-    sortAlphabetically,
 } from '@libs/OptionsListUtils';
 import {getCurrentUserSearchTerms, getPersonalDetailSearchTerms} from '@libs/OptionsListUtils/searchMatchUtils';
 import {canCreateTaskInReport, canUserPerformWriteAction, isCanceledTaskReport, isExpensifyOnlyParticipantInReport} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
+import sortAlphabetically from '@libs/sortAlphabetically';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
@@ -1253,7 +1254,7 @@ describe('OptionsListUtils', () => {
             );
             let results: Pick<Options, 'personalDetails' | 'recentReports'> = validOptions;
             // When we call orderOptions()
-            results = orderOptions(results);
+            results = orderOptions(results, activePolicyID);
 
             // Then all personalDetails except the currently logged in user should be returned
             expect(results.personalDetails.length).toBe(Object.values(OPTIONS.personalDetails).length - 1);
@@ -1300,7 +1301,7 @@ describe('OptionsListUtils', () => {
             );
             let results: Pick<Options, 'personalDetails' | 'recentReports'> = validOptions;
             // When we call orderOptions()
-            results = orderOptions(results);
+            results = orderOptions(results, activePolicyID);
 
             const expected = [
                 'Black Panther',
@@ -1448,21 +1449,23 @@ describe('OptionsListUtils', () => {
             // The contact must survive getValidOptions' pre-filter so the final filter can return it.
             expect(preFilteredOptions.personalDetails).toEqual(expect.arrayContaining([expect.objectContaining({login: 'contact1003@example.com'})]));
 
-            const filteredOptions = filterAndOrderOptions(
-                preFilteredOptions,
-                searchString,
-                COUNTRY_CODE,
+            const filteredOptions = filterAndOrderOptions({
+                options: preFilteredOptions,
+                searchInputValue: searchString,
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 personalDetails,
-                {
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             expect(filteredOptions.personalDetails).toEqual([expect.objectContaining({login: 'contact1003@example.com'})]);
         });
@@ -2104,21 +2107,23 @@ describe('OptionsListUtils', () => {
                 translateLocal,
                 undefined,
             );
-            const filteredOptions = filterAndOrderOptions(
+            const filteredOptions = filterAndOrderOptions({
                 options,
-                searchText,
-                COUNTRY_CODE,
+                searchInputValue: searchText,
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             // Then the report must survive both filtering stages
             expect(filteredOptions.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({reportID: report.reportID, text: reportText})]));
@@ -3542,21 +3547,23 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
             });
             // When we pass the returned options to filterAndOrderOptions with an empty search value
-            const filteredOptions = filterAndOrderOptions(
+            const filteredOptions = filterAndOrderOptions({
                 options,
-                '',
-                COUNTRY_CODE,
+                searchInputValue: '',
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             // Then all options should be returned
             expect(filteredOptions.recentReports.length + filteredOptions.personalDetails.length).toBe(14);
@@ -3585,22 +3592,24 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value and sortByReportTypeInSearch param
-            const filteredOptions = filterAndOrderOptions(
+            const filteredOptions = filterAndOrderOptions({
                 options,
-                searchText,
-                COUNTRY_CODE,
+                searchInputValue: searchText,
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                     sortByReportTypeInSearch: true,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             // Then we expect all options to be part of the recentReports list and reports should be first:
             expect(filteredOptions.personalDetails.length).toBe(0);
@@ -3636,21 +3645,23 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
-            const filteredOptions = filterAndOrderOptions(
+            const filteredOptions = filterAndOrderOptions({
                 options,
-                searchText,
-                COUNTRY_CODE,
+                searchInputValue: searchText,
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             // Then only one report should be returned
             expect(filteredOptions.recentReports.length).toBe(1);
@@ -3699,21 +3710,23 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
-            const filteredOptions = filterAndOrderOptions(
+            const filteredOptions = filterAndOrderOptions({
                 options,
-                searchText,
-                COUNTRY_CODE,
+                searchInputValue: searchText,
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             // Then only one report should be returned
             expect(filteredOptions.recentReports.length).toBe(1);
@@ -3759,22 +3772,24 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value and sortByReportTypeInSearch param
-            const filteredOptions = filterAndOrderOptions(
+            const filteredOptions = filterAndOrderOptions({
                 options,
-                searchText,
-                COUNTRY_CODE,
+                searchInputValue: searchText,
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS_WITH_PERIODS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS_WITH_PERIODS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                     sortByReportTypeInSearch: true,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             // Then only one report should be returned
             expect(filteredOptions.recentReports.length).toBe(1);
@@ -3804,21 +3819,23 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
-            const filteredOptions = filterAndOrderOptions(
+            const filteredOptions = filterAndOrderOptions({
                 options,
-                searchText,
-                COUNTRY_CODE,
+                searchInputValue: searchText,
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             // Then only one report should be returned
             expect(filteredOptions.recentReports.length).toBe(1);
@@ -3848,21 +3865,23 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
-            const filteredOptions = filterAndOrderOptions(
+            const filteredOptions = filterAndOrderOptions({
                 options,
-                searchText,
-                COUNTRY_CODE,
+                searchInputValue: searchText,
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             // Then only one report should be returned
             expect(filteredOptions.recentReports.length).toBe(1);
@@ -3902,21 +3921,23 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
-            const filterOptions = filterAndOrderOptions(
+            const filterOptions = filterAndOrderOptions({
                 options,
-                searchText,
-                COUNTRY_CODE,
+                searchInputValue: searchText,
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             // Then only two reports should be returned
             expect(filterOptions.recentReports.length).toBe(2);
@@ -3946,21 +3967,23 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
             });
             // When we call filterAndOrderOptions with a search value
-            const filteredOptions = filterAndOrderOptions(
+            const filteredOptions = filterAndOrderOptions({
                 options,
-                searchText,
-                COUNTRY_CODE,
+                searchInputValue: searchText,
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             // Then only three reports should be returned
             expect(filteredOptions.recentReports.length).toBe(3);
@@ -3992,21 +4015,23 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
             });
             // When we call filterAndOrderOptions with a search value
-            const filteredOptions = filterAndOrderOptions(
+            const filteredOptions = filterAndOrderOptions({
                 options,
-                searchText,
-                COUNTRY_CODE,
+                searchInputValue: searchText,
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             // Then the user to invite should be returned
             expect(filteredOptions.userToInvite?.login).toBe(searchText);
@@ -4034,22 +4059,24 @@ describe('OptionsListUtils', () => {
                 undefined,
             );
             // When we call filterAndOrderOptions with a search value and excluded logins list
-            const filterOptions = filterAndOrderOptions(
+            const filterOptions = filterAndOrderOptions({
                 options,
-                searchText,
-                COUNTRY_CODE,
+                searchInputValue: searchText,
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                     excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             // Then no personal details should be returned
             expect(filterOptions.recentReports.length).toBe(0);
@@ -4077,22 +4104,24 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
             });
             // When we call filterAndOrderOptions with a search value and excludeLogins
-            const filteredOptions = filterAndOrderOptions(
+            const filteredOptions = filterAndOrderOptions({
                 options,
-                searchText,
-                COUNTRY_CODE,
+                searchInputValue: searchText,
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                     excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             // Then the user to invite should be returned
             expect(filteredOptions.userToInvite?.login).toBe(searchText);
@@ -4120,44 +4149,48 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
             });
             // When we call filterAndOrderOptions with a search value and maxRecentReportsToShow set to 2
-            const filteredOptions = filterAndOrderOptions(
+            const filteredOptions = filterAndOrderOptions({
                 options,
-                searchText,
-                COUNTRY_CODE,
+                searchInputValue: searchText,
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                     maxRecentReportsToShow: 2,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             // Then only two reports should be returned
             expect(filteredOptions.recentReports.length).toBe(2);
 
             // Note: in the past maxRecentReportsToShow: 0 would return all recent reports, this has changed, and is expected to return none now
             // When we call filterAndOrderOptions with a search value and maxRecentReportsToShow set to 0
-            const limitToZeroOptions = filterAndOrderOptions(
+            const limitToZeroOptions = filterAndOrderOptions({
                 options,
-                searchText,
-                COUNTRY_CODE,
+                searchInputValue: searchText,
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                     maxRecentReportsToShow: 0,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             // Then no reports should be returned
             expect(limitToZeroOptions.recentReports.length).toBe(0);
@@ -4185,21 +4218,23 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
             });
             // When we call filterAndOrderOptions with a search value
-            const filteredOptions = filterAndOrderOptions(
+            const filteredOptions = filterAndOrderOptions({
                 options,
-                searchText,
-                COUNTRY_CODE,
+                searchInputValue: searchText,
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             // Then there should be one matching result
             expect(filteredOptions.personalDetails.length).toBe(1);
@@ -4247,21 +4282,23 @@ describe('OptionsListUtils', () => {
                 undefined,
             );
             // When we pass the returned options to filterAndOrderOptions with a search value that does not match the group chat name
-            const filteredOptions = filterAndOrderOptions(
+            const filteredOptions = filterAndOrderOptions({
                 options,
-                'mutants',
-                COUNTRY_CODE,
+                searchInputValue: 'mutants',
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             // Then no recent reports should be returned
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -4312,21 +4349,23 @@ describe('OptionsListUtils', () => {
                 undefined,
             );
             // When we pass the returned options to filterAndOrderOptions with a search value that matches the group chat name
-            const filteredOptions = filterAndOrderOptions(
+            const filteredOptions = filterAndOrderOptions({
                 options,
-                'Avengers Room',
-                COUNTRY_CODE,
+                searchInputValue: 'Avengers Room',
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             // Then one recent report should be returned
             expect(filteredOptions.recentReports.length).toBe(1);
@@ -4377,21 +4416,23 @@ describe('OptionsListUtils', () => {
                 undefined,
             );
             // When we pass the returned options to filterAndOrderOptions with a search value that does not match the group chat name
-            const filteredOptions = filterAndOrderOptions(
+            const filteredOptions = filterAndOrderOptions({
                 options,
-                'Mutants Lair',
-                COUNTRY_CODE,
+                searchInputValue: 'Mutants Lair',
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             // Then no recent reports should be returned
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -4416,21 +4457,23 @@ describe('OptionsListUtils', () => {
                 undefined,
             );
             // When we call filterAndOrderOptions with a search value that matches a personal detail with no existing report
-            const filteredOptions = filterAndOrderOptions(
+            const filteredOptions = filterAndOrderOptions({
                 options,
-                'hulk',
-                COUNTRY_CODE,
+                searchInputValue: 'hulk',
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             // Then no recent reports should be returned
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -4758,21 +4801,23 @@ describe('OptionsListUtils', () => {
             });
 
             // When we pass the returned options to filterAndOrderOptions with any search value
-            const filteredOptions = filterAndOrderOptions(
+            const filteredOptions = filterAndOrderOptions({
                 options,
-                'Unknown',
-                COUNTRY_CODE,
+                searchInputValue: 'Unknown',
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             // Then the report should still be found by its reportName even if participantsList is empty
             expect(filteredOptions.recentReports.length).toBe(1);
@@ -4798,21 +4843,23 @@ describe('OptionsListUtils', () => {
                 undefined,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports
-            const filteredOptions = filterAndOrderOptions(
+            const filteredOptions = filterAndOrderOptions({
                 options,
-                'marc@expensify',
-                COUNTRY_CODE,
+                searchInputValue: 'marc@expensify',
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             // Then no recent reports or personal details should be returned
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -4840,21 +4887,23 @@ describe('OptionsListUtils', () => {
                 undefined,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports
-            const filteredOptions = filterAndOrderOptions(
+            const filteredOptions = filterAndOrderOptions({
                 options,
-                'marc@expensify.com',
-                COUNTRY_CODE,
+                searchInputValue: 'marc@expensify.com',
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             // Then no recent reports or personal details should be returned
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -4882,21 +4931,23 @@ describe('OptionsListUtils', () => {
                 undefined,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
-            const filteredOptions = filterAndOrderOptions(
+            const filteredOptions = filterAndOrderOptions({
                 options,
-                'peter.parker@expensify.com',
-                COUNTRY_CODE,
+                searchInputValue: 'peter.parker@expensify.com',
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             // Then no recent reports should be returned
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -4923,21 +4974,23 @@ describe('OptionsListUtils', () => {
                 undefined,
             );
             // When we call filterAndOrderOptions with a search value without accent mark
-            const filteredOptions = filterAndOrderOptions(
+            const filteredOptions = filterAndOrderOptions({
                 options,
-                'Timothee',
-                COUNTRY_CODE,
+                searchInputValue: 'Timothee',
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             // Then one personalDetails with accent mark should be returned
             expect(filteredOptions.personalDetails.length).toBe(1);
@@ -4962,21 +5015,23 @@ describe('OptionsListUtils', () => {
                 undefined,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
-            const filteredOptions = filterAndOrderOptions(
+            const filteredOptions = filterAndOrderOptions({
                 options,
-                '5005550006',
-                COUNTRY_CODE,
+                searchInputValue: '5005550006',
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             // Then no recent reports or personal details should be returned
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -5006,21 +5061,23 @@ describe('OptionsListUtils', () => {
                 undefined,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
-            const filteredOptions = filterAndOrderOptions(
+            const filteredOptions = filterAndOrderOptions({
                 options,
-                '+15005550006',
-                COUNTRY_CODE,
+                searchInputValue: '+15005550006',
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             // Then no recent reports or personal details should be returned
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -5050,21 +5107,23 @@ describe('OptionsListUtils', () => {
                 undefined,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
-            const filteredOptions = filterAndOrderOptions(
+            const filteredOptions = filterAndOrderOptions({
                 options,
-                '+1 (800)324-3233',
-                COUNTRY_CODE,
+                searchInputValue: '+1 (800)324-3233',
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             // Then no recent reports or personal details should be returned
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -5094,21 +5153,23 @@ describe('OptionsListUtils', () => {
                 undefined,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports
-            const filteredOptions = filterAndOrderOptions(
+            const filteredOptions = filterAndOrderOptions({
                 options,
-                '998243aaaa',
-                COUNTRY_CODE,
+                searchInputValue: '998243aaaa',
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             // Then no recent reports or personal details should be returned
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -5139,22 +5200,24 @@ describe('OptionsListUtils', () => {
             );
 
             // When we call filterAndOrderOptions with a plain text name (not email or phone) without shouldAcceptName
-            const filteredOptions = filterAndOrderOptions(
+            const filteredOptions = filterAndOrderOptions({
                 options,
-                'Jeff Amazon',
-                COUNTRY_CODE,
+                searchInputValue: 'Jeff Amazon',
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                     shouldAcceptName: false,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             // Then userToInvite should be null since plain names are not accepted by default
             expect(filteredOptions?.userToInvite).toBe(null);
@@ -5182,22 +5245,24 @@ describe('OptionsListUtils', () => {
             );
 
             // When we call filterAndOrderOptions with a plain text name (not email or phone) with shouldAcceptName
-            const filteredOptions = filterAndOrderOptions(
+            const filteredOptions = filterAndOrderOptions({
                 options,
-                'Jeff',
-                COUNTRY_CODE,
+                searchInputValue: 'Jeff',
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                     shouldAcceptName: true,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             // Then userToInvite should be returned for the plain name
             expect(filteredOptions?.userToInvite?.text).toBe('Jeff');
@@ -5222,21 +5287,23 @@ describe('OptionsListUtils', () => {
                 undefined,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details
-            const filteredOptions = filterAndOrderOptions(
+            const filteredOptions = filterAndOrderOptions({
                 options,
-                'magneto',
-                COUNTRY_CODE,
+                searchInputValue: 'magneto',
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             // Then no personal details should be returned
             expect(filteredOptions.personalDetails.length).toBe(0);
@@ -5261,22 +5328,24 @@ describe('OptionsListUtils', () => {
                 undefined,
             );
             // When we call filterAndOrderOptions with a search value that matches an email
-            const filteredOptions = filterAndOrderOptions(
+            const filteredOptions = filterAndOrderOptions({
                 options,
-                'peterparker@expensify.com',
-                COUNTRY_CODE,
+                searchInputValue: 'peterparker@expensify.com',
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                     sortByReportTypeInSearch: true,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             // Then one recent report should be returned
             expect(filteredOptions.recentReports.length).toBe(1);
@@ -5305,22 +5374,24 @@ describe('OptionsListUtils', () => {
                 undefined,
             );
             // When we call filterAndOrderOptions with a search value that matches both reports and personal details and maxRecentReportsToShow param
-            const filteredOptions = filterAndOrderOptions(
+            const filteredOptions = filterAndOrderOptions({
                 options,
-                '.com',
-                COUNTRY_CODE,
+                searchInputValue: '.com',
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                     maxRecentReportsToShow: 5,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             // Then there should be 4 matching personal details
             expect(filteredOptions.personalDetails.length).toBe(5);
@@ -5353,21 +5424,23 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
             });
             // When we call filterAndOrderOptions with a search value that matches a personal detail
-            const filteredOptions = filterAndOrderOptions(
+            const filteredOptions = filterAndOrderOptions({
                 options,
-                'spider',
-                COUNTRY_CODE,
+                searchInputValue: 'spider',
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             // Then one personal detail should be returned
             expect(filteredOptions.recentReports.length).toBe(1);
@@ -5395,21 +5468,23 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
             });
             // When we call filterAndOrderOptions with a search value that matches multiple items
-            const filteredOptions = filterAndOrderOptions(
+            const filteredOptions = filterAndOrderOptions({
                 options,
-                'fantastic',
-                COUNTRY_CODE,
+                searchInputValue: 'fantastic',
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             // Then only three reports should be returned
             expect(filteredOptions.recentReports.length).toBe(3);
@@ -5455,17 +5530,19 @@ describe('OptionsListUtils', () => {
                         conciergeReportID: undefined,
                     });
                     // When we pass the returned options to filterAndOrderOptions with a search value
-                    const filteredResults = filterAndOrderOptions(
-                        results,
-                        'barry.allen@expensify.com',
-                        COUNTRY_CODE,
+                    const filteredResults = filterAndOrderOptions({
+                        options: results,
+                        searchInputValue: 'barry.allen@expensify.com',
+                        countryCode: COUNTRY_CODE,
                         loginList,
-                        CURRENT_USER_EMAIL,
-                        CURRENT_USER_ACCOUNT_ID,
-                        PERSONAL_DETAILS_WITH_PERIODS,
-                        {dateFnsLocale: undefined, convertToDisplayString, sortByReportTypeInSearch: true, currentUserAccountID: CURRENT_USER_ACCOUNT_ID},
-                        undefined,
-                    );
+                        currentUserEmail: CURRENT_USER_EMAIL,
+                        currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                        personalDetails: PERSONAL_DETAILS_WITH_PERIODS,
+                        config: {dateFnsLocale: undefined, convertToDisplayString, sortByReportTypeInSearch: true, currentUserAccountID: CURRENT_USER_ACCOUNT_ID},
+                        translate: translateLocal,
+                        rules: undefined,
+                        activePolicyID,
+                    });
 
                     // Then only one report should be returned
                     expect(filteredResults.recentReports.length).toBe(1);
@@ -5500,21 +5577,23 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
             });
             // When we call filterAndOrderOptions with a an empty search value
-            const filteredOptions = filterAndOrderOptions(
+            const filteredOptions = filterAndOrderOptions({
                 options,
-                '',
-                COUNTRY_CODE,
+                searchInputValue: '',
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
             const matchingEntries = filteredOptions.personalDetails.filter((detail) => detail.login === login);
 
             // Then there should be 2 unique login entries
@@ -5560,21 +5639,23 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
             });
             // When we call filterAndOrderOptions with a search value
-            const filteredOptions = filterAndOrderOptions(
+            const filteredOptions = filterAndOrderOptions({
                 options,
-                searchTerm,
-                COUNTRY_CODE,
+                searchInputValue: searchTerm,
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             // Then the self dm should be on top.
             expect(filteredOptions.recentReports.at(0)?.isSelfDM).toBe(true);
@@ -5600,36 +5681,40 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
             });
 
-            const multiSpaceQueryResults = filterAndOrderOptions(
+            const multiSpaceQueryResults = filterAndOrderOptions({
                 options,
-                'Invisible   Woman',
-                COUNTRY_CODE,
+                searchInputValue: 'Invisible   Woman',
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                undefined,
-            );
-            const spaceSeparatedQueryResults = filterAndOrderOptions(
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
+            const spaceSeparatedQueryResults = filterAndOrderOptions({
                 options,
-                'Invisible Woman',
-                COUNTRY_CODE,
+                searchInputValue: 'Invisible Woman',
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             expect(multiSpaceQueryResults.recentReports.map((option) => option.reportID)).toEqual(spaceSeparatedQueryResults.recentReports.map((option) => option.reportID));
             expect(multiSpaceQueryResults.personalDetails.map((option) => option.accountID)).toEqual(spaceSeparatedQueryResults.personalDetails.map((option) => option.accountID));
@@ -5779,7 +5864,7 @@ describe('OptionsListUtils', () => {
         it('should put the default workspace on top of the list', () => {
             // Given a list of expense chats
             // When we call orderWorkspaceOptions
-            const result = orderWorkspaceOptions(WORKSPACE_CHATS);
+            const result = orderWorkspaceOptions(WORKSPACE_CHATS, activePolicyID);
 
             // Then the first item in the list should be the default workspace
             expect(result.at(0)?.text).toEqual('Notion Workspace for Marketing');
@@ -6739,6 +6824,63 @@ describe('OptionsListUtils', () => {
         });
     });
 
+    describe('doesReportMatchSearchTerms()', () => {
+        const report: SearchOption<Report> = {
+            reportID: 'email',
+            keyForList: 'email',
+            text: '123123',
+            login: 'person@gmail.com',
+            item: createRandomReport(1, undefined),
+        };
+
+        it('matches an email query against an email address', () => {
+            // Given a report with a matching email address
+            // When the query is an email search
+            const doesMatch = doesReportMatchSearchTerms(report, ['person@']);
+
+            // Then the report matches
+            expect(doesMatch).toBe(true);
+        });
+
+        it('matches an uppercase accented query against a group participant', () => {
+            // Given a group report with an accented participant name
+            // cspell:ignore José JOSÉ
+            const groupReport: SearchOption<Report> = {
+                ...report,
+                item: {...createRandomReport(1, undefined), chatType: CONST.REPORT.CHAT_TYPE.GROUP},
+                participantsList: [{accountID: 2, displayName: 'José', login: 'jose@example.com'}],
+            };
+
+            // When the query uses the same accented name in uppercase
+            const doesMatch = doesReportMatchSearchTerms(groupReport, ['JOSÉ']);
+
+            // Then the group report matches
+            expect(doesMatch).toBe(true);
+        });
+
+        // cspell:ignore 김민수 山田太郎 Ирина Смирнова Νίκος Παπαδόπουλος Nguyễn Minh
+        it.each([
+            {writingSystem: 'Korean', displayName: '김민수'},
+            {writingSystem: 'Japanese', displayName: '山田太郎'},
+            {writingSystem: 'Cyrillic', displayName: 'Ирина Смирнова'},
+            {writingSystem: 'Greek', displayName: 'Νίκος Παπαδόπουλος'},
+            {writingSystem: 'Vietnamese', displayName: 'Nguyễn Thị Minh'},
+        ])('matches a group participant using $writingSystem text', ({displayName}) => {
+            // Given a group report with a participant name in that writing system
+            const groupReport: SearchOption<Report> = {
+                ...report,
+                item: {...createRandomReport(1, undefined), chatType: CONST.REPORT.CHAT_TYPE.GROUP},
+                participantsList: [{accountID: 2, displayName, login: 'participant@example.com'}],
+            };
+
+            // When the query uses that participant name
+            const doesMatch = doesReportMatchSearchTerms(groupReport, [displayName]);
+
+            // Then the group report matches
+            expect(doesMatch).toBe(true);
+        });
+    });
+
     describe('getMostRecentOptions()', () => {
         it('returns the most recent options up to the specified limit', () => {
             const options: OptionData[] = [
@@ -7476,9 +7618,9 @@ describe('OptionsListUtils', () => {
     describe('getPersonalDetailSearchTerms', () => {
         it('should include display name', () => {
             const displayName = 'test';
-            const searchTerms = getPersonalDetailSearchTerms({displayName}, CURRENT_USER_ACCOUNT_ID);
+            const searchTerms = getPersonalDetailSearchTerms({displayName}, CURRENT_USER_ACCOUNT_ID, translateLocal);
             expect(searchTerms.includes(displayName)).toBe(true);
-            const searchTerms2 = getPersonalDetailSearchTerms({participantsList: [{displayName, accountID: 123}]}, CURRENT_USER_ACCOUNT_ID);
+            const searchTerms2 = getPersonalDetailSearchTerms({participantsList: [{displayName, accountID: 123}]}, CURRENT_USER_ACCOUNT_ID, translateLocal);
             expect(searchTerms2.includes(displayName)).toBe(true);
         });
     });
@@ -7486,9 +7628,9 @@ describe('OptionsListUtils', () => {
     describe('getCurrentUserSearchTerms', () => {
         it('should include display name', () => {
             const displayName = 'test';
-            const searchTerms = getCurrentUserSearchTerms({displayName});
+            const searchTerms = getCurrentUserSearchTerms({displayName}, translateLocal);
             expect(searchTerms.includes(displayName)).toBe(true);
-            const searchTerms2 = getCurrentUserSearchTerms({text: displayName});
+            const searchTerms2 = getCurrentUserSearchTerms({text: displayName}, translateLocal);
             expect(searchTerms2.includes(displayName)).toBe(true);
         });
     });
@@ -10067,21 +10209,23 @@ describe('OptionsListUtils', () => {
                 undefined,
             );
 
-            const filteredOptions = filterAndOrderOptions(
+            const filteredOptions = filterAndOrderOptions({
                 options,
-                'newuser@example.com',
-                COUNTRY_CODE,
+                searchInputValue: 'newuser@example.com',
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             expect(filteredOptions.userToInvite).not.toBeNull();
             expect(filteredOptions.userToInvite?.login).toBe('newuser@example.com');
@@ -10102,21 +10246,23 @@ describe('OptionsListUtils', () => {
                 undefined,
             );
 
-            const filteredOptions = filterAndOrderOptions(
+            const filteredOptions = filterAndOrderOptions({
                 options,
-                'anotheruser@example.com',
-                COUNTRY_CODE,
+                searchInputValue: 'anotheruser@example.com',
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             expect(filteredOptions.userToInvite).not.toBeNull();
             expect(filteredOptions.userToInvite?.login).toBe('anotheruser@example.com');
@@ -10136,21 +10282,23 @@ describe('OptionsListUtils', () => {
                 undefined,
             );
 
-            const filteredOptions = filterAndOrderOptions(
+            const filteredOptions = filterAndOrderOptions({
                 options,
-                CURRENT_USER_EMAIL,
-                COUNTRY_CODE,
+                searchInputValue: CURRENT_USER_EMAIL,
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             expect(filteredOptions.userToInvite).toBeNull();
         });
@@ -10332,21 +10480,23 @@ describe('OptionsListUtils', () => {
             );
 
             // When we call filterAndOrderOptions with the reports parameter
-            const filteredOptions = filterAndOrderOptions(
+            const filteredOptions = filterAndOrderOptions({
                 options,
-                'spider',
-                COUNTRY_CODE,
+                searchInputValue: 'spider',
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
 
             // Then the function should complete without errors and return valid results
             expect(filteredOptions).toBeDefined();
