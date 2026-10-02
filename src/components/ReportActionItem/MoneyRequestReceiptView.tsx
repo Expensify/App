@@ -86,7 +86,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {ReceiptError, TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
+import type {ReceiptError, ReceiptSource, TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -246,7 +246,7 @@ function MoneyRequestReceiptView({
     // The PDF page layer the pill controls, keyed to the receipt source it belongs to. displayedReceiptSource changes
     // the instant the receipt's underlying file changes (a scan finishing, or the receipt being replaced), so
     // comparing it against `source` resets stale page/status state in the same render, before anything re-fetches.
-    const [receiptPDFPagesState, setReceiptPDFPagesState] = useState<{source?: string; page: number; status: 'loading' | 'loaded' | 'failed'}>({
+    const [receiptPDFPagesState, setReceiptPDFPagesState] = useState<{source?: ReceiptSource; page: number; status: 'loading' | 'loaded' | 'failed'}>({
         page: CONST.RECEIPT.FIRST_PDF_PAGE,
         status: 'loading',
     });
