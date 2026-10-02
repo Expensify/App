@@ -34,3 +34,4 @@ type GeneratedRule = {
 };
 
 export default GeneratedRule;
+export type {GeneratedRuleState, GeneratedRuleType, GeneratedRuleValues};

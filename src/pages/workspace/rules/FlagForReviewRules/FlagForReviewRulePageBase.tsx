@@ -1,3 +1,4 @@
+import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import Header from '@components/Header';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
@@ -27,7 +28,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import DescribeRuleButton from '@pages/workspace/rules/DescribeRuleButton';
+import DescribeRuleModal from '@pages/workspace/rules/DescribeRuleModal';
 import useRuleDeleteHeaderProps from '@pages/workspace/rules/useRuleDeleteHeaderProps';
 
 import variables from '@styles/variables';
@@ -81,6 +82,7 @@ function FlagForReviewRulePageBase({
     const isCategoryLocked = isCategoryLockedProp ?? !!initialCategoryName;
     const canEditCategory = canWriteRules && !isCategoryLocked;
     const shouldShowDescribeRule = !isEditing && !isCategoryLocked;
+    const [isDescribeRuleModalVisible, setIsDescribeRuleModalVisible] = useState(false);
     const categorySettingsBackPath = useCategoryRuleCreateBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_FLAG_FOR_REVIEW_NEW.path);
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -215,18 +217,19 @@ function FlagForReviewRulePageBase({
             shouldShowLoadingImmediatelyOnPress={false}
             enabledWhenOffline
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_FOR_REVIEW_RULE_SAVE}
-            buttonStyles={shouldShowDescribeRule && styles.flex1}
-            buttonAndFooterContainerStyles={shouldShowDescribeRule && [styles.flexRow, styles.gap2]}
+            buttonStyles={styles.flex1}
+            buttonAndFooterContainerStyles={[styles.flexRow, styles.gap2]}
             shouldRenderFooterAboveSubmit
             footerContent={
                 shouldShowDescribeRule && (
-                    <DescribeRuleButton
-                        policyID={policyID}
-                        ruleType={CONST.GENERATED_RULE.RULE_TYPE.FLAG_FOR_REVIEW}
-                        onRuleGenerated={setDraftFlagForReviewRule}
+                    <Button
+                        size={CONST.BUTTON_SIZE.LARGE}
                         style={styles.flex1}
+                        onPress={() => setIsDescribeRuleModalVisible(true)}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_FOR_REVIEW_RULE_DESCRIBE}
-                    />
+                    >
+                        <Button.Text>{translate('workspace.rules.newRule.describe')}</Button.Text>
+                    </Button>
                 )
             }
         />
@@ -298,6 +301,15 @@ function FlagForReviewRulePageBase({
                     />
                 </ScrollView>
                 {footer}
+                {shouldShowDescribeRule && (
+                    <DescribeRuleModal
+                        isVisible={isDescribeRuleModalVisible}
+                        onClose={() => setIsDescribeRuleModalVisible(false)}
+                        policyID={policyID}
+                        ruleType={CONST.GENERATED_RULE.RULE_TYPE.FLAG_FOR_REVIEW}
+                        onRuleGenerated={setDraftFlagForReviewRule}
+                    />
+                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

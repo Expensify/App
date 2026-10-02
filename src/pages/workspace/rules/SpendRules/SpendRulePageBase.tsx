@@ -1,3 +1,4 @@
+import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import Header from '@components/Header';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
@@ -33,8 +34,7 @@ import {getSpendRuleFormValuesFromCardRule, getTruncatedSpendRuleSummary} from '
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import DescribeRuleButton from '@pages/workspace/rules/DescribeRuleButton';
-import type {GeneratedRuleValues} from '@pages/workspace/rules/DescribeRuleButton';
+import DescribeRuleModal from '@pages/workspace/rules/DescribeRuleModal';
 import useRuleDeleteHeaderProps from '@pages/workspace/rules/useRuleDeleteHeaderProps';
 
 import variables from '@styles/variables';
@@ -46,6 +46,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
 import {isSpendRuleCategory} from '@src/types/form/SpendRuleForm';
+import type {GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {ValueOf} from 'type-fest';
@@ -100,6 +101,7 @@ function SpendRulePageBase({policyID, ruleID, testID, upgradeBackTo}: SpendRuleP
     const existingFormValues = useMemo(() => getSpendRuleFormValuesFromCardRule(existingRule), [existingRule]);
 
     const [isErrorVisible, setIsErrorVisible] = useState(false);
+    const [isDescribeRuleModalVisible, setIsDescribeRuleModalVisible] = useState(false);
     const [isRestrictMerchantsOff, setIsRestrictMerchantsOff] = useState(() => {
         const hasNoMerchantRestrictions = !existingFormValues?.merchantNames.length && !existingFormValues?.categories?.length;
         return isNewRule || hasNoMerchantRestrictions;
@@ -471,20 +473,30 @@ function SpendRulePageBase({policyID, ruleID, testID, upgradeBackTo}: SpendRuleP
                         shouldShowLoadingImmediatelyOnPress={false}
                         enabledWhenOffline
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_SAVE}
-                        buttonStyles={isNewRule && styles.flex1}
-                        buttonAndFooterContainerStyles={isNewRule && [styles.flexRow, styles.gap2]}
+                        buttonStyles={styles.flex1}
+                        buttonAndFooterContainerStyles={[styles.flexRow, styles.gap2]}
                         shouldRenderFooterAboveSubmit
                         footerContent={
                             isNewRule && (
-                                <DescribeRuleButton
-                                    policyID={policyID}
-                                    ruleType={CONST.GENERATED_RULE.RULE_TYPE.RESTRICT_CARD_SPEND}
-                                    onRuleGenerated={applyGeneratedRule}
+                                <Button
+                                    size={CONST.BUTTON_SIZE.LARGE}
                                     style={styles.flex1}
+                                    onPress={() => setIsDescribeRuleModalVisible(true)}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_DESCRIBE}
-                                />
+                                >
+                                    <Button.Text>{translate('workspace.rules.newRule.describe')}</Button.Text>
+                                </Button>
                             )
                         }
+                    />
+                )}
+                {isNewRule && (
+                    <DescribeRuleModal
+                        isVisible={isDescribeRuleModalVisible}
+                        onClose={() => setIsDescribeRuleModalVisible(false)}
+                        policyID={policyID}
+                        ruleType={CONST.GENERATED_RULE.RULE_TYPE.RESTRICT_CARD_SPEND}
+                        onRuleGenerated={applyGeneratedRule}
                     />
                 )}
             </ScreenWrapper>

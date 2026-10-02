@@ -43,8 +43,7 @@ import {getTagArrayFromName} from '@libs/TransactionUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import DescribeRuleButton from '@pages/workspace/rules/DescribeRuleButton';
-import type {GeneratedRuleValues} from '@pages/workspace/rules/DescribeRuleButton';
+import DescribeRuleModal from '@pages/workspace/rules/DescribeRuleModal';
 import useRuleDeleteHeaderProps from '@pages/workspace/rules/useRuleDeleteHeaderProps';
 
 import variables from '@styles/variables';
@@ -57,6 +56,7 @@ import type {MerchantRuleForm} from '@src/types/form';
 import MERCHANT_RULE_INPUT_IDS from '@src/types/form/MerchantRuleForm';
 import type {ExpenseDefaultRuleType} from '@src/types/form/MerchantRuleForm';
 import type {PolicyTagLists} from '@src/types/onyx';
+import type {GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -190,6 +190,7 @@ function MerchantRulePageBase({
     const [shouldShowError, setShouldShowError] = useState(false);
     const {showConfirmModal} = useConfirmModal();
     const [shouldUpdateMatchingTransactions, setShouldUpdateMatchingTransactions] = useState(false);
+    const [isDescribeRuleModalVisible, setIsDescribeRuleModalVisible] = useState(false);
     const seededCategoryTaxRuleRef = useRef<string | undefined>(undefined);
     const didSeedInitialCategoryRef = useRef(false);
 
@@ -723,13 +724,14 @@ function MerchantRulePageBase({
                         </Button>
                     )}
                     {shouldShowDescribeRule && (
-                        <DescribeRuleButton
-                            policyID={policyID}
-                            ruleType={CONST.GENERATED_RULE.RULE_TYPE.EXPENSE_DEFAULTS}
-                            onRuleGenerated={applyGeneratedRule}
+                        <Button
+                            size={CONST.BUTTON_SIZE.LARGE}
                             style={[styles.mb4]}
+                            onPress={() => setIsDescribeRuleModalVisible(true)}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_DESCRIBE}
-                        />
+                        >
+                            <Button.Text>{translate('workspace.rules.newRule.describe')}</Button.Text>
+                        </Button>
                     )}
                 </>
             }
@@ -810,6 +812,15 @@ function MerchantRulePageBase({
                     {isInLandscapeMode && footer}
                 </ScrollView>
                 {!isInLandscapeMode && footer}
+                {shouldShowDescribeRule && (
+                    <DescribeRuleModal
+                        isVisible={isDescribeRuleModalVisible}
+                        onClose={() => setIsDescribeRuleModalVisible(false)}
+                        policyID={policyID}
+                        ruleType={CONST.GENERATED_RULE.RULE_TYPE.EXPENSE_DEFAULTS}
+                        onRuleGenerated={applyGeneratedRule}
+                    />
+                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

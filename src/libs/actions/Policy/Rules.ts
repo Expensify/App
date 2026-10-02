@@ -1,3 +1,4 @@
+import {clearDraftValues} from '@libs/actions/FormActions';
 import {getImportFailedFinalModal} from '@libs/actions/ImportSpreadsheet';
 // Namespace import on purpose. `rulesdir/no-api-side-effects-method` only matches member calls, so importing
 // `makeRequestWithSideEffects` by name would quietly switch that guardrail off.
@@ -13,7 +14,7 @@ import type {
 import type OpenPolicyRulesPageParams from '@libs/API/parameters/OpenPolicyRulesPageParams';
 import type SetPolicyCodingRuleParams from '@libs/API/parameters/SetPolicyCodingRuleParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import {getMicroSecondOnyxErrorWithMessage, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {buildMerchantRule, isExpenseDefaultTaxValue} from '@libs/ExpenseDefaultRuleUtils';
 import type {BuiltMerchantRule, MerchantRuleFormValues} from '@libs/ExpenseDefaultRuleUtils';
 import Log from '@libs/Log';
@@ -21,17 +22,17 @@ import {getIsOffline} from '@libs/NetworkState';
 import {rand64} from '@libs/NumberUtils';
 
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import NEW_RULE_PROMPT_INPUT_IDS from '@src/types/form/NewRulePromptForm';
 import type {ExpenseDefaultAction} from '@src/types/onyx/ExpenseDefaultRules';
+import type {GeneratedRuleState, GeneratedRuleType} from '@src/types/onyx/GeneratedRule';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type Policy from '@src/types/onyx/Policy';
 import type {AgentRule, CodingRule, CodingRuleFilter} from '@src/types/onyx/Policy';
-import type {AnyOnyxUpdate, OnyxData} from '@src/types/onyx/Request';
+import type {OnyxData} from '@src/types/onyx/Request';
 import type Rule from '@src/types/onyx/Rule';
 
 import type {OnyxUpdate} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
@@ -402,37 +403,63 @@ function deleteMerchantRule(policyID: string, ruleID: string, rule: Rule | undef
     API.write(WRITE_COMMANDS.SET_POLICY_CODING_RULE, parameters, onyxData);
 }
 
-/** @returns the generationID the answer is written under in Onyx */
-function generateRule(policyID: string, ruleType: ValueOf<typeof CONST.GENERATED_RULE.RULE_TYPE>, prompt: string): string {
-    const generationID = rand64();
+const PROMPT_ERROR_BY_STATE: Partial<Record<GeneratedRuleState, TranslationPaths>> = {
+    [CONST.GENERATED_RULE.STATE.UNSUPPORTED]: 'workspace.rules.newRule.promptErrors.unsupported',
+    [CONST.GENERATED_RULE.STATE.MULTIPLE_RULES]: 'workspace.rules.newRule.promptErrors.multipleRules',
+    [CONST.GENERATED_RULE.STATE.UNINTELLIGIBLE]: 'workspace.rules.newRule.promptErrors.unintelligible',
+};
 
-    const failureData: AnyOnyxUpdate[] = [
+/** Asks Concierge to turn a description into values for the given rule form. The answer arrives under `ONYXKEYS.GENERATED_RULE`. */
+function generateRule(policyID: string, ruleType: GeneratedRuleType, prompt: string) {
+    type GenerateRuleKey = typeof ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM | typeof ONYXKEYS.GENERATED_RULE;
+
+    const optimisticData: Array<OnyxUpdate<GenerateRuleKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM,
+            value: {isLoading: true, errors: null},
+        },
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.GENERATED_RULE,
-            value: {generationID, state: CONST.GENERATED_RULE.STATE.FAILED},
+            value: null,
+        },
+    ];
+    const successData: Array<OnyxUpdate<GenerateRuleKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM,
+            value: {isLoading: false},
+        },
+    ];
+    const failureData: Array<OnyxUpdate<GenerateRuleKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM,
+            value: {isLoading: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
         },
     ];
 
-    const parameters: GenerateRuleParams = {policyID, generationID, ruleType, prompt};
+    const parameters: GenerateRuleParams = {policyID, generationID: rand64(), ruleType, prompt};
 
-    API.write(WRITE_COMMANDS.GENERATE_RULE, parameters, {failureData});
-
-    return generationID;
+    API.write(WRITE_COMMANDS.GENERATE_RULE, parameters, {optimisticData, successData, failureData});
 }
 
-function setNewRulePromptError(message: string) {
+/** Shows on the prompt form why a description did not become a rule */
+function setNewRulePromptError(state: GeneratedRuleState) {
     Onyx.merge(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM, {
-        errorFields: {[NEW_RULE_PROMPT_INPUT_IDS.PROMPT]: getMicroSecondOnyxErrorWithMessage(message)},
+        errors: getMicroSecondOnyxErrorWithTranslationKey(PROMPT_ERROR_BY_STATE[state] ?? 'common.genericErrorMessage'),
     });
-}
-
-function clearNewRulePromptError() {
-    Onyx.merge(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM, {errors: null, errorFields: null});
 }
 
 function clearGeneratedRule() {
     Onyx.set(ONYXKEYS.GENERATED_RULE, null);
+}
+
+function clearNewRulePrompt() {
+    Onyx.set(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM, null);
+    clearDraftValues(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM);
+    clearGeneratedRule();
 }
 
 function addPolicyAgentRule(policyID: string, agentRuleID: string, prompt: string) {
@@ -699,9 +726,9 @@ export {
     getTransactionsMatchingCodingRule,
     addPolicyAgentRule,
     generateRule,
-    clearGeneratedRule,
     setNewRulePromptError,
-    clearNewRulePromptError,
+    clearGeneratedRule,
+    clearNewRulePrompt,
     updatePolicyAgentRule,
     deletePolicyAgentRule,
     clearMerchantRuleErrors,

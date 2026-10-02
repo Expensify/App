@@ -606,7 +606,6 @@ const CONST = {
             UNSUPPORTED: 'unsupported',
             MULTIPLE_RULES: 'multipleRules',
             UNINTELLIGIBLE: 'unintelligible',
-            FAILED: 'failed',
         },
         RULE_TYPE: {
             REQUIRE_FIELDS: 'requireFields',

@@ -1,11 +1,9 @@
-import type CONST from '@src/CONST';
-
-import type {ValueOf} from 'type-fest';
+import type {GeneratedRuleType} from '@src/types/onyx/GeneratedRule';
 
 type GenerateRuleParams = {
     policyID: string;
     generationID: string;
-    ruleType: ValueOf<typeof CONST.GENERATED_RULE.RULE_TYPE>;
+    ruleType: GeneratedRuleType;
     prompt: string;
 };
 

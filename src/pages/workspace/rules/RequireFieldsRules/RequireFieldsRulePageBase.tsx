@@ -1,3 +1,4 @@
+import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import Header from '@components/Header';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
@@ -42,8 +43,7 @@ import type {FieldRequirementsDirection} from '@libs/RequireFieldsRulesUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import DescribeRuleButton from '@pages/workspace/rules/DescribeRuleButton';
-import type {GeneratedRuleValues} from '@pages/workspace/rules/DescribeRuleButton';
+import DescribeRuleModal from '@pages/workspace/rules/DescribeRuleModal';
 import useRuleDeleteHeaderProps from '@pages/workspace/rules/useRuleDeleteHeaderProps';
 
 import variables from '@styles/variables';
@@ -53,6 +53,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES, getRequireFieldsRuleCategoryRoute, getWorkspaceCategorySettingsRoute} from '@src/ROUTES';
 import type {RequireFieldsRuleForm, RequireFieldsRuleSettingFieldKey} from '@src/types/form/RequireFieldsRuleForm';
 import INPUT_IDS from '@src/types/form/RequireFieldsRuleForm';
+import type {GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
@@ -83,6 +84,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
     const isEditing = !!categoryName;
     const isCategoryLocked = isCategoryLockedProp ?? !!initialCategoryName;
     const shouldShowDescribeRule = !isEditing && !isCategoryLocked;
+    const [isDescribeRuleModalVisible, setIsDescribeRuleModalVisible] = useState(false);
     const canEditCategory = canWriteRules && !isCategoryLocked;
     const categorySettingsBackPath = useCategoryRuleCreateBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_REQUIRE_FIELDS_NEW.path);
 
@@ -442,18 +444,19 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
             shouldShowLoadingImmediatelyOnPress={false}
             enabledWhenOffline
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_RULE_SAVE}
-            buttonStyles={shouldShowDescribeRule && styles.flex1}
-            buttonAndFooterContainerStyles={shouldShowDescribeRule && [styles.flexRow, styles.gap2]}
+            buttonStyles={styles.flex1}
+            buttonAndFooterContainerStyles={[styles.flexRow, styles.gap2]}
             shouldRenderFooterAboveSubmit
             footerContent={
                 shouldShowDescribeRule && (
-                    <DescribeRuleButton
-                        policyID={policyID}
-                        ruleType={CONST.GENERATED_RULE.RULE_TYPE.REQUIRE_FIELDS}
-                        onRuleGenerated={applyGeneratedRule}
+                    <Button
+                        size={CONST.BUTTON_SIZE.LARGE}
                         style={styles.flex1}
+                        onPress={() => setIsDescribeRuleModalVisible(true)}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_RULE_DESCRIBE}
-                    />
+                    >
+                        <Button.Text>{translate('workspace.rules.newRule.describe')}</Button.Text>
+                    </Button>
                 )
             }
         />
@@ -516,6 +519,15 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
                         ))}
                 </ScrollView>
                 {footer}
+                {shouldShowDescribeRule && (
+                    <DescribeRuleModal
+                        isVisible={isDescribeRuleModalVisible}
+                        onClose={() => setIsDescribeRuleModalVisible(false)}
+                        policyID={policyID}
+                        ruleType={CONST.GENERATED_RULE.RULE_TYPE.REQUIRE_FIELDS}
+                        onRuleGenerated={applyGeneratedRule}
+                    />
+                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
