@@ -15,12 +15,12 @@ import Navigation from '@libs/Navigation/Navigation';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {
+    canOverlayReceiptPDF,
     hasEReceipt,
     hasPendingDistanceReceiptRegeneration,
     hasReceiptSource,
     isDistanceRequest,
     isManualDistanceRequest,
-    isMapBasedDistanceRequest,
     isPerDiemRequest,
 } from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
@@ -101,7 +101,7 @@ type ReportActionItemImageProps = {
     /** 1-indexed page of a multi-page PDF to show in the high-res overlay */
     pdfPage?: number;
 
-    /** Called once the high-res PDF overlay has loaded its pages */
+    /** Called once the high-res PDF overlay has loaded its pages. Only fires when `pdfPage` is set. */
     onPDFLoadSuccess?: () => void;
 
     /** Called when the high-res PDF overlay fails, leaving only the thumbnail */
@@ -235,11 +235,9 @@ function ReportActionItemImage({
     // A remote PDF is shown as the server's low-resolution JPG thumbnail, which blurs when hover-zoomed.
     // Where zooming is available (web only), render the actual PDF on top of the thumbnail so the magnified
     // view stays sharp. The thumbnail stays underneath as an instant preview and as a fallback if the PDF fails.
-    // Map/route distance requests are excluded: their hover overlay is a DistanceEReceipt card, not the PDF.
-    // isMapBasedDistanceRequest covers map, GPS, and manual-typed transactions that still carry waypoints.
     // Page navigation also needs the real PDF for local files, whose thumbnail only shows page 1.
     const pdfSourceURL = typeof originalImageSource === 'string' && !!originalImageSource ? originalImageSource : undefined;
-    const canOverlayPDF = !!isPDF && !isEReceipt && !isMapBasedDistanceRequest(transaction) && !!pdfSourceURL;
+    const canOverlayPDF = !!isPDF && canOverlayReceiptPDF(transaction) && !!pdfSourceURL;
     const shouldOverlayHighResPDF = canZoomReceipt && canOverlayPDF && hasHoverSupport() && (!effectiveIsLocalFile || pdfPage !== undefined);
 
     const renderReceiptContent = (receiptImage: React.ReactNode) =>

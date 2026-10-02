@@ -85,16 +85,24 @@ describe('ReceiptPDFOverlay', () => {
     });
 
     it('keeps rendering the full PDFPreviewer when no page is requested', () => {
+        // Given a receipt whose preview has no page navigation (e.g. a single-page PDF, or a device without hover support)
+        // When the overlay renders with no `page` prop
         renderOverlay({});
 
+        // Then it falls back to the full multi-page PDFPreviewer instead of rendering a single page
         expect(mockPDFPreviewer).toHaveBeenCalled();
         expect(screen.queryByText('page-1')).toBeNull();
     });
 
     it('renders only the requested page, sized like PDFPreviewer, and reports the load', () => {
+        // Given a multi-page receipt with page navigation on
         const onLoadSuccess = jest.fn();
+
+        // When the overlay renders with a page requested
         renderOverlay({page: 1, onLoadSuccess});
 
+        // Then it draws only that page (not the full PDFPreviewer, which would measure every page first), sized to
+        // match PDFPreviewer's framing, and tells the caller the PDF is ready so the pill's buttons can enable
         expect(mockPDFPreviewer).not.toHaveBeenCalled();
         expect(screen.getByText('page-1')).toBeTruthy();
         expect(onLoadSuccess).toHaveBeenCalledTimes(1);
@@ -102,8 +110,10 @@ describe('ReceiptPDFOverlay', () => {
     });
 
     it('keeps the previous page on screen until the next one has rendered', () => {
+        // Given page 1 is already drawn
         const {rerender} = renderOverlay({page: 1});
 
+        // When the user clicks next, before page 2 has finished drawing
         rerender(
             <ReceiptPDFOverlay
                 sourceURL={SOURCE_URL}
@@ -112,6 +122,7 @@ describe('ReceiptPDFOverlay', () => {
             />,
         );
 
+        // Then page 1 stays on screen alongside page 2, so the thumbnail underneath never flashes through
         expect(screen.getByText('page-1')).toBeTruthy();
         expect(screen.getByText('page-2')).toBeTruthy();
 
@@ -119,13 +130,16 @@ describe('ReceiptPDFOverlay', () => {
             mockRenderedThumbnails.findLast((thumbnail) => thumbnail.pageNumber === 2)?.onRenderSuccess?.();
         });
 
+        // Then, once page 2 finishes drawing, page 1 is dropped
         expect(screen.queryByText('page-1')).toBeNull();
         expect(screen.getByText('page-2')).toBeTruthy();
     });
 
     it('does not carry the last drawn page over to a replaced receipt', () => {
+        // Given the user is on page 2 of one receipt
         const {rerender} = renderOverlay({page: 2});
 
+        // When that receipt is replaced by a different file (a new source URL) showing its own page 1
         rerender(
             <ReceiptPDFOverlay
                 sourceURL="https://example.com/replaced-receipt.pdf"
@@ -134,26 +148,31 @@ describe('ReceiptPDFOverlay', () => {
             />,
         );
 
+        // Then page 2 of the old file is not left on screen under the new file's page 1
         expect(screen.queryByText('page-2')).toBeNull();
         expect(screen.getByText('page-1')).toBeTruthy();
     });
 
     it('falls back to the thumbnail when a page fails to render', () => {
+        // Given a page is being drawn
         const onLoadFailure = jest.fn();
         renderOverlay({page: 1, onLoadFailure});
 
+        // When that page fails to render (e.g. a corrupt page), rather than erroring silently
         act(() => {
             mockRenderedThumbnails.at(-1)?.onRenderError?.();
         });
 
+        // Then the overlay removes itself and tells the caller, so the static thumbnail underneath shows instead
         expect(screen.queryByText('page-1')).toBeNull();
         expect(onLoadFailure).toHaveBeenCalledTimes(1);
     });
 
-    // Page navigation switches on after the receipt loads, so the overlay first mounts without a page
     it('loads the page when navigation switches on after mount, without any hover or layout event', () => {
+        // Given the overlay mounted before page navigation turned on (it only turns on after the receipt loads)
         const {rerender} = renderOverlay({});
 
+        // When page navigation switches on later, with no further hover or layout event to prompt a measurement
         rerender(
             <ReceiptPDFOverlay
                 sourceURL={SOURCE_URL}
@@ -162,6 +181,7 @@ describe('ReceiptPDFOverlay', () => {
             />,
         );
 
+        // Then the page still loads, because the width is measured by a ResizeObserver, not a layout event
         expect(screen.getByText('page-1')).toBeTruthy();
     });
 });

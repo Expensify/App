@@ -1,4 +1,4 @@
-import {Document, Thumbnail} from '@components/PDFThumbnail';
+import {Document, PDF_DOCUMENT_OPTIONS, Thumbnail} from '@components/PDFThumbnail';
 
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,11 +33,6 @@ const pageContainerStyle = {
     position: 'absolute' as const,
     top: CONST.RECEIPT.PDF_PAGE_BORDER,
     left: 0,
-};
-
-const DOCUMENT_OPTIONS = {
-    cMapUrl: '/cmaps/',
-    cMapPacked: true,
 };
 
 type CanvasLimits = {
@@ -100,11 +95,11 @@ function ReceiptPDFOverlay({sourceURL, isAuthTokenRequired = true, onLoadFailure
     const [maxCanvasHeight] = useOnyx(ONYXKEYS.MAX_CANVAS_HEIGHT);
     const [maxCanvasWidth] = useOnyx(ONYXKEYS.MAX_CANVAS_WIDTH);
     const [oversampleWidth, setOversampleWidth] = useState(0);
-    const isSinglePage = page !== undefined;
+    const shouldRenderOnlyCurrentPage = page !== undefined;
 
     // A ResizeObserver reports the size as soon as it starts observing, unlike onLayout added after mount
     const observeOversampleWidth = (container: HTMLDivElement | null) => {
-        if (!container || !isSinglePage) {
+        if (!container || !shouldRenderOnlyCurrentPage) {
             return undefined;
         }
         const observer = new ResizeObserver(([entry]) => setOversampleWidth(entry.contentRect.width));
@@ -163,7 +158,7 @@ function ReceiptPDFOverlay({sourceURL, isAuthTokenRequired = true, onLoadFailure
                 ref={observeOversampleWidth}
                 style={oversampleContainerStyle}
             >
-                {!isSinglePage ? (
+                {!shouldRenderOnlyCurrentPage ? (
                     <PDFPreviewer
                         file={fileURL}
                         pageMaxWidth={variables.pdfPageMaxWidth}
@@ -184,7 +179,7 @@ function ReceiptPDFOverlay({sourceURL, isAuthTokenRequired = true, onLoadFailure
                     oversampleWidth > 0 && (
                         <Document
                             file={fileURL}
-                            options={DOCUMENT_OPTIONS}
+                            options={PDF_DOCUMENT_OPTIONS}
                             loading={null}
                             error={null}
                             onLoadSuccess={onLoadSuccess}

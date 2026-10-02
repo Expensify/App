@@ -16,8 +16,6 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import React from 'react';
 import {View} from 'react-native';
 
-const PAGE_BUTTON_HIT_SLOP = {top: 8, bottom: 8, left: 8, right: 8};
-
 type PageButtonProps = {
     /** Arrow icon to show */
     icon: IconAsset;
@@ -36,6 +34,7 @@ type PageButtonProps = {
 };
 
 function PageButton({icon, label, isDisabled, onPress, sentryLabel}: PageButtonProps) {
+    const styles = useThemeStyles();
     const theme = useTheme();
 
     return (
@@ -43,13 +42,14 @@ function PageButton({icon, label, isDisabled, onPress, sentryLabel}: PageButtonP
             text={label}
             shouldRender={!isDisabled}
         >
+            {/* A real tap target around the glyph: react-native-web's Pressable doesn't support hitSlop */}
             <PressableWithoutFeedback
+                style={styles.receiptPageNavigatorButton}
                 disabled={isDisabled}
                 onPress={onPress}
                 accessibilityLabel={label}
                 role={CONST.ROLE.BUTTON}
                 sentryLabel={sentryLabel}
-                hitSlop={PAGE_BUTTON_HIT_SLOP}
             >
                 <Icon
                     src={icon}
@@ -81,7 +81,7 @@ function ReceiptPageNavigator({page, pageCount, isLoading, onChangePage}: Receip
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'BackArrow']);
-    const labelStyle = [styles.badgeText, styles.textStrong, styles.badgeDefaultText, styles.receiptPageNavigatorLabel];
+    const labelStyle = [styles.badgeText, styles.textStrong, styles.badgeDefaultText, styles.textNoWrap];
 
     return (
         <View
