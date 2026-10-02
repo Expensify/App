@@ -552,7 +552,7 @@ function setPolicyTaxCode(
     distanceRateCustomUnit: CustomUnit | undefined,
     expenseRules: ExpenseRule[] = [],
 ) {
-    // The back-end repoints every expense rule that referenced the old code, so mirror it here or the category tax
+    // The back-end moves every expense rule that referenced the old code onto the new one, so mirror it here or the category tax
     // defaults would point at a code that no longer exists. Onyx replaces arrays wholesale, so the whole array is sent.
     const hasExpenseRuleWithOldTaxCode = expenseRules.some((rule) => rule.tax?.field_id_TAX?.externalID === oldTaxCode);
     const optimisticExpenseRules = expenseRules.map((rule) => {

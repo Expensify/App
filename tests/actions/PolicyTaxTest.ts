@@ -892,24 +892,31 @@ describe('actions/PolicyTax', () => {
 
             beforeEach(() => Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, {rules: {expenseRules}}).then(waitForBatchedUpdates));
 
-            it('repoints the rules that referenced the old tax code', async () => {
+            it('moves the rules that referenced the old tax code onto the new one', async () => {
+                // Given a category tax default rule on the old code and another on a different code, with the request held so only optimistic data applies
                 mockFetch?.pause?.();
+
+                // When the tax code is renamed
                 renameTaxCode();
                 await waitForBatchedUpdates();
 
+                // Then only the rule on the old code points at the new code, mirroring the back end, so its tax rate still resolves
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
                 expect(policy?.rules?.expenseRules).toEqual([buildRule('Travel', newTaxCode), buildRule('Meals', 'id_TAX_EXEMPT')]);
             });
 
             it('restores the rules when the request fails', async () => {
+                // Given a tax code rename that has moved the rules onto the new code optimistically
                 mockFetch?.pause?.();
                 renameTaxCode();
                 await waitForBatchedUpdates();
 
+                // When the server rejects the rename
                 mockFetch?.fail?.();
                 await mockFetch?.resume?.();
                 await waitForBatchedUpdates();
 
+                // Then the rules point at the old code again, matching the tax rate that the failure data restores
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
                 expect(policy?.rules?.expenseRules).toEqual(expenseRules);
             });
