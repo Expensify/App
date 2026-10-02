@@ -28,6 +28,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import {useRef, useState} from 'react';
 import {View} from 'react-native';
 
+import EarlyRenewalOfferSection from './EarlyRenewalOfferSection';
 import ForYouSection from './ForYouSection';
 import FreeTrialSection from './FreeTrialSection';
 import GettingStartedSection from './GettingStartedSection';
@@ -77,7 +78,8 @@ function HomePage() {
     // than replacing the whole layout, which would unmount the Concierge card and interrupt anyone typing in it.
     const homeLayout = shouldUseNarrowLayout ? (
         <>
-            {/* Occupies a slot whether or not it renders, so the card below keeps its index across the swap. */}
+            {/* These occupy slots whether or not they render, so the card below keeps its index across the swap. */}
+            {shouldShowHomeSkeleton ? null : <EarlyRenewalOfferSection />}
             {shouldShowHomeSkeleton ? null : <FreeTrialSection />}
             {forYouSection}
             {shouldShowHomeSkeleton ? (
@@ -119,6 +121,7 @@ function HomePage() {
                     <HomePageSkeletonRowCards />
                 ) : (
                     <>
+                        <EarlyRenewalOfferSection />
                         <FreeTrialSection />
                         <YourSpendSection />
                         <RecentlyAddedSection />

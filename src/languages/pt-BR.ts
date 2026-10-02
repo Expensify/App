@@ -5468,6 +5468,9 @@ ${amount} para ${merchant} - ${date}`,
             journalEntriesProvTaxPostingAccount: 'Conta de lançamento de impostos provinciais em lançamentos contábeis',
             foreignCurrencyAmount: 'Exportar valor em moeda estrangeira',
             exportToNextOpenPeriod: 'Exportar para o próximo período em aberto',
+            exportToNextOpenPeriodLockedSubtitle: 'Para desativar a exportação para o próximo período em aberto, primeiro desative a divisão de exportações não reembolsáveis por período.',
+            splitExportsByPostingPeriod: 'Dividir exportações por período de lançamento',
+            splitExportsByPostingPeriodSubtitle: 'Ative a exportação para o próximo período em aberto para habilitar a divisão de exportações não reembolsáveis por período no NetSuite',
             nonReimbursableJournalPostingAccount: 'Conta de lançamento de diário não reembolsável',
             reimbursableJournalPostingAccount: 'Conta contábil para lançamentos reembolsáveis',
             journalPostingPreference: {
@@ -11609,6 +11612,13 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             title: 'Crie seus próprios agentes',
             description: `<muted-text>Crie agentes personalizados para revisar, aprovar e direcionar despesas com base nas regras que você definir. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Saiba mais</a>.</muted-text>`,
         },
+    },
+    earlyRenewal: {
+        confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Renove sua assinatura por um período de 12 meses, de ${startDate} a ${endDate}.`,
+        title: 'Renove sua assinatura do Expensify',
+        subtitle: 'Uma coisa a menos para fazer antes do ano novo.',
+        confirmTitle: 'Confirmar renovação',
+        renew: 'Renovar',
     },
 };
 export default translations;
