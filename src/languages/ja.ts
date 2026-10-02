@@ -412,8 +412,6 @@ const translations: TranslationDeepObject<typeof en> = {
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
         skip: 'スキップ',
-        chatWithAccountManager: (accountManagerDisplayName: string) => `特定のご要望がありますか？アカウントマネージャーの${accountManagerDisplayName}とチャットしましょう。`,
-        chatNow: '今すぐチャット',
         workEmail: '勤務先メール',
         destination: '宛先',
         subrate: 'サブレート',
@@ -5423,6 +5421,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             journalEntriesProvTaxPostingAccount: '仕訳の地方税計上勘定',
             foreignCurrencyAmount: '外貨金額をエクスポート',
             exportToNextOpenPeriod: '次の未締め期間にエクスポート',
+            exportToNextOpenPeriodLockedSubtitle: '次の未締め期間へのエクスポートを無効にするには、先に立替精算対象外エクスポートの期間ごとの分割を無効にしてください。',
+            splitExportsByPostingPeriod: '転記期間ごとにエクスポートを分割',
+            splitExportsByPostingPeriodSubtitle: 'NetSuiteで立替精算対象外エクスポートの期間ごとの分割を有効にするには、次の未締め期間へのエクスポートを有効にしてください',
             nonReimbursableJournalPostingAccount: '立替精算対象外の仕訳計上勘定',
             reimbursableJournalPostingAccount: '立替精算用仕訳計上勘定',
             journalPostingPreference: {
@@ -10908,7 +10909,18 @@ ${reportName}`,
                 invalid: 'このコードは無効です',
             },
         },
-        paymentHistory: {title: '支払い履歴を表示', subtitle: 'このアカウントに請求された毎月の支払い履歴のすべてです。'},
+        paymentHistory: {
+            title: '支払い履歴を表示',
+            subtitle: 'このアカウントに請求された毎月の支払い履歴のすべてです。',
+            payments: '支払い',
+            inclTax: '税込み',
+            empty: 'まだ支払いはありません。',
+            activeUsers: ({count}: {count: number}) => ({
+                one: 'アクティブユーザー 1 人',
+                other: `アクティブユーザー ${count} 名`,
+            }),
+            state: {paid: '支払い済み', cleared: '決済済み', failed: '失敗しました', refunded: '返金済み', disputed: '異議あり', balanceTransfer: '残高振替'},
+        },
         subscriptionSettings: {
             title: 'サブスクリプション設定',
             summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>
@@ -11487,6 +11499,13 @@ ${reportName}`,
         completedSteps: '上記の手順が完了しました',
         errorTitle: '問題が発生しました。もう一度お試しください。',
         errorPrompt: '問題が発生したようです。もう一度お試しください。問題が解決しない場合は、Concierge までお問い合わせください。',
+    },
+    earlyRenewal: {
+        confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} から ${endDate} までの12か月契約でサブスクリプションを更新します。`,
+        title: 'Expensify のサブスクリプションを更新する',
+        subtitle: '新年までにやることがひとつ減りました。',
+        confirmTitle: '更新を確認',
+        renew: '更新する',
     },
 };
 export default translations;

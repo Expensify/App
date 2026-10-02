@@ -412,9 +412,6 @@ const translations: TranslationDeepObject<typeof en> = {
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
         skip: 'Ignorer',
-        chatWithAccountManager: (accountManagerDisplayName: string) =>
-            `Vous avez besoin de quelque chose en particulier ? Discutez avec votre gestionnaire de compte, ${accountManagerDisplayName}.`,
-        chatNow: 'Discuter maintenant',
         workEmail: 'E-mail professionnel',
         destination: 'Destination',
         subrate: 'Sous-taux',
@@ -5522,6 +5519,11 @@ ${amount} pour ${merchant} - ${date}`,
             journalEntriesProvTaxPostingAccount: 'Compte de comptabilisation de la taxe provinciale des écritures de journal',
             foreignCurrencyAmount: 'Exporter le montant en devise étrangère',
             exportToNextOpenPeriod: 'Exporter vers la prochaine période ouverte',
+            exportToNextOpenPeriodLockedSubtitle:
+                "Pour désactiver l'exportation vers la prochaine période ouverte, désactivez d'abord la division des exportations non remboursables par période.",
+            splitExportsByPostingPeriod: 'Diviser les exportations par période comptable',
+            splitExportsByPostingPeriodSubtitle:
+                "Activez l'exportation vers la prochaine période ouverte pour activer la division des exportations non remboursables par période dans NetSuite",
             nonReimbursableJournalPostingAccount: 'Compte de saisie des écritures non remboursables',
             reimbursableJournalPostingAccount: 'Compte de comptabilisation des écritures remboursables',
             journalPostingPreference: {
@@ -11146,7 +11148,18 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 invalid: "Ce code n'est pas valide",
             },
         },
-        paymentHistory: {title: 'Afficher l’historique des paiements', subtitle: 'Votre historique complet des paiements mensuels facturés sur ce compte.'},
+        paymentHistory: {
+            title: 'Afficher l’historique des paiements',
+            subtitle: 'Votre historique complet des paiements mensuels facturés sur ce compte.',
+            payments: 'Paiements',
+            inclTax: 'incl. taxes',
+            empty: 'Aucun paiement pour l’instant.',
+            activeUsers: ({count}: {count: number}) => ({
+                one: '1 utilisateur actif',
+                other: `${count} utilisateurs actifs`,
+            }),
+            state: {paid: 'Payé', cleared: 'Compensé', failed: 'Échec', refunded: 'Remboursé', disputed: 'Contesté', balanceTransfer: 'Virement de solde'},
+        },
         subscriptionSettings: {
             title: 'Paramètres d’abonnement',
             summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>
@@ -11734,6 +11747,13 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         completedSteps: 'J’ai effectué les étapes ci-dessus',
         errorTitle: 'Une erreur s’est produite. Veuillez réessayer.',
         errorPrompt: "Il semble que quelque chose n'ait pas fonctionné. Veuillez réessayer. Si le problème persiste, veuillez contacter Concierge.",
+    },
+    earlyRenewal: {
+        confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Renouvelez votre abonnement pour une durée de 12 mois, du ${startDate} au ${endDate}.`,
+        title: 'Renouvelez votre abonnement Expensify',
+        subtitle: 'Une chose de moins à faire avant la nouvelle année.',
+        confirmTitle: 'Confirmer le renouvellement',
+        renew: 'Renouveler',
     },
 };
 export default translations;
