@@ -7265,6 +7265,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             paymentsAdmins: 'Διαχειριστές πληρωμών',
             approvers: 'Εγκρίνοντες',
             auditors: 'Ελεγκτές',
+            guests: 'Επισκέπτες',
             editors: 'Συντάκτες',
             members: 'Μέλη',
             emptyRoleFilter: {

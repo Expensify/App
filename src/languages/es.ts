@@ -6999,6 +6999,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             admins: 'Administradores del espacio de trabajo',
             approvers: 'Aprobadores',
             auditors: 'Auditores',
+            guests: 'Invitados',
             editors: 'Editores',
             emptyRoleFilter: {
                 title: 'Ningún miembro coincide con este filtro',
