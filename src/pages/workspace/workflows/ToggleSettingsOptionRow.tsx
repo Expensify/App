@@ -23,7 +23,7 @@ import type {ReactNode} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
 import React, {useEffect, useMemo} from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 
 type ToggleSettingOptionRowProps = {
     /** Icon to be shown for the option */
@@ -222,7 +222,7 @@ function ToggleSettingOptionRow({
             {customTitle ?? (
                 <View style={[styles.flexColumn, styles.flex1, styles.mr6]}>
                     <Text
-                        style={[styles.textNormal, styles.lh20, titleStyle]}
+                        style={[styles.textNormal, styles.lh20, styles.textAlignVerticalCenter, titleStyle]}
                         accessibilityRole={titleAccessibilityRole}
                     >
                         {title}
