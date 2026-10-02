@@ -235,7 +235,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pleaseCompleteForm: 'Bitte fülle das obige Formular aus, um fortzufahren',
             pleaseSelectOne: 'Bitte wähle oben eine Option aus',
             invalidRateError: 'Bitte einen gültigen Satz eingeben',
-            lowRateError: 'Der Satz muss größer als 0 sein',
+            lowRateError: 'Der Satz darf nicht negativ sein',
             email: 'Bitte gib eine gültige E-Mail-Adresse ein',
             login: 'Beim Anmelden ist ein Fehler aufgetreten. Bitte versuche es erneut.',
         },

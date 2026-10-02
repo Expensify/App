@@ -865,6 +865,36 @@ describe('DistanceRequestUtils', () => {
             expect(result).toBe('3.49 mi @ $0.67 / mi');
         });
 
+        it('formats a $0 rate instead of treating it as pending', () => {
+            const result = DistanceRequestUtils.getDistanceMerchant(
+                true,
+                DistanceRequestUtils.convertToDistanceInMeters(12, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES),
+                CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                0,
+                'USD',
+                translateLocal,
+                toLocaleDigitMock,
+                getCurrencySymbolMock,
+            );
+
+            expect(result).toBe('12.00 mi @ $0.00 / mi');
+        });
+
+        it('returns pending when there is no rate', () => {
+            const result = DistanceRequestUtils.getDistanceMerchant(
+                true,
+                DistanceRequestUtils.convertToDistanceInMeters(12, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES),
+                CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                undefined,
+                'USD',
+                translateLocal,
+                toLocaleDigitMock,
+                getCurrencySymbolMock,
+            );
+
+            expect(result).toBe(translateLocal('iou.fieldPending'));
+        });
+
         it('formats zero reimbursable commuter distance', () => {
             const result = DistanceRequestUtils.getDistanceMerchant(
                 true,
@@ -923,6 +953,16 @@ describe('DistanceRequestUtils', () => {
         it('should return out-of-policy message for workspace expenses with invalid rate', () => {
             const result = DistanceRequestUtils.getRateForExpenseDisplay('Default Rate', true, ...rateParams);
             expect(result).toBe(translateLocal('common.rateOutOfPolicy'));
+        });
+
+        it('should format a $0 rate for P2P expenses', () => {
+            const result = DistanceRequestUtils.getRateForExpenseDisplay(undefined, false, 'mi', 0, 'USD', translateLocal, toLocaleDigitMock, getCurrencySymbolMock, false);
+            expect(result).toBe(`$0 / ${translateLocal('common.mile')}`);
+        });
+
+        it('should show the actual $0 rate rather than the default rate label while offline', () => {
+            const result = DistanceRequestUtils.getRateForExpenseDisplay(undefined, false, 'mi', 0, 'USD', translateLocal, toLocaleDigitMock, getCurrencySymbolMock, true);
+            expect(result).toBe(`$0 / ${translateLocal('common.mile')}`);
         });
     });
 

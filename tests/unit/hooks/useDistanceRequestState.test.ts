@@ -146,6 +146,40 @@ describe('useDistanceRequestState', () => {
         expect(result.current.shouldCalculateDistanceAmount).toBe(false);
     });
 
+    it('does not treat a $0 rate as a pending route', () => {
+        const getRateSpy = jest.spyOn(DistanceRequestUtils, 'getRate').mockReturnValue({rate: 0, unit: 'mi', currency: 'USD'});
+        const {result} = renderHook(() => useDistanceRequestState(baseParams));
+
+        expect(result.current.rate).toBe(0);
+        expect(result.current.isDistanceRequestWithPendingRoute).toBe(false);
+        expect(result.current.distanceRequestAmount).toBe(0);
+        getRateSpy.mockRestore();
+    });
+
+    it('treats a missing rate as a pending route', () => {
+        const getRateSpy = jest.spyOn(DistanceRequestUtils, 'getRate').mockReturnValue({unit: 'mi', currency: 'USD'});
+        const {result} = renderHook(() => useDistanceRequestState(baseParams));
+
+        expect(result.current.isDistanceRequestWithPendingRoute).toBe(true);
+        getRateSpy.mockRestore();
+    });
+
+    it('uses a $0 workspace rate instead of back-calculating one when moving a tracked expense', () => {
+        const getRateSpy = jest.spyOn(DistanceRequestUtils, 'getRate').mockReturnValue({rate: 0, unit: 'mi', currency: 'USD'});
+        const {result} = renderHook(() =>
+            useDistanceRequestState({
+                ...baseParams,
+                isMovingTransactionFromTrackExpense: true,
+                iouAmount: 500,
+                transaction: createMock<OnyxTypes.Transaction>({transactionID: 'txn1', comment: {customUnit: {quantity: 10, routeDistanceMeters: 10}}}),
+            }),
+        );
+
+        expect(result.current.rate).toBe(0);
+        expect(result.current.distanceRequestAmount).toBe(0);
+        getRateSpy.mockRestore();
+    });
+
     it('isDistanceRequestWithPendingRoute is true when transaction has no route', () => {
         const {result} = renderHook(() =>
             useDistanceRequestState({

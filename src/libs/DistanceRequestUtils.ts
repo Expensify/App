@@ -164,10 +164,10 @@ function getFormattedRateValue(
     isOffline?: boolean,
     useShortFormUnit?: boolean,
 ): string {
-    if (isOffline && !rate) {
+    if (isOffline && rate === undefined) {
         return translate('iou.defaultRate');
     }
-    if (!rate || !currency || !unit) {
+    if (rate === undefined || !currency || !unit) {
         return translate('iou.fieldPending');
     }
 
@@ -267,7 +267,7 @@ function getDistanceMerchant(
     isZeroDistanceAllowed?: boolean,
     commuterExclusionData?: CommuterExclusionData | null,
 ): string {
-    if (!hasRoute || !rate) {
+    if (!hasRoute || rate === undefined) {
         return translate('iou.fieldPending');
     }
 

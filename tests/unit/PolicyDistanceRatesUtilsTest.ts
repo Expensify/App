@@ -6,6 +6,7 @@ import {
     isCurrencySupportedForAutoUpdate,
     isGovernmentRateUnmodified,
     isMapOrGPSRequired,
+    validateRateValue,
     validateTaxClaimableValue,
 } from '@libs/PolicyDistanceRatesUtils';
 
@@ -17,6 +18,28 @@ import createRandomPolicy from '../utils/collections/policies';
 import {translateLocal} from '../utils/TestHelper';
 
 describe('PolicyDistanceRatesUtils', () => {
+    describe('validateRateValue', () => {
+        const toLocaleDigit = (digit: string) => digit;
+
+        it('should allow a rate of 0', () => {
+            expect(validateRateValue({rate: '0'}, toLocaleDigit, translateLocal).rate).toBeUndefined();
+            expect(validateRateValue({rate: '0.00'}, toLocaleDigit, translateLocal).rate).toBeUndefined();
+        });
+
+        it('should allow a positive rate', () => {
+            expect(validateRateValue({rate: '0.725'}, toLocaleDigit, translateLocal).rate).toBeUndefined();
+        });
+
+        it('should reject a negative rate', () => {
+            expect(validateRateValue({rate: '-1'}, toLocaleDigit, translateLocal).rate).toBe(translateLocal('common.error.lowRateError'));
+        });
+
+        it('should reject a value that is not a number', () => {
+            expect(validateRateValue({rate: '.'}, toLocaleDigit, translateLocal).rate).toBe(translateLocal('common.error.invalidRateError'));
+            expect(validateRateValue({rate: 'abc'}, toLocaleDigit, translateLocal).rate).toBe(translateLocal('common.error.invalidRateError'));
+        });
+    });
+
     describe('validateTaxClaimableValue', () => {
         it('should return an error when taxClaimableValue is equal to tax rate', () => {
             // Given a tax claimable value inserted for a distance rate

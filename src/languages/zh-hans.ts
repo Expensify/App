@@ -235,7 +235,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pleaseCompleteForm: '请填写上面的表单以继续',
             pleaseSelectOne: '请在上方选择一个选项',
             invalidRateError: '请输入有效的费率',
-            lowRateError: '费率必须大于 0',
+            lowRateError: '费率不能为负数',
             email: '请输入有效的邮箱地址',
             login: '登录时发生错误。请重试。',
         },

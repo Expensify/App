@@ -239,7 +239,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pleaseCompleteForm: 'Aby kontynuować, wypełnij formularz powyżej',
             pleaseSelectOne: 'Wybierz jedną z powyższych opcji',
             invalidRateError: 'Wprowadź prawidłową stawkę',
-            lowRateError: 'Stawka musi być większa niż 0',
+            lowRateError: 'Stawka nie może być ujemna',
             email: 'Wpisz prawidłowy adres e‑mail',
             login: 'Wystąpił błąd podczas logowania. Spróbuj ponownie.',
         },

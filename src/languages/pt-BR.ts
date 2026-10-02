@@ -235,7 +235,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pleaseCompleteForm: 'Preencha o formulário acima para continuar',
             pleaseSelectOne: 'Selecione uma opção acima',
             invalidRateError: 'Insira uma taxa válida',
-            lowRateError: 'A taxa deve ser maior que 0',
+            lowRateError: 'A taxa não pode ser negativa',
             email: 'Insira um endereço de e-mail válido',
             login: 'Ocorreu um erro ao fazer login. Tente novamente.',
         },

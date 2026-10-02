@@ -272,7 +272,7 @@ const translations = {
             pleaseCompleteForm: 'Please complete the form above to continue',
             pleaseSelectOne: 'Please select an option above',
             invalidRateError: 'Please enter a valid rate',
-            lowRateError: 'Rate must be greater than 0',
+            lowRateError: "Rate can't be negative",
             email: 'Please enter a valid email address',
             login: 'An error occurred while logging in. Please try again.',
         },

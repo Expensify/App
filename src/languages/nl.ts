@@ -235,7 +235,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pleaseCompleteForm: 'Vul het bovenstaande formulier in om door te gaan',
             pleaseSelectOne: 'Selecteer hierboven een optie',
             invalidRateError: 'Voer een geldige koers in',
-            lowRateError: 'Tarief moet groter zijn dan 0',
+            lowRateError: 'Tarief mag niet negatief zijn',
             email: 'Voer een geldig e-mailadres in',
             login: 'Er is een fout opgetreden tijdens het inloggen. Probeer het opnieuw.',
         },

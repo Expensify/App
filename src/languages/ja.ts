@@ -235,7 +235,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pleaseCompleteForm: '続行するには上のフォームに入力してください',
             pleaseSelectOne: '上からオプションを選択してください',
             invalidRateError: '有効なレートを入力してください',
-            lowRateError: 'レートは0より大きくなければなりません',
+            lowRateError: 'レートを負の値にすることはできません',
             email: '有効なメールアドレスを入力してください',
             login: 'ログイン中にエラーが発生しました。もう一度お試しください。',
         },
