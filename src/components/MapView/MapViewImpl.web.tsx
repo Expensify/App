@@ -57,7 +57,6 @@ function MapViewImpl({
     unit,
     ref,
     shouldDisplayCurrentLocation = true,
-    shouldAnimate = true,
 }: MapViewProps) {
     // Coordinates of every rendered route (the main one and the alternate one, if any), used to frame the map around all of them.
     const allDirectionCoordinates = utils.getCoordinatesFromAllDirections(directionCoordinatesProp, alternateDirection);
@@ -80,6 +79,11 @@ function MapViewImpl({
     const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
     const [isHoveringDirection, setIsHoveringDirection] = useState(false);
     const [shouldResetBoundaries, setShouldResetBoundaries] = useState<boolean>(false);
+    // Mapbox corrupts its camera state when the map container is resized to zero (e.g. while a page
+    // transition collapses it), and every camera update throws afterwards. The map therefore mounts
+    // only while the container has a real size and unmounts whenever it collapses.
+    const [hasValidContainerSize, setHasValidContainerSize] = useState(false);
+    const containerRef = useRef<HTMLDivElement | null>(null);
     const setRef = useCallback((newRef: MapRef | null) => setMapRef(newRef), []);
     const shouldInitializeCurrentPosition = useRef(true);
 
@@ -154,14 +158,15 @@ function MapViewImpl({
             return;
         }
 
+        // Mapbox camera math divides by the container size, so moving the camera while the map is
+        // zero-sized (e.g. while the page transition is still animating) throws. The ResizeObserver
+        // refits the camera once a real size is reported.
+        const container = mapRef.getContainer();
+        if (!container?.clientWidth || !container?.clientHeight) {
+            return;
+        }
+
         if (waypoints.length === 1) {
-            if (!shouldAnimate) {
-                mapRef.getMap()?.jumpTo({
-                    center: waypoints.at(0)?.coordinate,
-                    zoom: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
-                });
-                return;
-            }
             mapRef.flyTo({
                 center: waypoints.at(0)?.coordinate,
                 zoom: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
@@ -175,12 +180,8 @@ function MapViewImpl({
             waypoints.map((waypoint) => waypoint.coordinate),
             allDirectionCoordinates,
         );
-        map.fitBounds([northEast, southWest], {
-            padding: mapPadding,
-            animate: shouldAnimate,
-            duration: shouldAnimate ? undefined : 0,
-        });
-    }, [waypoints, mapRef, mapPadding, allDirectionCoordinates, shouldAnimate]);
+        map.fitBounds([northEast, southWest], {padding: mapPadding});
+    }, [waypoints, mapRef, mapPadding, allDirectionCoordinates]);
 
     useEffect(resetBoundaries, [resetBoundaries]);
 
@@ -199,7 +200,13 @@ function MapViewImpl({
             return;
         }
 
-        const resizeObserver = new ResizeObserver(() => {
+        const resizeObserver = new ResizeObserver((entries) => {
+            const {width, height} = entries.at(0)?.contentRect ?? {};
+            // A zero-size report happens while the page transition collapses the container.
+            // Resizing then throws inside Mapbox, so wait for a real size before updating it.
+            if (!width || !height) {
+                return;
+            }
             mapRef.resize();
             setShouldResetBoundaries(true);
         });
@@ -209,6 +216,25 @@ function MapViewImpl({
             resizeObserver?.disconnect();
         };
     }, [mapRef]);
+
+    // Tracks the wrapper size so the map mounts when it appears and unmounts when it collapses.
+    // Re-runs when the wrapper can come into existence, i.e. once the map is no longer pending.
+    useEffect(() => {
+        const node = containerRef.current;
+        if (!node) {
+            return;
+        }
+
+        const observer = new ResizeObserver((entries) => {
+            const {width, height} = entries.at(0)?.contentRect ?? {};
+            setHasValidContainerSize(!!width && !!height);
+        });
+        observer.observe(node);
+
+        return () => {
+            observer.disconnect();
+        };
+    }, [accessToken, isOffline]);
 
     useImperativeHandle(
         ref,
@@ -247,13 +273,16 @@ function MapViewImpl({
 
     const initialViewState: Partial<ViewState> | undefined = useMemo(() => {
         if (!interactive) {
-            if (!waypoints) {
-                return undefined;
+            // With no markers and no route geometry, getBounds returns infinite bounds that crash the map on init.
+            // Fall back to a plain centered view state until route data arrives.
+            if (!waypoints?.length && !allDirectionCoordinates.length) {
+                return {
+                    longitude: currentPosition?.longitude,
+                    latitude: currentPosition?.latitude,
+                    zoom: initialState.zoom,
+                };
             }
-            const {northEast, southWest} = utils.getBounds(
-                waypoints.map((waypoint) => waypoint.coordinate),
-                allDirectionCoordinates,
-            );
+            const {northEast, southWest} = utils.getBounds(waypoints?.map((waypoint) => waypoint.coordinate) ?? [], allDirectionCoordinates);
             return {
                 zoom: initialState.zoom,
                 bounds: [northEast, southWest],
@@ -289,64 +318,67 @@ function MapViewImpl({
 
     return !isOffline && !!accessToken && !!initialViewState ? (
         <View
+            ref={containerRef as unknown as React.Ref<View>}
             style={[style, !interactive ? styles.pointerEventsNone : {}]}
             {...responder.panHandlers}
         >
-            <Map
-                onDrag={onDrag}
-                ref={setRef}
-                mapboxAccessToken={accessToken}
-                initialViewState={initialViewState}
-                style={{...StyleUtils.getTextColorStyle(theme.mapAttributionText), zIndex: -1}}
-                mapStyle={styleURL}
-                interactive={interactive}
-                interactiveLayerIds={interactiveLayerIds}
-                onClick={selectClickedDirection}
-                // Only the interactive route layers report hover, so the pointer cursor shows up exclusively when there is an alternate route to pick.
-                onMouseEnter={() => setIsHoveringDirection(true)}
-                onMouseLeave={() => setIsHoveringDirection(false)}
-                cursor={isHoveringDirection && hasAlternateDirection ? 'pointer' : undefined}
-            >
-                {interactive && shouldDisplayCurrentLocation && (
-                    <Marker
-                        key="Current-position"
-                        longitude={currentPosition?.longitude ?? 0}
-                        latitude={currentPosition?.latitude ?? 0}
-                    >
-                        <ImageSVG
-                            src={expensifyIcons.MapCurrentLocation}
-                            width={CONST.MAP_MARKER_SIZES.CURRENT_LOCATION.width}
-                            height={CONST.MAP_MARKER_SIZES.CURRENT_LOCATION.height}
-                        />
-                    </Marker>
-                )}
-                {waypoints?.map(({coordinate, markerType, id}) => {
-                    if (
-                        utils.areSameCoordinate([coordinate[0], coordinate[1]], [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0]) &&
-                        interactive &&
-                        shouldDisplayCurrentLocation
-                    ) {
-                        return null;
-                    }
-                    return (
+            {hasValidContainerSize && (
+                <Map
+                    onDrag={onDrag}
+                    ref={setRef}
+                    mapboxAccessToken={accessToken}
+                    initialViewState={initialViewState}
+                    style={{...StyleUtils.getTextColorStyle(theme.mapAttributionText), zIndex: -1}}
+                    mapStyle={styleURL}
+                    interactive={interactive}
+                    interactiveLayerIds={interactiveLayerIds}
+                    onClick={selectClickedDirection}
+                    // Only the interactive route layers report hover, so the pointer cursor shows up exclusively when there is an alternate route to pick.
+                    onMouseEnter={() => setIsHoveringDirection(true)}
+                    onMouseLeave={() => setIsHoveringDirection(false)}
+                    cursor={isHoveringDirection && hasAlternateDirection ? 'pointer' : undefined}
+                >
+                    {interactive && shouldDisplayCurrentLocation && (
                         <Marker
-                            key={id}
-                            longitude={coordinate[0]}
-                            latitude={coordinate[1]}
+                            key="Current-position"
+                            longitude={currentPosition?.longitude ?? 0}
+                            latitude={currentPosition?.latitude ?? 0}
                         >
-                            <MapMarkerIcon markerType={markerType} />
+                            <ImageSVG
+                                src={expensifyIcons.MapCurrentLocation}
+                                width={CONST.MAP_MARKER_SIZES.CURRENT_LOCATION.width}
+                                height={CONST.MAP_MARKER_SIZES.CURRENT_LOCATION.height}
+                            />
                         </Marker>
-                    );
-                })}
-                <Directions
-                    directionCoordinates={directionCoordinatesProp}
-                    alternateDirection={alternateDirection}
-                    setIsAlternateDirectionSelected={setIsAlternateDirectionSelected}
-                    distanceInMeters={distanceInMeters}
-                    unit={unit}
-                    waypoints={waypoints}
-                />
-            </Map>
+                    )}
+                    {waypoints?.map(({coordinate, markerType, id}) => {
+                        if (
+                            utils.areSameCoordinate([coordinate[0], coordinate[1]], [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0]) &&
+                            interactive &&
+                            shouldDisplayCurrentLocation
+                        ) {
+                            return null;
+                        }
+                        return (
+                            <Marker
+                                key={id}
+                                longitude={coordinate[0]}
+                                latitude={coordinate[1]}
+                            >
+                                <MapMarkerIcon markerType={markerType} />
+                            </Marker>
+                        );
+                    })}
+                    <Directions
+                        directionCoordinates={directionCoordinatesProp}
+                        alternateDirection={alternateDirection}
+                        setIsAlternateDirectionSelected={setIsAlternateDirectionSelected}
+                        distanceInMeters={distanceInMeters}
+                        unit={unit}
+                        waypoints={waypoints}
+                    />
+                </Map>
+            )}
             {interactive && (
                 <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, styles.zIndex1]}>
                     <Button
