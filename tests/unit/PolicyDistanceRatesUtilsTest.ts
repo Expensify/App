@@ -106,6 +106,27 @@ describe('PolicyDistanceRatesUtils', () => {
             expect(isGovernmentRateUnmodified(buildRate({rate: Number('0.29') * 100}, governmentRate))).toBe(true);
         });
 
+        it('should return true when a kilometer-based government snapshot matches a mile-based stored rate', () => {
+            const governmentRate = {sourceRateID: 'CA_2026-01-01', rate: 73, startDate: '2026-01-01', endDate: '2026-12-31'};
+            expect(isGovernmentRateUnmodified(buildRate({rate: 117.48}, governmentRate), CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)).toBe(true);
+        });
+
+        it('should return true when a mile-based government snapshot matches a kilometer-based stored rate', () => {
+            const governmentRate = {sourceRateID: 'US_2026-01-01', rate: 76, startDate: '2026-01-01', endDate: '2026-12-31'};
+            expect(isGovernmentRateUnmodified(buildRate({rate: 47.22}, governmentRate), CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS)).toBe(true);
+        });
+
+        it('should return false when a converted government rate has been edited', () => {
+            const governmentRate = {sourceRateID: 'CA_2026-01-01', rate: 73, startDate: '2026-01-01', endDate: '2026-12-31'};
+            expect(isGovernmentRateUnmodified(buildRate({rate: 117.49}, governmentRate), CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)).toBe(false);
+        });
+
+        it('should fall back to the same-unit comparison when the source country is unknown', () => {
+            const governmentRate = {sourceRateID: 'NZ_2026-01-01', rate: 73, startDate: '2026-01-01', endDate: '2026-12-31'};
+            expect(isGovernmentRateUnmodified(buildRate({rate: 73}, governmentRate), CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)).toBe(true);
+            expect(isGovernmentRateUnmodified(buildRate({rate: 117.48}, governmentRate), CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)).toBe(false);
+        });
+
         it('should return false when the snapshot is malformed and has no rate amount', () => {
             // A snapshot missing its rate amount alongside an unset rate must not be reported as unmodified.
             expect(isGovernmentRateUnmodified(buildRate({rate: undefined}, {sourceRateID: 'US_2026-01-01', startDate: '2026-01-01', endDate: '2026-12-31'}))).toBe(false);
@@ -118,6 +139,9 @@ describe('PolicyDistanceRatesUtils', () => {
             expect(getGovernmentRateCountryForCurrency('CAD')).toBe('CA');
             expect(getGovernmentRateCountryForCurrency('GBP')).toBe('GB');
             expect(getGovernmentRateCountryForCurrency('AUD')).toBe('AU');
+            expect(getGovernmentRateCountryForCurrency('NOK')).toBe('NO');
+            expect(getGovernmentRateCountryForCurrency('SEK')).toBe('SE');
+            expect(getGovernmentRateCountryForCurrency('ZAR')).toBe('ZA');
         });
 
         it('should return undefined for an unsupported or missing currency', () => {
@@ -133,6 +157,9 @@ describe('PolicyDistanceRatesUtils', () => {
             expect(isCurrencySupportedForAutoUpdate('CAD')).toBe(true);
             expect(isCurrencySupportedForAutoUpdate('GBP')).toBe(true);
             expect(isCurrencySupportedForAutoUpdate('AUD')).toBe(true);
+            expect(isCurrencySupportedForAutoUpdate('NOK')).toBe(true);
+            expect(isCurrencySupportedForAutoUpdate('SEK')).toBe(true);
+            expect(isCurrencySupportedForAutoUpdate('ZAR')).toBe(true);
             expect(isCurrencySupportedForAutoUpdate('NZD')).toBe(false);
             expect(isCurrencySupportedForAutoUpdate(undefined)).toBe(false);
         });
@@ -144,6 +171,9 @@ describe('PolicyDistanceRatesUtils', () => {
             expect(getExpectedUnitForCurrency('GBP')).toBe('mi');
             expect(getExpectedUnitForCurrency('CAD')).toBe('km');
             expect(getExpectedUnitForCurrency('AUD')).toBe('km');
+            expect(getExpectedUnitForCurrency('NOK')).toBe('km');
+            expect(getExpectedUnitForCurrency('SEK')).toBe('km');
+            expect(getExpectedUnitForCurrency('ZAR')).toBe('km');
         });
 
         it('should return undefined for an unsupported currency', () => {

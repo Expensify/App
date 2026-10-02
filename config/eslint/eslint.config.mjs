@@ -119,7 +119,7 @@ const restrictedImportPaths = [
     },
     {
         name: 'date-fns/locale',
-        message: "Do not import 'date-fns/locale' directly. Please use the submodule import instead, like 'date-fns/locale/en-GB'.",
+        message: "Do not import 'date-fns/locale' directly. Please use the submodule import instead, like 'date-fns/locale/en-US'.",
     },
     {
         name: 'expensify-common',
@@ -203,6 +203,14 @@ const restrictedPaidGroupPolicyImportPatterns = [
         importNames: ['isPaidGroupPolicy', 'isPaidGroupPolicyExpenseReport'],
         message:
             'isPaidGroupPolicy / isPaidGroupPolicyExpenseReport are billing/paid-only. For feature gating use isReportInGroupPolicy / isGroupPolicyExpenseReport so Submit workspaces are not excluded. If this is genuinely billing/paid-only, keep it and disable this line with a reason.',
+    },
+];
+
+// `HeaderWithBackButton` is being migrated to the composed `Header` (`@components/Header`).
+const restrictedHeaderImportPatterns = [
+    {
+        group: ['**/HeaderWithBackButton'],
+        message: 'HeaderWithBackButton is being migrated to the composed Header. Please use `@components/Header` instead for new usages.',
     },
 ];
 
@@ -304,6 +312,7 @@ const config = defineConfig([
             'rulesdir/require-a11y-disable-justification': 'error',
             'rulesdir/no-direct-pre-insert-fullscreen-under-rhp': 'error',
             'rulesdir/no-raw-typography': 'error',
+            'rulesdir/no-direct-personal-details-list': 'error',
             'rulesdir/require-locale-for-localized-date-format': 'error',
             'rulesdir/prefer-narrow-hook-dependencies': [
                 'error',
@@ -508,7 +517,7 @@ const config = defineConfig([
 
     // Rspack loaders receive their `this` from the bundler, and it's standard practice to use it
     {
-        files: ['config/rsbuild/loaders/*-loader.mjs'],
+        files: ['config/rsbuild/loaders/*-loader.mjs', 'config/repack/*-loader.mjs'],
         rules: {
             'no-invalid-this': 'off',
         },
@@ -652,6 +661,28 @@ const config = defineConfig([
         rules: {'report-name-utils/no-function-call-in-get-report-name': 'error'},
     },
 
+    // Everything else must read personal details through `@hooks/usePersonalDetails`, `@libs/PersonalDetailsStore` or
+    // `buildPersonalDetailsUpdate`, so that changing the shape of the personal details data means changing those
+    // wrappers instead of ~200 call sites. The files below are exempt because they are the wrappers themselves, the
+    // place the key is declared, or test setup that has to seed Onyx by key.
+    {
+        files: [
+            'src/ONYXKEYS.ts',
+            'src/hooks/usePersonalDetails.ts',
+            'src/libs/PersonalDetailsStore.ts',
+            'src/libs/PersonalDetailsUtils.ts',
+            'src/components/OnyxListItemProvider.tsx',
+            'src/libs/ExportOnyxState/masking.ts',
+            'tests/**/*.{ts,tsx}',
+            'jest/**/*.{ts,tsx}',
+            '__mocks__/**/*.{ts,tsx}',
+            'src/**/__mocks__/**/*.{ts,tsx}',
+        ],
+        rules: {
+            'rulesdir/no-direct-personal-details-list': 'off',
+        },
+    },
+
     // The typography token files are where raw font sizes and line heights are defined.
     {
         files: ['src/styles/typography.ts', 'src/styles/variables.ts'],
@@ -681,7 +712,29 @@ const config = defineConfig([
                 'error',
                 {
                     paths: restrictedImportPaths,
-                    patterns: [...restrictedImportPatterns, ...restrictedReportNameImportPatterns, ...restrictedPaidGroupPolicyImportPatterns],
+                    patterns: [...restrictedImportPatterns, ...restrictedReportNameImportPatterns, ...restrictedPaidGroupPolicyImportPatterns, ...restrictedHeaderImportPatterns],
+                },
+            ],
+        },
+    },
+
+    {
+        files: ['**/*.ts', '**/*.tsx'],
+        plugins: {
+            '@typescript-eslint': tseslint.plugin,
+        },
+        rules: {
+            '@typescript-eslint/no-restricted-imports': [
+                'error',
+                {
+                    paths: [
+                        {
+                            name: 'react-native-onyx/dist/OnyxUtils',
+                            message:
+                                'OnyxUtils is not a sanctioned way to read Onyx data. Use useOnyx() from @hooks/useOnyx in render paths, or a short-lived Onyx.connectWithoutView() for non-render logic. Type-only imports are still allowed.',
+                            allowTypeImports: true,
+                        },
+                    ],
                 },
             ],
         },

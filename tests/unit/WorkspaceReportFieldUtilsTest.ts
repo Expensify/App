@@ -1,4 +1,10 @@
-import {getUnsupportedReportFieldFormulaParts, hasFormulaPartsInInitialValue, isReportFieldImportedFromIntegration, isReportFieldNameExisting} from '@libs/WorkspaceReportFieldUtils';
+import {
+    getExistingReportFieldByName,
+    getUnsupportedReportFieldFormulaParts,
+    hasFormulaPartsInInitialValue,
+    isReportFieldImportedFromIntegration,
+    isReportFieldNameExisting,
+} from '@libs/WorkspaceReportFieldUtils';
 
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
@@ -104,6 +110,39 @@ describe('WorkspaceReportFieldUtils.isReportFieldNameExisting', () => {
     it('should return true when field name exists with different case', () => {
         expect(isReportFieldNameExisting(fieldList, 'FIELD1')).toBe(true);
         expect(isReportFieldNameExisting(fieldList, 'field1')).toBe(true);
+    });
+
+    it('should return true across targets when no expectedTarget is passed, since the backend keys fields by name regardless of target', () => {
+        const mixedTargetFieldList: Record<string, PolicyReportField> = {
+            invoiceField: createMock<PolicyReportField>({name: 'Test', type: 'text', target: CONST.REPORT_FIELD_TARGETS.INVOICE}),
+            expenseField: createMock<PolicyReportField>({name: 'Other', type: 'text', target: CONST.REPORT_FIELD_TARGETS.EXPENSE}),
+        };
+
+        expect(isReportFieldNameExisting(mixedTargetFieldList, 'Test')).toBe(true);
+        expect(isReportFieldNameExisting(mixedTargetFieldList, 'Other')).toBe(true);
+    });
+});
+
+describe('WorkspaceReportFieldUtils.getExistingReportFieldByName', () => {
+    const invoiceField = createMock<PolicyReportField>({name: 'Field1', type: 'text', target: CONST.REPORT_FIELD_TARGETS.INVOICE});
+    const expenseField = createMock<PolicyReportField>({name: 'Field2', type: 'text', target: CONST.REPORT_FIELD_TARGETS.EXPENSE});
+    const fieldList: Record<string, PolicyReportField> = {
+        invoiceField,
+        expenseField,
+    };
+
+    it('should return undefined when field name does not exist', () => {
+        expect(getExistingReportFieldByName(fieldList, 'Field3')).toBeUndefined();
+    });
+
+    it('should return the matching report field case-insensitively', () => {
+        expect(getExistingReportFieldByName(fieldList, 'field1')).toEqual(invoiceField);
+        expect(getExistingReportFieldByName(fieldList, 'FIELD2')).toEqual(expenseField);
+    });
+
+    it('should filter by expectedTarget when provided', () => {
+        expect(getExistingReportFieldByName(fieldList, 'Field1', CONST.REPORT_FIELD_TARGETS.EXPENSE)).toBeUndefined();
+        expect(getExistingReportFieldByName(fieldList, 'Field1', CONST.REPORT_FIELD_TARGETS.INVOICE)).toEqual(invoiceField);
     });
 });
 

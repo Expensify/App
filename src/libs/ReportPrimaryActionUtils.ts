@@ -9,6 +9,7 @@ import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     canMemberWrite,
     getManagerAccountID,
+    getReimbursementChoice,
     getSubmitToAccountID,
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
@@ -242,7 +243,7 @@ function isPrimaryPayAction({
         isReportPayer ||
         (canNonPayerAdminPay &&
             isGroupPolicy(policy) &&
-            policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL &&
+            getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL &&
             canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
     const isReportApproved = isReportApprovedUtils({report});

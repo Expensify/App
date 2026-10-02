@@ -1,6 +1,6 @@
 import type {Coordinate} from '@components/MapView/MapViewTypes';
 
-import {BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
+import {BACKGROUND_LOCATION_TRACKING_TASK_NAME, GPS_DISTANCE_INTERVAL_METERS} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 import {stopGpsTripNotification} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
 
 import type {GpsDraftDetails} from '@src/types/onyx';
@@ -140,7 +140,10 @@ async function stopGpsTrip(isOffline: boolean, gpsPoints: GPSPoint[][], skipLast
     }
 
     if (isLastSegmentEmptyOrHasOnlyOnePoint(lastSegment)) {
-        removeLastSegment(gpsPoints);
+        // Dropping the sole segment would leave no points, which reads as a trip that never started
+        if (gpsPoints.length > 1) {
+            removeLastSegment(gpsPoints);
+        }
         return;
     }
 
@@ -187,6 +190,11 @@ function isTripStopped(gpsDraftDetails: GpsDraftDetails | undefined): boolean {
     return !gpsDraftDetails?.isTracking && getTotalGpsTripPoints(gpsDraftDetails) > 0;
 }
 
+function canGpsTripBeTrimmed(gpsDraftDetails: GpsDraftDetails | undefined): boolean {
+    // Trimming cannot shorten a trip below one location interval, so a trip no longer than that has nothing to trim
+    return isTripStopped(gpsDraftDetails) && (gpsDraftDetails?.distanceInMeters ?? 0) > GPS_DISTANCE_INTERVAL_METERS;
+}
+
 function getGpsPoints(gpsDraftDetails: GpsDraftDetails | undefined): GPSPoint[][] {
     return gpsDraftDetails?.gpsPoints ?? [[]];
 }
@@ -227,6 +235,7 @@ export {
     getGPSRoutes,
     getGPSWaypoints,
     stopGpsTrip,
+    canGpsTripBeTrimmed,
     getStringifiedGPSCoordinates,
     addressFromGpsPoint,
     coordinatesToString,

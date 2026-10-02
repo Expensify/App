@@ -1,2 +1,2 @@
 export {default as useNumericEditingController} from './hooks/useNumericEditingController';
-export type {NumericEditingKeyPressEvent, NumericEditingRef} from './types';
+export type {NumericEditingKeyPressEvent, NumericEditingRef, NumericEditingSelection} from './types';

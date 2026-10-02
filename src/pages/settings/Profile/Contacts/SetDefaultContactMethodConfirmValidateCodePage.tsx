@@ -18,6 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useEffect} from 'react';
 
 import getDecodedContactMethodFromUriParam from './utils';
@@ -69,7 +70,8 @@ function SetDefaultContactMethodConfirmValidateCodePage({route}: SetDefaultConta
     return (
         <ValidateCodeActionContent
             title={translate('delegate.makeSureItIsYou')}
-            sendValidateCode={() => requestValidateCodeAction()}
+            sendValidateCode={() => requestValidateCodeAction({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.CHANGE_PRIMARY_LOGIN})}
+            validateCodeReasonCode={COMMON_CONST.VALIDATE_CODE_REASONS.CHANGE_PRIMARY_LOGIN}
             descriptionPrimary={translate('contacts.enterSecurityCode', primaryContactMethod)}
             validateCodeActionErrorField="defaultLogin"
             validateError={defaultLoginError}

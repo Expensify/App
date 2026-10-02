@@ -243,7 +243,10 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
     }
 
     return (
-        <GestureDetector gesture={customGestures}>
+        <GestureDetector
+            gesture={customGestures}
+            touchAction="pan-y"
+        >
             <Animated.View
                 style={[styles.chartContent, dynamicChartStyle, cursorStyle]}
                 onLayout={handleLayout}

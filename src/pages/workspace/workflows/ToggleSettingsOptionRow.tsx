@@ -57,12 +57,18 @@ type ToggleSettingOptionRowProps = {
     /** Used to apply styles to the outermost container */
     wrapperStyle?: StyleProp<ViewStyle>;
 
+    /** Used to apply styles to the row holding the title and the switch, leaving the sub menu items below it untouched */
+    toggleContainerStyles?: StyleProp<ViewStyle>;
+
     titleStyle?: StyleProp<TextStyle>;
 
     /** Optional accessibility role for the title. Only set when the title is a section heading (e.g. CONST.ROLE.HEADER); omit for regular rows. */
     titleAccessibilityRole?: typeof CONST.ROLE.HEADER;
 
     subtitleStyle?: StyleProp<TextStyle>;
+
+    /** Style for the container of a parsed (HTML) subtitle. Use it to match the spacing `subtitleStyle` gives a plain-text subtitle. */
+    parsedSubtitleContainerStyle?: StyleProp<ViewStyle>;
     accordionStyle?: StyleProp<ViewStyle>;
     isActive: boolean;
 
@@ -104,6 +110,7 @@ function ToggleSettingOptionRow({
     customTitle,
     subtitle,
     subtitleStyle,
+    parsedSubtitleContainerStyle,
     accordionStyle,
     switchAccessibilityLabel,
     shouldPlaceSubtitleBelowSwitch,
@@ -112,6 +119,7 @@ function ToggleSettingOptionRow({
     shouldEscapeText = undefined,
     shouldParseSubtitle = false,
     wrapperStyle,
+    toggleContainerStyles,
     titleStyle,
     titleAccessibilityRole,
     onToggle,
@@ -166,7 +174,7 @@ function ToggleSettingOptionRow({
         if (typeof subtitle === 'string') {
             if (!!subtitle && shouldParseSubtitle) {
                 return (
-                    <View style={[styles.flexRow, styles.renderHTML, styles.textAlignLeft, subtitleSpacingStyle]}>
+                    <View style={[styles.flexRow, styles.renderHTML, styles.textAlignLeft, subtitleSpacingStyle, parsedSubtitleContainerStyle]}>
                         <RenderHTML html={processedSubtitle} />
                     </View>
                 );
@@ -196,6 +204,7 @@ function ToggleSettingOptionRow({
         styles.textAlignLeft,
         subtitleSpacingStyle,
         subtitleStyle,
+        parsedSubtitleContainerStyle,
         processedSubtitle,
         areSubtitleAndSwitchAccessibilityLabelEqual,
     ]);
@@ -271,6 +280,7 @@ function ToggleSettingOptionRow({
                             shouldAnchorSwitchToTop ? styles.alignItemsStart : styles.alignItemsCenter,
                             styles.justifyContentBetween,
                             shouldPlaceSubtitleBelowSwitch && !shouldUseCompactSubtitleSpacing && styles.h10,
+                            toggleContainerStyles,
                         ]}
                     >
                         <PressableWithoutFeedback

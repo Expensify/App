@@ -9,7 +9,7 @@ on:
 
 jobs:
   validate-mobile-expensify-submodule:
-    if: github.actor != 'OSBotify' && !endsWith(github.actor, '[bot]')
+    if: github.actor != 'OSBotify' && !endsWith(github.actor, '[bot]') && !github.event.pull_request.head.repo.fork
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - name: Checkout App

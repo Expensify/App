@@ -21,6 +21,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
@@ -46,7 +47,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import {defaultSecurityGroupIDSelector, domainNameSelector, memberAccountIDsSelector, memberPendingActionSelector, selectSecurityGroupForAccount} from '@selectors/Domain';
+import {domainNameSelector, memberAccountIDsSelector, memberPendingActionSelector, selectSecurityGroupForAccount} from '@selectors/Domain';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -72,11 +73,10 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
 
     const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`);
     const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {selector: memberPendingActionSelector});
-    const [defaultSecurityGroupID] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: defaultSecurityGroupIDSelector});
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [shouldForceCloseAccount, setShouldForceCloseAccount] = useState<boolean>();
     const {showConfirmModal} = useConfirmModal();
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
     useDomainDocumentTitle(domainName, 'domain.domainMembers');
@@ -128,12 +128,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 pendingAction: customProps?.pendingAction,
                 disabled: isPendingActionDelete || !!details?.isOptimisticPersonalDetail,
                 action: () => Navigation.navigate(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, accountID)),
-                dismissError: () => {
-                    if (!defaultSecurityGroupID) {
-                        return;
-                    }
-                    clearDomainMemberError(domainAccountID, accountID, login, defaultSecurityGroupID, customProps?.pendingAction);
-                },
+                dismissError: () => clearDomainMemberError(domainAccountID, accountID, login, group?.id, !!details?.isOptimisticPersonalDetail),
             };
         });
 
@@ -182,7 +177,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 continue;
             }
             const securityGroupData = selectSecurityGroupForAccount(accountID)(domain);
-            closeUserAccount(domainAccountID, domainName, memberLogin, securityGroupData, shouldForceCloseAccount);
+            closeUserAccount(domainAccountID, domainName, memberLogin, accountID, securityGroupData, shouldForceCloseAccount);
         }
 
         setShouldForceCloseAccount(undefined);

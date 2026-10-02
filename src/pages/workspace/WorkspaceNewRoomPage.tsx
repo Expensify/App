@@ -12,6 +12,7 @@ import TextInput from '@components/TextInput';
 import ValuePicker from '@components/ValuePicker';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -97,6 +98,7 @@ function WorkspaceNewRoomPage({ref, policyID: lockedPolicyID}: WorkspaceNewRoomP
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
     const {top} = useSafeAreaInsets();
+    const {contentHeaderHeight} = useContentHeaderHeight();
     const [visibility, setVisibility] = useState<ValueOf<typeof CONST.REPORT.VISIBILITY>>(CONST.REPORT.VISIBILITY.RESTRICTED);
     const [writeCapability, setWriteCapability] = useState<ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>>(CONST.REPORT.WRITE_CAPABILITIES.ALL);
     const visibilityDescription = useMemo(() => translate(`newRoomPage.${visibility}Description`), [translate, visibility]);
@@ -284,7 +286,7 @@ function WorkspaceNewRoomPage({ref, policyID: lockedPolicyID}: WorkspaceNewRoomP
                       shouldShowOfflineIndicator: true,
                       shouldEnablePickerAvoiding: false,
                       shouldEnableKeyboardAvoidingView: workspaceOptions.length !== 0,
-                      keyboardVerticalOffset: variables.contentHeaderHeight + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding + top,
+                      keyboardVerticalOffset: contentHeaderHeight + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding + top,
                       // Disable the focus trap of this page to activate the parent focus trap in `NewChatSelectorPage`.
                       focusTrapSettings: {active: false},
                   })}

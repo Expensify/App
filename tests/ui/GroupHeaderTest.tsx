@@ -86,6 +86,9 @@ const baseActions = {
     setLastSearchType: jest.fn(),
     setCurrentSelectedTransactionReportID: jest.fn(),
     setSelectedTransactions: jest.fn(),
+    getSelectedTransactions: jest.fn(() => ({})),
+    getExcludedTransactions: () => ({}),
+    getAreAllMatchingItemsSelected: () => false,
     applySelection: jest.fn(),
     setSelectedReports: jest.fn(),
     removeTransaction: jest.fn(),
@@ -94,9 +97,11 @@ const baseActions = {
     selectAllMatchingItems: jest.fn(),
     setShouldResetSearchQuery: jest.fn(),
     setSortedReportIDs: jest.fn(),
-    setCurrentSearchKey: jest.fn(),
-    resetSearchKey: jest.fn(),
+    getSearchKeyForQuery: jest.fn(),
 } satisfies SearchActionsContextValue;
+
+/** Wide enough that the sub-header's column widths never exceed it, so no horizontal scroller is involved here. */
+const WINDOW_WIDTH = 1500;
 
 function renderGroupHeader(rows: TransactionListItemType[], selection: SelectedTransactions, onCheckboxPress = jest.fn()) {
     render(
@@ -117,6 +122,7 @@ function renderGroupHeader(rows: TransactionListItemType[], selection: SelectedT
                         onCheckboxPress={onCheckboxPress}
                         isFirstItem
                         isLastItem={false}
+                        windowWidth={WINDOW_WIDTH}
                     />
                 </MockSearchContextProvider>
             </ScreenWrapperStatusContext>
