@@ -10376,12 +10376,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
     distance: {
         addStop: 'Ajouter un arrêt',
         address: 'Adresse',
-        reuseRoute: 'Reuse route',
-        reusePriorRoute: 'Reuse prior route',
-        choosePreviousRoute: 'Choose a previous route below:',
-        findARoute: 'Find a route',
-        lastUsed: ({date}: {date: string}) => `Last used ${date}`,
-        end: 'End',
+        reuseRoute: 'Réutiliser l’itinéraire',
+        reusePriorRoute: 'Réutiliser l’itinéraire précédent',
+        choosePreviousRoute: 'Choisissez un itinéraire précédent ci-dessous :',
+        findARoute: 'Trouver un itinéraire',
+        lastUsed: ({date}: {date: string}) => `Dernière utilisation le ${date}`,
+        end: 'Fin',
         waypointDescription: {
             start: 'Démarrer',
             stop: 'Arrêter',
