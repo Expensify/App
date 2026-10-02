@@ -5,6 +5,7 @@ import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
+import type ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, TaxRates} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -16,6 +17,7 @@ import isObject from 'lodash/isObject';
 
 import {getMonthFromExpirationDateString, getYearFromExpirationDateString} from './CardUtils';
 import DateUtils from './DateUtils';
+import {addErrorMessage} from './ErrorUtils';
 import {getPhoneNumberWithoutSpecialChars} from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
 import StringUtils from './StringUtils';
@@ -165,6 +167,35 @@ function getFieldRequiredErrors<TFormID extends OnyxFormKey>(
         }
 
         errors[fieldKey] = translate('common.error.fieldRequired');
+    }
+
+    return errors;
+}
+
+/**
+ * Builds the errors for a first and last name that a display name is made of.
+ */
+function getDisplayNameErrors(firstName: string, lastName: string, translate: LocalizedTranslate): FormInputErrors<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM> {
+    const errors: FormInputErrors<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM> = {};
+
+    if (!isValidDisplayName(firstName)) {
+        addErrorMessage(errors, 'firstName', translate('personalDetails.error.hasInvalidCharacter'));
+    } else if (firstName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
+        addErrorMessage(errors, 'firstName', translate('common.error.characterLimitExceedCounter', firstName.length, CONST.DISPLAY_NAME.MAX_LENGTH));
+    } else if (!isRequiredFulfilled(firstName)) {
+        addErrorMessage(errors, 'firstName', translate('personalDetails.error.requiredFirstName'));
+    }
+    if (doesContainReservedWord(firstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+        addErrorMessage(errors, 'firstName', translate('personalDetails.error.containsReservedWord'));
+    }
+
+    if (!isValidDisplayName(lastName)) {
+        addErrorMessage(errors, 'lastName', translate('personalDetails.error.hasInvalidCharacter'));
+    } else if (lastName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
+        addErrorMessage(errors, 'lastName', translate('common.error.characterLimitExceedCounter', lastName.length, CONST.DISPLAY_NAME.MAX_LENGTH));
+    }
+    if (doesContainReservedWord(lastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+        addErrorMessage(errors, 'lastName', translate('personalDetails.error.containsReservedWord'));
     }
 
     return errors;
@@ -914,6 +945,7 @@ export {
     isValidZipCodeForCountry,
     isValidPaymentZipCode,
     isRequiredFulfilled,
+    getDisplayNameErrors,
     getFieldRequiredErrors,
     isValidUSPhone,
     isValidPhoneNumber,
