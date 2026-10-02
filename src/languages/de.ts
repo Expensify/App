@@ -1472,7 +1472,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Berichte löschen',
         }),
         deleteReportConfirmation: () => ({
-            one: 'Möchten Sie diesen Bericht wirklich löschen?',
+            one: 'Möchten Sie diesen Bericht wirklich löschen? Alle Ausgaben in diesem Bericht werden als nicht gemeldet markiert.',
             other: 'Möchten Sie diese Berichte wirklich löschen?',
         }),
         settledExpensify: 'Bezahlt',

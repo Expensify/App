@@ -1455,7 +1455,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'レポートを削除',
         }),
         deleteReportConfirmation: () => ({
-            one: 'このレポートを削除してもよろしいですか？',
+            one: 'このレポートを削除してもよろしいですか？このレポート内のすべての経費は未報告になります。',
             other: 'これらのレポートを削除してもよろしいですか？',
         }),
         settledExpensify: '支払い済み',

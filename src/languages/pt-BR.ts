@@ -1470,7 +1470,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Excluir relatórios',
         }),
         deleteReportConfirmation: () => ({
-            one: 'Tem certeza de que deseja excluir este relatório?',
+            one: 'Tem certeza de que deseja excluir este relatório? Todas as despesas deste relatório passarão a não ser informadas.',
             other: 'Tem certeza de que deseja excluir estes relatórios?',
         }),
         settledExpensify: 'Pago',

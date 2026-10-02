@@ -1470,7 +1470,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Rapporten verwijderen',
         }),
         deleteReportConfirmation: () => ({
-            one: 'Weet u zeker dat u dit rapport wilt verwijderen?',
+            one: 'Weet u zeker dat u dit rapport wilt verwijderen? Alle uitgaven in dit rapport krijgen de status Niet gerapporteerd.',
             other: 'Weet u zeker dat u deze rapporten wilt verwijderen?',
         }),
         settledExpensify: 'Betaald',
