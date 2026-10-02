@@ -1401,6 +1401,7 @@ const translations: TranslationDeepObject<typeof en> = {
         totalAmountGreaterThanOriginal: (amount: string) => `Kwota łączna jest o ${amount} wyższa niż pierwotny wydatek.`,
         totalAmountLessThanOriginal: (amount: string) => `Kwota całkowita jest o ${amount} mniejsza niż pierwotny wydatek.`,
         splitExpenseZeroAmount: 'Wprowadź prawidłową kwotę przed kontynuowaniem.',
+        splitExpenseZeroTotalAmountNotEditable: (amount: string) => `Kwoty nie można edytować, gdy pierwotna suma wynosi ${amount}.`,
         splitExpenseOneMoreSplit: 'Nie dodano podziałów. Dodaj co najmniej jeden, aby zapisać.',
         splitExpenseEditTitle: (amount: string, merchant: string) => `Edytuj ${amount} dla ${merchant}`,
         removeSplit: 'Usuń podział',

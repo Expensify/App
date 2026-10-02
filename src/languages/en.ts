@@ -1472,6 +1472,7 @@ const translations = {
         totalAmountGreaterThanOriginal: (amount: string) => `Total amount is ${amount} greater than the original expense.`,
         totalAmountLessThanOriginal: (amount: string) => `Total amount is ${amount} less than the original expense.`,
         splitExpenseZeroAmount: 'Please enter a valid amount before continuing.',
+        splitExpenseZeroTotalAmountNotEditable: (amount: string) => `Amount can't be edited when the original total is ${amount}.`,
         splitExpenseOneMoreSplit: 'No splits added. Add at least one to save.',
         splitExpenseEditTitle: (amount: string, merchant: string) => `Edit ${amount} for ${merchant}`,
         removeSplit: 'Remove split',

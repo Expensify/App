@@ -1415,6 +1415,7 @@ const translations: TranslationDeepObject<typeof en> = {
         totalAmountGreaterThanOriginal: (amount: string) => `Το συνολικό ποσό είναι κατά ${amount} μεγαλύτερο από την αρχική δαπάνη.`,
         totalAmountLessThanOriginal: (amount: string) => `Το συνολικό ποσό είναι κατά ${amount} λιγότερο από την αρχική δαπάνη.`,
         splitExpenseZeroAmount: 'Παρακαλώ εισαγάγετε ένα έγκυρο ποσό πριν συνεχίσετε.',
+        splitExpenseZeroTotalAmountNotEditable: (amount: string) => `Το ποσό δεν μπορεί να επεξεργαστεί όταν το αρχικό σύνολο είναι ${amount}.`,
         splitExpenseOneMoreSplit: 'Δεν προστέθηκαν κατανομές. Προσθέστε τουλάχιστον μία για να αποθηκεύσετε.',
         splitExpenseEditTitle: (amount: string, merchant: string) => `Επεξεργαστείτε ${amount} για ${merchant}`,
         removeSplit: 'Αφαίρεση διαχωρισμού',
