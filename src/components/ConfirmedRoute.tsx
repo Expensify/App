@@ -37,20 +37,9 @@ type ConfirmedRouteProps = {
 
     interactive?: boolean;
     shouldDisplayCompass?: boolean;
-
-    /** Whether camera transitions should animate when fitting bounds. Set to false for static previews where the fit runs on mount. */
-    shouldAnimate?: boolean;
 };
 
-function ConfirmedRoute({
-    transaction,
-    isSmallerIcon,
-    shouldHaveBorderRadius = true,
-    requireRouteToDisplayMap = false,
-    interactive,
-    shouldDisplayCompass = true,
-    shouldAnimate = true,
-}: ConfirmedRouteProps) {
+function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = true, requireRouteToDisplayMap = false, interactive, shouldDisplayCompass = true}: ConfirmedRouteProps) {
     const {isOffline} = useNetwork();
     const selectedRouteKey = getSelectedRouteKey(transaction);
     const route = transaction?.routes?.[selectedRouteKey] ?? transaction?.routes?.[CONST.TRANSACTION.DEFAULT_ROUTE_KEY];
@@ -94,7 +83,6 @@ function ConfirmedRoute({
     return !isOffline && !!mapboxAccessToken?.token && shouldDisplayMap ? (
         <DistanceMapView
             interactive={interactive}
-            shouldAnimate={shouldAnimate}
             accessToken={mapboxAccessToken?.token ?? ''}
             mapPadding={CONST.MAPBOX.PADDING}
             pitchEnabled={false}

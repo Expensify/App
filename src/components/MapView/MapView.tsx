@@ -53,7 +53,6 @@ function MapView({
     ref,
     shouldDisplayCurrentLocation = true,
     shouldDisplayCompass = true,
-    shouldAnimate = true,
 }: MapViewProps) {
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
     const navigation = useNavigation();
@@ -170,7 +169,7 @@ function MapView({
             if (waypoints.length === 1) {
                 cameraRef.current?.setCamera({
                     zoomLevel: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
-                    animationDuration: shouldAnimate ? 1500 : 0,
+                    animationDuration: 1500,
                     centerCoordinate: waypoints.at(0)?.coordinate,
                 });
             } else {
@@ -178,9 +177,9 @@ function MapView({
                     waypoints.map((waypoint) => waypoint.coordinate),
                     allDirectionCoordinates,
                 );
-                cameraRef.current?.fitBounds(northEast, southWest, mapPadding, shouldAnimate ? 1000 : 0);
+                cameraRef.current?.fitBounds(northEast, southWest, mapPadding, 1000);
             }
-        }, [mapPadding, waypoints, isIdle, allDirectionCoordinates, shouldAnimate]),
+        }, [mapPadding, waypoints, isIdle, allDirectionCoordinates]),
     );
 
     useEffect(() => {
