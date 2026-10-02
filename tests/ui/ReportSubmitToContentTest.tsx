@@ -107,6 +107,7 @@ jest.mock('@libs/ReportUtils', () => ({
     isExpenseReport: jest.fn(() => true),
     isManuallyRejectedReport: jest.fn(() => false),
     isMoneyRequestReportPendingDeletion: jest.fn(() => false),
+    shouldShowMarkAsDone: jest.fn(() => false),
 }));
 // useTransactionsAndViolationsForReport reads this context; the recipient-selection paths under test don't
 // exercise any transaction/violation, so the default (no reports loaded yet) is sufficient here.

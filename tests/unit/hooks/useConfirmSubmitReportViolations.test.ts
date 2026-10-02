@@ -43,6 +43,19 @@ jest.mock('@userActions/Transaction', () => ({
     markPendingRTERTransactionsAsCash: jest.fn(),
 }));
 
+// Run TransitionTracker callbacks immediately, there is no real modal transition to wait for in a unit test.
+jest.mock('@libs/Navigation/TransitionTracker', () => ({
+    __esModule: true,
+    default: {
+        runAfterTransitions: ({callback}: {callback: () => void | Promise<void>}) => {
+            callback();
+            return {cancel: jest.fn()};
+        },
+        startTransition: jest.fn(),
+        endTransition: jest.fn(),
+    },
+}));
+
 const mockMarkPendingRTERTransactionsAsCash = jest.mocked(markPendingRTERTransactionsAsCash);
 
 function violationsKey(transactionID: string) {
