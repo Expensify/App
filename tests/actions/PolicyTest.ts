@@ -5997,7 +5997,7 @@ describe('actions/Policy', () => {
             // Given a workspace with preventPayoutNonReimbursableReports disabled
             const policy = {
                 ...createRandomPolicy(0),
-                preventPayoutNonReimbursableReports: null,
+                preventPayoutNonReimbursableReports: undefined,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
             mockFetch.pause();

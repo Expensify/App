@@ -1191,6 +1191,7 @@ describe('getReportPreviewAction', () => {
                 bankAccountList: {},
                 reportMetadata: undefined,
                 ownerLogin: CURRENT_USER_EMAIL,
+                rules: undefined,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
     });

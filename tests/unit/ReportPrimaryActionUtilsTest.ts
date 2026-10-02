@@ -1344,6 +1344,7 @@ describe('getPrimaryAction', () => {
                 bankAccountList: {},
                 policy,
                 isChatReportArchived: false,
+                rules: undefined,
             }),
         ).toBe('');
     });
