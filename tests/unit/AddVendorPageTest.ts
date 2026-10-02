@@ -161,13 +161,8 @@ describe('AddVendorPage', () => {
             expect(hasVendorFeature(intacctPolicy, false)).toBe(true);
         });
 
-        it('shows the row on Xero with the beta off because Xero vendor matching is generally available', () => {
-            // Given a configured Xero workspace with synced contacts
-            // When the vendor feature is checked without the vendorMatching beta
-            const isVendorFeatureAvailable = hasVendorFeature(xeroPolicy, false);
-
-            // Then the row is shown because Xero does not depend on the beta
-            expect(isVendorFeatureAvailable).toBe(true);
+        it('hides the row on Xero when the beta is off because Xero vendor matching is not generally available yet', () => {
+            expect(hasVendorFeature(xeroPolicy, false)).toBe(false);
         });
 
         it('hides the row when no vendor integration is connected', () => {
