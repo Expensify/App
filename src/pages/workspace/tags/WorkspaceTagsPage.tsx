@@ -473,6 +473,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 description: policyTagLists.at(0)?.name ?? '',
                 onSelected: navigateToCustomTagName,
                 shouldShowRightIcon: true,
+                shouldIgnoreCompactStyle: true,
                 value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
                 pendingAction: policyTags?.[policyTagLists.at(0)?.name ?? '']?.pendingAction,
                 errors: policyTags?.[policyTagLists.at(0)?.name ?? '']?.errors,
@@ -486,6 +487,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 // Selecting the row (click or Enter) toggles it; the Switch is a display-only indicator. Keep the menu open on select.
                 shouldCloseModalOnSelect: false,
                 onSelected: () => setPolicyShowTagGLCodes(policyID, !(policy?.showTagGLCodes ?? false), policy?.showTagGLCodes),
+                shouldIgnoreCompactStyle: true,
                 // Let the label wrap fully and keep the Switch centered against it on narrow screens.
                 numberOfLinesTitle: 0,
                 innerContainerStyle: styles.alignItemsCenter,
