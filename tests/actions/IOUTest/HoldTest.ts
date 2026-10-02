@@ -746,13 +746,13 @@ describe('actions/IOU/Hold', () => {
                     });
                     return waitForBatchedUpdates();
                 })
-                .then(() => {
+                .then(async () => {
                     mockFetch.fail();
                     mockFetch.resume();
+                    const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
                     unholdRequest({
                         transactionID: transaction.transactionID,
-                        transaction,
-
+                        transaction: updatedTransaction,
                         reportID: transactionThread.reportID,
                         policy,
                         isOffline: false,
@@ -765,22 +765,13 @@ describe('actions/IOU/Hold', () => {
                     });
                     return waitForBatchedUpdates();
                 })
-                .then(() => {
-                    return new Promise<void>((resolve) => {
-                        const connection = Onyx.connect({
-                            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-                            callback: (updatedTransaction) => {
-                                Onyx.disconnect(connection);
-                                expect(updatedTransaction?.pendingAction).toBeFalsy();
-                                expect(updatedTransaction?.comment?.hold).toBeTruthy();
-                                expect(Object.values(updatedTransaction?.errors ?? {})).toEqual(
-                                    Object.values(getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericUnholdExpenseFailureMessage') ?? {}),
-                                );
-
-                                resolve();
-                            },
-                        });
-                    });
+                .then(async () => {
+                    const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
+                    expect(updatedTransaction?.pendingAction).toBeFalsy();
+                    expect(updatedTransaction?.comment?.hold).toBeTruthy();
+                    expect(Object.values(updatedTransaction?.errors ?? {})).toEqual(
+                        Object.values(getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericUnholdExpenseFailureMessage') ?? {}),
+                    );
                 });
         });
     });
