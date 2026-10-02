@@ -409,7 +409,10 @@ const PROMPT_ERROR_BY_STATE: Partial<Record<GeneratedRuleState, TranslationPaths
     [CONST.GENERATED_RULE.STATE.UNINTELLIGIBLE]: 'workspace.rules.newRule.promptErrors.unintelligible',
 };
 
-/** Asks Concierge to turn a description into values for the given rule form. The answer arrives under `ONYXKEYS.GENERATED_RULE`. */
+/**
+ * Asks Concierge to turn a description into values for the given rule form. The response only confirms the job was
+ * queued; the answer arrives later under `ONYXKEYS.GENERATED_RULE`, so the form stays loading until it does.
+ */
 function generateRule(policyID: string, ruleType: GeneratedRuleType, prompt: string) {
     type GenerateRuleKey = typeof ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM | typeof ONYXKEYS.GENERATED_RULE;
 
@@ -425,13 +428,6 @@ function generateRule(policyID: string, ruleType: GeneratedRuleType, prompt: str
             value: null,
         },
     ];
-    const successData: Array<OnyxUpdate<GenerateRuleKey>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM,
-            value: {isLoading: false},
-        },
-    ];
     const failureData: Array<OnyxUpdate<GenerateRuleKey>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -442,12 +438,13 @@ function generateRule(policyID: string, ruleType: GeneratedRuleType, prompt: str
 
     const parameters: GenerateRuleParams = {policyID, generationID: rand64(), ruleType, prompt};
 
-    API.write(WRITE_COMMANDS.GENERATE_RULE, parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.GENERATE_RULE, parameters, {optimisticData, failureData});
 }
 
 /** Shows on the prompt form why a description did not become a rule */
 function setNewRulePromptError(state: GeneratedRuleState) {
     Onyx.merge(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM, {
+        isLoading: false,
         errors: getMicroSecondOnyxErrorWithTranslationKey(PROMPT_ERROR_BY_STATE[state] ?? 'common.genericErrorMessage'),
     });
 }
