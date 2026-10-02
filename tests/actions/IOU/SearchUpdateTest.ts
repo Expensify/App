@@ -957,6 +957,44 @@ describe('actions/IOU', () => {
             expect(snapshotUpdate?.value).toHaveProperty(['data', transactionKey, 'reportID'], CONST.REPORT.UNREPORTED_REPORT_ID);
         });
 
+        it('uses cached group totals and patches an active canned snapshot only once', async () => {
+            // Given a loaded grouped search and an active canned search that is also cached
+            const actualSearchQueryUtils = jest.requireActual<typeof SearchQueryUtils>('@src/libs/SearchQueryUtils');
+            jest.mocked(buildCannedSearchQuery).mockImplementation(actualSearchQueryUtils.buildCannedSearchQuery);
+            const cannedQuery = actualSearchQueryUtils.buildCannedSearchQuery();
+            const cannedQueryJSON = actualSearchQueryUtils.buildSearchQueryJSON(cannedQuery);
+            const groupedQuery = `type:expense group-by:from from:${RORY_ACCOUNT_ID}`;
+            const groupedQueryJSON = actualSearchQueryUtils.buildSearchQueryJSON(groupedQuery);
+            if (!cannedQueryJSON || !groupedQueryJSON) {
+                throw new Error('Failed to parse the canned or grouped search query');
+            }
+            const cannedSnapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${cannedQueryJSON.hash}` as const;
+            const groupedSnapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${groupedQueryJSON.hash}` as const;
+            const groupKey = `${CONST.SEARCH.GROUP_PREFIX}${RORY_ACCOUNT_ID}` as const;
+            await Onyx.merge(cannedSnapshotKey, {search: {hash: cannedQueryJSON.hash, inputQuery: cannedQuery}});
+            await Onyx.merge(groupedSnapshotKey, {
+                search: {hash: groupedQueryJSON.hash, inputQuery: groupedQuery},
+                data: {[groupKey]: {accountID: RORY_ACCOUNT_ID, count: 3, total: -15000, currency: CONST.CURRENCY.USD}},
+            });
+            await waitForBatchedUpdates();
+
+            // When a new expense matches both searches
+            jest.mocked(getCurrentSearchQueryJSON).mockReturnValueOnce(cannedQueryJSON);
+            const result = getSearchOnyxUpdate({
+                transaction: {...createRandomTransaction(1), amount: -5000, reportID: CONST.REPORT.UNREPORTED_REPORT_ID},
+                participant: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+                transactionThreadReportID: undefined,
+            });
+
+            // Then each snapshot is written once and the grouped update adds to the cached count and total
+            const cannedUpdates = result?.optimisticData?.filter((update) => update.key === cannedSnapshotKey);
+            const groupedUpdates = result?.optimisticData?.filter((update) => update.key === groupedSnapshotKey);
+            expect(cannedUpdates).toHaveLength(1);
+            expect(groupedUpdates).toHaveLength(1);
+            expect(groupedUpdates?.at(0)?.value).toHaveProperty(['data', groupKey, 'count'], 4);
+            expect(groupedUpdates?.at(0)?.value).toHaveProperty(['data', groupKey, 'total'], -20000);
+        });
+
         it('patches a loaded snapshot that is not the active search using the query recorded on it', async () => {
             // Given a loaded `from:<me>` snapshot that is not the active search, with its query recorded on the
             // snapshot by the search() action, and a second loaded snapshot for the same query that has no recorded query

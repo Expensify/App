@@ -344,18 +344,24 @@ function getSearchOnyxUpdate({
     //    This catches cases like creating an expense from a chat while a `from:<me>` filter or
     //    `groupBy:from` view is loaded but not the currently active search. Each snapshot records the
     //    query it was searched with in `search.inputQuery` (see Search.ts), so an evicted snapshot drops out on its own.
-    //    The deterministic default canned hashes (see getDefaultSearchQueriesByHash) are merged in so the
+    //    The deterministic default canned hashes (see getDefaultSearchQueriesByHash) are also patched so the
     //    default Spend > Expenses / Reports pages are patched even when they were never visited. Recorded
     //    queries take precedence so a real visited entry is never shadowed by the canned default.
-    const queryByHash = getDefaultSearchQueriesByHash();
+    const defaultQueriesByHash = getDefaultSearchQueriesByHash();
     const snapshotPrefixLength = ONYXKEYS.COLLECTION.SNAPSHOT.length;
     for (const [snapshotKey, snapshot] of Object.entries(allSnapshots)) {
         const inputQuery = snapshot?.search?.inputQuery;
-        if (inputQuery) {
-            queryByHash[snapshotKey.slice(snapshotPrefixLength)] = inputQuery;
+        if (!inputQuery) {
+            continue;
         }
+        delete defaultQueriesByHash[snapshotKey.slice(snapshotPrefixLength)];
+        const queryJSON = buildSearchQueryJSON(inputQuery);
+        if (!queryJSON) {
+            continue;
+        }
+        writeForQuery(queryJSON, snapshot);
     }
-    for (const [hashString, queryString] of Object.entries(queryByHash)) {
+    for (const [hashString, queryString] of Object.entries(defaultQueriesByHash)) {
         if (!queryString) {
             continue;
         }
