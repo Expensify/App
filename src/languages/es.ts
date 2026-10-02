@@ -9937,6 +9937,8 @@ ${reportName}`,
             category: 'Categoría',
             tag: 'Etiqueta',
         },
+        viewAsTable: 'Ver como tabla',
+        viewAsSingleExpense: 'Ver como gasto individual',
     },
     report: {
         newReport: {

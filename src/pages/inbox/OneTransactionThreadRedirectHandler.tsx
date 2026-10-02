@@ -85,10 +85,14 @@ function OneTransactionThreadRedirectHandler() {
     // A message deep link points at an action inside the thread, so dropping the thread route would drop its anchor.
     const hasLinkedReportAction = !!route.params?.reportActionID;
 
+    const [shouldUseTableViewForSingleExpense = false] = useOnyx(ONYXKEYS.NVP_SINGLE_EXPENSE_TABLE_VIEW);
+
     const referrer = route.name === SCREENS.REPORT ? route.params?.referrer : undefined;
     const backTo = route.params?.backTo;
 
-    const shouldRedirectToParentReport = !!parentReportID && isOneTransactionThread && !isSteppingThroughExpenses && !hasLinkedReportAction;
+    // With the table view turned on, the expense is a row rather than inline content, so its thread is a real
+    // destination and redirecting away would stop the row from ever opening.
+    const shouldRedirectToParentReport = !!parentReportID && isOneTransactionThread && !isSteppingThroughExpenses && !hasLinkedReportAction && !shouldUseTableViewForSingleExpense;
 
     useEffect(() => {
         if (!isFocused || !shouldRedirectToParentReport || !parentReportID) {

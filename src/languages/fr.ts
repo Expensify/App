@@ -10145,6 +10145,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             category: 'Catégorie',
             tag: 'Tag',
         },
+        viewAsTable: 'Afficher sous forme de tableau',
+        viewAsSingleExpense: 'Afficher comme dépense unique',
     },
     report: {
         newReport: {
