@@ -1,4 +1,6 @@
-import {takePreMountedFullscreenForReveal} from '@libs/Navigation/helpers/preMountBuffer';
+import Log from '@libs/Log';
+import {setIsRevealingPreMountedFullscreen, takePreMountedFullscreenForReveal} from '@libs/Navigation/helpers/preMountBuffer';
+import {finishWideTabPreMountReveal} from '@libs/Navigation/helpers/wideTabPreMount';
 import {getLiveWideTabPreMountRouteKey, isStaleWideTabPreMountRouteKey} from '@libs/Navigation/helpers/wideTabPreMountRouteKey';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -588,6 +590,28 @@ describe('Navigation pre-mount buffer', () => {
         expect(takenRouteKey).toBe(preMountedRouteKey);
         expect(mockDispatch).not.toHaveBeenCalled();
         expect(Navigation.getPreMountedFullscreenRouteKey()).toBeUndefined();
+
+        // The REPLACE handler finishes the reveal in the app, so finish it here to leave no live pre-mount for the next test
+        finishWideTabPreMountReveal(takenRouteKey ?? '');
+        setIsRevealingPreMountedFullscreen(false);
+    });
+
+    it('wide layout: a reveal of another route drops the pre-mount and logs the mismatch', () => {
+        // Given a wide pre-mount for report 42
+        preMountOnWide();
+        const hmmmSpy = jest.spyOn(Log, 'hmmm').mockImplementation(() => {});
+
+        // When the reveal asks for a different route, e.g. a route string built differently than the pre-mount one
+        const takenRouteKey = takePreMountedFullscreenForReveal(ROUTES.REPORT_WITH_ID.getRoute('43'));
+
+        // Then no key is handed over and the drop is logged, so a silent loss of the pre-mount shows up in the logs
+        expect(takenRouteKey).toBeUndefined();
+        expect(Navigation.getPreMountedFullscreenRouteKey()).toBeUndefined();
+        expect(hmmmSpy).toHaveBeenCalledWith(expect.stringContaining('Wide pre-mount dropped'), {
+            preMountedRoute: ROUTES.REPORT_WITH_ID.getRoute('42'),
+            route: ROUTES.REPORT_WITH_ID.getRoute('43'),
+        });
+        hmmmSpy.mockRestore();
     });
 
     it('guard: preInsertFullscreenUnderRHP is a no-op on wide layout when the destination is not a tab navigator', () => {

@@ -1,3 +1,4 @@
+import Log from '@libs/Log';
 import {clearPreInsertedOriginalTabRoute, getPreInsertedOriginalTabRoute} from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
 import navigationRef from '@libs/Navigation/navigationRef';
 
@@ -223,6 +224,8 @@ function takePreMountedFullscreenForReveal(route: Route): string | undefined {
         return undefined;
     }
     if (preMountedFullscreen.route !== route) {
+        // A mismatch means the pre-mount was built for another route, so the submit falls back to a regular, slower reveal.
+        Log.hmmm('[preMountBuffer] Wide pre-mount dropped, reveal route does not match', {preMountedRoute: preMountedFullscreen.route, route});
         removePreInsertedFullscreenIfNeeded();
         return undefined;
     }
