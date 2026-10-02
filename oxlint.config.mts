@@ -1291,7 +1291,7 @@ export default defineConfig({
                 'src/libs/PersonalDetailsStore.ts',
                 'src/libs/PersonalDetailsUtils.ts',
                 'src/components/OnyxListItemProvider.tsx',
-                'src/libs/ExportOnyxState/common.ts',
+                'src/libs/ExportOnyxState/masking.ts',
                 'tests/**/*.{ts,tsx}',
                 'jest/**/*.{ts,tsx}',
                 '__mocks__/**/*.{ts,tsx}',
