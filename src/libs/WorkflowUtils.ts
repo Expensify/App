@@ -328,18 +328,23 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
     return {approvalWorkflows: sortedApprovalWorkflows, usedApproverEmails: [...usedApproverEmails], availableMembers};
 }
 
+/** Whether the workspace runs an advanced approval mode, the only modes that enforce more than the default workflow */
+function isAdvancedApprovalEnforced(policy: OnyxEntry<Policy>, isMultipleApproversBetaEnabled: boolean): boolean {
+    return (
+        isMultipleApproversBetaEnabled ||
+        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED ||
+        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL ||
+        isHRAdvancedMode(policy)
+    );
+}
+
 /**
  * The workflows a workspace actually enforces. Only the advanced approval modes run more than one workflow, so under
  * every other mode the default workflow is the only one in force and the rest are inert. They can still be derived
  * from `employeeList`, because downgrading a workspace leaves each member's `submitsTo` in place.
  */
 function getEnforcedApprovalWorkflows(approvalWorkflows: ApprovalWorkflow[], policy: OnyxEntry<Policy>, isMultipleApproversBetaEnabled: boolean): ApprovalWorkflow[] {
-    if (
-        isMultipleApproversBetaEnabled ||
-        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED ||
-        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL ||
-        isHRAdvancedMode(policy)
-    ) {
+    if (isAdvancedApprovalEnforced(policy, isMultipleApproversBetaEnabled)) {
         return approvalWorkflows;
     }
 
@@ -873,35 +878,53 @@ type GetApprovalLimitLoopApproverParams = {
     /** Emails of the approvers the limit is being saved for */
     approvers: string[];
 
+    /** The limit being saved */
+    approvalLimit: number;
+
     /** Email of the approver the limit forwards to */
     overLimitForwardsTo: string;
 
-    /** Approvers the limit had before this edit. Those taken off it no longer forward anywhere once it is saved. */
+    /** Approvers the limit had before this edit. Those taken off it lose their limit once it is saved. */
     originalApprovers: string[];
 };
 
 /**
- * Follow the forward-to chain starting at the limit's new approver, as it will be once the limit is saved.
- * Returns the approver on this limit the chain leads back to, or undefined when saving would not create a loop.
+ * Follow where a report over the limit goes from the limit's new approver, as routing will be once the limit is saved.
+ * Each approver passes a report to `overLimitForwardsTo` when it is over their own limit and to `forwardsTo` otherwise,
+ * so both are followed, as long as some report amount could take that path.
+ * Returns the approver on this limit the report could come back to, or undefined when saving would not create a loop.
  *
  * example: A forwards to B, and B is being set to forward to A (loops back to B)
- * example: A forwards to B, B forwards to C, and C is being set to forward to A (loops back to C)
+ * example: A forwards to B, B forwards to C over a limit, and C is being set to forward to A (loops back to C)
  */
-function getApprovalLimitLoopApprover({employees, approvers, overLimitForwardsTo, originalApprovers}: GetApprovalLimitLoopApproverParams): string | undefined {
-    const visitedEmails = new Set<string>();
-    let nextEmail: string | undefined = overLimitForwardsTo;
-
-    while (nextEmail && !visitedEmails.has(nextEmail)) {
-        if (approvers.includes(nextEmail)) {
-            return nextEmail;
+function getApprovalLimitLoopApprover({employees, approvers, approvalLimit, overLimitForwardsTo, originalApprovers}: GetApprovalLimitLoopApproverParams): string | undefined {
+    // Report amounts that can reach `email` are those above `minAmount` and up to `maxAmount`
+    const findLoopApprover = (email: string | undefined, minAmount: number, maxAmount: number, visitedEmails: Set<string>): string | undefined => {
+        if (!email || visitedEmails.has(email)) {
+            return undefined;
         }
-        visitedEmails.add(nextEmail);
+        if (approvers.includes(email)) {
+            return email;
+        }
 
-        const employee: PolicyEmployee | undefined = employees[nextEmail];
-        nextEmail = !originalApprovers.includes(nextEmail) && hasApprovalLimit(employee) ? employee?.overLimitForwardsTo : undefined;
-    }
+        const employee: PolicyEmployee | undefined = employees[email];
+        const nextVisitedEmails = new Set(visitedEmails).add(email);
+        const limit = !originalApprovers.includes(email) && hasApprovalLimit(employee) ? employee?.approvalLimit : undefined;
 
-    return undefined;
+        if (!limit) {
+            return findLoopApprover(employee?.forwardsTo, minAmount, maxAmount, nextVisitedEmails);
+        }
+
+        const underLimitLoopApprover = minAmount < limit ? findLoopApprover(employee?.forwardsTo, minAmount, Math.min(maxAmount, limit), nextVisitedEmails) : undefined;
+        if (underLimitLoopApprover) {
+            return underLimitLoopApprover;
+        }
+
+        return maxAmount > limit ? findLoopApprover(employee?.overLimitForwardsTo, Math.max(minAmount, limit), maxAmount, nextVisitedEmails) : undefined;
+    };
+
+    // Only reports over this limit reach the new approver
+    return findLoopApprover(overLimitForwardsTo, approvalLimit, Number.POSITIVE_INFINITY, new Set());
 }
 
 /** First name and last initial (e.g. "Priya V."), falling back to the formatted login when there is no name */
@@ -1958,6 +1981,7 @@ export {
     getFirstApproverLabel,
     hasRuleBasedDefaultWorkflow,
     includesEveryWorkspaceMember,
+    isAdvancedApprovalEnforced,
     isApprovalWorkflowLockedByIntegration,
     getEligibleExistingBusinessBankAccounts,
     getOpenConnectedToPolicyBusinessBankAccounts,

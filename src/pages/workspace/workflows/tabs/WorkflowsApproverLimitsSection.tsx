@@ -28,9 +28,12 @@ type WorkflowsApproverLimitsSectionProps = {
 
     /** Whether the limits can be added or edited */
     canEditApprovalLimits: boolean;
+
+    /** Whether to list the existing limits. Like custom workflows, they are hidden unless the workspace runs advanced approvals. */
+    shouldShowApprovalLimits: boolean;
 };
 
-function WorkflowsApproverLimitsSection({policyID, canEditApprovalLimits}: WorkflowsApproverLimitsSectionProps) {
+function WorkflowsApproverLimitsSection({policyID, canEditApprovalLimits, shouldShowApprovalLimits}: WorkflowsApproverLimitsSectionProps) {
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply a correct padding style
@@ -41,7 +44,9 @@ function WorkflowsApproverLimitsSection({policyID, canEditApprovalLimits}: Workf
     const {convertToDisplayString} = useCurrencyListActions();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
 
-    const approvalLimitGroups = getApprovalLimitGroups({employees: policy?.employeeList ?? {}, personalDetailsByEmail: personalDetailsByEmail ?? {}, localeCompare});
+    const approvalLimitGroups = shouldShowApprovalLimits
+        ? getApprovalLimitGroups({employees: policy?.employeeList ?? {}, personalDetailsByEmail: personalDetailsByEmail ?? {}, localeCompare})
+        : [];
     const getDisplayName = (email: string) => formatPhoneNumber(personalDetailsByEmail?.[email]?.displayName ?? email);
 
     // Adding a limit follows the same plan gating as adding an approval workflow.

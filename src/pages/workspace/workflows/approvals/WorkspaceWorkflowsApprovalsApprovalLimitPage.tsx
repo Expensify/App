@@ -113,7 +113,11 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
     const hasApprovers = approvers.length > 0;
     const hasAmount = approvalLimit.length > 0 && Number(approvalLimit) > 0;
     const hasOverLimitApprover = overLimitForwardsTo.length > 0;
-    const loopApproverEmail = hasApprovers && hasOverLimitApprover ? getApprovalLimitLoopApprover({employees, approvers, overLimitForwardsTo, originalApprovers}) : undefined;
+    const limitInCents = hasAmount ? convertToBackendAmount(Number.parseFloat(approvalLimit)) : 0;
+    const loopApproverEmail =
+        hasApprovers && hasAmount && hasOverLimitApprover
+            ? getApprovalLimitLoopApprover({employees, approvers, approvalLimit: limitInCents, overLimitForwardsTo, originalApprovers})
+            : undefined;
 
     const getDisplayName = (email: string) => formatPhoneNumber(personalDetailsByEmail?.[email]?.displayName ?? email);
 
@@ -140,7 +144,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
         hasApprovers && hasAmount && hasOverLimitApprover
             ? translate('workflowsApprovalLimitPage.summary', {
                   approverNames: approvers.map((email) => getApprovalLimitShortName(email, personalDetailsByEmail ?? {}, formatPhoneNumber)).join(` ${translate('common.or')} `),
-                  approvalLimit: convertToDisplayString(convertToBackendAmount(Number.parseFloat(approvalLimit)), currency),
+                  approvalLimit: convertToDisplayString(limitInCents, currency),
                   overLimitApproverName: getApprovalLimitShortName(overLimitForwardsTo, personalDetailsByEmail ?? {}, formatPhoneNumber),
               })
             : undefined;
@@ -151,7 +155,6 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
             return;
         }
 
-        const limitInCents = convertToBackendAmount(Number.parseFloat(approvalLimit));
         Navigation.goBack(undefined, {
             afterTransition: () => {
                 updateApprovalLimit({policy, approvers, originalApprovers, approvalLimit: limitInCents, overLimitForwardsTo});

@@ -1638,7 +1638,13 @@ describe('WorkflowUtils', () => {
             };
 
             // When Priya is set to forward to Elena
-            const loopApprover = getApprovalLimitLoopApprover({employees, approvers: ['priya@example.com'], overLimitForwardsTo: 'elena@example.com', originalApprovers: []});
+            const loopApprover = getApprovalLimitLoopApprover({
+                employees,
+                approvers: ['priya@example.com'],
+                approvalLimit: 50000,
+                overLimitForwardsTo: 'elena@example.com',
+                originalApprovers: [],
+            });
 
             // Then the save is a loop back to Priya
             expect(loopApprover).toBe('priya@example.com');
@@ -1652,7 +1658,13 @@ describe('WorkflowUtils', () => {
             };
 
             // When Priya is set to forward to Elena
-            const loopApprover = getApprovalLimitLoopApprover({employees, approvers: ['priya@example.com'], overLimitForwardsTo: 'elena@example.com', originalApprovers: []});
+            const loopApprover = getApprovalLimitLoopApprover({
+                employees,
+                approvers: ['priya@example.com'],
+                approvalLimit: 50000,
+                overLimitForwardsTo: 'elena@example.com',
+                originalApprovers: [],
+            });
 
             // Then the longer chain still loops back to Priya
             expect(loopApprover).toBe('priya@example.com');
@@ -1666,9 +1678,54 @@ describe('WorkflowUtils', () => {
             };
 
             // When Priya is set to forward to Elena
-            const loopApprover = getApprovalLimitLoopApprover({employees, approvers: ['priya@example.com'], overLimitForwardsTo: 'elena@example.com', originalApprovers: []});
+            const loopApprover = getApprovalLimitLoopApprover({
+                employees,
+                approvers: ['priya@example.com'],
+                approvalLimit: 50000,
+                overLimitForwardsTo: 'elena@example.com',
+                originalApprovers: [],
+            });
 
             // Then there is no loop
+            expect(loopApprover).toBeUndefined();
+        });
+
+        it('Should follow regular forwards too, because a report under the next limit carries on through them', () => {
+            // Given Elena has no limit and her regular forward goes to Priya
+            const employees: PolicyEmployeeList = {
+                'elena@example.com': {email: 'elena@example.com', forwardsTo: 'priya@example.com'},
+            };
+
+            // When Priya is set to forward to Elena
+            const loopApprover = getApprovalLimitLoopApprover({
+                employees,
+                approvers: ['priya@example.com'],
+                approvalLimit: 50000,
+                overLimitForwardsTo: 'elena@example.com',
+                originalApprovers: [],
+            });
+
+            // Then a report over Priya's limit would bounce between them
+            expect(loopApprover).toBe('priya@example.com');
+        });
+
+        it('Should skip a path no report amount can take', () => {
+            // Given Elena sends reports up to $500 back to Priya, and reports over $500 to Sam
+            const employees: PolicyEmployeeList = {
+                'elena@example.com': {email: 'elena@example.com', forwardsTo: 'priya@example.com', approvalLimit: 50000, overLimitForwardsTo: 'sam@example.com'},
+                'sam@example.com': {email: 'sam@example.com'},
+            };
+
+            // When Priya is set to forward reports over $1,000 to Elena
+            const loopApprover = getApprovalLimitLoopApprover({
+                employees,
+                approvers: ['priya@example.com'],
+                approvalLimit: 100000,
+                overLimitForwardsTo: 'elena@example.com',
+                originalApprovers: [],
+            });
+
+            // Then there is no loop, because every report reaching Elena is over $500 and goes on to Sam
             expect(loopApprover).toBeUndefined();
         });
 
@@ -1682,6 +1739,7 @@ describe('WorkflowUtils', () => {
             const loopApprover = getApprovalLimitLoopApprover({
                 employees,
                 approvers: ['priya@example.com'],
+                approvalLimit: 50000,
                 overLimitForwardsTo: 'sam@example.com',
                 originalApprovers: ['priya@example.com', 'sam@example.com'],
             });

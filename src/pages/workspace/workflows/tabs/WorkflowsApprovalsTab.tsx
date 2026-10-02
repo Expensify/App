@@ -41,6 +41,7 @@ import {
     filterRulesForPolicy,
     getApprovalWorkflowRulesForPolicy,
     getEnforcedApprovalWorkflows,
+    isAdvancedApprovalEnforced,
     getApprovalWorkflowSource,
     INITIAL_APPROVAL_WORKFLOW,
     isApprovalWorkflowLockedByIntegration,
@@ -499,6 +500,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
                 <WorkflowsApproverLimitsSection
                     policyID={policyID}
                     canEditApprovalLimits={canWriteApprovals && !shouldBlockApprovalWorkflowEditing}
+                    shouldShowApprovalLimits={isAdvancedApprovalEnforced(policy, isMultipleApproversBetaEnabled)}
                 />
             )}
         </>
