@@ -40,8 +40,6 @@ To review and approve a report submitted to you for approval:
 2. Review details like the receipt, amount, and description.
 3. Click **Approve** at the top of the report. 
 
-**Note:** As an approver, you can also see a member's Draft (unsubmitted) reports in **Spend > Reports**. Draft reports don't appear in **For you** or **Needs approval** until the member submits them.
-
 ---
 
 ## How to approve a report that contains held expenses
