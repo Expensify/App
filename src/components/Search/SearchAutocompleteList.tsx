@@ -1,3 +1,4 @@
+import {useActivePolicyContext} from '@components/ActivePolicyProvider';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
@@ -199,6 +200,7 @@ function SearchAutocompleteList({
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+    const {activePolicyID} = useActivePolicyContext();
     const sortedReportActionsData = useSortedReportActionsData();
     const sortedActions = sortedReportActionsData?.sortedActions;
     const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
@@ -519,7 +521,7 @@ function SearchAutocompleteList({
         // previous query's matches during the debounce window (rows stay visible, preserving focus/Enter/arrow keys).
         // For the empty -> query transition hasActiveSearchResults is false until the debounced query lands, so
         // recentReportsOptions falls back to recent chats instead of unfiltered rows, avoiding the reflow.
-        const orderedOptions = combineOrderingOfReportsAndPersonalDetails(searchOptions, autocompleteQueryValue, {
+        const orderedOptions = combineOrderingOfReportsAndPersonalDetails(searchOptions, autocompleteQueryValue, activePolicyID, {
             sortByReportTypeInSearch: true,
             preferChatRoomsOverThreads: true,
         });
@@ -530,7 +532,7 @@ function SearchAutocompleteList({
         }
 
         return reportOptions;
-    }, [autocompleteQueryValue, hasActiveSearchResults, searchOptions]);
+    }, [autocompleteQueryValue, activePolicyID, hasActiveSearchResults, searchOptions]);
 
     const recentReportsOptions = useMemo(() => {
         if (!hasActiveSearchResults) {
