@@ -2,7 +2,7 @@ import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -12,7 +12,6 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -49,8 +48,6 @@ function FlagForReviewRuleAmountPageBase({policyID, categoryName, isCategoryLock
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
-    const {isBetaEnabled} = usePermissions();
-    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const categoryScopedBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_FLAG_FOR_REVIEW_AMOUNT.path);
 
@@ -112,14 +109,14 @@ function FlagForReviewRuleAmountPageBase({policyID, categoryName, isCategoryLock
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
-            shouldBeBlocked={!isRulesRevampEnabled || !canWriteRules}
+            shouldBeBlocked={!canWriteRules}
         >
             <ScreenWrapper
                 shouldEnableMaxHeight
                 enableEdgeToEdgeBottomSafeAreaPadding
                 testID="FlagForReviewRuleAmountPage"
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('iou.amount')}
                     onBackButtonPress={goBack}
                 />
@@ -152,7 +149,7 @@ function FlagForReviewRuleAmountPageBase({policyID, categoryName, isCategoryLock
                         ListItem={SingleSelectListItem}
                         onSelectRow={(item) => setExpenseLimitType(item.value as PolicyCategoryExpenseLimitType)}
                         shouldSingleExecuteRowSelect
-                        alternateNumberOfSupportedLines={3}
+                        alternateNumberOfSupportedLines={4}
                         disableKeyboardShortcuts
                         initiallyFocusedItemKey={selectedExpenseLimitType}
                     />

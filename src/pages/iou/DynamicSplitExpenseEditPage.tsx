@@ -3,6 +3,8 @@ import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItemWithTopDescription from '@components/HighlightableMenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -19,6 +21,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
@@ -61,10 +64,13 @@ import {
     isTimeRequest,
 } from '@libs/TransactionUtils';
 
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {policyTypeSelector} from '@selectors/Policy';
@@ -118,6 +124,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
     const report = useReportOrReportDraft(reportID);
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
     const currentReport = report ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`];
+    const [currentReportOwnerLogin] = useAllPersonalDetails(personalDetailsLoginSelector(currentReport?.ownerAccountID));
 
     const personalPolicy = usePersonalPolicy();
     const effectivePolicy = useSplitEffectivePolicy(currentReport, splitExpenseDraftTransaction, transaction);
@@ -182,9 +189,12 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
     const isSplitAvailable =
-        report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, login ?? '', currentUserAccountID, rules, effectivePolicy, parentReport);
+        report &&
+        transaction &&
+        isSplitAction(currentReport, [transaction], originalTransaction, login ?? '', currentUserAccountID, rules, currentReportOwnerLogin, effectivePolicy, parentReport);
 
     const isCategoryRequired = !!effectivePolicy?.requiresCategory && !isSelfDMSplit;
+    const categoryValue = getDecodedLeafCategoryName(splitExpenseDraftTransactionDetails?.category ?? '');
     const derivedCurrentReportName = useDerivedReportNameByReportID(currentReport?.reportID);
     const reportName = getReportName(currentReport, derivedCurrentReportName) || parentReport?.reportName;
     const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, splitExpenseDraftTransactionDetails?.category, arePolicyRulesEnabled(effectivePolicy, policyCategories));
@@ -290,15 +300,14 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
         return '';
     };
 
+    const isRateInteractive = !isSelfDMSplit || isRateBroken || hasAvailableEnabledRates || !hasAnyPaidWorkspace || shouldSelectPolicy;
+    const rateErrorText = getErrorForField('customUnitRateID');
+
     const distanceRequestFields = isDistance ? (
         <>
-            <MenuItemWithTopDescription
-                description={translate('common.distance')}
-                title={distanceToDisplay}
-                interactive
-                shouldShowRightIcon
-                titleStyle={styles.flex1}
-                style={[styles.moneyRequestMenuItem]}
+            <MenuItemField
+                name={translate('common.distance')}
+                value={distanceToDisplay}
                 onPress={() => {
                     if (isOdometerDistance) {
                         Navigation.navigate(
@@ -334,51 +343,66 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                     );
                 }}
             />
-            <MenuItemWithTopDescription
-                description={translate('common.rate')}
-                title={rateToDisplay}
-                interactive={!isSelfDMSplit || isRateBroken || hasAvailableEnabledRates || !hasAnyPaidWorkspace || shouldSelectPolicy}
-                shouldShowRightIcon={!isSelfDMSplit || isRateBroken || hasAvailableEnabledRates || !hasAnyPaidWorkspace || shouldSelectPolicy}
-                titleStyle={styles.flex1}
-                brickRoadIndicator={getErrorForField('customUnitRateID') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                errorText={getErrorForField('customUnitRateID')}
-                style={[styles.moneyRequestMenuItem]}
-                onPress={() => {
-                    const rateRoute = createDynamicRoute(
-                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.SPLIT_EXPENSE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID),
-                    );
+            <MenuItem.Root
+                onPress={
+                    isRateInteractive
+                        ? callFunctionIfActionIsAllowed(() => {
+                              const rateRoute = createDynamicRoute(
+                                  DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(
+                                      CONST.IOU.ACTION.EDIT,
+                                      CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                      CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                      reportID,
+                                  ),
+                              );
 
-                    // SelfDM split whose source workspace is gone and user has no other paid workspace:
-                    // mirror the selfDM track-expense Rate flow (MoneyRequestView) and route through the
-                    // IOU-level upgrade screen so the user can create a workspace, then a distance rate.
-                    // Use OPTIMISTIC_TRANSACTION_ID so the post-upgrade hop back into the rate step picks
-                    // up the same SPLIT_TRANSACTION_DRAFT this screen reads from (see line 57 above).
-                    if (isSelfDMSplit && !effectivePolicy && !hasAnyPaidWorkspace && reportID) {
-                        Navigation.navigate(
-                            createDynamicRoute(
-                                DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                    action: CONST.IOU.ACTION.EDIT,
-                                    iouType: CONST.IOU.TYPE.SPLIT_EXPENSE,
-                                    transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                                    reportID,
-                                    upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
-                                }),
-                            ),
-                        );
-                        return;
-                    }
+                              // SelfDM split whose source workspace is gone and user has no other paid workspace:
+                              // mirror the selfDM track-expense Rate flow (MoneyRequestView) and route through the
+                              // IOU-level upgrade screen so the user can create a workspace, then a distance rate.
+                              // Use OPTIMISTIC_TRANSACTION_ID so the post-upgrade hop back into the rate step picks
+                              // up the same SPLIT_TRANSACTION_DRAFT this screen reads from (see line 57 above).
+                              if (isSelfDMSplit && !effectivePolicy && !hasAnyPaidWorkspace && reportID) {
+                                  Navigation.navigate(
+                                      createDynamicRoute(
+                                          DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                              action: CONST.IOU.ACTION.EDIT,
+                                              iouType: CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                              transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                              reportID,
+                                              upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
+                                          }),
+                                      ),
+                                  );
+                                  return;
+                              }
 
-                    // SelfDM split with paid workspaces but none is default/active paid (e.g. personal
-                    // is the active policy): open the workspace selector first — same UX as the parent
-                    // self-DM expense's Rate field in MoneyRequestView and the Category branch below.
-                    if (!effectivePolicy && shouldSelectPolicy) {
-                        Navigation.navigate(ROUTES.SET_DEFAULT_WORKSPACE.getRoute(rateRoute));
-                        return;
-                    }
+                              // SelfDM split with paid workspaces but none is default/active paid (e.g. personal
+                              // is the active policy): open the workspace selector first — same UX as the parent
+                              // self-DM expense's Rate field in MoneyRequestView and the Category branch below.
+                              if (!effectivePolicy && shouldSelectPolicy) {
+                                  Navigation.navigate(ROUTES.SET_DEFAULT_WORKSPACE.getRoute(rateRoute));
+                                  return;
+                              }
 
-                    Navigation.navigate(rateRoute);
-                }}
-            />
+                              Navigation.navigate(rateRoute);
+                          })
+                        : undefined
+                }
+            >
+                <MenuItemField.Row
+                    name={translate('common.rate')}
+                    value={rateToDisplay}
+                >
+                    {!!rateErrorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                    {isRateInteractive && <MenuItem.Chevron />}
+                </MenuItemField.Row>
+                {!!rateErrorText && (
+                    <MenuItem.HelpText
+                        isError
+                        message={rateErrorText}
+                    />
+                )}
+            </MenuItem.Root>
         </>
     ) : null;
 
@@ -416,13 +440,11 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                         />
                         {distanceRequestFields}
                         {shouldShowCategory && (
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
+                            <MenuItemField
                                 key={translate('common.category')}
-                                description={translate('common.category')}
-                                title={getDecodedLeafCategoryName(splitExpenseDraftTransactionDetails?.category ?? '')}
-                                numberOfLinesTitle={2}
-                                rightLabel={isCategoryRequired ? translate('common.required') : ''}
+                                name={translate('common.category')}
+                                value={categoryValue}
+                                numberOfLinesValue={2}
                                 onPress={() => {
                                     const categoryRoute = createDynamicRoute(
                                         DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
@@ -453,9 +475,9 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                                     }
                                     Navigation.navigate(categoryRoute);
                                 }}
-                                style={[styles.moneyRequestMenuItem]}
-                                titleStyle={styles.flex1}
-                            />
+                            >
+                                {!categoryValue && isCategoryRequired && <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>}
+                            </MenuItemField>
                         )}
                         {shouldShowTags &&
                             policyTagLists.map(({name}, index) => {
@@ -497,12 +519,11 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                                     />
                                 );
                             })}
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon
+                        <MenuItemField
                             key={translate('common.date')}
-                            description={translate('common.date')}
-                            title={splitExpenseDraftTransactionDetails?.created}
-                            numberOfLinesTitle={2}
+                            name={translate('common.date')}
+                            value={splitExpenseDraftTransactionDetails?.created}
+                            numberOfLinesValue={2}
                             onPress={() => {
                                 Navigation.navigate(
                                     createDynamicRoute(
@@ -510,16 +531,13 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                                     ),
                                 );
                             }}
-                            style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.flex1}
                         />
                         {shouldShowTax && (
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
+                            <MenuItemField
                                 key={translate('common.tax')}
-                                description={taxRatesDescription ?? translate('common.tax')}
-                                title={taxRateTitle}
-                                numberOfLinesTitle={2}
+                                name={taxRatesDescription ?? translate('common.tax')}
+                                value={taxRateTitle}
+                                numberOfLinesValue={2}
                                 onPress={() => {
                                     if (shouldShowTaxDisabledAlert) {
                                         showTaxDisabledAlert();
@@ -531,8 +549,6 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                                         ),
                                     );
                                 }}
-                                style={[styles.moneyRequestMenuItem]}
-                                titleStyle={styles.flex1}
                             />
                         )}
                         {shouldShowReimbursable && (
@@ -549,14 +565,11 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                                 onToggle={(value) => updateSplitExpenseDraftField({billable: value})}
                             />
                         )}
-                        <MenuItemWithTopDescription
+                        <MenuItemField
                             key={translate('common.report')}
-                            description={translate('common.report')}
-                            title={reportName}
-                            numberOfLinesTitle={2}
-                            style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.flex1}
-                            interactive={false}
+                            name={translate('common.report')}
+                            value={reportName}
+                            numberOfLinesValue={2}
                         />
                     </ScrollView>
                     <FixedFooter style={styles.mtAuto}>

@@ -101,7 +101,7 @@ The default assumption is that you fix it. If you genuinely need to land code th
 
    That will modify `config/eslint/eslint.seatbelt.tsv`. **Always commit the diff alongside your code**, and expect a reviewer to ask you why a fix wasn't feasible. Because the violation stays visible in the baseline, it can still be fixed later.
 
-2. **Suppress the specific occurrence** with an `eslint-disable-next-line <rule>` comment and a justification — preferred for **permanent** suppressions, where you genuinely believe the lint rule is wrong for that specific case and you don't expect the violation to ever be fixed. See [`CONSISTENCY-5`](../.claude/skills/coding-standards/rules/consistency-5-justify-eslint-disable.md).
+2. **Suppress the specific occurrence** with an `eslint-disable-next-line <rule>` comment and a justification — preferred for **permanent** suppressions, where you genuinely believe the lint rule is wrong for that specific case and you don't expect the violation to ever be fixed. See [`CONSISTENCY-5`](../.claude/skills/app-coding-standards/rules/consistency-5-justify-eslint-disable.md).
 
 > **Which should I use?** Reach for `SEATBELT_INCREASE` when the error is merely inconvenient to fix right now. Reach for `eslint-disable-next-line` only when you are making a deliberate, permanent exception — i.e. you're certain the rule simply doesn't apply to this particular case. `eslint-disable` comments hide violations from the baseline entirely, so they should only be used when the suppression is intentional and indefinite.
 
@@ -152,7 +152,7 @@ The env-var names and TSV format are unchanged from the previous `eslint-seatbel
 ## Related reading
 
 - [Ratcheting errors](https://www.notion.com/blog/how-we-evolved-our-code-notions-ratcheting-system-using-custom-eslint-rules).
-- [`CONSISTENCY-5`: Justify ESLint rule disables](../.claude/skills/coding-standards/rules/consistency-5-justify-eslint-disable.md) — when `eslint-disable` is acceptable, and how to document it.
-- [`CLEAN-REACT-PATTERNS-0`: React Compiler compliance](../.claude/skills/coding-standards/rules/clean-react-0-compiler.md) — why some hook-related rules are suppressed per-file.
+- [`CONSISTENCY-5`: Justify ESLint rule disables](../.claude/skills/app-coding-standards/rules/consistency-5-justify-eslint-disable.md) — when `eslint-disable` is acceptable, and how to document it.
+- [`CLEAN-REACT-PATTERNS-0`: React Compiler compliance](../.claude/skills/app-coding-standards/rules/clean-react-0-compiler.md) — why some hook-related rules are suppressed per-file.
 - [`STYLE.md`](./STYLE.md) — the coding style rules many of our ESLint rules enforce.
 - [`REACT_COMPILER.md`](./REACT_COMPILER.md) — separate compiler-compliance CI check that runs alongside lint.

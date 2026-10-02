@@ -104,7 +104,6 @@ jest.mock('@hooks/useExportedToFilterOptions', () => ({
     __esModule: true,
     default: () => ({
         exportedToFilterOptions: ['QuickBooks Online', 'Xero', 'NetSuite'],
-        combinedUniqueExportTemplates: [],
         connectedIntegrationNames: new Set<string>(),
     }),
 }));
@@ -122,8 +121,9 @@ const defaultParams: Params = {
     allCards: {},
     allFeeds: {},
     options: {reports: [], personalDetails: []},
+    getReportByID: () => undefined,
     draftComments: {},
-    betas: [],
+    isDefaultRoomsBetaEnabled: false,
     countryCode: 1,
     loginList: {},
     policies: {},

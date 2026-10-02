@@ -1,9 +1,10 @@
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import type {FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {BotAvatarBlue} from '@components/Icon/DefaultBotAvatars';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
 import TabSelectorContextProvider from '@components/TabSelector/TabSelectorContext';
 import type {TabSelectorBaseItem} from '@components/TabSelector/types';
@@ -14,7 +15,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -66,8 +66,6 @@ function AddAgentRulePage({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const {isBetaEnabled} = usePermissions();
-    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const policy = usePolicy(policyID);
     const linkPressedRef = useRef(false);
     const {showConfirmModal, closeModal} = useConfirmModal();
@@ -138,13 +136,8 @@ function AddAgentRulePage({
     };
 
     const navigateBackToAgentsTab = () => {
-        if (isRulesRevampEnabled) {
-            Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.AGENTS);
-            Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
-            return;
-        }
-
-        Navigation.goBack();
+        Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.AGENTS);
+        Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
     };
 
     const saveRule = (values: FormOnyxValues<AddAgentRuleFormID>): void => {
@@ -164,9 +157,7 @@ function AddAgentRulePage({
             closeModal();
         };
 
-        if (isRulesRevampEnabled) {
-            Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.AGENTS);
-        }
+        Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.AGENTS);
 
         Navigation.dismissModal({
             afterTransition: () => {
@@ -181,7 +172,7 @@ function AddAgentRulePage({
                             />
                         </View>
                     ),
-                    confirmText: isRulesRevampEnabled ? translate('workspace.rules.agentRules.gotIt') : translate('common.buttonConfirm'),
+                    confirmText: translate('workspace.rules.agentRules.gotIt'),
                     shouldShowCancelButton: false,
                     shouldUseSuccessStyleForConfirm: true,
                     iconSource: BotAvatarBlue,
@@ -217,11 +208,12 @@ function AddAgentRulePage({
                 shouldEnableMaxHeight
             >
                 <CollapsibleHeaderOnKeyboard alwaysCollapseHeaderOnKeyboard>
-                    <HeaderWithBackButton
-                        title={isRulesRevampEnabled ? translate('workspace.rules.agentRules.newRuleTitle') : translate('workspace.rules.agentRules.addRuleTitle')}
-                        shouldDisplayHelpButton
+                    <HeaderWithBackButtonAndTitle
+                        title={translate('workspace.rules.agentRules.newRuleTitle')}
                         onBackButtonPress={handleBackButtonPress}
-                    />
+                    >
+                        <SidePanelButton />
+                    </HeaderWithBackButtonAndTitle>
                     <View style={[styles.flexShrink0, styles.w100]}>
                         <TabSelectorContextProvider activeTabKey={activeTab}>
                             <TabSelectorBase

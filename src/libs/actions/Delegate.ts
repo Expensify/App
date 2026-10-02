@@ -61,18 +61,9 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     ONYXKEYS.PERSONAL_DETAILS_LIST,
 ];
 
-/**
- * Atomically reset Onyx for a delegate-access transition. The IS_LOADING_APP=true
- * seed is delegate-specific: without it, consumers observe HAS_LOADED_APP=true and
- * IS_LOADING_APP=undefined together, which looks like a stuck app and triggers
- * DelegateAccessHandler's recovery effect, queueing a duplicate openApp.
- *
- * The reconnect-time seed is handled by clearOnyxAndSeedFullReconnect.
- */
+/** Atomically reset Onyx for a delegate-access transition. */
 function clearOnyxForDelegateTransition(): Promise<void> {
-    return clearOnyxAndSeedFullReconnect(KEYS_TO_PRESERVE_DELEGATE_ACCESS, {
-        [ONYXKEYS.IS_LOADING_APP]: true,
-    });
+    return clearOnyxAndSeedFullReconnect(KEYS_TO_PRESERVE_DELEGATE_ACCESS);
 }
 
 type WithDelegatedAccess = {
@@ -379,6 +370,7 @@ function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegatePa
                         ? delegate
                         : {
                               ...delegate,
+                              role,
                               isLoading: true,
                               pendingFields: {
                                   email: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -431,6 +423,7 @@ function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegatePa
                         ? delegate
                         : {
                               ...delegate,
+                              role,
                               isLoading: false,
                               pendingAction: null,
                               pendingFields: {email: null, role: null},
@@ -479,6 +472,7 @@ function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegatePa
                         ? delegate
                         : {
                               ...delegate,
+                              role,
                               isLoading: false,
                           },
                 ) ?? []

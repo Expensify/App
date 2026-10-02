@@ -1,7 +1,7 @@
 import ConnectionLayout from '@components/ConnectionLayout';
 import FormHelpMessage from '@components/FormHelpMessage';
+import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -62,18 +62,18 @@ function DynamicXeroTravelBillingConfigurationPage({policy}: WithPolicyConnectio
                 pendingAction={settingsPendingAction(payableAccountSetting, config?.pendingFields)}
                 errorRowStyles={[styles.ph5]}
             >
-                <MenuItemWithTopDescription
-                    title={travelPayableAccount?.name}
-                    description={translate('workspace.common.travelInvoicingPayableAccount')}
+                <MenuItemField
+                    name={translate('workspace.common.travelInvoicingPayableAccount')}
                     onPress={() => {
                         if (!policyID) {
                             return;
                         }
                         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_TRAVEL_BILLING_PAYABLE_ACCOUNT_SELECT.path, travelBillingPath));
                     }}
-                    shouldShowRightIcon
-                    brickRoadIndicator={areSettingsInErrorFields(payableAccountSetting, config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                />
+                    value={travelPayableAccount?.name}
+                >
+                    {areSettingsInErrorFields(payableAccountSetting, config?.errorFields) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                </MenuItemField>
             </OfflineWithFeedback>
             <TravelBillingContinuousReconciliationSection
                 policy={policy}

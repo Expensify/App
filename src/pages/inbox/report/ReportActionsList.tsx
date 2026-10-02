@@ -1,6 +1,7 @@
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
 import InvertedFlashList from '@components/FlashList/InvertedFlashList';
 import MerchantRuleSuggestionBanner from '@components/MerchantRuleSuggestionBanner';
+import {ReportActionsAnimatedSkeletonCover} from '@components/ReportActionsSkeletonCover';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 
 import useConciergeSessionStartTime from '@hooks/useConciergeSessionStartTime';
@@ -24,7 +25,7 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {
     getFirstVisibleReportActionID,
-    getReportActionHtml,
+    getLatestConciergeFeedbackActionID,
     getReportActionMessage,
     isConsecutiveActionMadeByPreviousActor,
     isDeletedParentAction,
@@ -66,7 +67,7 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useEffect, useRef, useState} from 'react';
 
 import FloatingMessageCounter from './FloatingMessageCounter';
-import ReportActionIndexContext from './ReportActionIndexContext';
+import {ReportActionPositionContextProvider} from './ReportActionIndexContext';
 import {useReportActionsListActions, useReportActionsListState} from './ReportActionsListContext';
 import ReportActionsListHeader from './ReportActionsListHeader';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
@@ -126,6 +127,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         isConciergeHiddenHistory,
         showFullHistory,
         hasPreviousMessages,
+        allReportActionIDs,
     } = useReportActionsListState();
 
     const {setTreatAsNoPaginationAnchor, loadOlderChats, loadNewerChats, handleShowPreviousMessages} = useReportActionsListActions();
@@ -187,7 +189,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
 
     const [hasScrolledOverThreshold, setHasScrolledOverThreshold] = useState(() => getScrollOffset() >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
 
-    const {unreadMarkerReportActionID, unreadMarkerReportActionIndex} = useUnreadMarker({
+    const {unreadMarkerReportActionID} = useUnreadMarker({
         reportID,
         sortedVisibleReportActions,
         sortedReportActions,
@@ -206,7 +208,11 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         hasNewerActions,
     });
 
-    const persistedDraftReportAction = draftReportAction ? sortedVisibleReportActions.find((action) => action.reportActionID === draftReportAction.reportActionID) : undefined;
+    const persistedDraftReportAction = draftReportAction
+        ? (sortedAllReportActions ?? sortedVisibleReportActions).find(
+              (action) => action.reportActionID === draftReportAction.reportActionID && action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+          )
+        : undefined;
 
     const renderedVisibleReportActions = (() => {
         if (!draftReportAction) {
@@ -217,14 +223,14 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
             return sortedVisibleReportActions;
         }
 
+        // A completed reveal belongs to the saved action, even when pagination keeps that action off screen.
+        if (persistedDraftReportAction && !isDraftPendingCompletion) {
+            return sortedVisibleReportActions;
+        }
+
         // Insert the synthetic draft into the already-descending render list without treating it as a persisted report action.
         for (const [index, action] of sortedVisibleReportActions.entries()) {
             if (action.reportActionID === draftReportAction.reportActionID) {
-                const isDraftStillRevealingPersistedAction = getReportActionHtml(action) !== getReportActionHtml(draftReportAction);
-                if (!isDraftPendingCompletion && !isDraftStillRevealingPersistedAction) {
-                    return sortedVisibleReportActions;
-                }
-
                 const visibleReportActionsWithDraft = [...sortedVisibleReportActions];
                 visibleReportActionsWithDraft[index] = draftReportAction;
                 return visibleReportActionsWithDraft;
@@ -255,16 +261,20 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     }, [clearDraft, draftReportAction, isSyntheticDraftVisible]);
 
     useEffect(() => {
-        if (!draftReportAction || !persistedDraftReportAction || getReportActionHtml(draftReportAction) === getReportActionHtml(persistedDraftReportAction)) {
+        if (!isDraftPendingCompletion || !draftReportAction || !persistedDraftReportAction) {
             return;
         }
 
+        // The persisted action is the durable completion signal when a terminal Pusher event is missed.
+        // Reconcile by action ID even when its HTML is byte-identical to the last streamed draft.
         revealDraftFromReportAction(persistedDraftReportAction);
-    }, [draftReportAction, persistedDraftReportAction, revealDraftFromReportAction]);
+    }, [draftReportAction, isDraftPendingCompletion, persistedDraftReportAction, revealDraftFromReportAction]);
 
     // Find the index of the action badge target in the rendered actions list (which is what the FlatList uses as data)
     const actionBadgeTargetID = reportAttributes?.actionTargetReportActionID;
     const actionBadgeTargetIndex = actionBadgeTargetID ? renderedVisibleReportActions.findIndex((action) => action.reportActionID === actionBadgeTargetID) : -1;
+
+    const unreadMarkerReportActionIndex = unreadMarkerReportActionID ? renderedVisibleReportActions.findIndex((action) => action.reportActionID === unreadMarkerReportActionID) : -1;
 
     const {
         trackVerticalScrolling,
@@ -329,6 +339,12 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
 
     const firstVisibleReportActionID = getFirstVisibleReportActionID(sortedReportActions, isOffline);
 
+    // Skip inside the thread the backend opens after a thumbs down, while a Concierge answer is still streaming, and while newer actions are not loaded because the newest reply may not be in the list yet
+    const latestConciergeFeedbackActionID =
+        reportNameValuePairs?.conciergeFeedbackForReportActionID || isDraftPendingCompletion || hasNewerActions
+            ? undefined
+            : getLatestConciergeFeedbackActionID(renderedVisibleReportActions, allReportActionIDs);
+
     useFollowActionBadgeTarget({
         isProduction,
         reportID,
@@ -366,7 +382,10 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         const shouldDisableContextMenuForConciergeDraft = isDraftPendingCompletion && draftReportActionID === reportAction.reportActionID;
 
         return (
-            <ReportActionIndexContext.Provider value={index}>
+            <ReportActionPositionContextProvider
+                index={index}
+                isNewest={index === 0}
+            >
                 <ReportActionsListItemRenderer
                     reportAction={reportAction}
                     parentReportAction={parentReportAction}
@@ -383,6 +402,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                     shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
                     shouldDisplayReplyDivider={renderedVisibleReportActions.length > 1}
                     isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
+                    isLatestConciergeFeedbackAction={!!latestConciergeFeedbackActionID && latestConciergeFeedbackActionID === reportAction.reportActionID}
                     shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                     isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReportAction}
                     shouldDisableContextMenuForConciergeDraft={shouldDisableContextMenuForConciergeDraft}
@@ -396,7 +416,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                         onPress={onShowPreviousMessages}
                     />
                 )}
-            </ReportActionIndexContext.Provider>
+            </ReportActionPositionContextProvider>
         );
     };
 
@@ -408,6 +428,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         draftReportActionID,
         draftMessageHTML,
         isDraftPendingCompletion,
+        latestConciergeFeedbackActionID,
     ];
 
     const listHeaderComponent = (
@@ -446,7 +467,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     // It narrows `report` to non-undefined for the render below and stays a safe fallback if the report
     // is cleared mid-session while the latch keeps the content mounted.
     if (!report) {
-        return <ReportActionsSkeletonView />;
+        return <ReportActionsAnimatedSkeletonCover />;
     }
 
     return (

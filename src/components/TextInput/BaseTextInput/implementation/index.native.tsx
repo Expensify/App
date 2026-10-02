@@ -7,6 +7,7 @@ import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RNTextInput from '@components/RNTextInput';
 import Text from '@components/Text';
+import HtmlPasteHandler from '@components/TextInput/BaseTextInput/HtmlPasteHandler';
 import InputComponentMap from '@components/TextInput/BaseTextInput/implementations';
 import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import * as styleConst from '@components/TextInput/styleConst';
@@ -14,7 +15,6 @@ import TextInputClearButton from '@components/TextInput/TextInputClearButton';
 import TextInputLabel from '@components/TextInput/TextInputLabel';
 import TextInputMeasurement from '@components/TextInput/TextInputMeasurement';
 
-import useHtmlPaste from '@hooks/useHtmlPaste';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -31,6 +31,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
 
 import {Str} from 'expensify-common';
@@ -126,11 +127,9 @@ function BaseTextInput({
     const [isPrefixCharacterPaddingCalculated, setIsPrefixCharacterPaddingCalculated] = useState(() => !prefixCharacter);
     const labelScale = useSharedValue<number>(initialActiveLabel ? styleConst.ACTIVE_LABEL_SCALE : styleConst.INACTIVE_LABEL_SCALE);
     const labelTranslateY = useSharedValue<number>(initialActiveLabel ? styleConst.ACTIVE_LABEL_TRANSLATE_Y : styleConst.INACTIVE_LABEL_TRANSLATE_Y);
-    const input = useRef<TextInput | null>(null);
+    const input = useRef<ComponentRef<typeof TextInput> | null>(null);
     const isLabelActive = useRef(initialActiveLabel);
     const hasLabel = !!label?.length;
-
-    useHtmlPaste(input, undefined, isMarkdownEnabled, maxLength);
 
     const animateLabel = useCallback(
         (translateY: number, scale: number) => {
@@ -298,6 +297,7 @@ function BaseTextInput({
     const autoGrowMeasurementStyles = StyleUtils.getTextInputMeasurementStyles(newTextInputContainerStyles);
 
     const verticalPaddingDiff = StyleUtils.getVerticalPaddingDiffFromStyle(newTextInputContainerStyles);
+    const autoGrowVerticalInset = StyleUtils.getAutoGrowHeightInputVerticalInset(newTextInputContainerStyles, isMultiline && hasLabel);
     const inputPaddingLeft = !!prefixCharacter && StyleUtils.getPaddingLeft(prefixCharacterPadding + styles.pl1.paddingLeft);
     const inputPaddingRight = !!suffixCharacter && StyleUtils.getPaddingRight(StyleUtils.getCharacterPadding(suffixCharacter) + styles.pr1.paddingRight);
 
@@ -310,6 +310,13 @@ function BaseTextInput({
 
     return (
         <>
+            {/* Scoped to markdown inputs so plain text fields never subscribe to reports. */}
+            {isMarkdownEnabled && (
+                <HtmlPasteHandler
+                    inputRef={input}
+                    maxLength={maxLength}
+                />
+            )}
             <View style={[containerStyles]}>
                 <PressableWithoutFeedback
                     role={CONST.ROLE.PRESENTATION}
@@ -421,7 +428,10 @@ function BaseTextInput({
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
                                     ...(autoGrowHeight && !isAutoGrowHeightMarkdown
-                                        ? [StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0), styles.verticalAlignTop]
+                                        ? [
+                                              StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0, autoGrowVerticalInset),
+                                              styles.verticalAlignTop,
+                                          ]
                                         : []),
                                     isAutoGrowHeightMarkdown ? [StyleUtils.getMarkdownMaxHeight(maxAutoGrowHeight), styles.verticalAlignTop] : undefined,
                                     // Add disabled color theme when field is not editable.
