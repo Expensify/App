@@ -16,6 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
 import ShareActionHandler from '@libs/ShareActionHandlerModule';
+import {getShareTempFile, normalizeShareFileMimeType} from '@libs/ShareActionHandlerModule/utils';
 
 import {close as closeModal} from '@userActions/Modal';
 import Tab from '@userActions/Tab';
@@ -42,10 +43,6 @@ function showErrorAlert(title: string, message: string) {
         },
     ]);
     Navigation.navigate(ROUTES.INBOX);
-}
-
-function isShareTempFile(file: unknown): file is ShareTempFile {
-    return typeof file === 'object' && file !== null && 'id' in file && typeof file.id === 'string' && 'content' in file && typeof file.content === 'string';
 }
 
 function ShareRootPage() {
@@ -108,31 +105,14 @@ function ShareRootPage() {
                 return;
             }
 
-            let tempFile: ShareTempFile | undefined;
-            if (Array.isArray(processedFiles)) {
-                const first: unknown = (processedFiles as unknown[]).at(0);
-                if (isShareTempFile(first)) {
-                    tempFile = first;
-                }
-            } else if (isShareTempFile(processedFiles)) {
-                tempFile = processedFiles;
-            } else if (typeof processedFiles === 'string' && processedFiles.trim().length > 0) {
-                try {
-                    const parsed: unknown = JSON.parse(processedFiles);
-                    if (isShareTempFile(parsed)) {
-                        tempFile = parsed;
-                    }
-                } catch (error) {
-                    Log.warn('[ShareRootPage] Failed to parse processedFiles', {error, processedFiles});
-                }
-            }
+            const tempFile = getShareTempFile(processedFiles);
             if (!tempFile) {
                 setErrorTitle(translate('attachmentPicker.attachmentError'));
                 setErrorMessage(translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
                 return;
             }
 
-            const rawMimeType = tempFile.mimeType?.split(';')[0]?.trim()?.toLowerCase() ?? '';
+            const rawMimeType = normalizeShareFileMimeType(tempFile.mimeType);
             const isValidMimeType =
                 !!rawMimeType && (shareFileMimeTypes.includes(rawMimeType) || shareFileMimeTypes.some((allowed) => allowed.endsWith('/*') && rawMimeType.startsWith(allowed.slice(0, -1))));
 
