@@ -89,15 +89,15 @@ type ValidInputs =
     | typeof PushRowWithModal
     | typeof TimeModalPicker;
 
-type ValueTypeKey = 'string' | 'boolean' | 'date' | 'country' | 'reportFields' | 'disabledListValues' | 'entityChart';
+type ValueTypeKey = 'string' | 'boolean' | 'date' | 'country' | 'stringList' | 'disabledListValues' | 'files';
 type ValueTypeMap = {
     string: string;
     boolean: boolean;
     date: Date;
     country: Country | '';
-    reportFields: string[];
+    stringList: string[];
     disabledListValues: boolean[];
-    entityChart: FileObject[];
+    files: FileObject[];
 };
 type FormValue = ValueOf<ValueTypeMap>;
 

@@ -131,8 +131,6 @@ const RENDERERS: {
                 InputComponent={RadioButtons}
                 {...inputProps}
                 items={getFieldChoices(field, values, translate)}
-                // FormProvider receives the choice through onInputChange
-                onSelect={() => {}}
             />
         ),
     },
