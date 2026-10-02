@@ -511,7 +511,6 @@
 "../../src/libs/actions/__mocks__/App.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/__mocks__/App.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/__mocks__/OnyxUpdates.ts"	"no-restricted-syntax"	1
-"../../src/libs/actions/App.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/App.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/applyOnyxUpdatesReliably.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/BankAccounts.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -625,7 +624,7 @@
 "../../src/libs/actions/Policy/Plan.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/Policy/Policy.ts"	"@typescript-eslint/no-unsafe-type-assertion"	8
 "../../src/libs/actions/Policy/Policy.ts"	"no-restricted-imports"	2
-"../../src/libs/actions/Policy/Policy.ts"	"no-restricted-syntax"	10
+"../../src/libs/actions/Policy/Policy.ts"	"no-restricted-syntax"	9
 "../../src/libs/actions/Policy/ReportField.ts"	"no-restricted-imports"	1
 "../../src/libs/actions/Policy/ReportField.ts"	"no-restricted-syntax"	4
 "../../src/libs/actions/Policy/Rules.ts"	"no-restricted-syntax"	1
@@ -1287,7 +1286,6 @@
 "../../src/pages/settings/Wallet/PersonalCards/steps/SelectCountryStep.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Wallet/PersonalCards/steps/SelectCountryStep.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/settings/Wallet/PersonalCards/steps/SuccessStep.tsx"	"no-restricted-imports"	1
-"../../src/pages/settings/Wallet/PersonalCards/upgrade/PersonalCardUpgradePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Wallet/PersonalCards/upgrade/PersonalCardUpgradePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Wallet/ReportCardLostConfirmValidateCodePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Wallet/ReportCardLostPage.tsx"	"no-restricted-imports"	1
@@ -1549,7 +1547,7 @@
 "../../src/pages/workspace/duplicate/WorkspaceDuplicateForm.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/duplicate/WorkspaceDuplicateSelectFeaturesForm.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/duplicate/WorkspaceDuplicateSelectFeaturesForm.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/workspace/DynamicWorkspaceConfirmationPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../src/pages/workspace/DynamicWorkspaceConfirmationPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/DynamicWorkspaceInvitePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/DynamicWorkspaceOverviewPlanTypePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/DynamicWorkspaceOverviewPlanTypePage.tsx"	"no-restricted-imports"	1
