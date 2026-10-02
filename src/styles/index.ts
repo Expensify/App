@@ -2402,6 +2402,7 @@ const staticStyles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeNormal,
             lineHeight: variables.fontSizeNormalHeight,
             textAlign: 'center',
+            paddingHorizontal: 20,
             color: theme.textSupporting,
         },
 
