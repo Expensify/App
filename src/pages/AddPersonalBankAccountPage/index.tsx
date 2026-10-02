@@ -14,6 +14,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {formatE164PhoneNumber} from '@libs/LoginUtils';
 import getActiveTabName from '@libs/Navigation/helpers/getActiveTabName';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
 
 import Navigation, {navigationRef} from '@navigation/Navigation';
@@ -104,20 +105,28 @@ function AddPersonalBankAccountPage() {
     const [hasExitReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(exitReportID)}`, {selector: Boolean});
     const openReport = useOpenReport();
 
-    const exit = () => {
+    const clearFlowState = () => {
+        if (fullPersonalBankAccount?.source === CONST.BANK_ACCOUNT.SOURCE.WALLET) {
+            clearDraftValues(ONYXKEYS.FORMS.HOME_ADDRESS_FORM);
+        }
+        clearPersonalBankAccount();
+    };
+
+    const exit = (afterTransition: () => void) => {
         const topmostFullScreenRoute = navigationRef.current?.getRootState()?.routes.findLast((rootRoute) => isFullScreenName(rootRoute.name));
         const activeTab = getActiveTabName(topmostFullScreenRoute);
         switch (activeTab) {
             case NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR:
-                Navigation.goBack(ROUTES.SETTINGS_WALLET);
+                Navigation.goBack(ROUTES.SETTINGS_WALLET, {afterTransition});
                 break;
             case SCREENS.HOME:
             case NAVIGATORS.REPORTS_SPLIT_NAVIGATOR:
             case NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR:
                 Navigation.closeRHPFlow();
+                TransitionTracker.runAfterTransitions({callback: afterTransition, waitForUpcomingTransition: true});
                 break;
             default:
-                Navigation.goBack();
+                Navigation.goBack(undefined, {afterTransition});
                 break;
         }
     };
@@ -127,14 +136,12 @@ function AddPersonalBankAccountPage() {
 
         if (shouldContinue && onSuccessFallbackRoute) {
             continueSetup(kycWallRef, onSuccessFallbackRoute);
-        } else {
-            exit();
+            TransitionTracker.runAfterTransitions({callback: clearFlowState, waitForUpcomingTransition: true});
+            return;
         }
-        if (fullPersonalBankAccount?.source === CONST.BANK_ACCOUNT.SOURCE.WALLET) {
-            clearDraftValues(ONYXKEYS.FORMS.HOME_ADDRESS_FORM);
-        }
-        // Clear the flow's scratch state on every real exit path. The flow no longer clears on unmount.
-        clearPersonalBankAccount();
+        // Keep the completed setup data available to mounted routes until the exit transition finishes. Otherwise,
+        // URL prerequisite validation can treat those routes as invalid and redirect back into the setup flow.
+        exit(clearFlowState);
     };
 
     const submitBankAccountForm = () => {

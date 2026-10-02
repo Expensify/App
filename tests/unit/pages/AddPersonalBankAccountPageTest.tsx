@@ -221,8 +221,37 @@ describe('AddPersonalBankAccountPage', () => {
 
         fireEvent.press(screen.getByTestId('confirmation-primary-button'));
 
-        expect(goBackSpy).toHaveBeenCalledWith(ROUTES.SETTINGS_WALLET);
+        expect(goBackSpy).toHaveBeenCalledWith(ROUTES.SETTINGS_WALLET, {afterTransition: expect.any(Function)});
         expect(closeRHPFlowSpy).not.toHaveBeenCalled();
+    });
+
+    it('clears completed Wallet state only after the success exit transition', async () => {
+        // Given a completed Wallet setup on the success page
+        let runAfterExitTransition: (() => void) | undefined;
+        goBackSpy.mockImplementationOnce((_route, options) => {
+            runAfterExitTransition = options?.afterTransition;
+        });
+        await act(async () => {
+            await setCompletedManualBankAccountDraft();
+            await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
+                source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                shouldShowSuccess: true,
+            });
+        });
+        await renderPageOverTab(TAB_ROUTES.findIndex((route) => route.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR));
+
+        // When Continue starts navigating back to Wallet
+        fireEvent.press(screen.getByTestId('confirmation-primary-button'));
+
+        // Then setup prerequisites remain available to mounted routes until the transition has finished
+        expect(clearPersonalBankAccount).not.toHaveBeenCalled();
+        expect(clearDraftValues).not.toHaveBeenCalled();
+        expect(navigateSpy).not.toHaveBeenCalled();
+
+        act(() => runAfterExitTransition?.());
+
+        expect(clearDraftValues).toHaveBeenCalledWith(ONYXKEYS.FORMS.HOME_ADDRESS_FORM);
+        expect(clearPersonalBankAccount).toHaveBeenCalledWith();
     });
 
     it('clears an abandoned Wallet draft before returning from the first US setup page', async () => {
