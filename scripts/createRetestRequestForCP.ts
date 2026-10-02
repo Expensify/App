@@ -286,19 +286,10 @@ function isTopLevelSlackMessage(message: SlackMessage): boolean {
     return !message.thread_ts || message.thread_ts === message.ts;
 }
 
-function isSlackMemberID(value: string): boolean {
-    return /^[UW][A-Z0-9]+$/.test(value);
-}
-
 /** Match the Cherry Pick Request that caused this staging deployment. */
 function isCherryPickRequest(message: SlackMessage, hit: RetestHit): boolean {
     const text = message.text ?? '';
-    if (!isTopLevelSlackMessage(message) || !text.includes('Cherry Pick Request') || !text.includes(hit.prURL) || !/\*?Where\*?:\*?\s*staging(?:\s+and\s+production)?\b/i.test(text)) {
-        return false;
-    }
-
-    // The member ID distinguishes newer repeat requests for the same PR. Fall back to the latest matching request when the requester is outside the employee whitelist.
-    return !isSlackMemberID(hit.author) || text.includes(`<@${hit.author}`);
+    return isTopLevelSlackMessage(message) && text.includes('Cherry Pick Request') && text.includes(hit.prURL) && /\*?Where\*?:\*?\s*staging(?:\s+and\s+production)?\b/i.test(text);
 }
 
 /** Call a Slack Web API method without ever including the token in an error message. */

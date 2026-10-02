@@ -123,12 +123,12 @@ describe('createRetestRequestForCP', () => {
             author: 'U01N2A6GYJH',
         };
 
-        it('finds the staging Cherry Pick Request from the same requester', () => {
-            // Given a Cherry Pick Request for the deployed PR and requester
+        it('finds the staging Cherry Pick Request regardless of who ran the cherry-pick', () => {
+            // Given a Cherry Pick Request for the deployed PR from a different person
             const request: SlackMessage = {
                 ts: '1790800323.327539',
                 thread_ts: '1790800323.327539',
-                text: `:cherries: *Cherry Pick Request* :cherries: from <@U01N2A6GYJH|jasper>\n\nLink to PR: <${hit.prURL}>\n\n*Where:* staging`,
+                text: `:cherries: *Cherry Pick Request* :cherries: from <@U99OTHER|rory>\n\nLink to PR: <${hit.prURL}>\n\n*Where:* staging`,
             };
 
             // When the retest workflow looks for the originating request
