@@ -2086,7 +2086,7 @@ function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>, rules: OnyxColl
 
     // An optimistic personal detail carries an empty login, which would otherwise reach the approval lookup and match no employee.
     const providedOwnerLogin = reportOwnerLogin === '' ? undefined : reportOwnerLogin;
-    // TODO: Callers are threaded in PRs A2 through A10. Remove this fallback in PR A10 once none of them pass undefined. See https://github.com/Expensify/App/issues/66413.
+    // TODO: Callers are threaded in Parts 5 through 13. Remove this fallback in Part 13 once none of them pass undefined. See https://github.com/Expensify/App/issues/66413.
     const resolvedOwnerLogin = providedOwnerLogin ?? getLoginByAccountID(report.ownerAccountID, getAllPersonalDetails());
     const submitsToAccountID = getSubmitToAccountID(policy, report, resolvedOwnerLogin, rules);
 
@@ -3047,7 +3047,7 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, rules
     }
 
     if (isProcessingReport(moneyRequestReport) && isExpenseReport(moneyRequestReport)) {
-        // TODO: Pass reportOwnerLogin in PR A10, once canAddOrDeleteTransactions takes it first.
+        // TODO: Pass reportOwnerLogin in Part 13, once canAddOrDeleteTransactions takes it first.
         // isAwaitingFirstLevelApproval falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
         return isAwaitingFirstLevelApproval(moneyRequestReport, rules, undefined);
     }
@@ -3168,7 +3168,7 @@ function canSubmitAndIsAwaitingForCurrentUser(
         !hasAutoRejectedTransactionsForManager &&
         canSubmitReport(
             iouReport,
-            // TODO: Callers are threaded in PRs A5 and A11. Remove this fallback in PR A11 once none of them pass undefined. See https://github.com/Expensify/App/issues/66413.
+            // TODO: Callers are threaded in Parts 8 and 14. Remove this fallback in Part 14 once none of them pass undefined. See https://github.com/Expensify/App/issues/66413.
             iouReportOwnerLogin ?? getLoginByAccountID(iouReport?.ownerAccountID, getAllPersonalDetails()),
             policy,
             transactions,
@@ -3248,7 +3248,7 @@ function hasOutstandingChildRequest(
                 allTransactionViolations,
                 currentUserEmailParam,
                 currentUserAccountIDParam,
-                // TODO: Resolve the owner login per iouReport in PR A5. This loop visits a different iouReport on every iteration, so a single login param on
+                // TODO: Resolve the owner login per iouReport in Part 8. This loop visits a different iouReport on every iteration, so a single login param on
                 // hasOutstandingChildRequest cannot serve it and a precomputed map of accountID to login is needed instead.
                 // canSubmitAndIsAwaitingForCurrentUser falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
                 undefined,
@@ -3372,7 +3372,7 @@ function canDeleteReportAction(
 
         if (isActionOwner) {
             if (!isEmptyObject(report) && (isMoneyRequestReport(report) || isInvoiceReport(report))) {
-                // TODO: Pass reportOwnerLogin in PR A9, once canDeleteTransaction takes it first.
+                // TODO: Pass reportOwnerLogin in Part 12, once canDeleteTransaction takes it first.
                 // isAwaitingFirstLevelApproval falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
                 return canDeleteTransaction(report, rules) && canCardTransactionBeDeleted;
             }
@@ -4978,7 +4978,7 @@ function isReportFieldDisabled(report: OnyxEntry<Report>, reportField: OnyxEntry
     const isTitleField = isReportFieldOfTypeTitle(reportField);
     const isAdmin = isPolicyAdmin(policy);
     const isApproved = isReportApproved({report});
-    // TODO: Pass reportOwnerLogin in PR A3, once isReportFieldDisabled takes it first.
+    // TODO: Pass reportOwnerLogin in Part 6, once isReportFieldDisabled takes it first.
     // isAwaitingFirstLevelApproval falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
     const isForwardedForSubmitter = isReportOwner(report) && isExpenseReport(report) && isProcessingReport(report) && !isAwaitingFirstLevelApproval(report, rules, undefined);
     if (!isAdmin && (isReportSettled || isReportClosed || isApproved || isForwardedForSubmitter)) {
@@ -5750,7 +5750,7 @@ function canModifyHoldStatus(report: Report, reportAction: ReportAction, current
     }
 
     if (isActionOwner && !isAdmin) {
-        // TODO: Pass reportOwnerLogin in PR A4, once canModifyHoldStatus takes it first.
+        // TODO: Pass reportOwnerLogin in Part 7, once canModifyHoldStatus takes it first.
         // isAwaitingFirstLevelApproval falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
         return isAwaitingFirstLevelApproval(report, rules, undefined);
     }
@@ -12407,7 +12407,7 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, curr
  * Check if a report is forwarded or not
  */
 function isForwardedReport(report: OnyxEntry<Report>, rules: OnyxCollection<Rule>): boolean {
-    // TODO: Pass reportOwnerLogin in PR A6, once isForwardedReport takes it first.
+    // TODO: Pass reportOwnerLogin in Part 9, once isForwardedReport takes it first.
     // isAwaitingFirstLevelApproval falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
     return isProcessingReport(report) && !isAwaitingFirstLevelApproval(report, rules, undefined);
 }
