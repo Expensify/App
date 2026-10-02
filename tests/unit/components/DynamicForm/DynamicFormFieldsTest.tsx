@@ -7,7 +7,11 @@ import CountryPicker from '@components/CountryPicker';
 import CurrencyPicker from '@components/CurrencyPicker';
 import DatePicker from '@components/DatePicker';
 import AmountWithCurrencyAdapter from '@components/DynamicForm/adapters/AmountWithCurrencyAdapter';
+import CurrencyInlineListAdapter from '@components/DynamicForm/adapters/CurrencyInlineListAdapter';
 import FileUploadAdapter from '@components/DynamicForm/adapters/FileUploadAdapter';
+import InlineSelectionListAdapter from '@components/DynamicForm/adapters/InlineSelectionListAdapter';
+import TabsAdapter from '@components/DynamicForm/adapters/TabsAdapter';
+import YesNoAdapter from '@components/DynamicForm/adapters/YesNoAdapter';
 import DynamicFormFields from '@components/DynamicForm/components/DynamicFormFields';
 import type {DynamicFormValues} from '@components/DynamicForm/types';
 import getAddressInputKeys from '@components/DynamicForm/utils/getAddressInputKeys';
@@ -69,6 +73,9 @@ function renderFields(fields: DynamicFormField[], values: DynamicFormValues = {}
     return new Map(mockInputWrapper.mock.calls.map(([props]) => [props.inputID, props]));
 }
 
+/** A second question on the page, so the field under test is drawn as a row rather than as the whole page */
+const otherQuestion: DynamicFormField = {key: 'otherQuestion', type: 'text', required: false};
+
 const EXPECTED_INPUT_BY_TYPE: Record<DynamicFormFieldType, ComponentType | ((...args: never[]) => unknown)> = {
     text: TextInput,
     number: TextInput,
@@ -88,12 +95,12 @@ const EXPECTED_INPUT_BY_TYPE: Record<DynamicFormFieldType, ComponentType | ((...
 
 describe('DynamicFormFields', () => {
     it.each(Object.entries(EXPECTED_INPUT_BY_TYPE))('renders a %s field with its input', (type, ExpectedInput) => {
-        // Given a field of one type with nothing but the required properties
+        // Given a field of one type with nothing but the required properties, next to another question
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the keys of EXPECTED_INPUT_BY_TYPE are field types, Object.entries types them as strings
         const field = {key: 'answer', type, required: false} as DynamicFormField;
 
         // When it renders
-        const rendered = renderFields([field]);
+        const rendered = renderFields([field, otherQuestion]);
 
         // Then it is drawn by the input its type maps to
         expect(rendered.get('answer')?.InputComponent).toBe(ExpectedInput);
@@ -134,7 +141,7 @@ describe('DynamicFormFields', () => {
     });
 
     it('opens a searchable list for a select with more options than fit in a picker', () => {
-        // Given a select with one option more than the standard list limit
+        // Given a select with one option more than the standard list limit, next to another question
         const options = Array.from({length: CONST.STANDARD_LIST_ITEM_LIMIT + 1}, (_, index) => ({key: `option${index}`, label: `Option ${index}`}));
         const longSelect: DynamicFormField = {
             key: 'industry',
@@ -145,7 +152,7 @@ describe('DynamicFormFields', () => {
         };
 
         // When the fields render
-        const rendered = renderFields([longSelect]);
+        const rendered = renderFields([longSelect, otherQuestion]);
 
         // Then it uses the push row with a searchable modal
         expect(rendered.get('industry')?.InputComponent).toBe(PushRowWithModal);
@@ -239,11 +246,11 @@ describe('DynamicFormFields', () => {
     });
 
     it('lets the user tick several options of a multiselect and starts it as an empty list', () => {
-        // Given a multiselect field
+        // Given a multiselect field next to another question
         const industries: DynamicFormField = {key: 'industries', label: 'Industries', type: 'multiselect', required: true, values: [{key: 'RETAIL', label: 'Retail'}]};
 
         // When it renders
-        const rendered = renderFields([industries]);
+        const rendered = renderFields([industries, otherQuestion]);
 
         // Then the push row allows several choices, and FormProvider starts the answer as a list
         expect(rendered.get('industries')).toMatchObject({canSelectMultiple: true, valueType: 'stringList', optionsList: {RETAIL: 'Retail'}});
@@ -323,5 +330,48 @@ describe('DynamicFormFields', () => {
 
         // Then the row reads like a postal address
         expect(screen.getByText('224 Main Street, San Francisco, CA 94123')).toBeOnTheScreen();
+    });
+
+    it.each([
+        ['select', InlineSelectionListAdapter],
+        ['multiselect', InlineSelectionListAdapter],
+        ['country', InlineSelectionListAdapter],
+        ['countryMultiselect', InlineSelectionListAdapter],
+        ['currency', CurrencyInlineListAdapter],
+        ['boolean', YesNoAdapter],
+    ] as const)('draws a %s field alone on its page as the page itself', (type, ExpectedInput) => {
+        // Given the only question on the page
+        const field: DynamicFormField = {key: 'answer', label: 'The question', type, required: true};
+
+        // When it renders
+        const rendered = renderFields([field]);
+
+        // Then the choice is drawn as the page itself, under the question
+        expect(rendered.get('answer')?.InputComponent).toBe(ExpectedInput);
+        expect(screen.getByText('The question')).toBeOnTheScreen();
+    });
+
+    it('keeps a lone list as the page when it reveals a follow-up field', () => {
+        // Given a source of wealth list whose "Other" answer reveals a description field
+        const sourceOfWealth: DynamicFormField = {key: 'sourceOfWealth', type: 'select', required: true, values: [{key: 'SAVINGS'}, {key: 'OTHER'}]};
+        const otherDescription: DynamicFormField = {key: 'otherDescription', type: 'text', required: true, showWhen: {key: 'sourceOfWealth', equals: ['OTHER']}};
+
+        // When the user picks Other, so both fields are visible
+        const rendered = renderFields([sourceOfWealth, otherDescription], {sourceOfWealth: 'OTHER'});
+
+        // Then the list stays the page, with the description below it, instead of turning into a picker row
+        expect(rendered.get('sourceOfWealth')?.InputComponent).toBe(InlineSelectionListAdapter);
+        expect(rendered.get('otherDescription')?.InputComponent).toBe(TextInput);
+    });
+
+    it('draws a choice with the tabs presentation as a tab row', () => {
+        // Given a recipient type select presented as tabs, next to another question
+        const legalType: DynamicFormField = {key: 'legalType', type: 'select', required: true, presentation: 'tabs', values: [{key: 'PRIVATE'}, {key: 'BUSINESS'}]};
+
+        // When it renders
+        const rendered = renderFields([legalType, otherQuestion]);
+
+        // Then it is a tab row
+        expect(rendered.get('legalType')?.InputComponent).toBe(TabsAdapter);
     });
 });

@@ -2,7 +2,7 @@ import renderDynamicField from '@components/DynamicForm/renderDynamicField';
 import type {DynamicFormValues} from '@components/DynamicForm/types';
 import formatDynamicFieldValue from '@components/DynamicForm/utils/formatDynamicFieldValue';
 import getLocalizedText, {getFieldLabel} from '@components/DynamicForm/utils/getLocalizedText';
-import getVisibleFields from '@components/DynamicForm/utils/getVisibleFields';
+import getVisibleFields, {getLoneField} from '@components/DynamicForm/utils/getVisibleFields';
 import type {FormValue} from '@components/Form/types';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
@@ -34,6 +34,7 @@ function DynamicFormFields({fields, values, currency = CONST.CURRENCY.USD, onRef
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const visibleFields = getVisibleFields(fields, values);
+    const loneField = getLoneField(visibleFields);
 
     return visibleFields.map((field, index) => {
         const label = getFieldLabel(field, translate);
@@ -59,7 +60,7 @@ function DynamicFormFields({fields, values, currency = CONST.CURRENCY.USD, onRef
 
         const {input, isMenuRow, labelAbove, showsDescription} = renderDynamicField(
             field,
-            {values, translate, currency, onRefreshRequirements},
+            {values, translate, currency, isAloneOnPage: field === loneField, onRefreshRequirements},
             {
                 inputID: field.key,
                 shouldSaveDraft: !field.sensitive,

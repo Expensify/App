@@ -29,7 +29,11 @@ import React from 'react';
 import type {DynamicFormFieldOfType, DynamicFormValues} from './types';
 
 import AmountWithCurrencyAdapter from './adapters/AmountWithCurrencyAdapter';
+import CurrencyInlineListAdapter from './adapters/CurrencyInlineListAdapter';
 import FileUploadAdapter from './adapters/FileUploadAdapter';
+import InlineSelectionListAdapter from './adapters/InlineSelectionListAdapter';
+import TabsAdapter from './adapters/TabsAdapter';
+import YesNoAdapter from './adapters/YesNoAdapter';
 import getAddressInputKeys from './utils/getAddressInputKeys';
 import {getFieldChoices} from './utils/getFieldOptions';
 import getLocalizedText, {getFieldLabel} from './utils/getLocalizedText';
@@ -40,6 +44,9 @@ type DynamicFieldContext = {
 
     /** Currency of amount fields that let the user pick none */
     currency: string;
+
+    /** The field is the page's only question, so a choice is drawn as the page itself instead of as a row */
+    isAloneOnPage: boolean;
 
     /** Called when an answer changes the schema, with the draft key that changed */
     onRefreshRequirements?: (inputID: string, value: FormValue) => void;
@@ -52,7 +59,9 @@ type DynamicFieldInputProps = Required<ForwardedFSClassProps> & {
     onValueChange?: (value: FormValue, key: string) => void;
 };
 
-type DynamicFieldLayout = {
+type DynamicFieldInput = {
+    input: ReactElement;
+
     /** Spans the page edge to edge like a menu row, instead of sitting inside the page padding */
     isMenuRow: boolean;
 
@@ -63,32 +72,11 @@ type DynamicFieldLayout = {
     showsDescription?: boolean;
 };
 
-type DynamicFieldRenderer<TType extends DynamicFormFieldType> = DynamicFieldLayout & {
-    render: (field: DynamicFormFieldOfType<TType>, context: DynamicFieldContext, inputProps: DynamicFieldInputProps) => ReactElement;
-};
+type DynamicFieldRenderer<TType extends DynamicFormFieldType> = (field: DynamicFormFieldOfType<TType>, context: DynamicFieldContext, inputProps: DynamicFieldInputProps) => DynamicFieldInput;
 
 function getChoiceOptionsList(choices: Choice[]): Record<string, string> {
     return Object.fromEntries(choices.map((choice) => [choice.value, choice.label]));
 }
-
-const multiChoiceRenderer: DynamicFieldRenderer<'multiselect' | 'countryMultiselect'> = {
-    isMenuRow: true,
-    render: (field, {values, translate}, inputProps) => {
-        const label = getFieldLabel(field, translate);
-        return (
-            <InputWrapper
-                InputComponent={PushRowWithModal}
-                {...inputProps}
-                valueType="stringList"
-                canSelectMultiple
-                optionsList={getChoiceOptionsList(getFieldChoices(field, values, translate))}
-                description={label}
-                modalHeaderTitle={label}
-                searchInputTitle={label}
-            />
-        );
-    },
-};
 
 function getTextHint(field: DynamicFormTextField | DynamicFormNumberField, translate: LocalizedTranslate): string | undefined {
     const description = getLocalizedText(translate, field.descriptionKey, field.description);
@@ -98,13 +86,67 @@ function getTextHint(field: DynamicFormTextField | DynamicFormNumberField, trans
     return translate('dynamicForm.exampleHint', {example: field.example});
 }
 
-const RENDERERS: {
-    [TType in DynamicFormFieldType]: DynamicFieldRenderer<TType>;
-} = {
-    text: {
+/** A lone choice field is the page itself: its options are listed inline under the question */
+function renderInlineChoice(label: string, choices: Choice[], inputProps: DynamicFieldInputProps, canSelectMultiple: boolean, isSearchable: boolean): DynamicFieldInput {
+    return {
+        isMenuRow: true,
+        labelAbove: 'heading',
+        input: (
+            <InputWrapper
+                InputComponent={InlineSelectionListAdapter}
+                {...inputProps}
+                valueType={canSelectMultiple ? 'stringList' : 'string'}
+                items={choices}
+                canSelectMultiple={canSelectMultiple}
+                isSearchable={isSearchable}
+                searchInputLabel={label}
+            />
+        ),
+    };
+}
+
+function renderTabs(choices: Choice[], inputProps: DynamicFieldInputProps): DynamicFieldInput {
+    return {
+        isMenuRow: false,
+        labelAbove: 'prompt',
+        input: (
+            <InputWrapper
+                InputComponent={TabsAdapter}
+                {...inputProps}
+                items={choices}
+            />
+        ),
+    };
+}
+
+const renderMultiChoice: DynamicFieldRenderer<'multiselect' | 'countryMultiselect'> = (field, {values, translate, isAloneOnPage}, inputProps) => {
+    const label = getFieldLabel(field, translate);
+    const choices = getFieldChoices(field, values, translate);
+    if (isAloneOnPage) {
+        return renderInlineChoice(label, choices, inputProps, true, choices.length > CONST.STANDARD_LIST_ITEM_LIMIT);
+    }
+    return {
+        isMenuRow: true,
+        input: (
+            <InputWrapper
+                InputComponent={PushRowWithModal}
+                {...inputProps}
+                valueType="stringList"
+                canSelectMultiple
+                optionsList={getChoiceOptionsList(choices)}
+                description={label}
+                modalHeaderTitle={label}
+                searchInputTitle={label}
+            />
+        ),
+    };
+};
+
+const RENDERERS: {[TType in DynamicFormFieldType]: DynamicFieldRenderer<TType>} = {
+    text: (field, {translate}, inputProps) => ({
         isMenuRow: false,
         showsDescription: true,
-        render: (field, {translate}, inputProps) => (
+        input: (
             <InputWrapper
                 InputComponent={TextInput}
                 {...inputProps}
@@ -117,11 +159,11 @@ const RENDERERS: {
                 {...(field.multiline ? {} : getTextInputAutocorrectProps())}
             />
         ),
-    },
-    number: {
+    }),
+    number: (field, {translate}, inputProps) => ({
         isMenuRow: false,
         showsDescription: true,
-        render: (field, {translate}, inputProps) => (
+        input: (
             <InputWrapper
                 InputComponent={TextInput}
                 {...inputProps}
@@ -132,14 +174,21 @@ const RENDERERS: {
                 {...getTextInputAutocorrectProps()}
             />
         ),
-    },
-    select: {
-        isMenuRow: true,
-        render: (field, {values, translate}, inputProps) => {
-            const label = getFieldLabel(field, translate);
-            const choices = getFieldChoices(field, values, translate);
-            if (choices.length > CONST.STANDARD_LIST_ITEM_LIMIT) {
-                return (
+    }),
+    select: (field, {values, translate, isAloneOnPage}, inputProps) => {
+        const label = getFieldLabel(field, translate);
+        const choices = getFieldChoices(field, values, translate);
+        const isLong = choices.length > CONST.STANDARD_LIST_ITEM_LIMIT;
+        if (field.presentation === 'tabs') {
+            return renderTabs(choices, inputProps);
+        }
+        if (isAloneOnPage) {
+            return renderInlineChoice(label, choices, inputProps, false, isLong);
+        }
+        if (isLong) {
+            return {
+                isMenuRow: true,
+                input: (
                     <InputWrapper
                         InputComponent={PushRowWithModal}
                         {...inputProps}
@@ -148,32 +197,41 @@ const RENDERERS: {
                         modalHeaderTitle={label}
                         searchInputTitle={label}
                     />
-                );
-            }
-            return (
+                ),
+            };
+        }
+        return {
+            isMenuRow: true,
+            input: (
                 <InputWrapper
                     InputComponent={ValuePicker}
                     {...inputProps}
                     label={label}
                     items={choices}
                 />
-            );
-        },
+            ),
+        };
     },
-    radio: {
-        isMenuRow: true,
-        labelAbove: 'prompt',
-        render: (field, {values, translate}, inputProps) => (
-            <InputWrapper
-                InputComponent={RadioButtons}
-                {...inputProps}
-                items={getFieldChoices(field, values, translate)}
-            />
-        ),
+    radio: (field, {values, translate, isAloneOnPage}, inputProps) => {
+        const choices = getFieldChoices(field, values, translate);
+        if (field.presentation === 'tabs') {
+            return renderTabs(choices, inputProps);
+        }
+        return {
+            isMenuRow: true,
+            labelAbove: isAloneOnPage ? 'heading' : 'prompt',
+            input: (
+                <InputWrapper
+                    InputComponent={RadioButtons}
+                    {...inputProps}
+                    items={choices}
+                />
+            ),
+        };
     },
-    date: {
+    date: (field, {translate}, inputProps) => ({
         isMenuRow: false,
-        render: (field, {translate}, inputProps) => (
+        input: (
             <InputWrapper
                 InputComponent={DatePicker}
                 {...inputProps}
@@ -181,45 +239,79 @@ const RENDERERS: {
                 placeholder={translate('common.dateFormat')}
             />
         ),
+    }),
+    boolean: (field, {translate, isAloneOnPage}, inputProps) => {
+        if (isAloneOnPage) {
+            return {
+                isMenuRow: true,
+                labelAbove: 'heading',
+                input: (
+                    <InputWrapper
+                        InputComponent={YesNoAdapter}
+                        {...inputProps}
+                    />
+                ),
+            };
+        }
+        return {
+            isMenuRow: false,
+            input: (
+                <InputWrapper
+                    InputComponent={CheckboxWithLabel}
+                    {...inputProps}
+                    valueType="boolean"
+                    label={getFieldLabel(field, translate)}
+                    accessibilityLabel={getFieldLabel(field, translate)}
+                />
+            ),
+        };
     },
-    boolean: {
-        isMenuRow: false,
-        render: (field, {translate}, inputProps) => (
-            <InputWrapper
-                InputComponent={CheckboxWithLabel}
-                {...inputProps}
-                valueType="boolean"
-                label={getFieldLabel(field, translate)}
-                accessibilityLabel={getFieldLabel(field, translate)}
-            />
-        ),
+    country: (field, {values, translate, isAloneOnPage}, inputProps) => {
+        const label = getFieldLabel(field, translate);
+        if (isAloneOnPage) {
+            return renderInlineChoice(label, getFieldChoices(field, values, translate), inputProps, false, true);
+        }
+        return {
+            isMenuRow: true,
+            input: (
+                <InputWrapper
+                    InputComponent={CountryPicker}
+                    {...inputProps}
+                    label={label}
+                />
+            ),
+        };
     },
-    country: {
-        isMenuRow: true,
-        render: (field, {translate}, inputProps) => (
-            <InputWrapper
-                InputComponent={CountryPicker}
-                {...inputProps}
-                label={getFieldLabel(field, translate)}
-            />
-        ),
+    currency: (field, {translate, isAloneOnPage}, inputProps) => {
+        if (isAloneOnPage) {
+            return {
+                isMenuRow: true,
+                labelAbove: 'heading',
+                input: (
+                    <InputWrapper
+                        InputComponent={CurrencyInlineListAdapter}
+                        {...inputProps}
+                    />
+                ),
+            };
+        }
+        return {
+            isMenuRow: true,
+            input: (
+                <InputWrapper
+                    InputComponent={CurrencyPicker}
+                    {...inputProps}
+                    label={getFieldLabel(field, translate)}
+                />
+            ),
+        };
     },
-    currency: {
-        isMenuRow: true,
-        render: (field, {translate}, inputProps) => (
-            <InputWrapper
-                InputComponent={CurrencyPicker}
-                {...inputProps}
-                label={getFieldLabel(field, translate)}
-            />
-        ),
-    },
-    address: {
-        isMenuRow: false,
-        labelAbove: 'heading',
-        render: (field, {onRefreshRequirements}, {shouldSaveDraft, forwardedFSClass}) => {
-            const addressKeys = getAddressInputKeys(field.key);
-            return (
+    address: (field, {onRefreshRequirements}, {shouldSaveDraft, forwardedFSClass}) => {
+        const addressKeys = getAddressInputKeys(field.key);
+        return {
+            isMenuRow: false,
+            labelAbove: 'heading',
+            input: (
                 <AddressFormFields
                     inputKeys={addressKeys}
                     streetTranslationKey="common.streetAddress"
@@ -233,17 +325,17 @@ const RENDERERS: {
                         onRefreshRequirements?.(addressKeys.country, country);
                     }}
                 />
-            );
-        },
+            ),
+        };
     },
-    multiselect: multiChoiceRenderer,
-    countryMultiselect: multiChoiceRenderer,
-    file: {
-        isMenuRow: false,
-        labelAbove: 'heading',
-        render: (field, {translate}, inputProps) => {
-            const fileLimit = field.maxFiles ?? CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT;
-            return (
+    multiselect: renderMultiChoice,
+    countryMultiselect: renderMultiChoice,
+    file: (field, {translate}, inputProps) => {
+        const fileLimit = field.maxFiles ?? CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT;
+        return {
+            isMenuRow: false,
+            labelAbove: 'heading',
+            input: (
                 <InputWrapper
                     InputComponent={FileUploadAdapter}
                     {...inputProps}
@@ -254,15 +346,15 @@ const RENDERERS: {
                     acceptedFileTypes={[...CONST.CORPAY_DOCUMENT.ALLOWED_FILE_TYPES]}
                     maxFileSize={CONST.CORPAY_DOCUMENT.MAX_FILE_SIZE}
                 />
-            );
-        },
+            ),
+        };
     },
-    amount: {
-        isMenuRow: false,
-        render: (field, {values, translate, currency}, inputProps) => {
-            const label = getFieldLabel(field, translate);
-            if (!field.currencyKey) {
-                return (
+    amount: (field, {values, translate, currency}, inputProps) => {
+        const label = getFieldLabel(field, translate);
+        if (!field.currencyKey) {
+            return {
+                isMenuRow: false,
+                input: (
                     <InputWrapper
                         InputComponent={AmountForm}
                         {...inputProps}
@@ -271,10 +363,13 @@ const RENDERERS: {
                         displayAsTextInput
                         isCurrencyPressable={false}
                     />
-                );
-            }
-            const chosenCurrency = values[field.currencyKey];
-            return (
+                ),
+            };
+        }
+        const chosenCurrency = values[field.currencyKey];
+        return {
+            isMenuRow: false,
+            input: (
                 <InputWrapper
                     InputComponent={AmountWithCurrencyAdapter}
                     {...inputProps}
@@ -282,29 +377,25 @@ const RENDERERS: {
                     currency={typeof chosenCurrency === 'string' && chosenCurrency !== '' ? chosenCurrency : currency}
                     currencyKey={field.currencyKey}
                 />
-            );
-        },
+            ),
+        };
     },
-    percent: {
+    percent: (field, {translate}, inputProps) => ({
         isMenuRow: false,
-        render: (field, {translate}, inputProps) => (
+        input: (
             <InputWrapper
                 InputComponent={PercentageForm}
                 {...inputProps}
                 label={getFieldLabel(field, translate)}
             />
         ),
-    },
+    }),
 };
 
 /** The input for one field, and how the renderer lays it out */
-function renderDynamicField<TType extends DynamicFormFieldType>(
-    field: DynamicFormFieldOfType<TType>,
-    context: DynamicFieldContext,
-    inputProps: DynamicFieldInputProps,
-): DynamicFieldLayout & {input: ReactElement} {
-    const {render, ...layout}: DynamicFieldRenderer<TType> = RENDERERS[field.type];
-    return {...layout, input: render(field, context, inputProps)};
+function renderDynamicField<TType extends DynamicFormFieldType>(field: DynamicFormFieldOfType<TType>, context: DynamicFieldContext, inputProps: DynamicFieldInputProps): DynamicFieldInput {
+    const render: DynamicFieldRenderer<TType> = RENDERERS[field.type];
+    return render(field, context, inputProps);
 }
 
 export default renderDynamicField;

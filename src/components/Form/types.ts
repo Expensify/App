@@ -9,7 +9,11 @@ import type CurrencyPicker from '@components/CurrencyPicker';
 import type CurrencySelector from '@components/CurrencySelector';
 import type DatePicker from '@components/DatePicker';
 import type AmountWithCurrencyAdapter from '@components/DynamicForm/adapters/AmountWithCurrencyAdapter';
+import type CurrencyInlineListAdapter from '@components/DynamicForm/adapters/CurrencyInlineListAdapter';
 import type FileUploadAdapter from '@components/DynamicForm/adapters/FileUploadAdapter';
+import type InlineSelectionListAdapter from '@components/DynamicForm/adapters/InlineSelectionListAdapter';
+import type TabsAdapter from '@components/DynamicForm/adapters/TabsAdapter';
+import type YesNoAdapter from '@components/DynamicForm/adapters/YesNoAdapter';
 import type EmojiPickerButtonDropdown from '@components/EmojiPicker/EmojiPickerButtonDropdown';
 import type NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type PercentageForm from '@components/PercentageForm';
@@ -91,7 +95,11 @@ type ValidInputs =
     | typeof PushRowWithModal
     | typeof TimeModalPicker
     | typeof FileUploadAdapter
-    | typeof AmountWithCurrencyAdapter;
+    | typeof AmountWithCurrencyAdapter
+    | typeof InlineSelectionListAdapter
+    | typeof CurrencyInlineListAdapter
+    | typeof YesNoAdapter
+    | typeof TabsAdapter;
 
 type ValueTypeKey = 'string' | 'boolean' | 'date' | 'country' | 'stringList' | 'disabledListValues' | 'files';
 type ValueTypeMap = {

@@ -19,22 +19,25 @@ import type {DynamicFormAddressField, DynamicFormChoiceField, DynamicFormNumberF
 
 import getAddressInputKeys from './getAddressInputKeys';
 import getFieldOptions from './getFieldOptions';
-import getVisibleFields from './getVisibleFields';
+import getVisibleFields, {getLoneField} from './getVisibleFields';
 import isCountryCode from './isCountryCode';
 import logSchemaProblem from './logSchemaProblem';
 
 /** Checks a field the user has answered. Unanswered fields only get the required check. */
 type FieldValidator<TType extends DynamicFormFieldType> = (field: DynamicFormFieldOfType<TType>, values: DynamicFormValues, translate: LocalizedTranslate) => string[];
 
-/** A boolean is a consent checkbox, so only a ticked box answers it */
-function isAnswered(value: FormValue | undefined): boolean {
+/** A lone boolean is a Yes/No question, so No answers it. Among other fields it is a consent checkbox, so only a ticked box does. */
+function isAnswered(value: FormValue | undefined, isAloneOnPage = false): boolean {
+    if (typeof value === 'boolean') {
+        return isAloneOnPage || value;
+    }
     if (typeof value === 'string') {
         return value.trim() !== '';
     }
     if (Array.isArray(value)) {
         return value.length > 0;
     }
-    return value === true || value instanceof Date;
+    return value instanceof Date;
 }
 
 function getStringAnswer(field: DynamicFormField, values: DynamicFormValues): string {
@@ -171,7 +174,9 @@ function validateField<TType extends DynamicFormFieldType>(field: DynamicFormFie
 /** Errors for the fields the user can see, keyed by field key, in the shape FormProvider's `validate` returns */
 function getDynamicFieldErrors(fields: DynamicFormField[], values: DynamicFormValues, translate: LocalizedTranslate): Record<string, string> {
     const errors: Record<string, string> = {};
-    for (const field of getVisibleFields(fields, values)) {
+    const visibleFields = getVisibleFields(fields, values);
+    const loneField = getLoneField(visibleFields);
+    for (const field of visibleFields) {
         if (field.readonly) {
             continue;
         }
@@ -180,7 +185,7 @@ function getDynamicFieldErrors(fields: DynamicFormField[], values: DynamicFormVa
                 addErrorMessage(errors, inputID, message);
             }
         }
-        if (!isAnswered(values[field.key])) {
+        if (!isAnswered(values[field.key], field === loneField)) {
             if (field.required) {
                 addErrorMessage(errors, field.key, translate('common.error.fieldRequired'));
             }

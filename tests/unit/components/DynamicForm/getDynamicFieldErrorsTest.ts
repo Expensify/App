@@ -47,11 +47,12 @@ describe('getDynamicFieldErrors', () => {
     });
 
     it('treats an unchecked checkbox as unanswered', () => {
-        // Given a required consent checkbox left unchecked
+        // Given a required consent checkbox left unchecked, next to another question
         const acceptTerms: DynamicFormField = {key: 'acceptTerms', type: 'boolean', required: true};
+        const companyName: DynamicFormField = {key: 'companyName', type: 'text', required: false};
 
         // When the form is validated
-        const errors = getDynamicFieldErrors([acceptTerms], {acceptTerms: false}, translateLocal);
+        const errors = getDynamicFieldErrors([acceptTerms, companyName], {acceptTerms: false}, translateLocal);
 
         // Then it is flagged as required, because consent must be given
         expect(errors).toEqual({acceptTerms: translateLocal('common.error.fieldRequired')});
@@ -258,5 +259,18 @@ describe('getDynamicFieldErrors', () => {
         expect(usErrors).toEqual({});
         expect(ukErrors).toEqual({});
         expect(incompleteErrors).toEqual({phone: translateLocal('common.error.phoneNumber')});
+    });
+
+    it('accepts No as the answer to a lone Yes/No question', () => {
+        // Given a required boolean that is the only question on the page, so it is asked as Yes/No
+        const hasOtherOwners: DynamicFormField = {key: 'hasOtherOwners', type: 'boolean', required: true};
+
+        // When it is answered No, and when it is not answered
+        const noErrors = getDynamicFieldErrors([hasOtherOwners], {hasOtherOwners: false}, translateLocal);
+        const unansweredErrors = getDynamicFieldErrors([hasOtherOwners], {hasOtherOwners: ''}, translateLocal);
+
+        // Then No is a valid answer, and only the unanswered question is flagged
+        expect(noErrors).toEqual({});
+        expect(unansweredErrors).toEqual({hasOtherOwners: translateLocal('common.error.fieldRequired')});
     });
 });

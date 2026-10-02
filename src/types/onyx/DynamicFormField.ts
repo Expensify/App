@@ -77,6 +77,9 @@ type DynamicFormChoiceField = DynamicFormFieldBase & {
     type: 'select' | 'radio';
     values?: DynamicFormFieldOption[];
 
+    /** Draw the options as a segmented tab row, for the few-option switch that decides which fields follow */
+    presentation?: 'tabs';
+
     /** Options picked by another answer, keyed by that answer's value. Takes the place of `values`. */
     dependsOn?: {
         key: string;
