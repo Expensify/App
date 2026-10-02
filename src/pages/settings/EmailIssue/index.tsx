@@ -86,7 +86,6 @@ function EmailIssuePage() {
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
             testID="EmailIssuePage"
-            shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButtonAndTitle title={translate('emailIssuePage.title')} />
             <ScrollView
