@@ -5,7 +5,6 @@ import type {SelectorType} from '@components/SelectionScreen';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {PolicyType} from '@src/types/form/WorkspaceConfirmationForm';
 import type {
     OnyxInputOrEntry,
@@ -20,7 +19,7 @@ import type {
     Transaction,
     TravelSettings,
 } from '@src/types/onyx';
-import type {ApprovalWorkflowFilter, ApprovalWorkflowFilterComparison, ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
+import type {ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
     Account,
@@ -29,10 +28,7 @@ import type {
     ConnectionName,
     Connections,
     CustomUnit,
-    NetSuiteAccount,
     NetSuiteConnection,
-    NetSuiteCustomList,
-    NetSuiteCustomSegment,
     PolicyConnectionSyncProgress,
     PolicyFeatureName,
     Rate,
@@ -42,6 +38,7 @@ import type {
 } from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type Rule from '@src/types/onyx/Rule';
+import type {RuleFilterComparison, RuleFilterNode} from '@src/types/onyx/RuleFilters';
 import type {TransactionCommentVendor} from '@src/types/onyx/Transaction';
 import type {WorkspaceTravelSettings} from '@src/types/onyx/TravelSettings';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -65,6 +62,7 @@ import {isAnyRecruitingConnected} from './merge/RecruitingUtils';
 import Navigation from './Navigation/Navigation';
 import {getIsOffline} from './NetworkState';
 import {getAccountIDsByLogins, getKnownAccountIDByLogin, getPersonalDetailByEmail} from './PersonalDetailsUtils';
+import {isApprovalWorkflowRule, isRuleFilterComparison} from './RuleUtils';
 import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
 import {generateAccountID} from './UserUtils';
 import {isPublicDomain, isValidAccountRoute} from './ValidationUtils';
@@ -359,11 +357,10 @@ function hasPolicyCategoriesError(policyCategories: OnyxEntry<PolicyCategories>)
 /**
  * Check if the policy has any errors within the rules.
  */
-function hasPolicyRulesError(policy: OnyxEntry<Policy>): boolean {
-    const codingRules = Object.values(policy?.rules?.codingRules ?? {});
+function hasPolicyRulesError(policy: OnyxEntry<Policy>, hasMerchantRuleErrors: boolean): boolean {
     const agentRules = Object.values(policy?.rules?.agentRules ?? {});
 
-    return codingRules.some((rule) => rule && Object.keys(rule.errors ?? {}).length > 0) || agentRules.some((rule) => rule && Object.keys(rule.errors ?? {}).length > 0);
+    return hasMerchantRuleErrors || agentRules.some((rule) => rule && Object.keys(rule.errors ?? {}).length > 0);
 }
 
 /**
@@ -732,6 +729,10 @@ function isPolicyMember(policy: OnyxEntry<Policy>, userLogin: string | undefined
     return !!policy && !!userLogin && (!!policy.employeeList?.[userLogin] || policy.owner === userLogin);
 }
 
+function isMemberInHomeAndOfficeWorkspace(policy: OnyxEntry<Policy>, memberLogin: string): boolean {
+    return !!memberLogin && policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && !!policy.employeeList?.[memberLogin];
+}
+
 function isPolicyMemberWithoutPendingDelete(currentUserLogin: string | undefined, policy: OnyxEntry<Policy>): boolean {
     if (!currentUserLogin || !policy?.id) {
         return false;
@@ -815,6 +816,17 @@ function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | und
     const canPayOnPolicy = isAdmin || (!!currentUserLogin && canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
 
     return canPayOnPolicy && currentUserLogin === reimburserEmail;
+}
+
+/**
+ * Whether an admin/payments admin who isn't the designated workspace payer can still pay reports on the policy.
+ * Unlike `isPolicyPayer`/`isPayer`, this must not drive active prompting (badges, GBRs, next steps, pay to-dos), which stay payer-only.
+ */
+function canAdminPayReport(policy: OnyxInputOrEntry<Policy>, currentUserLogin: string): boolean {
+    const isReimbursementConfigured =
+        policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES || policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+
+    return isGroupPolicy(policy) && isReimbursementConfigured && canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
 }
 
 /** Check if the passed employee is an approver in the policy's employeeList */
@@ -1329,26 +1341,26 @@ function isMaxExpenseAmountSet(value: number | undefined): value is number {
 /**
  * Checks if a policy has any rules configured (structured rules, individual expense limits, or prohibited expenses).
  */
-function hasConfiguredRules(policy: OnyxEntry<Policy>, policyCategories?: PolicyCategories | null): boolean {
+function hasConfiguredRules(policy: OnyxEntry<Policy>, policyCategories: PolicyCategories | null | undefined, hasExpenseDefaultRules: boolean): boolean {
     if (!policy) {
         return false;
+    }
+
+    if (hasExpenseDefaultRules) {
+        return true;
     }
 
     if (!!policy.customRules && policy.customRules.trim().length > 0) {
         return true;
     }
 
-    const {rules} = policy;
-    if (!!rules?.approvalRules && rules.approvalRules.length > 0) {
+    const {rules: policyRules} = policy;
+    if (!!policyRules?.approvalRules && policyRules.approvalRules.length > 0) {
         return true;
     }
-    if (!!rules?.expenseRules && rules.expenseRules.length > 0) {
+    if (!!policyRules?.expenseRules && policyRules.expenseRules.length > 0) {
         return true;
     }
-    if (!!rules?.codingRules && Object.keys(rules.codingRules).length > 0) {
-        return true;
-    }
-
     if (!!policy.maxExpenseAmount && policy.maxExpenseAmount !== CONST.DISABLED_MAX_EXPENSE_VALUE && policy.maxExpenseAmount !== CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT) {
         return true;
     }
@@ -1760,6 +1772,14 @@ function isSubmitAndClose(policy: OnyxInputOrEntry<Policy>): boolean {
 }
 
 /**
+ * Whether the policy has approvals turned on. False while the policy hasn't loaded yet (no `approvalMode`),
+ * unlike `!isSubmitAndClose(policy)`, which reads an unresolved policy as approvals-enabled.
+ */
+function areApprovalsEnabled(policy: OnyxInputOrEntry<Policy>): boolean {
+    return !!policy?.approvalMode && !isSubmitAndClose(policy);
+}
+
+/**
  * Resolves a workspace's reimbursement choice to one of the three values in `CONST.POLICY.REIMBURSEMENT_CHOICES`.
  * Comparing the raw field instead makes a workspace reporting a deprecated value look like it has reimbursement
  * disabled, which hides Pay on its approved reports.
@@ -2102,20 +2122,13 @@ function getFirstRuleApprover(approvalRules: ApprovalRule[], expenseReport: Onyx
     return firstCategoryApprover || firstTagApprover;
 }
 
-/**
- * True when this node is a single comparison instead of a combination of two children.
- */
-function isApprovalWorkflowComparison(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison): node is ApprovalWorkflowFilterComparison {
-    return typeof node.left === 'string';
-}
-
-function matchesApprovalWorkflowEmailComparison(node: ApprovalWorkflowFilterComparison, email: string | undefined): boolean {
+function matchesApprovalWorkflowEmailComparison(node: RuleFilterComparison, email: string | undefined): boolean {
     const expectedEmails = (Array.isArray(node.right) ? node.right : [node.right]).map((value) => String(value).toLowerCase());
     const isMatch = !!email && expectedEmails.includes(email.toLowerCase());
     return node.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO ? !isMatch : isMatch;
 }
 
-function matchesApprovalWorkflowAmountComparison(node: ApprovalWorkflowFilterComparison, amount: number): boolean {
+function matchesApprovalWorkflowAmountComparison(node: RuleFilterComparison, amount: number): boolean {
     const expectedAmount = typeof node.right === 'number' ? node.right : Number(node.right);
     if (Number.isNaN(expectedAmount)) {
         return false;
@@ -2139,8 +2152,8 @@ function matchesApprovalWorkflowAmountComparison(node: ApprovalWorkflowFilterCom
     }
 }
 
-function evaluateApprovalWorkflowFilter(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison, context: ApprovalWorkflowContext): boolean {
-    if (!isApprovalWorkflowComparison(node)) {
+function evaluateApprovalWorkflowFilter(node: RuleFilterNode, context: ApprovalWorkflowContext): boolean {
+    if (!isRuleFilterComparison(node)) {
         const left = evaluateApprovalWorkflowFilter(node.left, context);
         const right = evaluateApprovalWorkflowFilter(node.right, context);
         return node.operator === CONST.SEARCH.SYNTAX_OPERATORS.OR ? left || right : left && right;
@@ -2177,7 +2190,7 @@ function getForwardsToFromRules(policy: OnyxEntry<Policy>, context: ApprovalWork
         return undefined;
     }
 
-    const trigger = context.currentApproverEmail ? CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE : CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT;
+    const trigger = context.currentApproverEmail ? CONST.RULES.TRIGGERS.REPORT_APPROVE : CONST.RULES.TRIGGERS.REPORT_SUBMIT;
 
     // Sort by Onyx key so the rule picked stays the same across evaluations when more than one matches (which should not happen).
     const ruleKeys = Object.keys(rules ?? {}).sort();
@@ -2186,14 +2199,14 @@ function getForwardsToFromRules(policy: OnyxEntry<Policy>, context: ApprovalWork
         if (!rule || rule.scope !== CONST.RULES.SCOPE.POLICY || rule.scopeID !== policy.id || rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             continue;
         }
-        if (!Object.values(rule.triggers ?? {}).includes(trigger)) {
+        if (!isApprovalWorkflowRule(rule) || !Object.values(rule.triggers ?? {}).includes(trigger)) {
             continue;
         }
         if (!evaluateApprovalWorkflowRule(rule, context)) {
             continue;
         }
 
-        return {forwardsTo: Object.values(rule.actions ?? {}).find((action) => action.name === CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO)?.approver};
+        return {forwardsTo: Object.values(rule.actions ?? {}).find((action) => action.name === CONST.RULES.ACTIONS.FORWARD_TO)?.approver};
     }
 
     return undefined;
@@ -2492,196 +2505,6 @@ function settingsPendingAction(settings?: string[], pendingFields?: PendingField
     return pendingFields[key];
 }
 
-function getNetSuiteVendorOptions(policy: Policy | undefined, selectedVendorId: string | undefined): SelectorType[] {
-    const vendors = policy?.connections?.netsuite?.options.data.vendors;
-
-    return (vendors ?? []).map(({id, name}) => ({
-        value: id,
-        text: name,
-        keyForList: id,
-        isSelected: id === selectedVendorId,
-    }));
-}
-
-function getNetSuitePayableAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
-    const payableAccounts = policy?.connections?.netsuite?.options.data.payableList;
-
-    return (payableAccounts ?? []).map(({id, name}) => ({
-        value: id,
-        text: name,
-        keyForList: id,
-        isSelected: id === selectedBankAccountId,
-    }));
-}
-
-function getNetSuiteReceivableAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
-    const receivableAccounts = policy?.connections?.netsuite?.options.data.receivableList;
-
-    return (receivableAccounts ?? []).map(({id, name}) => ({
-        value: id,
-        text: name,
-        keyForList: id,
-        isSelected: id === selectedBankAccountId,
-    }));
-}
-
-function getNetSuiteExpenseAccountOptions(policy: Policy | undefined, selectedExpenseAccountId: string | undefined): SelectorType[] {
-    const expenseAccounts = policy?.connections?.netsuite?.options.data.expenseAccounts;
-
-    return (expenseAccounts ?? []).map(({id, name}) => ({
-        value: id,
-        text: name,
-        keyForList: id,
-        isSelected: id === selectedExpenseAccountId,
-    }));
-}
-
-function getNetSuiteInvoiceItemOptions(policy: Policy | undefined, selectedItemId: string | undefined): SelectorType[] {
-    const invoiceItems = policy?.connections?.netsuite?.options.data.items;
-
-    return (invoiceItems ?? []).map(({id, name}) => ({
-        value: id,
-        text: name,
-        keyForList: id,
-        isSelected: id === selectedItemId,
-    }));
-}
-
-function getNetSuiteTaxAccountOptions(policy: Policy | undefined, subsidiaryCountry?: string, selectedAccountId?: string): SelectorType[] {
-    const taxAccounts = policy?.connections?.netsuite?.options.data.taxAccountsList;
-    const accountOptions = (taxAccounts ?? []).filter(({country}) => country === subsidiaryCountry);
-
-    return accountOptions.map(({externalID, name}) => ({
-        value: externalID,
-        text: name,
-        keyForList: externalID,
-        isSelected: externalID === selectedAccountId,
-    }));
-}
-
-function canUseTaxNetSuite(canUseNetSuiteUSATax?: boolean, subsidiaryCountry?: string) {
-    return !!canUseNetSuiteUSATax || CONST.NETSUITE_TAX_COUNTRIES.includes(subsidiaryCountry ?? '');
-}
-
-function canUseProvincialTaxNetSuite(subsidiaryCountry?: string) {
-    return subsidiaryCountry === '_canada';
-}
-
-function getFilteredReimbursableAccountOptions(payableAccounts: NetSuiteAccount[] | undefined) {
-    return (payableAccounts ?? []).filter(({type}) => type === CONST.NETSUITE_ACCOUNT_TYPE.BANK || type === CONST.NETSUITE_ACCOUNT_TYPE.CREDIT_CARD);
-}
-
-function getNetSuiteReimbursableAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
-    const payableAccounts = policy?.connections?.netsuite?.options.data.payableList;
-    const accountOptions = getFilteredReimbursableAccountOptions(payableAccounts);
-
-    return accountOptions.map(({id, name}) => ({
-        value: id,
-        text: name,
-        keyForList: id,
-        isSelected: id === selectedBankAccountId,
-    }));
-}
-
-function getFilteredCollectionAccountOptions(payableAccounts: NetSuiteAccount[] | undefined) {
-    return (payableAccounts ?? []).filter(({type}) => type === CONST.NETSUITE_ACCOUNT_TYPE.BANK);
-}
-
-function getNetSuiteCollectionAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
-    const payableAccounts = policy?.connections?.netsuite?.options.data.payableList;
-    const accountOptions = getFilteredCollectionAccountOptions(payableAccounts);
-
-    return accountOptions.map(({id, name}) => ({
-        value: id,
-        text: name,
-        keyForList: id,
-        isSelected: id === selectedBankAccountId,
-    }));
-}
-
-function getFilteredApprovalAccountOptions(payableAccounts: NetSuiteAccount[] | undefined) {
-    return (payableAccounts ?? []).filter(({type}) => type === CONST.NETSUITE_ACCOUNT_TYPE.ACCOUNTS_PAYABLE);
-}
-
-function getNetSuiteApprovalAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined, translate: LocalizedTranslate): SelectorType[] {
-    const payableAccounts = policy?.connections?.netsuite?.options.data.payableList;
-    const defaultApprovalAccount: NetSuiteAccount = {
-        id: CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT,
-        name: translate('workspace.netsuite.advancedConfig.defaultApprovalAccount'),
-        type: CONST.NETSUITE_ACCOUNT_TYPE.ACCOUNTS_PAYABLE,
-    };
-    const accountOptions = getFilteredApprovalAccountOptions([defaultApprovalAccount].concat(payableAccounts ?? []));
-
-    // When nothing is explicitly set, the synthesized default approval account is the effective selection in NetSuite.
-    const effectiveSelectionId = selectedBankAccountId ?? CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT;
-
-    return accountOptions.map(({id, name}) => ({
-        value: id,
-        text: name,
-        keyForList: id,
-        isSelected: id === effectiveSelectionId,
-    }));
-}
-
-function getCustomersOrJobsLabelNetSuite(policy: Policy | undefined, translate: LocaleContextProps['translate']): string | undefined {
-    const importMapping = policy?.connections?.netsuite?.options?.config?.syncOptions?.mapping;
-    if (!importMapping?.customers && !importMapping?.jobs) {
-        return undefined;
-    }
-    const importFields: string[] = [];
-    const importCustomer = importMapping?.customers ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
-    const importJobs = importMapping?.jobs ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
-
-    if (importCustomer === CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT && importJobs === CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) {
-        return undefined;
-    }
-
-    const importedValue = importMapping?.customers !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT ? importCustomer : importJobs;
-
-    if (importCustomer !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) {
-        importFields.push(translate('workspace.netsuite.import.customersOrJobs.customers'));
-    }
-
-    if (importJobs !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) {
-        importFields.push(translate('workspace.netsuite.import.customersOrJobs.jobs'));
-    }
-
-    const importedValueLabel = translate(`workspace.netsuite.import.customersOrJobs.label`, importFields, translate(`workspace.accounting.importTypes.${importedValue}`).toLowerCase());
-    return importedValueLabel.charAt(0).toUpperCase() + importedValueLabel.slice(1);
-}
-
-function getNetSuiteImportCustomFieldLabel(
-    policy: Policy | undefined,
-    importField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>,
-    translate: LocaleContextProps['translate'],
-    localeCompare: LocaleContextProps['localeCompare'],
-): string | undefined {
-    const fieldData = policy?.connections?.netsuite?.options?.config.syncOptions?.[importField] ?? [];
-    if (fieldData.length === 0) {
-        return undefined;
-    }
-
-    const mappingSet = new Set(fieldData.map((item) => item.mapping));
-    const importedTypes = Array.from(mappingSet)
-        .sort((a, b) => localeCompare(b, a))
-        .map((mapping) => translate(`workspace.netsuite.import.importTypes.${mapping !== '' ? mapping : 'TAG'}.label`).toLowerCase());
-    return translate(`workspace.netsuite.import.importCustomFields.label`, importedTypes);
-}
-
-function isNetSuiteCustomSegmentRecord(customField: NetSuiteCustomList | NetSuiteCustomSegment): boolean {
-    return 'segmentName' in customField;
-}
-
-function getNameFromNetSuiteCustomField(customField: NetSuiteCustomList | NetSuiteCustomSegment): string {
-    return 'segmentName' in customField ? customField.segmentName : customField.listName;
-}
-
-function isNetSuiteCustomFieldPropertyEditable(customField: NetSuiteCustomList | NetSuiteCustomSegment, fieldName: string) {
-    const fieldsAllowedToEdit = isNetSuiteCustomSegmentRecord(customField) ? [INPUT_IDS.SEGMENT_NAME, INPUT_IDS.INTERNAL_ID, INPUT_IDS.SCRIPT_ID, INPUT_IDS.MAPPING] : [INPUT_IDS.MAPPING];
-    const fieldKey = fieldName as keyof typeof customField;
-    return fieldsAllowedToEdit.includes(fieldKey);
-}
-
 function getIntegrationLastSuccessfulDate(
     getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'],
     connection?: Connections[keyof Connections],
@@ -2918,10 +2741,10 @@ function isXeroActiveMatchingSource(policy: OnyxEntry<Policy>): boolean {
  * the field.
  *
  * The `vendorMatching` beta only gates the integrations that haven't reached GA yet, so
- * `isVendorMatchingBetaEnabled` is consulted on every branch but QBO, Sage Intacct, Rillet, and DualEntry:
+ * `isVendorMatchingBetaEnabled` is consulted on every branch but QBO, Sage Intacct, Xero, Rillet, and DualEntry:
  *   - QBO (R1) with non-reimbursable export = Credit Card or Debit Card. GA, so no beta required
  *   - Sage Intacct (R2) with non-reimbursable export = Credit Card Charge. GA, so no beta required
- *   - Xero (R3) has no export destination enum, so a configured connection is enough. Beta required
+ *   - Xero (R3) has no export destination enum, so a configured connection is enough. GA, so no beta required
  *   - Rillet (R4) configured connection. GA, so no beta required
  *   - DualEntry configured connection. GA, so no beta required
  *   - Business Central configured connection. Beta required
@@ -2932,13 +2755,16 @@ function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled
     if (!policy) {
         return false;
     }
-    if (isQBOVendorMatchingActive(policy) || isIntacctVendorMatchingActive(policy) || isRilletVendorMatchingActive(policy) || isDualEntryVendorMatchingActive(policy)) {
+    if (
+        isQBOVendorMatchingActive(policy) ||
+        isIntacctVendorMatchingActive(policy) ||
+        isXeroVendorMatchingActive(policy) ||
+        isRilletVendorMatchingActive(policy) ||
+        isDualEntryVendorMatchingActive(policy)
+    ) {
         return true;
     }
-    return (
-        isVendorMatchingBetaEnabled &&
-        (isXeroVendorMatchingActive(policy) || isBusinessCentralVendorMatchingActive(policy) || isCampfireVendorMatchingActive(policy) || isCertiniaVendorMatchingActive(policy))
-    );
+    return isVendorMatchingBetaEnabled && (isBusinessCentralVendorMatchingActive(policy) || isCampfireVendorMatchingActive(policy) || isCertiniaVendorMatchingActive(policy));
 }
 
 /**
@@ -3903,7 +3729,9 @@ export {
     getUberConnectionErrorDirectlyFromPolicy,
     isPolicyOwner,
     isPolicyMember,
+    isMemberInHomeAndOfficeWorkspace,
     isPolicyPayer,
+    canAdminPayReport,
     getReimburserEmail,
     getOwnerChangePayerSuccessData,
     PAYER_ROLES,
@@ -3913,6 +3741,7 @@ export {
     getReimbursementChoice,
     isSubmitterAndApprover,
     isSubmitAndClose,
+    areApprovalsEnabled,
     isTaxTrackingEnabled,
     shouldShowPolicy,
     getActiveAdminWorkspaces,
@@ -3928,21 +3757,7 @@ export {
     getXeroBankAccounts,
     getXeroExpenseAccounts,
     hasPolicyWithXeroConnection,
-    getNetSuiteVendorOptions,
-    canUseTaxNetSuite,
-    canUseProvincialTaxNetSuite,
     getEligibleBankAccountShareRecipientEmails,
-    getFilteredReimbursableAccountOptions,
-    getNetSuiteReimbursableAccountOptions,
-    getFilteredCollectionAccountOptions,
-    getNetSuiteCollectionAccountOptions,
-    getFilteredApprovalAccountOptions,
-    getNetSuiteApprovalAccountOptions,
-    getNetSuitePayableAccountOptions,
-    getNetSuiteReceivableAccountOptions,
-    getNetSuiteExpenseAccountOptions,
-    getNetSuiteInvoiceItemOptions,
-    getNetSuiteTaxAccountOptions,
     getSageIntacctVendors,
     getSageIntacctNonReimbursableActiveDefaultVendor,
     getSageIntacctCreditCards,
@@ -3961,7 +3776,6 @@ export {
     navigateToExpensifyCardPage,
     getIntegrationLastSuccessfulDate,
     getCurrentConnectionName,
-    getCustomersOrJobsLabelNetSuite,
     getDefaultApprover,
     hasCustomApprovalWorkflow,
     getApprovalWorkflow,
@@ -3969,9 +3783,6 @@ export {
     isControlPolicy,
     isAttendeeTrackingEnabled,
     isCollectPolicy,
-    isNetSuiteCustomSegmentRecord,
-    getNameFromNetSuiteCustomField,
-    isNetSuiteCustomFieldPropertyEditable,
     getCurrentSageIntacctEntityName,
     hasOnlyPersonalPolicies,
     getCurrentTaxID,
@@ -3993,7 +3804,6 @@ export {
     getDomainNameForPolicy,
     hasSupportedOnlyOnOldDotIntegration,
     getWorkflowApprovalsUnavailable,
-    getNetSuiteImportCustomFieldLabel,
     getUserFriendlyWorkspaceType,
     getDefaultWorkspacePlanType,
     isPolicyAccessible,
