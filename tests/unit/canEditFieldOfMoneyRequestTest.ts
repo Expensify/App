@@ -137,13 +137,15 @@ describe('canEditFieldOfMoneyRequest', () => {
                 expect(canEditReportField).toBe(true);
             });
 
-            it('should return false for invoice report action when billable field is edited on an approved invoice report', async () => {
+            it('should return true for invoice report action when billable field is edited on an approved invoice report', async () => {
+                // Given an approved invoice
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, {
                     stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                     statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
                 });
                 await waitForBatchedUpdates();
 
+                // When the billable field is edited
                 const canEditBillable = canEditFieldOfMoneyRequest({
                     reportAction,
                     fieldToEdit: CONST.EDIT_REQUEST_FIELD.BILLABLE,
@@ -151,7 +153,31 @@ describe('canEditFieldOfMoneyRequest', () => {
                     rules: undefined,
                     reportNameValuePairs: undefined,
                 });
-                expect(canEditBillable).toBe(false);
+
+                // Then it is allowed, because billable follows the coding fields in every report state. This is what
+                // the single-expense view already does, so bulk edit has to agree with it
+                expect(canEditBillable).toBe(true);
+            });
+
+            it('should return true for invoice report action when billable field is edited on a paid invoice report', async () => {
+                // Given an invoice that has already been paid, which lands on REIMBURSED rather than APPROVED
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, {
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                });
+                await waitForBatchedUpdates();
+
+                // When the billable field is edited
+                const canEditBillable = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.BILLABLE,
+                    transaction: moneyRequestTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+
+                // Then it is allowed too, so approved and paid invoices stay consistent with each other
+                expect(canEditBillable).toBe(true);
             });
 
             it('should return true for invoice report action when billable field is edited on an unapproved invoice report', () => {

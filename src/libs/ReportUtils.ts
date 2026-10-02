@@ -5407,7 +5407,7 @@ function canEditMultipleTransactions(
 
         // Expenses on approved and paid reports are intentionally allowed here. Per-field permission is what decides
         // what can actually change: canEditFieldOfMoneyRequest blocks the restricted fields (amount, merchant, date,
-        // billable, reimbursable, ...) on a finalized report and keeps the coding fields (category, tag, description,
+        // reimbursable, ...) on a finalized report and keeps the coding fields (category, tag, description, billable,
         // tax, attendees) editable, and canEditMoneyRequest only grants those to policy admins and the report manager.
         // That mirrors the single-expense edit flow, which admins can already use on an approved or paid expense.
         const fieldsToCheck = [
@@ -5535,12 +5535,8 @@ function canEditFieldOfMoneyRequest({
         return false;
     }
 
-    // Billable is not restricted, but it still needs the report resolved below to rule out an approved invoice,
-    // so it has to be kept out of the early return that skips resolving it.
-    const needsReportContext = restrictedFields.includes(fieldToEdit) || fieldToEdit === CONST.EDIT_REQUEST_FIELD.BILLABLE;
-
-    // If we're editing fields such as category, tag, description, etc. the check above should be enough for handling the permission
-    if (!needsReportContext) {
+    // If we're editing fields such as category, tag, description, billable, etc. the check above should be enough for handling the permission
+    if (!restrictedFields.includes(fieldToEdit)) {
         return true;
     }
 
@@ -5549,13 +5545,6 @@ function canEditFieldOfMoneyRequest({
     // Temporary until the backend reliably sends reportID on IOU actions. See https://github.com/Expensify/App/issues/93882.
     const iouReportID = reportAction?.reportID ?? getOriginalMessage(reportAction)?.IOUReportID;
     const moneyRequestReport = report ?? (iouReportID ? (getReport(iouReportID, deprecatedAllReports) ?? ({} as Report)) : ({} as Report));
-
-    // Billable returns here rather than falling through, because the restricted-field rules below would block it on
-    // every approved or paid report - which is exactly the single-expense/bulk divergence this is meant to remove.
-    // An approved invoice is the one case where it stays locked, since its amount is already owed by the buyer.
-    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.BILLABLE) {
-        return !(isInvoiceReport(moneyRequestReport) && isReportApproved({report: moneyRequestReport}));
-    }
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const reportPolicy = policy ?? getPolicy(moneyRequestReport?.policyID);
