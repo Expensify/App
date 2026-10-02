@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearSageIntacctErrorField} from '@libs/actions/Policy/Policy';
+import {getSageIntacctExportDate} from '@libs/ConnectionUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -40,12 +41,13 @@ function SageIntacctDatePage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const {config} = policy?.connections?.intacct ?? {};
     const {export: exportConfig, pendingFields} = policy?.connections?.intacct?.config ?? {};
+    const selectedExportDate = getSageIntacctExportDate(exportConfig?.exportDate);
     const data: MenuListItem[] = Object.values(CONST.SAGE_INTACCT_EXPORT_DATE).map((dateType) => ({
         value: dateType,
         text: translate(`workspace.sageIntacct.exportDate.values.${dateType}.label`),
         alternateText: translate(`workspace.sageIntacct.exportDate.values.${dateType}.description`),
         keyForList: dateType,
-        isSelected: exportConfig?.exportDate === dateType,
+        isSelected: selectedExportDate === dateType,
     }));
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_EXPORT_DATE>>();
     const backTo = route.params?.backTo;
@@ -65,6 +67,8 @@ function SageIntacctDatePage({policy}: WithPolicyProps) {
 
     const selectExportDate = useCallback(
         (row: MenuListItem) => {
+            // Compared against the raw stored value, not the resolved one, so re-picking the selected option on a
+            // workspace still holding a legacy value writes the current value instead of being a no-op.
             if (row.value !== exportConfig?.exportDate && policyID) {
                 updateSageIntacctExportDate(policyID, row.value, exportConfig?.exportDate);
             }
