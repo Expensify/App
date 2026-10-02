@@ -1,0 +1,12 @@
+name: 'Check Explanation of Change verbosity'
+description: 'Flags PRs whose Explanation of Change is disproportionately long relative to the diff, as a non-blocking suggestion'
+outputs:
+  SHOULD_COMMENT:
+    description: "'true' if the Explanation of Change is disproportionately long for the diff size"
+  WORD_COUNT:
+    description: 'Word count of the Explanation of Change section'
+  DELETION_RATIO:
+    description: 'Ratio of deletions to total changed lines (additions + deletions)'
+runs:
+  using: 'node24'
+  main: './index.js'

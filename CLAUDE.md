@@ -63,6 +63,7 @@ Do not use `useMemo`, `useCallback`, or `React.memo` in components or hooks that
 ### Code Quality
 
 - **ESLint**: Linter. Pre-existing violations are grandfathered via the seatbelt ratchet in `scripts/lint/`.
+- **Comments**: Default to no comments. Only comment when explaining a non-obvious WHY. Never explain WHAT the code does — well-named identifiers already do that.
 
 ### Post-Edit Checklist (IMPORTANT)
 
