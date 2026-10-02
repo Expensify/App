@@ -566,7 +566,9 @@ function openReportFromDeepLink(
                         const currentFocusedRoute = findFocusedRoute(state);
 
                         if (isOnboardingFlowName(currentFocusedRoute?.name)) {
-                            setOnboardingErrorMessage('onboarding.purpose.errorBackButton');
+                            if (hasCompletedGuidedSetupFlowSelector(val) === false) {
+                                setOnboardingErrorMessage('onboarding.purpose.errorBackButton');
+                            }
                             return;
                         }
 

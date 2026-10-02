@@ -109,6 +109,11 @@ describe('OnboardingGuard', () => {
 
         it('should BLOCK RESET action when user is on onboarding and tries to reset to non-onboarding screen', async () => {
             // Given a user who is currently on the onboarding purpose screen and has not yet completed onboarding
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+            });
+            await waitForBatchedUpdates();
+
             const onboardingState: NavigationState = {
                 key: 'root',
                 index: 0,
@@ -138,6 +143,35 @@ describe('OnboardingGuard', () => {
             if (result.type === 'BLOCK') {
                 expect(result.reason).toBe('Cannot reset to non-onboarding screen while on onboarding');
             }
+        });
+
+        it('should allow a completed user to reset away from a post-onboarding task screen', async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: true,
+            });
+            await waitForBatchedUpdates();
+
+            const onboardingState: NavigationState = {
+                key: 'root',
+                index: 0,
+                routeNames: [SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION],
+                routes: [{key: 'work-email-validation', name: SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION}],
+                stale: false,
+                type: 'root',
+            };
+            const resetAction: NavigationAction = {
+                type: CONST.NAVIGATION_ACTIONS.RESET,
+                payload: {
+                    key: 'root',
+                    index: 0,
+                    routeNames: [SCREENS.HOME],
+                    routes: [{key: 'home', name: SCREENS.HOME}],
+                    stale: false,
+                    type: 'root',
+                },
+            };
+
+            expect(OnboardingGuard.evaluate(onboardingState, resetAction, authenticatedContext).type).toBe('ALLOW');
         });
     });
 
