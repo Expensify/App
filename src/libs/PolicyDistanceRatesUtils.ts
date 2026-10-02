@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 import type {GovernmentRateCountry, IOURequestType} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import type {GovernmentMileageRate, Policy} from '@src/types/onyx';
 import type {CustomUnit, Rate, RateAttributes, Unit} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
@@ -13,10 +13,14 @@ import type {NullishDeep, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+import type {Option} from './searchOptions';
+
 import {getMicroSecondOnyxErrorWithTranslationKey} from './ErrorUtils';
 import getPermittedDecimalSeparator from './getPermittedDecimalSeparator';
+import Log from './Log';
 import {replaceAllDigits} from './MoneyRequestUtils';
-import {parseFloatAnyLocale} from './NumberUtils';
+import {generateHexadecimalValue, parseFloatAnyLocale} from './NumberUtils';
+import StringUtils from './StringUtils';
 import {isRequiredFulfilled} from './ValidationUtils';
 
 type RateValueForm = typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM | typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM;
@@ -230,7 +234,7 @@ function isGovernmentRateUnmodified(rate: Rate, currentUnit?: Unit): boolean {
     return isRateAmountMatching && (rate.startDate ?? undefined) === governmentRate.startDate && (rate.endDate ?? undefined) === governmentRate.endDate;
 }
 
-/** The country publishing government mileage rates for a currency, or undefined when we can't auto-update them. */
+/** The country publishing government mileage rates for a currency, or undefined when the currency alone cannot pick one. */
 function getGovernmentRateCountryForCurrency(currency?: string): GovernmentRateCountry | undefined {
     if (!currency) {
         return undefined;
@@ -240,25 +244,226 @@ function getGovernmentRateCountryForCurrency(currency?: string): GovernmentRateC
     return currencyToCountry[currency];
 }
 
+/** Whether the currency is shared by several supported countries, so the workspace chooses the country itself. */
+function isSharedGovernmentRateCurrency(currency?: string): boolean {
+    return currency === CONST.CURRENCY.EUR;
+}
+
 /** Whether we can auto-update government distance rates for this output currency. */
 function isCurrencySupportedForAutoUpdate(currency?: string): boolean {
-    return !!getGovernmentRateCountryForCurrency(currency);
+    return !!getGovernmentRateCountryForCurrency(currency) || isSharedGovernmentRateCurrency(currency);
+}
+
+/** The country whose government mileage rates this policy auto-updates: the stored choice for EUR, derived from the currency otherwise. */
+function getAutoUpdateGovernmentRateCountry(policy: Policy | null | undefined): GovernmentRateCountry | undefined {
+    if (!policy) {
+        return undefined;
+    }
+
+    if (isSharedGovernmentRateCurrency(policy.outputCurrency)) {
+        const selectedCountry = policy.autoUpdateGovernmentRateCountry;
+        return CONST.CUSTOM_UNITS.GOVERNMENT_RATE_SUPPORTED_EUR_COUNTRIES.find((country) => country === selectedCountry);
+    }
+
+    return getGovernmentRateCountryForCurrency(policy.outputCurrency);
+}
+
+/** The unit a country publishes its mileage rates in. */
+function getExpectedUnitForCountry(country?: string): Unit | undefined {
+    if (!country) {
+        return undefined;
+    }
+
+    const countryToUnit: Partial<Record<string, Unit>> = CONST.CUSTOM_UNITS.GOVERNMENT_RATE_COUNTRY_TO_UNIT;
+    return countryToUnit[country];
 }
 
 /** The unit the currency's country publishes its mileage rates in. */
 function getExpectedUnitForCurrency(currency?: string): Unit | undefined {
-    const country = getGovernmentRateCountryForCurrency(currency);
-    return country ? CONST.CUSTOM_UNITS.GOVERNMENT_RATE_COUNTRY_TO_UNIT[country] : undefined;
+    return getExpectedUnitForCountry(getGovernmentRateCountryForCurrency(currency));
 }
 
 /** Translation key for the country phrase in the auto-update copy, e.g. "the United States". */
-function getGovernmentRateCountryPhraseTranslationKey(currency?: string): TranslationPaths | undefined {
-    const country = getGovernmentRateCountryForCurrency(currency);
+function getGovernmentRateCountryPhraseTranslationKey(country?: GovernmentRateCountry): TranslationPaths | undefined {
     if (!country) {
         return undefined;
     }
 
     return `workspace.distanceRates.governmentRateCountries.${country}`;
+}
+
+/** Sorted options for the countries that share the EUR government mileage rates. */
+function getGovernmentRateCountryOptions(translate: LocalizedTranslate, localeCompare: (a: string, b: string) => number, selectedCountry?: string): Option[] {
+    return CONST.CUSTOM_UNITS.GOVERNMENT_RATE_SUPPORTED_EUR_COUNTRIES.map((countryCode) => {
+        const countryName = translate(`allCountries.${countryCode}` as TranslationPaths);
+        return {
+            value: countryCode as string,
+            keyForList: countryCode as string,
+            text: countryName,
+            isSelected: selectedCountry === countryCode,
+            searchValue: StringUtils.sanitizeString(`${countryCode}${countryName}`),
+        };
+    }).sort((a, b) => localeCompare(a.text, b.text));
+}
+
+/**
+ * Builds the optimistic, success and failure Onyx data for enabling or disabling government rate auto-update,
+ * including the optimistic copy of the country's reference rates and the distance unit correction. Shared by the
+ * SetWorkspaceDistanceAutoUpdate command and the merged currency change in updateGeneralSettings.
+ *
+ * `customUnit` can be missing when the server-created custom unit isn't in Onyx yet. The rate copying and unit correction
+ * are skipped then, and the server response fills them in.
+ *
+ * The previous enabled state and country describe the policy before the change, so a failed request restores exactly
+ * what the server still has.
+ */
+function buildOnyxDataForGovernmentRateAutoUpdate(
+    policyID: string,
+    customUnit: CustomUnit | undefined,
+    shouldAutoUpdateGovernmentDistanceRates: boolean,
+    governmentMileageRates: GovernmentMileageRate[],
+    outputCurrency: string | undefined,
+    countryCode?: string,
+    previousAutoUpdateEnabled?: boolean,
+    previousCountryCode?: string,
+): {optimisticRateIDs: Record<string, string>; onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY>} {
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+    const customUnitID = customUnit?.customUnitID;
+
+    const optimisticRates: Record<string, Rate> = {};
+    const clearedRatePendingActions: Record<string, NullishDeep<Rate>> = {};
+    const failureRates: Record<string, null> = {};
+    const optimisticRateIDs: Record<string, string> = {};
+
+    if (shouldAutoUpdateGovernmentDistanceRates && customUnit) {
+        const copiedSourceRateIDs = new Set(Object.values(customUnit.rates ?? {}).map((rate) => rate.attributes?.governmentRate?.sourceRateID));
+
+        for (const governmentMileageRate of governmentMileageRates) {
+            // GOVERNMENT_MILEAGE_RATES is one key shared by every policy, so it can still hold another policy's rates
+            if (governmentMileageRate.currency !== outputCurrency) {
+                Log.warn('[buildOnyxDataForGovernmentRateAutoUpdate] Skipping a government reference rate loaded for another currency', {
+                    policyID,
+                    outputCurrency,
+                    rateCurrency: governmentMileageRate.currency,
+                    sourceRateID: governmentMileageRate.sourceRateID,
+                });
+                continue;
+            }
+
+            // Several countries share the EUR currency, so also match the selected country from the sourceRateID prefix
+            if (countryCode && governmentMileageRate.sourceRateID.split('_').at(0) !== countryCode) {
+                continue;
+            }
+
+            // The server de-dupes by sourceRateID, so skip what the policy already has
+            if (copiedSourceRateIDs.has(governmentMileageRate.sourceRateID)) {
+                continue;
+            }
+
+            const customUnitRateID = generateHexadecimalValue(13);
+            optimisticRateIDs[governmentMileageRate.sourceRateID] = customUnitRateID;
+            optimisticRates[customUnitRateID] = {
+                customUnitRateID,
+                name: governmentMileageRate.name,
+                rate: governmentMileageRate.rate,
+                currency: governmentMileageRate.currency,
+                enabled: governmentMileageRate.enabled ?? true,
+                startDate: governmentMileageRate.startDate,
+                ...(governmentMileageRate.endDate ? {endDate: governmentMileageRate.endDate} : {}),
+                attributes: {
+                    governmentRate: {
+                        sourceRateID: governmentMileageRate.sourceRateID,
+                        rate: governmentMileageRate.rate,
+                        startDate: governmentMileageRate.startDate,
+                        ...(governmentMileageRate.endDate ? {endDate: governmentMileageRate.endDate} : {}),
+                    },
+                },
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            };
+            clearedRatePendingActions[customUnitRateID] = {pendingAction: null};
+            failureRates[customUnitRateID] = null;
+        }
+    }
+
+    const currentUnit = customUnit?.attributes?.unit;
+    const expectedUnit = countryCode ? getExpectedUnitForCountry(countryCode) : getExpectedUnitForCurrency(outputCurrency);
+    const shouldCorrectUnit = shouldAutoUpdateGovernmentDistanceRates && !!expectedUnit && !!currentUnit && currentUnit !== expectedUnit;
+
+    // The failure data restores the state the server still has, so the previous values decide what to write back
+    const failureAutoUpdateValue = previousAutoUpdateEnabled ? true : null;
+
+    const optimisticCustomUnit: NullishDeep<CustomUnit> = {
+        ...(Object.keys(optimisticRates).length > 0 ? {rates: optimisticRates} : {}),
+        ...(shouldCorrectUnit ? {attributes: {unit: expectedUnit}, pendingFields: {attributes: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}} : {}),
+    };
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    shouldAutoUpdateGovernmentDistanceRates: shouldAutoUpdateGovernmentDistanceRates ? true : null,
+                    ...(countryCode ? {autoUpdateGovernmentRateCountry: countryCode} : {}),
+                    pendingFields: {
+                        shouldAutoUpdateGovernmentDistanceRates: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        ...(countryCode ? {autoUpdateGovernmentRateCountry: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE} : {}),
+                    },
+                    errorFields: {shouldAutoUpdateGovernmentDistanceRates: null},
+                    ...(customUnitID && Object.keys(optimisticCustomUnit).length > 0 ? {customUnits: {[customUnitID]: optimisticCustomUnit}} : {}),
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    pendingFields: {
+                        shouldAutoUpdateGovernmentDistanceRates: null,
+                        ...(countryCode ? {autoUpdateGovernmentRateCountry: null} : {}),
+                    },
+                    ...(customUnitID && (Object.keys(clearedRatePendingActions).length > 0 || shouldCorrectUnit)
+                        ? {
+                              customUnits: {
+                                  [customUnitID]: {
+                                      ...(Object.keys(clearedRatePendingActions).length > 0 ? {rates: clearedRatePendingActions} : {}),
+                                      ...(shouldCorrectUnit ? {pendingFields: {attributes: null}} : {}),
+                                  },
+                              },
+                          }
+                        : {}),
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    shouldAutoUpdateGovernmentDistanceRates: failureAutoUpdateValue,
+                    ...(countryCode ? {autoUpdateGovernmentRateCountry: previousCountryCode ?? null} : {}),
+                    pendingFields: {
+                        shouldAutoUpdateGovernmentDistanceRates: null,
+                        ...(countryCode ? {autoUpdateGovernmentRateCountry: null} : {}),
+                    },
+                    errorFields: {shouldAutoUpdateGovernmentDistanceRates: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                    ...(customUnitID && (Object.keys(failureRates).length > 0 || shouldCorrectUnit)
+                        ? {
+                              customUnits: {
+                                  [customUnitID]: {
+                                      ...(Object.keys(failureRates).length > 0 ? {rates: failureRates} : {}),
+                                      ...(shouldCorrectUnit ? {attributes: {unit: currentUnit}, pendingFields: {attributes: null}} : {}),
+                                  },
+                              },
+                          }
+                        : {}),
+                },
+            },
+        ],
+    };
+
+    return {optimisticRateIDs, onyxData};
 }
 
 function isCommuterExclusionEnabled(policy: Policy | null | undefined): policy is Policy & {id: string; commuterExclusions: NonNullable<Policy['commuterExclusions']>} {
@@ -299,11 +504,15 @@ export {
     validateTaxClaimableValue,
     validateCreateDistanceRateForm,
     buildOnyxDataForPolicyDistanceRateUpdates,
+    buildOnyxDataForGovernmentRateAutoUpdate,
     getRateStatus,
     getGovernmentRateCountryForCurrency,
+    isSharedGovernmentRateCurrency,
     isCurrencySupportedForAutoUpdate,
+    getAutoUpdateGovernmentRateCountry,
     getExpectedUnitForCurrency,
     getGovernmentRateCountryPhraseTranslationKey,
+    getGovernmentRateCountryOptions,
     isCommuterExclusionEnabled,
     isMapOrGPSRequired,
     getDistanceExpenseTypeForPolicy,
