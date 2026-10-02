@@ -4,6 +4,7 @@ import {setLiveWideTabPreMountRouteKey} from '@libs/Navigation/helpers/wideTabPr
 import type NonTopScreenWrapperProps from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/nonTopScreenWrapperTypes';
 import ScreenActivityWrapper from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/ScreenActivityWrapper';
 import ScreenFreezeWrapper from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/ScreenFreezeWrapper';
+import WideTabPreMountPreloadedBoundary from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/WideTabPreMountPreloadedBoundary';
 import wrapDescriptorsWithNonTopScreensBehavior from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/wrapDescriptorsWithNonTopScreensBehavior';
 import type {NonTopScreenBehavior, PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 
@@ -40,6 +41,13 @@ function buildState(): PlatformStackNavigationState<ParamListBase> {
 
 function renderWrapped(descriptor: {render: () => React.JSX.Element}): ReactElement<NonTopScreenWrapperProps> {
     return descriptor.render();
+}
+
+type BoundaryProps = {isHiddenPreMount: boolean; children: ReactElement};
+
+function getBoundary(wrapped: ReactElement<NonTopScreenWrapperProps>): ReactElement<BoundaryProps> | undefined {
+    const child = wrapped.props.children;
+    return React.isValidElement<BoundaryProps>(child) && child.type === WideTabPreMountPreloadedBoundary ? child : undefined;
 }
 
 describe('wrapDescriptorsWithNonTopScreensBehavior', () => {
@@ -97,6 +105,26 @@ describe('wrapDescriptorsWithNonTopScreensBehavior', () => {
         const covered = renderWrapped(result[COVERED_KEY]);
         expect(covered.type).toBe(ScreenFreezeWrapper);
         expect(covered.props.isScreenBlurred).toBe(false);
+        // And it counts as preloaded, so it holds work like marking the report read until the user sees it
+        expect(getBoundary(covered)).toBeDefined();
+        expect(getBoundary(covered)?.props.isHiddenPreMount).toBe(true);
+        expect(getBoundary(renderWrapped(result[TOP_KEY]))?.props.isHiddenPreMount).toBe(false);
+    });
+
+    it('stops counting a wide submit pre-mount as preloaded once it is the top screen, keeping the same tree', () => {
+        // Given the live wide pre-mount that the reveal has just put on top
+        setLiveWideTabPreMountRouteKey(TOP_KEY);
+        const descriptors = {[COVERED_KEY]: buildDescriptor('Covered', 'freeze'), [TOP_KEY]: buildDescriptor('Top', 'freeze')};
+
+        // When they are wrapped
+        const result = wrapDescriptorsWithNonTopScreensBehavior(descriptors, buildState());
+        setLiveWideTabPreMountRouteKey(undefined);
+
+        // Then it renders the same wrapper and boundary as before, so it is not remounted, but no longer counts as preloaded
+        const top = renderWrapped(result[TOP_KEY]);
+        expect(top.type).toBe(ScreenFreezeWrapper);
+        expect(getBoundary(top)).toBeDefined();
+        expect(getBoundary(top)?.props.isHiddenPreMount).toBe(false);
     });
 
     it.each([
@@ -112,12 +140,12 @@ describe('wrapDescriptorsWithNonTopScreensBehavior', () => {
         // Then each one keeps its original content inside the wrapper of the picked behavior, and only the covered one is blurred
         const covered = renderWrapped(result[COVERED_KEY]);
         expect(covered.type).toBe(Wrapper);
-        expect(covered.props.children).toEqual(<Text>Covered</Text>);
+        expect(getBoundary(covered)?.props.children).toEqual(<Text>Covered</Text>);
         expect(covered.props.isScreenBlurred).toBe(true);
 
         const top = renderWrapped(result[TOP_KEY]);
         expect(top.type).toBe(Wrapper);
-        expect(top.props.children).toEqual(<Text>Top</Text>);
+        expect(getBoundary(top)?.props.children).toEqual(<Text>Top</Text>);
         expect(top.props.isScreenBlurred).toBe(false);
     });
 
