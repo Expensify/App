@@ -223,8 +223,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         // Insert the synthetic draft into the already-descending render list without treating it as a persisted report action.
         for (const [index, action] of sortedVisibleReportActions.entries()) {
             if (action.reportActionID === draftReportAction.reportActionID) {
-                const isDraftStillRevealingPersistedAction = getReportActionHtml(action) !== getReportActionHtml(draftReportAction);
-                if (!isDraftPendingCompletion && !isDraftStillRevealingPersistedAction) {
+                if (!isDraftPendingCompletion) {
                     return sortedVisibleReportActions;
                 }
 
@@ -258,12 +257,12 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     }, [clearDraft, draftReportAction, isSyntheticDraftVisible]);
 
     useEffect(() => {
-        if (!draftReportAction || !persistedDraftReportAction || getReportActionHtml(draftReportAction) === getReportActionHtml(persistedDraftReportAction)) {
+        if (!isDraftPendingCompletion || !draftReportAction || !persistedDraftReportAction || getReportActionHtml(draftReportAction) === getReportActionHtml(persistedDraftReportAction)) {
             return;
         }
 
         revealDraftFromReportAction(persistedDraftReportAction);
-    }, [draftReportAction, persistedDraftReportAction, revealDraftFromReportAction]);
+    }, [draftReportAction, isDraftPendingCompletion, persistedDraftReportAction, revealDraftFromReportAction]);
 
     // Find the index of the action badge target in the rendered actions list (which is what the FlatList uses as data)
     const actionBadgeTargetID = reportAttributes?.actionTargetReportActionID;
