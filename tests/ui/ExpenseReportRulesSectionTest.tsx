@@ -74,9 +74,9 @@ const mockedToggleSettingOptionRow = jest.mocked(ToggleSettingOptionRow);
 
 const POLICY_ID = 'POLICY_1';
 
-// optionItems order: 0=preventSelfApproval, 1=autoApproveCompliantReports, 2=autoPayApprovedReports
-const AUTO_APPROVE_TOGGLE_INDEX = 1;
-const AUTO_PAY_TOGGLE_INDEX = 2;
+// optionItems order: 0=preventSelfApproval, 1=preventPayoutNonReimbursableReports, 2=autoApproveCompliantReports, 3=autoPayApprovedReports
+const AUTO_APPROVE_TOGGLE_INDEX = 2;
+const AUTO_PAY_TOGGLE_INDEX = 3;
 
 const AUTO_PAY_UPGRADE_ROUTE = ROUTES.WORKSPACE_UPGRADE.getRoute(POLICY_ID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoPayApprovedReports.alias, ROUTES.WORKSPACE_WORKFLOWS.getRoute(POLICY_ID));
 
