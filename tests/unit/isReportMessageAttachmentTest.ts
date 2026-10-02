@@ -24,6 +24,45 @@ describe('isReportMessageAttachment', () => {
         expect(isReportMessageAttachment(message)).toBe(false);
     });
 
+    it('recognizes a file anchor the server re-serialized without the source attribute', () => {
+        // Given an attachment-only comment after an edit, where only the attachment ID survived the round trip
+        const message: Message = {
+            text: '[Attachment]',
+            html: '<a href="https://www.expensify.com/chat-attachments/123/w_abc.csv" data-attachment-id="4452857061970178025" target="_blank" rel="noreferrer noopener">renamed_file.csv</a>',
+            type: '',
+        };
+
+        // When it is checked
+        // Then it still counts as an attachment-only message, so the LHN keeps showing [Attachment]
+        expect(isReportMessageAttachment(message)).toBe(true);
+    });
+
+    it('keeps a pasted chat attachment link that carries no attachment ID as an ordinary link', () => {
+        // Given a message that is only a link to a chat attachment URL, with none of the attachment attributes
+        const message: Message = {
+            text: 'https://www.expensify.com/chat-attachments/123/w_abc.csv',
+            html: '<a href="https://www.expensify.com/chat-attachments/123/w_abc.csv" target="_blank" rel="noreferrer noopener">https://www.expensify.com/chat-attachments/123/w_abc.csv</a>',
+            type: '',
+        };
+
+        // When it is checked
+        // Then it stays a text message, so the LHN and the context menu treat it as one
+        expect(isReportMessageAttachment(message)).toBe(false);
+    });
+
+    it('does not treat an edited attachment with text below it as attachment-only', () => {
+        // Given an edited comment holding a file anchor followed by typed text
+        const message: Message = {
+            text: '[Attachment]\nJ',
+            html: '<a href="https://www.expensify.com/chat-attachments/123/w_abc.csv" data-attachment-id="1" target="_blank" rel="noreferrer noopener">file.csv</a><br />J',
+            type: '',
+        };
+
+        // When it is checked
+        // Then the text makes it a mixed comment
+        expect(isReportMessageAttachment(message)).toBe(false);
+    });
+
     it('returns true for optimistic attachment-only via translationKey', () => {
         const message: Message = {
             text: '[Attachment]',
