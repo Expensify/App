@@ -1014,6 +1014,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({date}: {date: string}) => `A assinatura termina em ${date}`,
                 cta: 'Gerenciar',
             },
+            emailDeliveryFailure: {title: 'Não podemos enviar notificações por e-mail para você', subtitle: 'Conta'},
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -11614,6 +11615,19 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             title: 'Crie seus próprios agentes',
             description: `<muted-text>Crie agentes personalizados para revisar, aprovar e direcionar despesas com base nas regras que você definir. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Saiba mais</a>.</muted-text>`,
         },
+    },
+    emailIssuePage: {
+        title: 'Problema de e-mail',
+        intro: (login: string) => `Nosso provedor de e-mail pausou o envio para <strong>${login}</strong> devido a problemas de entrega. Para resolver esse problema:`,
+        confirmEmailTitle: 'Confirme seu endereço de e-mail',
+        confirmEmailDescription: (login: string) =>
+            `Verifique se <strong>${login}</strong> está escrito corretamente e é uma caixa de entrada real. Apelidos como "expenses@domain.com" precisam de uma caixa de entrada própria e funcional para entrar no Expensify.`,
+        allowlistTitle: 'Colocar expensify.com na lista de permissões',
+        allowlistDescription: `Adicione <strong>expensify.com</strong> à lista de permissões do seu cliente de e-mail. Talvez seja necessário que o TI ajuste as configurações do servidor seguindo <a href="${CONST.SET_NOTIFICATION_LINK}">estas instruções</a>.`,
+        getHelpFromConcierge: 'Obter ajuda do Concierge',
+        completedSteps: 'Concluí as etapas acima',
+        errorTitle: 'Algo deu errado. Tente novamente.',
+        errorPrompt: 'Parece que algo não funcionou. Tente novamente. Se o problema persistir, entre em contato com a Concierge.',
     },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Renove sua assinatura por um período de 12 meses, de ${startDate} a ${endDate}.`,

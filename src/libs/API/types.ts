@@ -692,6 +692,7 @@ const WRITE_COMMANDS = {
     GET_VALIDATE_CODE_FOR_ACCOUNT_MERGE: 'GetValidateCodeForAccountMerge',
     MERGE_WITH_VALIDATE_CODE: 'MergeWithValidateCode',
     RESET_SMS_DELIVERY_FAILURE_STATUS: 'ResetSMSDeliveryFailureStatus',
+    USER_UNBLOCK_EMAIL: 'User_UnblockEmail',
     SAVE_CORPAY_ONBOARDING_COMPANY_DETAILS: 'SaveCorpayOnboardingCompanyDetails',
     SAVE_CORPAY_ONBOARDING_BENEFICIAL_OWNER: 'SaveCorpayOnboardingBeneficialOwner',
     DELETE_APP_REPORT: 'DeleteAppReport',
@@ -1192,6 +1193,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SEND_REMINDER_FOR_CORPAY_SINGER_INFORMATION]: Parameters.SendReminderForCorpaySignerInformationParams;
     [WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT]: Parameters.UpdateWorkspaceCustomUnitParams;
     [WRITE_COMMANDS.RESET_SMS_DELIVERY_FAILURE_STATUS]: Parameters.ResetSMSDeliveryFailureStatusParams;
+    [WRITE_COMMANDS.USER_UNBLOCK_EMAIL]: null;
     [WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_COMPANY_DETAILS]: Parameters.SaveCorpayOnboardingCompanyDetailsParams;
     [WRITE_COMMANDS.SET_POLICY_PROHIBITED_EXPENSES]: Parameters.SetPolicyProhibitedExpensesParams;
     [WRITE_COMMANDS.SET_POLICY_COMMUTER_EXCLUSIONS]: Parameters.SetPolicyCommuterExclusionsParams;

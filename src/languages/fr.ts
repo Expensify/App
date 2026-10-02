@@ -1016,6 +1016,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({date}: {date: string}) => `L’abonnement prend fin le ${date}`,
                 cta: 'Gérer',
             },
+            emailDeliveryFailure: {title: 'Nous ne pouvons pas vous envoyer de notifications par e-mail', subtitle: 'Compte'},
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -11735,6 +11736,19 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             title: 'Créez vos propres agents',
             description: `<muted-text>Créez des agents personnalisés pour examiner, approuver et acheminer les dépenses selon les règles que vous définissez. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">En savoir plus</a>.</muted-text>`,
         },
+    },
+    emailIssuePage: {
+        title: 'Problème d’e-mail',
+        intro: (login: string) => `Notre fournisseur d’e-mails a interrompu l’envoi vers <strong>${login}</strong> en raison de problèmes de distribution. Pour résoudre ce problème :`,
+        confirmEmailTitle: 'Confirmez votre adresse e-mail',
+        confirmEmailDescription: (login: string) =>
+            `Assurez-vous que <strong>${login}</strong> est correctement orthographié et qu’il s’agit d’une véritable boîte de réception. Les alias comme « expenses@domain.com » doivent avoir leur propre boîte de réception fonctionnelle pour se connecter à Expensify.`,
+        allowlistTitle: 'Ajouter expensify.com à la liste d’autorisation',
+        allowlistDescription: `Ajoutez <strong>expensify.com</strong> à la liste d’autorisation de votre client de messagerie. Vous aurez peut-être besoin que l’équipe informatique ajuste les paramètres du serveur en suivant <a href="${CONST.SET_NOTIFICATION_LINK}">ces instructions</a>.`,
+        getHelpFromConcierge: 'Obtenir de l’aide de Concierge',
+        completedSteps: 'J’ai effectué les étapes ci-dessus',
+        errorTitle: 'Une erreur s’est produite. Veuillez réessayer.',
+        errorPrompt: "Il semble que quelque chose n'ait pas fonctionné. Veuillez réessayer. Si le problème persiste, veuillez contacter Concierge.",
     },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Renouvelez votre abonnement pour une durée de 12 mois, du ${startDate} au ${endDate}.`,

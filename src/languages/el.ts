@@ -1054,6 +1054,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({date}: {date: string}) => `Η συνδρομή λήγει στις ${date}`,
                 cta: 'Διαχείριση',
             },
+            emailDeliveryFailure: {title: 'Δεν μπορούμε να σας στέλνουμε ειδοποιήσεις μέσω email', subtitle: 'Λογαρια​σμός'},
         },
         freeTrialSection: {
             title: ({count}: {count: number}) => ({
@@ -11949,6 +11950,19 @@ ${reportName}`,
         companyPays: 'Η εταιρεία πληρώνει',
         employeePays: 'Ο εργαζόμενος πληρώνει',
         errorMessage: 'Δεν ήταν δυνατή η αλλαγή της προτίμησης χρέωσης μετατροπής νομίσματος. Παρακαλούμε δοκιμάστε ξανά ή επικοινωνήστε με την υποστήριξη.',
+    },
+    emailIssuePage: {
+        title: 'Πρόβλημα email',
+        intro: (login: string) => `Ο πάροχος email μας διέκοψε την αποστολή προς τη διεύθυνση <strong>${login}</strong> λόγω προβλημάτων παράδοσης. Για να διορθώσετε αυτό το ζήτημα:`,
+        confirmEmailTitle: 'Επιβεβαιώστε τη διεύθυνση email σας',
+        confirmEmailDescription: (login: string) =>
+            `Βεβαιωθείτε ότι το <strong>${login}</strong> είναι σωστά γραμμένο και αντιστοιχεί σε πραγματικά εισερχό​μενα. Τα ψευδώνυμα όπως «expenses@domain.com» χρειάζονται τα δικά τους λειτουργικά εισερχό​μενα για να συνδεθούν στο Expensify.`,
+        allowlistTitle: 'Προσθέστε το expensify.com στη λίστα επιτρεπόμενων',
+        allowlistDescription: `Προσθέστε το <strong>expensify.com</strong> στη λίστα επιτρεπόμενων του προγράμματος ηλεκτρονικής αλληλογραφίας σας. Ίσως χρειαστείτε το τμήμα IT για να προσαρμόσει τις ρυθμίσεις διακομιστή μέσω <a href="${CONST.SET_NOTIFICATION_LINK}">αυτών των οδηγιών</a>.`,
+        getHelpFromConcierge: 'Λάβετε βοήθεια από το Concierge',
+        completedSteps: 'Ολοκλήρωσα τα παραπάνω βήματα',
+        errorTitle: 'Κάτι πήγε στραβά. Δοκιμάστε ξανά',
+        errorPrompt: 'Φαίνεται πως κάτι δεν λειτούργησε. Δοκιμάστε ξανά. Αν το πρόβλημα συνεχιστεί, επικοινωνήστε με το Concierge.',
     },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Ανανεώστε τη συνδρομή σας για περίοδο 12 μηνών, από ${startDate} έως ${endDate}.`,

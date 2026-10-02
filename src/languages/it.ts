@@ -1015,6 +1015,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({date}: {date: string}) => `L’abbonamento termina il ${date}`,
                 cta: 'Gestisci',
             },
+            emailDeliveryFailure: {title: 'Non possiamo inviarti notifiche via email', subtitle: 'Account'},
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -11658,6 +11659,19 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             title: 'Crea i tuoi agenti',
             description: `<muted-text>Crea agenti personalizzati per verificare, approvare e instradare le spese in base alle regole che imposti. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Scopri di più</a>.</muted-text>`,
         },
+    },
+    emailIssuePage: {
+        title: 'Problema email',
+        intro: (login: string) => `Il nostro provider di posta elettronica ha sospeso l’invio a <strong>${login}</strong> a causa di problemi di consegna. Per risolvere questo problema:`,
+        confirmEmailTitle: 'Conferma il tuo indirizzo email',
+        confirmEmailDescription: (login: string) =>
+            `Assicurati che <strong>${login}</strong> sia scritto correttamente e che sia una casella di posta reale. Gli alias come "expenses@domain.com" devono avere una propria casella di posta funzionante per accedere a Expensify.`,
+        allowlistTitle: 'Metti expensify.com nella allowlist',
+        allowlistDescription: `Aggiungi <strong>expensify.com</strong> alla allowlist del tuo client di posta elettronica. Potresti aver bisogno dell’IT per modificare le impostazioni del server seguendo <a href="${CONST.SET_NOTIFICATION_LINK}">queste istruzioni</a>.`,
+        getHelpFromConcierge: 'Ottieni aiuto da Concierge',
+        completedSteps: 'Ho completato i passaggi sopra',
+        errorTitle: 'Qualcosa è andato storto. Riprova per favore',
+        errorPrompt: 'Sembra che qualcosa non abbia funzionato. Riprova. Se il problema persiste, contatta Concierge.',
     },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Rinnova il tuo abbonamento per un periodo di 12 mesi, dal ${startDate} al ${endDate}.`,

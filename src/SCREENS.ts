@@ -95,6 +95,7 @@ const SCREENS = {
         TROUBLESHOOT: 'Settings_Troubleshoot',
         TROUBLESHOOT_SERVER: 'Settings_Troubleshoot_Server',
         HELP: 'Settings_Help',
+        EMAIL_ISSUE: 'Settings_Email_Issue',
         DYNAMIC_VERIFY_ACCOUNT: 'Dynamic_Verify_Account',
         DYNAMIC_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT: 'Dynamic_Add_Bank_Account_Verify_Account',
         DYNAMIC_EXIT_SURVEY_CONFIRM: 'Dynamic_ExitSurvey_Confirm',

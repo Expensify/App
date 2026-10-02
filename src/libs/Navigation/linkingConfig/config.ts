@@ -137,6 +137,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.EMAIL_ISSUE]: {
+                            path: ROUTES.SETTINGS_EMAIL_ISSUE,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_BILLING_CURRENCY]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_CHANGE_BILLING_CURRENCY,
                             exact: true,
