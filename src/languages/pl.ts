@@ -3045,7 +3045,7 @@ ${amount} dla ${merchant} - ${date}`,
             `${memberName} jest już w procesie zatwierdzania, który przesyła do ${approverName}. Dodanie go tutaj przeniesie go do tego procesu.`,
         moveEveryoneToThisWorkflowTitle: 'Przenieś wszystkich do tego przepływu pracy',
         moveEveryoneToThisWorkflowPrompt:
-            'Za chwilę przeniesiesz wszystkich do tego schematu zatwierdzania. Spowoduje to usunięcie wszystkich innych schematów zatwierdzania i przeniesienie wszystkich do tego jednego. Tej czynności nie da się cofnąć.',
+            'Za chwilę przeniesiesz wszystkich do tego nowego schematu zatwierdzania. Zapisanie go spowoduje usunięcie wszystkich innych schematów zatwierdzania. Tej czynności nie da się cofnąć.',
     },
     workflowsApproverPage: {
         genericErrorMessage: 'Nie udało się zmienić osoby zatwierdzającej. Spróbuj ponownie lub skontaktuj się z pomocą techniczną.',

@@ -2909,7 +2909,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
             `${memberName}已在提交给${approverName}的审批流程中。在此处添加将把该成员移动到此工作流。`,
         moveEveryoneToThisWorkflowTitle: '将所有人移至此工作流程',
-        moveEveryoneToThisWorkflowPrompt: '您即将将所有人迁移到此审批流程。这将删除所有其他审批流程，并将所有人迁移到此流程。此操作无法撤销。',
+        moveEveryoneToThisWorkflowPrompt: '您即将将所有人迁移到此新审批流程。保存后，所有其他审批流程都将被删除。此操作无法撤销。',
     },
     workflowsApproverPage: {
         genericErrorMessage: '无法更改审批人。请重试或联系支持。',

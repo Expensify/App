@@ -3012,7 +3012,7 @@ ${amount} per ${merchant} - ${date}`,
             `${memberName} è già in un flusso di approvazione che invia a ${approverName}. Aggiungendolo qui lo sposterà in questo flusso di lavoro.`,
         moveEveryoneToThisWorkflowTitle: 'Sposta tutti in questo flusso di lavoro',
         moveEveryoneToThisWorkflowPrompt:
-            'Stai per spostare tutti a questo flusso di approvazione. Questo eliminerà tutti gli altri flussi di approvazione e sposterà tutti su questo. Questa azione non può essere annullata.',
+            'Stai per spostare tutti in questo nuovo flusso di approvazione. Salvandolo, tutti gli altri flussi di approvazione verranno eliminati. Questa azione non può essere annullata.',
     },
     workflowsApproverPage: {
         genericErrorMessage: "Non è stato possibile modificare l'approvatore. Riprova o contatta l'assistenza.",
