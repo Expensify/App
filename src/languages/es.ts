@@ -4616,7 +4616,7 @@ ${amount} para ${merchant} - ${date}`,
             railManual:
                 '¿Sabías que puedes reservar viajes en tren directamente en Expensify y seguir usando tus programas de fidelidad y tus tarjetas ferroviarias? La próxima vez evita la molestia de crear tu gasto manualmente y simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
-                '¿Sabías que puedes reservar viajes en tren directamente en Expensify y seguir usando tus programas de fidelización ferroviaria y tus railcards? Además, sube automáticamente los recibos por ti. La próxima vez simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+                '¿Sabías que puedes reservar viajes en tren directamente en Expensify y seguir usando tus programas de fidelidad y tus tarjetas ferroviarias? Además, sube automáticamente los recibos por ti. La próxima vez simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             hotelBlockManual:
                 '¿Sabías que puedes reservar y gestionar viajes en grupo como este directamente en Expensify? Evita complicaciones la próxima vez y prueba nuestra herramienta de <a href="https://help.expensify.com/travel/hubs/event-management/">Eventos de viaje</a>.',
             hotelBlockCard:
