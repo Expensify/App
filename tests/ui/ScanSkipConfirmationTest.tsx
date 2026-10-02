@@ -22,8 +22,11 @@ import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import type * as MockUseConfirmModalUtil from '../utils/mockUseConfirmModal';
+
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
+import {mockShowConfirmModal, resetMockConfirmModal} from '../utils/mockUseConfirmModal';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -109,6 +112,16 @@ jest.mock('@libs/actions/IOU/MoneyRequest', () => {
 });
 
 jest.mock('@libs/getCurrentPosition');
+
+jest.mock('@hooks/useConfirmModal', () => {
+    const {default: mockUseConfirmModal} = jest.requireActual<typeof MockUseConfirmModalUtil>('../utils/mockUseConfirmModal');
+    return mockUseConfirmModal;
+});
+
+jest.mock('@components/Modal/Global/ModalContext', () => {
+    const {createMockModalContextModule} = jest.requireActual<typeof MockUseConfirmModalUtil>('../utils/mockUseConfirmModal');
+    return createMockModalContextModule();
+});
 
 jest.mock('@libs/Navigation/helpers/submitWithDismissFirst', () => ({
     submitWithDismissFirst: (params: {executeWrite: (overrides: {shouldHandleNavigation: boolean}) => void}) => mockSubmitWithDismissFirst(params),
@@ -227,6 +240,7 @@ describe('ScanSkipConfirmation submit orchestration', () => {
         capturedCreateTransactionArg = undefined;
         mockScanIouType = CONST.IOU.TYPE.SUBMIT;
         mockLocationPermission = 'granted';
+        resetMockConfirmModal();
     });
 
     afterEach(async () => {
@@ -331,6 +345,25 @@ describe('ScanSkipConfirmation submit orchestration', () => {
         expect(mockCreateTransaction).toHaveBeenCalledTimes(1);
         expect(capturedCreateTransactionArg?.gpsPoint).toBeUndefined();
         expect(getCurrentPosition).not.toHaveBeenCalled();
+    });
+
+    it('submits a capture on a device that never granted permission, rather than asking again at the shutter', async () => {
+        // Given a scan screen on a device that never granted location permission, with no prompt recorded yet, so the
+        // scan screen already asked about location when it opened
+        mockLocationPermission = 'denied';
+
+        // When the scan screen opens, which asks about location once on its own
+        await renderSkipConfirmationScan();
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+
+        // And when the user captures a receipt, which submits it straight away
+        await captureReceipt();
+
+        // Then the expense goes out without coordinates, and the capture did not restart the prompt, because that
+        // prompt belongs to the scan screen and a capture may not be held behind a second one
+        expect(mockCreateTransaction).toHaveBeenCalledTimes(1);
+        expect(capturedCreateTransactionArg?.gpsPoint).toBeUndefined();
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
     });
 
     it('marks a skip-confirm split as the first of its batch so it creates the chat it navigates to', async () => {

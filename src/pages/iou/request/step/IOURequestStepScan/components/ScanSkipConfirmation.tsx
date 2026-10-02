@@ -54,12 +54,10 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import shouldStartLocationPermissionFlowSelector from '@selectors/LocationPermission';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useState} from 'react';
 
 import Camera from './Camera';
-import GpsPermissionGate from './GpsPermissionGate';
 import {useMultiScanActions, useMultiScanState} from './MultiScanContext';
 
 type ScanSkipConfirmationProps = WithCurrentUserPersonalDetailsProps & {
@@ -105,9 +103,6 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: validTransactionDraftIDsSelector,
     });
-    const [shouldStartLocationPermissionFlow] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {
-        selector: shouldStartLocationPermissionFlowSelector,
-    });
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
     const {isOffline} = useNetwork();
@@ -119,7 +114,6 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
     const {disableMultiScan} = useMultiScanActions();
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
-    const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [receiptFiles, setReceiptFiles] = useState<ReceiptFile[]>([]);
 
     const participants = getMoneyRequestParticipantOptions({
@@ -355,15 +349,11 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
 
     const submitWithGpsCheck = (files: ReceiptFile[]) => {
         const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT;
-        if (gpsRequired) {
-            if (shouldStartLocationPermissionFlow) {
-                setStartLocationPermissionFlow(true);
-                return;
-            }
-            hasLocationPermission().then((isGranted) => submitDirectly(files, isGranted));
+        if (!gpsRequired) {
+            submitDirectly(files, false);
             return;
         }
-        submitDirectly(files, false);
+        hasLocationPermission().then((isGranted) => submitDirectly(files, isGranted));
     };
 
     const processReceipts = (files: FileObject[], captureSource: ReceiptCaptureSource) => {
@@ -416,12 +406,6 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
                 onAttachmentPickerStatusChange={setIsLoaderVisible}
                 onMultiScanSubmit={submitMultiScan}
                 shouldAcceptMultipleFiles
-            />
-            <GpsPermissionGate
-                startLocationPermissionFlow={startLocationPermissionFlow}
-                receiptFiles={receiptFiles}
-                resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
-                onComplete={submitDirectly}
             />
         </>
     );
