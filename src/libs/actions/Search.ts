@@ -851,10 +851,7 @@ function getOnyxLoadingData(
                 search: {
                     type,
                     ...(isSearchAPI && {isLoading: false}),
-                    // NO_RESPONSE stands for "failed with no usable response code", which covers a network-level rejection
-                    // that never reaches the server. A real HTTP failure overwrites it below once the response lands. Every
-                    // write of `errors` carries a code this way, so the error view never has to guess.
-                    ...(isSearchRequest && {hash, responseJsonCode: CONST.JSON_CODE.NO_RESPONSE}),
+                    ...(isSearchRequest && {hash}),
                 },
                 errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
@@ -1368,8 +1365,9 @@ function search({
 
                 // Store the failing code alongside the errors it produced. The snapshot is the only place this
                 // survives a reload, and the error view needs it to tell an invalid query apart from a retryable one.
-                if (typeof result?.jsonCode === 'number' && result.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                    Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`, {search: {responseJsonCode: result.jsonCode}}).catch((error: unknown) =>
+                if (result !== undefined && result.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                    const responseJsonCode = typeof result.jsonCode === 'number' ? result.jsonCode : CONST.JSON_CODE.NO_RESPONSE;
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`, {search: {responseJsonCode}}).catch((error: unknown) =>
                         Log.hmmm('[Search] failed to store the search response code', {error: String(error)}),
                     );
                 }
@@ -1409,8 +1407,16 @@ function search({
             .catch(async (error) => {
                 // A network-level rejection (no HTTP response at all, e.g. offline/timeout) never reaches
                 // SaveResponseInOnyx, so nothing else applies failureData/finallyData for it. Apply both here so
-                // the snapshot records the error and still reaches the terminal `loaded` state.
-                await Onyx.update(failureData ?? []);
+                // the snapshot records the error and still reaches the terminal `loaded` state. NO_RESPONSE stands for
+                // "failed with no usable response code", which is exactly this case.
+                await Onyx.update([
+                    ...(failureData ?? []),
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`,
+                        value: {search: {responseJsonCode: CONST.JSON_CODE.NO_RESPONSE}},
+                    },
+                ]);
                 await Onyx.update(finallyData ?? []);
                 throw error;
             })
@@ -2533,6 +2539,7 @@ function setOptimisticDataForTransactionThreadPreview(
     item: TransactionListItemType,
     transactionPreviewData: TransactionPreviewData,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+    delegateAccountID: number | undefined,
     IOUTransactionID?: string,
 ) {
     const {reportID, report, amount, currency, transactionID, created, policyID, from} = item;
@@ -2564,8 +2571,7 @@ function setOptimisticDataForTransactionThreadPreview(
             linkedExpenseReportAction: {
                 childReportID: IOUTransactionID,
             } as ReportAction,
-            // delegateAccountIDParam: will be threaded in PR 15; buildOptimisticIOUReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
-            delegateAccountIDParam: undefined,
+            delegateAccountIDParam: delegateAccountID,
             getCurrencyDecimals,
         });
         optimisticIOUAction.pendingAction = undefined;

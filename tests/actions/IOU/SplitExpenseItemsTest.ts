@@ -239,9 +239,9 @@ describe('initSplitExpenseItemData stale tax handling', () => {
  * Tests for `getSplitReimbursable`, which resolves the `reimbursable` value a split is seeded with.
  *
  * The parent expense's stored value is only inherited while the policy leaves the reimbursable field editable.
- * A locked field (one of the two "Always …" cash-expense modes) must win over a stale stored value, and
- * managed-card transactions must stay non-reimbursable regardless, because their toggle is hidden in the split
- * editor and the user would have no way to correct it.
+ * A locked field (one of the two "Always …" cash-expense modes) must win over a stale stored value. Managed-card
+ * transactions always inherit the parent value, because their reimbursable value comes from the card feed, not the
+ * workspace cash-expense rules.
  */
 describe('getSplitReimbursable', () => {
     const buildReimbursablePolicy = (
@@ -335,26 +335,49 @@ describe('getSplitReimbursable', () => {
     });
 
     describe('managed-card transactions', () => {
-        it('stays false under a locked "Always reimbursable" policy — the split editor hides the toggle, so the user could not correct it', () => {
+        it('keeps a non-reimbursable card expense false under a locked "Always reimbursable" policy', () => {
+            // Given a workspace that forces cash expenses to be reimbursable
             const policy = buildReimbursablePolicy({
                 reimbursableLocked: true,
                 defaultReimbursable: true,
             });
 
-            expect(getSplitReimbursable(policy, true, buildReimbursableTransaction({managedCard: true}))).toBe(false);
+            // When a non-reimbursable card expense is split
+            // Then the split keeps the card expense's value, because the workspace rule only applies to cash expenses
+            expect(getSplitReimbursable(policy, false, buildReimbursableTransaction({managedCard: true}))).toBe(false);
         });
 
-        it('stays false when the field is unlocked and the parent expense is reimbursable', () => {
+        it('keeps a reimbursable card expense true under a locked "Always non-reimbursable" policy', () => {
+            // Given a workspace that forces cash expenses to be non-reimbursable
             const policy = buildReimbursablePolicy({
-                reimbursableLocked: false,
-                defaultReimbursable: true,
+                reimbursableLocked: true,
+                defaultReimbursable: false,
             });
 
-            expect(getSplitReimbursable(policy, true, buildReimbursableTransaction({managedCard: true}))).toBe(false);
+            // When a reimbursable card expense is split
+            // Then the split keeps the card expense's value, because the card feed set it
+            expect(getSplitReimbursable(policy, true, buildReimbursableTransaction({managedCard: true}))).toBe(true);
         });
 
-        it('stays false with no policy', () => {
-            expect(getSplitReimbursable(undefined, true, buildReimbursableTransaction({managedCard: true}))).toBe(false);
+        it('inherits the parent value when the field is unlocked', () => {
+            // Given a workspace that leaves the reimbursable field editable
+            const policy = buildReimbursablePolicy({
+                reimbursableLocked: false,
+                defaultReimbursable: false,
+            });
+
+            // When a card expense is split
+            // Then the split keeps the card expense's reimbursable value instead of forcing it to false
+            expect(getSplitReimbursable(policy, true, buildReimbursableTransaction({managedCard: true}))).toBe(true);
+            expect(getSplitReimbursable(policy, false, buildReimbursableTransaction({managedCard: true}))).toBe(false);
+        });
+
+        it('inherits the parent value with no policy', () => {
+            // Given a card expense split with no workspace (selfDM)
+            // When the split is seeded
+            // Then it keeps the card expense's reimbursable value
+            expect(getSplitReimbursable(undefined, true, buildReimbursableTransaction({managedCard: true}))).toBe(true);
+            expect(getSplitReimbursable(undefined, false, buildReimbursableTransaction({managedCard: true}))).toBe(false);
         });
     });
 
