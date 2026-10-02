@@ -1,6 +1,7 @@
 import useTheme from '@hooks/useTheme';
 
 import {containsOnlyCustomEmoji} from '@libs/CustomEmojiUtils';
+import StringUtils from '@libs/StringUtils';
 
 import type {TextVariant} from '@styles/typography';
 import {textVariants} from '@styles/typography';
@@ -87,6 +88,10 @@ function Text({
         componentStyle.fontFamily = FontUtils.fontFamily.single.CUSTOM_EMOJI_FONT?.fontFamily;
     }
 
+    // WebKit shows only the ellipsis for very long single-line texts, so we pass at most MAX_SINGLE_LINE_TEXT_LENGTH characters on web.
+    const shouldTruncateChildren = Platform.OS === 'web' && props.numberOfLines === 1 && typeof children === 'string';
+    const displayedChildren = shouldTruncateChildren ? StringUtils.truncate(children, CONST.MAX_SINGLE_LINE_TEXT_LENGTH) : children;
+
     return (
         <RNText
             allowFontScaling={false}
@@ -97,7 +102,7 @@ function Text({
             accessibilityLabel={typeof children === 'string' && !!children && Platform.OS === 'android' ? children : undefined}
             {...props}
         >
-            {children}
+            {displayedChildren}
         </RNText>
     );
 }
