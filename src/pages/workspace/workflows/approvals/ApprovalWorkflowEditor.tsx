@@ -19,7 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy} from '@libs/PolicyUtils';
 import sortAlphabetically from '@libs/sortAlphabetically';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
-import {getApprovalLimitDescription} from '@libs/WorkflowUtils';
+import {getApprovalLimitDescription, getNonMemberApproverError} from '@libs/WorkflowUtils';
 
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -114,6 +114,11 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
             const previousApprover = approvalWorkflow.approvers.slice(0, approverIndex).findLast(Boolean);
             const error = approvalWorkflow?.errors?.[`approver-${approverIndex}`];
 
+            // Flag a non-member approver as soon as the editor opens, rather than only after a Save attempt
+            if (!error && approver?.isNotWorkspaceMember) {
+                return translate(getNonMemberApproverError(approvalWorkflow.isDefault));
+            }
+
             if (!error) {
                 return;
             }
@@ -131,7 +136,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
 
             return translate(error);
         },
-        [approvalWorkflow.approvers, approvalWorkflow.errors, translate, formatPhoneNumber],
+        [approvalWorkflow.approvers, approvalWorkflow.errors, approvalWorkflow.isDefault, translate, formatPhoneNumber],
     );
 
     const editApprover = useCallback(

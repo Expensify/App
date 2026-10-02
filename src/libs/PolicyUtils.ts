@@ -2002,6 +2002,14 @@ function getDefaultApprover(policy: OnyxEntry<Policy>): string {
 }
 
 /**
+ * Whether an approver email points at someone who is no longer on the workspace. The owner always counts as a member,
+ * and HR advanced (manager) mode is excluded, because its final approver doesn't have to be a workspace member.
+ */
+function isNonMemberApprover(policy: OnyxEntry<Policy>, approverEmail: string | undefined): boolean {
+    return !!approverEmail && !isPolicyMember(policy, approverEmail) && !getHRAdvancedModeFinalApprover(policy);
+}
+
+/**
  * Whether the policy has at least one custom approval workflow. A workflow is considered custom when either:
  * - the default workflow was modified by changing its first approver or adding an "Approves to" user, or
  * - a new workflow was created (a member submits to an approver other than the default approver).
@@ -3763,6 +3771,7 @@ export {
     getIntegrationLastSuccessfulDate,
     getCurrentConnectionName,
     getDefaultApprover,
+    isNonMemberApprover,
     hasCustomApprovalWorkflow,
     getApprovalWorkflow,
     getReimburserAccountID,

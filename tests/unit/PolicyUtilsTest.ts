@@ -92,6 +92,7 @@ import {
     isMaxExpenseAmountSet,
     isMemberInHomeAndOfficeWorkspace,
     isMergeHRCompleteSetupNeededSelector,
+    isNonMemberApprover,
     isQBORefreshTokenExpiringSoonSelector,
     isPerDiemEligiblePolicy,
     isPerDiemEnabled,
@@ -2369,6 +2370,32 @@ describe('PolicyUtils', () => {
                 {policyID: '1', name: 'Workspace 1'},
                 {policyID: '2', name: 'Workspace 2'},
             ]);
+        });
+    });
+
+    describe('isNonMemberApprover', () => {
+        const ownerEmail = 'owner@example.com';
+        const policy = createMock<Policy>({
+            id: '1',
+            owner: ownerEmail,
+            employeeList: {
+                [employeeEmail]: {email: employeeEmail, role: CONST.POLICY.ROLE.USER},
+            },
+        });
+
+        it('flags an approver who is no longer on the workspace, but not a member', () => {
+            // Given a workspace with one member
+            // When checking a removed approver and that member
+            // Then only the removed approver is flagged
+            expect(isNonMemberApprover(policy, 'removed@example.com')).toBe(true);
+            expect(isNonMemberApprover(policy, employeeEmail)).toBe(false);
+        });
+
+        it('does not flag the owner when their employee entry is missing', () => {
+            // Given a workspace whose employeeList has no entry for the owner
+            // When checking the owner as an approver
+            // Then they still count as a member, since the owner always belongs to the workspace
+            expect(isNonMemberApprover(policy, ownerEmail)).toBe(false);
         });
     });
 
