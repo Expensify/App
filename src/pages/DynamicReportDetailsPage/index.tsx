@@ -67,6 +67,7 @@ import {
     getPolicyName,
     getReportFieldKey,
     getReportForHeader,
+    isAdminRoom,
     isArchivedNonExpenseReport,
     isCanceledTaskReport as isCanceledTaskReportUtil,
     isChatRoom as isChatRoomUtil,
@@ -291,9 +292,16 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const isMoneyRequestReportArchived = useReportIsArchived(moneyRequestReport?.reportID);
     const [moneyRequestReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(moneyRequestReport?.reportID)}`);
 
-    // Setup tasks are completed automatically by later setup flows, which fails once the task is deleted
     const isTaskOwnedByGuideOrConcierge = report.ownerAccountID === CONST.ACCOUNT_ID.CONCIERGE || (!!report.ownerAccountID && !!guideAccountIDs?.includes(report.ownerAccountID));
-    const canDeleteTaskAsPolicyAdmin = isPolicyAdmin && policy?.type !== CONST.POLICY.TYPE.PERSONAL && !isParentReportArchived && !isTaskOwnedByGuideOrConcierge;
+
+    // Setup flows later complete these tasks, including when another admin has no matching personal onboarding data
+    const isSetupTask = isAdminRoom(parentReport) && isTaskOwnedByGuideOrConcierge;
+    const canDeleteTaskAsPolicyAdmin =
+        isPolicyAdmin &&
+        policy?.type !== CONST.POLICY.TYPE.PERSONAL &&
+        (isUserCreatedPolicyRoomUtil(parentReport) || isDefaultRoomUtil(parentReport)) &&
+        !isParentReportArchived &&
+        !isSetupTask;
     const shouldShowTaskDeleteButton =
         isTaskReport &&
         !isCanceledTaskReport &&
