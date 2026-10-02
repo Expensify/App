@@ -358,20 +358,29 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                         ...(item.switchProps
                             ? {
                                   shouldShowRightComponent: true,
+                                  // Mirror the Switch's disabled state onto the row so a disabled toggle can't be flipped by
+                                  // pressing the row (or Enter) — only the Switch carried `disabled` before.
+                                  disabled: item.disabled ?? item.switchProps.disabled,
                                   // `isNested` lets the Switch handle its own press (so it animates) while stopping the event from
                                   // bubbling to the row — no double-toggle. `shouldAnimateOnExternalChange` makes the thumb also
-                                  // animate when the row/keyboard toggles it, so every path looks the same.
+                                  // animate when the row/keyboard toggles it. `focusable={false}` stops the Switch from being a
+                                  // second tab stop — the row owns keyboard focus and toggling.
                                   rightComponent: (
                                       <Switch
                                           {...item.switchProps}
                                           isNested
                                           shouldAnimateOnExternalChange
+                                          focusable={false}
                                       />
                                   ),
                               }
                             : {}),
                         onSelected: item.onSelected
                             ? () => {
+                                  // Enter routes here directly (bypassing the row's disabled press-guard), so block a disabled toggle.
+                                  if (item.switchProps?.disabled) {
+                                      return;
+                                  }
                                   item.onSelected?.();
                                   if (item.shouldUpdateSelectedIndex) {
                                       setSelectedItemIndex(index);

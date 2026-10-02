@@ -36,12 +36,11 @@ type SwitchProps = {
     /** Whether the switch is nested inside another pressable */
     isNested?: boolean;
 
-    /**
-     * Animate the thumb on any `isOn` change, not only when the switch itself is pressed. Use this when the switch can
-     * be toggled from outside (e.g. the whole row or a keyboard shortcut) and it is NOT inside a recycled list. Leave it
-     * off for list rows, where the default guard must stay to avoid switches flipping as rows recycle during scrolling.
-     */
+    /** Animate the thumb on any `isOn` change, not only when the switch itself is pressed. */
     shouldAnimateOnExternalChange?: boolean;
+
+    /** Whether the switch is a keyboard tab stop. */
+    focusable?: boolean;
 };
 
 const OFFSET_X = {
@@ -49,7 +48,7 @@ const OFFSET_X = {
     ON: 20,
 };
 
-function Switch({isOn, onToggle, accessibilityLabel, disabled, pending = false, showLockIcon, disabledAction, isNested, shouldAnimateOnExternalChange = false}: SwitchProps) {
+function Switch({isOn, onToggle, accessibilityLabel, disabled, pending = false, showLockIcon, disabledAction, isNested, shouldAnimateOnExternalChange = false, focusable}: SwitchProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const offsetX = useSharedValue(isOn ? OFFSET_X.ON : OFFSET_X.OFF);
@@ -121,9 +120,7 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, pending = false, 
         <PressableWithFeedback
             disabled={pending || (!disabledAction && disabled)}
             isNested={isNested}
-            // When nested in a pressable row (e.g. a menu row), the row owns keyboard focus, so the Switch must not be its
-            // own tab stop — otherwise Tab/Shift+Tab desyncs the row's focused index from what's visually focused.
-            focusable={!isNested}
+            focusable={focusable}
             onPress={handleSwitchPress}
             onMouseDown={(e) => {
                 if (!isNested) {

@@ -36,6 +36,7 @@ import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/conn
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {
     clearPolicyTagErrors,
+    clearPolicyTagListErrors,
     deletePolicyTags,
     downloadMultiLevelTagsCSV,
     downloadTagsCSV,
@@ -474,6 +475,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 shouldShowRightIcon: true,
                 value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
                 pendingAction: policyTags?.[policyTagLists.at(0)?.name ?? '']?.pendingAction,
+                errors: policyTags?.[policyTagLists.at(0)?.name ?? '']?.errors,
+                onCloseError: () => clearPolicyTagListErrors({policyID, tagListIndex: policyTagLists.at(0)?.orderWeight ?? 0, policyTags}),
             });
         }
         if (canWriteTags && !!policy?.glCodes) {
