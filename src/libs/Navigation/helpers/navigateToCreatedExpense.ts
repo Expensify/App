@@ -42,7 +42,8 @@ function navigateToCreatedExpense({threadReportID, transactionID, iouReportID, r
     const hasMultipleReportTransactions = iouReportID
         ? reportTransactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length > 1
         : false;
-    const focusedReportID = Navigation.getFocusedReportId();
+    // getState() can miss a just-opened RHP's nested state, so read the full tree.
+    const focusedReportID = Navigation.getFocusedReportId(navigationRef.getRootState());
     if (focusedReportID === threadReportID || (!hasMultipleReportTransactions && !!iouReportID && focusedReportID === iouReportID)) {
         return;
     }
