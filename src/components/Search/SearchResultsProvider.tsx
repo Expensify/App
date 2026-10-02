@@ -1,3 +1,4 @@
+import usePermissions from '@hooks/usePermissions';
 import useTodoSearchResults from '@hooks/useTodoSearchResults';
 
 import {getFooterSelectionFromQuery} from '@libs/SearchQueryUtils';
@@ -48,8 +49,10 @@ function SearchResultsProvider({children}: SearchResultsProviderProps) {
 
     const shouldUseLiveData = !!currentSearchKey && isTodoSearch(currentRecentSearchHash, suggestedSearches);
     // A to-do search has no snapshot to carry the backend's aggregate, so the breakdown the footer asks for is
-    // applied while the live totals are summed.
-    const {footerTotal} = getFooterSelectionFromQuery(currentSearchQueryJSON);
+    // applied while the live totals are summed. Nothing is applied without the beta: the query is stripped of footer
+    // selections upstream, and this is the one place that would act on one anyway, so it checks for itself.
+    const {isBetaEnabled} = usePermissions();
+    const {footerTotal} = isBetaEnabled(CONST.BETAS.SPEND_FOOTER_SELECTORS) ? getFooterSelectionFromQuery(currentSearchQueryJSON) : {footerTotal: undefined};
     const liveTodoData = useTodoSearchResults(shouldUseLiveData ? currentSearchKey : undefined, footerTotal);
 
     // If viewing a to-do search, use live Onyx data for the active category, otherwise return the snapshot data.
