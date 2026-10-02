@@ -24,6 +24,7 @@ import {
     canMemberWrite,
     getConnectedIntegration,
     getCorrectedAutoReportingFrequency,
+    getDistanceRateCustomUnitRate,
     getManagerAccountID,
     getReimbursementChoice,
     getSubmitToAccountID,
@@ -97,6 +98,7 @@ import {
     hasReceipt as hasReceiptTransactionUtils,
     hasSmartScanFailedWithMissingFields,
     hasSubmissionBlockingViolations,
+    isDistanceRequest as isDistanceRequestTransactionUtils,
     isDuplicate,
     isManagedCardTransaction as isManagedCardTransactionTransactionUtils,
     isOnHold as isOnHoldTransactionUtils,
@@ -148,7 +150,15 @@ function isSplitAction(
 
     const {isBillSplit, isExpenseSplit} = getOriginalTransactionWithSplitInfo(reportTransaction, originalTransaction);
 
-    if (!amount && !isExpenseSplit) {
+    // A distance expense on a $0 rate is $0 but still has a distance to split
+    const distanceCustomUnit = reportTransaction?.comment?.customUnit;
+    const isZeroRateDistanceExpense =
+        isDistanceRequestTransactionUtils(reportTransaction) &&
+        !!distanceCustomUnit?.quantity &&
+        !!distanceCustomUnit.customUnitRateID &&
+        getDistanceRateCustomUnitRate(policy, distanceCustomUnit.customUnitRateID)?.rate === 0;
+
+    if (!amount && !isExpenseSplit && !isZeroRateDistanceExpense) {
         return false;
     }
 

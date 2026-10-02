@@ -20,9 +20,11 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import {
+    getEvenSplitQuantity,
     getSplitReimbursable,
     initDraftSplitExpenseDataForEdit,
     initSplitExpenseItemData,
+    isUsableSplitRate,
     resolveSplitItemReportID,
     resolveSplitMileageRate,
     updateSplitExpenseDistanceFromAmount,
@@ -168,7 +170,25 @@ function initSplitExpense(
         const mileageRate = resolveSplitMileageRate({transaction, policy: effectivePolicy ?? undefined, isSelfDMSplit: isSelfDMReport, personalPolicyOutputCurrency});
         const {rate, unit, currency} = mileageRate;
 
-        if (rate && rate > 0 && transaction?.comment?.customUnit) {
+        if (rate === 0 && transaction?.comment?.customUnit) {
+            // Every split of a $0 expense is $0, so split the distance evenly instead, with the remainder on the last split
+            const transactionCustomUnit = transaction.comment.customUnit;
+            for (let i = 0; i < splitAmounts.length; i++) {
+                const quantity = getEvenSplitQuantity(transactionCustomUnit.quantity ?? 0, splitAmounts.length, i, splitAmounts.length - 1);
+                const {customUnit: updatedCustomUnit, merchant} = updateSplitExpenseDistanceFromAmount(
+                    0,
+                    rate,
+                    unit,
+                    {...transactionCustomUnit, quantity},
+                    {currency},
+                    getCurrencySymbol,
+                    transactionDetails?.currency,
+                );
+
+                splitCustomUnits[i] = updatedCustomUnit;
+                splitMerchants[i] = merchant;
+            }
+        } else if (isUsableSplitRate(rate) && transaction?.comment?.customUnit) {
             for (let i = 0; i < splitAmounts.length; i++) {
                 if (splitAmounts.at(i)) {
                     const splitAmount = splitAmounts.at(i) ?? 0;

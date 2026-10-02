@@ -85,7 +85,7 @@ function SplitListItem<TItem extends ListItem>({
     // cleanup can cancel any pending focus task when the screen starts closing, preventing
     // the focused input from interfering with the close animation.
     const inputCallbackRef: (ref: BaseTextInputRef | null) => void = (ref) => {
-        if (!splitItem.isSelected || !splitItem.isEditable) {
+        if (!splitItem.isSelected || !splitItem.isEditable || splitItem.isAmountEditable === false) {
             return;
         }
         (autoFocusCallbackRef as unknown as (ref: BaseTextInputRef | null) => void)(ref);

@@ -282,7 +282,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
         const splitSelectedRate =
             (effectivePolicy ? DistanceRequestUtils.getMileageRates(effectivePolicy, false, currentRateID)[currentRateID] : undefined) ??
             DistanceRequestUtils.getEnabledRateByCustomUnitRateIDFromAnyPolicy(currentRateID, allPolicies);
-        if (!splitSelectedRate?.rate) {
+        if (splitSelectedRate?.rate === undefined) {
             isUnitRateIDOutOfPolicy = true;
         }
     }
@@ -475,6 +475,9 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const splitAmounts = splitExpensesArray.map((item) => Number(item.amount ?? 0));
     const adjustedPercentages = calculateSplitPercentagesFromAmounts(splitAmounts, transactionDetailsAmount);
 
+    // A $0 distance expense is on a $0 rate, so every split stays $0 and only its distance can change
+    const isZeroTotalDistanceSplit = isDistance && transactionDetailsAmount === 0;
+
     const options: SplitListItemType[] = splitExpensesArray.map((item, index): SplitListItemType => {
         const previewHeaderText: TranslationPathOrText[] = [transactionTypeTranslationPath];
         const currentTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item?.transactionID}`];
@@ -515,6 +518,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
             isSelected: splitExpenseTransactionID === item.transactionID,
             keyForList: item?.transactionID,
             isEditable: isSplitExpenseEditable(item),
+            isAmountEditable: !isZeroTotalDistanceSplit,
         };
     });
 
@@ -526,14 +530,19 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
         convertToDisplayString,
     });
 
+    const infoMessage = isZeroTotalDistanceSplit
+        ? translate('iou.splitExpenseZeroTotalAmountNotEditable', convertToDisplayString(0, transactionDetails?.currency ?? CONST.CURRENCY.USD))
+        : '';
+    const helpMessage = errorMessage || warningMessage || infoMessage;
+
     const footerContent = (
         <View style={[styles.ph5, styles.pb5]}>
-            {(!!errorMessage || !!warningMessage) && (
+            {!!helpMessage && (
                 <FormHelpMessage
                     style={[styles.ph1, styles.mb2]}
                     isError={!!errorMessage}
-                    isInfo={!errorMessage && !!warningMessage}
-                    message={errorMessage || warningMessage}
+                    isInfo={!errorMessage}
+                    message={helpMessage}
                 />
             )}
             <Button
