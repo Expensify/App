@@ -107,4 +107,19 @@ describe('pusher-js HTTP streaming socket', () => {
         // Then the socket stays open
         expect(onclose).not.toHaveBeenCalled();
     });
+
+    it('should skip an array frame whose payload is not an array', () => {
+        // Given an open HTTP stream
+        const {xhr, onopen, onmessage, onclose} = openStream();
+        xhr?.receive('o\n');
+        expect(onopen).toHaveBeenCalledTimes(1);
+
+        // When a line starts with "a" and holds valid JSON that is not an array, because pusher-js reads
+        // payload.length on it and would throw out of the XHR progress handler
+        expect(() => xhr?.receive('anull\n')).not.toThrow();
+
+        // Then no message is emitted and the socket stays open
+        expect(onmessage).not.toHaveBeenCalled();
+        expect(onclose).not.toHaveBeenCalled();
+    });
 });

@@ -15,7 +15,7 @@ diff --git a/node_modules/pusher-js/dist/web/pusher-with-encryption.js b/node_mo
              case 'a':
 -                payload = JSON.parse(chunk.data.slice(1) || '[]');
 +                payload = parseFrame(chunk.data.slice(1) || '[]');
-+                if (payload === undefined) {
++                if (!Array.isArray(payload)) {
 +                    return;
 +                }
                  for (var i = 0; i < payload.length; i++) {
