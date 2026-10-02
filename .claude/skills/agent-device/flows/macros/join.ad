@@ -3,4 +3,5 @@
 # @post   role="heading" label="What’s your work email?" || text="What’s your work email?"
 # @tag    auth
 
+wait "label=\"Join\""
 press "role=\"button\" label=\"Join\" || label=\"Join\""

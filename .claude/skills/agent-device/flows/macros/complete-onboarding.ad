@@ -5,8 +5,12 @@
 # @param  FIRST_NAME First name to enter on onboarding profile step.
 # @param  LAST_NAME Last name to enter on onboarding profile step.
 
+wait "label=\"Skip\""
 press "id=\"onboardingPrivateEmailSkipButton\" || role=\"button\" label=\"Skip\" || label=\"Skip\""
+wait "label=\"Something else\""
 press "role=\"button\" label=\"Something else\" || label=\"Something else\""
-fill "role=\"textfield\" label=\"First name\" editable=true || label=\"First name\" editable=true" "${FIRST_NAME}"
-fill "role=\"textfield\" label=\"Last name\" editable=true || label=\"Last name\" editable=true" "${LAST_NAME}"
+wait "label=\"First name\""
+fill "role=\"textbox\" label=\"First name\" editable=true || role=\"textfield\" label=\"First name\" editable=true || label=\"First name\" editable=true" "${FIRST_NAME}"
+fill "role=\"textbox\" label=\"Last name\" editable=true || role=\"textfield\" label=\"Last name\" editable=true || label=\"Last name\" editable=true" "${LAST_NAME}"
 press "role=\"button\" label=\"Continue\" || label=\"Continue\""
+wait "role=\"heading\" label=\"Home\" || text=\"Home\""

@@ -6,8 +6,12 @@ context platform=web
 # @param  FIRST_NAME First name to enter on onboarding profile step.
 # @param  LAST_NAME Last name to enter on onboarding profile step.
 
+wait "label=\"Skip\""
 press "role=\"button\" label=\"Skip\" || label=\"Skip\""
+wait "label=\"Something else\""
 press "role=\"button\" label=\"Something else\" || label=\"Something else\""
-fill "role=\"textbox\" label=\"First name\" || label=\"First name\"" "${FIRST_NAME}"
-fill "role=\"textbox\" label=\"Last name\" || label=\"Last name\"" "${LAST_NAME}"
+wait "label=\"First name\""
+fill "role=\"textbox\" label=\"First name\" editable=true || role=\"textbox\" label=\"First name\" || label=\"First name\"" "${FIRST_NAME}"
+fill "role=\"textbox\" label=\"Last name\" editable=true || role=\"textbox\" label=\"Last name\" || label=\"Last name\"" "${LAST_NAME}"
 press "role=\"button\" label=\"Continue\" || label=\"Continue\""
+wait "role=\"heading\" label=\"Home\""
