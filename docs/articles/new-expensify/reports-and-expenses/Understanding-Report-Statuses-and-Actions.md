@@ -12,7 +12,7 @@ Understand what each report status means, what actions are available, and how to
 
 Each report status reflects a different stage in the reporting workflow:
 
-- **Draft**: The report is a draft. You can still add or remove expenses. Draft reports aren't only visible to the submitter — their copilots, the approvers in their approval workflow, and Workspace Admins can also view them in **Spend > Reports**. A Draft report isn't sent to anyone for approval until it's submitted.
+- **Draft**: The report is a draft. You can still add or remove expenses. Draft reports are visible to the submitter, the approvers in their approval workflow, and Workspace Admins. A Draft report isn't sent to anyone for approval until it's submitted.
 - **Submitted**: The report is awaiting approval from another person.
 - **Outstanding**: The report is in progress—under review, held, or partially completed.
 - **Approved**: The report is approved and ready for payment or export.
