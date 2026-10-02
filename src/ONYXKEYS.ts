@@ -47,6 +47,9 @@ const ONYXKEYS = {
     /** Whether a semantic modal is covering the product marketing window in this app instance */
     RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED: 'isProductMarketingWindowCovered',
 
+    /** Whether the current user can claim or nudge a billing owner about the Early Renewal 2027 offer */
+    EARLY_RENEWAL_OFFER_ELIGIBILITY: 'earlyRenewalOfferEligibility',
+
     /** Boolean flag set whenever we are searching for reports in the server */
     RAM_ONLY_IS_SEARCHING_FOR_REPORTS: 'isSearchingForReports',
 
@@ -1379,6 +1382,7 @@ const ONYXKEYS = {
         RAM_ONLY_SORTED_REPORT_ACTIONS: 'sortedReportActions',
         LOGIN_TO_ACCOUNT_ID_MAP: 'loginToAccountIDMap',
         GUIDE_ACCOUNT_IDS: 'guideAccountIDs',
+        ONE_ON_ONE_CHAT_REPORT_IDS: 'oneOnOneChatReportIDs',
     },
 
     /** Stores HybridApp specific state required to interoperate with OldDot */
@@ -1622,6 +1626,7 @@ type OnyxCollectionValuesMapping = {
 type OnyxValuesMapping = {
     [ONYXKEYS.ACCOUNT]: OnyxTypes.Account;
     [ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID]: string;
+    [ONYXKEYS.EARLY_RENEWAL_OFFER_ELIGIBILITY]: OnyxTypes.EarlyRenewalOfferEligibility;
     [ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE]: DefaultP2PMileageRate;
     [ONYXKEYS.GOVERNMENT_MILEAGE_RATES]: OnyxTypes.GovernmentMileageRate[];
 
@@ -1935,6 +1940,7 @@ type OnyxDerivedValuesMapping = {
     [ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS]: OnyxTypes.SortedReportActionsDerivedValue;
     [ONYXKEYS.DERIVED.LOGIN_TO_ACCOUNT_ID_MAP]: OnyxTypes.LoginToAccountIDMapDerivedValue;
     [ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS]: OnyxTypes.GuideAccountIDsDerivedValue;
+    [ONYXKEYS.DERIVED.ONE_ON_ONE_CHAT_REPORT_IDS]: OnyxTypes.OneOnOneChatReportIDsDerivedValue;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping & OnyxDerivedValuesMapping;

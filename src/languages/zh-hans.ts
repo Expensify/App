@@ -3040,6 +3040,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             updateAvatar: '更新此代理的头像时出现问题',
         },
     },
+    agentPromptUpdated: ({updatedBy, previousPrompt, newPrompt}: {updatedBy: string; previousPrompt: string; newPrompt: string}) =>
+        `${updatedBy} 更新了此智能体的指令。\n之前的指令：\n${previousPrompt}\n新的指令：\n${newPrompt}`,
     newAgentPage: {
         title: '新代理',
         buildCustomAgent: '构建自定义代理',
@@ -5285,6 +5287,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             journalEntriesProvTaxPostingAccount: '日记账分录省税过账科目',
             foreignCurrencyAmount: '导出外币金额',
             exportToNextOpenPeriod: '导出到下一个未结会计期间',
+            exportToNextOpenPeriodLockedSubtitle: '要禁用导出到下一个未结会计期间，请先禁用按期间拆分不可报销导出。',
+            splitExportsByPostingPeriod: '按过账期间拆分导出',
+            splitExportsByPostingPeriodSubtitle: '启用导出到下一个未结会计期间，以在 NetSuite 中启用按期间拆分不可报销导出',
             nonReimbursableJournalPostingAccount: '不可报销日记账入账科目',
             reimbursableJournalPostingAccount: '可报销日记账过账科目',
             journalPostingPreference: {
@@ -11188,6 +11193,13 @@ ${reportName}`,
             title: '构建你自己的代理',
             description: `<muted-text>创建自定义代理，根据你设置的规则审核、批准和分配报销。<a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">了解更多</a>。</muted-text>`,
         },
+    },
+    earlyRenewal: {
+        confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `将您的订阅续订为 12 个月期限，自 ${startDate} 至 ${endDate}。`,
+        title: '续订您的 Expensify 订阅',
+        subtitle: '在新年到来前又少了一件要做的事。',
+        confirmTitle: '确认续订',
+        renew: '续订',
     },
 };
 export default translations;

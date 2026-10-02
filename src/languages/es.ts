@@ -3061,6 +3061,8 @@ ${amount} para ${merchant} - ${date}`,
             updateAvatar: 'Hubo un problema al actualizar el avatar de este agente',
         },
     },
+    agentPromptUpdated: ({updatedBy, previousPrompt, newPrompt}: {updatedBy: string; previousPrompt: string; newPrompt: string}) =>
+        `${updatedBy} actualizó las instrucciones de este agente.\nInstrucciones anteriores:\n${previousPrompt}\nNuevas instrucciones:\n${newPrompt}`,
     newAgentPage: {
         title: 'Nuevo agente',
         buildCustomAgent: 'Crear agente personalizado',
@@ -5438,6 +5440,9 @@ ${amount} para ${merchant} - ${date}`,
             journalEntriesProvTaxPostingAccount: 'Cuenta de registro de impuestos provinciales de asientos contables',
             foreignCurrencyAmount: 'Exportar importe en moneda extranjera',
             exportToNextOpenPeriod: 'Exportar al siguiente período abierto',
+            exportToNextOpenPeriodLockedSubtitle: 'Para desactivar la exportación al siguiente período abierto, primero desactiva la división de exportaciones no reembolsables por período.',
+            splitExportsByPostingPeriod: 'Dividir exportaciones por período contable',
+            splitExportsByPostingPeriodSubtitle: 'Activa la exportación al siguiente período abierto para habilitar la división de exportaciones no reembolsables por período en NetSuite',
             nonReimbursableJournalPostingAccount: 'Cuenta de registro de diario no reembolsable',
             reimbursableJournalPostingAccount: 'Cuenta de registro de diario reembolsable',
             journalPostingPreference: {
@@ -11971,6 +11976,13 @@ ${reportName}`,
             title: 'Crea tus propios agentes',
             description: `<muted-text>Crea agentes personalizados para revisar, aprobar y asignar gastos según las reglas que configures. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Más información</a>.</muted-text>`,
         },
+    },
+    earlyRenewal: {
+        confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Renueva tu suscripción por un período de 12 meses, desde ${startDate} hasta ${endDate}.`,
+        title: 'Renueva tu suscripción de Expensify',
+        subtitle: 'Una cosa menos que hacer antes del nuevo año.',
+        confirmTitle: 'Confirmar renovación',
+        renew: 'Renovar',
     },
 };
 export default translations;
