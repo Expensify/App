@@ -16,6 +16,15 @@ jest.mock('@src/libs/fileDownload/FileUtils', () => {
     };
 });
 
+// Whether the platform can turn a DNG into a JPEG: true on native, false on web. Defaults to web, and native cases flip it.
+let mockCanConvertDngToJpeg = false;
+jest.mock('@libs/fileDownload/canConvertDngToJpeg', () => ({
+    __esModule: true,
+    get default() {
+        return mockCanConvertDngToJpeg;
+    },
+}));
+
 const mockFileUtils = jest.mocked(FileUtils);
 
 const createMockFile = (name: string, size: number): FileObject => ({
@@ -26,6 +35,7 @@ const createMockFile = (name: string, size: number): FileObject => ({
 describe('validateAttachmentFile', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockCanConvertDngToJpeg = false;
         // Default: pass-through so async validation succeeds
         mockFileUtils.normalizeFileObject.mockImplementation(async (file) => file);
         mockFileUtils.validateImageForCorruption.mockResolvedValue(undefined);
@@ -94,6 +104,79 @@ describe('validateAttachmentFile', () => {
             const error = await validateAttachmentFile(file, undefined, false);
 
             expect(error.isValid).toBe(true);
+        });
+
+        it.each([
+            ['by extension', {name: 'IMG_0001.DNG', size: 1000}],
+            ['by MIME type', {name: 'photo', size: 1000, type: 'image/x-adobe-dng'}],
+        ])('still accepts a DNG chat attachment %s on web', async (description, file: FileObject) => {
+            // Given a ProRAW picked as a chat attachment on web, where nothing can transcode it
+            // When validated outside the receipt flow, which has no extension check
+            const error = await validateAttachmentFile(file, undefined, false);
+
+            // Then it is uploaded like any other attachment, as it was before native learned to convert DNG
+            expect(error.isValid).toBe(true);
+        });
+
+        it('still accepts a plain TIFF chat attachment', async () => {
+            // Given a TIFF, which shares the DNG container but is an accepted format
+            const file = createMockFile('scan.tiff', 1000);
+
+            // When validated outside the receipt flow
+            const error = await validateAttachmentFile(file, undefined, false);
+
+            // Then the DNG rejection does not catch it
+            expect(error.isValid).toBe(true);
+        });
+    });
+
+    describe('DNG_IMAGE', () => {
+        beforeEach(() => {
+            mockCanConvertDngToJpeg = true;
+        });
+
+        it.each([
+            ['a chat attachment by extension', {name: 'IMG_0001.DNG', size: 1000}, false],
+            ['a chat attachment by MIME type', {name: 'photo', size: 1000, type: 'image/x-adobe-dng'}, false],
+            ['a receipt', {name: 'IMG_0001.dng', size: 1000}, true],
+        ])('flags %s for conversion to JPEG on native', async (description, file: FileObject, isValidatingReceipts) => {
+            // Given a DNG reaching validation on native, e.g. shared into the app, where no picker has converted it yet
+            // When validated
+            const error = await validateAttachmentFile(file, undefined, isValidatingReceipts);
+
+            // Then it is flagged for conversion rather than rejected (DNG isn't a receipt extension) or uploaded (the backend rejects DNG)
+            if (error.isValid) {
+                throw new Error('validateAttachmentFile should return an invalid result');
+            }
+            expect(error.error).toEqual(CONST.FILE_VALIDATION_ERRORS.DNG_IMAGE);
+        });
+
+        it('flags an oversized DNG for conversion instead of rejecting it as too large', async () => {
+            // Given a 50 MB ProRAW, whose JPEG will be a fraction of that
+            const file = createMockFile('IMG_0001.DNG', CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE + 1);
+
+            // When validated on native
+            const error = await validateAttachmentFile(file, undefined, false);
+
+            // Then it goes to conversion and the size limit is checked against the converted JPEG
+            if (error.isValid) {
+                throw new Error('validateAttachmentFile should return an invalid result');
+            }
+            expect(error.error).toEqual(CONST.FILE_VALIDATION_ERRORS.DNG_IMAGE);
+        });
+
+        it('rejects a DNG receipt on web as the wrong file type', async () => {
+            // Given web, which can't decode DNG
+            mockCanConvertDngToJpeg = false;
+
+            // When a DNG receipt is validated
+            const error = await validateAttachmentFile(createMockFile('IMG_0001.dng', 1000), undefined, true);
+
+            // Then it falls through to the receipt extension check and the user sees the invalid-file-type error
+            if (error.isValid) {
+                throw new Error('validateAttachmentFile should return an invalid result');
+            }
+            expect(error.error).toEqual(CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE);
         });
     });
 
