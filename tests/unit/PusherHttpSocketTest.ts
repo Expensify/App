@@ -116,6 +116,7 @@ describe('pusher-js HTTP streaming socket', () => {
 
         // When a line starts with "a" and holds valid JSON that is not an array, because pusher-js reads
         // payload.length on it and would throw out of the XHR progress handler
+        // cspell:disable-next-line
         expect(() => xhr?.receive('anull\n')).not.toThrow();
 
         // Then no message is emitted and the socket stays open
