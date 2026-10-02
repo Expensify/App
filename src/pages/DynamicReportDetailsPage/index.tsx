@@ -11,6 +11,7 @@ import ScrollView from '@components/ScrollView';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import {SUPER_WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider/WIDE_RIGHT_MODALS';
 
+import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
 import useActivePolicy from '@hooks/useActivePolicy';
 import useAncestors from '@hooks/useAncestors';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -146,6 +147,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
+    const accountIDToName = useAccountIDToNameMap();
     const activePolicy = useActivePolicy();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const styles = useThemeStyles();
@@ -371,7 +373,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
 
     const shouldParseFullTitle = parentReportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && !isGroupChat;
     const rawReportName = getReportName(reportForHeader, derivedHeaderReportName);
-    const reportName = shouldParseFullTitle ? Parser.htmlToText(rawReportName) : rawReportName;
+    const reportName = shouldParseFullTitle ? Parser.htmlToText(rawReportName, {accountIDToName}) : rawReportName;
     const additionalRoomDetails = isExpenseReportUtil(report) || isPolicyExpenseChat || isInvoiceRoom ? chatRoomSubtitle : `${translate('threads.in')} ${chatRoomSubtitle}`;
 
     let roomDescription: string | undefined;

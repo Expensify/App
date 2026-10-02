@@ -8,6 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
+import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
@@ -58,10 +59,13 @@ function PrivateNotesEditPageInternal({route, report, accountID, privateNoteDraf
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const personalDetailsList = usePersonalDetails();
+    const accountIDToName = useAccountIDToNameMap();
     const {login} = useCurrentUserPersonalDetails();
 
     // We need to edit the note in markdown format, but display it in HTML format
-    const [privateNote, setPrivateNote] = useState(() => privateNoteDraft || Parser.htmlToMarkdown(report?.privateNotes?.[Number(route.params.accountID)]?.note ?? '').trim());
+    const [privateNote, setPrivateNote] = useState(
+        () => privateNoteDraft || Parser.htmlToMarkdown(report?.privateNotes?.[Number(route.params.accountID)]?.note ?? '', {accountIDToName}).trim(),
+    );
 
     /**
      * Save the draft of the private note. This debounced so that we're not ceaselessly saving your edit. Saving the draft
@@ -99,7 +103,7 @@ function PrivateNotesEditPageInternal({route, report, accountID, privateNoteDraf
         const originalNote = report?.privateNotes?.[Number(route.params.accountID)]?.note ?? '';
         let editedNote = '';
         if (privateNote.trim() !== originalNote.trim()) {
-            editedNote = handleUserDeletedLinksInHtml(privateNote.trim(), Parser.htmlToMarkdown(originalNote).trim(), login ?? '', personalDetailsList);
+            editedNote = handleUserDeletedLinksInHtml(privateNote.trim(), Parser.htmlToMarkdown(originalNote, {accountIDToName}).trim(), login ?? '', personalDetailsList);
             updatePrivateNotes(report.reportID, Number(route.params.accountID), editedNote);
         }
 
