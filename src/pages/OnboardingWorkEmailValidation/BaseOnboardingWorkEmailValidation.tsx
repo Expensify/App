@@ -67,12 +67,19 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
         Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
     }, [onboardingValues?.isMergeAccountStepCompleted, onboardingValues?.shouldRedirectToClassicAfterMerge, onboardingValues?.isMergeAccountStepSkipped, isVsb, isSmb]);
 
-    // The work email screen force-replaces itself with this one, so Android's system Back would otherwise pop the whole
-    // onboarding modal while `shouldValidate` is still set. Run the same cleanup and fallback as the header Back button.
-    useAndroidBackButtonHandler(() => {
+    const handleBackPress = () => {
+        // The merge request cannot be cancelled. Leaving mid-flight lets the work email screen consume the success
+        // and route through PRIVATE_DOMAIN instead of Join a workspace.
+        if (isValidateCodeFormSubmitting) {
+            return true;
+        }
         updateOnboardingValuesAndNavigation(onboardingValues);
         return true;
-    });
+    };
+
+    // The work email screen force-replaces itself with this one, so Android's system Back would otherwise pop the whole
+    // onboarding modal while `shouldValidate` is still set. Run the same handler as the header Back button.
+    useAndroidBackButtonHandler(handleBackPress);
 
     const sendValidateCode = () => {
         if (!credentials?.login) {
@@ -94,9 +101,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
         >
             <OnboardingHeader
                 shouldShowBackButton={!onboardingValues?.isMergingAccountBlocked}
-                onBackButtonPress={() => {
-                    updateOnboardingValuesAndNavigation(onboardingValues);
-                }}
+                onBackButtonPress={handleBackPress}
             />
             {onboardingValues?.isMergingAccountBlocked ? (
                 <View style={[styles.flex1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>

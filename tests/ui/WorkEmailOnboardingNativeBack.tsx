@@ -234,6 +234,39 @@ describe('Onboarding work email validation (Android system back)', () => {
         expect((await getOnboardingValues())?.shouldValidate).toBeUndefined();
     });
 
+    it('should ignore a system back press while the magic code is being submitted', async () => {
+        // Given the validation screen with a merge request in flight. The request cannot be cancelled, so leaving now
+        // would let the work email screen consume its success and skip "Join a workspace".
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                shouldValidate: true,
+            });
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {
+                onboardingWorkEmail: workEmail,
+            });
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false, isLoading: true, loadingForm: CONST.FORMS.VALIDATE_CODE_FORM});
+        });
+
+        renderOnboardingStack([SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION]);
+
+        await waitForBatchedUpdatesWithAct();
+
+        // When Android's system back button is pressed
+        const consumed = pressHardwareBack();
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the press is consumed so it cannot pop the onboarding modal either
+        expect(consumed).toBe(true);
+
+        // Then the user stays on validation and `shouldValidate` is untouched, so the merge response routes as normal
+        expect(getOnboardingRouteNames()).toEqual([SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION]);
+        expect((await getOnboardingValues())?.shouldValidate).toBe(true);
+    });
+
     it('should swallow a system back press on the post-merge Join a workspace screen', async () => {
         // Given the stack the merge leaves behind: "Join a workspace" is the only onboarding route, so an unhandled
         // system back would bubble to the root stack and pop the whole onboarding modal mid-flow
