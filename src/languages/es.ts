@@ -4608,7 +4608,7 @@ ${amount} para ${merchant} - ${date}`,
             hotelManual:
                 '¿Sabías que puedes reservar estancias de hotel directamente en Expensify y seguir usando tus programas de fidelidad de hotel? La próxima vez evita la molestia de crear tu gasto manualmente y simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             hotelCard:
-                '¿Sabías que puedes reservar estancias de hotel directamente en Expensify y seguir usando tus programas de fidelización de hotel? La próxima vez, simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                '¿Sabías que puedes reservar estancias de hotel directamente en Expensify y seguir usando tus programas de fidelidad de hotel? La próxima vez, simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             carManual:
                 '¿Sabías que puedes reservar coches de alquiler directamente en Expensify y seguir usando tus programas de fidelidad de alquiler de coches? La próxima vez evita la molestia de crear tu gasto manualmente y simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             carCard:
