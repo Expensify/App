@@ -1,8 +1,6 @@
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 
 import {getExportLabelsForConnection, getStandardExportTemplateDisplayName} from '@libs/AccountingUtils';
-import {getExportTemplates} from '@libs/actions/Search';
-import {isAdminOfCardEnabledPolicy} from '@libs/PolicyUtils';
 import {getAllPolicyValues, getConnectedIntegrationNamesForPolicies, getFilterFromQuery} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
@@ -11,7 +9,7 @@ import type {Policy} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import useLocalize from './useLocalize';
+import useCombinedExportTemplates from './useCombinedExportTemplates';
 import useOnyx from './useOnyx';
 
 type UseExportedToFilterDataResult = {
@@ -51,33 +49,19 @@ function exportedToPoliciesSelector(policies: OnyxCollection<Policy>): OnyxColle
  * When currentSearchQueryJSON has policyID, options are scoped to those workspaces so form hydration and autocomplete stay consistent.
  */
 export default function useExportedToFilterOptions(): UseExportedToFilterDataResult {
-    const {translate, localeCompare} = useLocalize();
     const {currentSearchQueryJSON} = useSearchQueryContext();
     const policyIDs = getFilterFromQuery(currentSearchQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: exportedToPoliciesSelector});
-    const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES);
 
     // When search is scoped to workspaces, use only those policies otherwise use all.
     const policiesToUse = getAllPolicyValues(policyIDs, ONYXKEYS.COLLECTION.POLICY, policies);
-
-    // In-app templates can't be identified in the exported-to filter, so skip building them and aggregate the per-policy flags instead
-    const {customTemplates, defaultTemplates} = getExportTemplates(
-        integrationsExportTemplates ?? [],
-        {},
-        translate,
-        localeCompare,
-        undefined,
-        true,
-        false,
-        policiesToUse.some((policy) => policy.outputCurrency === CONST.CURRENCY.CAD),
-        policiesToUse.some((policy) => isAdminOfCardEnabledPolicy(policy)),
-    );
+    const combinedExportTemplates = useCombinedExportTemplates(policiesToUse);
 
     const integrationConnectionNamesSet = new Set<string>(CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES);
 
     const standardAndCustomExportTemplates: string[] = [];
-    for (const template of [...customTemplates, ...defaultTemplates]) {
+    for (const template of combinedExportTemplates) {
         if (integrationConnectionNamesSet.has(template.templateName)) {
             continue;
         }
