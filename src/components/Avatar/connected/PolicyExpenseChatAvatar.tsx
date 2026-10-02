@@ -2,7 +2,7 @@ import HorizontalAvatars from '@components/Avatar/layouts/HorizontalAvatars';
 import type {HorizontalStackingOptions} from '@components/Avatar/layouts/HorizontalAvatars';
 import SingleAvatar from '@components/Avatar/layouts/SingleAvatar';
 import SubscriptAvatar from '@components/Avatar/layouts/SubscriptAvatar';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import {PersonalDetailsContext} from '@components/OnyxListItemProvider';
 
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useLocalize from '@hooks/useLocalize';
@@ -21,7 +21,7 @@ import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import {reportAvatarFieldsSelector} from '@selectors/Report';
-import React from 'react';
+import React, {use} from 'react';
 
 import useReportWorkspaceIcon from './useReportWorkspaceIcon';
 import useSortedIcons from './useSortedIcons';
@@ -58,10 +58,9 @@ type PolicyExpenseChatAvatarProps = {
 function PolicyExpenseChatAvatar({reportID, size, backdropColor, containerStyle, subscriptContainerStyle, horizontalStacking, sort, fallbackDisplayName}: PolicyExpenseChatAvatarProps) {
     const StyleUtils = useStyleUtils();
     const {formatPhoneNumber, translate} = useLocalize();
-    const allPersonalDetails = usePersonalDetails();
     const [personalDetailsFromSnapshot] = useAllPersonalDetails();
     // On Search, the snapshot can hold a member missing from the live list. Like the legacy component, fall back to the live list while the snapshot loads.
-    const personalDetails = personalDetailsFromSnapshot ?? allPersonalDetails;
+    const personalDetails = personalDetailsFromSnapshot ?? use(PersonalDetailsContext);
     const defaultAvatars = useDefaultAvatars();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: reportAvatarFieldsSelector});
     const workspaceIcon = useReportWorkspaceIcon(report);
