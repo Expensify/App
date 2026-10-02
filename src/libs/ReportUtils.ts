@@ -3257,7 +3257,12 @@ function canDeleteMoneyRequestReport(
 
     const hasExpensifyCardTransaction = reportTransactions.some(isExpensifyCardTransaction);
     const hasRestrictedCorporateCardTransaction = reportTransactions.some((reportTransaction) => reportTransaction.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT);
-    if (isReportLevelDelete && (hasExpensifyCardTransaction || (!isReportPolicyAdmin && hasRestrictedCorporateCardTransaction))) {
+    // Expensify Card transactions cannot be deleted or unreported, including by workspace admins.
+    if (isReportLevelDelete && hasExpensifyCardTransaction) {
+        return false;
+    }
+
+    if (isReportLevelDelete && !isReportPolicyAdmin && hasRestrictedCorporateCardTransaction) {
         return false;
     }
 
