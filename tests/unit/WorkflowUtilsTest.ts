@@ -2636,6 +2636,40 @@ describe('WorkflowUtils', () => {
             expect(hasApprovalWorkflowWithNonMemberApprover({policy, currentUserLogin: ownerEmail, isMultipleApproversBetaEnabled: false})).toBe(true);
         });
 
+        it('flags a non-member that only a later approver forwards to', () => {
+            // Given everyone submits to the owner, who forwards to member 1, and only member 1 forwards to someone no
+            // longer on the workspace, so the non-member is reachable through a forwardsTo alone
+            const policy = buildPolicy({
+                employeeList: {
+                    [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: ownerEmail, forwardsTo: '1@example.com'},
+                    '1@example.com': {email: '1@example.com', role: CONST.POLICY.ROLE.ADMIN, submitsTo: ownerEmail, forwardsTo: removedEmail},
+                    '2@example.com': {email: '2@example.com', role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
+                },
+            });
+
+            // When the owner checks whether a workflow needs fixing
+            // Then it does, since the quick check over every submitsTo and forwardsTo still finds the non-member
+            expect(hasApprovalWorkflowWithNonMemberApprover({policy, currentUserLogin: ownerEmail, isMultipleApproversBetaEnabled: false})).toBe(true);
+        });
+
+        it('does not flag a workspace where every route points at a member', () => {
+            // Given the owner isn't on employeeList but is still the default approver, and every submitsTo and
+            // forwardsTo points at someone on the workspace. The same workspace with one forwardsTo pointing at a
+            // removed approver is the control, so the result isn't coming from the permission checks.
+            const employeeList: PolicyEmployeeList = {
+                '1@example.com': {email: '1@example.com', role: CONST.POLICY.ROLE.ADMIN, submitsTo: ownerEmail, forwardsTo: '2@example.com'},
+                '2@example.com': {email: '2@example.com', role: CONST.POLICY.ROLE.USER, submitsTo: '1@example.com'},
+            };
+            const policy = buildPolicy({employeeList});
+            const brokenPolicy = buildPolicy({employeeList: {...employeeList, '2@example.com': {...employeeList['2@example.com'], forwardsTo: removedEmail}}});
+
+            // When an admin checks whether a workflow needs fixing
+            // Then only the control is flagged, since the owner always counts as a member and no other route points
+            // at a non-member
+            expect(hasApprovalWorkflowWithNonMemberApprover({policy, currentUserLogin: '1@example.com', isMultipleApproversBetaEnabled: false})).toBe(false);
+            expect(hasApprovalWorkflowWithNonMemberApprover({policy: brokenPolicy, currentUserLogin: '1@example.com', isMultipleApproversBetaEnabled: false})).toBe(true);
+        });
+
         it('does not flag an Expensify team member that a customer admin does not see', () => {
             // Given a guide who submits to someone no longer on a customer's workspace
             const policy = buildPolicy({

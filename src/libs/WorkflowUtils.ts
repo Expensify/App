@@ -1897,6 +1897,17 @@ function hasApprovalWorkflowWithNonMemberApprover({policy, currentUserLogin, rul
         return false;
     }
 
+    // Without the beta, an approver is only flagged when the default approver or some employee's `submitsTo` or
+    // `forwardsTo` points at a non-member, so skip building the workflows when none does
+    if (!isMultipleApproversBetaEnabled) {
+        const hasNonMemberRoute =
+            isNonMemberApprover(policy, getHRFinalApprover(policy) ?? getDefaultApprover(policy)) ||
+            Object.values(policy?.employeeList ?? {}).some((employee) => isNonMemberApprover(policy, employee.submitsTo) || isNonMemberApprover(policy, employee.forwardsTo));
+        if (!hasNonMemberRoute) {
+            return false;
+        }
+    }
+
     // Only the approver flags are read, so personal details and sorting are skipped
     const params = {policy, personalDetails: {}, localeCompare: () => 0, currentUserLogin, rules};
     const {approvalWorkflows} = isMultipleApproversBetaEnabled ? convertApprovalWorkflowRulesToWorkflows(params) : convertPolicyEmployeesToApprovalWorkflows(params);
