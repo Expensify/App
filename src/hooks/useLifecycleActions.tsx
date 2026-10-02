@@ -12,12 +12,11 @@ import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
 import {
     canIOUBePaid,
     getIntegrationNameFromExportMessage as getIntegrationNameFromExportMessageUtils,
-    getNextApproverAccountID,
     hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils,
     hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
     hasViolations as hasViolationsReportUtils,
     isExported as isExportedUtils,
-    isReportOwner,
+    shouldBlockSubmitDueToPreventSelfApproval,
     shouldBlockSubmitDueToStrictPolicyRules,
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
@@ -36,11 +35,11 @@ import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 import {delegateEmailSelector} from '@selectors/Account';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {loginSelector} from '@selectors/PersonalDetails';
 import React from 'react';
 
 import type {ActionHandledType} from './useHoldMenuSubmit';
@@ -56,6 +55,8 @@ import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePaginatedReportActions from './usePaginatedReportActions';
 import usePermissions from './usePermissions';
+import {usePersonalDetail} from './usePersonalDetails';
+import useReportIsArchived from './useReportIsArchived';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
 import useStrictPolicyRules from './useStrictPolicyRules';
 import useThemeStyles from './useThemeStyles';
@@ -93,10 +94,9 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
+    const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
     const [chatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
-    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID),
-    });
+    const [submitterLogin] = usePersonalDetail(moneyRequestReport?.ownerAccountID, loginSelector);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -139,10 +139,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Send', 'ThumbsUp', 'CircularArrowBackwards', 'Clear', 'MoneyBag', 'ArrowRight', 'DocumentCheck']);
 
-    const nextApproverAccountID = getNextApproverAccountID(moneyRequestReport, rules);
-    const isSubmitterSameAsNextApprover =
-        isReportOwner(moneyRequestReport) && (nextApproverAccountID === moneyRequestReport?.ownerAccountID || moneyRequestReport?.managerID === moneyRequestReport?.ownerAccountID);
-    const isBlockSubmitDueToPreventSelfApproval = !!(isSubmitterSameAsNextApprover && policy?.preventSelfApproval);
+    const isBlockSubmitDueToPreventSelfApproval = shouldBlockSubmitDueToPreventSelfApproval(moneyRequestReport, policy, rules);
 
     const isBlockSubmitDueToStrictPolicyRules = shouldBlockSubmitDueToStrictPolicyRules(
         moneyRequestReport?.reportID,
@@ -215,8 +212,9 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
         }
     };
 
-    const isIOUPayable = canIOUBePaid(moneyRequestReport, chatReport, policy, bankAccountList, currentUserPersonalDetails.login ?? '', accountID);
-    const onlyShowPayElsewhere = !isIOUPayable && canIOUBePaid(moneyRequestReport, chatReport, policy, bankAccountList, currentUserPersonalDetails.login ?? '', accountID, undefined, true);
+    const isIOUPayable = canIOUBePaid(moneyRequestReport, chatReport, policy, bankAccountList, currentUserPersonalDetails.login ?? '', accountID, undefined, false, isChatReportArchived);
+    const onlyShowPayElsewhere =
+        !isIOUPayable && canIOUBePaid(moneyRequestReport, chatReport, policy, bankAccountList, currentUserPersonalDetails.login ?? '', accountID, undefined, true, isChatReportArchived);
     const shouldShowPayButton = isIOUPayable || onlyShowPayElsewhere;
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions);
     const shouldShowApprovalSecondaryActions = isAnyTransactionOnHold && !isDelegateAccessRestricted;

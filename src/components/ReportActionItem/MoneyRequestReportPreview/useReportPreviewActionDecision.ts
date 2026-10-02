@@ -1,5 +1,6 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
 import {getConnectedIntegration, hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
@@ -8,7 +9,7 @@ import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
 import {canIOUBePaid} from '@libs/ReportUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
+import {loginSelector} from '@src/selectors/PersonalDetails';
 import type {Policy, Report, Transaction, TransactionViolations} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -46,7 +47,7 @@ function useReportPreviewActionDecision({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [iouReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReportID}`);
-    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(iouReport?.ownerAccountID)});
+    const [ownerLogin] = usePersonalDetail(iouReport?.ownerAccountID, loginSelector);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const isDEWPolicy = hasDynamicExternalWorkflow(policy);
@@ -62,12 +63,23 @@ function useReportPreviewActionDecision({
         currentUserDetails.accountID,
         transactions,
         false,
-        undefined,
+        isChatReportArchived,
         invoiceReceiverPolicy,
     );
     const onlyShowPayElsewhere =
         !isIOUPayable &&
-        canIOUBePaid(iouReport, chatReport, policy, bankAccountList, currentUserDetails.login ?? '', currentUserDetails.accountID, transactions, true, undefined, invoiceReceiverPolicy);
+        canIOUBePaid(
+            iouReport,
+            chatReport,
+            policy,
+            bankAccountList,
+            currentUserDetails.login ?? '',
+            currentUserDetails.accountID,
+            transactions,
+            true,
+            isChatReportArchived,
+            invoiceReceiverPolicy,
+        );
     const shouldShowPayButton = isPaidAnimationRunning || isIOUPayable || onlyShowPayElsewhere;
 
     const reportPreviewAction = getReportPreviewAction({

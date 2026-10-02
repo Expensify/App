@@ -4,7 +4,7 @@ import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
 
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
+import {getTotalAmountForIOUReportPreviewButton, isEveryReportTransactionSelected} from '@libs/MoneyRequestReportUtils';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {isSubmitPolicy} from '@libs/PolicyUtils';
@@ -14,7 +14,6 @@ import {canIOUBePaid as canIOUBePaidAction, getNonHeldAndFullAmount, hasOnlyHeld
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import {createMoveExpenseReportNVPSelector} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -22,6 +21,7 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {loginSelector} from '@selectors/PersonalDetails';
 import {useState} from 'react';
 
 import {useCurrencyListActions} from './useCurrencyList';
@@ -31,6 +31,7 @@ import useLifecycleActions from './useLifecycleActions';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
+import {usePersonalDetail} from './usePersonalDetails';
 import useReportIsArchived from './useReportIsArchived';
 import useSelectionModePayment from './useSelectionModePayment';
 
@@ -68,7 +69,7 @@ function useSelectionModeReportActions({
     const [moveExpenseReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
         selector: createMoveExpenseReportNVPSelector(outstandingReportsByPolicyID, report?.reportID),
     });
-    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.ownerAccountID)});
+    const [submitterLogin] = usePersonalDetail(report?.ownerAccountID, loginSelector);
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
     );
@@ -121,7 +122,18 @@ function useSelectionModeReportActions({
     const nonPendingDeleteTransactions = transactions.filter((t): t is OnyxTypes.Transaction => !!t && (isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE));
 
     const getCanIOUBePaid = (onlyShowPayElsewhere = false) =>
-        canIOUBePaidAction(report, chatReport, policy, bankAccountList, currentUserLogin ?? '', currentUserAccountID, transactions, onlyShowPayElsewhere, undefined, invoiceReceiverPolicy);
+        canIOUBePaidAction(
+            report,
+            chatReport,
+            policy,
+            bankAccountList,
+            currentUserLogin ?? '',
+            currentUserAccountID,
+            transactions,
+            onlyShowPayElsewhere,
+            isChatReportArchived,
+            invoiceReceiverPolicy,
+        );
     const canIOUBePaid = getCanIOUBePaid();
     const onlyShowPayElsewhere = !canIOUBePaid && getCanIOUBePaid(true);
     const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;
@@ -182,7 +194,7 @@ function useSelectionModeReportActions({
     const hasApproveAction = primaryAction === CONST.REPORT.PRIMARY_ACTIONS.APPROVE || secondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE);
     const hasPayAction = primaryAction === CONST.REPORT.PRIMARY_ACTIONS.PAY || secondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.PAY);
 
-    const allExpensesSelected = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactions.length;
+    const allExpensesSelected = isEveryReportTransactionSelected(transactions, selectedTransactionIDs);
 
     const selectedTransactions = transactions.filter((transaction) => selectedTransactionIDs.includes(transaction.transactionID));
     const hasSelectedTransactionsOnSubmitPolicy = isSubmitPolicy(policy) && selectedTransactions.length > 0;
@@ -235,7 +247,7 @@ function useSelectionModeReportActions({
 
     // Build report-level action menu
     const selectionModeReportLevelActions = (() => {
-        const actions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'subMenuItems' | 'subMenuHeaderText'>> = [];
+        const actions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'rightIcon'>> = [];
         let idx = 0;
         if (hasSubmitAction && !effectiveShouldBlockSubmit) {
             actions[idx++] = {

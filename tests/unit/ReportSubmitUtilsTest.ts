@@ -110,24 +110,24 @@ describe('canSubmitAndIsAwaitingForCurrentUser', () => {
         const transactionViolations: Record<string, TransactionViolations> = {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [{name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE, type: 'violation'}],
         };
-        const result = canSubmitAndIsAwaitingForCurrentUser(managerReport, chatReport, basePolicy, transactions, transactionViolations, 'user@test.com', CURRENT_USER_ACCOUNT_ID);
+        const result = canSubmitAndIsAwaitingForCurrentUser(managerReport, chatReport, basePolicy, transactions, transactionViolations, 'user@test.com', CURRENT_USER_ACCOUNT_ID, undefined);
         expect(result).toBe(false);
     });
 
     it('returns false when the report is not submittable', () => {
         const submittedReport: Report = {...iouReport, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED};
-        const result = canSubmitAndIsAwaitingForCurrentUser(submittedReport, chatReport, basePolicy, transactions, {}, 'user@test.com', CURRENT_USER_ACCOUNT_ID);
+        const result = canSubmitAndIsAwaitingForCurrentUser(submittedReport, chatReport, basePolicy, transactions, {}, 'user@test.com', CURRENT_USER_ACCOUNT_ID, undefined);
         expect(result).toBe(false);
     });
 
     it('returns false when report is not waiting for submission from current user', () => {
         const otherChatReport = createPolicyExpenseChat(1, false);
-        const result = canSubmitAndIsAwaitingForCurrentUser(iouReport, otherChatReport, basePolicy, transactions, {}, 'user@test.com', CURRENT_USER_ACCOUNT_ID);
+        const result = canSubmitAndIsAwaitingForCurrentUser(iouReport, otherChatReport, basePolicy, transactions, {}, 'user@test.com', CURRENT_USER_ACCOUNT_ID, undefined);
         expect(result).toBe(false);
     });
 
     it('returns true when all conditions are met', () => {
-        const result = canSubmitAndIsAwaitingForCurrentUser(iouReport, chatReport, basePolicy, transactions, {}, 'user@test.com', CURRENT_USER_ACCOUNT_ID);
+        const result = canSubmitAndIsAwaitingForCurrentUser(iouReport, chatReport, basePolicy, transactions, {}, 'user@test.com', CURRENT_USER_ACCOUNT_ID, undefined);
         expect(result).toBe(true);
     });
 });

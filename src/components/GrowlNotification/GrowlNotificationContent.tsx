@@ -22,6 +22,7 @@ import {useSharedValue, withSpring} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 
 import GrowlNotificationContainer from './GrowlNotificationContainer';
+import GrowlNotificationPortal from './GrowlNotificationPortal';
 
 const INACTIVE_OFFSET = CONST.GROWL.OFFSCREEN_OFFSET;
 const INACTIVE_POSITION_Y = -INACTIVE_OFFSET;
@@ -130,51 +131,53 @@ function GrowlNotificationContent({bodyText, type, duration, action, nonce, onDi
         .onStart(triggerDismiss);
 
     return (
-        <View style={styles.growlNotificationWrapper}>
-            <GrowlNotificationContainer
-                progress={progress}
-                inactiveY={inactiveY}
-                useBottomPosition={useBottomPosition}
-            >
-                <GestureDetector gesture={flingGesture}>
-                    <View style={[styles.growlNotificationBox, action ? styles.growlNotificationBoxWithAction : styles.growlNotificationBoxWithoutAction]}>
-                        {/* The dismiss target covers only the icon + text; the action Button is a sibling
-                            (not nested inside a pressable) so it stays independently focusable for screen
-                            readers and its press can't bubble into a dismiss. */}
-                        <PressableWithoutFeedback
-                            accessibilityLabel={bodyText}
-                            sentryLabel="GrowlNotification-Dismiss"
-                            onPress={triggerDismiss}
-                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}
-                        >
-                            <Icon
-                                src={types[type].icon}
-                                fill={types[type].iconColor}
-                            />
-                            <Text style={styles.growlNotificationText}>{bodyText}</Text>
-                        </PressableWithoutFeedback>
-                        {!!action && (
-                            <Button
-                                accessibilityLabel={action.label}
-                                sentryLabel="GrowlNotification-Action"
-                                onPress={() => {
-                                    if (isActionPressedRef.current) {
-                                        return;
-                                    }
-                                    isActionPressedRef.current = true;
-                                    triggerDismiss();
-                                    action.onPress();
-                                }}
-                                innerStyles={styles.bgTransparent}
-                                hoverStyles={styles.growlNotificationActionHovered}
+        <GrowlNotificationPortal>
+            <View style={styles.growlNotificationWrapper}>
+                <GrowlNotificationContainer
+                    progress={progress}
+                    inactiveY={inactiveY}
+                    useBottomPosition={useBottomPosition}
+                >
+                    <GestureDetector gesture={flingGesture}>
+                        <View style={[styles.growlNotificationBox, action ? styles.growlNotificationBoxWithAction : styles.growlNotificationBoxWithoutAction]}>
+                            {/* The dismiss target covers only the icon + text; the action Button is a sibling
+                                (not nested inside a pressable) so it stays independently focusable for screen
+                                readers and its press can't bubble into a dismiss. */}
+                            <PressableWithoutFeedback
+                                accessibilityLabel={bodyText}
+                                sentryLabel="GrowlNotification-Dismiss"
+                                onPress={triggerDismiss}
+                                style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}
                             >
-                                <Button.Text style={styles.growlNotificationActionText}>{action.label}</Button.Text>
-                            </Button>
-                        )}
-                    </View>
-                </GestureDetector>
-            </GrowlNotificationContainer>
-        </View>
+                                <Icon
+                                    src={types[type].icon}
+                                    fill={types[type].iconColor}
+                                />
+                                <Text style={styles.growlNotificationText}>{bodyText}</Text>
+                            </PressableWithoutFeedback>
+                            {!!action && (
+                                <Button
+                                    accessibilityLabel={action.label}
+                                    sentryLabel="GrowlNotification-Action"
+                                    onPress={() => {
+                                        if (isActionPressedRef.current) {
+                                            return;
+                                        }
+                                        isActionPressedRef.current = true;
+                                        triggerDismiss();
+                                        action.onPress();
+                                    }}
+                                    innerStyles={styles.bgTransparent}
+                                    hoverStyles={styles.growlNotificationActionHovered}
+                                >
+                                    <Button.Text style={styles.growlNotificationActionText}>{action.label}</Button.Text>
+                                </Button>
+                            )}
+                        </View>
+                    </GestureDetector>
+                </GrowlNotificationContainer>
+            </View>
+        </GrowlNotificationPortal>
     );
 }
 
