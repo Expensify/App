@@ -51,11 +51,12 @@ function EmailIssuePage() {
     // (the flag clears, so we dismiss) and landing here via a stale deep link when there was never a failure.
     // Wait for the account to finish loading first, otherwise a still-loading `false` triggers a spurious redirect.
     // Only leave while this page is on top, so a flag that clears while Concierge is open doesn't close Concierge instead.
+    // On a cold deep link this runs before the navigation ref is ready, when goBack() would be a no-op, so wait for it.
     useEffect(() => {
         if (!isFocused || isLoadingOnyxValue(accountMetadata) || hasEmailDeliveryFailure) {
             return;
         }
-        Navigation.goBack();
+        Navigation.isNavigationReady().then(() => Navigation.goBack());
     }, [isFocused, accountMetadata, hasEmailDeliveryFailure]);
 
     // The request has finished once isUnblockingEmail falls from true to false. A backend failure still
