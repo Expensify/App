@@ -1127,6 +1127,9 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether we should export to the most recent open period if the current one is closed  */
         exportToNextOpenPeriod: boolean;
 
+        /** Whether non-reimbursable exports are split into one transaction per calendar month */
+        splitExportsByPostingPeriod?: boolean;
+
         /** Whether we will include the original foreign amount of a transaction to NetSuite */
         allowForeignCurrency?: boolean;
 
