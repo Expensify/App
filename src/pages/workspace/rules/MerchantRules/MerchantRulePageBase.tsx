@@ -682,7 +682,6 @@ function MerchantRulePageBase({
 
     const footer = canWriteRules ? (
         <View style={[styles.m4, styles.mb5, styles.mh5]}>
-            {/* There is no set of existing expenses for a category rule to preview, so the row is hidden rather than locked. */}
             {!isCategoryRule && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap3, styles.ph2, styles.mt2, styles.mb6]}>
                     <Text style={[styles.textNormal, styles.textSupporting, styles.flex1]}>{translate('workspace.rules.merchantRules.previewMatchesDescription')}</Text>
@@ -803,8 +802,6 @@ function MerchantRulePageBase({
                         >
                             {translate('workspace.rules.merchantRules.applyToExistingUnsubmittedExpenses')}
                         </Text>
-                        {/* A category tax default only applies to expenses created after the rule is saved, so the switch
-                            is locked off. `disabled` draws the lock inside the thumb and routes the press to the explainer. */}
                         <Switch
                             accessibilityLabel={translate('workspace.rules.merchantRules.applyToExistingUnsubmittedExpenses')}
                             isOn={!isCategoryRule && shouldUpdateMatchingTransactions}
