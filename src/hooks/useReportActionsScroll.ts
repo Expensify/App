@@ -74,7 +74,7 @@ type UseReportActionsScrollParams = {
     /** The report action ID the unread marker is anchored to, if any */
     unreadMarkerReportActionID: string | null;
 
-    /** The index of the unread report action in the sorted visible actions list (-1 if none) */
+    /** The index of the unread report action in the rendered actions list (-1 if none) */
     unreadMarkerReportActionIndex: number;
 
     /** Whether the report has newer actions to load */
@@ -111,7 +111,7 @@ type UseReportActionsScrollResult = {
     /** Whether the action badge target is below the viewport */
     isActionBadgeBelowViewport: boolean;
 
-    /** Scrolls to the newest action and marks the report as read */
+    /** Scrolls to the unread marker when available, otherwise to the newest action, and marks the report as read when appropriate */
     scrollToBottomAndMarkReportAsRead: () => void;
 
     scrollToActionBadgeTarget: () => void;
@@ -170,7 +170,6 @@ function useReportActionsScroll({
     const backTo = route?.params?.backTo;
     const {isOffline} = useNetworkWithOfflineStatus();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
@@ -247,7 +246,6 @@ function useReportActionsScroll({
         conciergeChat,
         reportID,
         introSelected,
-        betas,
         isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
         hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
         isOffline,
@@ -379,6 +377,14 @@ function useReportActionsScroll({
     const scrollToBottomAndMarkReportAsRead = () => {
         setIsFloatingMessageCounterVisible(false);
 
+        if (unreadMarkerReportActionIndex >= 0) {
+            reportScrollManager.scrollToIndex(unreadMarkerReportActionIndex);
+            if (hasNewestReportAction) {
+                markNewestActionAsRead();
+            }
+            return;
+        }
+
         if (!hasNewestReportAction) {
             if (!Navigation.getReportRHPActiveRoute()) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, backTo));
@@ -387,7 +393,6 @@ function useReportActionsScroll({
                 reportID,
                 introSelected,
                 conciergeChat,
-                betas,
                 hasReportActions: true,
                 currentUserAccountID,
                 isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,

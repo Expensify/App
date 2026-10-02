@@ -69,6 +69,7 @@ import {
     getUpdateACHAccountMessage,
     getUpdatedAutoHarvestingMessage,
     getUpdatedCommuterExclusionsMessage,
+    getUpdatedMemberWorkArrangementMessage,
     getUpdatedCardFeedLiabilityMessage,
     getUpdatedCardFeedStatementPeriodMessage,
     hasNextActionMadeBySameActor,
@@ -2729,6 +2730,56 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe(false);
         });
 
+        it('should return false for MARKED_REIMBURSED with stale flags when the report has a sibling IOU PAY action', async () => {
+            // Given a MARKED_REIMBURSED action with stale write-time flags (no isNewDot, shouldShow not false)
+            const reportID = 'reportWithPaySibling';
+            const markedReimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                reportActionID: '1',
+                reportID,
+                created: '2025-01-01 00:00:00',
+                message: [{type: 'TEXT', style: 'normal', text: 'Marked as reimbursed'}],
+                originalMessage: {},
+            };
+            // And the report also contains a sibling IOU PAY action
+            const payAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportActionID: '2',
+                reportID,
+                created: '2025-01-01 00:00:01',
+                message: [{type: 'TEXT', style: 'normal', text: 'paid'}],
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUReportID: reportID, amount: 100, currency: CONST.CURRENCY.USD},
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>;
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [markedReimbursedAction.reportActionID]: markedReimbursedAction,
+                [payAction.reportActionID]: payAction,
+            });
+
+            // Then the MARKED_REIMBURSED action should NOT be visible (the IOU PAY action represents the same event)
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(markedReimbursedAction, markedReimbursedAction.reportActionID, true);
+            expect(actual).toBe(false);
+        });
+
+        it('should return true for MARKED_REIMBURSED when the report has no sibling IOU PAY action', async () => {
+            // Given a MARKED_REIMBURSED action (e.g. created by an ABA/paycheck/non-instant-submit path) with no IOU PAY twin
+            const reportID = 'reportWithoutPaySibling';
+            const markedReimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                reportActionID: '1',
+                reportID,
+                created: '2025-01-01 00:00:00',
+                message: [{type: 'TEXT', style: 'normal', text: 'Marked as reimbursed'}],
+                originalMessage: {},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [markedReimbursedAction.reportActionID]: markedReimbursedAction,
+            });
+
+            // Then the MARKED_REIMBURSED action should remain visible (there is no IOU PAY action to fall back on)
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(markedReimbursedAction, markedReimbursedAction.reportActionID, true);
+            expect(actual).toBe(true);
+        });
+
         it('should return true for TAKE_CONTROL when automaticAction is false', () => {
             const reportAction = buildTakeControlActionFixture(
                 {
@@ -4445,6 +4496,65 @@ describe('ReportActionsUtils', () => {
             [CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE, undefined, 'changed exclude commutes to a fixed distance per claim (previously do not exclude commutes)'],
         ])('names both the new and the previous method for %s from %s', (newValue, oldValue, expected) => {
             expect(getUpdatedCommuterExclusionsMessage(translateLocal, buildMethodChangeAction(newValue, oldValue))).toBe(expected);
+        });
+    });
+
+    describe('getUpdatedMemberWorkArrangementMessage', () => {
+        const buildAction = (originalMessage: Record<string, unknown>, actionName: ReportAction['actionName'] = CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_WORK_ARRANGEMENT) =>
+            ({
+                actionName,
+                reportActionID: '1',
+                created: '',
+                originalMessage,
+                message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, text: 'fallback message', html: 'fallback message'}],
+            }) as ReportAction;
+
+        it('falls back to the report action text for another action type', () => {
+            const action = buildAction({newValue: true, oldValue: false}, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING);
+
+            expect(getUpdatedMemberWorkArrangementMessage(translateLocal, action)).toBe(ReportActionsUtils.getReportActionText(action));
+        });
+
+        it('falls back to the report action text when arrangement values are not booleans', () => {
+            const action = buildAction({newValue: 'office', oldValue: false});
+
+            expect(getUpdatedMemberWorkArrangementMessage(translateLocal, action)).toBe(ReportActionsUtils.getReportActionText(action));
+        });
+
+        it('uses the member name when available', () => {
+            const action = buildAction({name: 'Member One', newValue: true, oldValue: false});
+
+            expect(getUpdatedMemberWorkArrangementMessage(translateLocal, action)).toBe(
+                translateLocal('workspaceActions.updatedMemberWorkArrangement', {
+                    displayName: 'Member One',
+                    newArrangement: translateLocal('workspace.people.officeBased'),
+                    oldArrangement: translateLocal('workspace.people.noRegularWorkspace'),
+                }),
+            );
+        });
+
+        it('formats the email when a member name is missing', () => {
+            const email = '+919383833920@expensify.sms';
+            const action = buildAction({email, newValue: true, oldValue: false});
+
+            expect(getUpdatedMemberWorkArrangementMessage(translateLocal, action)).toBe(
+                translateLocal('workspaceActions.updatedMemberWorkArrangement', {
+                    displayName: formatPhoneNumber(email),
+                    newArrangement: translateLocal('workspace.people.officeBased'),
+                    oldArrangement: translateLocal('workspace.people.noRegularWorkspace'),
+                }),
+            );
+        });
+
+        it('uses the default arrangement message when no member name or email is present', () => {
+            const action = buildAction({name: '', newValue: true, oldValue: false});
+
+            expect(getUpdatedMemberWorkArrangementMessage(translateLocal, action)).toBe(
+                translateLocal('workspaceActions.updatedDefaultWorkArrangement', {
+                    newArrangement: translateLocal('workspace.people.officeBased'),
+                    oldArrangement: translateLocal('workspace.people.noRegularWorkspace'),
+                }),
+            );
         });
     });
 
@@ -7304,6 +7414,23 @@ describe('ReportActionsUtils', () => {
             const real = conciergeComment('200', '2026-09-02 00:00:00.000');
             const sorted = [failed, real];
             expect(ReportActionsUtils.getLatestConciergeFeedbackActionID(sorted, persisted(sorted))).toBe('200');
+        });
+
+        it('picks the newest Concierge comment out of a report actions collection', () => {
+            const older = conciergeComment('100', '2026-09-01 00:00:00.000');
+            const newer = conciergeComment('200', '2026-09-02 00:00:00.000');
+            const userComment = conciergeComment('300', '2026-09-03 00:00:00.000', {actorAccountID: 12345});
+            const collection = {[older.reportActionID]: older, [newer.reportActionID]: newer, [userComment.reportActionID]: userComment};
+
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionIDFromReportActions(collection)).toBe('200');
+        });
+
+        it('returns undefined when the collection holds no Concierge comment to rate', () => {
+            const whisper = conciergeComment('400', '2026-09-05 00:00:00.000', {originalMessage: {html: 'w', whisperedTo: [1]}} as Partial<ReportAction>);
+            const failed = conciergeComment('500', '2026-09-06 00:00:00.000', {errors: {someError: 'error'}});
+
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionIDFromReportActions({[whisper.reportActionID]: whisper, [failed.reportActionID]: failed})).toBeUndefined();
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionIDFromReportActions(undefined)).toBeUndefined();
         });
 
         it('returns undefined for an empty report', () => {
