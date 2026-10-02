@@ -30,7 +30,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getSearchValueForPhoneOrEmail, getUserToInviteOption} from '@libs/OptionsListUtils';
 import {getKnownAccountIDByLogin, getLoginByAccountID, getPersonalDetailsByID} from '@libs/PersonalDetailsUtils';
 import {getAccountIDForSubmitManagerEmail, getMemberAccountIDsForWorkspace, getSubmitToEmail} from '@libs/PolicyUtils';
-import {hasViolations as hasViolationsReportUtils, isExpenseReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
+import {hasViolations as hasViolationsReportUtils, isExpenseReport, isMoneyRequestReportPendingDeletion, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import sortAlphabetically from '@libs/sortAlphabetically';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
@@ -113,7 +113,20 @@ function ReportSubmitToContent({
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`);
     const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(report?.reportID);
     const reportSubmitTransactions = useMemo(() => Object.values(reportTransactions), [reportTransactions]);
-    const confirmSubmitReportViolations = useConfirmSubmitReportViolations(reportSubmitTransactions, violations, Object.values(reportActions ?? {}), report, policy);
+    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
+        policy,
+        report,
+        isTrackIntentUser,
+        rules,
+    });
+    const confirmSubmitReportViolations = useConfirmSubmitReportViolations(
+        reportSubmitTransactions,
+        violations,
+        Object.values(reportActions ?? {}),
+        report,
+        policy,
+        shouldShowMarkAsDoneCopy,
+    );
 
     const prepopulatedEmail = getSubmitToEmail(policy, report, submitterLogin, rules);
 

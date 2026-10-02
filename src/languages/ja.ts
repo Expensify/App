@@ -94,6 +94,7 @@ const translations: TranslationDeepObject<typeof en> = {
         submit: '送信',
         submitAnyway: 'とにかく送信',
         markAsDone: '完了にする',
+        markAsDoneAnyway: 'とにかく完了にする',
         submitted: '送信済み',
         markedAsDoneStatus: '完了済み',
         rotate: '回転',
@@ -1405,6 +1406,8 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmSubmitReportViolations: {
             title: 'レポートを送信しますか？',
             description: 'このレポートにはポリシー違反があります。変更を加えずに送信してもよろしいですか？',
+            titleMarkAsDone: '完了にしますか？',
+            descriptionMarkAsDone: 'このレポートにはポリシー違反があります。変更を加えずに完了にしてもよろしいですか？',
             rejectedExpense: '拒否された経費が解決済みとしてマークされていません',
             reportRejected: 'レポートは以前に拒否されています',
             pendingCardMatch: '経費がカード取引との一致待ちです',

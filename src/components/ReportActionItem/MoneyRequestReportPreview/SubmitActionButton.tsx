@@ -99,7 +99,21 @@ function SubmitActionButtonContent() {
             getTransactionViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, iouReport, submitterLogin, policy) ?? [];
     }
 
-    const confirmSubmitReportViolations = useConfirmSubmitReportViolations(transactions, filteredTransactionViolations, Object.values(reportActions ?? {}), iouReport, policy);
+    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
+        isTrackIntentUser,
+        report: iouReport,
+        policy,
+        rules,
+    });
+
+    const confirmSubmitReportViolations = useConfirmSubmitReportViolations(
+        transactions,
+        filteredTransactionViolations,
+        Object.values(reportActions ?? {}),
+        iouReport,
+        policy,
+        shouldShowMarkAsDoneCopy,
+    );
 
     const isBlockSubmitDueToPreventSelfApproval = shouldBlockSubmitDueToPreventSelfApproval(iouReport, policy, rules);
     const isBlockSubmitDueToStrictPolicyRules = shouldBlockSubmitDueToStrictPolicyRules(
@@ -111,13 +125,6 @@ function SubmitActionButtonContent() {
         transactions,
     );
     const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval;
-
-    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
-        isTrackIntentUser,
-        report: iouReport,
-        policy,
-        rules,
-    });
 
     const handleSubmit = () => {
         // A domain that strictly enforces workspace rules, or a workspace that prevents self-approval, makes the backend

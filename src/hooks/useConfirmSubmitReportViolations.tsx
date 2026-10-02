@@ -1,6 +1,7 @@
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import SubmitViolationsList from '@components/SubmitViolationsList';
 
+import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
 import {buildSubmitViolationBullets, getReportSubmitViolationSummary} from '@libs/Violations/getReportSubmitViolationSummary';
 
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
@@ -28,6 +29,7 @@ function useConfirmSubmitReportViolations(
     reportActions: ReportAction[],
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
+    shouldShowMarkAsDoneCopy = false,
 ) {
     const {showConfirmModal} = useConfirmModal();
     const {translate, dateFnsLocale} = useLocalize();
@@ -42,11 +44,13 @@ function useConfirmSubmitReportViolations(
         }
 
         const bullets = buildSubmitViolationBullets({summary, translate, dateFnsLocale, convertToDisplayString});
-        showConfirmModal({
-            title: translate('iou.confirmSubmitReportViolations.title'),
-            subtitle: translate('iou.confirmSubmitReportViolations.description'),
+        // iOS can't present this modal while a just-closed popover (e.g. the submit-to popover) is still animating
+        // away, so defer until that transition finishes - same workaround the bulk-submit path already uses.
+        showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
+            title: translate(shouldShowMarkAsDoneCopy ? 'iou.confirmSubmitReportViolations.titleMarkAsDone' : 'iou.confirmSubmitReportViolations.title'),
+            subtitle: translate(shouldShowMarkAsDoneCopy ? 'iou.confirmSubmitReportViolations.descriptionMarkAsDone' : 'iou.confirmSubmitReportViolations.description'),
             prompt: <SubmitViolationsList violations={bullets} />,
-            confirmText: translate('common.submitAnyway'),
+            confirmText: translate(shouldShowMarkAsDoneCopy ? 'common.markAsDoneAnyway' : 'common.submitAnyway'),
             cancelText: translate('common.cancel'),
             buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             shouldEnablePromptScroll: true,

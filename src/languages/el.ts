@@ -98,6 +98,7 @@ const translations: TranslationDeepObject<typeof en> = {
         submit: 'Υποβολή',
         submitAnyway: 'Υποβολή ούτως ή άλλως',
         markAsDone: 'Σήμανση ως ολοκληρωμένο',
+        markAsDoneAnyway: 'Σήμανση ως ολοκληρωμένο ούτως ή άλλως',
         submitted: 'Υποβλήθηκε',
         markedAsDoneStatus: 'Έχει σημανθεί ως ολοκληρωμένο',
         rotate: 'Περιστροφή',
@@ -1468,6 +1469,8 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmSubmitReportViolations: {
             title: 'Υποβολή αναφοράς;',
             description: 'Αυτή η αναφορά έχει παραβιάσεις πολιτικής. Είστε σίγουροι ότι θέλετε να την υποβάλετε χωρίς αλλαγές;',
+            titleMarkAsDone: 'Σήμανση ως ολοκληρωμένο;',
+            descriptionMarkAsDone: 'Αυτή η αναφορά έχει παραβιάσεις πολιτικής. Είστε σίγουροι ότι θέλετε να τη σημάνετε ως ολοκληρωμένη χωρίς αλλαγές;',
             rejectedExpense: 'Απορριφθέν έξοδο δεν έχει επισημανθεί ως επιλυμένο',
             reportRejected: 'Η αναφορά απορρίφθηκε προηγουμένως',
             pendingCardMatch: 'Έξοδο σε αναμονή πιθανής αντιστοίχισης με συναλλαγή κάρτας',

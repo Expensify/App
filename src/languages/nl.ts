@@ -94,6 +94,7 @@ const translations: TranslationDeepObject<typeof en> = {
         submit: 'Verzenden',
         submitAnyway: 'Toch verzenden',
         markAsDone: 'Markeren als voltooid',
+        markAsDoneAnyway: 'Toch markeren als voltooid',
         submitted: 'Ingediend',
         markedAsDoneStatus: 'Als voltooid gemarkeerd',
         rotate: 'Draaien',
@@ -1421,6 +1422,8 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmSubmitReportViolations: {
             title: 'Rapport verzenden?',
             description: 'Dit rapport heeft beleidsschendingen. Weet u zeker dat u het wilt verzenden zonder wijzigingen aan te brengen?',
+            titleMarkAsDone: 'Markeren als voltooid?',
+            descriptionMarkAsDone: 'Dit rapport heeft beleidsschendingen. Weet u zeker dat u het wilt markeren als voltooid zonder wijzigingen aan te brengen?',
             rejectedExpense: 'Afgewezen uitgave niet als opgelost gemarkeerd',
             reportRejected: 'Rapport eerder afgewezen',
             pendingCardMatch: 'Uitgave wacht op mogelijke koppeling met een kaarttransactie',

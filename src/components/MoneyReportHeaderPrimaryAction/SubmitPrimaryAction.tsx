@@ -104,8 +104,14 @@ function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionP
     const transactions = Object.values(reportTransactions);
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
     const isDEWSubmission = hasDynamicExternalWorkflow(policy);
+    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
+        policy,
+        report: moneyRequestReport,
+        isTrackIntentUser,
+        rules,
+    });
 
-    const confirmSubmitReportViolations = useConfirmSubmitReportViolations(transactions, violations, reportActions, moneyRequestReport, policy);
+    const confirmSubmitReportViolations = useConfirmSubmitReportViolations(transactions, violations, reportActions, moneyRequestReport, policy, shouldShowMarkAsDoneCopy);
 
     const {showConfirmModal} = useConfirmModal();
 
@@ -119,12 +125,6 @@ function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionP
         transactions,
     );
     const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval;
-    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
-        policy,
-        report: moneyRequestReport,
-        isTrackIntentUser,
-        rules,
-    });
 
     // Submit via PDF is offered for any draft report the current user submits on a Submit workspace. The PDF flow
     // submits the report to the submitter, which is what makes the backend generate it.

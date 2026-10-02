@@ -94,6 +94,7 @@ const translations: TranslationDeepObject<typeof en> = {
         submit: 'Enviar',
         submitAnyway: 'Enviar mesmo assim',
         markAsDone: 'Marcar como concluído',
+        markAsDoneAnyway: 'Marcar como concluído mesmo assim',
         submitted: 'Enviado',
         markedAsDoneStatus: 'Marcado como concluído',
         rotate: 'Girar',
@@ -1420,6 +1421,8 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmSubmitReportViolations: {
             title: 'Enviar relatório?',
             description: 'Este relatório tem violações de política. Tem certeza de que deseja enviá-lo sem fazer alterações?',
+            titleMarkAsDone: 'Marcar como concluído?',
+            descriptionMarkAsDone: 'Este relatório tem violações de política. Tem certeza de que deseja marcá-lo como concluído sem fazer alterações?',
             rejectedExpense: 'Despesa rejeitada não marcada como resolvida',
             reportRejected: 'Relatório rejeitado anteriormente',
             pendingCardMatch: 'Despesa aguardando uma possível correspondência com uma transação de cartão',

@@ -94,6 +94,7 @@ const translations: TranslationDeepObject<typeof en> = {
         submit: '提交',
         submitAnyway: '仍然提交',
         markAsDone: '标记为完成',
+        markAsDoneAnyway: '仍然标记为完成',
         submitted: '已提交',
         markedAsDoneStatus: '已标记为完成',
         rotate: '旋转',
@@ -1368,6 +1369,8 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmSubmitReportViolations: {
             title: '提交报告？',
             description: '此报告存在违反政策的情况。您确定要不做任何更改就提交吗？',
+            titleMarkAsDone: '标记为完成？',
+            descriptionMarkAsDone: '此报告存在违反政策的情况。您确定要不做任何更改就标记为完成吗？',
             rejectedExpense: '被拒绝的费用未标记为已解决',
             reportRejected: '报告此前已被拒绝',
             pendingCardMatch: '费用正在等待与卡交易的潜在匹配',

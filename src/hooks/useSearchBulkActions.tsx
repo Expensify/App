@@ -2866,10 +2866,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
                     const bullets = buildSubmitViolationBullets({summary, translate, dateFnsLocale, convertToDisplayString});
                     showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
-                        title: translate('iou.confirmSubmitReportViolations.title'),
-                        subtitle: translate('iou.confirmSubmitReportViolations.description'),
+                        title: translate(allReportsShouldMarkAsDone ? 'iou.confirmSubmitReportViolations.titleMarkAsDone' : 'iou.confirmSubmitReportViolations.title'),
+                        subtitle: translate(allReportsShouldMarkAsDone ? 'iou.confirmSubmitReportViolations.descriptionMarkAsDone' : 'iou.confirmSubmitReportViolations.description'),
                         prompt: <SubmitViolationsList violations={bullets} />,
-                        confirmText: translate('common.submitAnyway'),
+                        confirmText: translate(allReportsShouldMarkAsDone ? 'common.markAsDoneAnyway' : 'common.submitAnyway'),
                         cancelText: translate('common.cancel'),
                         buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                         shouldEnablePromptScroll: true,

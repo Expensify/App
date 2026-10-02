@@ -87,6 +87,7 @@ const translations: TranslationDeepObject<typeof en> = {
         submit: 'Enviar',
         submitAnyway: 'Enviar de todos modos',
         markAsDone: 'Marcar como listo',
+        markAsDoneAnyway: 'Marcar como listo de todos modos',
         submitted: 'Enviado',
         markedAsDoneStatus: 'Marcado como listo',
         rotate: 'Rotar',
@@ -1398,6 +1399,8 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmSubmitReportViolations: {
             title: '¿Enviar informe?',
             description: 'Este informe tiene infracciones de política. ¿Seguro que quieres enviarlo sin hacer cambios?',
+            titleMarkAsDone: '¿Marcar como listo?',
+            descriptionMarkAsDone: 'Este informe tiene infracciones de política. ¿Seguro que quieres marcarlo como listo sin hacer cambios?',
             rejectedExpense: 'Gasto rechazado no marcado como resuelto',
             reportRejected: 'Informe rechazado anteriormente',
             pendingCardMatch: 'Gasto pendiente de una posible coincidencia con una transacción de tarjeta',

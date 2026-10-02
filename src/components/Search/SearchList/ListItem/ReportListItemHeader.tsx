@@ -285,19 +285,20 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
     const liveReportActionsForViolations = useLiveReportActionsForViolations(snapshotReport?.reportID ?? reportItem.reportID);
     const {transactions: reportListHeaderTransactions, violations: reportListHeaderViolations} = useTransactionsAndViolationsForReport(reportItem.reportID);
     const reportListHeaderTransactionsArray = useMemo(() => Object.values(reportListHeaderTransactions), [reportListHeaderTransactions]);
-    const confirmSubmitReportViolations = useConfirmSubmitReportViolations(
-        reportListHeaderTransactionsArray,
-        reportListHeaderViolations,
-        liveReportActionsForViolations,
-        parentReport ?? snapshotReport,
-        parentPolicy,
-    );
     const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         policy: parentPolicy,
         report: parentReport,
         isTrackIntentUser,
         rules,
     });
+    const confirmSubmitReportViolations = useConfirmSubmitReportViolations(
+        reportListHeaderTransactionsArray,
+        reportListHeaderViolations,
+        liveReportActionsForViolations,
+        parentReport ?? snapshotReport,
+        parentPolicy,
+        shouldShowMarkAsDoneCopy,
+    );
 
     const reportTransactionIDs = (reportItem.transactions ?? []).map((transaction) => transaction.transactionID);
     const [allViolations] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: transactionViolationsByIDsSelector(reportTransactionIDs)});

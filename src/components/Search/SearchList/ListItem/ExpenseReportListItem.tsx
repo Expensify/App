@@ -227,6 +227,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         liveReportActionsForViolations,
         reportForViolations,
         policyForViolations,
+        shouldShowMarkAsDoneCopy,
     );
 
     // Recompute the violations badge from live data at the row, replacing the screen-level

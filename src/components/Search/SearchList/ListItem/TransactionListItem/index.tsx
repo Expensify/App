@@ -228,6 +228,7 @@ function TransactionListItemInner<TItem extends ListItem>({
         liveReportActionsForViolations,
         reportForViolations,
         policyForViolations,
+        shouldShowMarkAsDoneCopy,
     );
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();

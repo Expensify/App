@@ -94,6 +94,7 @@ const translations: TranslationDeepObject<typeof en> = {
         submit: 'Soumettre',
         submitAnyway: 'Soumettre quand même',
         markAsDone: 'Marquer comme terminé',
+        markAsDoneAnyway: 'Marquer comme terminé quand même',
         submitted: 'Soumis',
         markedAsDoneStatus: 'Marqué comme terminé',
         rotate: 'Pivoter',
@@ -1428,6 +1429,8 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmSubmitReportViolations: {
             title: 'Soumettre le rapport ?',
             description: 'Ce rapport contient des violations de politique. Voulez-vous vraiment le soumettre sans apporter de modifications ?',
+            titleMarkAsDone: 'Marquer comme terminé ?',
+            descriptionMarkAsDone: 'Ce rapport contient des violations de politique. Voulez-vous vraiment le marquer comme terminé sans apporter de modifications ?',
             rejectedExpense: 'Dépense rejetée non marquée comme résolue',
             reportRejected: 'Rapport précédemment rejeté',
             pendingCardMatch: 'Dépense en attente d’une correspondance potentielle avec une transaction par carte',

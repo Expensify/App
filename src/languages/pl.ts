@@ -98,6 +98,7 @@ const translations: TranslationDeepObject<typeof en> = {
         submit: 'Wyślij',
         submitAnyway: 'Wyślij mimo to',
         markAsDone: 'Oznacz jako wykonane',
+        markAsDoneAnyway: 'Oznacz jako wykonane mimo to',
         submitted: 'Przesłano',
         markedAsDoneStatus: 'Oznaczone jako ukończone',
         rotate: 'Obróć',
@@ -1454,6 +1455,8 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmSubmitReportViolations: {
             title: 'Wysłać raport?',
             description: 'Ten raport zawiera naruszenia zasad. Czy na pewno chcesz go wysłać bez wprowadzania zmian?',
+            titleMarkAsDone: 'Oznaczyć jako wykonane?',
+            descriptionMarkAsDone: 'Ten raport zawiera naruszenia zasad. Czy na pewno chcesz oznaczyć go jako wykonany bez wprowadzania zmian?',
             rejectedExpense: 'Odrzucony wydatek nie oznaczony jako rozwiązany',
             reportRejected: 'Raport wcześniej odrzucony',
             pendingCardMatch: 'Wydatek czeka na możliwe dopasowanie z transakcją kartą',
