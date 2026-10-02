@@ -1298,6 +1298,7 @@ describe('useSearchBulkActions - export options', () => {
 
     describe('Reconciliation - All Expenses on a card group selection', () => {
         const CARD_GROUP_KEY = `${CONST.SEARCH.GROUP_PREFIX}1234`;
+
         // jest.clearAllMocks() only clears recorded calls, so the template list each test installs has to be undone by hand.
         const defaultExportTemplates = mockGetExportTemplates.getMockImplementation();
 
@@ -1343,6 +1344,7 @@ describe('useSearchBulkActions - export options', () => {
         it('offers the Reconciliation template, and only that template, for a card group selection', async () => {
             // Given a user who qualifies for the Reconciliation template, offered alongside the templates that stay hidden for a group selection
             mockTemplatesIncludingReconciliation();
+
             // Given a ticked card group row, because selecting the card group rather than the individual expenses is how an admin reconciles a statement
             selectCardGroup();
 
@@ -1358,6 +1360,7 @@ describe('useSearchBulkActions - export options', () => {
         it('offers the Reconciliation template for a card group whose children were never loaded', async () => {
             // Given a user who qualifies for the Reconciliation template
             mockTemplatesIncludingReconciliation();
+
             // Given a card group ticked before any of its children were loaded, so the selection holds the group key on its own instead of stamped children
             selectEmptyCardGroup();
 
@@ -1373,6 +1376,7 @@ describe('useSearchBulkActions - export options', () => {
         it('keeps every template hidden when the group selection is grouped by something other than card', async () => {
             // Given a user who qualifies for the Reconciliation template
             mockTemplatesIncludingReconciliation();
+
             // Given a ticked group row
             selectCardGroup();
 
@@ -1387,6 +1391,7 @@ describe('useSearchBulkActions - export options', () => {
 
         it('hides the Reconciliation template for a card group selection when the user is not a card-enabled admin', async () => {
             // Given a user who does not qualify for the template, so getExportTemplates leaves it out entirely
+
             // Given a ticked card group row
             selectCardGroup();
 
@@ -1405,11 +1410,14 @@ describe('useSearchBulkActions - export options', () => {
         it('scopes the Reconciliation export to the selected card groups instead of a transaction ID list', async () => {
             // Given a user who qualifies for the Reconciliation template
             mockTemplatesIncludingReconciliation();
+
             // Given a ticked card group
             selectCardGroup();
+
             // Given one expense ticked on its own alongside it, because that expense belongs to another card and so is not covered by the group's filter
             mockSelectedTransactions.tx2 = makeSelectedTransaction();
             const searchResults = makeSearchResults([]);
+
             // Given the card group row as it arrives in the search snapshot, which the group's filter entry is derived from
             Object.assign(searchResults.data, {[CARD_GROUP_KEY]: {cardID: 1234}});
             mockCurrentSearchResults = searchResults;
@@ -1429,8 +1437,10 @@ describe('useSearchBulkActions - export options', () => {
             });
 
             const [parameters] = jest.mocked(queueExportSearchWithTemplate).mock.calls.at(-1) ?? [];
+
             // Then the chosen template is the one that runs
             expect(parameters?.templateName).toBe(CONST.REPORT.EXPORT_OPTIONS.RECONCILIATION_ALL_EXPENSES);
+
             // Then the card groups travel as a `cardID:` filter on the query rather than as IDs, so the export covers
             // every expense on the card and not only the rows that happened to be loaded, while the expense ticked on
             // its own is still sent as an ID so it is not dropped, matching what "Current view" does.
@@ -1444,6 +1454,7 @@ describe('useSearchBulkActions - export options', () => {
         it('sends the Reconciliation export an ungrouped query scoped to the selected card groups', async () => {
             // Given a user who qualifies for the Reconciliation template
             mockTemplatesIncludingReconciliation();
+
             // Given a ticked card group on the Reconciliation search, because searchKey changes which expenses the backend matches
             selectCardGroup();
             mockCurrentSearchKey = CONST.SEARCH.SEARCH_KEYS.RECONCILIATION;
@@ -1451,6 +1462,7 @@ describe('useSearchBulkActions - export options', () => {
             Object.assign(searchResults.data, {[CARD_GROUP_KEY]: {cardID: 1234}});
             mockCurrentSearchResults = searchResults;
             jest.mocked(getSelectedGroupFilterEntry).mockReturnValue({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, value: 1234});
+
             // Given a limit on the grouped search, because it caps the number of card groups and would cap the exported expenses once groupBy is gone
             const limitedCardGroupedQueryJSON: SearchQueryJSON = {...cardGroupedExpenseQueryJSON, inputQuery: `${cardGroupedExpenseQueryJSON.inputQuery} limit:1`, limit: 1};
 
@@ -1469,11 +1481,14 @@ describe('useSearchBulkActions - export options', () => {
 
             const [parameters] = jest.mocked(queueExportSearchWithTemplate).mock.calls.at(-1) ?? [];
             const query: unknown = JSON.parse(parameters?.jsonQuery ?? '{}');
+
             // Then the query lists the card's expenses rather than the card group, and no group limit caps them
             expect(query).not.toHaveProperty('groupBy');
             expect(query).not.toHaveProperty('limit');
+
             // Then the export is still scoped to the selected card
             expect(JSON.stringify(query)).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID);
+
             // Then searchKey is sent, so the exported set matches the viewed set
             expect(query).toHaveProperty('searchKey', CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
         });
@@ -1483,10 +1498,12 @@ describe('useSearchBulkActions - export options', () => {
         it('sends the Reconciliation export an ungrouped query when all matching items are selected', async () => {
             // Given a user who qualifies for the Reconciliation template
             mockTemplatesIncludingReconciliation();
+
             // Given every matching item selected on the Reconciliation search, because searchKey changes which expenses the backend matches
             selectCardGroup();
             mockAreAllMatchingItemsSelected = true;
             mockCurrentSearchKey = CONST.SEARCH.SEARCH_KEYS.RECONCILIATION;
+
             // Given a limit on the grouped search, because it caps the number of card groups and would cap the exported expenses once groupBy is gone
             const limitedCardGroupedQueryJSON: SearchQueryJSON = {...cardGroupedExpenseQueryJSON, inputQuery: `${cardGroupedExpenseQueryJSON.inputQuery} limit:1`, limit: 1};
 
@@ -1505,11 +1522,14 @@ describe('useSearchBulkActions - export options', () => {
 
             const [parameters] = jest.mocked(queueExportSearchWithTemplate).mock.calls.at(-1) ?? [];
             const query: unknown = JSON.parse(parameters?.jsonQuery ?? '{}');
+
             // Then the query lists every matching expense rather than one row per card, and no group limit caps them
             expect(query).not.toHaveProperty('groupBy');
             expect(query).not.toHaveProperty('limit');
+
             // Then searchKey is sent, so the exported set matches the viewed set
             expect(query).toHaveProperty('searchKey', CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
+
             // Then the whole search is exported through the query, not through IDs
             expect(parameters?.reportIDList).toEqual([]);
             expect(parameters?.transactionIDList).toEqual([]);
@@ -1518,6 +1538,7 @@ describe('useSearchBulkActions - export options', () => {
         it('shows the download error instead of exporting the whole search when the card group cannot be scoped', async () => {
             // Given a user who qualifies for the Reconciliation template
             mockTemplatesIncludingReconciliation();
+
             // Given a ticked card group whose row is missing from the snapshot, so no cardID filter can be built for it
             selectCardGroup();
             mockCurrentSearchResults = makeSearchResults([]);
@@ -1545,6 +1566,7 @@ describe('useSearchBulkActions - export options', () => {
             // Given the same selection the Reconciliation export was checked against, so the two paths are compared on identical input
             mockTemplatesIncludingReconciliation();
             selectCardGroup();
+
             // Given one expense ticked on its own alongside the group, because that expense belongs to another card and so is not covered by the group's filter
             mockSelectedTransactions.tx2 = makeSelectedTransaction();
             const searchResults = makeSearchResults([]);
@@ -1566,11 +1588,13 @@ describe('useSearchBulkActions - export options', () => {
             });
 
             const {isGroupExport, reportIDList, transactionIDList, query} = getLastCSVExportParameters();
+
             // Then it covers exactly the same rows, because an admin who exports the same selection twice must get the
             // same scope back, and the two paths drifting apart is what made a card group export incompletely.
             expect(isGroupExport).toBe(true);
             expect(reportIDList).toEqual([]);
             expect(transactionIDList).toEqual(['tx2']);
+
             // Then the selected card groups reach the backend as a `cardID:` filter on the query rather than as IDs
             expect(JSON.stringify(query)).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID);
         });

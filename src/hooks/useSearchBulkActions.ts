@@ -347,11 +347,9 @@ function addSelectedGroupsFilter(queryJSON: SearchQueryJSON, selectedTransaction
 }
 
 /**
- * The query a template export sends for a grouped search.
- *
- * ExportSearchWithTemplate has no isGroupExport flag, so a grouped query exports one row per group instead of the group's expenses.
- * Drop groupBy and limit the way buildSpecificGroupQuery does, so the export covers every expense the query matches.
- * `limit` has to go too, because once groupBy is gone it would cap the exported expenses instead of the number of groups.
+ * Removes groupBy and limit from a query so a template export returns one row per expense.
+ * ExportSearchWithTemplate has no isGroupExport flag, so with groupBy it would return one row per group.
+ * Without groupBy, limit would cap the number of expenses, so we remove it as well.
  */
 function getUngroupedTemplateExportQuery(queryJSON: SearchQueryJSON): SearchQueryJSON | undefined {
     if (!queryJSON.groupBy) {
