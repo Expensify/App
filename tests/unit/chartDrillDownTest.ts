@@ -1,4 +1,4 @@
-import {buildChartDrillDownQuery, buildViewOnSpendQuery} from '@components/Search/chartDrillDown';
+import {buildChartDrillDownQuery, buildViewOnSpendQuery, getBucketDrillDownRange} from '@components/Search/chartDrillDown';
 
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
@@ -14,7 +14,7 @@ describe('chartDrillDown', () => {
             const queryJSON = buildSearchQueryJSON(RANKING_QUERY);
 
             // When the drill-down query is built
-            const query = queryJSON ? buildChartDrillDownQuery(queryJSON, 'from:1234') : undefined;
+            const query = queryJSON ? buildChartDrillDownQuery(queryJSON, {groupFilter: 'from:1234'}) : undefined;
 
             // Then it lists that member's expenses over the same period, ungrouped and sorted by date
             const drillDownJSON = query ? buildSearchQueryJSON(query) : undefined;
@@ -32,7 +32,7 @@ describe('chartDrillDown', () => {
             expect(queryJSON?.limit).toBe(10);
 
             // When a member's bar is drilled into
-            const query = queryJSON ? buildChartDrillDownQuery(queryJSON, 'from:1234') : undefined;
+            const query = queryJSON ? buildChartDrillDownQuery(queryJSON, {groupFilter: 'from:1234'}) : undefined;
 
             // Then the limit is gone
             expect(query ? buildSearchQueryJSON(query)?.limit : undefined).toBeUndefined();
@@ -43,10 +43,47 @@ describe('chartDrillDown', () => {
             const queryJSON = buildSearchQueryJSON(TIME_QUERY);
 
             // When the drill-down query is built
-            const query = queryJSON ? buildChartDrillDownQuery(queryJSON, 'date>=2026-02-01 date<=2026-02-28') : undefined;
+            const query = queryJSON ? buildChartDrillDownQuery(queryJSON, {dateRange: {start: '2026-02-01', end: '2026-02-28'}}) : undefined;
 
-            // Then the bucket's own bounds sit alongside the period the chart plotted, narrowing the query to their overlap
-            expect(query).toBe('type:expense sortBy:date sortOrder:desc groupCurrency:USD date>2026-01-01 date<2026-03-31 date>=2026-02-01 date<=2026-02-28');
+            // Then the bucket's own bounds replace the period the chart plotted
+            expect(query).toBe('type:expense sortBy:date sortOrder:desc groupCurrency:USD date>=2026-02-01 date<=2026-02-28');
+        });
+
+        it('opens a previous-period bar over that period, not over the page range it could never overlap', () => {
+            // Given a ranking chart over March and a bar plotting the same member in February
+            const queryJSON = buildSearchQueryJSON(RANKING_QUERY);
+
+            // When the previous period's bar is drilled into
+            const query = queryJSON ? buildChartDrillDownQuery(queryJSON, {groupFilter: 'from:1234', dateRange: {start: '2025-01-01', end: '2025-03-31'}}) : undefined;
+
+            // Then the query carries only the previous period's dates, so it still matches expenses
+            expect(query).toContain('date>=2025-01-01 date<=2025-03-31');
+            expect(query).not.toContain('2026-01-01');
+            expect(query).toContain('from:1234');
+        });
+    });
+
+    describe('getBucketDrillDownRange', () => {
+        it('cuts a week that starts before the page range to the dates the chart plotted', () => {
+            // Given September plotted by week, whose first week starts on Sunday August 30
+            const queryJSON = buildSearchQueryJSON('type:expense groupBy:week view:bar date>=2026-09-01 date<=2026-09-30');
+
+            // When that week is drilled into
+            const range = queryJSON ? getBucketDrillDownRange(queryJSON, {start: '2026-08-30', end: '2026-09-05'}) : undefined;
+
+            // Then it opens September 1 to 5, matching the bar, rather than pulling in August's expenses
+            expect(range).toEqual({start: '2026-09-01', end: '2026-09-05'});
+        });
+
+        it('cuts a previous-period bucket to the previous period, not to the page range', () => {
+            // Given September compared with August, and August's first week, which starts on Sunday July 26
+            const queryJSON = buildSearchQueryJSON('type:expense groupBy:week view:bar date>=2026-09-01 date<=2026-09-30');
+
+            // When that week is drilled into
+            const range = queryJSON ? getBucketDrillDownRange(queryJSON, {start: '2026-07-26', end: '2026-08-01'}, {start: '2026-08-01', end: '2026-08-31'}) : undefined;
+
+            // Then it opens only August 1, the part of the week inside the compared period
+            expect(range).toEqual({start: '2026-08-01', end: '2026-08-01'});
         });
     });
 

@@ -1,0 +1,40 @@
+import type {ChartSeries} from '@components/Charts/types';
+import Text from '@components/Text';
+
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
+import {View} from 'react-native';
+
+type ChartLegendProps = {
+    /** One entry is drawn per series, in the order the chart draws them */
+    series: ChartSeries[];
+};
+
+/** Legend for a bar or line chart's series. Renders nothing for fewer than two named series. */
+function ChartLegend({series}: ChartLegendProps) {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const namedSeries = series.filter((seriesItem) => !!seriesItem.label);
+
+    if (namedSeries.length < 2) {
+        return null;
+    }
+
+    return (
+        <View style={styles.chartLegendContainer}>
+            {namedSeries.map((seriesItem) => (
+                <View
+                    key={seriesItem.key}
+                    style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}
+                >
+                    <View style={[styles.pieChartLegendDot, !!seriesItem.color && StyleUtils.getBackgroundColorStyle(seriesItem.color)]} />
+                    <Text style={styles.textLabel}>{seriesItem.label}</Text>
+                </View>
+            ))}
+        </View>
+    );
+}
+
+export default ChartLegend;

@@ -1263,6 +1263,22 @@ const translations = {
             label: 'Compare',
             previousPeriod: 'Previous period',
             average: 'Average',
+            yearToDate: (year: number) => `YTD ${year}`,
+            lastTwelveMonths: 'Last 12 months',
+            change: (amount: string) => `Change: ${amount}`,
+            dayNumber: (day: number) => `Day ${day}`,
+            weekNumber: (week: number) => `Week ${week}`,
+            monthNumber: (month: number) => `Month ${month}`,
+            quarterNumber: (quarter: number) => `Quarter ${quarter}`,
+            yearNumber: (year: number) => `Year ${year}`,
+            priorMonths: ({count}: {count: number}) => ({
+                one: 'Prior month',
+                other: `Prior ${count} months`,
+            }),
+            priorDays: ({count}: {count: number}) => ({
+                one: 'Prior day',
+                other: `Prior ${count} days`,
+            }),
         },
         emptyState: {
             title: 'Nothing to show',

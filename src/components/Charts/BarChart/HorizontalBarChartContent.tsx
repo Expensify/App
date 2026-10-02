@@ -1,10 +1,11 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import ChartLegend from '@components/Charts/components/ChartLegend';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
 import type {HitTestArgs, ResolveTargetIndexArgs} from '@components/Charts/hooks';
-import {useChartFontManager, useChartInteractions, useChartLabelFormats, useChartParagraphs} from '@components/Charts/hooks';
+import {useChartFontManager, useChartInteractions, useChartLabelFormats, useChartParagraphs, useScaleChangeHandler} from '@components/Charts/hooks';
 import {findClosestPoint} from '@components/Charts/hooks/useChartInteractions';
-import {calculateMinDomainPadding, getFontLineMetrics, getNiceValueDomain, getNiceValueTicks, measureTextWidth} from '@components/Charts/utils';
+import {calculateMinDomainPadding, getFontLineMetrics, getNiceValueDomain, getNiceValueTicks, getSeriesValue, measureTextWidth} from '@components/Charts/utils';
 import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING, LABEL_PADDING, MAX_Y_AXIS_LABEL_WIDTH} from '@components/Charts/VictoryTheme';
 
 import useTheme from '@hooks/useTheme';
@@ -53,6 +54,12 @@ const BAR_TIP_RADIUS = 8;
 
 /** Horizontal gap between the category labels and the bars. Wider than the default axis gap for readability. */
 const CATEGORY_LABEL_GAP = 24;
+
+/** Gap between the bars of one row, as a share of a bar's thickness */
+const BAR_WITHIN_GROUP_PADDING = 0.1;
+
+/** Row gap fraction when a row holds several series, smaller so paired bars stay legible */
+const MULTI_SERIES_BAR_PADDING = 0.45;
 
 /**
  * Builds a bar path with only the tip end rounded and the axis end square.
@@ -152,7 +159,7 @@ function ValueAxisLabels({xTicks, xScale, chartBottom, fontSize, fontManager, la
     });
 }
 
-function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', color = colors.blue400, onBarPress}: BarChartProps) {
+function HorizontalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onBarPress}: BarChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const fontManager = useChartFontManager();
@@ -162,10 +169,10 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
     // Transpose: value on the x-axis, category index on the y-axis.
     // Categories are reversed (index 0 mapped to the top row) so a descending-sorted ranking reads top-to-bottom.
     const lastIndex = data.length - 1;
-    const chartData = data.map((point, index) => ({
-        x: point.total,
-        y: lastIndex - index,
-    }));
+    const seriesKeys = series.map((seriesItem) => seriesItem.key);
+    const primarySeriesKey = seriesKeys.at(0) ?? '';
+    // Every series contributes a point, so the value axis spans all of them even though the bars are drawn by hand below.
+    const chartData = data.flatMap((point, index) => seriesKeys.map((key) => ({x: getSeriesValue(point, key), y: lastIndex - index})));
 
     const valueDomain = getNiceValueDomain(data, VictoryTheme.axis.tickCount);
 
@@ -175,13 +182,57 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
         unitPosition: yAxisUnitPosition,
     });
 
-    const handleBarPress = (index: number) => {
+    /** Thickness of a whole row of bars, which a row splits between its series */
+    const barThickness = useSharedValue(0);
+    const rowHeight = useSharedValue(0);
+
+    /** Canvas y of each row's center */
+    const rowCenters = useSharedValue<number[]>([]);
+
+    /** Canvas x of each bar's tip, by row then series */
+    const barTips = useSharedValue<number[][]>([]);
+    const xZero = useSharedValue(0);
+    const plotLeft = useSharedValue(0);
+    const plotAreaHeight = useSharedValue(0);
+
+    const rowPadding = series.length > 1 ? MULTI_SERIES_BAR_PADDING : HORIZONTAL_BAR_PADDING;
+
+    /** Thickness of a whole row of bars, mirroring BarGroup's barWidth: (1 - betweenGroupPadding) * plotHeight / groupCount */
+    const getGroupThickness = (plotHeight: number): number => (data.length > 0 ? (1 - rowPadding) * (plotHeight / data.length) : 0);
+
+    /** Index of the row's series whose bar is under the cursor, or -1 when the cursor misses every bar. The label column counts as the first series. */
+    const getSeriesIndexAt = (index: number, cursorX: number, cursorY: number): number => {
+        'worklet';
+
+        // A small pad around the row keeps thin bars easy to hit, capped at the row spacing so neighboring rows never overlap.
+        const thickness = barThickness.get();
+        const rowCenterY = rowCenters.get().at(index);
+        if (thickness <= 0 || rowCenterY === undefined) {
+            return -1;
+        }
+        const band = Math.min(thickness + 2 * HOVER_ROW_PADDING, rowHeight.get());
+        if (cursorY < rowCenterY - band / 2 || cursorY > rowCenterY + band / 2) {
+            return -1;
+        }
+        if (cursorX <= plotLeft.get()) {
+            return 0;
+        }
+
+        // The bar runs from the zero axis to its tip, on either side for positive and negative values, with some tolerance past the tip.
+        const seriesIndex = Math.min(series.length - 1, Math.max(0, Math.floor((cursorY - (rowCenterY - thickness / 2)) / (thickness / series.length))));
+        const zero = xZero.get();
+        const tipX = barTips.get().at(index)?.at(seriesIndex) ?? zero;
+        const tipEnd = tipX >= zero ? tipX + HOVER_TIP_TOLERANCE : tipX - HOVER_TIP_TOLERANCE;
+        return cursorX >= Math.min(zero, tipEnd) && cursorX <= Math.max(zero, tipEnd) ? seriesIndex : -1;
+    };
+
+    const handleBarPress = (index: number, cursor: {x: number; y: number}) => {
         if (index < 0 || index >= data.length) {
             return;
         }
         const dataPoint = data.at(index);
         if (dataPoint && onBarPress) {
-            onBarPress(dataPoint, index);
+            onBarPress(dataPoint, index, seriesKeys.at(getSeriesIndexAt(index, cursor.x, cursor.y)) ?? primarySeriesKey);
         }
     };
 
@@ -193,51 +244,20 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
         if (barAreaHeight === 0) {
             return BASE_DOMAIN_PADDING;
         }
-        const verticalPadding = calculateMinDomainPadding(barAreaHeight, data.length, HORIZONTAL_BAR_PADDING);
+        const verticalPadding = calculateMinDomainPadding(barAreaHeight, data.length, rowPadding);
         return {...BASE_DOMAIN_PADDING, top: verticalPadding, bottom: verticalPadding};
     })();
 
-    const barThickness = useSharedValue(0);
-    const rowHeight = useSharedValue(0);
-    const xZero = useSharedValue(0);
-    const plotLeft = useSharedValue(0);
-
     const handleChartBoundsChange = (bounds: ChartBounds) => {
-        const plotHeight = bounds.bottom - bounds.top;
-        setBarAreaHeight(plotHeight);
-        barThickness.set(data.length > 0 ? (1 - HORIZONTAL_BAR_PADDING) * (plotHeight / data.length) : 0);
+        setBarAreaHeight(bounds.bottom - bounds.top);
+        plotAreaHeight.set(bounds.bottom - bounds.top);
         plotLeft.set(bounds.left);
     };
 
     const checkIsOverBar = (args: HitTestArgs) => {
         'worklet';
 
-        // Vertically the target is the bar thickness plus a small pad (thin bars stay easy to hit), never wider
-        // than the row spacing so adjacent rows don't overlap. Using the bar thickness rather than the full row
-        // gap keeps the empty space above/below a bar inert, including a single bar that spans the whole plot.
-        // Horizontally the target is the category label column on the left OR the bar itself (so hovering a group
-        // label also shows the tooltip), but the empty plot space between them and beyond the bar tip stays inert.
-        // The bar runs between the zero axis and its tip. Positive bars point right (tip past the axis), negative
-        // bars point left (tip before the axis). Extend the tolerance outward past the tip. The label column sits
-        // left of the plot area, so treat it as a separate hoverable region rather than merging it with the bar
-        // span, which would otherwise make the empty negative-side plot region between them hoverable too.
-        const thickness = barThickness.get();
-        if (thickness <= 0) {
-            return false;
-        }
-        const band = Math.min(thickness + 2 * HOVER_ROW_PADDING, rowHeight.get());
-        const rowTop = args.targetY - band / 2;
-        const rowBottom = args.targetY + band / 2;
-        const isWithinRow = args.cursorY >= rowTop && args.cursorY <= rowBottom;
-        const zero = xZero.get();
-        const tipEnd = args.targetX >= zero ? args.targetX + HOVER_TIP_TOLERANCE : args.targetX - HOVER_TIP_TOLERANCE;
-        const barStart = Math.min(zero, tipEnd);
-        const barEnd = Math.max(zero, tipEnd);
-        const isWithinBar = args.cursorX >= barStart && args.cursorX <= barEnd;
-        const isWithinLabelColumn = args.cursorX <= plotLeft.get();
-        const isWithinBarExtent = isWithinBar || isWithinLabelColumn;
-
-        return isWithinRow && isWithinBarExtent;
+        return getSeriesIndexAt(args.targetIndex, args.cursorX, args.cursorY) >= 0;
     };
 
     const resolveTargetIndex = (args: ResolveTargetIndexArgs) => {
@@ -265,11 +285,18 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
         resolveTooltipPosition,
     });
 
-    const handleScaleChange = (xScale: Scale, yScale: Scale) => {
-        xZero.set(xScale(0));
-        const oy = chartData.map((point) => yScale(point.y));
+    /** Stores canvas positions for hover, press and the tooltip */
+    const updateHitPositions = (xScale: Scale, yScale: Scale) => {
+        // The row thickness depends on the series count, so it is recomputed with the positions rather than only on a bounds change.
+        barThickness.set(getGroupThickness(plotAreaHeight.get()));
+        const zero = xScale(0);
+        xZero.set(zero);
+        const oy = data.map((point, index) => yScale(lastIndex - index));
+        rowCenters.set(oy);
+        barTips.set(data.map((point) => seriesKeys.map((key) => xScale(getSeriesValue(point, key)))));
         setPointPositions(
-            chartData.map((point) => xScale(point.x)),
+            // The tooltip sits above the row and points at the top bar, the first series.
+            data.map((point) => xScale(getSeriesValue(point, primarySeriesKey))),
             oy,
         );
 
@@ -283,6 +310,8 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
         }
         rowHeight.set(minGap > 0 ? minGap : Number.MAX_SAFE_INTEGER);
     };
+
+    const handleScaleChange = useScaleChangeHandler(updateHitPositions, data, series);
 
     const cursorStyle = useAnimatedStyle(() => ({
         cursor: isCursorOverClickable.get() ? 'pointer' : 'auto',
@@ -336,7 +365,7 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
                     formatValue={formatValue}
                 />
                 <ChartYAxisLabels
-                    yTicks={chartData.map((point) => point.y)}
+                    yTicks={data.map((point, index) => lastIndex - index)}
                     yScale={args.yScale}
                     chartBounds={args.chartBounds}
                     fontSize={variables.iconSizeExtraSmall}
@@ -364,28 +393,33 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
     // barWidth for a single series: (1 - betweenGroupPadding) * plotHeight / groupCount.
     const renderBars = (args: CartesianChartRenderArg<{x: number; y: number}, 'y'>) => {
         const plotHeight = args.chartBounds.bottom - args.chartBounds.top;
-        const thickness = data.length > 0 ? (1 - HORIZONTAL_BAR_PADDING) * (plotHeight / data.length) : 0;
-        if (thickness <= 0) {
+        const groupThickness = getGroupThickness(plotHeight);
+        if (groupThickness <= 0) {
             return null;
         }
+        // A row is split into one slot per series, each bar leaving a gap to the next.
+        const slotThickness = groupThickness / series.length;
+        const thickness = series.length > 1 ? slotThickness * (1 - BAR_WITHIN_GROUP_PADDING) : slotThickness;
         const radius = Math.min(BAR_TIP_RADIUS, thickness / 2);
         const zeroX = args.xScale(0);
 
-        return args.points.y.map((point, index) => {
-            if (typeof point.y !== 'number') {
-                return null;
-            }
-            const tipX = point.x;
-            const roundedTipOnRight = Number(point.xValue) >= 0;
-            const path = buildHorizontalBarPath(Math.min(tipX, zeroX), point.y - thickness / 2, Math.abs(tipX - zeroX), thickness, radius, roundedTipOnRight);
+        return data.flatMap((dataPoint, index) => {
+            const rowCenterY = args.yScale(lastIndex - index);
 
-            return (
-                <Path
-                    key={`horizontal-bar-${data.at(index)?.label ?? index}`}
-                    path={path}
-                    color={color}
-                />
-            );
+            return series.map((seriesItem, seriesIndex) => {
+                const value = getSeriesValue(dataPoint, seriesItem.key);
+                const tipX = args.xScale(value);
+                const barCenterY = rowCenterY + (seriesIndex - (series.length - 1) / 2) * slotThickness;
+                const path = buildHorizontalBarPath(Math.min(tipX, zeroX), barCenterY - thickness / 2, Math.abs(tipX - zeroX), thickness, radius, value >= 0);
+
+                return (
+                    <Path
+                        key={`horizontal-bar-${dataPoint.label}-${seriesItem.key}`}
+                        path={path}
+                        color={seriesItem.color ?? (series.length > 1 ? VictoryTheme.colors.default : colors.blue400)}
+                    />
+                );
+            });
         });
     };
 
@@ -402,51 +436,55 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
     }
 
     return (
-        <GestureDetector
-            gesture={customGestures}
-            touchAction="pan-y"
-        >
-            <Animated.View
-                style={[styles.chartContent, dynamicChartStyle, cursorStyle]}
-                onLayout={handleLayout}
+        <>
+            <GestureDetector
+                gesture={customGestures}
+                touchAction="pan-y"
             >
-                {chartWidth > 0 && (
-                    <CartesianChart
-                        xKey="x"
-                        padding={chartPadding}
-                        yKeys={['y']}
-                        domain={valueDomain ? {x: valueDomain} : undefined}
-                        domainPadding={domainPadding}
-                        onChartBoundsChange={handleChartBoundsChange}
-                        onScaleChange={handleScaleChange}
-                        renderOutside={renderOutside}
-                        xAxis={{
-                            tickCount: VictoryTheme.axis.tickCount,
-                            lineWidth: VictoryTheme.axis.yLineWidth,
-                            lineColor: theme.border,
-                        }}
-                        yAxis={[
-                            {
-                                tickCount: data.length,
-                                lineWidth: 0,
-                            },
-                        ]}
-                        frame={{lineWidth: 0}}
-                        data={chartData}
-                    >
-                        {renderBars}
-                    </CartesianChart>
-                )}
-                <ChartTooltipLayer
-                    matchedIndex={matchedIndex}
-                    isTooltipActive={isTooltipActive}
-                    data={data}
-                    formatValue={formatValue}
-                    chartWidth={chartWidth}
-                    initialTooltipPosition={initialTooltipPosition}
-                />
-            </Animated.View>
-        </GestureDetector>
+                <Animated.View
+                    style={[styles.chartContent, dynamicChartStyle, cursorStyle]}
+                    onLayout={handleLayout}
+                >
+                    {chartWidth > 0 && (
+                        <CartesianChart
+                            xKey="x"
+                            padding={chartPadding}
+                            yKeys={['y']}
+                            domain={valueDomain ? {x: valueDomain} : undefined}
+                            domainPadding={domainPadding}
+                            onChartBoundsChange={handleChartBoundsChange}
+                            onScaleChange={handleScaleChange}
+                            renderOutside={renderOutside}
+                            xAxis={{
+                                tickCount: VictoryTheme.axis.tickCount,
+                                lineWidth: VictoryTheme.axis.yLineWidth,
+                                lineColor: theme.border,
+                            }}
+                            yAxis={[
+                                {
+                                    tickCount: data.length,
+                                    lineWidth: 0,
+                                },
+                            ]}
+                            frame={{lineWidth: 0}}
+                            data={chartData}
+                        >
+                            {renderBars}
+                        </CartesianChart>
+                    )}
+                    <ChartTooltipLayer
+                        matchedIndex={matchedIndex}
+                        isTooltipActive={isTooltipActive}
+                        data={data}
+                        series={series}
+                        formatValue={formatValue}
+                        chartWidth={chartWidth}
+                        initialTooltipPosition={initialTooltipPosition}
+                    />
+                </Animated.View>
+            </GestureDetector>
+            <ChartLegend series={series} />
+        </>
     );
 }
 

@@ -1,4 +1,5 @@
 import UserAvatar from '@components/Avatar/UserAvatar';
+import type {ChartSeries} from '@components/Charts';
 import type {TransactionCardGroupListItemType, TransactionMemberGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {ChartView, GroupedItem, SearchChartDataRow, SearchGroupBy} from '@components/Search/types';
 import Text from '@components/Text';
@@ -10,6 +11,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {format} from '@libs/NumberFormatUtils';
 import {formatPercentOfTotal} from '@libs/PercentageUtils';
 
 import CONST from '@src/CONST';
@@ -25,6 +27,9 @@ const SKELETON_ROW_COUNT = 5;
 type InsightsDataTableProps = {
     /** The plotted groups, prepared by `SearchChartView` */
     rows: SearchChartDataRow[];
+
+    /** Plotted series, primary first */
+    series: ChartSeries[];
 
     /** The chart type the rows are plotted on */
     view: ChartView;
@@ -44,7 +49,16 @@ function isMemberGroup(item: GroupedItem): item is TransactionMemberGroupListIte
     return isMemberGroupBy(item.groupedBy);
 }
 
-function InsightsDataTable({rows, view, groupBy, isLoading}: InsightsDataTableProps) {
+/** Change relative to the previous period, undefined when that is zero */
+function getRelativeChange(current: number, previous: number): number | undefined {
+    if (previous === 0) {
+        return undefined;
+    }
+
+    return (current - previous) / Math.abs(previous);
+}
+
+function InsightsDataTable({rows, series, view, groupBy, isLoading}: InsightsDataTableProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, preferredLocale} = useLocalize();
@@ -67,12 +81,28 @@ function InsightsDataTable({rows, view, groupBy, isLoading}: InsightsDataTablePr
     }
 
     const shouldShowColorDot = view === CONST.SEARCH.VIEW.PIE;
+    const comparisonSeries = series.at(1);
 
     return (
         <View style={styles.chartInlineTable}>
             {rows.map((row, index) => {
-                const {item, point, color} = row;
+                const {item, comparisonItem, point, color} = row;
                 const isLastRow = index === rows.length - 1;
+                // Compared rows show the change; lone rows show count and share.
+                const amountChange = (item.total ?? 0) - (comparisonItem?.total ?? 0);
+                const relativeChange = getRelativeChange(item.total ?? 0, comparisonItem?.total ?? 0);
+                let detailText = translate('iou.expenseCount', {count: item.count});
+                let supportingText =
+                    point.percentOfTotal === undefined
+                        ? undefined
+                        : translate('search.percentOfSpend', {percent: formatPercentOfTotal(point.percentOfTotal, item.total ?? 0, preferredLocale)});
+                if (comparisonSeries) {
+                    detailText = translate('insightsPage.compare.change', `${amountChange > 0 ? '+' : ''}${convertToDisplayString(amountChange, item.currency)}`);
+                    supportingText =
+                        relativeChange === undefined
+                            ? undefined
+                            : format(preferredLocale, relativeChange, {style: 'percent', minimumFractionDigits: 1, maximumFractionDigits: 1, signDisplay: 'exceptZero'});
+                }
 
                 return (
                     <View
@@ -93,18 +123,14 @@ function InsightsDataTable({rows, view, groupBy, isLoading}: InsightsDataTablePr
                                 shouldShowTooltip
                             />
                             <TextWithTooltip
-                                text={translate('iou.expenseCount', {count: item.count})}
+                                text={detailText}
                                 style={styles.mutedNormalTextLabel}
                                 shouldShowTooltip
                             />
                         </View>
                         <View style={[styles.flexColumn, styles.alignItemsEnd, styles.gap1, styles.alignSelfStretch]}>
                             <Text>{convertToDisplayString(item.total ?? 0, item.currency)}</Text>
-                            {point.percentOfTotal !== undefined && (
-                                <Text style={styles.mutedNormalTextLabel}>
-                                    {translate('search.percentOfSpend', {percent: formatPercentOfTotal(point.percentOfTotal, item.total ?? 0, preferredLocale)})}
-                                </Text>
-                            )}
+                            {!!supportingText && <Text style={styles.mutedNormalTextLabel}>{supportingText}</Text>}
                         </View>
                     </View>
                 );

@@ -15,10 +15,12 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import React from 'react';
 import {View} from 'react-native';
 
+import type {ChartComparison, SearchChartModel} from './buildChartSeries';
+import type {ChartBucketRange} from './chartGroupByConfig';
 import type {ChartView, GroupedItem, SearchChartDataRow, SearchGroupBy, SearchQueryJSON} from './types';
 
-import {buildChartSeries} from './buildChartSeries';
-import {buildChartDrillDownQuery} from './chartDrillDown';
+import {buildChartSeries, CHART_SERIES_KEY, getCounterpartBucketRange} from './buildChartSeries';
+import {buildChartDrillDownQuery, getBucketDrillDownRange} from './chartDrillDown';
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
 import {useSearchQueryContext} from './SearchContext';
 
@@ -39,8 +41,11 @@ type SearchChartViewProps = {
     /** Color every bar is drawn in. Only a bar chart reads it. */
     color?: string;
 
+    /** Second series, when comparing */
+    comparison?: ChartComparison;
+
     /** Renders the details of the plotted groups below the chart */
-    renderDetails?: (rows: SearchChartDataRow[]) => React.ReactNode;
+    renderDetails?: (model: SearchChartModel) => React.ReactNode;
 
     /** Style of the view around the chart, which the details below it don't share */
     chartContainerStyle?: StyleProp<ViewStyle>;
@@ -50,23 +55,52 @@ type SearchChartViewProps = {
  * Layer 3 component - dispatches to the appropriate chart type based on view parameter
  * and handles navigation/drill-down logic
  */
-function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, renderDetails, chartContainerStyle}: SearchChartViewProps) {
-    const {preferredLocale} = useLocalize();
+function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, comparison, renderDetails, chartContainerStyle}: SearchChartViewProps) {
+    const {preferredLocale, translate, dateFnsLocale} = useLocalize();
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {currentSearchKey} = useSearchQueryContext();
 
-    const {getLabel, getShortLabel, getFilterQuery} = CHART_GROUP_BY_CONFIG[groupBy];
+    const {getLabel, getShortLabel, getFilterQuery, getBucketRange, bucketUnit} = CHART_GROUP_BY_CONFIG[groupBy];
 
-    const rows = buildChartSeries({data, view, getLabel, getShortLabel, getCurrencyDecimals, color});
+    const model = buildChartSeries({
+        rows: data,
+        color,
+        comparison,
+        view,
+        groupBy,
+        getLabel,
+        getShortLabel,
+        getCurrencyDecimals,
+        translate,
+        dateFnsLocale,
+    });
+    const {series, rows} = model;
     const points = rows.map((row) => row.point);
 
-    const handleItemPress = (index: number) => {
-        const item = rows.at(index)?.item;
-        if (!item || !queryJSON) {
+    /** A comparison bucket with no expenses has no row, so its dates come from its position */
+    const getPressedBucketRange = (row: SearchChartDataRow, isComparisonSeries: boolean): ChartBucketRange => {
+        const bucketRange = getBucketRange?.(row.item) ?? {start: '', end: ''};
+        if (!isComparisonSeries) {
+            return bucketRange;
+        }
+        if (row.comparisonItem) {
+            return getBucketRange?.(row.comparisonItem) ?? bucketRange;
+        }
+        return comparison && bucketUnit ? getCounterpartBucketRange(bucketRange, comparison.primaryPeriod.range.start, comparison.comparisonPeriod.range.start, bucketUnit) : bucketRange;
+    };
+
+    const handleItemPress = (index: number, seriesKey: string) => {
+        const row = rows.at(index);
+        if (!row || !queryJSON) {
             return;
         }
 
-        const query = buildChartDrillDownQuery(queryJSON, getFilterQuery(item));
+        const isComparisonSeries = seriesKey === CHART_SERIES_KEY.COMPARISON;
+        const pressedPeriod = isComparisonSeries ? comparison?.comparisonPeriod : comparison?.primaryPeriod;
+        const pressedItem = (isComparisonSeries ? row.comparisonItem : row.item) ?? row.item;
+        // Time buckets open their own dates; ranking groups open the pressed series' period.
+        const dateRange = getBucketRange ? getBucketDrillDownRange(queryJSON, getPressedBucketRange(row, isComparisonSeries), pressedPeriod?.range) : pressedPeriod?.range;
+        const query = buildChartDrillDownQuery(queryJSON, {groupFilter: getBucketRange ? undefined : getFilterQuery(pressedItem), dateRange});
 
         if (!query) {
             return;
@@ -87,18 +121,19 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, rend
         [CONST.SEARCH.VIEW.BAR]: (
             <BarChart
                 data={points}
+                series={series}
                 isLoading={isLoading}
-                onBarPress={(dataPoint, index) => handleItemPress(index)}
+                onBarPress={(dataPoint, index, seriesKey) => handleItemPress(index, seriesKey)}
                 yAxisUnit={unit}
                 yAxisUnitPosition={unitPosition}
-                color={color}
             />
         ),
         [CONST.SEARCH.VIEW.LINE]: (
             <LineChart
                 data={points}
+                series={series}
                 isLoading={isLoading}
-                onPointPress={(dataPoint, index) => handleItemPress(index)}
+                onPointPress={(dataPoint, index, seriesKey) => handleItemPress(index, seriesKey)}
                 yAxisUnit={unit}
                 yAxisUnitPosition={unitPosition}
             />
@@ -106,8 +141,9 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, rend
         [CONST.SEARCH.VIEW.PIE]: (
             <PieChart
                 data={points}
+                series={series}
                 isLoading={isLoading}
-                onSlicePress={(dataPoint, index) => handleItemPress(index)}
+                onSlicePress={(dataPoint, index) => handleItemPress(index, CHART_SERIES_KEY.PRIMARY)}
                 valueUnit={unit.value}
                 valueUnitPosition={unitPosition}
                 shouldShowLegend={!renderDetails}
@@ -118,7 +154,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, rend
     return (
         <>
             <View style={chartContainerStyle}>{CHART_VIEW_TO_CHART[view]}</View>
-            {renderDetails?.(rows)}
+            {renderDetails?.(model)}
         </>
     );
 }

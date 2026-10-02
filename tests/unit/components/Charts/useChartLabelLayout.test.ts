@@ -34,7 +34,7 @@ const mockFontMgr = createMock<SkTypefaceFontProvider>({});
 const FONT_SIZE = 12;
 
 function makeData(...labels: string[]): ChartDataPoint[] {
-    return labels.map((label, i) => ({label, total: (i + 1) * 100}));
+    return labels.map((label, i) => ({label, values: {primary: (i + 1) * 100}}));
 }
 
 type LayoutConfig = Omit<Parameters<typeof useChartLabelLayout>[0], 'measurements'>;
