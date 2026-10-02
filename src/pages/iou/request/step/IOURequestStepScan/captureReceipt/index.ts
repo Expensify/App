@@ -1,23 +1,30 @@
+import {capturePhotoToPath, captureSnapshotToPath} from '@libs/cameraCapture';
+import {rand64} from '@libs/NumberUtils';
+
+import {Platform} from 'react-native';
+
 import type {CaptureReceipt, CaptureReceiptOptions} from './types';
 
-/**
- * Whether `captureReceipt` will use `takePhoto` (as opposed to `takeSnapshot`) for the given options.
- */
+// VisionCamera v5 has no snapshot on iOS.
 function shouldTakePhoto({flash, hasFlash, isInLandscapeMode}: Pick<CaptureReceiptOptions, 'flash' | 'hasFlash' | 'isInLandscapeMode'>): boolean {
-    return (flash && hasFlash) || isInLandscapeMode;
+    return Platform.OS === 'ios' || (flash && hasFlash) || isInLandscapeMode;
 }
 
-const captureReceipt: CaptureReceipt = (camera, options) => {
-    const {flash, hasFlash, isPlatformMuted, path} = options;
-    if (shouldTakePhoto(options)) {
-        return camera.takePhoto({
-            flash: flash && hasFlash ? 'on' : 'off',
-            enableShutterSound: !isPlatformMuted,
-            path,
-        });
+const captureReceipt: CaptureReceipt = (camera, photoOutput, {flash, hasFlash, isPlatformMuted, isInLandscapeMode, path}) => {
+    const filePath = `${path}/receipt_${Date.now()}_${rand64()}.jpg`;
+
+    if (!shouldTakePhoto({flash, hasFlash, isInLandscapeMode})) {
+        return captureSnapshotToPath(camera, filePath);
     }
 
-    return camera.takeSnapshot({quality: 85, path});
+    return capturePhotoToPath(
+        photoOutput,
+        {
+            flashMode: flash && hasFlash ? 'on' : 'off',
+            enableShutterSound: Platform.OS === 'ios' ? false : !isPlatformMuted,
+        },
+        filePath,
+    );
 };
 
 export default captureReceipt;

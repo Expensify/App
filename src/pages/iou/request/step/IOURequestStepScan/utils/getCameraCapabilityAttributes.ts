@@ -1,49 +1,26 @@
-/**
- * Derives telemetry attributes describing the camera's capabilities (autofocus system, lens count, focus distance, zoom)
- * so they can be attached to the SPAN_CAMERA_INIT span. Reads values the device already exposes; no behavior change.
- */
+import getWideLensZoom from '@libs/cameraCapture/getWideLensZoom';
+
 import CONST from '@src/CONST';
 
 import type {SpanAttributeValue} from '@sentry/core';
-import type {CameraDevice, CameraDeviceFormat} from 'react-native-vision-camera';
+import type {AutoFocusSystem, CameraDevice} from 'react-native-vision-camera';
 
-type CameraCapabilities = Pick<CameraDevice, 'formats' | 'minFocusDistance' | 'physicalDevices' | 'neutralZoom'>;
+type CameraCapabilities = Pick<CameraDevice, 'physicalDevices' | 'zoomLensSwitchFactors'>;
 
-function isInterchangeable(candidate: CameraDeviceFormat, format: CameraDeviceFormat): boolean {
-    return (
-        candidate.photoWidth === format.photoWidth &&
-        candidate.photoHeight === format.photoHeight &&
-        candidate.videoWidth === format.videoWidth &&
-        candidate.videoHeight === format.videoHeight &&
-        candidate.minFps === format.minFps &&
-        candidate.maxFps === format.maxFps &&
-        candidate.fieldOfView === format.fieldOfView &&
-        candidate.minISO === format.minISO &&
-        candidate.maxISO === format.maxISO
-    );
-}
-
-function getCameraCapabilityAttributes(device: CameraCapabilities | undefined, format: CameraDeviceFormat | undefined): Record<string, SpanAttributeValue | undefined> {
+/** Camera capabilities attached to the SPAN_CAMERA_INIT span. VisionCamera v5 has no formats, so those attributes are undefined. */
+function getCameraCapabilityAttributes(device: CameraCapabilities | undefined, autoFocusSystem?: AutoFocusSystem): Record<string, SpanAttributeValue | undefined> {
     if (!device) {
         return {};
     }
 
-    let hasInterchangeablePhaseFormat: boolean | undefined;
-    if (format) {
-        hasInterchangeablePhaseFormat =
-            format.autoFocusSystem !== 'phase-detection' && device.formats.some((candidate) => candidate.autoFocusSystem === 'phase-detection' && isInterchangeable(candidate, format));
-    }
-
     return {
-        [CONST.TELEMETRY.ATTRIBUTE_HAS_INTERCHANGEABLE_PHASE_FORMAT]: hasInterchangeablePhaseFormat,
-        [CONST.TELEMETRY.ATTRIBUTE_SELECTED_FORMAT_AF_SYSTEM]: format?.autoFocusSystem,
-        [CONST.TELEMETRY.ATTRIBUTE_PHASE_DETECTION_FORMAT_COUNT]: device.formats.filter((candidate) => candidate.autoFocusSystem === 'phase-detection').length,
-
-        // Vision Camera reports 0 when the real distance is unavailable, which is not a distance.
-        [CONST.TELEMETRY.ATTRIBUTE_MIN_FOCUS_DISTANCE]: device.minFocusDistance > 0 ? device.minFocusDistance : undefined,
-
-        [CONST.TELEMETRY.ATTRIBUTE_PHYSICAL_DEVICE_COUNT]: device.physicalDevices.length,
-        [CONST.TELEMETRY.ATTRIBUTE_NEUTRAL_ZOOM]: device.neutralZoom,
+        [CONST.TELEMETRY.ATTRIBUTE_HAS_INTERCHANGEABLE_PHASE_FORMAT]: undefined,
+        [CONST.TELEMETRY.ATTRIBUTE_SELECTED_FORMAT_AF_SYSTEM]: autoFocusSystem,
+        [CONST.TELEMETRY.ATTRIBUTE_PHASE_DETECTION_FORMAT_COUNT]: undefined,
+        [CONST.TELEMETRY.ATTRIBUTE_MIN_FOCUS_DISTANCE]: undefined,
+        // v5 reports no physical devices for a single-lens device; v4 reported itself.
+        [CONST.TELEMETRY.ATTRIBUTE_PHYSICAL_DEVICE_COUNT]: Math.max(device.physicalDevices.length, 1),
+        [CONST.TELEMETRY.ATTRIBUTE_NEUTRAL_ZOOM]: getWideLensZoom(device),
     };
 }
 

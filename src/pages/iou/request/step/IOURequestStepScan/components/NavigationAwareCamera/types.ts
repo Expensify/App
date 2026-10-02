@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import type {Camera, CameraProps, Camera as VisionCamera} from 'react-native-vision-camera';
+import type {CameraRef, CameraViewProps} from 'react-native-vision-camera';
 import type {WebcamProps} from 'react-webcam';
 import type Webcam from 'react-webcam';
 
@@ -7,12 +7,12 @@ type WebcamScreenshotProps = 'forceScreenshotSourceSize' | 'imageSmoothing' | 's
 
 type NavigationAwareCameraProps = Omit<WebcamProps, WebcamScreenshotProps> &
     Partial<Pick<WebcamProps, WebcamScreenshotProps>> & {
-        ref?: ForwardedRef<Webcam | Camera>;
+        ref?: ForwardedRef<Webcam | CameraRef>;
     };
 
-type NavigationAwareCameraNativeProps = Omit<CameraProps, 'isActive'> & {
+type NavigationAwareCameraNativeProps = Omit<CameraViewProps, 'isActive' | 'ref'> & {
     cameraTabIndex: number;
-    ref?: ForwardedRef<VisionCamera>;
+    ref?: ForwardedRef<CameraRef>;
     forceInactive?: boolean;
 };
 

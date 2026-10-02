@@ -38,6 +38,8 @@ jest.mock('react-native-tab-view', () => ({
 
 jest.mock('react-native-vision-camera', () => ({
     useCameraDevice: jest.fn(),
+    useCameraDevices: jest.fn(() => []),
+    usePhotoOutput: jest.fn(() => ({capturePhoto: jest.fn()})),
 }));
 
 // This page navigates on mount. Keep the real Navigation module (many modules depend on it) but stub the two
