@@ -2620,14 +2620,14 @@ describe('SearchQueryUtils', () => {
             expect(reimbursable?.similarSearchHash).toEqual(noSelection?.similarSearchHash);
         });
 
-        it('gives every breakdown of one search the same footerless hash, which is what keeps a selection across it', () => {
-            const getFooterlessHash = (query: string) => {
+        it('gives every breakdown of one search the same hash once the footer selections are left out, which is what keeps a selection across it', () => {
+            const getHashWithoutFooterSelections = (query: string) => {
                 const queryJSON = buildSearchQueryJSON(query);
                 return queryJSON ? getQueryHashWithoutFooterSelections(queryJSON) : undefined;
             };
 
-            expect(getFooterlessHash('type:expense footerTotal:billable')).toEqual(getFooterlessHash('type:expense'));
-            expect(getFooterlessHash('type:expense footerTotal:billable sortBy:amount')).not.toEqual(getFooterlessHash('type:expense footerTotal:billable'));
+            expect(getHashWithoutFooterSelections('type:expense footerTotal:billable')).toEqual(getHashWithoutFooterSelections('type:expense'));
+            expect(getHashWithoutFooterSelections('type:expense footerTotal:billable sortBy:amount')).not.toEqual(getHashWithoutFooterSelections('type:expense footerTotal:billable'));
         });
 
         it('leaves every hash alone for the footer currency, which Search ignores and a separate command converts', () => {

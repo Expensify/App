@@ -163,14 +163,14 @@ function useReconcileSelectionWithData({
     const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {applySelection} = useSearchSelectionActions();
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const previousSearchRef = useRef({hash: searchHash, footerlessHash: searchHashWithoutFooterSelections});
+    const previousSearchRef = useRef({hash: searchHash, hashWithoutFooterSelections: searchHashWithoutFooterSelections});
     const footerSwitchedToHashRef = useRef<number | undefined>(undefined);
 
     useEffect(() => {
         const previousSearch = previousSearchRef.current;
         if (searchHash !== previousSearch.hash) {
-            footerSwitchedToHashRef.current = searchHashWithoutFooterSelections === previousSearch.footerlessHash ? searchHash : undefined;
-            previousSearchRef.current = {hash: searchHash, footerlessHash: searchHashWithoutFooterSelections};
+            footerSwitchedToHashRef.current = searchHashWithoutFooterSelections === previousSearch.hashWithoutFooterSelections ? searchHash : undefined;
+            previousSearchRef.current = {hash: searchHash, hashWithoutFooterSelections: searchHashWithoutFooterSelections};
         }
         const shouldKeepUnloadedSelection = footerSwitchedToHashRef.current === searchHash;
 
