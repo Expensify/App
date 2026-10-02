@@ -126,8 +126,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     const submitWorkEmail = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
         const submittedWorkEmail = values[INPUT_IDS.ONBOARDING_WORK_EMAIL].trim();
 
-        // AddWorkEmail already made this email the account's login and answered shouldValidate: false, which going back cleared.
-        // Sending it again would start a merge of the account into itself, so restore that answer instead.
+        // AddWorkEmail already made this the account's login, and resending it would merge the account into itself, so restore the shouldValidate: false that going back cleared
         if (session?.email && submittedWorkEmail.toLowerCase() === session.email.toLowerCase()) {
             setOnboardingShouldValidate(false);
             return;
