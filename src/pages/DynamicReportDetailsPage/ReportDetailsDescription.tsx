@@ -56,7 +56,9 @@ function ReportDetailsDescription({reportID}: ReportDetailsDescriptionProps) {
                         <MenuItemField.Content name={translate('reportDescriptionPage.roomDescription')}>
                             {!!getReportDescription(report) && <MenuItem.FieldValueHTML characterLimit={100}>{getReportDescription(report)}</MenuItem.FieldValueHTML>}
                         </MenuItemField.Content>
-                        <MenuItem.Trailing>{canEditReportDescription && <MenuItem.Chevron />}</MenuItem.Trailing>
+                        <MenuItem.Trailing>
+                            <MenuItem.Chevron />
+                        </MenuItem.Trailing>
                     </MenuItem.Row>
                 </MenuItem.Root>
             </MentionReportContext.Provider>

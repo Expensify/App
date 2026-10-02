@@ -10,7 +10,7 @@ import {openSubscriptionPage} from '@libs/actions/Subscription';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RestrictedActionParamList} from '@libs/Navigation/types';
-import {isPolicyAdmin, isPolicyAuditor, isPolicyGuest, isPolicyOwner, isPolicyUser} from '@libs/PolicyUtils';
+import {isPolicyAdmin, isPolicyAuditor, isPolicyOwner, isPolicyUser} from '@libs/PolicyUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -102,11 +102,6 @@ function WorkspaceRestrictedActionPage({
     // Workspace Admin
     if (isPolicyAdmin(policy, email)) {
         return <WorkspaceAdminRestrictedAction policyID={policyID} />;
-    }
-
-    // Guests have no restricted actions to show, since they cannot perform any workspace action in the first place
-    if (isPolicyGuest(policy)) {
-        return <NotFoundPage />;
     }
 
     // Workspace User or Auditor

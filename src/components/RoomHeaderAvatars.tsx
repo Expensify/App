@@ -5,6 +5,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAvatarErrors, updatePolicyRoomAvatar} from '@libs/actions/Report';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import {isPolicyAuditor, isPolicyGuest} from '@libs/PolicyUtils';
 import {isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import {getAccountIDFromAvatarID, isDefaultAvatar} from '@libs/UserAvatarUtils';
 
@@ -50,8 +51,7 @@ function RoomHeaderAvatars({icons, report, policy, participants, currentUserAcco
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera', 'FallbackAvatar', 'ImageCropSquareMask']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const canEditRoomAvatar =
-        isUserCreatedPolicyRoom(report) && participants.includes(currentUserAccountID) && !!policy && policy.role !== CONST.POLICY.ROLE.AUDITOR && policy.role !== CONST.POLICY.ROLE.GUEST;
+    const canEditRoomAvatar = isUserCreatedPolicyRoom(report) && participants.includes(currentUserAccountID) && !!policy && !isPolicyAuditor(policy) && !isPolicyGuest(policy);
 
     if (!icons.length) {
         return null;
