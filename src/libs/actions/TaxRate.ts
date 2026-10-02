@@ -22,7 +22,7 @@ import INPUT_IDS from '@src/types/form/WorkspaceNewTaxForm';
 import {default as INPUT_IDS_TAX_CODE} from '@src/types/form/WorkspaceTaxCodeForm';
 import type {Policy, TaxRate, TaxRates} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
+import type {CustomUnit, ExpenseRule, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 import type {NullishDeep, OnyxEntry} from 'react-native-onyx';
@@ -550,7 +550,19 @@ function setPolicyTaxCode(
     oldForeignTaxDefault: string | undefined,
     oldDefaultExternalID: string | undefined,
     distanceRateCustomUnit: CustomUnit | undefined,
+    expenseRules: ExpenseRule[] = [],
 ) {
+    // The back-end repoints every expense rule that referenced the old code, so mirror it here or the category tax
+    // defaults would point at a code that no longer exists. Onyx replaces arrays wholesale, so the whole array is sent.
+    const hasExpenseRuleWithOldTaxCode = expenseRules.some((rule) => rule.tax?.field_id_TAX?.externalID === oldTaxCode);
+    const optimisticExpenseRules = expenseRules.map((rule) => {
+        if (rule.tax?.field_id_TAX?.externalID !== oldTaxCode) {
+            return rule;
+        }
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        return {...rule, tax: {field_id_TAX: {...rule.tax.field_id_TAX, externalID: newTaxCode}}};
+    });
+
     const optimisticDistanceRateCustomUnit = distanceRateCustomUnit && {
         ...distanceRateCustomUnit,
         rates: {
@@ -598,6 +610,7 @@ function setPolicyTaxCode(
                         },
                     },
                     ...(!!distanceRateCustomUnit && {customUnits: {[distanceRateCustomUnit.customUnitID]: optimisticDistanceRateCustomUnit}}),
+                    ...(hasExpenseRuleWithOldTaxCode && {rules: {expenseRules: optimisticExpenseRules}}),
                 },
             },
         ],
@@ -646,6 +659,7 @@ function setPolicyTaxCode(
                         },
                     },
                     ...(!!distanceRateCustomUnit && {customUnits: {[distanceRateCustomUnit.customUnitID]: distanceRateCustomUnit}}),
+                    ...(hasExpenseRuleWithOldTaxCode && {rules: {expenseRules}}),
                 },
             },
         ],

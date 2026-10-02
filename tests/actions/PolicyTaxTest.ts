@@ -5,12 +5,14 @@ import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy as PolicyType, TaxRate} from '@src/types/onyx';
+import type {ExpenseRule} from '@src/types/onyx/Policy';
 
 import Onyx from 'react-native-onyx';
 
 import type {MockFetch} from '../utils/TestHelper';
 
 import createRandomPolicy from '../utils/collections/policies';
+import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -826,6 +828,9 @@ describe('actions/PolicyTax', () => {
         const newTaxCode = 'id_TAX_RATE_2';
         const oldTaxRateName = fakePolicy?.taxRates?.taxes[oldTaxCode]?.name;
 
+        // Release any request a test left paused, so it doesn't hold up the queue for the next test
+        afterEach(() => (mockFetch?.resume?.() as Promise<unknown>).then(waitForBatchedUpdates));
+
         it('Set policy`s tax code', () => {
             mockFetch?.pause?.();
             const distanceRateCustomUnit = fakePolicy?.customUnits?.[CONST.CUSTOM_UNITS.NAME_DISTANCE];
@@ -862,6 +867,52 @@ describe('actions/PolicyTax', () => {
                         });
                     }),
             );
+        });
+
+        describe('expense rules', () => {
+            const buildRule = (categoryName: string, taxID: string): ExpenseRule => ({
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                tax: {field_id_TAX: {externalID: taxID}},
+                applyWhen: [{condition: CONST.POLICY.RULE_CONDITIONS.MATCHES, field: CONST.POLICY.FIELDS.CATEGORY, value: categoryName}],
+            });
+            const expenseRules = [buildRule('Travel', oldTaxCode), buildRule('Meals', 'id_TAX_EXEMPT')];
+
+            const renameTaxCode = () =>
+                setPolicyTaxCode(
+                    fakePolicy.id,
+                    oldTaxCode,
+                    newTaxCode,
+                    // @ts-expect-error - we can send undefined tax rate here for testing
+                    fakePolicy?.taxRates?.taxes[oldTaxCode],
+                    fakePolicy?.taxRates?.foreignTaxDefault,
+                    fakePolicy?.taxRates?.defaultExternalID,
+                    undefined,
+                    expenseRules,
+                );
+
+            beforeEach(() => Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, {rules: {expenseRules}}).then(waitForBatchedUpdates));
+
+            it('repoints the rules that referenced the old tax code', async () => {
+                mockFetch?.pause?.();
+                renameTaxCode();
+                await waitForBatchedUpdates();
+
+                const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+                expect(policy?.rules?.expenseRules).toEqual([buildRule('Travel', newTaxCode), buildRule('Meals', 'id_TAX_EXEMPT')]);
+            });
+
+            it('restores the rules when the request fails', async () => {
+                mockFetch?.pause?.();
+                renameTaxCode();
+                await waitForBatchedUpdates();
+
+                mockFetch?.fail?.();
+                await mockFetch?.resume?.();
+                await waitForBatchedUpdates();
+
+                const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+                expect(policy?.rules?.expenseRules).toEqual(expenseRules);
+            });
         });
     });
 });
