@@ -10423,6 +10423,7 @@ ${reportName}`,
     },
     systemMessage: {
         mergedWithCashTransaction: '已将一张收据匹配到此交易',
+        mergedExpenseDeleted: '已合并报销并将其中一笔移至已删除',
     },
     subscription: {
         authenticatePaymentCard: '验证支付卡',

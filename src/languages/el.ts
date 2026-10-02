@@ -11121,6 +11121,7 @@ ${reportName}`,
     },
     systemMessage: {
         mergedWithCashTransaction: 'έγινε αντιστοίχιση μιας απόδειξης με αυτή τη συναλλαγή',
+        mergedExpenseDeleted: 'συγχώνευσε έξοδα και μετέφερε ένα στα Διαγραμμένα',
     },
     subscription: {
         authenticatePaymentCard: 'Πιστοποιήστε την κάρτα πληρωμής',

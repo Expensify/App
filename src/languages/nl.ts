@@ -10822,6 +10822,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
     },
     systemMessage: {
         mergedWithCashTransaction: 'heeft een bonnetje aan deze transactie gekoppeld',
+        mergedExpenseDeleted: 'heeft uitgaven samengevoegd en er één naar Verwijderd verplaatst',
     },
     subscription: {
         authenticatePaymentCard: 'Betalingskaart verifiëren',
