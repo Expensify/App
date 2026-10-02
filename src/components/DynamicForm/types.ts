@@ -1,5 +1,7 @@
 import type {FormValue} from '@components/Form/types';
 
+import type {SubPageProps} from '@hooks/useSubPage/types';
+
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import type {DynamicFormField, DynamicFormFieldType} from '@src/types/onyx';
 
@@ -11,8 +13,8 @@ type DynamicFormValues = Partial<Record<string, FormValue>>;
 /** The variant of one type. An intersection rather than Extract, since one variant can cover several types, such as select and radio. */
 type DynamicFormFieldOfType<TType extends DynamicFormFieldType> = DynamicFormField & {type: TType};
 
-/** What the flow hands every sub page, on top of SubPageProps */
-type DynamicFormSubPageProps = {
+/** Props of every page in the flow: useSubPage's routing props plus the form's data */
+type DynamicFormSubPageProps = SubPageProps & {
     formID: OnyxFormKey;
     fields: DynamicFormField[];
     groups: DynamicFormGroup[];

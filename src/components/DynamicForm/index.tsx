@@ -6,7 +6,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
-import type {SubPageProps} from '@hooks/useSubPage/types';
 
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -107,21 +106,23 @@ function DynamicFormFlow({
         startFrom = firstIncompleteIndex === -1 ? groups.length : firstIncompleteIndex;
     }
 
-    const {CurrentPage, isEditing, currentPageName, pageIndex, nextPage, prevPage, moveTo, isRedirecting} = useSubPage<SubPageProps & DynamicFormSubPageProps>({
+    /** The confirmation page can be opened by URL before every page is answered, so an incomplete form goes back to its first gap instead */
+    const submitIfComplete = () => {
+        const incompleteGroup = groups.at(firstIncompleteIndex);
+        if (firstIncompleteIndex !== -1 && incompleteGroup) {
+            Navigation.navigate(buildRoute(incompleteGroup.slug));
+            return;
+        }
+        onSubmit(getSubmittedAnswers(fields, values));
+    };
+
+    const {CurrentPage, isEditing, currentPageName, pageIndex, nextPage, prevPage, moveTo, isRedirecting} = useSubPage<DynamicFormSubPageProps>({
         pages,
         skipPages,
         startFrom,
         buildRoute,
         shouldReplaceRoute,
-        onFinished: () => {
-            // The confirmation page can be opened by URL before every page is answered
-            const incompleteGroup = groups.at(firstIncompleteIndex);
-            if (firstIncompleteIndex !== -1 && incompleteGroup) {
-                Navigation.navigate(buildRoute(incompleteGroup.slug));
-                return;
-            }
-            onSubmit(getSubmittedAnswers(fields, values));
-        },
+        onFinished: submitIfComplete,
     });
 
     const handleGroupSubmit = (group: DynamicFormGroup, answers: DynamicFormValues) => {

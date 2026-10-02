@@ -19,9 +19,7 @@ import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../../../utils/waitForBatchedUpdatesWithAct';
 
-type CurrentPageProps = SubPageProps & DynamicFormSubPageProps;
-
-function hasDynamicFormProps(props: SubPageProps | undefined): props is CurrentPageProps {
+function hasDynamicFormProps(props: SubPageProps | undefined): props is DynamicFormSubPageProps {
     return !!props && 'onGroupSubmit' in props;
 }
 
@@ -62,7 +60,7 @@ type RenderFlowOptions = {
 async function renderFlow({draft = {}, sensitiveAnswers = {}, pageIndex = 0}: RenderFlowOptions = {}) {
     await Onyx.set(`${FORM_ID}Draft`, draft);
     await Onyx.set(ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS, {[FORM_ID]: sensitiveAnswers});
-    jest.mocked(useSubPage<CurrentPageProps>).mockReturnValue({
+    jest.mocked(useSubPage<DynamicFormSubPageProps>).mockReturnValue({
         CurrentPage: mockCurrentPage,
         isEditing: false,
         currentPageName: 'personal-details',
@@ -91,7 +89,7 @@ async function renderFlow({draft = {}, sensitiveAnswers = {}, pageIndex = 0}: Re
         />,
     );
     await waitForBatchedUpdatesWithAct();
-    const subPageOptions = jest.mocked(useSubPage<CurrentPageProps>).mock.lastCall?.[0];
+    const subPageOptions = jest.mocked(useSubPage<DynamicFormSubPageProps>).mock.lastCall?.[0];
     if (!subPageOptions) {
         throw new Error('useSubPage was not called');
     }
