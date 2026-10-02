@@ -10132,6 +10132,7 @@ const translations = {
             past: 'Past',
             submitted: 'Submitted',
             approved: 'Approved',
+            anyApproval: 'Any approval',
             firstApprover: 'First approver',
             firstApproved: 'First approved',
             paidBy: 'Paid by',
@@ -10177,6 +10178,7 @@ const translations = {
             has: {
                 submittedViolation: 'Submitted violation',
                 approvedViolation: 'Approved violation',
+                requiredWithAnyApproval: 'Required with the any-approval filter',
             },
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Submit',

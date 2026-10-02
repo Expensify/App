@@ -55,7 +55,7 @@ function SearchFiltersBarNarrow({queryJSON}: SearchFiltersBarNarrowProps) {
             ref={scrollRef}
             showsHorizontalScrollIndicator={false}
             data={filters}
-            keyExtractor={(item) => item.key}
+            keyExtractor={(item) => item.formKey}
             renderItem={renderFilterItem}
             onEndReached={adjustScroll}
             onEndReachedThreshold={0.75}

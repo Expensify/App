@@ -53,7 +53,7 @@ function chooseBoundingBox(target: HTMLElement, clientX: number, clientY: number
     return target.getBoundingClientRect();
 }
 
-function Tooltip({children, shouldHandleScroll = false, isFocused = true, ref, ...props}: TooltipProps) {
+function Tooltip({children, shouldHandleScroll = false, shouldUseNativeHoverEvents = false, isFocused = true, getTargetBounds, ref, ...props}: TooltipProps) {
     const target = useRef<HTMLElement | null>(null);
     const initialMousePosition = useRef({x: 0, y: 0});
 
@@ -69,6 +69,10 @@ function Tooltip({children, shouldHandleScroll = false, isFocused = true, ref, .
      * Get the tooltip bounding rectangle
      */
     const getBounds = (bounds: DOMRect): LayoutRectangle => {
+        const customTargetBounds = getTargetBounds?.();
+        if (customTargetBounds) {
+            return customTargetBounds;
+        }
         if (!target.current) {
             return bounds;
         }
@@ -117,6 +121,7 @@ function Tooltip({children, shouldHandleScroll = false, isFocused = true, ref, .
                             onHoverIn={showTooltip}
                             onHoverOut={hideTooltip}
                             shouldHandleScroll={shouldHandleScroll}
+                            shouldUseNativeHoverEvents={shouldUseNativeHoverEvents}
                         >
                             {React.cloneElement(
                                 children as React.ReactElement<HTMLAttributes<HTMLElement>>,

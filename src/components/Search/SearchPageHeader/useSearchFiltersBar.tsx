@@ -17,7 +17,7 @@ import {shouldShowInitialCategoryFilterLoading} from '@hooks/useSearchFilterSync
 import {close} from '@libs/actions/Modal';
 import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildQueryStringWithResetFilters, hasFiltersChangedFromDefault, removeNegation} from '@libs/SearchQueryUtils';
+import {buildQueryStringWithResetFilters, formHasAnyApprovalFilter, hasFiltersChangedFromDefault, removeNegation} from '@libs/SearchQueryUtils';
 import {getFilterViewLabelKey, isAmountFilterKey, isDateFilterKey, isReportFieldKey, isTextFilterKey, mapFiltersFormToLabelValueList, SKIPPED_SEARCH_FILTERS} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
@@ -175,39 +175,53 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
             ),
             sentryLabel: getFilterSentryLabel(filterKey),
             onLandscapePress: () => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS_CONTENT.getRoute(removeNegation(filterKey), true)),
-            onClosePress: isDefault
-                ? undefined
-                : () => {
-                      if (isAmountFilterKey(filterKey)) {
-                          const equalToKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`;
-                          const greaterThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`;
-                          const lessThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`;
-                          updateFilterQueryParams({[equalToKey]: undefined, [greaterThanKey]: undefined, [lessThanKey]: undefined});
-                          return;
-                      }
+            onClosePress: (() => {
+                const isRequiredApprovedViolationHas =
+                    filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS &&
+                    formHasAnyApprovalFilter(searchAdvancedFiltersForm) &&
+                    (searchAdvancedFiltersForm.has ?? []).every((hasValue) => hasValue === CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
 
-                      if (isDateFilterKey(filterKey)) {
-                          const onKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.ON}`;
-                          const beforeKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}`;
-                          const afterKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`;
-                          const rangeKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.RANGE}`;
-                          updateFilterQueryParams({[onKey]: undefined, [beforeKey]: undefined, [afterKey]: undefined, [rangeKey]: undefined});
-                          return;
-                      }
+                if (isDefault || isRequiredApprovedViolationHas) {
+                    return undefined;
+                }
 
-                      if (filterKey === CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX) {
-                          const formValues = Object.keys(searchAdvancedFiltersForm).reduce((acc, curr) => {
-                              if (isReportFieldKey(curr)) {
-                                  acc[curr] = undefined;
-                              }
-                              return acc;
-                          }, {} as Partial<SearchAdvancedFiltersForm>);
-                          updateFilterQueryParams(formValues);
-                          return;
-                      }
+                return () => {
+                    if (isAmountFilterKey(filterKey)) {
+                        const equalToKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`;
+                        const greaterThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`;
+                        const lessThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`;
+                        updateFilterQueryParams({[equalToKey]: undefined, [greaterThanKey]: undefined, [lessThanKey]: undefined});
+                        return;
+                    }
 
-                      updateFilterQueryParams({[filterKey]: undefined});
-                  },
+                    if (isDateFilterKey(filterKey)) {
+                        const onKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.ON}`;
+                        const beforeKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}`;
+                        const afterKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`;
+                        const rangeKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.RANGE}`;
+                        updateFilterQueryParams({[onKey]: undefined, [beforeKey]: undefined, [afterKey]: undefined, [rangeKey]: undefined});
+                        return;
+                    }
+
+                    if (filterKey === CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX) {
+                        const formValues = Object.keys(searchAdvancedFiltersForm).reduce((acc, curr) => {
+                            if (isReportFieldKey(curr)) {
+                                acc[curr] = undefined;
+                            }
+                            return acc;
+                        }, {} as Partial<SearchAdvancedFiltersForm>);
+                        updateFilterQueryParams(formValues);
+                        return;
+                    }
+
+                    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS && formHasAnyApprovalFilter(searchAdvancedFiltersForm)) {
+                        updateFilterQueryParams({[CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS]: [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION]});
+                        return;
+                    }
+
+                    updateFilterQueryParams({[filterKey]: undefined});
+                };
+            })(),
         }),
     );
 

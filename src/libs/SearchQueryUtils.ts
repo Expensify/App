@@ -704,6 +704,63 @@ function hasValuesIncludeViolationFilter(hasValues: readonly string[] | undefine
     return !!hasValues?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION) || !!hasValues?.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
 }
 
+function formHasAnyApprovalFilter(form: Partial<SearchAdvancedFiltersForm> | null | undefined): boolean {
+    if (!form) {
+        return false;
+    }
+
+    const {dateOnKey, dateBeforeKey, dateAfterKey, dateRangeKey} = getDateFilterKeys(CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL);
+    return [form[dateOnKey], form[dateBeforeKey], form[dateAfterKey], form[dateRangeKey], form[FILTER_KEYS.ANY_APPROVAL_NOT]].some((value) => !!value);
+}
+
+function queryHasAnyApprovalFilter(queryJSON: SearchQueryJSON | undefined): boolean {
+    return !!queryJSON?.flatFilters.some((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL);
+}
+
+function ensureHasApprovedViolation(hasValues: HasFilterValue[] | undefined): HasFilterValue[] {
+    if (hasValues?.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION)) {
+        return hasValues;
+    }
+
+    return [...(hasValues ?? []), CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION];
+}
+
+function isApprovedViolationFilter(filter: QueryFilter, operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>) {
+    return filter.operator === operator && filter.value.toString() === CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION;
+}
+
+/**
+ * The anyApproval filter requires has:approved-violation. Strip a contradictory
+ * `-has:approved-violation` and add the required positive filter when missing.
+ */
+function applyRequiredApprovedViolationToQuery(queryJSON: SearchQueryJSON): SearchQueryJSON {
+    let hasPositiveApprovedViolation = false;
+    const flatFilters = queryJSON.flatFilters.flatMap((group) => {
+        if (group.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
+            return [group];
+        }
+
+        const filters = group.filters.filter((filter) => !isApprovedViolationFilter(filter, CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO));
+        if (filters.some((filter) => isApprovedViolationFilter(filter, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO))) {
+            hasPositiveApprovedViolation = true;
+        }
+        if (filters.length === 0) {
+            return [];
+        }
+
+        return [{...group, filters}];
+    });
+
+    if (!hasPositiveApprovedViolation) {
+        flatFilters.push({
+            key: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
+            filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}],
+        });
+    }
+
+    return {...queryJSON, flatFilters};
+}
+
 /**
  * Resolves a typed workspace name to its ID. Names are not unique, so an ambiguous one is left alone rather than
  * guessing which workspace was meant.
@@ -1189,6 +1246,14 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
         }
 
         supportedFilterValues[filter] = undefined;
+    }
+
+    // The anyApproval filter requires has:approved-violation (or violationApprover).
+    if (formHasAnyApprovalFilter(supportedFilterValues)) {
+        supportedFilterValues.has = ensureHasApprovedViolation(supportedFilterValues.has);
+        if (supportedFilterValues.hasNot?.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION)) {
+            supportedFilterValues.hasNot = supportedFilterValues.hasNot.filter((value) => value !== CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
+        }
     }
 
     // We separate type and status filters from other filters to maintain hashes consistency for saved searches
@@ -2526,6 +2591,11 @@ function getQueryWithUpdatedValues(query: string, shouldSkipAmountConversion = f
         standardizedQuery.type = CONST.SEARCH.DATA_TYPES.CHAT;
     }
 
+    const queryType = standardizedQuery.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
+    if (queryType === CONST.SEARCH.DATA_TYPES.EXPENSE && queryHasAnyApprovalFilter(standardizedQuery)) {
+        return buildSearchQueryString(applyRequiredApprovedViolationToQuery(standardizedQuery));
+    }
+
     return buildSearchQueryString(standardizedQuery);
 }
 
@@ -3009,6 +3079,7 @@ export {
     doesQueryMatchDefaultFilterKeysAndType,
     queryHasViolationFilter,
     hasValuesIncludeViolationFilter,
+    formHasAnyApprovalFilter,
 };
 
 export type {BuildUserReadableQueryStringParams};

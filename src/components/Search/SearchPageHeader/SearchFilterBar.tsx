@@ -141,7 +141,7 @@ function SearchFilterBar({item}: {item: SearchFilter & FilterItem}) {
     const Component = FILTER_COMPONENT_MAP[item.key] ?? DropdownButton;
     return (
         <Component
-            key={item.key}
+            key={item.formKey}
             label={item.label}
             value={item.value}
             PopoverComponent={item.PopoverComponent}

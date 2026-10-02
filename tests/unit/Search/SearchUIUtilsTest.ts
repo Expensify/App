@@ -14552,6 +14552,22 @@ describe('SearchUIUtils', () => {
             expect(result.at(0)?.isDefault).toBe(true);
             expect(result.at(1)?.isDefault).toBe(false);
         });
+
+        it('gives has and hasNot chips distinct formKeys', () => {
+            // Given a form with both polarities of the Has filter
+            const form = {
+                [FILTER_KEYS.HAS]: [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION],
+                [FILTER_KEYS.HAS_NOT]: [CONST.SEARCH.HAS_VALUES.RECEIPT],
+            };
+
+            // When the form is mapped to filter chips
+            const result = SearchUIUtils.mapFiltersFormToLabelValueList(form, new Set(), new Set(), translateLocal, undefined, localeCompare, convertToDisplayStringWithoutCurrency);
+
+            // Then both chips share the Has family key but stay distinguishable for list identity
+            const hasChips = result.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS);
+            expect(hasChips).toHaveLength(2);
+            expect(hasChips.map((filter) => filter.formKey).sort()).toEqual([FILTER_KEYS.HAS, FILTER_KEYS.HAS_NOT]);
+        });
     });
 });
 
@@ -14908,5 +14924,22 @@ describe('hasFilterContentValuesChanged', () => {
         if (ignored) {
             expect(SearchUIUtils.hasFilterContentValuesChanged(filterKey, ignored.at(0), ignored.at(1))).toBe(false);
         }
+    });
+});
+
+describe('getDatePresets', () => {
+    it('does not offer never for anyApproval', () => {
+        // Given anyApproval, which always matches an approval action
+        // When presets are requested
+        const presets = SearchUIUtils.getDatePresets(CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL, false);
+
+        // Then only the common date presets are returned, without never
+        expect(presets).toEqual([
+            CONST.SEARCH.DATE_PRESETS.THIS_MONTH,
+            CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+            CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE,
+            CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS,
+        ]);
+        expect(presets).not.toContain(CONST.SEARCH.DATE_PRESETS.NEVER);
     });
 });

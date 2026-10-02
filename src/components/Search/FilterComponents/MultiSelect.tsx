@@ -33,6 +33,12 @@ type MultiSelectItem<T> = {
 
     /** Optional supporting text rendered on a second line beneath `text` */
     alternateText?: string;
+
+    /** Prevents toggling the checkbox, e.g. a Has value required by another filter */
+    isDisabled?: boolean;
+
+    /** Hover tooltip when the option cannot be toggled */
+    tooltipText?: string;
 };
 
 type MultiSelectProps<T> = SearchFilterCommonProps<Array<MultiSelectItem<T>>> & {
@@ -128,12 +134,18 @@ function MultiSelect<T extends string>({
         isSelected: !!selectedItems.find((i) => i.value === item.value),
         icons: item.icons,
         leftElement: item.leftElement,
+        isDisabledCheckbox: item.isDisabled,
+        tooltipText: item.tooltipText,
     }));
 
     const shouldShowSearchSpinner = isSearching && listData.length === 0;
     const headerMessage = isSearchable && listData.length === 0 && !isSearching ? translate('common.noResultsFound') : undefined;
 
     const updateSelectedItems = (item: ListItem) => {
+        if (item.isDisabledCheckbox) {
+            return;
+        }
+
         if (item.isSelected) {
             const newSelectedItems = selectedItems.filter((i) => i.value !== item.keyForList);
             setSelectedItems(newSelectedItems);

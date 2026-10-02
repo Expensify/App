@@ -75,6 +75,15 @@ type TooltipProps = ChildrenProps &
         /** passes this down to Hoverable component to decide whether to handle the scroll behaviour to show hover once the scroll ends */
         shouldHandleScroll?: boolean;
 
+        /**
+         * Use native mouseenter/mouseleave on the target instead of React's synthetic hover events.
+         * Needed when this tooltip wraps a row inside a portalled popover, where synthetic mouseleave can get stranded.
+         */
+        shouldUseNativeHoverEvents?: boolean;
+
+        /** Override the hover wrapper bounds so the tooltip can be positioned against a child, e.g. a checkbox */
+        getTargetBounds?: () => LayoutRectangle | undefined;
+
         /** Whether the current screen or component is actively focused via navigation */
         isFocused?: boolean;
 

@@ -26,7 +26,7 @@ function SearchFiltersBarWide({queryJSON}: SearchFiltersBarWideProps) {
         <>
             {filters.map((item) => (
                 <SearchFilterBar
-                    key={item.key}
+                    key={item.formKey}
                     item={item}
                 />
             ))}
