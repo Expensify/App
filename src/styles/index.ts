@@ -6110,6 +6110,10 @@ const staticStyles = (theme: ThemeColors) =>
             maxHeight: variables.agentRulePromptInputHeight,
         },
 
+        describeRulePromptInput: {
+            height: variables.textInputAutoGrowMaxHeight,
+        },
+
         emptyStateSamlIllustration: {
             width: 183,
             height: 160,

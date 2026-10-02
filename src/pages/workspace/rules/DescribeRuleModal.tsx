@@ -12,8 +12,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 
-import variables from '@styles/variables';
-
 import {clearGeneratedRule, clearNewRulePrompt, generateRule, setNewRulePromptError} from '@userActions/Policy/Rules';
 
 import CONST from '@src/CONST';
@@ -26,6 +24,7 @@ import type {TextInputKeyPressEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
 
 type NewRulePromptFormID = typeof ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM;
 
@@ -130,19 +129,23 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
                 keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
             >
                 <Text style={[styles.textNormal, styles.mb5]}>{translate('workspace.rules.newRule.describeRule')}</Text>
-                <InputWrapper
-                    InputComponent={TextInput}
-                    inputID={INPUT_IDS.PROMPT}
-                    label={inputLabel}
-                    accessibilityLabel={inputLabel}
-                    role={CONST.ROLE.PRESENTATION}
-                    onKeyPress={submitFormOnModEnter}
-                    maxLength={CONST.GENERATED_RULE.PROMPT_MAX_LENGTH}
-                    multiline
-                    autoGrowHeight
-                    maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                    shouldSaveDraft
-                />
+                <View style={styles.describeRulePromptInput}>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID={INPUT_IDS.PROMPT}
+                        label={inputLabel}
+                        accessibilityLabel={inputLabel}
+                        role={CONST.ROLE.PRESENTATION}
+                        onKeyPress={submitFormOnModEnter}
+                        maxLength={CONST.GENERATED_RULE.PROMPT_MAX_LENGTH}
+                        multiline
+                        shouldSaveDraft
+                        shouldLabelStayOnSingleLine
+                        containerStyles={[styles.h100]}
+                        touchableInputWrapperStyle={[styles.flex1]}
+                        inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
+                    />
+                </View>
                 <Text style={[styles.textMicroSupporting, styles.textAlignCenter, styles.mt2]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>
             </FormProvider>
         </Modal>
