@@ -14,7 +14,7 @@ import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import React from 'react';
-import {StyleSheet, View} from 'react-native';
+import {View} from 'react-native';
 
 const PAGE_BUTTON_HIT_SLOP = {top: 8, bottom: 8, left: 8, right: 8};
 
@@ -95,23 +95,16 @@ function ReceiptPageNavigator({page, pageCount, isLoading, onChangePage}: Receip
                 onPress={() => onChangePage(page - 1)}
                 sentryLabel={CONST.SENTRY_LABEL.RECEIPT.PREVIOUS_PAGE_BUTTON}
             />
-            {/* The hidden widest label reserves the pill's width, so the buttons stay put as the page number changes */}
-            <View>
+            {/* The zero-height widest label keeps the column at least that wide, so the buttons stay put as the page
+                number changes, while the visible label is never narrowed below its own width */}
+            <View style={styles.alignItemsCenter}>
+                <Text style={labelStyle}>{translate('receipt.pageCount', {page, pageCount})}</Text>
                 <Text
-                    style={[labelStyle, styles.opacity0]}
-                    numberOfLines={1}
+                    style={[labelStyle, styles.h0, styles.overflowHidden]}
                     aria-hidden
                 >
                     {translate('receipt.pageCount', {page: pageCount, pageCount})}
                 </Text>
-                <View style={[StyleSheet.absoluteFill, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                    <Text
-                        style={labelStyle}
-                        numberOfLines={1}
-                    >
-                        {translate('receipt.pageCount', {page, pageCount})}
-                    </Text>
-                </View>
             </View>
             <PageButton
                 icon={icons.ArrowRight}
