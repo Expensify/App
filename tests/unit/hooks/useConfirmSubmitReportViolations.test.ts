@@ -1,4 +1,4 @@
-import {renderHook} from '@testing-library/react-native';
+import {renderHook, waitFor} from '@testing-library/react-native';
 
 import SubmitViolationsList from '@components/SubmitViolationsList';
 
@@ -121,6 +121,10 @@ describe('useConfirmSubmitReportViolations', () => {
         // When the user cancels the confirmation modal
         result.current(onProceed);
         resolveShowConfirmModal({action: MockModalActions.CLOSE});
+        // The confirm-modal promise resolves through an extra microtask hop (showConfirmModalAfterMoreMenuDismiss's
+        // own internal .then), so flush more than one tick rather than assuming a single `await Promise.resolve()` is enough.
+        await Promise.resolve();
+        await Promise.resolve();
         await Promise.resolve();
 
         // Then the report must stay a draft: neither the submit callback nor the cash-marking side effect may run,
@@ -138,12 +142,15 @@ describe('useConfirmSubmitReportViolations', () => {
         // When the user confirms "Submit anyway"
         result.current(onProceed);
         resolveShowConfirmModal({action: MockModalActions.CONFIRM});
-        await Promise.resolve();
 
         // Then the pending card-match must be resolved as cash before submitting, and the caller must be told to set
-        // shouldResolveAcknowledgedViolations so the backend knows this violation was explicitly acknowledged
+        // shouldResolveAcknowledgedViolations so the backend knows this violation was explicitly acknowledged. The
+        // confirm-modal promise resolves through an extra microtask hop (showConfirmModalAfterMoreMenuDismiss's own
+        // internal .then), so wait for it rather than assuming a single `await Promise.resolve()` tick is enough.
+        await waitFor(() => {
+            expect(onProceed).toHaveBeenCalledWith(true);
+        });
         expect(mockMarkPendingRTERTransactionsAsCash).toHaveBeenCalledWith([transaction1], violationsCollection, reportActions);
-        expect(onProceed).toHaveBeenCalledWith(true);
     });
 
     it('calls onProceed(false) without marking as cash when the only violation is an "other" violation', async () => {
@@ -156,12 +163,13 @@ describe('useConfirmSubmitReportViolations', () => {
         // When the user confirms "Submit anyway"
         result.current(onProceed);
         resolveShowConfirmModal({action: MockModalActions.CONFIRM});
-        await Promise.resolve();
 
         // Then shouldResolveAcknowledgedViolations must stay false even though the user confirmed the modal, and cash-marking
         // must not run, since there's no rejected-expense or pending-card-match violation for the backend to resolve
+        await waitFor(() => {
+            expect(onProceed).toHaveBeenCalledWith(false);
+        });
         expect(mockMarkPendingRTERTransactionsAsCash).not.toHaveBeenCalled();
-        expect(onProceed).toHaveBeenCalledWith(false);
     });
 
     it('renders the violations with SubmitViolationsList (dot icon, not a unicode bullet) and keeps the danger button variant', () => {
