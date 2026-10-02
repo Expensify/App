@@ -12,10 +12,13 @@ jest.mock('@libs/measureTextWidth', () => ({
     canMeasureText: () => true,
 }));
 
+// Dynamic sizing is a wide-layout feature; pin the layout so the row chrome below is the wide page gutter.
+jest.mock('@hooks/useResponsiveLayout', () => () => ({shouldUseNarrowLayout: false}));
+
 type Row = TableData & {value: string};
 
 const SORT_ICON_WIDTH = 12 + 4; // variables.iconSizeExtraSmall + styles.ml1.marginLeft
-const ROW_CHROME_WIDTH = (20 + 12) * 2; // (styles.mh5.marginHorizontal + styles.ph3.paddingHorizontal) * 2
+const ROW_CHROME_WIDTH = (20 + 12) * 2; // (layoutSpacing.pageGutter.wide + styles.ph3.paddingHorizontal) * 2
 const GAP_WIDTH = 12; // styles.gap3.gap
 
 /** Three free-text columns, each with one cell, so the only thing driving their width is the declared measurement. */
