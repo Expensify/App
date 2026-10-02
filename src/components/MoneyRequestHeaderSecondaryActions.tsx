@@ -33,6 +33,7 @@ import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 
 import {duplicateExpenseTransaction as duplicateTransactionAction} from '@libs/actions/IOU/Duplicate';
+import {changeMoneyRequestHoldStatus} from '@libs/actions/IOU/Hold';
 import {deleteTrackExpense} from '@libs/actions/IOU/TrackExpense';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
@@ -50,7 +51,6 @@ import {getOriginalMessage, getTrackExpenseActionableWhisper, isMoneyRequestActi
 import {getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionUtils';
 import {
-    changeMoneyRequestHoldStatus,
     generateReportID,
     getPolicyExpenseChat,
     isCurrentUserSubmitter,
@@ -319,6 +319,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             changeMoneyRequestHoldStatus(
                 parentReportAction,
                 transaction,
+                policy,
                 isOffline,
                 currentUserLogin ?? '',
                 accountID,
@@ -337,6 +338,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 changeMoneyRequestHoldStatus(
                     parentReportAction,
                     transaction,
+                    policy,
                     isOffline,
                     currentUserLogin ?? '',
                     accountID,
@@ -425,6 +427,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                     changeMoneyRequestHoldStatus(
                         parentReportAction,
                         transaction,
+                        policy,
                         isOffline,
                         currentUserLogin ?? '',
                         accountID,
@@ -457,6 +460,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 changeMoneyRequestHoldStatus(
                     parentReportAction,
                     transaction,
+                    policy,
                     isOffline,
                     currentUserLogin ?? '',
                     accountID,
