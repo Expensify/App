@@ -7,6 +7,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PolicyType} from '@src/types/form/WorkspaceConfirmationForm';
 import type {
+    Card,
     OnyxInputOrEntry,
     PersonalDetailsList,
     Policy,
@@ -3463,6 +3464,24 @@ function getMostFrequentEmailDomain(acceptedDomains: string[], policy?: Policy) 
 
 const getPolicyIDFromDomainName = (domainName: string): string | undefined => domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1]?.toUpperCase();
 
+/**
+ * Returns the workspace an assigned card belongs to.
+ *
+ * A card names its workspace with `fundID`, which is the policy's `policyAccountID`. That holds whatever the feed's
+ * domain looks like, so a card on a company's own domain resolves the same workspace as one on a workspace feed's
+ * `expensify-policy<ID>.exfy` domain. The domain is read only as a fallback, for a card that arrives without a `fundID`.
+ */
+const getPolicyForAssignedCard = (card: OnyxEntry<Pick<Card, 'domainName' | 'fundID'>>, policies: OnyxCollection<Policy>): OnyxEntry<Policy> => {
+    const workspaceAccountID = Number(card?.fundID);
+    const policyForFund = workspaceAccountID ? Object.values(policies ?? {}).find((policy) => policy?.policyAccountID === workspaceAccountID) : undefined;
+    if (policyForFund) {
+        return policyForFund;
+    }
+
+    const policyID = card?.domainName ? getPolicyIDFromDomainName(card.domainName) : undefined;
+    return policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : undefined;
+};
+
 const getDescriptionForPolicyDomainCard = (domainName: string, policies: OnyxCollection<Policy>): string => {
     // A domain name containing a policyID indicates that this is a workspace feed
     const policyID = getPolicyIDFromDomainName(domainName);
@@ -3802,6 +3821,7 @@ export {
     getAdminsPrivateEmailDomains,
     getMostFrequentEmailDomain,
     getPolicyIDFromDomainName,
+    getPolicyForAssignedCard,
     getDescriptionForPolicyDomainCard,
     getManagerAccountID,
     isPreferredExporter,

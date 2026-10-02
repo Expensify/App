@@ -136,6 +136,13 @@ type CardFeedErrorState = {
      * unresolved past the grace period, so we stop nagging without taking away the ability to fix it.
      */
     shouldPromptBrokenConnection: boolean;
+
+    /**
+     * Whether a card on the feed reports something its holder has to act on, which covers the scrape statuses
+     * `isFeedConnectionBroken` ignores (e.g. 434, the bank changing the account number). The wallet sends those
+     * cards to the Company cards page, so that page has to offer the same fix for them.
+     */
+    hasFeedConnectionIssue: boolean;
 };
 
 /**

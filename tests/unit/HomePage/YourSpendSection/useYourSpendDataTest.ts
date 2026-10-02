@@ -210,7 +210,14 @@ function setupCardGroups(groups: CardGroupFixture[], searchOverrides: Partial<Se
 
 /** Builds a fully-populated `CardFeedErrors` value for `onyxData[ONYXKEYS.DERIVED.CARD_FEED_ERRORS]`. */
 function makeCardFeedErrors(overrides: Partial<CardFeedErrors> = {}): CardFeedErrors {
-    const defaultState: CardFeedErrorState = {shouldShowRBR: false, isFeedConnectionBroken: false, shouldPromptBrokenConnection: false, hasFeedErrors: false, hasWorkspaceErrors: false};
+    const defaultState: CardFeedErrorState = {
+        shouldShowRBR: false,
+        isFeedConnectionBroken: false,
+        shouldPromptBrokenConnection: false,
+        hasFeedErrors: false,
+        hasWorkspaceErrors: false,
+        hasFeedConnectionIssue: false,
+    };
     return {
         cardFeedErrors: {},
         cardsWithBrokenFeedConnection: {},
