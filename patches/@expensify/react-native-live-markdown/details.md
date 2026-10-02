@@ -11,6 +11,6 @@
     calls `runSync` directly, which works on both worklets 0.11 and 0.13.
     ```
 
-- Upstream PR/issue: 🛑
+- Upstream PR/issue: https://github.com/Expensify/react-native-live-markdown/pull/780
 - E/App issue: https://github.com/Expensify/App/issues/101440
-- PR introducing patch: 🛑
+- PR introducing patch: https://github.com/Expensify/App/pull/102266
