@@ -49,9 +49,13 @@ function DatePicker({
     forwardedFSClass,
     shouldDeferShowUntilPositioned = false,
     shouldDismissKeyboardBeforeShow = false,
+    wrapperStyle,
+    onBlur,
     rightHandSideComponent,
     onPickerVisibilityChange,
     shouldHideCalendarIcon = false,
+    shouldEnableMonthYearBackdropInNarrowPane = false,
+    textInputContainerStyles,
 }: DateInputWithPickerProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Calendar']);
     const styles = useThemeStyles();
@@ -228,13 +232,15 @@ function DatePicker({
         <>
             <View
                 ref={anchorRef}
-                style={styles.mv2}
+                style={[styles.mv2, wrapperStyle]}
             >
                 <TextInput
                     ref={combinedTextInputRef}
                     inputID={inputID}
                     forceActiveLabel
-                    icon={selectedDate || shouldHideCalendarIcon ? null : icons.Calendar}
+                    // The icon, the clear button and any `rightHandSideComponent` share the right-hand slot. The icon
+                    // gives way when the caller asks for the slot outright, or to a clear button that will actually render.
+                    icon={shouldHideCalendarIcon || (selectedDate && !shouldHideClearButton) ? null : icons.Calendar}
                     iconContainerStyle={styles.pr0}
                     label={label}
                     accessibilityLabel={label}
@@ -247,9 +253,10 @@ function DatePicker({
                     disabled={disabled}
                     hideFocusedState={shouldDismissKeyboardBeforeShow}
                     onPress={shouldDismissKeyboardBeforeShow ? handlePress : () => showDatePickerModal()}
+                    onBlur={onBlur}
                     onSubmitEditing={() => showDatePickerModal()}
                     onKeyPress={handleInputKeyPress}
-                    textInputContainerStyles={isModalVisible ? styles.borderColorFocus : {}}
+                    textInputContainerStyles={[textInputContainerStyles, isModalVisible && styles.borderColorFocus]}
                     shouldHideClearButton={shouldHideClearButton}
                     onClearInput={handleClear}
                     forwardedFSClass={forwardedFSClass}
@@ -271,6 +278,7 @@ function DatePicker({
                 shouldPositionFromTop={!isInverted}
                 forwardedFSClass={forwardedFSClass}
                 shouldCloseWhenBrowserNavigationChanged
+                shouldEnableMonthYearBackdropInNarrowPane={shouldEnableMonthYearBackdropInNarrowPane}
             />
         </>
     );

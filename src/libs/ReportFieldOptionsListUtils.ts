@@ -30,6 +30,8 @@ function getReportFieldOptionsSection({
     initiallySelectedValue,
     searchValue,
     translate,
+    shouldPinSelectedOption = true,
+    shouldShowSectionTitles = true,
 }: {
     options: string[];
     recentlyUsedOptions: string[];
@@ -37,12 +39,18 @@ function getReportFieldOptionsSection({
     initiallySelectedValue: string;
     searchValue: string;
     translate: LocalizedTranslate;
+
+    /** Whether the selected value is lifted into its own section at the top of the list */
+    shouldPinSelectedOption?: boolean;
+
+    /** Whether the "Recent" and "All" section titles are rendered */
+    shouldShowSectionTitles?: boolean;
 }) {
     const reportFieldOptionsSections = [];
     // The live selection drives the checkmark (isSelected)...
     const selectedKeySet = new Set(selectedOptions.map(({text, keyForList, name}) => text ?? keyForList ?? name ?? '').filter((o) => !!o));
     // ...while the frozen initial selection drives the pinned "Selected" section, so selecting a value marks it without reordering the list until reopen.
-    const pinnedOptionKeys = initiallySelectedValue ? [initiallySelectedValue] : [];
+    const pinnedOptionKeys = shouldPinSelectedOption && initiallySelectedValue ? [initiallySelectedValue] : [];
     const pinnedKeySet = new Set(pinnedOptionKeys);
 
     if (searchValue) {
@@ -81,7 +89,7 @@ function getReportFieldOptionsSection({
     if (filteredRecentlyUsedOptions.length > 0) {
         reportFieldOptionsSections.push({
             // "Recent" section
-            title: translate('common.recent'),
+            title: shouldShowSectionTitles ? translate('common.recent') : '',
             sectionIndex: 2,
             data: getReportFieldOptions(filteredRecentlyUsedOptions, selectedKeySet),
         });
@@ -89,7 +97,7 @@ function getReportFieldOptionsSection({
 
     reportFieldOptionsSections.push({
         // "All" section when items amount more than the threshold
-        title: translate('common.all'),
+        title: shouldShowSectionTitles ? translate('common.all') : '',
         sectionIndex: 3,
         data: getReportFieldOptions(filteredOptions, selectedKeySet),
     });
