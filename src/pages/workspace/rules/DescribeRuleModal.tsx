@@ -23,7 +23,7 @@ import type {GeneratedRuleType, GeneratedRuleValues} from '@src/types/onyx/Gener
 import type {TextInputKeyPressEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 type NewRulePromptFormID = typeof ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM;
@@ -59,29 +59,32 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const formRef = useRef<FormRef>(null);
-    const [generationID, setGenerationID] = useState<string>();
+    const pendingGenerationIDRef = useRef<string>(undefined);
     const [generatedRule] = useOnyx(ONYXKEYS.GENERATED_RULE);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const generatedRuleID = generatedRule?.generationID;
+    const generatedRuleState = generatedRule?.state;
+    const generatedRuleValues = generatedRule?.rule;
     const inputLabel = translate('workspace.rules.newRule.describeRuleInputLabel');
 
     const close = () => {
-        setGenerationID(undefined);
+        pendingGenerationIDRef.current = undefined;
         clearNewRulePrompt();
         onClose();
     };
 
     useEffect(() => {
-        if (!generationID || generatedRule?.generationID !== generationID) {
+        if (!generatedRuleID || !generatedRuleState || generatedRuleID !== pendingGenerationIDRef.current) {
             return;
         }
-        if (generatedRule.state !== CONST.GENERATED_RULE.STATE.RULE) {
-            setNewRulePromptError(generatedRule.state);
+        if (generatedRuleState !== CONST.GENERATED_RULE.STATE.RULE) {
+            setNewRulePromptError(generatedRuleState);
             clearGeneratedRule();
             return;
         }
-        onRuleGenerated(withPolicyCategory(generatedRule.rule ?? {}, policyCategories));
+        onRuleGenerated(withPolicyCategory(generatedRuleValues ?? {}, policyCategories));
         close();
-    }, [close, generatedRule, generationID, onRuleGenerated, policyCategories]);
+    }, [close, generatedRuleID, generatedRuleState, generatedRuleValues, onRuleGenerated, policyCategories]);
 
     const submitFormOnModEnter = (event: TextInputKeyPressEvent | KeyboardEvent) => {
         if (!('key' in event)) {
@@ -102,7 +105,7 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
     };
 
     const submit = (values: FormOnyxValues<NewRulePromptFormID>) => {
-        setGenerationID(generateRule(policyID, ruleType, values[INPUT_IDS.PROMPT].trim()));
+        pendingGenerationIDRef.current = generateRule(policyID, ruleType, values[INPUT_IDS.PROMPT].trim());
     };
 
     return (
