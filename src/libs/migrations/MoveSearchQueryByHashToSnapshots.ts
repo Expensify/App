@@ -22,7 +22,7 @@ export default async function MoveSearchQueryByHashToSnapshots(): Promise<void> 
     const updates: Array<OnyxUpdate<typeof ONYXKEYS.SEARCH_QUERY_BY_HASH | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
         {onyxMethod: Onyx.METHOD.SET, key: ONYXKEYS.SEARCH_QUERY_BY_HASH, value: null},
     ];
-    for (const [hash, inputQuery] of Object.entries(searchQueryByHash ?? {})) {
+    for (const [hash, inputQuery] of Object.entries(searchQueryByHash)) {
         const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}` as const;
         const snapshot = snapshots?.[snapshotKey];
         if (!inputQuery || !snapshot?.search || snapshot.search.inputQuery) {
