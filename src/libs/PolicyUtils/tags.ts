@@ -349,19 +349,6 @@ function getTagListLabel(tagListName: string | undefined, fallbackLabel: string)
     return (tagListName ? getCleanedTagName(tagListName) : '') || fallbackLabel;
 }
 
-function getTagApproverRule(policy: OnyxEntry<Policy>, tagName: string) {
-    if (!policy) {
-        return;
-    }
-
-    const approvalRules = policy.rules?.approvalRules ?? [];
-    const approverRule = approvalRules.find((rule) =>
-        rule.applyWhen.find(({condition, field, value}) => condition === CONST.POLICY.RULE_CONDITIONS.MATCHES && field === CONST.POLICY.FIELDS.TAG && value === tagName),
-    );
-
-    return approverRule;
-}
-
 export {
     getSortedTagKeys,
     getTagListName,
@@ -389,5 +376,4 @@ export {
     hasIndependentTags,
     hasPerTagListRequired,
     getTagListLabel,
-    getTagApproverRule,
 };

@@ -55,8 +55,6 @@ import type {TupleToUnion, ValueOf} from 'type-fest';
 
 import {Str} from 'expensify-common';
 
-import {getTagApproverRule} from './tags';
-
 type MemberEmailsToAccountIDs = Record<string, number>;
 
 type PolicyWithTaxRates = {
@@ -2860,6 +2858,19 @@ function resolveCurrentTaxCode(policy: OnyxEntry<PolicyWithTaxRates>, taxCode: s
     return getCurrentTaxID(policy, taxCode) ?? taxCode;
 }
 
+function getTagApproverRule(policy: OnyxEntry<Policy>, tagName: string) {
+    if (!policy) {
+        return;
+    }
+
+    const approvalRules = policy.rules?.approvalRules ?? [];
+    const approverRule = approvalRules.find((rule) =>
+        rule.applyWhen.find(({condition, field, value}) => condition === CONST.POLICY.RULE_CONDITIONS.MATCHES && field === CONST.POLICY.FIELDS.TAG && value === tagName),
+    );
+
+    return approverRule;
+}
+
 function getDomainNameForPolicy(policyID?: string): string {
     if (!policyID) {
         return '';
@@ -3396,6 +3407,7 @@ export {
     getSubmitReportManagerAccountID,
     getAllTaxRatesNamesAndKeys as getAllTaxRates,
     getAllTaxRatesNamesAndValues,
+    getTagApproverRule,
     getDomainNameForPolicy,
     hasSupportedOnlyOnOldDotIntegration,
     getWorkflowApprovalsUnavailable,
