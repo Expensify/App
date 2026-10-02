@@ -17,15 +17,25 @@ import isReportTopmostSplitNavigator from './isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from './isSearchTopmostFullScreenRoute';
 
 type NavigateAfterExpenseCreateParams = {
+    /** Report the expense was created in */
     activeReportID?: string;
+
+    /** The created transaction's ID */
     transactionID?: string;
+
+    /** Whether the expense was started from the global create flow (FAB/no existing report) rather than from within a report */
     isFromGlobalCreate?: boolean;
+
+    /** Whether the created item is an invoice rather than a regular expense */
     isInvoice?: boolean;
+
+    /** Whether the destination report already contains transactions */
     hasMultipleTransactions: boolean;
 
     /** Whether `activeReportID` is the chat whose preview shows this transaction, which only the caller knows. */
     shouldFlagNewTransactionForChatPreview: boolean;
 
+    /** Whether to perform navigation, or only run the side effects */
     shouldNavigate?: boolean;
 
     /**
@@ -57,7 +67,7 @@ function getNavigateAfterCreateSearchNavigatorState() {
  * when creating an expense from the global create button.
  * If the expense is created from the global create button then:
  * - If it is created on the inbox tab, it will open the chat report containing that expense.
- * - If it is created elsewhere, it will navigate to Reports > Expense and highlight the newly created expense.
+ * - If it is created elsewhere, it will navigate to Reports > Expense and show the "Expense added" growl.
  */
 function navigateAfterExpenseCreate({
     activeReportID,
@@ -79,7 +89,7 @@ function navigateAfterExpenseCreate({
     // and open the report chat containing the IOU report
     if (!isFromGlobalCreate || isUserOnInbox || !transactionID) {
         if (shouldNavigate) {
-            dismissModalAndOpenReportInInboxTab(activeReportID, isInvoice, hasMultipleTransactions);
+            dismissModalAndOpenReportInInboxTab(activeReportID, isInvoice, hasMultipleTransactions, transactionID);
         }
         if (shouldFlagNewTransactionForChatPreview) {
             flagNewTransactionForChatPreview({chatReportID: activeReportID, transactionID});

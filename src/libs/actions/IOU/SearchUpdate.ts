@@ -187,8 +187,11 @@ function getSearchOnyxUpdate({
         ...transaction,
         // Onyx.merge can't clear a key by spreading `undefined`, so a stale snapshot `modifiedMerchant` (e.g. the
         // `(none)`/`Expense` placeholder a self-DM split inherits) would win over `merchant` in `isMerchantMissing`
-        // and show a false "Missing Merchant". Clear it with `null` unless it's a genuine user edit (#99500).
-        modifiedMerchant: hasGenuineModifiedMerchant ? transaction.modifiedMerchant : null,
+        // and show a false "Missing Merchant". Clear it with `''` unless it's a genuine user edit (#99500).
+        modifiedMerchant: hasGenuineModifiedMerchant ? transaction.modifiedMerchant : '',
+        modifiedAmount: transaction.modifiedAmount ?? '',
+        modifiedCurrency: transaction.modifiedCurrency ?? '',
+        modifiedCreated: transaction.modifiedCreated ?? transaction.created,
     };
     if (policy) {
         baseSnapshotData[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`] = policy;
