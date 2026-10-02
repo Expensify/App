@@ -5062,6 +5062,10 @@ const translations = {
                 title: 'ChatGPT',
                 subtitle: 'by OpenAI',
             },
+            grok: {
+                title: 'Grok',
+                subtitle: 'by xAI',
+            },
         },
         receiptPartners: {
             uber: {

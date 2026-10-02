@@ -4888,6 +4888,10 @@ ${amount} per ${merchant} - ${date}`,
                 title: 'ChatGPT',
                 subtitle: 'di OpenAI',
             },
+            grok: {
+                title: 'Grok',
+                subtitle: 'di xAI',
+            },
         },
         receiptPartners: {
             uber: {
