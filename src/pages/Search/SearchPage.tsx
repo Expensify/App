@@ -164,7 +164,10 @@ function SearchPage({route}: SearchPageProps) {
     // different search, so its results area starts from the skeleton rather than showing rows that belong to the query
     // the user just left.
     const shouldHoldLastResolvedSearch =
-        !isSearchResolvedForCurrentQuery && !!lastResolvedSearch && (isFooterSelectionChangeOnly || (!hasStaleHoldTimedOut && isQueryARefinement(currentSearchQueryJSON?.inputQuery)));
+        !shouldUseLiveData &&
+        !isSearchResolvedForCurrentQuery &&
+        !!lastResolvedSearch &&
+        (isFooterSelectionChangeOnly || (!hasStaleHoldTimedOut && isQueryARefinement(currentSearchQueryJSON?.inputQuery)));
     const contentQueryJSON = shouldHoldLastResolvedSearch ? lastResolvedSearch.queryJSON : currentSearchQueryJSON;
     const contentSearchResults = shouldHoldLastResolvedSearch ? lastResolvedSearch.searchResults : searchResults;
 
