@@ -64,9 +64,10 @@ function DynamicExitSurveyConfirmPage() {
     }, [isOffline, exitSurveyResponse, parentBackPath]);
 
     const goToExpensifyClassic = () => {
-        switchToOldDot(exitSurveyResponse);
-        Navigation.dismissModal();
-        openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+        switchToOldDot(exitSurveyResponse).then(() => {
+            Navigation.dismissModal();
+            openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+        });
     };
 
     return (
