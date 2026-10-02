@@ -9,6 +9,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
+import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
@@ -47,7 +48,8 @@ type RoomDescriptionPageProps = {
 function RoomDescriptionPage({report, policy}: RoomDescriptionPageProps) {
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_DESCRIPTION.path);
     const styles = useThemeStyles();
-    const [description, setDescription] = useState(() => Parser.htmlToMarkdown(getReportDescription(report)));
+    const accountIDToName = useAccountIDToNameMap();
+    const [description, setDescription] = useState(() => Parser.htmlToMarkdown(getReportDescription(report), {accountIDToName}));
     const reportDescriptionInputRef = useRef<BaseTextInputRef | null>(null);
     const focusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const {translate} = useLocalize();
@@ -64,9 +66,9 @@ function RoomDescriptionPage({report, policy}: RoomDescriptionPageProps) {
     const submitForm = useCallback(() => {
         const newValue = description.trim();
 
-        updateDescription(report, newValue, currentUserAccountID);
+        updateDescription(report, newValue, currentUserAccountID, accountIDToName);
         goBack();
-    }, [report, description, goBack, currentUserAccountID]);
+    }, [report, description, goBack, currentUserAccountID, accountIDToName]);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_DESCRIPTION_FORM>): Errors => {
