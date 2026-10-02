@@ -969,8 +969,13 @@ function restoreDelegateSession({authToken, encryptedAuthToken, accountID, email
                 return openApp();
             })
             // Reinitialize Pusher for the restored account so realtime updates resume on the correct session.
-            .then(() => requestPusherReinitialize({accountID, email}))
             .then(() => {
+                // Not awaited: Pusher.init only resolves once the socket reports connected, which can stall right after the
+                // disconnect above (on Android), and the account switch below must not wait on it. See Expensify/App#93458.
+                requestPusherReinitialize({accountID, email}).catch((error: unknown) => {
+                    Log.hmmm('[Delegate] Failed to reinitialize Pusher after restoring the original session', {error: ErrorUtils.getErrorMessage(error)});
+                });
+
                 // Sync the account switch to the classic mobile app experience of HybridApp; otherwise the
                 // two experiences disagree about which account is active after a reauth-driven restoration.
                 if (!CONFIG.IS_HYBRID_APP || !email || !authToken) {
