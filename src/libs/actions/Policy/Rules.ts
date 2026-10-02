@@ -31,6 +31,7 @@ import type {AnyOnyxUpdate, OnyxData} from '@src/types/onyx/Request';
 import type Rule from '@src/types/onyx/Rule';
 
 import type {OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
@@ -402,7 +403,7 @@ function deleteMerchantRule(policyID: string, ruleID: string, rule: Rule | undef
 }
 
 /** @returns the generationID the answer is written under in Onyx */
-function generateRule(policyID: string, prompt: string): string {
+function generateRule(policyID: string, ruleType: ValueOf<typeof CONST.GENERATED_RULE.RULE_TYPE>, prompt: string): string {
     const generationID = rand64();
 
     const failureData: AnyOnyxUpdate[] = [
@@ -413,7 +414,7 @@ function generateRule(policyID: string, prompt: string): string {
         },
     ];
 
-    const parameters: GenerateRuleParams = {policyID, generationID, prompt};
+    const parameters: GenerateRuleParams = {policyID, generationID, ruleType, prompt};
 
     API.write(WRITE_COMMANDS.GENERATE_RULE, parameters, {failureData});
 

@@ -76,12 +76,6 @@ function AddAgentRulePage({
 
     const hasDraftPrompt = !!draftValues?.[INPUT_IDS.PROMPT]?.trim();
 
-    const [didOpenTabForDraft, setDidOpenTabForDraft] = useState(false);
-    if (!didOpenTabForDraft && hasDraftPrompt) {
-        setDidOpenTabForDraft(true);
-        setActiveTab(CONST.TAB.AGENT_RULE.WRITE);
-    }
-
     // Reset the active tab to Suggestions when the workspace changes.
     if (activeTabPolicyID !== policyID) {
         setActiveTabPolicyID(policyID);
@@ -131,6 +125,14 @@ function AddAgentRulePage({
             return;
         }
         setActiveTab(key);
+    };
+
+    const handleBackButtonPress = () => {
+        if (activeTab === CONST.TAB.AGENT_RULE.WRITE) {
+            setActiveTab(CONST.TAB.AGENT_RULE.SUGGESTIONS);
+            return;
+        }
+        Navigation.goBack();
     };
 
     const navigateBackToAgentsTab = () => {
@@ -206,7 +208,10 @@ function AddAgentRulePage({
                 shouldEnableMaxHeight
             >
                 <CollapsibleHeaderOnKeyboard alwaysCollapseHeaderOnKeyboard>
-                    <HeaderWithBackButtonAndTitle title={translate('workspace.rules.agentRules.newRuleTitle')}>
+                    <HeaderWithBackButtonAndTitle
+                        title={translate('workspace.rules.agentRules.newRuleTitle')}
+                        onBackButtonPress={handleBackButtonPress}
+                    >
                         <SidePanelButton />
                     </HeaderWithBackButtonAndTitle>
                     <View style={[styles.flexShrink0, styles.w100]}>

@@ -43,6 +43,8 @@ import {getTagArrayFromName} from '@libs/TransactionUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import DescribeRuleButton from '@pages/workspace/rules/DescribeRuleButton';
+import type {GeneratedRuleValues} from '@pages/workspace/rules/DescribeRuleButton';
 import useRuleDeleteHeaderProps from '@pages/workspace/rules/useRuleDeleteHeaderProps';
 
 import variables from '@styles/variables';
@@ -672,6 +674,11 @@ function MerchantRulePageBase({
         return <NotFoundPage />;
     }
 
+    const shouldShowDescribeRule = !isEditingSavedRule && !isCategoryLocked;
+    const applyGeneratedRule = (values: GeneratedRuleValues) => {
+        setDraftMerchantRule({...values, ruleType: CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.MERCHANT});
+    };
+
     const footer = canWriteRules ? (
         <FormAlertWithSubmitButton
             buttonText={translate('workspace.rules.merchantRules.saveRule')}
@@ -714,6 +721,15 @@ function MerchantRulePageBase({
                         >
                             <Button.Text>{translate('workspace.rules.merchantRules.previewMatches')}</Button.Text>
                         </Button>
+                    )}
+                    {shouldShowDescribeRule && (
+                        <DescribeRuleButton
+                            policyID={policyID}
+                            ruleType={CONST.GENERATED_RULE.RULE_TYPE.EXPENSE_DEFAULTS}
+                            onRuleGenerated={applyGeneratedRule}
+                            style={[styles.mb4]}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_DESCRIBE}
+                        />
                     )}
                 </>
             }

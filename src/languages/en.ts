@@ -8823,10 +8823,9 @@ const translations = {
                 applyExpenseDefaultsDescription: 'Update fields without submitter doing anything',
                 createAgentRule: 'Describe agent rule',
                 createAgentRuleDescription: 'Create flexible rules that run when you need.',
-                createRuleHeadline: 'Create a new rule',
-                describeRule: 'Describe your rule and Concierge will build it',
-                buildManually: 'Build rule manually',
-                createAgentRuleInstead: 'Create an agent rule instead',
+                describe: 'Describe',
+                describeRule: 'Describe your rule in plain English and have Concierge build the rule for you',
+                describeRuleInputLabel: 'Describe the rule',
                 promptErrors: {
                     unsupported: "That rule isn't supported yet — we're working on it. Please try a different rule for now.",
                     unintelligible: 'Try phrasing your rule like: if expenses have a value over $100, then require a receipt.',

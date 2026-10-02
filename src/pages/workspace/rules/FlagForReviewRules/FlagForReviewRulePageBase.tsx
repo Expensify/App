@@ -27,6 +27,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import DescribeRuleButton from '@pages/workspace/rules/DescribeRuleButton';
 import useRuleDeleteHeaderProps from '@pages/workspace/rules/useRuleDeleteHeaderProps';
 
 import variables from '@styles/variables';
@@ -36,7 +37,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES, getFlagForReviewRuleAmountRoute, getFlagForReviewRuleCategoryRoute, getWorkspaceCategorySettingsRoute} from '@src/ROUTES';
 import type {FlagForReviewRuleForm} from '@src/types/form/FlagForReviewRuleForm';
 import INPUT_IDS from '@src/types/form/FlagForReviewRuleForm';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
@@ -80,6 +80,7 @@ function FlagForReviewRulePageBase({
     const isEditing = !!categoryName;
     const isCategoryLocked = isCategoryLockedProp ?? !!initialCategoryName;
     const canEditCategory = canWriteRules && !isCategoryLocked;
+    const shouldShowDescribeRule = !isEditing && !isCategoryLocked;
     const categorySettingsBackPath = useCategoryRuleCreateBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_FLAG_FOR_REVIEW_NEW.path);
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -87,7 +88,6 @@ function FlagForReviewRulePageBase({
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [shouldShowError, setShouldShowError] = useState(false);
     const initializedDraftForRuleKeyRef = useRef<string | null>(null);
-    const hasDraft = !isEmptyObject(form);
 
     const category = categoryName ? policyCategories?.[categoryName] : undefined;
     const selectedCategoryName = form?.[INPUT_IDS.CATEGORY];
@@ -103,9 +103,7 @@ function FlagForReviewRulePageBase({
         if (!isEditing) {
             if (initializedDraftForRuleKeyRef.current !== ROUTES.NEW) {
                 initializedDraftForRuleKeyRef.current = ROUTES.NEW;
-                if (!hasDraft) {
-                    setDraftFlagForReviewRule(initialCategoryName ? {[INPUT_IDS.CATEGORY]: initialCategoryName} : {});
-                }
+                setDraftFlagForReviewRule(initialCategoryName ? {[INPUT_IDS.CATEGORY]: initialCategoryName} : {});
             }
             return;
         }
@@ -129,7 +127,7 @@ function FlagForReviewRulePageBase({
 
         initializedDraftForRuleKeyRef.current = categoryName;
         setDraftFlagForReviewRule(getFlagForReviewFormFromCategory(category, getCurrencyDecimals, policyCurrency));
-    }, [category, categoryName, draftMaxExpenseAmount, getCurrencyDecimals, hasDraft, initialCategoryName, isEditing, policyCurrency, selectedCategoryName]);
+    }, [category, categoryName, draftMaxExpenseAmount, getCurrencyDecimals, initialCategoryName, isEditing, policyCurrency, selectedCategoryName]);
     const fetchPolicyData = useCallback(() => {
         if (!policy?.areCategoriesEnabled || policyCategories) {
             return;
@@ -217,6 +215,20 @@ function FlagForReviewRulePageBase({
             shouldShowLoadingImmediatelyOnPress={false}
             enabledWhenOffline
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_FOR_REVIEW_RULE_SAVE}
+            buttonStyles={shouldShowDescribeRule && styles.flex1}
+            buttonAndFooterContainerStyles={shouldShowDescribeRule && [styles.flexRow, styles.gap2]}
+            shouldRenderFooterAboveSubmit
+            footerContent={
+                shouldShowDescribeRule && (
+                    <DescribeRuleButton
+                        policyID={policyID}
+                        ruleType={CONST.GENERATED_RULE.RULE_TYPE.FLAG_FOR_REVIEW}
+                        onRuleGenerated={setDraftFlagForReviewRule}
+                        style={styles.flex1}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_FOR_REVIEW_RULE_DESCRIBE}
+                    />
+                )
+            }
         />
     ) : null;
 

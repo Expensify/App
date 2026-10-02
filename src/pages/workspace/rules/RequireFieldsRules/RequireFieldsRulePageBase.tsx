@@ -42,6 +42,8 @@ import type {FieldRequirementsDirection} from '@libs/RequireFieldsRulesUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import DescribeRuleButton from '@pages/workspace/rules/DescribeRuleButton';
+import type {GeneratedRuleValues} from '@pages/workspace/rules/DescribeRuleButton';
 import useRuleDeleteHeaderProps from '@pages/workspace/rules/useRuleDeleteHeaderProps';
 
 import variables from '@styles/variables';
@@ -51,7 +53,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES, getRequireFieldsRuleCategoryRoute, getWorkspaceCategorySettingsRoute} from '@src/ROUTES';
 import type {RequireFieldsRuleForm, RequireFieldsRuleSettingFieldKey} from '@src/types/form/RequireFieldsRuleForm';
 import INPUT_IDS from '@src/types/form/RequireFieldsRuleForm';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
@@ -81,6 +82,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
     const icons = useMemoizedLazyExpensifyIcons(['Folder']);
     const isEditing = !!categoryName;
     const isCategoryLocked = isCategoryLockedProp ?? !!initialCategoryName;
+    const shouldShowDescribeRule = !isEditing && !isCategoryLocked;
     const canEditCategory = canWriteRules && !isCategoryLocked;
     const categorySettingsBackPath = useCategoryRuleCreateBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_REQUIRE_FIELDS_NEW.path);
 
@@ -173,12 +175,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
         if (!isEditing) {
             if (initializedDraftForRuleKeyRef.current !== ROUTES.NEW) {
                 initializedDraftForRuleKeyRef.current = ROUTES.NEW;
-                if (!isEmptyObject(form)) {
-                    // eslint-disable-next-line react-hooks/set-state-in-effect -- seeds local selection state from the seeded draft
-                    setTouchedFields(new Set(SETTING_FIELD_KEYS.filter((fieldKey) => form?.[fieldKey] !== undefined)));
-                } else {
-                    setDraftRequireFieldsRule(initialCategoryName ? {[INPUT_IDS.CATEGORY]: initialCategoryName} : {});
-                }
+                setDraftRequireFieldsRule(initialCategoryName ? {[INPUT_IDS.CATEGORY]: initialCategoryName} : {});
             }
             return;
         }
@@ -201,6 +198,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
 
         // Always reseed from the category so a leftover new-rule draft cannot leave a stale Require/Don't require.
         initializedDraftForRuleKeyRef.current = ruleKey;
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- Seed local selection state when opening an edit rule.
         setTouchedFields(new Set());
         setClearedFields(new Set());
         setCouplingInteractionFields(new Set());
@@ -429,6 +427,11 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
         return <NotFoundPage />;
     }
 
+    const applyGeneratedRule = (values: GeneratedRuleValues) => {
+        setDraftRequireFieldsRule(values);
+        setTouchedFields(new Set(SETTING_FIELD_KEYS.filter((fieldKey) => values[fieldKey] !== undefined)));
+    };
+
     const footer = canWriteRules ? (
         <FormAlertWithSubmitButton
             buttonText={translate('workspace.rules.requireFieldsRule.saveRule')}
@@ -439,6 +442,20 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
             shouldShowLoadingImmediatelyOnPress={false}
             enabledWhenOffline
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_RULE_SAVE}
+            buttonStyles={shouldShowDescribeRule && styles.flex1}
+            buttonAndFooterContainerStyles={shouldShowDescribeRule && [styles.flexRow, styles.gap2]}
+            shouldRenderFooterAboveSubmit
+            footerContent={
+                shouldShowDescribeRule && (
+                    <DescribeRuleButton
+                        policyID={policyID}
+                        ruleType={CONST.GENERATED_RULE.RULE_TYPE.REQUIRE_FIELDS}
+                        onRuleGenerated={applyGeneratedRule}
+                        style={styles.flex1}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_RULE_DESCRIBE}
+                    />
+                )
+            }
         />
     ) : null;
 

@@ -33,6 +33,8 @@ import {getSpendRuleFormValuesFromCardRule, getTruncatedSpendRuleSummary} from '
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import DescribeRuleButton from '@pages/workspace/rules/DescribeRuleButton';
+import type {GeneratedRuleValues} from '@pages/workspace/rules/DescribeRuleButton';
 import useRuleDeleteHeaderProps from '@pages/workspace/rules/useRuleDeleteHeaderProps';
 
 import variables from '@styles/variables';
@@ -43,6 +45,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
+import {isSpendRuleCategory} from '@src/types/form/SpendRuleForm';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {ValueOf} from 'type-fest';
@@ -98,13 +101,17 @@ function SpendRulePageBase({policyID, ruleID, testID, upgradeBackTo}: SpendRuleP
 
     const [isErrorVisible, setIsErrorVisible] = useState(false);
     const [isRestrictMerchantsOff, setIsRestrictMerchantsOff] = useState(() => {
-        if (isNewRule) {
-            return !spendRuleForm?.categories?.length && !spendRuleForm?.merchantNames?.length;
-        }
-        return !existingFormValues?.merchantNames.length && !existingFormValues?.categories?.length;
+        const hasNoMerchantRestrictions = !existingFormValues?.merchantNames.length && !existingFormValues?.categories?.length;
+        return isNewRule || hasNoMerchantRestrictions;
     });
 
     useEffect(() => () => clearDraftSpendRule(), []);
+
+    const applyGeneratedRule = (values: GeneratedRuleValues) => {
+        const generatedCategories = values.categories?.filter(isSpendRuleCategory);
+        setDraftSpendRule(generatedCategories ? {...values, categories: generatedCategories} : values);
+        setIsRestrictMerchantsOff(!generatedCategories?.length && !values.merchantNames?.length);
+    };
 
     useEffect(() => {
         if (!isEditingRule || !existingFormValues) {
@@ -464,7 +471,20 @@ function SpendRulePageBase({policyID, ruleID, testID, upgradeBackTo}: SpendRuleP
                         shouldShowLoadingImmediatelyOnPress={false}
                         enabledWhenOffline
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_SAVE}
+                        buttonStyles={isNewRule && styles.flex1}
+                        buttonAndFooterContainerStyles={isNewRule && [styles.flexRow, styles.gap2]}
                         shouldRenderFooterAboveSubmit
+                        footerContent={
+                            isNewRule && (
+                                <DescribeRuleButton
+                                    policyID={policyID}
+                                    ruleType={CONST.GENERATED_RULE.RULE_TYPE.RESTRICT_CARD_SPEND}
+                                    onRuleGenerated={applyGeneratedRule}
+                                    style={styles.flex1}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_DESCRIBE}
+                                />
+                            )
+                        }
                     />
                 )}
             </ScreenWrapper>
