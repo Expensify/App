@@ -9,7 +9,7 @@ import type * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
-import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@src/libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildSearchQueryJSON, getCurrentSearchQueryJSON} from '@src/libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
@@ -119,6 +119,35 @@ describe('actions/IOU', () => {
     });
 
     describe('shouldOptimisticallyUpdateSearch', () => {
+        it('puts a new expense on "My expenses" even when the query carries a Spend footer selection', () => {
+            const transaction = {...createRandomTransaction(1)};
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            // Given "My expenses", whose only restrictive filter is the current user
+            const myExpenses = buildSearchQueryJSON(`type:expense status:all from:${RORY_ACCOUNT_ID}`);
+            expect(myExpenses && shouldOptimisticallyUpdateSearch(myExpenses, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeTruthy();
+
+            // Then a footer selection alongside it changes nothing: it picks which figures the footer prints, it does
+            // not narrow the rows, and offline the server's answer never comes to correct the list
+            const withFooterCurrency = buildSearchQueryJSON(`type:expense status:all from:${RORY_ACCOUNT_ID} footerCurrency:EUR`);
+            expect(withFooterCurrency && shouldOptimisticallyUpdateSearch(withFooterCurrency, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeTruthy();
+
+            const withEveryFooterSelection = buildSearchQueryJSON(`type:expense status:all from:${RORY_ACCOUNT_ID} footerCount:reports footerTotal:billable footerCurrency:EUR`);
+            expect(withEveryFooterSelection && shouldOptimisticallyUpdateSearch(withEveryFooterSelection, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeTruthy();
+
+            // While a filter that does narrow the rows still keeps the expense off the list
+            const someoneElsesExpenses = buildSearchQueryJSON(`type:expense status:all from:${RORY_ACCOUNT_ID + 1} footerCurrency:EUR`);
+            expect(someoneElsesExpenses && shouldOptimisticallyUpdateSearch(someoneElsesExpenses, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
+
+            const narrowedByCategory = buildSearchQueryJSON(`type:expense status:all from:${RORY_ACCOUNT_ID} category:Travel footerCurrency:EUR`);
+            expect(narrowedByCategory && shouldOptimisticallyUpdateSearch(narrowedByCategory, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
+        });
+
         it('when the current hash is submit action query it should only return true if the iou report is in draft state', () => {
             const transaction = {
                 ...createRandomTransaction(1),

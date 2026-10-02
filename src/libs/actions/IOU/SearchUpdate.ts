@@ -105,9 +105,10 @@ function shouldOptimisticallyUpdateSearch(
         CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL,
         CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY,
     ]);
-    const hasNoFlatFilters = currentSearchQueryJSON.flatFilters.every((filter) => NON_RESTRICTIVE_FILTER_KEYS.has(filter.key));
+    const restrictiveFlatFilters = currentSearchQueryJSON.flatFilters.filter((filter) => !NON_RESTRICTIVE_FILTER_KEYS.has(filter.key));
+    const hasNoFlatFilters = restrictiveFlatFilters.length === 0;
 
-    const onlyFromFilter = currentSearchQueryJSON.flatFilters.length === 1 ? currentSearchQueryJSON.flatFilters.at(0) : undefined;
+    const onlyFromFilter = restrictiveFlatFilters.length === 1 ? restrictiveFlatFilters.at(0) : undefined;
     const matchesFromQuery: boolean =
         onlyFromFilter?.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM &&
         onlyFromFilter.filters.some((f) => f.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && String(f.value) === String(currentUserAccountID));
