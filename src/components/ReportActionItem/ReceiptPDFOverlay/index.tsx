@@ -12,7 +12,7 @@ import {retrieveMaxCanvasArea, retrieveMaxCanvasHeight, retrieveMaxCanvasWidth} 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {PDFPreviewer} from 'react-fast-pdf';
 import {View} from 'react-native';
 
@@ -103,17 +103,14 @@ function ReceiptPDFOverlay({sourceURL, isAuthTokenRequired = true, onLoadFailure
     const isSinglePage = page !== undefined;
 
     // A ResizeObserver reports the size as soon as it starts observing, unlike onLayout added after mount
-    const observeOversampleWidth = useCallback(
-        (container: HTMLDivElement | null) => {
-            if (!container || !isSinglePage) {
-                return undefined;
-            }
-            const observer = new ResizeObserver(([entry]) => setOversampleWidth(entry.contentRect.width));
-            observer.observe(container);
-            return () => observer.disconnect();
-        },
-        [isSinglePage],
-    );
+    const observeOversampleWidth = (container: HTMLDivElement | null) => {
+        if (!container || !isSinglePage) {
+            return undefined;
+        }
+        const observer = new ResizeObserver(([entry]) => setOversampleWidth(entry.contentRect.width));
+        observer.observe(container);
+        return () => observer.disconnect();
+    };
 
     useEffect(() => {
         // Verify the per-browser canvas limits have been calculated, mirroring PDFView.
