@@ -10,6 +10,7 @@ import AmountWithCurrencyAdapter from '@components/DynamicForm/adapters/AmountWi
 import FileUploadAdapter from '@components/DynamicForm/adapters/FileUploadAdapter';
 import DynamicFormFields from '@components/DynamicForm/components/DynamicFormFields';
 import type {DynamicFormValues} from '@components/DynamicForm/types';
+import getAddressInputKeys from '@components/DynamicForm/utils/getAddressInputKeys';
 import PercentageForm from '@components/PercentageForm';
 import PushRowWithModal from '@components/PushRowWithModal';
 import RadioButtons from '@components/RadioButtons';
@@ -37,6 +38,7 @@ type CapturedInputProps = {
     fileLimit?: number;
     currency?: string;
     currencyKey?: string;
+    onValueChange?: (value: string, key: string) => void;
 };
 
 const mockInputWrapper = jest.fn((props: CapturedInputProps) => props.inputID);
@@ -54,13 +56,14 @@ jest.mock('@hooks/useLocalize', () =>
 
 jest.mock('@hooks/useThemeStyles', () => jest.fn(() => new Proxy({}, {get: () => ({})})));
 
-function renderFields(fields: DynamicFormField[], values: DynamicFormValues = {}, currency?: string) {
+function renderFields(fields: DynamicFormField[], values: DynamicFormValues = {}, currency?: string, onRefreshRequirements?: (inputID: string, value: unknown) => void) {
     mockInputWrapper.mockClear();
     render(
         <DynamicFormFields
             fields={fields}
             values={values}
             currency={currency}
+            onRefreshRequirements={onRefreshRequirements}
         />,
     );
     return new Map(mockInputWrapper.mock.calls.map(([props]) => [props.inputID, props]));
@@ -269,5 +272,56 @@ describe('DynamicFormFields', () => {
         // Then it shows the currency picker, priced in the screen currency until the user picks one
         expect(beforePick.get('expectedVolume')).toMatchObject({InputComponent: AmountWithCurrencyAdapter, currency: CONST.CURRENCY.GBP, currencyKey: 'expectedVolumeCurrency'});
         expect(afterPick.get('expectedVolume')?.currency).toBe(CONST.CURRENCY.EUR);
+    });
+
+    it('draws the full address form with a country picker', () => {
+        // Given an address field
+        const homeAddress: DynamicFormField = {key: 'homeAddress', label: 'Home address', type: 'address', required: true};
+
+        // When it renders
+        const rendered = renderFields([homeAddress]);
+
+        // Then the user sees and can correct every part, each stored under the field key
+        expect([...rendered.keys()]).toEqual(['homeAddress', 'homeAddress.city', 'homeAddress.state', 'homeAddress.zipCode', 'homeAddress.country']);
+        expect(screen.getByText('Home address')).toBeOnTheScreen();
+    });
+
+    it('opens the phone keyboard for a phone field', () => {
+        // Given a phone field without its own keyboard
+        const phone: DynamicFormField = {key: 'phone', type: 'text', required: true, rule: 'phone'};
+
+        // When it renders
+        const rendered = renderFields([phone]);
+
+        // Then the phone keyboard opens
+        expect(rendered.get('phone')?.inputMode).toBe(CONST.INPUT_MODE.TEL);
+    });
+
+    it('asks the screen to refetch the schema only when a refreshing field changes', () => {
+        // Given a currency field that changes the requirements, next to one that does not
+        const onRefreshRequirements = jest.fn();
+        const payoutCurrency: DynamicFormField = {key: 'payoutCurrency', type: 'currency', required: true, refreshRequirementsOnChange: true};
+        const nickname: DynamicFormField = {key: 'nickname', type: 'text', required: false};
+        const rendered = renderFields([payoutCurrency, nickname], {}, undefined, onRefreshRequirements);
+
+        // When the user changes the currency
+        rendered.get('payoutCurrency')?.onValueChange?.('EUR', 'payoutCurrency');
+
+        // Then the screen is told which answer changed, and the other field has no such hook
+        expect(onRefreshRequirements).toHaveBeenCalledWith('payoutCurrency', 'EUR');
+        expect(rendered.get('nickname')?.onValueChange).toBeUndefined();
+    });
+
+    it('shows a readonly address as one line', () => {
+        // Given a readonly, prefilled address
+        const officeAddress: DynamicFormField = {key: 'office', type: 'address', required: true, readonly: true};
+        const addressKeys = getAddressInputKeys(officeAddress.key);
+        const values = {office: '224 Main Street', [addressKeys.city]: 'San Francisco', [addressKeys.state]: 'CA', [addressKeys.zipCode]: '94123'};
+
+        // When it renders
+        renderFields([officeAddress], values);
+
+        // Then the row reads like a postal address
+        expect(screen.getByText('224 Main Street, San Francisco, CA 94123')).toBeOnTheScreen();
     });
 });

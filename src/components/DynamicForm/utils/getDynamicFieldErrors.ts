@@ -8,13 +8,14 @@ import {
     isValidDate,
     isValidLegalName,
     isValidPastDate,
+    isValidPhoneInternational,
     isValidZipCodeForCountry,
     meetsMaximumAgeRequirement,
     meetsMinimumAgeRequirement,
 } from '@libs/ValidationUtils';
 
 import type {DynamicFormField, DynamicFormFieldType} from '@src/types/onyx';
-import type {DynamicFormChoiceField, DynamicFormNumberField, DynamicFormTextField} from '@src/types/onyx/DynamicFormField';
+import type {DynamicFormAddressField, DynamicFormChoiceField, DynamicFormNumberField, DynamicFormTextField} from '@src/types/onyx/DynamicFormField';
 
 import getAddressInputKeys from './getAddressInputKeys';
 import getFieldOptions from './getFieldOptions';
@@ -96,6 +97,9 @@ const VALIDATORS: {[TType in DynamicFormFieldType]: FieldValidator<TType>} = {
         if (field.rule === 'legalName' && !isValidLegalName(value)) {
             messages.push(translate('privatePersonalDetails.error.hasInvalidCharacter'));
         }
+        if (field.rule === 'phone' && !isValidPhoneInternational(value)) {
+            messages.push(translate('common.error.phoneNumber'));
+        }
         return messages;
     },
     number: (field, values, translate) => {
@@ -124,16 +128,8 @@ const VALIDATORS: {[TType in DynamicFormFieldType]: FieldValidator<TType>} = {
         }
         return meetsMinimumAgeRequirement(value) ? [] : [translate('bankAccount.error.age')];
     },
-    address: (field, values, translate) => {
-        const addressKeys = getAddressInputKeys(field.key);
-        const zipCode = values[addressKeys.zipCode];
-        if (field.rule !== 'zipCode' || typeof zipCode !== 'string' || zipCode === '') {
-            return [];
-        }
-        const chosenCountry = values[addressKeys.country];
-        const country = typeof chosenCountry === 'string' && isCountryCode(chosenCountry) ? chosenCountry : '';
-        return isValidZipCodeForCountry(zipCode, country) ? [] : [translate('privatePersonalDetails.error.incorrectZipFormat', getCountryZipRegexDetails(country)?.samples)];
-    },
+    // The street is the field's own value and needs no check beyond required. getAddressPartErrors checks the other parts.
+    address: () => [],
     multiselect: getMultiChoiceErrors,
     countryMultiselect: getMultiChoiceErrors,
     boolean: noChecks,
@@ -143,6 +139,29 @@ const VALIDATORS: {[TType in DynamicFormFieldType]: FieldValidator<TType>} = {
     amount: noChecks,
     percent: noChecks,
 };
+
+/** Each address part has its own input, so its errors go under its own draft key */
+function getAddressPartErrors(field: DynamicFormAddressField, values: DynamicFormValues, translate: LocalizedTranslate): Array<[inputID: string, message: string]> {
+    const addressKeys = getAddressInputKeys(field.key);
+    const partErrors: Array<[string, string]> = [];
+    if (field.required) {
+        for (const partKey of [addressKeys.city, addressKeys.state, addressKeys.zipCode, addressKeys.country]) {
+            if (!isAnswered(values[partKey])) {
+                partErrors.push([partKey, translate('common.error.fieldRequired')]);
+            }
+        }
+    }
+    const zipCode = values[addressKeys.zipCode];
+    if (field.rule !== 'zipCode' || typeof zipCode !== 'string' || zipCode === '') {
+        return partErrors;
+    }
+    const chosenCountry = values[addressKeys.country];
+    const country = typeof chosenCountry === 'string' && isCountryCode(chosenCountry) ? chosenCountry : '';
+    if (!isValidZipCodeForCountry(zipCode, country)) {
+        partErrors.push([addressKeys.zipCode, translate('privatePersonalDetails.error.incorrectZipFormat', getCountryZipRegexDetails(country)?.samples)]);
+    }
+    return partErrors;
+}
 
 function validateField<TType extends DynamicFormFieldType>(field: DynamicFormFieldOfType<TType>, values: DynamicFormValues, translate: LocalizedTranslate): string[] {
     const validate: FieldValidator<TType> = VALIDATORS[field.type];
@@ -155,6 +174,11 @@ function getDynamicFieldErrors(fields: DynamicFormField[], values: DynamicFormVa
     for (const field of getVisibleFields(fields, values)) {
         if (field.readonly) {
             continue;
+        }
+        if (field.type === 'address') {
+            for (const [inputID, message] of getAddressPartErrors(field, values, translate)) {
+                addErrorMessage(errors, inputID, message);
+            }
         }
         if (!isAnswered(values[field.key])) {
             if (field.required) {

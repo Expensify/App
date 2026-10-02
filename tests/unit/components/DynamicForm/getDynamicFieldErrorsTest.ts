@@ -132,8 +132,8 @@ describe('getDynamicFieldErrors', () => {
     });
 
     it('checks the zip code against the chosen country', () => {
-        // Given an address field with the zip code rule, answered with a UK address and a US zip code
-        const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: true, rule: 'zipCode'};
+        // Given an optional address field with the zip code rule, answered with a UK address and a US zip code
+        const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: false, rule: 'zipCode'};
         const addressKeys = getAddressInputKeys(homeAddress.key);
         const values = {
             homeAddress: '1 High Street',
@@ -144,9 +144,9 @@ describe('getDynamicFieldErrors', () => {
         // When the form is validated
         const errors = getDynamicFieldErrors([homeAddress], values, translateLocal);
 
-        // Then the zip code is flagged with the UK format
+        // Then the zip code input is flagged with the UK format
         expect(errors).toEqual({
-            homeAddress: translateLocal('privatePersonalDetails.error.incorrectZipFormat', getCountryZipRegexDetails(CONST.COUNTRY.GB)?.samples),
+            [addressKeys.zipCode]: translateLocal('privatePersonalDetails.error.incorrectZipFormat', getCountryZipRegexDetails(CONST.COUNTRY.GB)?.samples),
         });
     });
 
@@ -230,5 +230,33 @@ describe('getDynamicFieldErrors', () => {
         // Then the empty list is flagged as required, and the stale choice as invalid
         expect(emptyErrors).toEqual({industries: translateLocal('common.error.fieldRequired')});
         expect(staleErrors).toEqual({industries: translateLocal('dynamicForm.error.invalidOption')});
+    });
+
+    it('flags each missing part of a required address on its own input', () => {
+        // Given a required address with only the street filled in
+        const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: true};
+        const addressKeys = getAddressInputKeys(homeAddress.key);
+
+        // When the form is validated
+        const errors = getDynamicFieldErrors([homeAddress], {homeAddress: '1 High Street'}, translateLocal);
+
+        // Then city, state, zip and country are each flagged, so every empty input shows its own error
+        const required = translateLocal('common.error.fieldRequired');
+        expect(errors).toEqual({[addressKeys.city]: required, [addressKeys.state]: required, [addressKeys.zipCode]: required, [addressKeys.country]: required});
+    });
+
+    it('accepts US and international phone numbers and rejects incomplete ones', () => {
+        // Given a phone field
+        const phone: DynamicFormField = {key: 'phone', type: 'text', required: true, rule: 'phone'};
+
+        // When it is answered with a US number, a UK number and an incomplete number
+        const usErrors = getDynamicFieldErrors([phone], {phone: '+1 415 555 0132'}, translateLocal);
+        const ukErrors = getDynamicFieldErrors([phone], {phone: '+44 20 7946 0958'}, translateLocal);
+        const incompleteErrors = getDynamicFieldErrors([phone], {phone: '+1 415'}, translateLocal);
+
+        // Then only the incomplete number is flagged
+        expect(usErrors).toEqual({});
+        expect(ukErrors).toEqual({});
+        expect(incompleteErrors).toEqual({phone: translateLocal('common.error.phoneNumber')});
     });
 });

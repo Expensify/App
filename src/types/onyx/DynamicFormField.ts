@@ -41,6 +41,9 @@ type DynamicFormFieldBase = {
     /** Never written to the form draft, for SSNs and account numbers */
     sensitive?: boolean;
 
+    /** Changing the answer changes which other fields are required, so the screen fetches the schema again. Wise's `refreshRequirementsOnChange`. */
+    refreshRequirementsOnChange?: boolean;
+
     /** Shown only while another answer is one of these values */
     showWhen?: {
         key: string;
@@ -63,7 +66,7 @@ type DynamicFormTextField = DynamicFormFieldBase & {
     /** Grows with its content, for descriptions */
     multiline?: boolean;
 
-    rule?: 'legalName';
+    rule?: 'legalName' | 'phone';
 };
 
 /** Text that must parse as a finite number, typed on the numeric keyboard */

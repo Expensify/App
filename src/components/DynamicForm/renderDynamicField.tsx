@@ -1,10 +1,10 @@
-import AddressSearch from '@components/AddressSearch';
 import AmountForm from '@components/AmountForm';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import CountryPicker from '@components/CountryPicker';
 import CurrencyPicker from '@components/CurrencyPicker';
 import DatePicker from '@components/DatePicker';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {FormValue} from '@components/Form/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import PercentageForm from '@components/PercentageForm';
 import PushRowWithModal from '@components/PushRowWithModal';
@@ -15,6 +15,8 @@ import ValuePicker from '@components/ValuePicker';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import getTextInputAutocorrectProps from '@libs/getTextInputAutocorrectProps';
+
+import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
 
 import CONST from '@src/CONST';
 import type {DynamicFormFieldType} from '@src/types/onyx';
@@ -38,12 +40,16 @@ type DynamicFieldContext = {
 
     /** Currency of amount fields that let the user pick none */
     currency: string;
+
+    /** Called when an answer changes the schema, with the draft key that changed */
+    onRefreshRequirements?: (inputID: string, value: FormValue) => void;
 };
 
 /** Props every input gets from the renderer */
 type DynamicFieldInputProps = Required<ForwardedFSClassProps> & {
     inputID: string;
     shouldSaveDraft: boolean;
+    onValueChange?: (value: FormValue, key: string) => void;
 };
 
 type DynamicFieldLayout = {
@@ -105,7 +111,7 @@ const RENDERERS: {
                 label={getFieldLabel(field, translate)}
                 hint={getTextHint(field, translate)}
                 maxLength={field.maxLength}
-                inputMode={field.keyboard}
+                inputMode={field.keyboard ?? (field.rule === 'phone' ? CONST.INPUT_MODE.TEL : undefined)}
                 multiline={field.multiline}
                 autoGrowHeight={field.multiline}
                 {...(field.multiline ? {} : getTextInputAutocorrectProps())}
@@ -210,14 +216,25 @@ const RENDERERS: {
     },
     address: {
         isMenuRow: false,
-        render: (field, {translate}, inputProps) => (
-            <InputWrapper
-                InputComponent={AddressSearch}
-                {...inputProps}
-                label={getFieldLabel(field, translate)}
-                renamedInputKeys={getAddressInputKeys(field.key)}
-            />
-        ),
+        labelAbove: 'heading',
+        render: (field, {onRefreshRequirements}, {shouldSaveDraft, forwardedFSClass}) => {
+            const addressKeys = getAddressInputKeys(field.key);
+            return (
+                <AddressFormFields
+                    inputKeys={addressKeys}
+                    streetTranslationKey="common.streetAddress"
+                    shouldSaveDraft={shouldSaveDraft}
+                    shouldDisplayCountrySelector
+                    forwardedFSClass={forwardedFSClass}
+                    onCountryChange={(country) => {
+                        if (!field.refreshRequirementsOnChange || typeof country !== 'string') {
+                            return;
+                        }
+                        onRefreshRequirements?.(addressKeys.country, country);
+                    }}
+                />
+            );
+        },
     },
     multiselect: multiChoiceRenderer,
     countryMultiselect: multiChoiceRenderer,

@@ -3,6 +3,7 @@ import type {DynamicFormValues} from '@components/DynamicForm/types';
 import formatDynamicFieldValue from '@components/DynamicForm/utils/formatDynamicFieldValue';
 import getLocalizedText, {getFieldLabel} from '@components/DynamicForm/utils/getLocalizedText';
 import getVisibleFields from '@components/DynamicForm/utils/getVisibleFields';
+import type {FormValue} from '@components/Form/types';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 
@@ -23,10 +24,13 @@ type DynamicFormFieldsProps = {
 
     /** Currency of amount fields that let the user pick none */
     currency?: string;
+
+    /** Called when the user changes a field marked `refreshRequirementsOnChange`, with the draft key that changed, so the screen can fetch the schema again */
+    onRefreshRequirements?: (inputID: string, value: FormValue) => void;
 };
 
 /** The inputs of a schema-driven form. Render it inside a FormProvider and validate with getDynamicFieldErrors. */
-function DynamicFormFields({fields, values, currency = CONST.CURRENCY.USD}: DynamicFormFieldsProps) {
+function DynamicFormFields({fields, values, currency = CONST.CURRENCY.USD, onRefreshRequirements}: DynamicFormFieldsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const visibleFields = getVisibleFields(fields, values);
@@ -55,11 +59,12 @@ function DynamicFormFields({fields, values, currency = CONST.CURRENCY.USD}: Dyna
 
         const {input, isMenuRow, labelAbove, showsDescription} = renderDynamicField(
             field,
-            {values, translate, currency},
+            {values, translate, currency, onRefreshRequirements},
             {
                 inputID: field.key,
                 shouldSaveDraft: !field.sensitive,
                 forwardedFSClass: CONST.FULLSTORY.CLASS.MASK,
+                onValueChange: field.refreshRequirementsOnChange ? (value, key) => onRefreshRequirements?.(key, value) : undefined,
             },
         );
         const description = showsDescription ? undefined : getLocalizedText(translate, field.descriptionKey, field.description);
