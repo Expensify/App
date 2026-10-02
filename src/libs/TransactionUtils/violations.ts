@@ -60,24 +60,6 @@ function hasPendingRTERViolation(transactionViolations?: TransactionViolations |
 }
 
 /**
- * Check if any of the given transactions have a pending RTER violation that has not been dismissed (e.g. via mark-as-cash).
- */
-function hasAnyPendingRTERViolation(
-    transactions: Array<OnyxEntry<Transaction>>,
-    allTransactionViolations: OnyxCollection<TransactionViolations>,
-    currentUserEmail: string,
-    currentUserAccountID: number,
-    report: OnyxEntry<Report>,
-    reportOwnerLogin: string | undefined,
-    policy: OnyxEntry<Policy>,
-): boolean {
-    return transactions.some((t) => {
-        const filteredViolations = getTransactionViolations(t, allTransactionViolations, currentUserEmail, currentUserAccountID, report, reportOwnerLogin, policy);
-        return hasPendingRTERViolation(filteredViolations);
-    });
-}
-
-/**
  * Check if there is a custom unit out of policy violation in transactionViolations.
  */
 function hasCustomUnitOutOfPolicyViolation(transactionViolations?: TransactionViolations | null): boolean {
@@ -640,7 +622,6 @@ export {
     getTransactionViolations,
     getUnsuppressibleBrokenConnectionTransactionID,
     getVisibleTransactionViolations,
-    hasAnyPendingRTERViolation,
     hasAnyTransactionWithoutRTERViolation,
     hasCustomUnitOutOfPolicyViolation,
     hasDuplicateTransactions,
