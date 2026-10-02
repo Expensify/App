@@ -1,3 +1,4 @@
+import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
@@ -5,6 +6,7 @@ import UnreadActionIndicator from '@components/UnreadActionIndicator';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -38,6 +40,7 @@ type CollapsedSystemMessagesProps = {
 
 function CollapsedSystemMessages({count, earliestReportAction, report, onPress, unreadMarkerReportActionID}: CollapsedSystemMessagesProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
@@ -46,29 +49,36 @@ function CollapsedSystemMessages({count, earliestReportAction, report, onPress, 
     return (
         <View>
             {!!unreadMarkerReportActionID && <UnreadActionIndicator reportActionID={unreadMarkerReportActionID} />}
-            <ReportActionItemSingle
-                action={earliestReportAction}
-                report={report}
-            >
-                <PressableWithFeedback
-                    onPress={onPress}
-                    style={[styles.flexRow, styles.alignItemsCenter, styles.alignSelfStart, styles.gap1]}
-                    hoverStyle={styles.hoveredComponentBG}
-                    accessibilityRole={CONST.ROLE.BUTTON}
-                    accessibilityLabel={label}
-                    accessibilityState={{expanded: false}}
-                    sentryLabel={CONST.SENTRY_LABEL.REPORT.COLLAPSED_SYSTEM_MESSAGES}
-                >
-                    <Text style={[styles.chatItemMessage, styles.colorMuted]}>{label}</Text>
-                    <Icon
-                        src={icons.DownArrow}
-                        fill={theme.icon}
-                        width={variables.iconSizeExtraSmall}
-                        height={variables.iconSizeExtraSmall}
-                        additionalStyles={styles.opacitySemiTransparent}
-                    />
-                </PressableWithFeedback>
-            </ReportActionItemSingle>
+            <Hoverable shouldHandleScroll>
+                {(isHovered) => (
+                    <View style={StyleUtils.getReportActionItemStyle(isHovered)}>
+                        <ReportActionItemSingle
+                            action={earliestReportAction}
+                            report={report}
+                            isHovered={isHovered}
+                        >
+                            <PressableWithFeedback
+                                onPress={onPress}
+                                style={[styles.flexRow, styles.alignItemsCenter, styles.alignSelfStart, styles.gap1]}
+                                hoverDimmingValue={1}
+                                accessibilityRole={CONST.ROLE.BUTTON}
+                                accessibilityLabel={label}
+                                accessibilityState={{expanded: false}}
+                                sentryLabel={CONST.SENTRY_LABEL.REPORT.COLLAPSED_SYSTEM_MESSAGES}
+                            >
+                                <Text style={[styles.chatItemMessage, styles.colorMuted]}>{label}</Text>
+                                <Icon
+                                    src={icons.DownArrow}
+                                    fill={theme.icon}
+                                    width={variables.iconSizeExtraSmall}
+                                    height={variables.iconSizeExtraSmall}
+                                    additionalStyles={styles.opacitySemiTransparent}
+                                />
+                            </PressableWithFeedback>
+                        </ReportActionItemSingle>
+                    </View>
+                )}
+            </Hoverable>
         </View>
     );
 }
