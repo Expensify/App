@@ -1397,6 +1397,10 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     return filtersString.filter(Boolean).join(' ').trim();
 }
 
+function isPolicyCollection(key: OnyxCollectionKey, data: unknown): data is OnyxCollection<OnyxTypes.Policy> {
+    return key === ONYXKEYS.COLLECTION.POLICY && typeof data === 'object';
+}
+
 function getAllPolicyValues<T extends OnyxCollectionKey>(
     policyID: Filter | undefined,
     key: T,
@@ -1407,7 +1411,7 @@ function getAllPolicyValues<T extends OnyxCollectionKey>(
         return Object.values(policyData ?? {}).filter((data): data is NonNullable<typeof data> => !!data);
     }
 
-    const policiesForResolution = policies ?? (key === ONYXKEYS.COLLECTION.POLICY ? (policyData as OnyxCollection<OnyxTypes.Policy>) : undefined);
+    const policiesForResolution = policies ?? (isPolicyCollection(key, policyData) ? policyData : undefined);
     const resolvedValues = policiesForResolution ? policyID.value.map((id) => resolvePolicyIDFromName(id, policiesForResolution)) : policyID.value;
 
     if (policyID.isNegated) {
@@ -1436,7 +1440,7 @@ function getAllPolicyValuesMap<T extends OnyxCollectionKey>(
         return {};
     }
 
-    const policiesForResolution = policies ?? (key === ONYXKEYS.COLLECTION.POLICY ? (policyData as OnyxCollection<OnyxTypes.Policy>) : undefined);
+    const policiesForResolution = policies ?? (isPolicyCollection(key, policyData) ? policyData : undefined);
     const resolvedValues = policiesForResolution ? policyID.value.map((id) => resolvePolicyIDFromName(id, policiesForResolution)) : policyID.value;
 
     if (policyID.isNegated) {
@@ -1638,7 +1642,6 @@ function buildFilterFormValuesFromQuery(
     exportedToFilterOptions?: string[],
     currentUserAccountID?: number,
     bankAccountList?: OnyxTypes.BankAccountList,
-    policies?: OnyxCollection<OnyxTypes.Policy>,
 ) {
     const filters = queryJSON.flatFilters;
     const filtersForm = {} as Partial<SearchAdvancedFiltersForm>;
@@ -1776,7 +1779,7 @@ function buildFilterFormValuesFromQuery(
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
             const uniqueCategories = new Set<string>();
-            const categoryLists = getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, policyCategories, policies);
+            const categoryLists = getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, policyCategories);
             for (const item of categoryLists) {
                 for (const category of Object.values(item ?? {})) {
                     uniqueCategories.add(category.name);

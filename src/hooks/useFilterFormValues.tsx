@@ -83,7 +83,6 @@ const useFilterFormValues = (queryJSON?: SearchQueryJSON) => {
               exportedToFilterOptions,
               currentUserPersonalDetails.accountID,
               bankAccountList,
-              policies,
           )
         : getEmptyObject<Partial<SearchAdvancedFiltersForm>>();
 

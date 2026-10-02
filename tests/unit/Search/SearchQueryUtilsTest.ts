@@ -1,12 +1,5 @@
 import type {ASTNode, QueryFilter, SearchFilterKey, SearchQueryJSON} from '@components/Search/types';
 
-jest.mock('@expensify/react-native-hybrid-app', () => ({
-    __esModule: true,
-    default: {
-        isHybridApp: jest.fn(() => false),
-    },
-}));
-
 import {generatePolicyID} from '@libs/actions/Policy/Policy';
 import {clearPreservedNavigatorStates, setPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 
@@ -78,6 +71,13 @@ import createRandomPolicy from '../../utils/collections/policies';
 import {formatPhoneNumber, localeCompare, translateLocal} from '../../utils/TestHelper';
 
 const mockGetRootState = jest.fn();
+
+jest.mock('@expensify/react-native-hybrid-app', () => ({
+    __esModule: true,
+    default: {
+        isHybridApp: jest.fn(() => false),
+    },
+}));
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
     __esModule: true,
@@ -4759,8 +4759,12 @@ describe('SearchQueryUtils', () => {
         });
 
         test('resolves workspace names using provided policies collection for other collections', () => {
-            const tagList1 = {TagList: {name: 'TagList', tags: {Tag1: {name: 'Tag1'}}}};
-            const tagList2 = {TagList: {name: 'TagList', tags: {Tag2: {name: 'Tag2'}}}};
+            const tagList1: OnyxTypes.PolicyTagLists = {
+                TagList: {name: 'TagList', required: false, orderWeight: 0, tags: {Tag1: {name: 'Tag1', enabled: true}}},
+            };
+            const tagList2: OnyxTypes.PolicyTagLists = {
+                TagList: {name: 'TagList', required: false, orderWeight: 0, tags: {Tag2: {name: 'Tag2', enabled: true}}},
+            };
             const policyTagsData = {
                 [`${ONYXKEYS.COLLECTION.POLICY_TAGS}1`]: tagList1,
                 [`${ONYXKEYS.COLLECTION.POLICY_TAGS}2`]: tagList2,
