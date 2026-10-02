@@ -30,7 +30,7 @@ type ShareTabParticipantsSelectorProps = {
 };
 
 function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTabParticipantsSelectorProps) {
-    const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [selectedReportID, setSelectedReportID] = useState<string | number | undefined>();
 
@@ -46,7 +46,7 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
     const [userBillingGracePeriodEnds, userBillingGracePeriodEndsMetadata] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd, ownerBillingGracePeriodEndMetadata] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
 
-    const isPersonalDetailsReady = !!currentUserAccountID && currentUserAccountID !== CONST.DEFAULT_NUMBER_ID && !!currentUserLogin;
+    const isPersonalDetailsReady = !!currentUserAccountID && currentUserAccountID !== CONST.DEFAULT_NUMBER_ID;
     const isDestinationReady =
         isPersonalDetailsReady &&
         !isLoadingOnyxValue(activePolicyIDMetadata, policiesMetadata, reportsMetadata, amountOwedMetadata, userBillingGracePeriodEndsMetadata, ownerBillingGracePeriodEndMetadata);
@@ -118,9 +118,8 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
             },
         });
 
-        // Update picker state once the transition completes so it remains selected on back navigation. Doing this in
-        // the afterTransition callback (rather than calling setState synchronously in the effect body) avoids the
-        // react-hooks/set-state-in-effect violation.
+        // Update the picker state only after navigation completes so the destination remains selected if the user
+        // returns from the confirmation page.
         Navigation.navigate(detailsPageRouteObject.getRoute(autoNavigateReportID.toString()), {
             afterTransition: () => {
                 setSelectedReportID(autoNavigateReportID);

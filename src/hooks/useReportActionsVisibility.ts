@@ -7,7 +7,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 
 import {reportVisibleActionsSelector} from '@selectors/ReportAction';
-import {useMemo} from 'react';
 
 import useConciergeSidePanelReportActions from './useConciergeSidePanelReportActions';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -63,9 +62,8 @@ function useReportActionsVisibility({
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const visibleActionsSelector = useMemo(() => reportVisibleActionsSelector(reportID), [reportID]);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {
-        selector: visibleActionsSelector,
+        selector: reportVisibleActionsSelector(reportID),
     });
 
     const isInSidePanel = useIsInSidePanel();

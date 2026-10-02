@@ -560,6 +560,11 @@ function handleReplaceFullscreenUnderRHP(
     }
 
     // For non-tab fullscreen targets: push the route underneath the RHP (existing behavior).
+    const stateAfterPop = stackRouter.getStateForAction(state, StackActions.pop(), configOptions);
+    if (!stateAfterPop) {
+        return null;
+    }
+
     let pushParams = targetRoute.params as Record<string, unknown> | undefined;
     const nestedRoute = getFocusedRouteFromNavigatorState(targetRoute.state);
     if (nestedRoute) {
@@ -568,11 +573,6 @@ function handleReplaceFullscreenUnderRHP(
             screen: nestedRoute.name,
             params: nestedRoute.params,
         };
-    }
-
-    const stateAfterPop = stackRouter.getStateForAction(state, StackActions.pop(), configOptions);
-    if (!stateAfterPop) {
-        return null;
     }
 
     const rehydratedStateAfterPop = stackRouter.getRehydratedState(stateAfterPop, configOptions);

@@ -134,6 +134,20 @@ describe('ShareTabParticipantsSelector', () => {
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
+    it('does not keep the Submit tab blank when the current user login is unavailable', async () => {
+        jest.mocked(useCurrentUserPersonalDetails).mockReturnValue({
+            accountID: 1,
+            login: '',
+            displayName: 'Tester',
+        });
+
+        render(<ShareTabParticipantsSelector detailsPageRouteObject={ROUTES.SHARE_SUBMIT_DETAILS} />);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('mock-select-participant')).toBeTruthy();
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+    });
+
     it('does not blank out the picker when policy data arrives after committing to the picker', async () => {
         const {rerender} = render(<ShareTabParticipantsSelector detailsPageRouteObject={ROUTES.SHARE_SUBMIT_DETAILS} />);
         await waitForBatchedUpdatesWithAct();
