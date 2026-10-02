@@ -31,9 +31,11 @@ import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import ConciergeThinkingMessage from '@pages/home/report/ConciergeThinkingMessage';
 import {useActionListRef} from '@pages/inbox/ActionListContext';
 import {useConciergeDraft} from '@pages/inbox/ConciergeDraftContext';
+import CollapsedSystemMessages from '@pages/inbox/report/CollapsedSystemMessages';
 import FloatingMessageCounter from '@pages/inbox/report/FloatingMessageCounter';
 import {ReportActionPositionContextProvider, ReportActionScrollToNewestContext} from '@pages/inbox/report/ReportActionIndexContext';
 import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
+import useReportActionsPresentation from '@pages/inbox/report/useReportActionsPresentation';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -166,7 +168,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
 
     const [hasScrolledOverThreshold, setHasScrolledOverThreshold] = useState(false);
 
-    const {unreadMarkerReportActionID, unreadMarkerReportActionIndex} = useUnreadMarker({
+    const {unreadMarkerReportActionID} = useUnreadMarker({
         reportID: reportID ?? reportIDFromRoute ?? '',
         sortedVisibleReportActions: visibleReportActions,
         isReversed: true,
@@ -175,6 +177,13 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         isScrolledOverThreshold: hasScrolledOverThreshold,
         hasOnceLoadedReportActions: !!reportLoadingState?.hasOnceLoadedReportActions,
     });
+
+    const {displayReportActions, runsByAnchorReportActionID, expandedSystemMessageReportActionIDs, unreadMarkerReportActionIndex, expandSystemMessageRun} = useReportActionsPresentation({
+        visibleReportActions,
+        linkedReportActionID,
+        unreadMarkerReportActionID,
+    });
+    const canonicalIndexByReportActionID = new Map(visibleReportActions.map((action, index) => [action.reportActionID, index]));
 
     const {markNewestActionAsRead, completeSkippedMarkAsRead} = useMarkAsRead({
         reportID: reportID ?? reportIDFromRoute ?? '',
@@ -225,11 +234,17 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
     }, [shouldScrollToLatestOnOpen, visibleReportActions.length, scrollToLatestMessages, reportIDFromRoute]);
 
     const renderReportAction = (reportAction: OnyxTypes.ReportAction, indexWithinReportActions: number) => {
+        const canonicalIndex = canonicalIndexByReportActionID.get(reportAction.reportActionID) ?? indexWithinReportActions;
+        const systemMessageRun = runsByAnchorReportActionID.get(reportAction.reportActionID);
+        const previousReportAction = indexWithinReportActions > 0 ? displayReportActions.at(indexWithinReportActions - 1) : undefined;
+        const previousRun = previousReportAction ? runsByAnchorReportActionID.get(previousReportAction.reportActionID) : undefined;
+        const isAfterCollapsedRun = indexWithinReportActions > 0 && !!previousRun && !previousRun.isExpanded;
         const displayAsGroup =
-            !isConsecutiveChronosAutomaticTimerAction(visibleReportActions, indexWithinReportActions, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
-            hasNextActionMadeBySameActor(visibleReportActions, indexWithinReportActions, isOffline);
+            !isAfterCollapsedRun &&
+            !isConsecutiveChronosAutomaticTimerAction(visibleReportActions, canonicalIndex, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
+            hasNextActionMadeBySameActor(visibleReportActions, canonicalIndex, isOffline);
         const shouldDisableContextMenuForConciergeDraft = isDraftPendingCompletion && draftReportActionID === reportAction.reportActionID;
-        const isNewestReportAction = indexWithinReportActions === visibleReportActions.length - 1;
+        const isNewestReportAction = indexWithinReportActions === displayReportActions.length - 1;
 
         return (
             <ReportActionScrollToNewestContext.Provider value={scrollToBottom}>
@@ -237,29 +252,41 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
                     index={indexWithinReportActions}
                     isNewest={isNewestReportAction}
                 >
-                    <ReportActionsListItemRenderer
-                        reportAction={reportAction}
-                        parentReportAction={parentReportAction}
-                        parentReportActionForTransactionThread={EmptyParentReportActionForTransactionThread}
-                        report={reportStable}
-                        transactionThreadReport={transactionThreadReport}
-                        chatReport={chatReport}
-                        displayAsGroup={displayAsGroup}
-                        shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
-                        shouldDisplayReplyDivider={visibleReportActions.length > 1}
-                        isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
-                        shouldHideThreadDividerLine
-                        linkedReportActionID={linkedReportActionID}
-                        isHarvestCreatedExpenseReport={shouldShowHarvestCreatedAction}
-                        shouldDisableContextMenuForConciergeDraft={shouldDisableContextMenuForConciergeDraft}
-                        isLatestConciergeFeedbackAction={!!latestConciergeFeedbackActionID && latestConciergeFeedbackActionID === reportAction.reportActionID}
-                    />
+                    {systemMessageRun && !systemMessageRun.isExpanded ? (
+                        <CollapsedSystemMessages
+                            count={systemMessageRun.reportActionIDs.length}
+                            earliestReportAction={systemMessageRun.earliestReportAction}
+                            report={reportStable}
+                            onPress={() => expandSystemMessageRun(systemMessageRun.reportActionIDs)}
+                            unreadMarkerReportActionID={
+                                unreadMarkerReportActionID && systemMessageRun.reportActionIDs.includes(unreadMarkerReportActionID) ? unreadMarkerReportActionID : undefined
+                            }
+                        />
+                    ) : (
+                        <ReportActionsListItemRenderer
+                            reportAction={reportAction}
+                            parentReportAction={parentReportAction}
+                            parentReportActionForTransactionThread={EmptyParentReportActionForTransactionThread}
+                            report={reportStable}
+                            transactionThreadReport={transactionThreadReport}
+                            chatReport={chatReport}
+                            displayAsGroup={displayAsGroup}
+                            shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
+                            shouldDisplayReplyDivider={visibleReportActions.length > 1}
+                            isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
+                            shouldHideThreadDividerLine
+                            linkedReportActionID={linkedReportActionID}
+                            isHarvestCreatedExpenseReport={shouldShowHarvestCreatedAction}
+                            shouldDisableContextMenuForConciergeDraft={shouldDisableContextMenuForConciergeDraft}
+                            isLatestConciergeFeedbackAction={!!latestConciergeFeedbackActionID && latestConciergeFeedbackActionID === reportAction.reportActionID}
+                        />
+                    )}
                 </ReportActionPositionContextProvider>
             </ReportActionScrollToNewestContext.Provider>
         );
     };
 
-    const reportActionsExtraData = [draftReportActionID, isDraftPendingCompletion, latestConciergeFeedbackActionID];
+    const reportActionsExtraData = [draftReportActionID, isDraftPendingCompletion, latestConciergeFeedbackActionID, expandedSystemMessageReportActionIDs, unreadMarkerReportActionID];
 
     /**
      * Runs when the FlatList finishes laying out
@@ -329,7 +356,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
                         policy={policy}
                         hasComments={visibleReportActions.length > 0}
                         isLoadingInitialReportActions={showReportActionsLoadingState}
-                        visibleReportActions={visibleReportActions}
+                        visibleReportActions={displayReportActions}
                         renderReportAction={renderReportAction}
                         reportActionsExtraData={reportActionsExtraData}
                         linkedReportActionID={linkedReportActionID}
