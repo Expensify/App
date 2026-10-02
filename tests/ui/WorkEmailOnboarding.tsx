@@ -32,7 +32,6 @@ import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 import createMock from '../utils/createMock';
 import * as TestHelper from '../utils/TestHelper';
@@ -889,8 +888,14 @@ describe('OnboardingWorkEmailValidation Page', () => {
 
         // Then the user stays on validation and `shouldValidate` is untouched, so the merge response routes as normal
         expect(goBack).not.toHaveBeenCalled();
-        const onboardingWhileSubmitting = await OnyxUtils.get(ONYXKEYS.NVP_ONBOARDING);
-        expect(onboardingWhileSubmitting?.shouldValidate).toBe(true);
+        let shouldValidateWhileSubmitting: boolean | undefined;
+        await TestHelper.getOnyxData({
+            key: ONYXKEYS.NVP_ONBOARDING,
+            callback: (value) => {
+                shouldValidateWhileSubmitting = value?.shouldValidate;
+            },
+        });
+        expect(shouldValidateWhileSubmitting).toBe(true);
 
         // When the request settles and the header back button is pressed again
         await act(async () => {
