@@ -146,4 +146,22 @@ describe('TagSelector', () => {
 
         expect(mockedUseSearchTagFilters).toHaveBeenCalledWith('1,2');
     });
+
+    it('resolves multiple workspace names and displays tags from all selected workspaces offline', () => {
+        mockedUseNetwork.mockReturnValue({isOffline: true} as ReturnType<typeof useNetwork>);
+
+        render(
+            <TagSelector
+                value={[]}
+                policyID={{value: ['Workspace 1', 'Workspace 2'], isNegated: false}}
+                onChange={jest.fn()}
+            />,
+        );
+
+        expect(mockedMultiSelect.mock.lastCall?.[0].items).toEqual([
+            {text: 'search.noTag', value: CONST.SEARCH.TAG_EMPTY_VALUE},
+            {text: 'Tag1', value: 'Tag1'},
+            {text: 'Tag2', value: 'Tag2'},
+        ]);
+    });
 });
