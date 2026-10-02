@@ -32,6 +32,9 @@ type CategoryPickerModalProps = {
 
     selectedCategory?: string;
 
+    /** Optional override for whether to show GL codes under each category */
+    shouldShowGLCode?: boolean;
+
     /** Called when the user confirms a category selection */
     onSelected?: (item: ListItem) => void;
 } & Omit<PopoverWithMeasuredContentProps, 'anchorRef' | 'children' | 'onClose'>;
@@ -42,6 +45,7 @@ function CategoryPickerModal({
     anchorPosition,
     policyID,
     selectedCategory,
+    shouldShowGLCode,
     onSelected,
     anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
     shouldMeasureAnchorPositionFromTop = false,
@@ -87,6 +91,7 @@ function CategoryPickerModal({
                     onSubmit={handleCategorySelect}
                     addBottomSafeAreaPadding={isSmallScreenWidth && !isKeyboardActive}
                     shouldAutoFocusSearchInput
+                    shouldShowGLCode={shouldShowGLCode}
                 />
             </View>
         </PopoverWithMeasuredContent>

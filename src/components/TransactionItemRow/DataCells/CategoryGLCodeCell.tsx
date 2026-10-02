@@ -23,8 +23,9 @@ type CategoryGLCodeCellProps = TransactionDataCellProps &
 /**
  * A GL code belongs to the workspace category, not to the expense, so there is nothing on the expense to write.
  * Editing the cell therefore reassigns the expense to the category that owns the picked GL code, which is what makes
- * the category name update alongside it. The picker lists each category with its GL code underneath (when the
- * workspace has GL codes enabled), so codes shared by several categories stay distinguishable.
+ * the category name update alongside it. The picker always lists each category with its GL code underneath, even when
+ * the workspace hides GL codes in the regular category picker, because the code is what the user is picking here.
+ * Codes shared by several categories stay distinguishable by name.
  */
 function CategoryGLCodeCell({shouldShowTooltip, transactionItem, canEdit, onSave, policyID, policyCategories}: CategoryGLCodeCellProps) {
     const styles = useThemeStyles();
@@ -51,6 +52,7 @@ function CategoryGLCodeCell({shouldShowTooltip, transactionItem, canEdit, onSave
                 <CategoryPickerModal
                     policyID={policyID}
                     selectedCategory={categoryForComparison}
+                    shouldShowGLCode
                     isVisible={isPopoverVisible}
                     onClose={cancelEditing}
                     anchorPosition={popoverPosition}

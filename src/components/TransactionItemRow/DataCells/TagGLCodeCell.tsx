@@ -25,7 +25,8 @@ type TagGLCodeCellProps = TransactionDataCellProps &
 /**
  * Same shape as `CategoryGLCodeCell`: the code lives on the workspace tag, so editing picks the tag that owns the
  * code rather than rewriting the code. Multi-level tags produce one code per level joined into a single string, so
- * there is no single value to pick — `canEditTag` already refuses them and the cell stays read-only there.
+ * there is no single value to pick — `canEditTag` already refuses them and the cell stays read-only there. Like the
+ * category cell, the picker always shows each tag's GL code, regardless of the workspace's tag GL code setting.
  */
 function TagGLCodeCell({canEdit, onSave, shouldShowTooltip, transactionItem, policyID, policy: policyProp, policyTagLists}: TagGLCodeCellProps) {
     const styles = useThemeStyles();
@@ -35,7 +36,6 @@ function TagGLCodeCell({canEdit, onSave, shouldShowTooltip, transactionItem, pol
     const policy = livePolicy ? {...policyProp, ...livePolicy} : policyProp;
 
     const policyHasDependentTags = hasDependentTags(policy, policyTags);
-    const shouldShowGLCode = !!policy?.showTagGLCodes && !!policy?.glCodes;
 
     const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing, handleSave} = usePopoverEditState({
         canEdit,
@@ -55,7 +55,7 @@ function TagGLCodeCell({canEdit, onSave, shouldShowTooltip, transactionItem, pol
                     selectedTag={transactionItem?.tag ?? ''}
                     transactionTag={transactionItem?.tag}
                     hasDependentTags={policyHasDependentTags}
-                    shouldShowGLCode={shouldShowGLCode}
+                    shouldShowGLCode
                     isVisible={isPopoverVisible}
                     onClose={cancelEditing}
                     anchorPosition={popoverPosition}

@@ -104,6 +104,24 @@ describe('CategoryPicker', () => {
         expect(findRow('Benefits')?.alternateText).toBeUndefined();
     });
 
+    it('shows GL codes when the caller forces them on, even if the policy has the GL-code flags disabled', () => {
+        // Given a policy that hides GL codes in the regular category picker
+        mockedUseOnyxWithoutSnapshots.mockReturnValue([false, {status: 'loaded'}]);
+
+        // When the picker is opened from the Category GL code cell, which forces GL codes on because the code is what the user is picking
+        render(
+            <CategoryPicker
+                policyID={POLICY_ID}
+                onSubmit={jest.fn()}
+                shouldShowGLCode
+            />,
+        );
+
+        // Then each category still shows its GL code underneath
+        expect(findRow('Advertising')?.alternateText).toBe('12');
+        expect(findRow('Benefits')?.alternateText).toBe('13');
+    });
+
     it('never reads a bare collection key when the policy ID is an empty string', () => {
         mockedUseOnyxWithoutSnapshots.mockReturnValue([false, {status: 'loaded'}]);
 
