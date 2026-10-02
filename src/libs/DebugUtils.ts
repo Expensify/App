@@ -507,7 +507,6 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'lastReadSequenceNumber':
         case 'managerID':
         case 'billSenderAccountID':
-        case 'billReceiverAccountID':
         case 'lastActorAccountID':
         case 'ownerAccountID':
         case 'total':
@@ -629,7 +628,6 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 billID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 invoiceID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 billSenderAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                billReceiverAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isBillPayReport: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isHiddenForBillReceiver: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 description: CONST.RED_BRICK_ROAD_PENDING_ACTION,

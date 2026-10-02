@@ -321,7 +321,6 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         billID: report.billID,
         invoiceID: report.invoiceID,
         billSenderAccountID: report.billSenderAccountID,
-        billReceiverAccountID: report.billReceiverAccountID,
         isBillPayReport: report.isBillPayReport,
         isHiddenForBillReceiver: report.isHiddenForBillReceiver,
         transactionCount: report.transactionCount,

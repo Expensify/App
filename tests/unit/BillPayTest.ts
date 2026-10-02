@@ -90,7 +90,7 @@ describe('Bill Pay', () => {
             stateNum: CONST.REPORT.STATE_NUM.APPROVED,
             statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
             billSenderAccountID: 456,
-            billReceiverAccountID: accountID,
+            managerID: 789,
         };
         const data = createMock<SearchResults['data']>({
             personalDetailsList: {

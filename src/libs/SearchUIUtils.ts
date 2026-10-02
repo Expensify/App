@@ -2815,7 +2815,7 @@ function getReportSections({
                 );
 
                 const fromAccountID = reportItem.billSenderAccountID ?? reportItem.ownerAccountID;
-                const toAccountID = reportItem.billReceiverAccountID ?? reportItem.managerID;
+                const toAccountID = reportItem.type === CONST.REPORT.TYPE.BILL ? reportItem.ownerAccountID : reportItem.managerID;
                 const fromDetails =
                     mergedPersonalDetails?.[fromAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? getPersonalDetailsForAccountID(fromAccountID ?? CONST.DEFAULT_NUMBER_ID) ?? emptyPersonalDetails;
                 const toDetails = !shouldShowBlankTo && toAccountID ? mergedPersonalDetails?.[toAccountID] : emptyPersonalDetails;

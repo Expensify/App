@@ -173,7 +173,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         billID?: string;
         invoiceID?: string;
         billSenderAccountID?: number;
-        billReceiverAccountID?: number;
         isBillPayReport?: boolean;
         isHiddenForBillReceiver?: boolean;
 
