@@ -8189,6 +8189,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 applyUpdates: 'Aplicar estas atualizações:',
                 saveRule: 'Salvar regra',
                 previewMatches: 'Pré-visualizar correspondências',
+                previewMatchesDescription: 'Veja como esta regra se aplica às suas despesas',
+                preview: 'Pré-visualizar',
                 confirmError: 'Insira o comerciante e aplique pelo menos uma atualização',
                 confirmErrorMerchant: 'Insira o comerciante',
                 confirmErrorUpdate: 'Aplicar pelo menos uma atualização',

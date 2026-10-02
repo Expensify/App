@@ -8274,6 +8274,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 applyUpdates: 'Appliquer ces mises à jour :',
                 saveRule: 'Enregistrer la règle',
                 previewMatches: 'Aperçu des correspondances',
+                previewMatchesDescription: 'Voyez comment cette règle s’applique à vos dépenses',
+                preview: 'Aperçu',
                 confirmError: 'Saisissez un commerçant et appliquez au moins une mise à jour',
                 confirmErrorMerchant: 'Veuillez saisir le commerçant',
                 confirmErrorUpdate: 'Veuillez appliquer au moins une mise à jour',

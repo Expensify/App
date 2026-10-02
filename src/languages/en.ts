@@ -8765,6 +8765,8 @@ const translations = {
                 applyUpdates: 'Apply these updates:',
                 saveRule: 'Save rule',
                 previewMatches: 'Preview matches',
+                previewMatchesDescription: 'See how this rule applies to your expenses',
+                preview: 'Preview',
                 confirmError: 'Enter merchant and apply at least one update',
                 confirmErrorMerchant: 'Please enter merchant',
                 confirmErrorUpdate: 'Please apply at least one update',

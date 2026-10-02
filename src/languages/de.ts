@@ -8254,6 +8254,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 applyUpdates: 'Diese Aktualisierungen anwenden:',
                 saveRule: 'Regel speichern',
                 previewMatches: 'Übereinstimmungen anzeigen',
+                previewMatchesDescription: 'Sieh dir an, wie diese Regel auf deine Ausgaben angewendet wird',
+                preview: 'Vorschau',
                 confirmError: 'Gib ein Händlerunternehmen ein und nimm mindestens eine Aktualisierung vor',
                 confirmErrorMerchant: 'Bitte Händler eingeben',
                 confirmErrorUpdate: 'Bitte wende mindestens ein Update an',

@@ -8183,6 +8183,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 applyUpdates: 'Pas deze updates toe:',
                 saveRule: 'Regel opslaan',
                 previewMatches: 'Voorbeelden van overeenkomsten bekijken',
+                previewMatchesDescription: 'Bekijk hoe deze regel op je uitgaven wordt toegepast',
+                preview: 'Voorbeeld',
                 confirmError: 'Voer handelaar in en pas minstens één wijziging toe',
                 confirmErrorMerchant: 'Voer handelaar in',
                 confirmErrorUpdate: 'Pas ten minste één wijziging toe',

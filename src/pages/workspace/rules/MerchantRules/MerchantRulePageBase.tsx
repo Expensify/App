@@ -681,61 +681,64 @@ function MerchantRulePageBase({
     };
 
     const footer = canWriteRules ? (
-        <FormAlertWithSubmitButton
-            buttonText={translate('workspace.rules.merchantRules.saveRule')}
-            containerStyles={[styles.m4, styles.mb5, styles.mh5]}
-            isAlertVisible={shouldShowError && !!errorMessage}
-            message={errorMessage}
-            onSubmit={handleSubmit}
-            isLoading={isLoading}
-            shouldShowLoadingImmediatelyOnPress={false}
-            enabledWhenOffline
-            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SAVE}
-            shouldRenderFooterAboveSubmit
-            footerContent={
-                <>
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb4]}>
-                        <Text
-                            style={[styles.textNormal]}
-                            accessible={false}
-                            aria-hidden
-                        >
-                            {translate('workspace.rules.merchantRules.applyToExistingUnsubmittedExpenses')}
-                        </Text>
-                        {/* A category tax default only applies to expenses created after the rule is saved, so the switch
-                            is locked off. `disabled` draws the lock inside the thumb and routes the press to the explainer. */}
-                        <Switch
-                            accessibilityLabel={translate('workspace.rules.merchantRules.applyToExistingUnsubmittedExpenses')}
-                            isOn={!isCategoryRule && shouldUpdateMatchingTransactions}
-                            onToggle={setShouldUpdateMatchingTransactions}
-                            disabled={isCategoryRule}
-                            disabledAction={isCategoryRule ? showCategoryRulesApplyGoingForwardExplainer : undefined}
-                        />
-                    </View>
-                    {/* There is no set of existing expenses for a category rule to preview, so the button is hidden rather than locked. */}
-                    {!isCategoryRule && (
+        <View style={[styles.m4, styles.mb5, styles.mh5]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb4]}>
+                <Text
+                    style={[styles.textNormal]}
+                    accessible={false}
+                    aria-hidden
+                >
+                    {translate('workspace.rules.merchantRules.applyToExistingUnsubmittedExpenses')}
+                </Text>
+                {/* A category tax default only applies to expenses created after the rule is saved, so the switch
+                    is locked off. `disabled` draws the lock inside the thumb and routes the press to the explainer. */}
+                <Switch
+                    accessibilityLabel={translate('workspace.rules.merchantRules.applyToExistingUnsubmittedExpenses')}
+                    isOn={!isCategoryRule && shouldUpdateMatchingTransactions}
+                    onToggle={setShouldUpdateMatchingTransactions}
+                    disabled={isCategoryRule}
+                    disabledAction={isCategoryRule ? showCategoryRulesApplyGoingForwardExplainer : undefined}
+                />
+            </View>
+            {/* There is no set of existing expenses for a category rule to preview, so the row is hidden rather than locked. */}
+            {!isCategoryRule && (
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap3, styles.mb4]}>
+                    <Text style={[styles.textNormal, styles.textSupporting, styles.flex1]}>{translate('workspace.rules.merchantRules.previewMatchesDescription')}</Text>
+                    <Button
+                        size={CONST.BUTTON_SIZE.SMALL}
+                        onPress={previewMatches}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_PREVIEW_MATCHES}
+                    >
+                        <Button.Text>{translate('workspace.rules.merchantRules.preview')}</Button.Text>
+                    </Button>
+                </View>
+            )}
+            <FormAlertWithSubmitButton
+                buttonText={translate('workspace.rules.merchantRules.saveRule')}
+                isAlertVisible={shouldShowError && !!errorMessage}
+                message={errorMessage}
+                onSubmit={handleSubmit}
+                isLoading={isLoading}
+                shouldShowLoadingImmediatelyOnPress={false}
+                enabledWhenOffline
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SAVE}
+                buttonStyles={styles.flex1}
+                buttonAndFooterContainerStyles={[styles.flexRow, styles.gap2]}
+                shouldRenderFooterAboveSubmit
+                footerContent={
+                    shouldShowDescribeRule && (
                         <Button
                             size={CONST.BUTTON_SIZE.LARGE}
-                            onPress={previewMatches}
-                            style={[styles.mb4]}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_PREVIEW_MATCHES}
-                        >
-                            <Button.Text>{translate('workspace.rules.merchantRules.previewMatches')}</Button.Text>
-                        </Button>
-                    )}
-                    {shouldShowDescribeRule && (
-                        <Button
-                            size={CONST.BUTTON_SIZE.LARGE}
-                            style={[styles.mb4]}
+                            style={styles.flex1}
                             onPress={() => setIsDescribeRuleModalVisible(true)}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_DESCRIBE}
                         >
                             <Button.Text>{translate('workspace.rules.newRule.describe')}</Button.Text>
                         </Button>
-                    )}
-                </>
-            }
-        />
+                    )
+                }
+            />
+        </View>
     ) : null;
 
     const renderSectionItem = (item: SectionItemType) => {

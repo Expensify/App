@@ -8206,6 +8206,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 applyUpdates: 'Zastosuj te aktualizacje:',
                 saveRule: 'Zapisz regułę',
                 previewMatches: 'Podgląd dopasowań',
+                previewMatchesDescription: 'Zobacz, jak ta reguła stosuje się do Twoich wydatków',
+                preview: 'Podgląd',
                 confirmError: 'Wprowadź sprzedawcę i zastosuj co najmniej jedną zmianę',
                 confirmErrorMerchant: 'Wprowadź sprzedawcę',
                 confirmErrorUpdate: 'Zastosuj co najmniej jedną aktualizację',

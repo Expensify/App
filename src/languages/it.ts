@@ -8206,6 +8206,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 applyUpdates: 'Applica questi aggiornamenti:',
                 saveRule: 'Salva regola',
                 previewMatches: 'Anteprima corrispondenze',
+                previewMatchesDescription: 'Guarda come questa regola si applica alle tue spese',
+                preview: 'Anteprima',
                 confirmError: 'Inserisci l’esercente e applica almeno un aggiornamento',
                 confirmErrorMerchant: 'Inserisci l’esercente',
                 confirmErrorUpdate: 'Applica almeno un aggiornamento',
