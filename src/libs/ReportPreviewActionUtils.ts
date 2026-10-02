@@ -132,7 +132,7 @@ function canPay(
 ) {
     const isExpense = isExpenseReport(report);
 
-    if (isPayBlockedByArchivedState(report, policy, isReportArchived)) {
+    if (isPayBlockedByArchivedState(report, policy, isReportArchived) || report.isWaitingForCancelledReimbursement) {
         return false;
     }
 
