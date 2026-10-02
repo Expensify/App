@@ -149,7 +149,7 @@ function useGPSTripStateChecker() {
         }
 
         handleGpsTripInProgressOnAppRestart();
-    }, [gpsDraftDetails?.isTracking, gpsDraftDetailsMetadata.status]);
+    }, [gpsDraftDetails, gpsDraftDetailsMetadata.status]);
 
     useEffect(() => {
         return () => {
