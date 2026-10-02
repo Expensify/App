@@ -101,7 +101,7 @@ import {
     shouldDisableRename as shouldDisableRenameUtil,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
-import {getDeleteConfirmationPrompt, getDeleteExpenseTitle, getOriginalTransactionWithSplitInfo, isDemoTransaction} from '@libs/TransactionUtils';
+import {getDeleteConfirmationPrompt, getDeleteExpenseTitle, getOriginalTransactionWithSplitInfo, isDemoTransaction, isPerDiemRequest, isTimeRequest} from '@libs/TransactionUtils';
 
 import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
 import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
@@ -498,7 +498,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
 
                 // Self-DM split expenses can only be submitted to a workspace, so the "a friend" destination is omitted here
                 // just like it is on the track-expense whisper.
-                if (!isSelfDMExpenseSplit) {
+                // A DM is not a valid destination for per diem and time expenses, nor for a user restricted to one workspace.
+                if (!isSelfDMExpenseSplit && !isRestrictedToPreferredPolicy && !isPerDiemRequest(iouTransaction) && !isTimeRequest(iouTransaction)) {
                     items.push({
                         key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.SUBMIT_TO_FRIEND,
                         translationKey: 'actionableMentionTrackExpense.submitToFriend',
