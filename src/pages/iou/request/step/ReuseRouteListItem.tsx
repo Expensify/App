@@ -39,7 +39,21 @@ type ReuseRouteThumbnailProps = {
  */
 function ReuseRouteThumbnail({transactionID, receiptSource}: ReuseRouteThumbnailProps) {
     const theme = useTheme();
+    const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Receipt']);
+
+    if (!receiptSource) {
+        return (
+            <View style={[styles.w100, styles.h100, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                <Icon
+                    src={icons.Receipt}
+                    width={variables.iconSizeExtraLarge}
+                    height={variables.iconSizeExtraLarge}
+                    fill={theme.icon}
+                />
+            </View>
+        );
+    }
 
     return (
         <ReceiptImage
