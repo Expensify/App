@@ -106,6 +106,7 @@ function SingleSelectImpl({
                 text: item.text,
                 keyForList: item.value,
                 isSelected: item.value === selectedItem?.value,
+                itemStyle: {minHeight: itemHeight ?? variables.optionRowHeightCompact},
             })),
             noResultsFound: false,
         };
@@ -153,11 +154,7 @@ function SingleSelectImpl({
                     ListItem={SingleSelectListItem}
                     onSelectRow={updateSelectedItem}
                     textInputOptions={textInputOptions}
-                    style={{
-                        contentContainerStyle: [styles.pb0],
-                        ...selectionListStyle,
-                        listItemWrapperStyle: [{minHeight: itemHeight ?? variables.optionRowHeightCompact}, selectionListStyle?.listItemWrapperStyle],
-                    }}
+                    style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}
                     shouldUpdateFocusedIndex
                     initiallyFocusedItemKey={isSearchable ? value?.value : undefined}
                     shouldShowLoadingPlaceholder={!noResultsFound}
