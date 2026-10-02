@@ -447,6 +447,9 @@ const ONYXKEYS = {
     /** Stores information about the user's purchases */
     PURCHASE_LIST: 'purchaseList',
 
+    /** Stores the user's billing purchases, keyed by purchaseID */
+    PURCHASES: 'purchases',
+
     /** Stores information about the active personal bank account being set up */
     PERSONAL_BANK_ACCOUNT: 'personalBankAccount',
 
@@ -1746,6 +1749,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.TRAVEL_BILLING_STATEMENT]: OnyxTypes.TravelBillingStatement;
     [ONYXKEYS.EXPENSIFY_CARD_STATEMENT]: OnyxTypes.ExpensifyCardStatement;
     [ONYXKEYS.PURCHASE_LIST]: OnyxTypes.PurchaseList;
+    [ONYXKEYS.PURCHASES]: OnyxTypes.Purchases;
     [ONYXKEYS.PERSONAL_BANK_ACCOUNT]: OnyxTypes.PersonalBankAccount;
     [ONYXKEYS.SHARE_BANK_ACCOUNT]: OnyxTypes.ShareBankAccount;
     [ONYXKEYS.UNSHARE_BANK_ACCOUNT]: OnyxTypes.UnshareBankAccount;
