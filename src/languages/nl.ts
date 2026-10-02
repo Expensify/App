@@ -5475,6 +5475,9 @@ ${amount} voor ${merchant} - ${date}`,
             journalEntriesProvTaxPostingAccount: 'Boekingen provinciale belastingboekingsrekening',
             foreignCurrencyAmount: 'Bedrag in vreemde valuta exporteren',
             exportToNextOpenPeriod: 'Exporteren naar volgende open periode',
+            exportToNextOpenPeriodLockedSubtitle: 'Om exporteren naar de volgende open periode uit te schakelen, schakel eerst het splitsen van niet-vergoedbare exports per periode uit.',
+            splitExportsByPostingPeriod: 'Exports splitsen per boekingsperiode',
+            splitExportsByPostingPeriodSubtitle: 'Schakel exporteren naar de volgende open periode in om het splitsen van niet-vergoedbare exports per periode in NetSuite in te schakelen',
             nonReimbursableJournalPostingAccount: 'Niet-vergoedbaar journaalboekkostenrekening',
             reimbursableJournalPostingAccount: 'Boekhoudrekening voor terugbetaalbare boeking',
             journalPostingPreference: {
@@ -11618,6 +11621,13 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             title: 'Bouw je eigen agents',
             description: `<muted-text>Maak aangepaste agents om uitgaven te beoordelen, goed te keuren en door te sturen op basis van regels die jij instelt. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Meer informatie</a>.</muted-text>`,
         },
+    },
+    earlyRenewal: {
+        confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Verleng je abonnement voor een periode van 12 maanden, van ${startDate} tot ${endDate}.`,
+        title: 'Verleng je Expensify-abonnement',
+        subtitle: 'Weer iets minder te doen vóór het nieuwe jaar.',
+        confirmTitle: 'Verlenging bevestigen',
+        renew: 'Verleng',
     },
 };
 export default translations;

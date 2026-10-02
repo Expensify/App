@@ -3,6 +3,7 @@ import {act, render} from '@testing-library/react-native';
 import ExpenseAddedGrowl from '@components/ExpenseAddedGrowl';
 import type GrowlNotificationContent from '@components/GrowlNotification/GrowlNotificationContent';
 
+import {onModalDidClose, setCloseModal} from '@libs/actions/Modal';
 import {createTransactionThreadReport, setOptimisticTransactionThread} from '@libs/actions/Report';
 import navigateToCreatedExpense from '@libs/Navigation/helpers/navigateToCreatedExpense';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
@@ -221,6 +222,33 @@ describe('ExpenseAddedGrowl', () => {
         expect(mockSetOptimisticTransactionThread).toHaveBeenCalledWith('thread-1', undefined, undefined, undefined);
         expect(mockCreateTransactionThreadReport).not.toHaveBeenCalled();
         expect(mockNavigateToCreatedExpense).toHaveBeenCalledWith({threadReportID: 'thread-1', transactionID: '1', iouReportID: undefined, reportTransactions: []});
+    });
+
+    it('closes an open popover before opening the expense when View is pressed', async () => {
+        // Given a popover menu is open while the growl shows above it
+        const closePopover = jest.fn();
+        const removeCloseListener = setCloseModal(closePopover);
+        render(<ExpenseAddedGrowl />);
+        await flush(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, {
+                transactionID: '1',
+                reportID: 'report-1',
+                transactionThreadReportID: 'thread-1',
+            });
+            const signal: Record<string, SearchDataTypes> = {};
+            signal['1'] = EXPENSE;
+            await Onyx.merge(ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS, signal);
+        });
+
+        // When View is pressed
+        lastGrowlProps()?.action?.onPress();
+
+        // Then the popover closes first, and the expense only opens once it has closed so it isn't left on top
+        expect(closePopover).toHaveBeenCalled();
+        expect(mockNavigateToCreatedExpense).not.toHaveBeenCalled();
+        onModalDidClose();
+        expect(mockNavigateToCreatedExpense).toHaveBeenCalledWith({threadReportID: 'thread-1', transactionID: '1', iouReportID: undefined, reportTransactions: []});
+        removeCloseListener();
     });
 
     it('resolves an existing transaction thread from the IOU action when View is pressed', async () => {
