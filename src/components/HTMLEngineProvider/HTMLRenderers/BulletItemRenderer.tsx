@@ -16,11 +16,16 @@ import {TNodeChildrenRenderer} from 'react-native-render-html';
 function BulletItemRenderer({tnode}: {tnode: TNode}) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const ariaLabel = tnode.attributes?.['aria-label'];
 
     return (
         <View style={[styles.flexRow, styles.w100]}>
             <Text style={{color: theme.text, fontSize: fontScale.text, lineHeight: lineHeightScale.text, paddingHorizontal: 8}}>{CONST.DOT_SEPARATOR}</Text>
-            <View style={styles.flex1}>
+            <View
+                style={styles.flex1}
+                accessible={!!ariaLabel}
+                accessibilityLabel={ariaLabel}
+            >
                 <TNodeChildrenRenderer tnode={tnode} />
             </View>
         </View>

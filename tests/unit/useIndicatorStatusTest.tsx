@@ -11,6 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 
 import type {OnyxMultiSetInput} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
@@ -127,6 +128,12 @@ const TEST_CASES = {
         status: CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT,
         indicatorPolicyID: undefined,
     },
+    hasValidationFailedBankAccount: {
+        name: 'has validation failed bank account',
+        indicatorColor: defaultTheme.danger,
+        status: CONST.INDICATOR_STATUS.HAS_VALIDATION_FAILED_BANK_ACCOUNT,
+        indicatorPolicyID: undefined,
+    },
 } as const satisfies Record<string, IndicatorTestCase>;
 
 const TEST_CASES_NON_ADMIN = {
@@ -152,6 +159,17 @@ const TEST_CASES_NON_ADMIN = {
     },
     hasEmployeeCardFeedErrors: cardFeedErrorTestCases.employee,
 } as const satisfies Record<string, IndicatorTestCase>;
+
+function getMockAccountDataForStatus(status: IndicatorTestCase['status']): {state: ValueOf<typeof CONST.BANK_ACCOUNT.STATE>} | undefined {
+    switch (status) {
+        case CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT:
+            return {state: CONST.BANK_ACCOUNT.STATE.LOCKED};
+        case CONST.INDICATOR_STATUS.HAS_VALIDATION_FAILED_BANK_ACCOUNT:
+            return {state: CONST.BANK_ACCOUNT.STATE.VALIDATION_FAILED};
+        default:
+            return undefined;
+    }
+}
 
 const getMockForTestCase = ({name, status}: IndicatorTestCase, isAdmin: boolean) =>
     createMock<OnyxMultiSetInput>({
@@ -224,12 +242,7 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase, isAdmin: boolean)
                               error: 'Something went wrong',
                           }
                         : undefined,
-                accountData:
-                    status === CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT
-                        ? {
-                              state: CONST.BANK_ACCOUNT.STATE.LOCKED,
-                          }
-                        : undefined,
+                accountData: getMockAccountDataForStatus(status),
             },
         },
         [ONYXKEYS.USER_WALLET]: {
