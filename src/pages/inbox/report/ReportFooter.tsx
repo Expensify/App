@@ -5,7 +5,9 @@ import BlockedReportFooter from '@components/BlockedReportFooter';
 import MerchantRuleSuggestionBanner from '@components/MerchantRuleSuggestionBanner';
 import OfflineIndicator from '@components/OfflineIndicator';
 import SwipeableView from '@components/SwipeableView';
+import Text from '@components/Text';
 
+import useConciergeAskState from '@hooks/useConciergeAskState';
 import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
@@ -93,6 +95,7 @@ function ReportFooter() {
     const isSystemChat = isSystemChatUtil(report);
     const isAdminsOnlyPostingRoom = isAdminsOnlyPostingRoomUtil(report);
     const shouldShowComposerForActiveEditDraft = useShouldShowComposerForActiveEditDraft();
+    const {shouldShowWelcome: shouldShowConciergeWelcome, shouldLabelComposerAsNewQuestion} = useConciergeAskState(reportIDFromRoute);
 
     if (!isCurrentReportLoadedFromOnyx || !report || !reportIDFromRoute) {
         return null;
@@ -118,8 +121,9 @@ function ReportFooter() {
             />
         );
         return (
-            <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
+            <View style={[chatFooterStyles, shouldShowConciergeWelcome && styles.conciergeAskColumn, isComposerFullSize && styles.chatFooterFullCompose]}>
                 {merchantRuleBanner}
+                {shouldLabelComposerAsNewQuestion && <Text style={[styles.textLabelSupporting, styles.mb5]}>{translate('common.concierge.askNewQuestion')}</Text>}
                 {shouldShowEnableNotificationsBanner ? (
                     <>
                         <EnableNotificationsBanner />
