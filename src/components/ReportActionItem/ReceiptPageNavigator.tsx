@@ -3,6 +3,7 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 
+import useHover from '@hooks/useHover';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -36,6 +37,10 @@ type PageButtonProps = {
 function PageButton({icon, label, isDisabled, onPress, sentryLabel}: PageButtonProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {hovered, bind} = useHover();
+
+    // Static: icon color. Hover: text color, to read as more prominent/active. Disabled: icon color, dimmed.
+    const iconFill = !isDisabled && hovered ? theme.text : theme.icon;
 
     return (
         <Tooltip
@@ -44,18 +49,19 @@ function PageButton({icon, label, isDisabled, onPress, sentryLabel}: PageButtonP
         >
             {/* A real tap target around the glyph: react-native-web's Pressable doesn't support hitSlop */}
             <PressableWithoutFeedback
-                style={styles.receiptPageNavigatorButton}
+                style={[styles.receiptPageNavigatorButton, isDisabled && styles.opacitySemiTransparent]}
                 disabled={isDisabled}
                 onPress={onPress}
                 accessibilityLabel={label}
                 role={CONST.ROLE.BUTTON}
                 sentryLabel={sentryLabel}
+                {...bind}
             >
                 <Icon
                     src={icon}
                     width={variables.iconSizeExtraSmall}
                     height={variables.iconSizeExtraSmall}
-                    fill={isDisabled ? theme.icon : theme.text}
+                    fill={iconFill}
                 />
             </PressableWithoutFeedback>
         </Tooltip>

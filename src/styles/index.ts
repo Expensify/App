@@ -4163,6 +4163,10 @@ const staticStyles = (theme: ThemeColors) =>
             ...RECEIPT_PAGE_BADGE_POSITION,
             flexDirection: 'row',
             alignItems: 'center',
+            justifyContent: 'center',
+            // Slightly wider than the content, so the pill doesn't visibly jump sideways as the page number grows
+            // or shrinks a digit (e.g. 9 -> 10). Content still grows past this if a locale's label needs more room.
+            minWidth: 150,
             minHeight: variables.componentSizeSmall,
             paddingHorizontal: 4,
             borderRadius: variables.componentBorderRadiusRounded,
