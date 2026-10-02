@@ -1,12 +1,11 @@
+import useFailStuckImageLoad from '@hooks/useFailStuckImageLoad';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-
-import CONST from '@src/CONST';
 
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 
 import delay from 'lodash/delay';
-import React, {useEffect, useEffectEvent, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {ImageObjectPosition, ImageOnLoadEvent, ImageProps} from './Image/types';
@@ -86,15 +85,7 @@ function ImageWithLoading({
 
     const shouldShowLoadingIndicator = (previewUri ? isLoading : isLoading && !isImageCached) && !isOffline;
 
-    /** The full image may never emit onLoad/onError, so treat a spinner that outlives the timeout as a load failure. */
-    const failStuckLoad = useEffectEvent(handleError);
-    useEffect(() => {
-        if (!shouldShowLoadingIndicator) {
-            return;
-        }
-        const timeout = setTimeout(failStuckLoad, CONST.TIMING.ACTIVITY_INDICATOR_TIMEOUT);
-        return () => clearTimeout(timeout);
-    }, [shouldShowLoadingIndicator]);
+    useFailStuckImageLoad(shouldShowLoadingIndicator, handleError);
 
     return (
         <View

@@ -9,6 +9,7 @@ import type {OnScaleChangedCallback, ZoomRange} from '@components/MultiGestureCa
 import {getCanvasFitScale} from '@components/MultiGestureCanvas/utils';
 
 import useCanvasSize from '@hooks/useCanvasSize';
+import useFailStuckImageLoad from '@hooks/useFailStuckImageLoad';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,7 +21,7 @@ import type {Dimensions} from '@src/types/utils/Layout';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import React, {useEffect, useEffectEvent, useState} from 'react';
+import React, {useState} from 'react';
 import {PixelRatio, StyleSheet, View} from 'react-native';
 import {useSharedValue} from 'react-native-reanimated';
 
@@ -207,15 +208,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
         onError?.();
     };
 
-    /** The image may never emit onLoad/onError, so treat a spinner that outlives the timeout as a load failure. */
-    const failStuckLoad = useEffectEvent(handleError);
-    useEffect(() => {
-        if (isOffline || !shouldShowLoadingIndicator) {
-            return;
-        }
-        const timeout = setTimeout(failStuckLoad, CONST.TIMING.ACTIVITY_INDICATOR_TIMEOUT);
-        return () => clearTimeout(timeout);
-    }, [isOffline, shouldShowLoadingIndicator]);
+    useFailStuckImageLoad(!isOffline && shouldShowLoadingIndicator, handleError);
 
     return (
         <View

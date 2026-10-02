@@ -7,6 +7,7 @@ import LoadingIndicator from '@components/LoadingIndicator';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 
 import useClickZoomPan from '@hooks/useClickZoomPan';
+import useFailStuckImageLoad from '@hooks/useFailStuckImageLoad';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,7 +21,7 @@ import type {Dimensions} from '@src/types/utils/Layout';
 import type {ComponentRef} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 
-import React, {useEffect, useEffectEvent, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type ImageViewProps from './types';
@@ -96,15 +97,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
     const shouldShowOfflineIndicator = isOffline && !isLoading && !isLocalToUserDeviceFile;
     const shouldShowLoadingIndicator = !isImageLoaded && !shouldShowOfflineIndicator && !hasLoadFailed;
 
-    /** The image may never emit onLoad/onError, so treat a spinner that outlives the timeout as a load failure. */
-    const failStuckLoad = useEffectEvent(handleError);
-    useEffect(() => {
-        if (canUseTouchScreen || isOffline || !shouldShowLoadingIndicator) {
-            return;
-        }
-        const timeout = setTimeout(failStuckLoad, CONST.TIMING.ACTIVITY_INDICATOR_TIMEOUT);
-        return () => clearTimeout(timeout);
-    }, [canUseTouchScreen, isOffline, shouldShowLoadingIndicator]);
+    useFailStuckImageLoad(!canUseTouchScreen && !isOffline && shouldShowLoadingIndicator, handleError);
 
     if (canUseTouchScreen) {
         return (
