@@ -1,7 +1,7 @@
 ---
 title: Use Search Operators to Filter and Analyze
 description: Learn how to use search operators, filters, and grouping to find, organize, and analyze expenses, chats, reports, and tasks in Expensify.
-keywords: [New Expensify, search operators, advanced filters, search rules, expense search, report search, chat filters, advanced search, group-by, view, chart, search syntax, bank account filter, custom field, international reimbursement IDs, transaction status filter, pending card expenses, posted card expenses, paid by filter, paid-by]
+keywords: [New Expensify, search operators, advanced filters, search rules, expense search, report search, chat filters, advanced search, group-by, view, chart, search syntax, bank account filter, custom field, international reimbursement IDs, transaction status filter, pending card expenses, posted card expenses, paid by filter, paid-by, approved violation, any-approval, violation approver]
 internalScope: Audience is all Expensify members. Covers search operator syntax for filtering, grouping, and chart views. Does not cover saved search management or Search page UI navigation.
 ---
 
@@ -73,7 +73,8 @@ You can use the following operators to filter expenses:
 | `amount:` / `purchase-amount:` | Filter by amount using `=`, `>`, `<`, `>=`, or `<=` | `amount:>100` |
 | `status:` | Filter by expense status (`unreported`, `draft`, `outstanding`, `approved`, `paid`, `done`) | `status:approved` |
 | `date:` | Filter by expense date using relative dates or comparison operators for a date range | `date:this-month` |
-| `has:` | Filter by expenses with an `attachment`, `receipt`, `category`, `tag`, or `submitted-violation` | `has:receipt` |
+| `has:` | Filter by expenses with an `attachment`, `receipt`, `category`, `tag`, `submitted-violation`, or `approved-violation`. Use `approved-violation` to find expenses that still had a violation when they were approved | `has:receipt` |
+| `any-approval:` | Filter expenses with approved violations by the date any approver approved them, using relative dates or comparison operators for a date range. Adds `has:approved-violation` automatically | `any-approval:last-month` |
 | `expense-type:` | Filter by expense type (`cash`, `card`, `distance`, `per-diem`) | `expense-type:card` |
 | `receipt-type:` | Filter by receipt type (`ereceipt`, `itemized`) | `receipt-type:itemized` |
 | `reimbursable:` | Filter by whether an expense is reimbursable (`yes` or `no`) | `reimbursable:yes` |
@@ -182,6 +183,7 @@ Use `group-by:` to group results by a specific dimension.
 |---|---|---|
 | `group-by:report` | Group results by report | `type:expense group-by:report` |
 | `group-by:from` | Group results by submitter | `type:expense group-by:from` |
+| `group-by:violation-approver` | Group expenses with approved violations by the approver who approved them. Available only when the search includes `has:approved-violation` | `type:expense has:approved-violation group-by:violation-approver` |
 | `group-by:card` | Group results by card | `type:expense group-by:card` |
 | `group-by:withdrawal-id` | Group results by withdrawal ID | `type:expense group-by:withdrawal-id` |
 | `group-by:merchant` | Group results by merchant | `type:expense group-by:merchant` |
@@ -222,6 +224,9 @@ Here are some common examples:
 
 - **Violations by submitter (table)**  
   `type:expense group-by:from submitted:last-month has:submitted-violation sort-by:group-expenses sort-order:desc view:table limit:10`
+
+- **Violations by approver (table)**  
+  `type:expense any-approval:last-month has:approved-violation group-by:violation-approver sort-by:group-expenses sort-order:desc view:table limit:10`
 
 - **Spend over time (line chart)**  
   `type:expense group-by:month date:year-to-date view:line`
