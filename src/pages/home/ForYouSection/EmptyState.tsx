@@ -1,5 +1,3 @@
-import type {IllustrationName} from '@components/Icon/chunks/illustrations.chunk';
-
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 
@@ -11,7 +9,8 @@ import React from 'react';
 
 const MSG = 'homePage.forYouSection.emptyStateMessages' as const;
 
-const ILLUSTRATIONS = [
+// The messages are still picked at random; Concierge stands in for all of them, so the names only name the copy.
+const MESSAGE_NAMES = [
     'ThumbsUpStars',
     'SmallRocket',
     'CowboyHat',
@@ -31,12 +30,11 @@ const ILLUSTRATIONS = [
 type EmptyStateConfig = {
     titleKey: TranslationPaths;
     descriptionKey: TranslationPaths;
-    illustrationName: IllustrationName;
 };
 
 const lcFirst = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
 
-const EMPTY_STATE_CONFIGS: EmptyStateConfig[] = ILLUSTRATIONS.map((name) => {
+const EMPTY_STATE_CONFIGS: EmptyStateConfig[] = MESSAGE_NAMES.map((name) => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- lowercasing the first char keeps the literal value, so it matches Uncapitalize<typeof name> which TS can't infer from runtime string ops
     const uncapitalizedName = lcFirst(name) as Uncapitalize<typeof name>;
     const titleKey: TranslationPaths = `${MSG}.${uncapitalizedName}Title`;
@@ -44,11 +42,8 @@ const EMPTY_STATE_CONFIGS: EmptyStateConfig[] = ILLUSTRATIONS.map((name) => {
     return {
         titleKey,
         descriptionKey,
-        illustrationName: name,
     };
 });
-
-const ILLUSTRATION_NAMES = EMPTY_STATE_CONFIGS.map((c) => c.illustrationName);
 
 // Selected once at module load so the message stays stable across remounts (e.g. during onboarding modals)
 const RANDOM_INDEX = Math.floor(Math.random() * EMPTY_STATE_CONFIGS.length);
@@ -57,12 +52,13 @@ const CONFIG = EMPTY_STATE_CONFIGS.at(RANDOM_INDEX) ?? EMPTY_STATE_CONFIGS[0];
 
 function EmptyState() {
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(ILLUSTRATION_NAMES);
+    const illustrations = useMemoizedLazyIllustrations(['ConciergeBot']);
 
     return (
         <HomeSectionEmptyState
             testID="forYouEmptyState"
-            illustration={illustrations[CONFIG.illustrationName]}
+            illustration={illustrations.ConciergeBot}
+            shouldBobIllustration
             title={translate(CONFIG.titleKey)}
             description={translate(CONFIG.descriptionKey)}
         />
