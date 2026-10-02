@@ -5926,6 +5926,16 @@ function getDisplayValue(
         return form[key]?.map((receiptType) => translate(getReceiptTypeTranslationKey(receiptType))).join(', ');
     }
 
+    if (key === FILTER_KEYS.MERCHANT) {
+        const merchant = form[key];
+        if (!merchant) {
+            return;
+        }
+
+        const matchTypeKey = form[FILTER_KEYS.MERCHANT_OPERATOR] === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO ? 'search.filters.merchant.equalTo' : 'search.filters.merchant.contains';
+        return translate(matchTypeKey, merchant);
+    }
+
     if (key === FILTER_KEYS.TRANSACTION_STATUS) {
         const transactionStatus = form[key];
         return transactionStatus ? translate(`search.filters.transactionStatus.${transactionStatus}`) : undefined;
@@ -5976,6 +5986,11 @@ function hasFilterContentValuesChanged(
 
     if (!deepEqual(getFilterNegatableValue(baseFilterKey, previousValues), getFilterNegatableValue(baseFilterKey, values))) {
         return true;
+    }
+
+    // The Merchant content also reads its match type.
+    if (baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT) {
+        return previousValues?.[FILTER_KEYS.MERCHANT_OPERATOR] !== values?.[FILTER_KEYS.MERCHANT_OPERATOR];
     }
 
     if (isTextFilterKey(baseFilterKey)) {

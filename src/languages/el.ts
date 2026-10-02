@@ -10177,6 +10177,11 @@ ${reportName}`,
                 has: {positive: 'έχει', negative: 'δεν έχει'},
                 is: {positive: 'είναι', negative: 'δεν είναι'},
             },
+            merchant: {
+                matchType: 'Τύπος αντιστοίχισης',
+                contains: (merchant?: string) => (merchant ? `Περιέχει "${merchant}"` : 'Περιέχει'),
+                equalTo: (merchant?: string) => (merchant ? `Ίσο με "${merchant}"` : 'Ίσο με'),
+            },
             created: 'Δημιουργήθηκε',
             createdDate: 'Ημερομηνία δημιουργίας',
             transactionStatus: {
