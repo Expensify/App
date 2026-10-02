@@ -347,10 +347,30 @@ function addSelectedGroupsFilter(queryJSON: SearchQueryJSON, selectedTransaction
 }
 
 /**
- * The query a template export sends for a group selection.
+ * The query a template export sends for a grouped search.
  *
  * ExportSearchWithTemplate has no isGroupExport flag, so a grouped query exports one row per group instead of the group's expenses.
- * Drop groupBy and limit the way buildSpecificGroupQuery does, so the export covers every expense in the selected groups.
+ * Drop groupBy and limit the way buildSpecificGroupQuery does, so the export covers every expense the query matches.
+ * `limit` has to go too, because once groupBy is gone it would cap the exported expenses instead of the number of groups.
+ */
+function getUngroupedTemplateExportQuery(queryJSON: SearchQueryJSON): SearchQueryJSON | undefined {
+    if (!queryJSON.groupBy) {
+        return queryJSON;
+    }
+    return buildSearchQueryJSON(
+        buildSearchQueryString({
+            ...queryJSON,
+            groupBy: undefined,
+            limit: undefined,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+        }),
+    );
+}
+
+/**
+ * The query a template export sends for a group selection.
+ *
  * Returns undefined when the selected groups can't be turned into a filter, so the export never widens to the whole search.
  */
 function getTemplateGroupExportQuery(queryJSON: SearchQueryJSON, selectedTransactions: SelectedTransactions, searchData: SearchResultDataType | undefined): SearchQueryJSON | undefined {
@@ -358,15 +378,7 @@ function getTemplateGroupExportQuery(queryJSON: SearchQueryJSON, selectedTransac
     if (groupFilteredQueryJSON === queryJSON) {
         return undefined;
     }
-    return buildSearchQueryJSON(
-        buildSearchQueryString({
-            ...groupFilteredQueryJSON,
-            groupBy: undefined,
-            limit: undefined,
-            sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
-            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
-        }),
-    );
+    return getUngroupedTemplateExportQuery(groupFilteredQueryJSON);
 }
 
 function getAllMatchingExportQueryAndExclusions(
@@ -1016,14 +1028,19 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 setIsOfflineModalVisible(true);
                 return;
             }
-            const serializedQuery = queryJSON ? serializeQueryJSONForBackend(queryJSON) : JSON.stringify(queryJSON);
-
             if (areAllMatchingItemsSelected) {
+                const allMatchingQueryJSON = queryJSON ? getUngroupedTemplateExportQuery(queryJSON) : undefined;
+                if (queryJSON && !allMatchingQueryJSON) {
+                    setIsDownloadErrorModalVisible(true);
+                    return;
+                }
                 queueExportSearchWithTemplate(
                     {
                         templateName,
                         templateType,
-                        jsonQuery: serializedQuery,
+                        // searchKey changes what the backend query matches (e.g. reconciliation includes Expensify Card cash back),
+                        // so the export must send it exactly as search() does or the exported set differs from the viewed set.
+                        jsonQuery: allMatchingQueryJSON ? serializeQueryJSONForBackend({...allMatchingQueryJSON, searchKey: currentSearchKey}) : JSON.stringify(queryJSON),
                         reportIDList: [],
                         transactionIDList: [],
                         policyID,

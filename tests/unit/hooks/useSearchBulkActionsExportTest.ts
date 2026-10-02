@@ -1478,6 +1478,43 @@ describe('useSearchBulkActions - export options', () => {
             expect(query).toHaveProperty('searchKey', CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
         });
 
+        // Regression test for the select-all path: it sends the search's own query instead of the selected groups, so it
+        // has to drop groupBy the same way or the export lists one row per card again, as in https://github.com/Expensify/App/issues/102103.
+        it('sends the Reconciliation export an ungrouped query when all matching items are selected', async () => {
+            // Given a user who qualifies for the Reconciliation template
+            mockTemplatesIncludingReconciliation();
+            // Given every matching item selected on the Reconciliation search, because searchKey changes which expenses the backend matches
+            selectCardGroup();
+            mockAreAllMatchingItemsSelected = true;
+            mockCurrentSearchKey = CONST.SEARCH.SEARCH_KEYS.RECONCILIATION;
+            // Given a limit on the grouped search, because it caps the number of card groups and would cap the exported expenses once groupBy is gone
+            const limitedCardGroupedQueryJSON: SearchQueryJSON = {...cardGroupedExpenseQueryJSON, inputQuery: `${cardGroupedExpenseQueryJSON.inputQuery} limit:1`, limit: 1};
+
+            const {result} = renderHook(() => useSearchBulkActions({queryJSON: limitedCardGroupedQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.reconciliationAllExpenses')).toBeDefined();
+            });
+
+            // When the user runs the Reconciliation export on that selection
+            getExportOptionByText(result.current.headerButtonsOptions, 'export.reconciliationAllExpenses')?.onSelected?.();
+
+            await waitFor(() => {
+                expect(queueExportSearchWithTemplate).toHaveBeenCalled();
+            });
+
+            const [parameters] = jest.mocked(queueExportSearchWithTemplate).mock.calls.at(-1) ?? [];
+            const query: unknown = JSON.parse(parameters?.jsonQuery ?? '{}');
+            // Then the query lists every matching expense rather than one row per card, and no group limit caps them
+            expect(query).not.toHaveProperty('groupBy');
+            expect(query).not.toHaveProperty('limit');
+            // Then searchKey is sent, so the exported set matches the viewed set
+            expect(query).toHaveProperty('searchKey', CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
+            // Then the whole search is exported through the query, not through IDs
+            expect(parameters?.reportIDList).toEqual([]);
+            expect(parameters?.transactionIDList).toEqual([]);
+        });
+
         it('shows the download error instead of exporting the whole search when the card group cannot be scoped', async () => {
             // Given a user who qualifies for the Reconciliation template
             mockTemplatesIncludingReconciliation();
