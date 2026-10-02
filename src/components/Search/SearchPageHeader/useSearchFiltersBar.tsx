@@ -233,7 +233,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
         hasFiltersChanged: hasDefaultQuery ? hasFiltersChangedFromDefault(currentSearchQueryJSON, currentDefaultSearchQueryJSON) : filters.length > 0,
         hasFiltersOrKeywordChanged: hasDefaultQuery
             ? hasFiltersChangedFromDefault(currentSearchQueryJSON, currentDefaultSearchQueryJSON, NON_SAVABLE_FILTER_KEYS)
-            : filters.length > 0 || queryJSON.flatFilters.some((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD),
+            : filters.length > 0 || !!currentSearchQueryJSON?.flatFilters.some((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD),
         resetFilters,
     };
 }
