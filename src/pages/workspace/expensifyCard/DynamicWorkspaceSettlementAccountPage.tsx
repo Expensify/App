@@ -21,6 +21,7 @@ import {getCardProgramKey, getCardSettings, getEligibleBankAccountsForCard, getE
 import Log from '@libs/Log';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDomainNameForPolicy} from '@libs/PolicyUtils';
+import {appendParam} from '@libs/Url';
 
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -149,7 +150,7 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
                         <RenderHTML
                             html={translate(
                                 'workspace.expensifyCard.settlementAccountInfo',
-                                `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connectionParam)}/${DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.path}`,
+                                `${environmentURL}/${appendParam(`${ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connectionParam)}/${DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.path}`, 'fundID', defaultFundID.toString())}`,
                                 `${CONST.MASKED_PAN_PREFIX}${getLastFourDigits(paymentBankAccountNumber)}`,
                             )}
                             onLinkPress={isOpenedFromReconciliationAccount ? () => Navigation.goBack(backPath) : undefined}
