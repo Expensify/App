@@ -43,6 +43,7 @@ import {getTagArrayFromName} from '@libs/TransactionUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import DescribeRuleModal from '@pages/workspace/rules/DescribeRuleModal';
 import useRuleDeleteHeaderProps from '@pages/workspace/rules/useRuleDeleteHeaderProps';
 
 import variables from '@styles/variables';
@@ -55,6 +56,7 @@ import type {MerchantRuleForm} from '@src/types/form';
 import MERCHANT_RULE_INPUT_IDS from '@src/types/form/MerchantRuleForm';
 import type {ExpenseDefaultRuleType} from '@src/types/form/MerchantRuleForm';
 import type {PolicyTagLists} from '@src/types/onyx';
+import type {GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -188,6 +190,7 @@ function MerchantRulePageBase({
     const [shouldShowError, setShouldShowError] = useState(false);
     const {showConfirmModal} = useConfirmModal();
     const [shouldUpdateMatchingTransactions, setShouldUpdateMatchingTransactions] = useState(false);
+    const [isDescribeRuleModalVisible, setIsDescribeRuleModalVisible] = useState(false);
     const seededCategoryTaxRuleRef = useRef<string | undefined>(undefined);
     const didSeedInitialCategoryRef = useRef(false);
 
@@ -672,52 +675,51 @@ function MerchantRulePageBase({
         return <NotFoundPage />;
     }
 
+    const shouldShowDescribeRule = !isEditingSavedRule && !isCategoryLocked;
+    const applyGeneratedRule = (values: GeneratedRuleValues) => {
+        setDraftMerchantRule({...values, ruleType: CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.MERCHANT});
+    };
+
     const footer = canWriteRules ? (
-        <FormAlertWithSubmitButton
-            buttonText={translate('workspace.rules.merchantRules.saveRule')}
-            containerStyles={[styles.m4, styles.mb5, styles.mh5]}
-            isAlertVisible={shouldShowError && !!errorMessage}
-            message={errorMessage}
-            onSubmit={handleSubmit}
-            isLoading={isLoading}
-            shouldShowLoadingImmediatelyOnPress={false}
-            enabledWhenOffline
-            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SAVE}
-            shouldRenderFooterAboveSubmit
-            footerContent={
-                <>
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb4]}>
-                        <Text
-                            style={[styles.textNormal]}
-                            accessible={false}
-                            aria-hidden
-                        >
-                            {translate('workspace.rules.merchantRules.applyToExistingUnsubmittedExpenses')}
-                        </Text>
-                        {/* A category tax default only applies to expenses created after the rule is saved, so the switch
-                            is locked off. `disabled` draws the lock inside the thumb and routes the press to the explainer. */}
-                        <Switch
-                            accessibilityLabel={translate('workspace.rules.merchantRules.applyToExistingUnsubmittedExpenses')}
-                            isOn={!isCategoryRule && shouldUpdateMatchingTransactions}
-                            onToggle={setShouldUpdateMatchingTransactions}
-                            disabled={isCategoryRule}
-                            disabledAction={isCategoryRule ? showCategoryRulesApplyGoingForwardExplainer : undefined}
-                        />
-                    </View>
-                    {/* There is no set of existing expenses for a category rule to preview, so the button is hidden rather than locked. */}
-                    {!isCategoryRule && (
+        <View style={[styles.m4, styles.mb5, styles.mh5]}>
+            {!isCategoryRule && (
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap3, styles.ph2, styles.mt2, styles.mb6]}>
+                    <Text style={[styles.textNormal, styles.textSupporting, styles.flex1]}>{translate('workspace.rules.merchantRules.previewMatchesDescription')}</Text>
+                    <Button
+                        size={CONST.BUTTON_SIZE.SMALL}
+                        onPress={previewMatches}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_PREVIEW_MATCHES}
+                    >
+                        <Button.Text>{translate('workspace.rules.merchantRules.preview')}</Button.Text>
+                    </Button>
+                </View>
+            )}
+            <FormAlertWithSubmitButton
+                buttonText={translate('workspace.rules.merchantRules.saveRule')}
+                isAlertVisible={shouldShowError && !!errorMessage}
+                message={errorMessage}
+                onSubmit={handleSubmit}
+                isLoading={isLoading}
+                shouldShowLoadingImmediatelyOnPress={false}
+                enabledWhenOffline
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SAVE}
+                buttonStyles={styles.flex1}
+                buttonAndFooterContainerStyles={[styles.flexRow, styles.gap2]}
+                shouldRenderFooterAboveSubmit
+                footerContent={
+                    shouldShowDescribeRule && (
                         <Button
                             size={CONST.BUTTON_SIZE.LARGE}
-                            onPress={previewMatches}
-                            style={[styles.mb4]}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_PREVIEW_MATCHES}
+                            style={styles.flex1}
+                            onPress={() => setIsDescribeRuleModalVisible(true)}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_DESCRIBE}
                         >
-                            <Button.Text>{translate('workspace.rules.merchantRules.previewMatches')}</Button.Text>
+                            <Button.Text>{translate('workspace.rules.newRule.describe')}</Button.Text>
                         </Button>
-                    )}
-                </>
-            }
-        />
+                    )
+                }
+            />
+        </View>
     ) : null;
 
     const renderSectionItem = (item: SectionItemType) => {
@@ -791,9 +793,35 @@ function MerchantRulePageBase({
                         <Text style={[styles.textLabel, styles.textStrong, styles.lh16]}>{translate('workspace.rules.merchantRules.ifAnyExpenseMatches')}</Text>
                     </View>
                     {renderSections()}
+                    <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap3, styles.ph5, styles.pv3]}>
+                        <Text
+                            style={[styles.textNormal, styles.flex1]}
+                            accessible={false}
+                            aria-hidden
+                        >
+                            {translate('workspace.rules.merchantRules.applyToExistingUnsubmittedExpenses')}
+                        </Text>
+                        <Switch
+                            accessibilityLabel={translate('workspace.rules.merchantRules.applyToExistingUnsubmittedExpenses')}
+                            isOn={!isCategoryRule && shouldUpdateMatchingTransactions}
+                            onToggle={setShouldUpdateMatchingTransactions}
+                            disabled={isCategoryRule}
+                            disabledAction={isCategoryRule ? showCategoryRulesApplyGoingForwardExplainer : undefined}
+                        />
+                    </View>
                     {isInLandscapeMode && footer}
                 </ScrollView>
                 {!isInLandscapeMode && footer}
+                {shouldShowDescribeRule && (
+                    <DescribeRuleModal
+                        isVisible={isDescribeRuleModalVisible}
+                        onClose={() => setIsDescribeRuleModalVisible(false)}
+                        policyID={policyID}
+                        ruleType={CONST.GENERATED_RULE.RULE_TYPE.EXPENSE_DEFAULTS}
+                        onRuleGenerated={applyGeneratedRule}
+                    />
+                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

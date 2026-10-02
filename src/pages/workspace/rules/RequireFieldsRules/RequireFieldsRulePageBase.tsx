@@ -1,3 +1,4 @@
+import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import Header from '@components/Header';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
@@ -42,6 +43,7 @@ import type {FieldRequirementsDirection} from '@libs/RequireFieldsRulesUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import DescribeRuleModal from '@pages/workspace/rules/DescribeRuleModal';
 import useRuleDeleteHeaderProps from '@pages/workspace/rules/useRuleDeleteHeaderProps';
 
 import variables from '@styles/variables';
@@ -51,10 +53,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES, getRequireFieldsRuleCategoryRoute, getWorkspaceCategorySettingsRoute} from '@src/ROUTES';
 import type {RequireFieldsRuleForm, RequireFieldsRuleSettingFieldKey} from '@src/types/form/RequireFieldsRuleForm';
 import INPUT_IDS from '@src/types/form/RequireFieldsRuleForm';
+import type {GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+
+const SETTING_FIELD_KEYS = [INPUT_IDS.DESCRIPTION_SETTING, INPUT_IDS.ATTENDEES_SETTING, INPUT_IDS.RECEIPT_SETTING, INPUT_IDS.ITEMIZED_RECEIPT_SETTING] as const;
 
 type RequireFieldsRulePageBaseProps = {
     policyID: string;
@@ -78,6 +83,8 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
     const icons = useMemoizedLazyExpensifyIcons(['Folder']);
     const isEditing = !!categoryName;
     const isCategoryLocked = isCategoryLockedProp ?? !!initialCategoryName;
+    const shouldShowDescribeRule = !isEditing && !isCategoryLocked;
+    const [isDescribeRuleModalVisible, setIsDescribeRuleModalVisible] = useState(false);
     const canEditCategory = canWriteRules && !isCategoryLocked;
     const categorySettingsBackPath = useCategoryRuleCreateBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_REQUIRE_FIELDS_NEW.path);
 
@@ -120,7 +127,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
 
             // Preserve whatever is currently shown (edit often displays category overrides
             // without those fields being in touchedFields yet).
-            for (const fieldKey of [INPUT_IDS.DESCRIPTION_SETTING, INPUT_IDS.ATTENDEES_SETTING, INPUT_IDS.RECEIPT_SETTING, INPUT_IDS.ITEMIZED_RECEIPT_SETTING] as const) {
+            for (const fieldKey of SETTING_FIELD_KEYS) {
                 const displayedSetting = getRequireFieldsDisplayedSetting({
                     fieldKey,
                     category: previousCategory,
@@ -157,9 +164,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
 
     // Remount after a category change loses local touched state — rebuild it from the draft.
     if (isEditing && categoryName && selectedCategoryName && selectedCategoryName !== categoryName && form) {
-        const draftSettingKeys = ([INPUT_IDS.DESCRIPTION_SETTING, INPUT_IDS.ATTENDEES_SETTING, INPUT_IDS.RECEIPT_SETTING, INPUT_IDS.ITEMIZED_RECEIPT_SETTING] as const).filter(
-            (fieldKey) => form[fieldKey] !== undefined,
-        );
+        const draftSettingKeys = SETTING_FIELD_KEYS.filter((fieldKey) => form[fieldKey] !== undefined);
         if (draftSettingKeys.some((fieldKey) => !touchedFields.has(fieldKey))) {
             setTouchedFields(new Set([...touchedFields, ...draftSettingKeys]));
         }
@@ -305,7 +310,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
                 const nextDraft: Partial<RequireFieldsRuleForm> = {
                     [INPUT_IDS.CATEGORY]: form[INPUT_IDS.CATEGORY],
                 };
-                for (const settingFieldKey of [INPUT_IDS.DESCRIPTION_SETTING, INPUT_IDS.ATTENDEES_SETTING, INPUT_IDS.RECEIPT_SETTING, INPUT_IDS.ITEMIZED_RECEIPT_SETTING] as const) {
+                for (const settingFieldKey of SETTING_FIELD_KEYS) {
                     if (keysToClear.includes(settingFieldKey) || form[settingFieldKey] === undefined) {
                         continue;
                     }
@@ -424,6 +429,11 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
         return <NotFoundPage />;
     }
 
+    const applyGeneratedRule = (values: GeneratedRuleValues) => {
+        setDraftRequireFieldsRule(values);
+        setTouchedFields(new Set(SETTING_FIELD_KEYS.filter((fieldKey) => values[fieldKey] !== undefined)));
+    };
+
     const footer = canWriteRules ? (
         <FormAlertWithSubmitButton
             buttonText={translate('workspace.rules.requireFieldsRule.saveRule')}
@@ -434,6 +444,21 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
             shouldShowLoadingImmediatelyOnPress={false}
             enabledWhenOffline
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_RULE_SAVE}
+            buttonStyles={styles.flex1}
+            buttonAndFooterContainerStyles={[styles.flexRow, styles.gap2]}
+            shouldRenderFooterAboveSubmit
+            footerContent={
+                shouldShowDescribeRule && (
+                    <Button
+                        size={CONST.BUTTON_SIZE.LARGE}
+                        style={styles.flex1}
+                        onPress={() => setIsDescribeRuleModalVisible(true)}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_RULE_DESCRIBE}
+                    >
+                        <Button.Text>{translate('workspace.rules.newRule.describe')}</Button.Text>
+                    </Button>
+                )
+            }
         />
     ) : null;
 
@@ -494,6 +519,15 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
                         ))}
                 </ScrollView>
                 {footer}
+                {shouldShowDescribeRule && (
+                    <DescribeRuleModal
+                        isVisible={isDescribeRuleModalVisible}
+                        onClose={() => setIsDescribeRuleModalVisible(false)}
+                        policyID={policyID}
+                        ruleType={CONST.GENERATED_RULE.RULE_TYPE.REQUIRE_FIELDS}
+                        onRuleGenerated={applyGeneratedRule}
+                    />
+                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
