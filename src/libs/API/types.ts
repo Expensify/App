@@ -1776,6 +1776,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     IMPORT_TAGS_SPREADSHEET: 'ImportTagsSpreadsheet',
     OPEN_OLD_DOT_LINK: 'OpenOldDotLink',
     RECONNECT_APP: 'ReconnectApp',
+    LOAD_PERSONAL_DETAILS: 'LoadPersonalDetails',
     REVEAL_EXPENSIFY_TRAVEL_CARD_DETAILS: 'RevealExpensifyTravelCardDetails',
     TWO_FACTOR_AUTH_VALIDATE: 'TwoFactorAuth_Validate',
     CONNECT_AS_DELEGATE: 'ConnectAsDelegate',
@@ -1828,6 +1829,7 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_EXPENSIFY_TRAVEL_CARD_DETAILS]: Parameters.RevealExpensifyCardDetailsParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES]: Parameters.GetMissingOnyxMessagesParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP]: Parameters.ReconnectAppParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.LOAD_PERSONAL_DETAILS]: null;
     [SIDE_EFFECT_REQUEST_COMMANDS.GENERATE_SPOTNANA_TOKEN]: Parameters.GenerateSpotnanaTokenParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.TWO_FACTOR_AUTH_VALIDATE]: Parameters.ValidateTwoFactorAuthParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.CONNECT_AS_DELEGATE]: Parameters.ConnectAsDelegateParams;
