@@ -574,11 +574,6 @@ export default defineConfig({
         // NOT oxlint's native react/exhaustive-deps: it is a Rust rule, and the React Compiler
         // message gate can only wrap a JS plugin. See config/oxlint/plugins/hosted-rules.mjs.
         'hosted/exhaustive-deps': 'error',
-        // The React Compiler rules run as rc/* below, on the Rust compiler
-        // (config/oxlint/reactCompilerRust.mjs). `panicThreshold: "all_errors"` is what makes any of
-        // them report at all: oxc-transform-react narrowed `result.errors` to fatal diagnostics
-        // (oxc-project/oxc#26128), so on the default every one of these rules reports nothing.
-        // Tracked upstream as oxc-project/oxc#26318.
         'rc/refs': 'error',
         'rc/set-state-in-effect': 'error',
         'rc/set-state-in-render': 'error',

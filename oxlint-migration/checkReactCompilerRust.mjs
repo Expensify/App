@@ -21,26 +21,9 @@ const FIXTURES = [
     ['rhPurity.tsx', 'purity', 1],
     ['rhIncompatibleLibrary.tsx', 'incompatible-library', 1],
     ['rhUnsupportedSyntax.tsx', 'unsupported-syntax', 1],
-];
-
-// Three categories whose fixture cannot report, while the rule itself does fire in real code. All
-// three are non-fatal on their own, and since oxc-transform-react 0.148.0 only fatal React Compiler
-// diagnostics come back through `result.errors` (oxc-project/oxc#26128, tracked as #26318). Each of
-// these fixtures is one component whose only problem is the non-fatal one, so nothing fails the
-// compile and nothing is returned.
-//
-// They are still `error` in oxlint.config.mts, and correctly so: in real code the category usually
-// shares a function with something fatal and rides along on the abort. Counter.tsx in section 6 is
-// exactly that, reporting set-state-in-effect on line 12 because the ref read on line 8 fails the
-// compile. Whole-repo that is set-state-in-effect 47 of ESLint's 127, and static-components 2 of 2.
-//
-// A tripwire, not an exemption: if a fixture starts reporting on its own, upstream has exposed
-// non-fatal diagnostics and `panicThreshold` in config/oxlint/reactCompilerRust.mjs can go back to
-// `none`, which removes the iterative reveal.
-const NON_FATAL_IN_ISOLATION = [
-    ['rhSetStateInEffect.tsx', 'set-state-in-effect'],
-    ['rhStaticComponents.tsx', 'static-components'],
-    ['rhErrorBoundaries.tsx', 'error-boundaries'],
+    ['rhSetStateInEffect.tsx', 'set-state-in-effect', 1],
+    ['rhStaticComponents.tsx', 'static-components', 1],
+    ['rhErrorBoundaries.tsx', 'error-boundaries', 1],
 ];
 
 let failed = false;
@@ -70,21 +53,7 @@ for (const [fixture, rule, expected] of FIXTURES) {
     const strays = ALL_RULES.filter((other) => other !== rule && (counts.get(other) ?? 0) > 0);
     check(own === expected && strays.length === 0, `${fixture} -> rc/${rule}`, `got ${own}, expected ${expected}${strays.length ? `, STRAY ${strays.join(',')}` : ''}`);
 }
-for (const [fixture, rule] of NON_FATAL_IN_ISOLATION) {
-    const own = countsByRule(diagnose(path.join(FIXTURE_DIR, fixture))).get(rule) ?? 0;
-    check(
-        own === 0,
-        `${fixture} -> rc/${rule} silent in isolation`,
-        own === 0
-            ? 'nothing fatal in the fixture to carry it out, as oxc-project/oxc#26318 leaves it'
-            : `now reports ${own} alone: upstream exposed non-fatal diagnostics, revisit panicThreshold`,
-    );
-}
-check(
-    FIXTURES.length + NON_FATAL_IN_ISOLATION.length === ALL_RULES.length,
-    'every rule in RULE_BY_CATEGORY has a fixture',
-    `${FIXTURES.length} self-reporting + ${NON_FATAL_IN_ISOLATION.length} non-fatal in isolation, ${ALL_RULES.length} rules`,
-);
+check(FIXTURES.length === ALL_RULES.length, 'every rule in RULE_BY_CATEGORY has a fixture', `${FIXTURES.length} fixtures for ${ALL_RULES.length} rules`);
 
 console.log('\n2. the category tables cover the whole ErrorCategory enum in eslint-plugin-react-hooks');
 const bundle = fs.readFileSync(PLUGIN_BUNDLE, 'utf8');
@@ -111,8 +80,6 @@ try {
 }
 RULE_BY_CATEGORY.Refs = savedRule;
 fs.rmSync(unmappedCopy);
-// The throw needs a categorized diagnostic to trip over, so it is unobservable while the engine
-// returns nothing. Asserted in the negative rather than skipped, so the pair still says something.
 check(threw, 'a category missing from both tables throws');
 
 console.log('\n4. a file the compiler cannot parse reports nothing');
@@ -136,19 +103,12 @@ console.log('\n6. suppression comments no longer hide the analysis (the reason t
 const counter = diagnose(path.join(PROBE_DIR, 'Counter.tsx'));
 const counterLines = counter.map((diagnostic) => diagnostic.loc.start.line).sort((first, second) => first - second);
 check(JSON.stringify(counterLines) === JSON.stringify([8, 12]), 'Counter.tsx reports the ref read and the setState-in-effect', `lines ${counterLines.join(',') || '(none)'}`);
-// Only the first of the three, and that is the `all_errors` cost rather than a suppression bug.
-// `Dirty` fails first, the fatal abort carries what was accumulated by then, and `Clean` is never
-// analyzed on this pass. Fix line 7 and the next run surfaces 21, then 24. ESLint reports all three
-// at once, which is the 129-finding gap `npm run compare-oxlint` prints per rule.
-//
-// Asserted as exactly [7] so this is a tripwire: if it ever returns all three, upstream stopped
-// aborting at the first failure and oxlint.config.mts should be revisited.
 const twoComponents = diagnose(path.join(PROBE_DIR, 'TwoComponents.tsx'));
 const twoLines = twoComponents.map((diagnostic) => diagnostic.loc.start.line).sort((first, second) => first - second);
 check(
-    JSON.stringify(twoLines) === JSON.stringify([7]),
-    'TwoComponents.tsx reports the first failing component, the rest on later passes',
-    `lines ${twoLines.join(',') || '(none)'}; ESLint reports 7,21,24 in one pass`,
+    JSON.stringify(twoLines) === JSON.stringify([7, 21, 24]),
+    'TwoComponents.tsx reports both components in one pass, as ESLint does',
+    `lines ${twoLines.join(',') || '(none)'}, expected 7,21,24`,
 );
 
 console.log('\n7. the one recorded anchor divergence stays where it was measured');

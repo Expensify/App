@@ -141,7 +141,6 @@
         "fixture": "fixtures/rhErrorBoundaries.tsx",
         "oxlintRule": "rc/error-boundaries",
         "expected": 1,
-        "blockedUpstream": "SILENT IN ISOLATION 2026-09-09: this category is non-fatal, and since oxc-transform-react 0.148.0 only fatal React Compiler diagnostics come back through result.errors (oxc-project/oxc#26128, tracked as #26318). This fixture is one component whose only problem is the non-fatal one, so nothing fails the compile and nothing is returned. The rule is still error in .oxlintrc.json and does fire in real code, where the category usually shares a function with something fatal: 47 of ESLint 127 for set-state-in-effect, 2 of 2 for static-components. Asserted as zero so it trips the day upstream exposes non-fatal diagnostics",
         "why": "covered 2026-08-12"
     },
     "react-hooks/use-memo": {
@@ -178,14 +177,12 @@
         "fixture": "fixtures/rhSetStateInEffect.tsx",
         "oxlintRule": "rc/set-state-in-effect",
         "expected": 1,
-        "blockedUpstream": "SILENT IN ISOLATION 2026-09-09: this category is non-fatal, and since oxc-transform-react 0.148.0 only fatal React Compiler diagnostics come back through result.errors (oxc-project/oxc#26128, tracked as #26318). This fixture is one component whose only problem is the non-fatal one, so nothing fails the compile and nothing is returned. The rule is still error in .oxlintrc.json and does fire in real code, where the category usually shares a function with something fatal: 47 of ESLint 127 for set-state-in-effect, 2 of 2 for static-components. Asserted as zero so it trips the day upstream exposes non-fatal diagnostics",
         "why": "covered 2026-08-12; previously repo parity only"
     },
     "react-hooks/static-components": {
         "fixture": "fixtures/rhStaticComponents.tsx",
         "oxlintRule": "rc/static-components",
         "expected": 1,
-        "blockedUpstream": "SILENT IN ISOLATION 2026-09-09: this category is non-fatal, and since oxc-transform-react 0.148.0 only fatal React Compiler diagnostics come back through result.errors (oxc-project/oxc#26128, tracked as #26318). This fixture is one component whose only problem is the non-fatal one, so nothing fails the compile and nothing is returned. The rule is still error in .oxlintrc.json and does fire in real code, where the category usually shares a function with something fatal: 47 of ESLint 127 for set-state-in-effect, 2 of 2 for static-components. Asserted as zero so it trips the day upstream exposes non-fatal diagnostics",
         "why": "covered 2026-08-12; previously repo parity only"
     },
     "react-hooks/preserve-manual-memoization": {

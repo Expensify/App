@@ -9,8 +9,8 @@ import {Linter} from 'eslint';
 // The module can only drop reports, never restore them, and oxlint's own directive engine already
 // drops everything after a bare `/* eslint-disable */` (it does not implement the rule-specific
 // enable below). So a divergence here is not visible in `npx oxlint` output today. It is still worth
-// holding: the module's whole contract is "decide what ESLint would have decided", and the parked
-// hosted-rule plan in section 5.1 of the migration doc routes more rules through it.
+// holding: the module's whole contract is "decide what ESLint would have decided", and any rule that
+// later moves under the `hosted/` plugin starts routing through it.
 import path from 'node:path';
 import process from 'node:process';
 import {fileURLToPath} from 'node:url';

@@ -48,6 +48,7 @@ stopped matching. The root file is therefore the real config, and that is delibe
 | path | what it does | run with |
 | --- | --- | --- |
 | `compareFullRepo.{sh,py}` | whole-repo, finding-by-finding parity between the two tools | `npm run compare-oxlint` |
+| `checkParityDirection.py` | splits that report by direction: findings oxlint adds are safe, findings it hides are checks that stop running when the gate flips | `npm run oxlint-parity-direction` |
 | `port-probe/` | one fixture per rule that deliberately violates it, so a rule with no findings in this repo is still proven to run | `npm run oxlint-rule-fixtures` |
 | `rule-tester/` | harvests the upstream `RuleTester` cases for the custom rules and replays them as real files through both tools | `npm run oxlint-rule-tester` |
 | `checkSidecarCoverage.py` | fails if any hand-hosted sidecar rule has no fixture, replayed case or probe | `npm run oxlint-sidecar-coverage` |
@@ -60,56 +61,40 @@ stopped matching. The root file is therefore the real config, and that is delibe
 
 ## The React Compiler rules report partially, on purpose
 
-All twelve `rc/*` rules are on. Some of them report less than ESLint does, and they are left on
-anyway: a rule that under-reports shows up as a number in `npm run compare-oxlint`, while a rule
-switched off reads exactly like a clean codebase.
+All twelve `rc/*` rules are on. Some of them report less (or more) than ESLint does, and they are
+left on anyway: a rule whose count differs shows up as a number in `npm run compare-oxlint`, while a
+rule switched off reads exactly like a clean codebase.
 
-Measured whole-repo on `oxc-transform-react` 0.149.0:
+Measured whole-repo on `oxc-transform-react` 0.152.0 and oxlint 1.86.0:
 
 | rule | ESLint | oxlint | |
 | --- | --- | --- | --- |
-| `refs` | 215 | 215 | same count, 3 ESLint-only and 3 oxlint-only |
-| `set-state-in-effect` | 127 | 47 | partial |
-| `preserve-manual-memoization` | 2 | 65 | over-reports, and 15 of its 25 files are flagged by no other `rc/*` rule |
+| `set-state-in-effect` | 120 | 120 | exact, same locations |
+| `refs` | 210 | 189 | bridge collapses ESLint's duplicate reports (see below) |
+| `purity` | 0 | 35 | all `Date`-during-render; ESLint's compiler build misses them, kept on purpose |
+| `preserve-manual-memoization` | 4 | 54 | over-reports through the bridge |
 | `immutability` | 6 | 7 | one extra |
+| `globals` | 0 | 1 | one extra |
 | `static-components` | 2 | 2 | exact |
-| the other seven | 0 | 0 | latent in this repo |
+| the other five | 0 | 0 | latent in this repo |
 
-`config/oxlint/reactCompilerRust.mjs` has to pass `panicThreshold: "all_errors"` for any of this to
-work. `oxc-transform-react` 0.148.0 narrowed `result.errors` to *fatal* React Compiler diagnostics
-([oxc-project/oxc#26128](https://github.com/oxc-project/oxc/pull/26128), "match Babel diagnostic
-reporting"), and `should_panic` in `crates/oxc_react_compiler/src/diagnostics.rs` answers `false`
-unconditionally for the `none` default. On the default, every one of these rules reports exactly
-nothing: 12/12 fixtures report on 0.147.0, 0/12 on 0.148.0 and 0.149.0.
+`config/oxlint/reactCompilerRust.mjs` passes `reportDiagnostics: true` to `transformSync`, which is
+what lets any of them report the non-fatal categories at all. `oxc-transform-react` 0.148.0 had
+narrowed `result.errors` to *fatal* React Compiler diagnostics (oxc-project/oxc#26128, tracked as
+#26318), so on the default a component whose only problem is a non-blocking validation like
+`set-state-in-effect` returned nothing; the old `panicThreshold: "all_errors"` workaround made every
+diagnostic fatal to recover them, at the cost of aborting on the first failing function per file.
+`oxc-project/oxc#26624`, shipped in 0.152.0, added the opt-in `reportDiagnostics` that returns the
+recoverable diagnostics without forcing them fatal, so the bridge now sees every finding at full
+speed. `checkReactCompilerRust.mjs` pins this: `TwoComponents.tsx` reports all its findings in one
+pass, as ESLint does, and each of the twelve fixtures reports on its own.
 
-Making every diagnostic fatal has a cost, and it is what the partial numbers above are. A fatal
-result aborts on the first function in a file that fails to compile and carries only what was
-accumulated by then, so later functions are not analyzed on that pass. Findings surface iteratively:
-fix one and the next run shows the next. `oxlint-migration/native-vs-sidecar-probe/TwoComponents.tsx`
-pins that behaviour, reporting line 7 where ESLint reports 7, 21 and 24 in one pass.
-
-Three categories are non-fatal on their own, so their isolated fixture reports nothing while the rule
-still fires in real code, where the category usually shares a function with something fatal and rides
-along on the abort. `Counter.tsx` shows it: `set-state-in-effect` on line 12, carried out by the ref
-read on line 8. They are marked `blockedUpstream` in `port-probe/fixtures.manifest.json` and listed
-in `NON_FATAL_IN_ISOLATION` in `checkReactCompilerRust.mjs`, both asserted as zero so they trip when
-this changes.
-
-Tracked upstream as [oxc-project/oxc#26318](https://github.com/oxc-project/oxc/issues/26318),
-"expose recoverable React Compiler diagnostics" against the Node binding, filed 2026-09-04 and open
-with no maintainer reply. Filed by someone else and it reaches the same conclusions independently:
-`errors` is fatal-only, `outputMode: "lint"` returns nothing, and `panicThreshold` is not a clean
-workaround because it stops at the first diagnostic. It asks for a `diagnostics` array beside
-`errors`, or a Babel-style logger; the Rust side already has category, span and help text and only
-the binding drops them. When it lands, `panicThreshold` goes back to `none` and the iterative reveal
-disappears.
-
-Related but already avoided:
-[oxc-project/oxc#26277](https://github.com/oxc-project/oxc/issues/26277) reports that a
-`disable-next-line` naming `react/exhaustive-deps` or `react/rules-of-hooks` suppresses every React
-Compiler diagnostic in the enclosing component. That hits Oxlint's *native* `react/*` rules, which
-this config does not use for the compiler checks precisely because of that behaviour, which is what
-`eslintSuppressionRules: []` in `config/oxlint/reactCompilerRust.mjs` is there to defeat.
+Why the bridge and not oxlint's native `react/*` compiler rules: oxc-project/oxc#26277, a
+`disable-next-line` naming `react/exhaustive-deps` or `react/rules-of-hooks` silences every native
+compiler diagnostic in the enclosing component, and the native rules do not expose the compiler's
+`eslintSuppressionRules` option to turn that off. This config does not use the native `react/*` rules
+for the compiler checks precisely because of that; `config/oxlint/reactCompilerRust.mjs` sets
+`eslintSuppressionRules: []` to defeat it on the bridge. #26277 is open with no PR.
 
 ## Files that are records, not inputs
 
