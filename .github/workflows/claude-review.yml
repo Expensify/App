@@ -49,9 +49,6 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Setup Node
-        uses: ./.github/actions/composite/setupNode
-
       - name: Setup Claude review toolkit
         id: toolkit
         uses: Expensify/GitHub-Actions/.github/actions/claude-review-toolkit@54bfb8923d4f94c3cb209bfbad362fca9f0816f5
@@ -85,6 +82,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           addPrReaction.sh "$PR_NUMBER" "eyes"
+
+      - name: Setup Node
+        if: steps.skip.outputs.skip != 'true' && (steps.filter.outputs.code == 'true' || steps.filter.outputs.docs == 'true')
+        uses: ./.github/actions/composite/setupNode
 
       - name: Run Claude Code (code)
         id: code-review
