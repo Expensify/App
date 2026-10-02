@@ -456,7 +456,7 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
 }
 
 function loadPersonalDetails() {
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method -- API.read waits for OpenApp; this must run in parallel
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method -- API.read would wait for OpenApp, so it cannot run in parallel
     API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.LOAD_PERSONAL_DETAILS, null);
 }
 
