@@ -23,7 +23,7 @@ import getCreateReportRoute, {getReportsRootRoute, navigateToCreateReportWorkspa
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 // eslint-disable-next-line no-restricted-imports -- TravelDot booking requires a paid workspace, matching the existing FAB behavior.
-import {canSendInvoice, getGroupPoliciesWhereReportCanBeCreated, hasAcceptedTravelTerms, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
+import {canSendInvoice, hasAcceptedTravelTerms, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
 
 import isOnSearchMoneyRequestReportPage from '@navigation/helpers/isOnSearchMoneyRequestReportPage';
@@ -110,8 +110,6 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
 
-    // Match Quick Creation and Search actions by using shared report eligibility rules.
-    const groupPoliciesWithChatEnabled = getGroupPoliciesWhereReportCanBeCreated(allPolicies ?? null, sessionEmail);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [isLoading = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
@@ -172,7 +170,6 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
                 Navigation.navigate(getCreateReportRoute({reportID: createdReportID}), {forceReplace: isReportInSearch});
             });
         },
-        groupPoliciesWithChatEnabled,
         onNavigateToWorkspaceSelection: () => navigateToCreateReportWorkspaceSelection({forceReplace: isOnSearchMoneyRequestReportPage()}),
         shouldHandleNavigationBack: false,
         shouldSkipEmptyReportConfirmation: !shouldPrepareCreateReport,

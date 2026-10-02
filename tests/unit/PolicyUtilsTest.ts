@@ -6278,22 +6278,38 @@ describe('getDefaultChatEnabledPolicySelection', () => {
         [`${ONYXKEYS.COLLECTION.POLICY}${corporatePolicy.id}`]: corporatePolicy,
     };
 
-    it('resolves the active policy from the collection by ID', () => {
-        expect(getDefaultChatEnabledPolicySelection(collection, undefined, corporatePolicy.id)).toEqual({
-            defaultChatEnabledPolicyID: corporatePolicy.id,
-            hasMultipleChatEnabledPolicies: true,
-        });
-    });
+    it.each([
+        [
+            'resolves the active policy from the collection by ID',
+            collection,
+            corporatePolicy.id,
+            {defaultChatEnabledPolicyID: corporatePolicy.id, hasChatEnabledPolicies: true, hasMultipleChatEnabledPolicies: true},
+        ],
+        [
+            'returns no default when the active policy is unknown and multiple workspaces are eligible',
+            collection,
+            undefined,
+            {defaultChatEnabledPolicyID: undefined, hasChatEnabledPolicies: true, hasMultipleChatEnabledPolicies: true},
+        ],
+        [
+            'returns the only eligible workspace and reports a single workspace',
+            {[`${ONYXKEYS.COLLECTION.POLICY}${teamPolicy.id}`]: teamPolicy},
+            undefined,
+            {defaultChatEnabledPolicyID: teamPolicy.id, hasChatEnabledPolicies: true, hasMultipleChatEnabledPolicies: false},
+        ],
+        [
+            'reports no eligible workspace for an empty collection',
+            {},
+            undefined,
+            {defaultChatEnabledPolicyID: undefined, hasChatEnabledPolicies: false, hasMultipleChatEnabledPolicies: false},
+        ],
+    ])('%s', (_description, policies, activePolicyID, expected) => {
+        // Given the user's policy collection and active policy ID
+        // When the scalar selection used by the create-report entry points is computed
+        const selection = getDefaultChatEnabledPolicySelection(policies, undefined, activePolicyID);
 
-    it('returns no default when the active policy is unknown and multiple workspaces are eligible', () => {
-        expect(getDefaultChatEnabledPolicySelection(collection, undefined, undefined)).toEqual({defaultChatEnabledPolicyID: undefined, hasMultipleChatEnabledPolicies: true});
-    });
-
-    it('returns the only eligible workspace and reports a single workspace', () => {
-        expect(getDefaultChatEnabledPolicySelection({[`${ONYXKEYS.COLLECTION.POLICY}${teamPolicy.id}`]: teamPolicy}, undefined, undefined)).toEqual({
-            defaultChatEnabledPolicyID: teamPolicy.id,
-            hasMultipleChatEnabledPolicies: false,
-        });
+        // Then it carries the default workspace and the eligibility flags the hook branches on
+        expect(selection).toEqual(expected);
     });
 });
 

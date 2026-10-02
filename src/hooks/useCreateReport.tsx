@@ -2,7 +2,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {canCreateReportOnPolicy, getDefaultChatEnabledPolicy, isGroupPolicy} from '@libs/PolicyUtils';
+import {canCreateReportOnPolicy, getDefaultChatEnabledPolicySelection, isGroupPolicy} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
@@ -12,7 +12,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {useCallback} from 'react';
 
@@ -25,8 +25,6 @@ import useShouldShowEmptyReportConfirmation from './useShouldShowEmptyReportConf
 type UseCreateReportParams = {
     /** Callback that creates the report on the resolved workspace and navigates after creation */
     onCreateReport: (policy: OnyxEntry<OnyxTypes.Policy>, shouldDismissEmptyReportsConfirmation?: boolean) => void;
-    /** Group paid policies with expense chat enabled */
-    groupPoliciesWithChatEnabled: readonly never[] | Array<OnyxEntry<OnyxTypes.Policy>>;
     /** Optional custom navigation to the workspace selector */
     onNavigateToWorkspaceSelection?: () => void;
     /** Whether the empty-report confirmation modal should push a history entry so browser-back dismisses it (default: true) */
@@ -55,35 +53,36 @@ type UseCreateReportResult = {
  */
 export default function useCreateReport({
     onCreateReport,
-    groupPoliciesWithChatEnabled,
     onNavigateToWorkspaceSelection,
     shouldHandleNavigationBack = true,
     shouldSkipEmptyReportConfirmation = false,
 }: UseCreateReportParams): UseCreateReportResult {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
-    const [, policiesLoadStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const {accountID, login} = useCurrentUserPersonalDetails();
+    const defaultChatEnabledPolicySelector = (policies: OnyxCollection<OnyxTypes.Policy>) => getDefaultChatEnabledPolicySelection(policies, login, activePolicyID);
+    const [defaultChatEnabledPolicySelection, policiesLoadStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: defaultChatEnabledPolicySelector});
+    const [defaultChatEnabledPolicyByKey] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(defaultChatEnabledPolicySelection?.defaultChatEnabledPolicyID)}`);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const {accountID, login} = useCurrentUserPersonalDetails();
     const {isRestrictedToPreferredPolicy, preferredPolicyID, isLoadingPreferredPolicy} = usePreferredPolicy();
     // Read the preferred workspace by key rather than searching the caller's list, so the lock does not depend on
     // how (or whether) a caller filtered its candidates. Same pattern as useDefaultExpensePolicy.
     const [preferredPolicy, preferredPolicyLoadStatus] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(preferredPolicyID)}`);
 
     // Gate visibility and routing on policy hydration. Without this, during Onyx cold-start
-    // groupPoliciesWithChatEnabled.length === 0 would be true even for users who actually have
+    // the selection would report no eligible workspace even for users who actually have
     // workspaces, sending them to MONEY_REQUEST_UPGRADE as if they had none. The security group and the
     // preferred workspace are part of that gate: until they resolve, a domain lock would silently read as "not restricted".
     const arePoliciesLoaded = !isLoadingOnyxValue(policiesLoadStatus, preferredPolicyLoadStatus) && !isLoadingPreferredPolicy;
     const isVisible = arePoliciesLoaded;
-    const shouldNavigateToUpgradePath = groupPoliciesWithChatEnabled.length === 0;
+    const shouldNavigateToUpgradePath = !defaultChatEnabledPolicySelection?.hasChatEnabledPolicies;
 
     // A domain security group can lock members to a preferred workspace. When that workspace can take reports it wins over
     // the active policy and the selector is skipped. An ineligible preferred workspace (not a member, wrong type) falls back to the normal rules.
     const isLockedToPreferredPolicy = isRestrictedToPreferredPolicy && canCreateReportOnPolicy(preferredPolicy, login);
-    const defaultChatEnabledPolicy = isLockedToPreferredPolicy ? preferredPolicy : (getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled, activePolicy) ?? undefined);
+    const defaultChatEnabledPolicy = isLockedToPreferredPolicy ? preferredPolicy : defaultChatEnabledPolicyByKey;
     const defaultChatEnabledPolicyID = defaultChatEnabledPolicy?.id;
 
     const shouldShowEmptyReportConfirmation = useShouldShowEmptyReportConfirmation(defaultChatEnabledPolicyID, shouldSkipEmptyReportConfirmation);
@@ -126,7 +125,7 @@ export default function useCreateReport({
             // the default is billing-restricted and alternatives exist, so the user isn't dead-ended
             // on the restricted-action page.
             const isDefaultPersonal = !activePolicy || activePolicy.type === CONST.POLICY.TYPE.PERSONAL || !isGroupPolicy(activePolicy);
-            const hasMultipleNonPersonalWorkspaces = groupPoliciesWithChatEnabled.length > 1;
+            const hasMultipleNonPersonalWorkspaces = !!defaultChatEnabledPolicySelection?.hasMultipleChatEnabledPolicies;
             const isDefaultBillingRestricted =
                 !!workspaceIDForReportCreation && shouldRestrictUserBillableActions(defaultChatEnabledPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID);
             const shouldOfferAlternatives = !isLockedToPreferredPolicy && hasMultipleNonPersonalWorkspaces && (isDefaultPersonal || isDefaultBillingRestricted);
@@ -163,7 +162,7 @@ export default function useCreateReport({
         amountOwed,
         accountID,
         isLockedToPreferredPolicy,
-        groupPoliciesWithChatEnabled.length,
+        defaultChatEnabledPolicySelection?.hasMultipleChatEnabledPolicies,
         onNavigateToWorkspaceSelection,
         shouldShowEmptyReportConfirmation,
         openCreateReportConfirmation,

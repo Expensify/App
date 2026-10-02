@@ -89,13 +89,11 @@ async function setWorkspaces(preferredPolicy: Policy) {
     await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${ACTIVE_POLICY_ID}`, activePolicy);
     await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${OTHER_POLICY_ID}`, otherPolicy);
     await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${PREFERRED_POLICY_ID}`, preferredPolicy);
-    // The FAB hands the hook every workspace it considers report-eligible; a membership-less stub never makes that list
-    return preferredPolicy.type ? [activePolicy, otherPolicy, preferredPolicy] : [activePolicy, otherPolicy];
 }
 
-async function renderAndPress(groupPoliciesWithChatEnabled: Policy[]) {
+async function renderAndPress() {
     const onCreateReport = jest.fn();
-    const {result} = renderHook(() => useCreateReport({onCreateReport, groupPoliciesWithChatEnabled}));
+    const {result} = renderHook(() => useCreateReport({onCreateReport}));
     await waitFor(() => expect(result.current.isVisible).toBe(true));
 
     act(() => {
@@ -121,10 +119,10 @@ describe('useCreateReport domain preferred workspace (real Onyx)', () => {
     ] as const)('creates on the preferred workspace instead of the active one when %s', async (_description, membershipShape) => {
         // Given a member of three workspaces whose domain security group locks them to a workspace that is not their active one
         await setSecurityGroup({membershipShape, isRestrictionEnabled: true});
-        const eligiblePolicies = await setWorkspaces(makeTeamPolicy(PREFERRED_POLICY_ID));
+        await setWorkspaces(makeTeamPolicy(PREFERRED_POLICY_ID));
 
         // When they press "Create report"
-        const onCreateReport = await renderAndPress(eligiblePolicies);
+        const onCreateReport = await renderAndPress();
 
         // Then the report goes to the preferred workspace and no selector opens
         expect(onCreateReport).toHaveBeenCalledWith(expect.objectContaining({id: PREFERRED_POLICY_ID}), false);
@@ -134,10 +132,10 @@ describe('useCreateReport domain preferred workspace (real Onyx)', () => {
     it('creates on the active workspace when the security group does not enable the restriction', async () => {
         // Given a security group that names a preferred workspace but has the restriction switched off
         await setSecurityGroup({membershipShape: 'sharedNVP', isRestrictionEnabled: false});
-        const eligiblePolicies = await setWorkspaces(makeTeamPolicy(PREFERRED_POLICY_ID));
+        await setWorkspaces(makeTeamPolicy(PREFERRED_POLICY_ID));
 
         // When they press "Create report"
-        const onCreateReport = await renderAndPress(eligiblePolicies);
+        const onCreateReport = await renderAndPress();
 
         // Then the user's own default workspace is used
         expect(onCreateReport).toHaveBeenCalledWith(expect.objectContaining({id: ACTIVE_POLICY_ID}), false);
@@ -147,10 +145,10 @@ describe('useCreateReport domain preferred workspace (real Onyx)', () => {
     it('falls back to the active workspace when the user is not a member of the preferred workspace', async () => {
         // Given the restriction points at a workspace the user is not in, so Onyx only holds the backend's {id, name} stub for it
         await setSecurityGroup({membershipShape: 'sharedNVP', isRestrictionEnabled: true});
-        const eligiblePolicies = await setWorkspaces(createMock<Policy>({id: PREFERRED_POLICY_ID, name: 'Preferred'}));
+        await setWorkspaces(createMock<Policy>({id: PREFERRED_POLICY_ID, name: 'Preferred'}));
 
         // When they press "Create report"
-        const onCreateReport = await renderAndPress(eligiblePolicies);
+        const onCreateReport = await renderAndPress();
 
         // Then the lock cannot be honoured and the normal rules apply: the eligible active workspace is used
         expect(onCreateReport).toHaveBeenCalledWith(expect.objectContaining({id: ACTIVE_POLICY_ID}), false);

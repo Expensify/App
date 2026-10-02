@@ -3329,6 +3329,7 @@ function getDefaultChatEnabledPolicySelection(policies: OnyxCollection<Policy> |
 
     return {
         defaultChatEnabledPolicyID: getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled, activePolicy)?.id,
+        hasChatEnabledPolicies: groupPoliciesWithChatEnabled.length > 0,
         hasMultipleChatEnabledPolicies: groupPoliciesWithChatEnabled.length > 1,
     };
 }

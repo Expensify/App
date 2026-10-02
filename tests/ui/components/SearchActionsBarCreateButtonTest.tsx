@@ -6,8 +6,6 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import SearchActionsBarCreateButton from '@components/Search/SearchPageHeader/SearchActionsBarCreateButton';
 
-import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
-
 import {createNewReport} from '@libs/actions/Report';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -48,8 +46,6 @@ jest.mock('@libs/actions/Link', () => ({
     openOldDotLink: jest.fn(),
 }));
 
-jest.mock('@hooks/usePolicyForMovingExpenses');
-
 jest.mock('@hooks/usePopoverPosition', () => () => ({
     calculatePopoverPosition: jest.fn(() => Promise.resolve({horizontal: 0, vertical: 0})),
 }));
@@ -61,13 +57,13 @@ jest.mock('@hooks/useCreateEmptyReportConfirmation', () => () => ({
 
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => () => true);
 
-const mockUsePolicyForMovingExpenses = jest.mocked(usePolicyForMovingExpenses);
 const mockNavigate = jest.mocked(Navigation.navigate);
 const mockCreateNewReport = jest.mocked(createNewReport);
 const mockInterceptAnonymousUser = jest.mocked(interceptAnonymousUser);
 
 const CURRENT_USER_ACCOUNT_ID = 1;
 const CURRENT_USER_EMAIL = 'user@test.com';
+const CURRENT_USER_DOMAIN = 'test.com';
 
 const MOCK_POLICY_ID = 'policy-123';
 const MOCK_POLICY = {
@@ -108,13 +104,6 @@ describe('SearchActionsBarCreateButton', () => {
     });
 
     beforeEach(async () => {
-        mockUsePolicyForMovingExpenses.mockReturnValue({
-            policyForMovingExpensesID: undefined,
-            policyForMovingExpenses: undefined,
-            shouldSelectPolicy: false,
-            shouldNavigateToUpgradePath: true,
-        });
-
         await act(async () => {
             await Onyx.merge(ONYXKEYS.SESSION, {
                 accountID: CURRENT_USER_ACCOUNT_ID,
@@ -147,7 +136,7 @@ describe('SearchActionsBarCreateButton', () => {
     });
 
     it('should navigate to upgrade path when no valid policy exists', async () => {
-        // Given no policies exist (shouldNavigateToUpgradePath = true)
+        // Given the user has no report-eligible workspace in Onyx
 
         // When component is rendered
         renderComponent();
@@ -169,13 +158,6 @@ describe('SearchActionsBarCreateButton', () => {
 
     it('should navigate to workspace selector when no default policy and multiple workspaces exist', async () => {
         // Given user has multiple policies (shouldSelectPolicy = true, but no single default)
-        mockUsePolicyForMovingExpenses.mockReturnValue({
-            policyForMovingExpensesID: 'some-policy',
-            policyForMovingExpenses: MOCK_POLICY,
-            shouldSelectPolicy: false,
-            shouldNavigateToUpgradePath: false,
-        });
-
         // Set up multiple eligible group workspaces
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}`, MOCK_POLICY);
@@ -207,13 +189,6 @@ describe('SearchActionsBarCreateButton', () => {
 
     it('should create report directly when a single default workspace exists', async () => {
         // Given user has a single valid policy
-        mockUsePolicyForMovingExpenses.mockReturnValue({
-            policyForMovingExpensesID: MOCK_POLICY_ID,
-            policyForMovingExpenses: MOCK_POLICY,
-            shouldSelectPolicy: false,
-            shouldNavigateToUpgradePath: false,
-        });
-
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}`, MOCK_POLICY);
             await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, MOCK_POLICY_ID);
@@ -274,13 +249,6 @@ describe('SearchActionsBarCreateButton', () => {
     });
 
     it('should call startMoneyRequest when "Create expense" is pressed', async () => {
-        mockUsePolicyForMovingExpenses.mockReturnValue({
-            policyForMovingExpensesID: MOCK_POLICY_ID,
-            policyForMovingExpenses: MOCK_POLICY,
-            shouldSelectPolicy: false,
-            shouldNavigateToUpgradePath: false,
-        });
-
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}`, MOCK_POLICY);
         });
@@ -303,13 +271,6 @@ describe('SearchActionsBarCreateButton', () => {
     it('should navigate to workspace selector when owner billing is restricted and multiple workspaces exist', async () => {
         // Given the current user owns a workspace that is past due billing with an outstanding amount
         const pastDueGracePeriod = getUnixTime(subDays(new Date(), 3));
-
-        mockUsePolicyForMovingExpenses.mockReturnValue({
-            policyForMovingExpensesID: MOCK_POLICY_ID,
-            policyForMovingExpenses: MOCK_POLICY,
-            shouldSelectPolicy: false,
-            shouldNavigateToUpgradePath: false,
-        });
 
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}`, {
@@ -345,13 +306,6 @@ describe('SearchActionsBarCreateButton', () => {
     });
 
     it('should open confirmation modal when an empty report exists and confirmation is not dismissed', async () => {
-        mockUsePolicyForMovingExpenses.mockReturnValue({
-            policyForMovingExpensesID: MOCK_POLICY_ID,
-            policyForMovingExpenses: MOCK_POLICY,
-            shouldSelectPolicy: false,
-            shouldNavigateToUpgradePath: false,
-        });
-
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}`, MOCK_POLICY);
             await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, MOCK_POLICY_ID);
@@ -384,13 +338,6 @@ describe('SearchActionsBarCreateButton', () => {
     });
 
     it('should not open confirmation modal when confirmation has been dismissed', async () => {
-        mockUsePolicyForMovingExpenses.mockReturnValue({
-            policyForMovingExpensesID: MOCK_POLICY_ID,
-            policyForMovingExpenses: MOCK_POLICY,
-            shouldSelectPolicy: false,
-            shouldNavigateToUpgradePath: false,
-        });
-
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}`, MOCK_POLICY);
             await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, MOCK_POLICY_ID);
@@ -426,13 +373,6 @@ describe('SearchActionsBarCreateButton', () => {
         // Given the current user owns a single workspace that is past due billing with an outstanding amount
         const pastDueGracePeriod = getUnixTime(subDays(new Date(), 3));
 
-        mockUsePolicyForMovingExpenses.mockReturnValue({
-            policyForMovingExpensesID: MOCK_POLICY_ID,
-            policyForMovingExpenses: MOCK_POLICY,
-            shouldSelectPolicy: false,
-            shouldNavigateToUpgradePath: false,
-        });
-
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}`, {
                 ...MOCK_POLICY,
@@ -458,5 +398,35 @@ describe('SearchActionsBarCreateButton', () => {
 
         // Then it navigates to the restricted action page for the single restricted workspace
         expect(mockNavigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(MOCK_POLICY_ID));
+    });
+
+    it('creates the report on the domain preferred workspace without opening the selector', async () => {
+        // Given a member of three workspaces whose domain security group locks them to a workspace that is not their active one
+        const preferredPolicyID = 'preferred-policy';
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}`, MOCK_POLICY);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}other-policy`, {...MOCK_POLICY, id: 'other-policy'});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${preferredPolicyID}`, {...MOCK_POLICY, id: preferredPolicyID, name: 'Preferred Workspace'});
+            await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, MOCK_POLICY_ID);
+            await Onyx.merge(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS, {[CURRENT_USER_DOMAIN]: {securityGroupID: 'group-1', ownerAccountID: 42}});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_SECURITY_GROUP}group-1_42`, {enableRestrictedPrimaryPolicy: true, restrictedPrimaryPolicyID: preferredPolicyID});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When "Create report" is pressed from the Search header Create menu
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByText(translateLocal('common.create')));
+        await waitForBatchedUpdatesWithAct();
+
+        const createReportItem = screen.getByText(translateLocal('report.newReport.createReport'));
+        fireEvent.press(createReportItem, createMockPressEvent(createReportItem));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the report goes to the preferred workspace, which the domain made the user's default, and no selector opens
+        expect(mockCreateNewReport).toHaveBeenCalledTimes(1);
+        expect(mockCreateNewReport.mock.calls.at(0)?.at(3)).toEqual(expect.objectContaining({id: preferredPolicyID}));
+        expect(mockNavigate).not.toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.path));
     });
 });
