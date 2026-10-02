@@ -2984,7 +2984,8 @@ ${amount} pour ${merchant} - ${date}`,
             },
         },
         approverInMultipleWorkflows: 'Ce membre appartient déjà à un autre circuit d’approbation. Toute mise à jour effectuée ici sera également répercutée là-bas.',
-        approverNotWorkspaceMember: 'Cet approbateur n’est plus membre de l’espace de travail. Choisissez un nouvel approbateur ou supprimez ce workflow.',
+        approverNotWorkspaceMember: 'Cet approbateur n’est plus membre de l’espace de travail. Choisissez un nouvel approbateur ou supprimez ce flux de travail.',
+        defaultWorkflowApproverNotWorkspaceMember: 'Cet approbateur n’est plus membre de l’espace de travail. Choisissez un nouvel approbateur.',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> approuve déjà les notes de frais de <strong>${name2}</strong>. Veuillez choisir un autre approbateur pour éviter un circuit d'approbation circulaire.`,
         emptyContent: {

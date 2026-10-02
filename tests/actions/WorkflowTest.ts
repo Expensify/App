@@ -14,6 +14,7 @@ import {
     setApprovalWorkflowApprover,
     updateApprovalWorkflow,
     updateApprovalWorkflowRules,
+    validateApprovalWorkflow,
 } from '@src/libs/actions/Workflow';
 import {isApprovalWorkflowRule} from '@src/libs/RuleUtils';
 import {
@@ -186,6 +187,48 @@ describe('actions/Workflow', () => {
 
             await mockFetch.resume();
             await waitForBatchedUpdates();
+        });
+    });
+
+    describe('validateApprovalWorkflow', () => {
+        const removedApprover: Approver = {email: 'removed@example.com', displayName: 'removed@example.com', isNotWorkspaceMember: true};
+
+        it('should block saving a workflow whose approver is no longer a workspace member', async () => {
+            // Given a custom workflow whose only approver was removed from the workspace
+            const approvalWorkflow: ApprovalWorkflowOnyx = {
+                ...INITIAL_APPROVAL_WORKFLOW,
+                members: [{email: employee1Email, displayName: employee1Email}],
+                approvers: [removedApprover],
+            };
+            await Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, approvalWorkflow);
+
+            // When the admin tries to save it
+            const isValid = validateApprovalWorkflow(approvalWorkflow);
+            await waitForBatchedUpdates();
+
+            // Then the save is blocked and the approver shows the error offering to replace them or delete the workflow
+            expect(isValid).toBe(false);
+            const workflowState = await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW);
+            expect(workflowState?.errors?.['approver-0']).toBe('workflowsPage.approverNotWorkspaceMember');
+        });
+
+        it('should not offer deleting the default workflow when its approver is no longer a workspace member', async () => {
+            // Given the default workflow, whose approver was removed from the workspace
+            const approvalWorkflow: ApprovalWorkflowOnyx = {
+                ...INITIAL_APPROVAL_WORKFLOW,
+                isDefault: true,
+                approvers: [removedApprover],
+            };
+            await Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, approvalWorkflow);
+
+            // When the admin tries to save it
+            const isValid = validateApprovalWorkflow(approvalWorkflow);
+            await waitForBatchedUpdates();
+
+            // Then the save is blocked, and since the default workflow can't be deleted the error only asks for a new approver
+            expect(isValid).toBe(false);
+            const workflowState = await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW);
+            expect(workflowState?.errors?.['approver-0']).toBe('workflowsPage.defaultWorkflowApproverNotWorkspaceMember');
         });
     });
 

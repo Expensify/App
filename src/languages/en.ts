@@ -3091,6 +3091,7 @@ const translations = {
         },
         approverInMultipleWorkflows: 'This member already belongs to another approval workflow. Any updates here will reflect there too.',
         approverNotWorkspaceMember: 'This approver is no longer a workspace member. Choose a new approver or delete this workflow.',
+        defaultWorkflowApproverNotWorkspaceMember: 'This approver is no longer a workspace member. Choose a new approver.',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> already approves reports to <strong>${name2}</strong>. Please choose a different approver to avoid a circular workflow.`,
         emptyContent: {

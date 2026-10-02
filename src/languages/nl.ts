@@ -2969,7 +2969,8 @@ ${amount} voor ${merchant} - ${date}`,
             },
         },
         approverInMultipleWorkflows: 'Dit lid behoort al tot een andere goedkeuringsworkflow. Alle updates hier worden daar ook doorgevoerd.',
-        approverNotWorkspaceMember: 'Deze fiatteur is geen lid meer van de werkruimte. Kies een nieuwe fiatteur of verwijder deze workflow.',
+        approverNotWorkspaceMember: 'Deze fiatteur is geen lid meer van de workspace. Kies een nieuwe fiatteur of verwijder deze workflow.',
+        defaultWorkflowApproverNotWorkspaceMember: 'Deze fiatteur is geen lid meer van de workspace. Kies een nieuwe fiatteur.',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> keurt al rapporten goed voor <strong>${name2}</strong>. Kies een andere fiatteur om een cirkelstroom te voorkomen.`,
         emptyContent: {

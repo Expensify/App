@@ -12,6 +12,7 @@ import {
     calculateApprovers,
     convertApprovalWorkflowToPolicyEmployees,
     getApprovalWorkflowRulesForPolicy,
+    getNonMemberApproverError,
     getOverLimitForwardsToDisplayName,
     getWorkflowMemberEmails,
     hasRuleBasedDefaultWorkflow,
@@ -712,7 +713,7 @@ function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx): appro
         }
 
         if (approver?.isNotWorkspaceMember) {
-            errors[`approver-${approverIndex}`] = 'workflowsPage.approverNotWorkspaceMember';
+            errors[`approver-${approverIndex}`] = getNonMemberApproverError(approvalWorkflow.isDefault);
         }
 
         // Validate that if overLimitForwardsTo is set, approvalLimit must also be set

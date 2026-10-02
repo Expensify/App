@@ -1,6 +1,7 @@
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
+import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
@@ -144,7 +145,7 @@ const renderEditPage = (route = mockRoute) =>
             <Stack.Navigator>
                 <Stack.Screen name={SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EDIT}>
                     {() => (
-                        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
                             <WorkspaceWorkflowsApprovalsEditPage
                                 // @ts-expect-error - route type from navigator
                                 route={route}
@@ -361,6 +362,30 @@ describe('WorkspaceWorkflowsApprovalsEditPage', () => {
             options?.afterTransition?.();
 
             expect(removeApprovalWorkflow).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('approver no longer on the workspace', () => {
+        it('flags the approver as soon as the editor opens and blocks saving', async () => {
+            // Given Bob still submits to someone who was removed from the workspace
+            const removedEmail = 'removed@example.com';
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {employeeList: {[BOB_EMAIL]: {email: BOB_EMAIL, submitsTo: removedEmail}}});
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // When the admin opens that workflow in the editor
+            renderEditPage({...mockRoute, params: {policyID: POLICY_ID, firstApproverEmail: removedEmail}});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the approver shows the error right away, before any Save attempt
+            expect(await screen.findByText(translateLocal('workflowsPage.approverNotWorkspaceMember'))).toBeOnTheScreen();
+
+            // And saving is blocked until the admin picks a new approver or deletes the workflow
+            fireEvent.press(screen.getByText(translateLocal('common.save')));
+            await waitForBatchedUpdatesWithAct();
+            expect(Navigation.goBack).not.toHaveBeenCalled();
+            expect(updateApprovalWorkflow).not.toHaveBeenCalled();
         });
     });
 

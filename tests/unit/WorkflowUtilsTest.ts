@@ -16,12 +16,14 @@ import {
     getApprovalLimitDescription,
     getOpenConnectedToPolicyBusinessBankAccounts,
     getApprovalWorkflowSource,
+    getNonMemberApproverError,
     getOverLimitForwardsToDisplayName,
     getEnforcedApprovalWorkflows,
     getEnforcedApprovalWorkflowsForMembers,
     getFirstApproverByMemberEmail,
     getFirstApproverLabel,
     getRulesSubmitterToFirstApprover,
+    hasApprovalWorkflowWithNonMemberApprover,
     hasMultiLevelApprovalWorkflow,
     getRulesSubmitterToWorkflowKey,
     includesEveryWorkspaceMember,
@@ -297,6 +299,28 @@ describe('WorkflowUtils', () => {
 
             expect(approvers).toEqual([buildApprover(1, {approvalLimit: null, overLimitForwardsTo: ''})]);
         });
+
+        it('Should keep an approver who left the workspace at the end of the chain, flagged, when the policy is passed', () => {
+            // Given a chain 1 > 2 > 9 where 9 is no longer on the workspace
+            const employees: PolicyEmployeeList = {
+                '1@example.com': {email: '1@example.com', forwardsTo: '2@example.com'},
+                '2@example.com': {email: '2@example.com', forwardsTo: '9@example.com'},
+            };
+            const policy = createMock<Policy>({id: '1', owner: '1@example.com', employeeList: employees});
+
+            // When the chain is calculated with and without the policy
+            const approversWithPolicy = calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail, policy});
+            const approversWithoutPolicy = calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail});
+
+            // Then with the policy, 9 is kept and flagged so the admin can see 2 still forwards to them, and without it
+            // the chain stops before 9 as callers that don't show flags expect
+            expect(approversWithPolicy).toEqual([
+                buildApprover(1, {forwardsTo: '2@example.com'}),
+                buildApprover(2, {forwardsTo: '9@example.com'}),
+                buildApprover(9, {isNotWorkspaceMember: true}),
+            ]);
+            expect(approversWithoutPolicy).toEqual([buildApprover(1, {forwardsTo: '2@example.com'}), buildApprover(2, {forwardsTo: '9@example.com'})]);
+        });
     });
 
     describe('getOverLimitForwardsToDisplayName', () => {
@@ -421,6 +445,42 @@ describe('WorkflowUtils', () => {
             const brokenWorkflow = approvalWorkflows.find((workflow) => workflow.members.some((member) => member.email === 'alice@example.com'));
             expect(brokenWorkflow?.approvers).toHaveLength(1);
             expect(brokenWorkflow?.approvers.at(0)).toMatchObject({email: 'guide@expensify.com', isNotWorkspaceMember: true});
+        });
+
+        it('Should flag an approver later in the chain who is no longer a workspace member', () => {
+            // Given a workflow 1 > 2 > 9 for member 3, where 9 was removed without 2's forwardsTo being updated
+            const employees: PolicyEmployeeList = {
+                '1@example.com': {email: '1@example.com', submitsTo: '1@example.com', forwardsTo: '2@example.com'},
+                '2@example.com': {email: '2@example.com', submitsTo: '1@example.com', forwardsTo: '9@example.com'},
+                '3@example.com': {email: '3@example.com', submitsTo: '1@example.com'},
+            };
+            const policy = createMockPolicy(employees, '1@example.com');
+
+            // When the workflows are built
+            const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, localeCompare});
+
+            // Then 9 is shown flagged at the end of the chain, instead of the workflow looking like it ends at 2
+            expect(approvalWorkflows.at(0)?.approvers).toEqual([
+                buildApprover(1, {forwardsTo: '2@example.com'}),
+                buildApprover(2, {forwardsTo: '9@example.com'}),
+                buildApprover(9, {isNotWorkspaceMember: true}),
+            ]);
+        });
+
+        it('Should not flag the owner as a non-member approver when their employee entry is missing', () => {
+            // Given a member who submits to the owner, whose employeeList entry is missing
+            const employees: PolicyEmployeeList = {
+                '1@example.com': {email: '1@example.com', submitsTo: 'owner@example.com'},
+            };
+            const policy = createMockPolicy(employees, '1@example.com');
+
+            // When the workflows are built
+            const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, localeCompare});
+
+            // Then the member is shown under the owner, who isn't flagged since the owner always belongs to the workspace
+            const ownerWorkflow = approvalWorkflows.find((workflow) => workflow.members.some((member) => member.email === '1@example.com'));
+            expect(ownerWorkflow?.approvers.map((approver) => approver.email)).toEqual(['owner@example.com']);
+            expect(ownerWorkflow?.approvers.at(0)?.isNotWorkspaceMember).toBeUndefined();
         });
 
         it('Should transform all users into one default workflow', () => {
@@ -2531,6 +2591,149 @@ describe('WorkflowUtils', () => {
             // When the workflows are read from a member's side
             // Then nobody is reassigned, because no workflow was dropped
             expect(getEnforcedApprovalWorkflowsForMembers(workflows, policy, false)).toEqual(workflows);
+        });
+    });
+
+    describe('hasApprovalWorkflowWithNonMemberApprover', () => {
+        const ownerEmail = 'owner@example.com';
+        const removedEmail = '9@example.com';
+        const buildPolicy = (policy: Partial<Policy> = {}) =>
+            createMock<Policy>({
+                id: '1',
+                type: CONST.POLICY.TYPE.CORPORATE,
+                role: CONST.POLICY.ROLE.ADMIN,
+                owner: ownerEmail,
+                approver: ownerEmail,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                employeeList: {
+                    [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: ownerEmail},
+                    '1@example.com': {email: '1@example.com', role: CONST.POLICY.ROLE.USER, submitsTo: removedEmail},
+                },
+                ...policy,
+            });
+        const keyRules = (rules: ApprovalWorkflowRule[]): Record<string, ApprovalWorkflowRule> => Object.fromEntries(rules.map((rule, index) => [`rule${index}`, rule]));
+
+        it('flags a workspace where a member submits to someone no longer on it', () => {
+            // Given an advanced workspace where member 1's approver was removed without reassigning them
+            const policy = buildPolicy();
+
+            // When the owner checks whether a workflow needs fixing
+            // Then it does, since the Workflows page shows that workflow flagged
+            expect(hasApprovalWorkflowWithNonMemberApprover({policy, currentUserLogin: ownerEmail, isMultipleApproversBetaEnabled: false})).toBe(true);
+        });
+
+        it('flags an approver later in the chain who is no longer on the workspace', () => {
+            // Given everyone submits to the owner, who forwards to someone no longer on the workspace
+            const policy = buildPolicy({
+                employeeList: {
+                    [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: ownerEmail, forwardsTo: removedEmail},
+                    '1@example.com': {email: '1@example.com', role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
+                },
+            });
+
+            // When the owner checks whether a workflow needs fixing
+            // Then it does, matching the flagged approver shown at the end of the chain
+            expect(hasApprovalWorkflowWithNonMemberApprover({policy, currentUserLogin: ownerEmail, isMultipleApproversBetaEnabled: false})).toBe(true);
+        });
+
+        it('does not flag an Expensify team member that a customer admin does not see', () => {
+            // Given a guide who submits to someone no longer on a customer's workspace
+            const policy = buildPolicy({
+                employeeList: {
+                    [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: ownerEmail},
+                    'guide@team.expensify.com': {email: 'guide@team.expensify.com', role: CONST.POLICY.ROLE.ADMIN, submitsTo: removedEmail},
+                },
+            });
+
+            // When the customer owner and an Expensify agent check whether a workflow needs fixing
+            // Then only the agent, who sees the guide's workflow, is told to fix it
+            expect(hasApprovalWorkflowWithNonMemberApprover({policy, currentUserLogin: ownerEmail, isMultipleApproversBetaEnabled: false})).toBe(false);
+            expect(hasApprovalWorkflowWithNonMemberApprover({policy, currentUserLogin: 'agent@expensify.com', isMultipleApproversBetaEnabled: false})).toBe(true);
+        });
+
+        it('only flags the workflows the approval mode enforces', () => {
+            // Given a basic workspace where a member still submits to someone no longer on it, and another where the
+            // default approver itself is no longer on it
+            const basicPolicy = buildPolicy({approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC});
+            const basicPolicyWithRemovedDefaultApprover = buildPolicy({
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                approver: removedEmail,
+                employeeList: {
+                    [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: ownerEmail},
+                },
+            });
+
+            // When the owner checks whether a workflow needs fixing
+            // Then only the removed default approver is flagged, since basic mode runs only the default workflow
+            expect(hasApprovalWorkflowWithNonMemberApprover({policy: basicPolicy, currentUserLogin: ownerEmail, isMultipleApproversBetaEnabled: false})).toBe(false);
+            expect(hasApprovalWorkflowWithNonMemberApprover({policy: basicPolicyWithRemovedDefaultApprover, currentUserLogin: ownerEmail, isMultipleApproversBetaEnabled: false})).toBe(true);
+        });
+
+        it('routes from the rules under the multiple approvers beta', () => {
+            // Given member 1 has a stale submitsTo but a rule routing them to the owner, and member 2 has a rule chain
+            // whose second approver is no longer on the workspace
+            const coveredPolicy = buildPolicy();
+            const coveredRules = keyRules(buildApprovalWorkflowRules({members: [buildMember(1)], approvers: [buildApprover(1, {email: ownerEmail})], isDefault: false}));
+            const brokenChainPolicy = buildPolicy({
+                employeeList: {
+                    [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: ownerEmail},
+                    '2@example.com': {email: '2@example.com', role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
+                },
+            });
+            const brokenChainRules = keyRules(
+                buildApprovalWorkflowRules({members: [buildMember(2)], approvers: [buildApprover(1, {email: ownerEmail}), buildApprover(9)], isDefault: false}),
+            );
+
+            // When the owner checks whether a workflow needs fixing
+            // Then the rules decide: the covered member isn't flagged, and the non-member in the chain is
+            expect(hasApprovalWorkflowWithNonMemberApprover({policy: coveredPolicy, currentUserLogin: ownerEmail, rules: coveredRules, isMultipleApproversBetaEnabled: true})).toBe(false);
+            expect(hasApprovalWorkflowWithNonMemberApprover({policy: brokenChainPolicy, currentUserLogin: ownerEmail, rules: brokenChainRules, isMultipleApproversBetaEnabled: true})).toBe(
+                true,
+            );
+        });
+
+        it('does not flag a workspace the user cannot fix', () => {
+            // Given the same broken workflow, seen by a member without write access to approvals, with approvals off,
+            // and with the workflows owned by a connected recruiting integration
+            const policy = buildPolicy({
+                employeeList: {
+                    [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: ownerEmail},
+                    '1@example.com': {email: '1@example.com', role: CONST.POLICY.ROLE.USER, submitsTo: removedEmail},
+                    '2@example.com': {email: '2@example.com', role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
+                },
+            });
+            const approvalsOffPolicy = buildPolicy({approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL});
+            const lockedPolicy = buildPolicy({
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS]: {
+                        config: {
+                            integration: 'greenhouse',
+                            approvalMode: CONST.MERGE.APPROVAL_MODE.BASIC,
+                            approverField: CONST.MERGE.ATS_APPROVER_FIELD.RECRUITER,
+                            finalApprover: null,
+                            filters: null,
+                        },
+                    },
+                },
+            });
+
+            // When each checks whether a workflow needs fixing
+            // Then none is flagged, since the Workflows page gives none of them an Edit button to fix it
+            expect(
+                hasApprovalWorkflowWithNonMemberApprover({policy: {...policy, role: CONST.POLICY.ROLE.USER}, currentUserLogin: '2@example.com', isMultipleApproversBetaEnabled: false}),
+            ).toBe(false);
+            expect(hasApprovalWorkflowWithNonMemberApprover({policy: approvalsOffPolicy, currentUserLogin: ownerEmail, isMultipleApproversBetaEnabled: false})).toBe(false);
+            expect(hasApprovalWorkflowWithNonMemberApprover({policy: lockedPolicy, currentUserLogin: ownerEmail, isMultipleApproversBetaEnabled: false})).toBe(false);
+        });
+    });
+
+    describe('getNonMemberApproverError', () => {
+        it('only offers deleting the workflow when it is not the default one', () => {
+            // Given a flagged approver on a custom workflow and on the default workflow
+            // When the error copy is picked
+            // Then the default workflow, which can't be deleted, only asks for a new approver
+            expect(getNonMemberApproverError(false)).toBe('workflowsPage.approverNotWorkspaceMember');
+            expect(getNonMemberApproverError(true)).toBe('workflowsPage.defaultWorkflowApproverNotWorkspaceMember');
         });
     });
 

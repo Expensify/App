@@ -174,7 +174,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const prevAccountIDs = usePrevious(accountIDs);
     const invitedEmails = useMemo(() => Object.keys(invitedEmailsToAccountIDsDraft ?? {}), [invitedEmailsToAccountIDsDraft]);
 
-    const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
+    const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID];
     const {approvalWorkflows, enforcedApprovalWorkflows} = useApprovalWorkflows({policy, personalDetails, currentUserLogin});
 
     const canSelectMultiple = canWriteMembers && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
@@ -243,7 +243,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         if (hasApprovers) {
             // Fall back to the employeeList email and policy owner, so submitters are still reassigned when personal
             // details aren't loaded. Skipping it would leave them submitting to someone no longer on the workspace.
-            const ownerEmail = ownerDetails.login ?? policy?.owner;
+            const ownerEmail = ownerDetails?.login ?? policy?.owner;
             let currentWorkflows = approvalWorkflows;
             for (const login of selectedEmployees) {
                 if (!isPolicyApprover(policy, login) || !ownerEmail) {

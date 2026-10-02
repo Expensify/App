@@ -12,7 +12,6 @@ import {
     canMemberRead,
     canPolicyAccessFeature,
     hasAccountingFeatureConnection,
-    hasApprovalWorkflowWithNonMemberApprover,
     hasPolicyCategoriesError,
     hasPolicyRulesError,
     hasVendorFeature,
@@ -110,6 +109,8 @@ type GetWorkspaceMenuItemsParams = {
     shouldShowEnterCredentialsError?: boolean;
     /** Whether the company cards row should show an error indicator. */
     shouldShowRBR?: boolean;
+    /** Whether a workflow the user can fix has an approver who is no longer a workspace member, which shows an error on the Workflows row. */
+    hasApprovalWorkflowWithNonMemberApprover?: boolean;
     /** Whether the vendor matching beta is enabled. */
     isVendorMatchingBetaEnabled?: boolean;
     /** Whether the Merge ATS beta gating the Recruiting feature is enabled. */
@@ -129,6 +130,7 @@ function getWorkspaceMenuItems({
     previousPendingFields,
     shouldShowEnterCredentialsError = false,
     shouldShowRBR = false,
+    hasApprovalWorkflowWithNonMemberApprover = false,
     isVendorMatchingBetaEnabled = false,
     isRecruitingBetaEnabled = false,
     convertToDisplayString,
@@ -345,8 +347,7 @@ function getWorkspaceMenuItems({
                 translationKey: 'workspace.common.workflows',
                 icon: icons.Workflows,
                 getRoute: () => ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID),
-                brickRoadIndicator:
-                    !isEmptyObject(policy?.errorFields?.reimburser ?? {}) || hasApprovalWorkflowWithNonMemberApprover(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                brickRoadIndicator: !isEmptyObject(policy?.errorFields?.reimburser ?? {}) || hasApprovalWorkflowWithNonMemberApprover ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 screenName: SCREENS.WORKSPACE.WORKFLOWS,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.WORKFLOWS,
                 highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED,

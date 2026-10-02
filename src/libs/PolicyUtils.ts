@@ -666,8 +666,7 @@ function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, isConnecti
         shouldShowPolicyErrorFields(policy) ||
         shouldShowSyncError(policy, isConnectionInProgress, getAccountingConnectionNames()) ||
         shouldShowQBOReimbursableExportDestinationAccountError(policy) ||
-        shouldShowHRConnectionError(policy, isConnectionInProgress, isPolicyAdmin(policy)) ||
-        (isPolicyAdmin(policy) && hasApprovalWorkflowWithNonMemberApprover(policy))
+        shouldShowHRConnectionError(policy, isConnectionInProgress, isPolicyAdmin(policy))
     ) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
@@ -1992,25 +1991,11 @@ function getDefaultApprover(policy: OnyxEntry<Policy>): string {
 }
 
 /**
- * Whether an approver email points at someone who is no longer on the workspace. HR advanced (manager) mode is
- * excluded, because its final approver doesn't have to be a workspace member.
+ * Whether an approver email points at someone who is no longer on the workspace. The owner always counts as a member,
+ * and HR advanced (manager) mode is excluded, because its final approver doesn't have to be a workspace member.
  */
 function isNonMemberApprover(policy: OnyxEntry<Policy>, approverEmail: string | undefined): boolean {
-    return !!approverEmail && !policy?.employeeList?.[approverEmail] && !getHRAdvancedModeFinalApprover(policy);
-}
-
-/**
- * Whether an advanced approval workflow has a member who submits to someone no longer on the workspace. That
- * workflow can't route reports as configured, so an admin needs to pick a new approver or delete it.
- */
-function hasApprovalWorkflowWithNonMemberApprover(policy: OnyxEntry<Policy>): boolean {
-    if (policy?.approvalMode !== CONST.POLICY.APPROVAL_MODE.ADVANCED) {
-        return false;
-    }
-
-    return Object.values(policy.employeeList ?? {}).some(
-        (employee) => employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isNonMemberApprover(policy, employee.submitsTo),
-    );
+    return !!approverEmail && !isPolicyMember(policy, approverEmail) && !getHRAdvancedModeFinalApprover(policy);
 }
 
 /**
@@ -3774,7 +3759,6 @@ export {
     getIntegrationLastSuccessfulDate,
     getCurrentConnectionName,
     getDefaultApprover,
-    hasApprovalWorkflowWithNonMemberApprover,
     isNonMemberApprover,
     hasCustomApprovalWorkflow,
     getApprovalWorkflow,

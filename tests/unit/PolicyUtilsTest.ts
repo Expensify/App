@@ -45,7 +45,6 @@ import {
     getVendorRuleDisplayValue,
     getPolicyApproverLogins,
     getPolicyBrickRoadIndicatorStatus,
-    hasApprovalWorkflowWithNonMemberApprover,
     getPolicyByCustomUnitID,
     getPolicyIDFromDomainName,
     getRateDisplayValue,
@@ -92,6 +91,7 @@ import {
     isMaxExpenseAmountSet,
     isMemberInHomeAndOfficeWorkspace,
     isMergeHRCompleteSetupNeededSelector,
+    isNonMemberApprover,
     isQBORefreshTokenExpiringSoonSelector,
     isPerDiemEligiblePolicy,
     isPerDiemEnabled,
@@ -2372,50 +2372,29 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('hasApprovalWorkflowWithNonMemberApprover', () => {
-        const buildPolicy = (policy: Partial<Policy> = {}) =>
-            createMock<Policy>({
-                id: '1',
-                role: CONST.POLICY.ROLE.ADMIN,
-                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
-                employeeList: {
-                    [employeeEmail]: {email: employeeEmail, role: CONST.POLICY.ROLE.USER, submitsTo: 'removed@example.com'},
-                },
-                ...policy,
-            });
-
-        it('flags an advanced workspace where a member submits to someone no longer on it, on the workspace row too', () => {
-            // Given an advanced workspace where a member's approver was removed without reassigning them
-            const policy = buildPolicy();
-
-            // When checking whether an admin needs to fix a workflow
-            // Then the Workflows menu and the workspace row both show an error
-            expect(hasApprovalWorkflowWithNonMemberApprover(policy)).toBe(true);
-            expect(getPolicyBrickRoadIndicatorStatus(policy, false)).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+    describe('isNonMemberApprover', () => {
+        const ownerEmail = 'owner@example.com';
+        const policy = createMock<Policy>({
+            id: '1',
+            owner: ownerEmail,
+            employeeList: {
+                [employeeEmail]: {email: employeeEmail, role: CONST.POLICY.ROLE.USER},
+            },
         });
 
-        it('does not flag a member who is being removed, or a workspace outside advanced mode', () => {
-            // Given the same broken route on a member pending removal, and on a workspace in basic mode
-            const pendingDeletePolicy = buildPolicy({
-                employeeList: {
-                    [employeeEmail]: {email: employeeEmail, submitsTo: 'removed@example.com', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
-                },
-            });
-            const basicPolicy = buildPolicy({approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC});
-
-            // When checking whether an admin needs to fix a workflow
-            // Then neither is flagged, since basic mode doesn't route through that approver
-            expect(hasApprovalWorkflowWithNonMemberApprover(pendingDeletePolicy)).toBe(false);
-            expect(hasApprovalWorkflowWithNonMemberApprover(basicPolicy)).toBe(false);
+        it('flags an approver who is no longer on the workspace, but not a member', () => {
+            // Given a workspace with one member
+            // When checking a removed approver and that member
+            // Then only the removed approver is flagged
+            expect(isNonMemberApprover(policy, 'removed@example.com')).toBe(true);
+            expect(isNonMemberApprover(policy, employeeEmail)).toBe(false);
         });
 
-        it('does not flag the workspace row for a non-admin, who cannot fix it', () => {
-            // Given the same broken workspace seen by a regular member
-            const policy = buildPolicy({role: CONST.POLICY.ROLE.USER});
-
-            // When building the workspace row indicator
-            // Then no error is shown
-            expect(getPolicyBrickRoadIndicatorStatus(policy, false)).toBeUndefined();
+        it('does not flag the owner when their employee entry is missing', () => {
+            // Given a workspace whose employeeList has no entry for the owner
+            // When checking the owner as an approver
+            // Then they still count as a member, since the owner always belongs to the workspace
+            expect(isNonMemberApprover(policy, ownerEmail)).toBe(false);
         });
     });
 

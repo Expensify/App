@@ -98,4 +98,42 @@ describe('ApprovalWorkflowSection', () => {
         // Then no error is shown
         expect(screen.queryByText('workflowsPage.approverNotWorkspaceMember')).toBeNull();
     });
+
+    it('reads the non-member error out through the Edit button, since the approver rows are hidden from screen readers', () => {
+        // Given a workflow whose approver was removed from the workspace
+        const brokenWorkflow: ApprovalWorkflow = {...baseWorkflow, approvers: [{email: 'removed@example.com', displayName: 'removed@example.com', isNotWorkspaceMember: true}]};
+
+        // When the workflow card renders
+        renderSection({approvalWorkflow: brokenWorkflow, onPress: jest.fn()});
+
+        // Then the Edit button's label carries the error, so screen reader users hear what needs fixing
+        expect(screen.getByLabelText('Edit, workflowsPage.approverNotWorkspaceMember')).toBeTruthy();
+    });
+
+    it('does not offer deleting the default workflow when its approver is no longer a workspace member', () => {
+        // Given the default workflow, whose approver was removed from the workspace
+        const brokenDefaultWorkflow: ApprovalWorkflow = {
+            ...baseWorkflow,
+            isDefault: true,
+            approvers: [{email: 'removed@example.com', displayName: 'removed@example.com', isNotWorkspaceMember: true}],
+        };
+
+        // When the workflow card renders
+        renderSection({approvalWorkflow: brokenDefaultWorkflow, onPress: jest.fn()});
+
+        // Then the error only asks for a new approver, since the default workflow can't be deleted
+        expect(screen.getByText('workflowsPage.defaultWorkflowApproverNotWorkspaceMember')).toBeTruthy();
+        expect(screen.queryByText('workflowsPage.approverNotWorkspaceMember')).toBeNull();
+    });
+
+    it('does not show the non-member error to someone who cannot edit the workflow', () => {
+        // Given a workflow whose approver was removed from the workspace, shown read-only
+        const brokenWorkflow: ApprovalWorkflow = {...baseWorkflow, approvers: [{email: 'removed@example.com', displayName: 'removed@example.com', isNotWorkspaceMember: true}]};
+
+        // When the workflow card renders disabled
+        renderSection({approvalWorkflow: brokenWorkflow, onPress: jest.fn(), isDisabled: true});
+
+        // Then no error is shown, since there is no Edit button to act on it
+        expect(screen.queryByText('workflowsPage.approverNotWorkspaceMember')).toBeNull();
+    });
 });

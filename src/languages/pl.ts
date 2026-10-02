@@ -2999,7 +2999,8 @@ ${amount} dla ${merchant} - ${date}`,
             },
         },
         approverInMultipleWorkflows: 'Ten członek należy już do innego procesu zatwierdzania. Wszelkie zmiany wprowadzone tutaj będą widoczne także tam.',
-        approverNotWorkspaceMember: 'Ta osoba zatwierdzająca nie jest już członkiem przestrzeni roboczej. Wybierz nową osobę zatwierdzającą lub usuń ten proces zatwierdzania.',
+        approverNotWorkspaceMember: 'Ten zatwierdzający nie jest już członkiem tego workspace’u. Wybierz nowego zatwierdzającego albo usuń ten workflow.',
+        defaultWorkflowApproverNotWorkspaceMember: 'Ten zatwierdzający nie jest już członkiem tego workspace’u. Wybierz nowego zatwierdzającego.',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> już zatwierdza raporty dla <strong>${name2}</strong>. Wybierz innego zatwierdzającego, aby uniknąć zapętlenia przepływu pracy.`,
         emptyContent: {

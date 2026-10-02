@@ -3,6 +3,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
@@ -27,7 +28,7 @@ import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import {getConnectedHRProvider, getHRAdvancedModeFinalApprover, getHRFinalApprover, isAnyHRConnected, isHRAdvancedMode, isAnyHRReadOnlyWorkflowMode} from './merge/HRUtils';
 import {getConnectedATSProvider, isAnyRecruitingReadOnlyWorkflowMode} from './merge/RecruitingUtils';
 import {rand64} from './NumberUtils';
-import {getDefaultApprover, isExpensifyTeam, isNonMemberApprover, shouldFilterExpensifyTeam} from './PolicyUtils';
+import {canMemberWrite, getDefaultApprover, isExpensifyTeam, isNonMemberApprover, isSubmitPolicy, shouldFilterExpensifyTeam, shouldHideDynamicExternalWorkflowPeople} from './PolicyUtils';
 import {fromIndexMap, isApprovalWorkflowRule, isRuleFilterComparison, toIndexMap} from './RuleUtils';
 
 const INITIAL_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
@@ -85,6 +86,12 @@ type GetApproversParams = {
      * Email of the first approver
      */
     firstEmail: string;
+
+    /**
+     * Policy the chain belongs to. When passed, an approver who is no longer on the workspace is kept at the end of
+     * the chain, flagged, instead of the chain silently stopping before them.
+     */
+    policy?: OnyxEntry<Policy>;
 };
 
 /** Resolve the display name for an over-limit forwarder email, falling back to the email itself */
@@ -96,7 +103,7 @@ function getOverLimitForwardsToDisplayName(overLimitForwardsTo: string | undefin
 }
 
 /** Get the list of approvers for a given email */
-function calculateApprovers({employees, firstEmail, personalDetailsByEmail}: GetApproversParams): Approver[] {
+function calculateApprovers({employees, firstEmail, personalDetailsByEmail, policy}: GetApproversParams): Approver[] {
     const approvers: Approver[] = [];
     // Keep track of approver emails to detect circular references
     const currentApproverEmails = new Set<string>();
@@ -104,6 +111,17 @@ function calculateApprovers({employees, firstEmail, personalDetailsByEmail}: Get
     let nextEmail: string | undefined = firstEmail;
     while (nextEmail) {
         if (!employees[nextEmail]) {
+            // Reports still route to an approver who left the workspace, so show them flagged for the admin to replace
+            if (policy && isNonMemberApprover(policy, nextEmail)) {
+                approvers.push({
+                    email: nextEmail,
+                    forwardsTo: undefined,
+                    avatar: personalDetailsByEmail[nextEmail]?.avatar,
+                    displayName: personalDetailsByEmail[nextEmail]?.displayName ?? nextEmail,
+                    isCircularReference: false,
+                    isNotWorkspaceMember: true,
+                });
+            }
             break;
         }
 
@@ -239,7 +257,9 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
         const effectiveSubmitsTo = shouldFilterOutExpensifyTeam && employees[submitsTo] ? (findFirstNonExpensifyApprover(employees, submitsTo) ?? submitsTo) : submitsTo;
 
         if (!approvalWorkflows[effectiveSubmitsTo]) {
-            let approvers = calculateApprovers({employees, firstEmail: effectiveSubmitsTo, personalDetailsByEmail});
+            let approvers = calculateApprovers({employees, firstEmail: effectiveSubmitsTo, personalDetailsByEmail, policy});
+            // The first approver isn't on employeeList but isn't flagged either, e.g. the owner or an HR advanced mode
+            // manager, so still show them as the approver
             if (approvers.length === 0) {
                 approvers = [
                     {
@@ -248,7 +268,6 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
                         avatar: personalDetailsByEmail[effectiveSubmitsTo]?.avatar,
                         displayName: personalDetailsByEmail[effectiveSubmitsTo]?.displayName ?? effectiveSubmitsTo,
                         isCircularReference: false,
-                        ...(isNonMemberApprover(policy, effectiveSubmitsTo) ? {isNotWorkspaceMember: true} : {}),
                     },
                 ];
             }
@@ -318,7 +337,7 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
     if (firstWorkflow && !firstWorkflow.isDefault) {
         sortedApprovalWorkflows.unshift({
             members: [],
-            approvers: calculateApprovers({employees, firstEmail: defaultApprover, personalDetailsByEmail}),
+            approvers: calculateApprovers({employees, firstEmail: defaultApprover, personalDetailsByEmail, policy}),
             isDefault: true,
         });
     }
@@ -448,7 +467,7 @@ type UpdateWorkflowDataOnApproverRemovalParams = {
     /**
      * Personal details of the workspace owner, used for the owner's avatar and display name when they replace the removed approver
      */
-    ownerDetails?: PersonalDetails;
+    ownerDetails?: PersonalDetails | null;
 };
 
 type UpdateWorkflowDataOnApproverRemovalResult = Array<
@@ -1836,7 +1855,7 @@ function convertApprovalWorkflowRulesToWorkflows({
     if (firstWorkflow && !firstWorkflow.isDefault) {
         sortedApprovalWorkflows.unshift({
             members: [],
-            approvers: calculateApprovers({employees, firstEmail: defaultApprover, personalDetailsByEmail}),
+            approvers: calculateApprovers({employees, firstEmail: defaultApprover, personalDetailsByEmail, policy}),
             isDefault: true,
         });
     }
@@ -1844,6 +1863,50 @@ function convertApprovalWorkflowRulesToWorkflows({
     availableMembers.sort((a, b) => localeCompare(a.displayName ?? a.email, b.displayName ?? b.email));
 
     return {approvalWorkflows: sortedApprovalWorkflows, usedApproverEmails: [...usedApproverEmails], availableMembers};
+}
+
+type HasApprovalWorkflowWithNonMemberApproverParams = {
+    /** Policy whose approval workflows are checked */
+    policy: OnyxEntry<Policy>;
+
+    /** Current user's login, used to check they can edit approvals and whether Expensify team members are filtered out */
+    currentUserLogin: string | undefined;
+
+    /** The policy's approval-workflow rules keyed by ruleID, which route the workflows under the `MULTIPLE_APPROVERS` beta */
+    rules?: Record<string, ApprovalWorkflowRule>;
+
+    /** Whether the `MULTIPLE_APPROVERS` beta is enabled, which builds the workflows from rules */
+    isMultipleApproversBetaEnabled: boolean;
+};
+
+/**
+ * Whether the Workflows page shows the current user a workflow they can fix whose approver is no longer on the workspace.
+ * The workflows are built with the same builder and approval-mode filter as the page, so the red dot shows exactly
+ * when a flagged card does.
+ */
+function hasApprovalWorkflowWithNonMemberApprover({policy, currentUserLogin, rules, isMultipleApproversBetaEnabled}: HasApprovalWorkflowWithNonMemberApproverParams): boolean {
+    // Only flag workflows the page shows with an Edit button: approvals are on, an integration doesn't own the
+    // workflows, a Dynamic External Workflow doesn't hide them, and the user can edit approvals
+    const areApprovalsEnabled = !!policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL && !isSubmitPolicy(policy);
+    if (
+        !areApprovalsEnabled ||
+        isApprovalWorkflowLockedByIntegration(policy) ||
+        shouldHideDynamicExternalWorkflowPeople(policy) ||
+        !canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS)
+    ) {
+        return false;
+    }
+
+    // Only the approver flags are read, so personal details and sorting are skipped
+    const params = {policy, personalDetails: {}, localeCompare: () => 0, currentUserLogin, rules};
+    const {approvalWorkflows} = isMultipleApproversBetaEnabled ? convertApprovalWorkflowRulesToWorkflows(params) : convertPolicyEmployeesToApprovalWorkflows(params);
+
+    return getEnforcedApprovalWorkflows(approvalWorkflows, policy, isMultipleApproversBetaEnabled).some((workflow) => workflow.approvers.some((approver) => !!approver.isNotWorkspaceMember));
+}
+
+/** The error for an approver who is no longer on the workspace. The default workflow can't be deleted, so its copy only asks for a new approver. */
+function getNonMemberApproverError(isDefaultWorkflow: boolean | undefined): TranslationPaths {
+    return isDefaultWorkflow ? 'workflowsPage.defaultWorkflowApproverNotWorkspaceMember' : 'workflowsPage.approverNotWorkspaceMember';
 }
 
 export {
@@ -1863,10 +1926,12 @@ export {
     getEnforcedApprovalWorkflows,
     getEnforcedApprovalWorkflowsForMembers,
     getApprovalWorkflowSource,
+    getNonMemberApproverError,
     filterRulesForPolicy,
     getRulesSubmitterToFirstApprover,
     getRulesSubmitterToWorkflowKey,
     getWorkflowMemberEmails,
+    hasApprovalWorkflowWithNonMemberApprover,
     hasMultiLevelApprovalWorkflow,
     getFirstApproverLabel,
     hasRuleBasedDefaultWorkflow,
