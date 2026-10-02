@@ -226,8 +226,6 @@ function getPayMoneyRequestParams({
             conciergeChat,
             companySize: introSelected?.companySize as OnboardingCompanySize,
             isSelfTourViewed,
-            // hasActiveAdminPolicies is only needed if lastUsedPaymentMethod is passed
-            hasActiveAdminPolicies: undefined,
             delegateAccountID,
             // This workspace is created by the invoice payment command, which does not apply CreatePolicy's
             // paid-workspace check, so the #admins room keeps starting out pinned here.
