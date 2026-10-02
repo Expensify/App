@@ -1811,6 +1811,9 @@ type RilletExport = {
     /** Credit card liability account code. */
     creditCardAccountCode: string;
 
+    /** Expensify Card account ID used when no card program account is configured. */
+    expensifyCardAccount?: string;
+
     /**
      * Whether card transactions should be exported to multiple
      * accounts based on card program mappings.
