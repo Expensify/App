@@ -1082,6 +1082,7 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON | Readonly<SearchQue
 }
 
 const NON_FILTER_CHIP_KEYS = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]);
+const NON_SAVABLE_FILTER_KEYS = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]);
 
 function buildQueryStringWithResetFilters(currentQueryJSON: SearchQueryJSON, defaultQueryJSON: SearchQueryJSON | undefined) {
     const resetFilters = (defaultQueryJSON?.flatFilters ?? []).filter((filter) => !NON_FILTER_CHIP_KEYS.has(filter.key));
@@ -2953,6 +2954,7 @@ export {
     getQueryHashWithoutFilters,
     getQueryHashes,
     hasFiltersChangedFromDefault,
+    NON_SAVABLE_FILTER_KEYS,
     withExactMatchFilterKeys,
     isSearchDatePreset,
     getDateRangeForPreset,
