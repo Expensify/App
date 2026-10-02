@@ -588,6 +588,19 @@ describe('PolicyUtils', () => {
             expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), 'Member@Test.com', undefined)).toBe(false);
         });
 
+        it('protects a member who is an auditor of the policy in their own right', () => {
+            // Given a policy viewed by an admin, holding an auditor in its employee list
+            const auditorLogin = 'auditor@test.com';
+            const policy = buildPolicy();
+            const policyWithAuditor = {...policy, employeeList: {...policy.employeeList, [auditorLogin]: {role: CONST.POLICY.ROLE.AUDITOR}}};
+
+            // When that member's protection is resolved, including through a mixed-case login
+            // Then they are protected, because auditors are default members of the workspace chat and the server adds
+            // them back after removal. The viewer's global `role` must not hide the auditor's own role
+            expect(isRoomMemberProtectedByPolicyRole(policyWithAuditor, auditorLogin, undefined)).toBe(true);
+            expect(isRoomMemberProtectedByPolicyRole(policyWithAuditor, 'Auditor@Test.com', undefined)).toBe(true);
+        });
+
         it('protects the policy owner by accountID even when the employee list does not list them', () => {
             // Given the policy owner participating in another employee's workspace chat, absent from `employeeList`
             // When their protection is resolved
