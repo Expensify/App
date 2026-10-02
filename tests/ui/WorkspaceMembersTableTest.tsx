@@ -59,6 +59,7 @@ function renderTable(members: WorkspaceMemberRowData[], tableRef: React.RefObjec
                             shouldShowCustomField2Column={false}
                             shouldShowApproverColumn
                             shouldUseOrdinalApproverLabel={false}
+                            shouldShowBankAccountColumn
                             onRowSelectionChange={jest.fn()}
                         />
                     </ScreenWrapperStatusContext.Provider>
@@ -143,6 +144,32 @@ describe('WorkspaceMembersTable', () => {
             // last in both directions.
             expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'approver', order: 'asc'});
             expect(tableRef.current?.getProcessedData().map((item) => item.name)).toEqual(['Adam', 'Walter', 'Nina', 'Brian', 'Carol']);
+        });
+    });
+
+    describe('bank account sorting', () => {
+        it('sorts members by their bank account last four, with members without one last in both directions', async () => {
+            const members: WorkspaceMemberRowData[] = [
+                buildMember({keyForList: 'nina', login: 'nina@example.com', email: 'nina@example.com', name: 'Nina', accountID: 1, bankAccountLastFour: '5382'}),
+                buildMember({keyForList: 'carol', login: 'carol@example.com', email: 'carol@example.com', name: 'Carol', accountID: 2}),
+                buildMember({keyForList: 'adam', login: 'adam@example.com', email: 'adam@example.com', name: 'Adam', accountID: 3, bankAccountLastFour: '1809'}),
+                buildMember({keyForList: 'brian', login: 'brian@example.com', email: 'brian@example.com', name: 'Brian', accountID: 4}),
+            ];
+
+            const tableRef = React.createRef<TableHandle<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey, string>>();
+            renderTable(members, tableRef);
+            await waitForBatchedUpdatesWithAct();
+
+            const [bankAccountHeader] = screen.getAllByLabelText(TestHelper.translateLocal('common.bankAccount'));
+            fireEvent.press(bankAccountHeader);
+
+            expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'bankAccount', order: 'desc'});
+            expect(tableRef.current?.getProcessedData().map((item) => item.name)).toEqual(['Nina', 'Adam', 'Carol', 'Brian']);
+
+            fireEvent.press(bankAccountHeader);
+
+            expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'bankAccount', order: 'asc'});
+            expect(tableRef.current?.getProcessedData().map((item) => item.name)).toEqual(['Adam', 'Nina', 'Brian', 'Carol']);
         });
     });
 });
