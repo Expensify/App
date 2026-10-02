@@ -702,7 +702,7 @@ function MerchantRulePageBase({
             </View>
             {/* There is no set of existing expenses for a category rule to preview, so the row is hidden rather than locked. */}
             {!isCategoryRule && (
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap3, styles.ph2, styles.mb4]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap3, styles.ph2, styles.mt2, styles.mb6]}>
                     <Text style={[styles.textNormal, styles.textSupporting, styles.flex1]}>{translate('workspace.rules.merchantRules.previewMatchesDescription')}</Text>
                     <Button
                         size={CONST.BUTTON_SIZE.SMALL}
