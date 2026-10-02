@@ -6,13 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {hasOnlyHeldExpenses, hasViolations, shouldBlockSubmitDueToPreventSelfApproval, shouldBlockSubmitDueToStrictPolicyRules} from '@libs/ReportUtils';
-import {
-    getTransactionViolations,
-    hasAnyPendingRTERViolation,
-    hasOnlyPendingCardTransactions,
-    showHeldExpensesBlockModal,
-    showPendingCardTransactionsBlockModal,
-} from '@libs/TransactionUtils';
+import {getTransactionViolations, hasOnlyPendingCardTransactions, showHeldExpensesBlockModal, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 
 import {submitReport} from '@userActions/IOU/ReportWorkflow';
 
@@ -80,11 +74,6 @@ jest.mock('@userActions/IOU/ReportWorkflow', () => ({
     submitReport: jest.fn(),
 }));
 
-jest.mock('@userActions/Transaction', () => ({
-    __esModule: true,
-    markPendingRTERTransactionsAsCash: jest.fn(),
-}));
-
 jest.mock('@libs/PolicyUtils', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- partial mock of the real module
     const actual = jest.requireActual('@libs/PolicyUtils');
@@ -103,7 +92,6 @@ jest.mock('@libs/TransactionUtils', () => ({
     __esModule: true,
     getTransactionViolations: jest.fn(),
     hasOnlyPendingCardTransactions: jest.fn(() => false),
-    hasAnyPendingRTERViolation: jest.fn(() => false),
     showPendingCardTransactionsBlockModal: jest.fn(),
     showHeldExpensesBlockModal: jest.fn(),
 }));
@@ -127,10 +115,10 @@ jest.mock('@libs/ReportUtils', () => {
     };
 });
 
-// The RTER confirmation wrapper is exercised by its own tests; here it just proceeds straight to the submission.
-jest.mock('@hooks/useConfirmPendingRTERAndProceed', () => ({
+// The violations confirmation gate is exercised by its own tests; here it just proceeds straight to the submission.
+jest.mock('@hooks/useConfirmSubmitReportViolations', () => ({
     __esModule: true,
-    default: jest.fn(() => (proceed: () => void) => proceed()),
+    default: jest.fn(() => (proceed: (shouldResolveAcknowledgedViolations?: boolean) => void) => proceed()),
 }));
 
 // SubmitActionButton reads from context instead of props; these mock-prefixed objects back the mocked slice hooks.
@@ -160,7 +148,6 @@ const mockedShowPendingCardTransactionsBlockModal = jest.mocked(showPendingCardT
 const mockedHasOnlyHeldExpenses = jest.mocked(hasOnlyHeldExpenses);
 const mockedShowHeldExpensesBlockModal = jest.mocked(showHeldExpensesBlockModal);
 const mockedHasViolations = jest.mocked(hasViolations);
-const mockedHasAnyPendingRTERViolation = jest.mocked(hasAnyPendingRTERViolation);
 const mockedGetTransactionViolations = jest.mocked(getTransactionViolations);
 const mockedShouldBlockSubmitDueToStrictPolicyRules = jest.mocked(shouldBlockSubmitDueToStrictPolicyRules);
 const mockedShouldBlockSubmitDueToPreventSelfApproval = jest.mocked(shouldBlockSubmitDueToPreventSelfApproval);
@@ -252,7 +239,6 @@ describe('SubmitActionButton', () => {
         });
 
         expect(mockedHasViolations.mock.calls.at(-1)?.[1]).toBe(reportViolations);
-        expect(mockedHasAnyPendingRTERViolation.mock.calls.at(-1)?.[1]).toBe(reportViolations);
         expect(mockedSubmitReport).toHaveBeenCalledWith(expect.objectContaining({hasViolations: true}));
     });
 

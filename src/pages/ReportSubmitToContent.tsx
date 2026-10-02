@@ -6,6 +6,7 @@ import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMembe
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
+import useConfirmSubmitReportViolations from '@hooks/useConfirmSubmitReportViolations';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -21,6 +22,7 @@ import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import {search} from '@libs/actions/Search';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -28,7 +30,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getSearchValueForPhoneOrEmail, getUserToInviteOption} from '@libs/OptionsListUtils';
 import {getKnownAccountIDByLogin, getLoginByAccountID, getPersonalDetailsByID} from '@libs/PersonalDetailsUtils';
 import {getAccountIDForSubmitManagerEmail, getMemberAccountIDsForWorkspace, getSubmitToEmail} from '@libs/PolicyUtils';
-import {hasViolations as hasViolationsReportUtils, isExpenseReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
+import {hasViolations as hasViolationsReportUtils, isExpenseReport, isMoneyRequestReportPendingDeletion, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import sortAlphabetically from '@libs/sortAlphabetically';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
@@ -64,7 +66,7 @@ type ReportSubmitToContentProps = {
     /** When false, skips closing the RHP stack after submit (e.g. submit-to popover on report screen). */
     shouldDismissRHPAfterSubmit?: boolean;
     /** When set (e.g. Search row submit), called with the selected submit-to email instead of `submitReport`. */
-    onSubmitWithManagerEmail?: (managerEmail: string, managerAccountID?: number) => void;
+    onSubmitWithManagerEmail?: (managerEmail: string, managerAccountID?: number, shouldResolveAcknowledgedViolations?: boolean) => void;
     /** When set, blocks submit after the popover is dismissed (prevents stale confirm / click-through). */
     canSubmitRef?: RefObject<boolean>;
 };
@@ -108,6 +110,23 @@ function ReportSubmitToContent({
     const lazyIllustrations = useMemoizedLazyIllustrations(['PaperAirplane']);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`);
+    const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(report?.reportID);
+    const reportSubmitTransactions = useMemo(() => Object.values(reportTransactions), [reportTransactions]);
+    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
+        policy,
+        report,
+        isTrackIntentUser,
+        rules,
+    });
+    const confirmSubmitReportViolations = useConfirmSubmitReportViolations(
+        reportSubmitTransactions,
+        violations,
+        Object.values(reportActions ?? {}),
+        report,
+        policy,
+        shouldShowMarkAsDoneCopy,
+    );
 
     const prepopulatedEmail = getSubmitToEmail(policy, report, submitterLogin, rules);
 
@@ -296,44 +315,9 @@ function ReportSubmitToContent({
 
         const resolvedManagerAccountID = selectedSubmitToMember?.accountID ?? getAccountIDForSubmitManagerEmail(trimmed, policy?.employeeList);
 
-        if (onSubmitWithManagerEmail) {
-            onSubmitWithManagerEmail(trimmed, resolvedManagerAccountID);
-            if (currentSearchQueryJSON && !isOffline) {
-                search({
-                    searchKey: currentSearchKey,
-                    shouldCalculateTotals,
-                    offset: 0,
-                    queryJSON: currentSearchQueryJSON,
-                    isLoading: !!currentSearchResults?.search?.isLoading,
-                });
-            }
-            onDismiss();
-            onSubmitSuccess?.();
-            if (shouldDismissRHPAfterSubmit) {
-                Navigation.dismissToPreviousRHP();
-            }
-            return;
-        }
-
-        submitReport({
-            getCurrencyDecimals,
-            expenseReport: report,
-            policy,
-            rules,
-            currentUserAccountIDParam: currentUserDetails.accountID,
-            currentUserEmailParam: currentUserDetails.email ?? '',
-            hasViolations,
-            isASAPSubmitBetaEnabled,
-            userBillingGracePeriodEnds,
-            amountOwed,
-            ownerBillingGracePeriodEnd,
-            delegateEmail,
-            delegateAccountID,
-            submitterLogin,
-            managerEmail: trimmed,
-            managerAccountID: resolvedManagerAccountID,
-            isTrackIntentUser,
-            onSubmitted: () => {
+        confirmSubmitReportViolations((shouldResolveAcknowledgedViolations) => {
+            if (onSubmitWithManagerEmail) {
+                onSubmitWithManagerEmail(trimmed, resolvedManagerAccountID, shouldResolveAcknowledgedViolations);
                 if (currentSearchQueryJSON && !isOffline) {
                     search({
                         searchKey: currentSearchKey,
@@ -343,12 +327,50 @@ function ReportSubmitToContent({
                         isLoading: !!currentSearchResults?.search?.isLoading,
                     });
                 }
-                onSubmitSuccess?.();
                 onDismiss();
+                onSubmitSuccess?.();
                 if (shouldDismissRHPAfterSubmit) {
                     Navigation.dismissToPreviousRHP();
                 }
-            },
+                return;
+            }
+
+            submitReport({
+                getCurrencyDecimals,
+                expenseReport: report,
+                policy,
+                rules,
+                currentUserAccountIDParam: currentUserDetails.accountID,
+                currentUserEmailParam: currentUserDetails.email ?? '',
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                userBillingGracePeriodEnds,
+                amountOwed,
+                shouldResolveAcknowledgedViolations,
+                ownerBillingGracePeriodEnd,
+                delegateEmail,
+                delegateAccountID,
+                submitterLogin,
+                managerEmail: trimmed,
+                managerAccountID: resolvedManagerAccountID,
+                isTrackIntentUser,
+                onSubmitted: () => {
+                    if (currentSearchQueryJSON && !isOffline) {
+                        search({
+                            searchKey: currentSearchKey,
+                            shouldCalculateTotals,
+                            offset: 0,
+                            queryJSON: currentSearchQueryJSON,
+                            isLoading: !!currentSearchResults?.search?.isLoading,
+                        });
+                    }
+                    onSubmitSuccess?.();
+                    onDismiss();
+                    if (shouldDismissRHPAfterSubmit) {
+                        Navigation.dismissToPreviousRHP();
+                    }
+                },
+            });
         });
     }, [
         hasSelectedSubmitToMember,
@@ -379,6 +401,7 @@ function ReportSubmitToContent({
         isTrackIntentUser,
         getCurrencyDecimals,
         rules,
+        confirmSubmitReportViolations,
     ]);
 
     const onSelectMember = useCallback(

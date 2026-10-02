@@ -9,11 +9,13 @@ import {submitMoneyRequestOnSearch} from '@libs/actions/Search';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {TransactionViolation} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
 import type * as MockUsePaymentContextUtil from '../../utils/mockUsePaymentContext';
 
+import createMock from '../../utils/createMock';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 // ---------------------------------------------------------------------------
@@ -46,6 +48,7 @@ jest.mock('@libs/actions/Search', () => ({
     getLastPolicyPaymentMethod: jest.fn(),
     getPayMoneyOnSearchInvoiceParams: jest.fn(),
     getPayOption: jest.fn(() => ({shouldEnableBulkPayOption: false, isFirstTimePayment: false})),
+    getReportFromSearchSnapshot: jest.fn(),
     getReportType: jest.fn(),
     getTotalFormattedAmount: jest.fn(() => ''),
     isCurrencySupportWalletBulkPay: jest.fn(() => false),
@@ -101,7 +104,7 @@ jest.mock('@components/DelegateNoAccessModalProvider', () => ({
     useDelegateNoAccessActions: () => ({showDelegateNoAccessModal: jest.fn()}),
 }));
 
-const mockShowConfirmModal = jest.fn<Promise<{action: string}>, [{prompt?: string}]>();
+const mockShowConfirmModal = jest.fn<Promise<{action: string}>, [{prompt?: unknown}]>();
 jest.mock('@hooks/useConfirmModal', () => ({
     __esModule: true,
     default: () => ({showConfirmModal: mockShowConfirmModal}),
@@ -288,6 +291,13 @@ async function mergeTransaction(transactionID: string, reportID: string, overrid
     };
 }
 
+async function mergeViolations(transactionID: string, violations: Array<Pick<TransactionViolation, 'name' | 'type'>>) {
+    await Onyx.merge(
+        `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+        violations.map((violation) => createMock<TransactionViolation>(violation)),
+    );
+}
+
 async function triggerBulkSubmit() {
     const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
 
@@ -384,7 +394,11 @@ describe('useSearchBulkActions - bulk submit with blocked reports', () => {
         });
         expect(mockSubmitMoneyRequestOnSearch.mock.calls.at(0)?.at(1)).toEqual([expect.objectContaining({reportID: REPORT_C_ID})]);
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
-        expect(mockShowConfirmModal.mock.calls.at(0)?.at(0)?.prompt?.split('\n').sort()).toEqual([`${CONST.DOT_SEPARATOR} Report A & travel`, `${CONST.DOT_SEPARATOR} Report B`]);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- this specific prompt (blocked-reports list) is always a plain string, unlike the violations modal's ReactNode prompt
+        expect((mockShowConfirmModal.mock.calls.at(0)?.at(0)?.prompt as string | undefined)?.split('\n').sort()).toEqual([
+            `${CONST.DOT_SEPARATOR} Report A & travel`,
+            `${CONST.DOT_SEPARATOR} Report B`,
+        ]);
     });
 
     it('lists every selected report, submits nothing and keeps the selection when all of them are blocked', async () => {
@@ -396,7 +410,11 @@ describe('useSearchBulkActions - bulk submit with blocked reports', () => {
 
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
         expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({title: 'iou.error.reportsNotSubmittedTitle'}));
-        expect(mockShowConfirmModal.mock.calls.at(0)?.at(0)?.prompt?.split('\n').sort()).toEqual([`${CONST.DOT_SEPARATOR} Report A & travel`, `${CONST.DOT_SEPARATOR} Report B`]);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- this specific prompt (blocked-reports list) is always a plain string, unlike the violations modal's ReactNode prompt
+        expect((mockShowConfirmModal.mock.calls.at(0)?.at(0)?.prompt as string | undefined)?.split('\n').sort()).toEqual([
+            `${CONST.DOT_SEPARATOR} Report A & travel`,
+            `${CONST.DOT_SEPARATOR} Report B`,
+        ]);
         expect(mockSubmitMoneyRequestOnSearch).not.toHaveBeenCalled();
         expect(mockClearSelectedTransactions).not.toHaveBeenCalled();
     });
@@ -423,5 +441,74 @@ describe('useSearchBulkActions - bulk submit with blocked reports', () => {
         await waitFor(() => {
             expect(mockSubmitMoneyRequestOnSearch).toHaveBeenCalledTimes(2);
         });
+    });
+
+    it('shows the violations confirmation modal once for a shared violation across two reports, and submits without asking the backend to resolve anything for an "other" violation', async () => {
+        // Given two selected reports that each have the same "other" violation (over category limit) on their one transaction
+        mockSelectedReports = [makeSelectedReport(REPORT_A_ID), makeSelectedReport(REPORT_B_ID)];
+        await mergeTransaction('txNormalA', REPORT_A_ID);
+        await mergeTransaction('txNormalB', REPORT_B_ID);
+        await mergeViolations('txNormalA', [{name: CONST.VIOLATIONS.OVER_CATEGORY_LIMIT, type: CONST.VIOLATION_TYPES.VIOLATION}]);
+        await mergeViolations('txNormalB', [{name: CONST.VIOLATIONS.OVER_CATEGORY_LIMIT, type: CONST.VIOLATION_TYPES.VIOLATION}]);
+
+        // When the user bulk-submits both reports
+        await triggerBulkSubmit();
+
+        // Then the modal must show a single deduped bullet instead of repeating the same violation once per report,
+        // and since it's an "other" violation with nothing for the backend to resolve, both submits must be sent
+        // with shouldResolveAcknowledgedViolations=false even though the user confirmed the modal
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(
+            expect.objectContaining({
+                title: 'iou.confirmSubmitReportViolations.title',
+                // The same violation on both reports collapses into a single bullet. The mock translate returns
+                // the bare key (ignoring the interpolated amount), so the full violation message from
+                // ViolationsUtils.getViolationTranslation collapses to just the translation key here.
+                prompt: expect.objectContaining({props: expect.objectContaining({violations: ['violations.overCategoryLimit']})}),
+            }),
+        );
+        await waitFor(() => {
+            expect(mockSubmitMoneyRequestOnSearch).toHaveBeenCalledTimes(2);
+        });
+        // An "other" violation (e.g. over category limit) has nothing for the backend to resolve.
+        expect(mockSubmitMoneyRequestOnSearch.mock.calls.at(0)?.at(11)).toBe(false);
+        expect(mockSubmitMoneyRequestOnSearch.mock.calls.at(1)?.at(11)).toBe(false);
+    });
+
+    it('marks the rejected report as resolved with the backend when the user confirms the violations modal', async () => {
+        // Given a selected report whose transaction has a rejected-expense violation
+        mockSelectedReports = [makeSelectedReport(REPORT_A_ID)];
+        await mergeTransaction('txRejected', REPORT_A_ID);
+        await mergeViolations('txRejected', [{name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE, type: CONST.VIOLATION_TYPES.VIOLATION}]);
+
+        // When the user bulk-submits and confirms the violations modal
+        await triggerBulkSubmit();
+
+        // Then the modal must show the rejected-expense bullet, and the submit call must carry
+        // shouldResolveAcknowledgedViolations=true so the backend marks the violation resolved instead of leaving it dangling
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(
+            expect.objectContaining({prompt: expect.objectContaining({props: expect.objectContaining({violations: ['iou.confirmSubmitReportViolations.rejectedExpense']})})}),
+        );
+        await waitFor(() => {
+            expect(mockSubmitMoneyRequestOnSearch).toHaveBeenCalledTimes(1);
+        });
+        expect(mockSubmitMoneyRequestOnSearch.mock.calls.at(0)?.at(11)).toBe(true);
+    });
+
+    it('does not submit when the user cancels the violations confirmation modal', async () => {
+        // Given a selected report with a rejected-expense violation, and a user who is about to cancel the modal
+        mockSelectedReports = [makeSelectedReport(REPORT_A_ID)];
+        await mergeTransaction('txRejected', REPORT_A_ID);
+        await mergeViolations('txRejected', [{name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE, type: CONST.VIOLATION_TYPES.VIOLATION}]);
+        mockShowConfirmModal.mockResolvedValue({action: 'CLOSE'});
+
+        // When the user cancels the violations confirmation modal instead of confirming
+        await triggerBulkSubmit();
+
+        // Then nothing may be submitted and the selection must be preserved, so the user can fix the violation
+        // and retry instead of losing their bulk selection
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+        expect(mockSubmitMoneyRequestOnSearch).not.toHaveBeenCalled();
+        expect(mockClearSelectedTransactions).not.toHaveBeenCalled();
     });
 });

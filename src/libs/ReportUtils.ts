@@ -1574,6 +1574,14 @@ function isOpenExpenseReport(report: OnyxInputOrEntry<Report>): boolean {
 }
 
 /**
+ * A whole-report rejection doesn't add a violation to the report's transactions - it's a report-level
+ * state (nextStep, set when the last action is REJECTED_TO_SUBMITTER) rather than a TransactionViolations entry.
+ */
+function hasReportBeenRejectedToSubmitter(report: OnyxEntry<Report>): boolean {
+    return report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.nextStep?.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT;
+}
+
+/**
  * Checks if the supplied report has a member with the array passed in params.
  */
 function hasParticipantInArray(report: OnyxEntry<Report>, memberAccountIDs: number[]) {
@@ -14953,6 +14961,7 @@ export {
     navigateOnDeleteExpense,
     canRejectReportAction,
     isPayBlockedByArchivedState,
+    hasReportBeenRejectedToSubmitter,
     hasReportBeenReopened,
     hasReportBeenRetracted,
     getNextApproverAccountID,

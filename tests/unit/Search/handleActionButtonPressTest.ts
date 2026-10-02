@@ -362,6 +362,7 @@ describe('handleActionButtonPress', () => {
             isTrackIntentUser: false,
             allViolations: undefined,
             rules: undefined,
+            confirmSubmitReportViolations: jest.fn(),
             bankAccountList: undefined,
         });
         expect(goToItem).not.toHaveBeenCalled();
@@ -392,6 +393,7 @@ describe('handleActionButtonPress', () => {
             isTrackIntentUser: false,
             allViolations: undefined,
             rules: undefined,
+            confirmSubmitReportViolations: jest.fn(),
             bankAccountList: undefined,
         });
 
@@ -422,6 +424,7 @@ describe('handleActionButtonPress', () => {
             isTrackIntentUser: false,
             allViolations: undefined,
             rules: undefined,
+            confirmSubmitReportViolations: jest.fn(),
             bankAccountList: undefined,
         });
         expect(goToItem).toHaveBeenCalledTimes(0);
@@ -460,6 +463,7 @@ describe('handleActionButtonPress', () => {
             rules: undefined,
             conciergeChat: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            confirmSubmitReportViolations: jest.fn(),
             bankAccountList: undefined,
         });
 

@@ -63,6 +63,7 @@ import {
     getPolicyExpenseChat,
     getReportOrDraftReport,
     hasOnlyHeldExpenses,
+    hasReportBeenRejectedToSubmitter,
     hasViolations as hasViolationsReportUtils,
     isArchivedReport,
     isBusinessInvoiceRoom,
@@ -97,6 +98,7 @@ import {
     getDeleteConfirmationPrompt,
     getDeleteExpenseTitle,
     getOriginalTransactionWithSplitInfo,
+    getTransactionViolations,
     hasCustomUnitOutOfPolicyViolation,
     hasOnlyPendingCardTransactions,
     hasReceipt as hasReceiptTransactionUtils,
@@ -107,15 +109,20 @@ import {
     isManualDistanceRequest,
     isOdometerDistanceRequest,
     isPending,
+    isPendingRTERViolation,
     isPerDiemRequest,
     isScanning,
+    shouldShowViolation,
 } from '@libs/TransactionUtils';
+import {getReportSubmitViolationSummary, hasAnySubmitViolation, shouldResolveAcknowledged} from '@libs/Violations/getReportSubmitViolationSummary';
+import showSubmitViolationsConfirmModal from '@libs/Violations/showSubmitViolationsConfirmModal';
 
 import variables from '@styles/variables';
 
 import {initBulkEditDraftTransaction} from '@userActions/IOU/BulkEdit';
 import {dismissRejectUseExplanation} from '@userActions/IOU/RejectMoneyRequest';
 import {canIOUBePaid} from '@userActions/IOU/ReportWorkflow';
+import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -550,7 +557,7 @@ function getChatReportForBulkPay(
 type ExportMenuItem = DropdownOption<SearchHeaderOptionValue> & Pick<PopoverMenuItem, 'accessibilityLabel' | 'shouldCallAfterModalHide'>;
 
 function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, dateFnsLocale} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
@@ -2726,7 +2733,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
                         if (snapshotReport) {
                             openSearchReportSubmitToPopover(reportIDForSubmit, {
-                                onSubmitWithManagerEmail: (managerEmail, managerAccountID) => {
+                                onSubmitWithManagerEmail: (managerEmail, managerAccountID, shouldResolveAcknowledgedViolations) => {
                                     submitMoneyRequestOnSearch(
                                         hash,
                                         [snapshotReport],
@@ -2737,6 +2744,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                                         currentSearchKey,
                                         managerEmail,
                                         managerAccountID,
+                                        undefined,
+                                        undefined,
+                                        shouldResolveAcknowledgedViolations,
                                     );
                                     refreshSearchAfterReportAction({
                                         currentSearchQueryJSON,
@@ -2752,52 +2762,135 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         return;
                     }
 
-                    for (const item of itemList) {
-                        if (item.reportID && blockedReportIDs.has(item.reportID)) {
-                            continue;
+                    const itemsToSubmit = itemList.filter((item) => !(item.reportID && blockedReportIDs.has(item.reportID)));
+                    const reportIDsToSubmit = new Set(itemsToSubmit.map((item) => item.reportID).filter((id): id is string => !!id));
+
+                    // Filtered per report (rather than the raw allTransactionViolations collection) so a violation the
+                    // current user already dismissed does not reappear here and disagree with the row-level Submit
+                    // buttons, which apply the same filter for the same reason.
+                    const filteredViolationsCollection: OnyxCollection<TransactionViolations> = {};
+                    // A whole-report rejection is a report-level state (nextStep), not a TransactionViolations entry, so
+                    // it can't be picked up by getReportSubmitViolationSummary's transaction loop below - checked per
+                    // report here instead, same as the single-report call sites do by passing their report in directly.
+                    let hasAnyReportBeenRejectedToSubmitter = false;
+                    for (const reportID of reportIDsToSubmit) {
+                        const reportForViolations = getReportFromSearchSnapshot(reportID, searchResults?.data, allReports);
+                        const policyForViolations = reportForViolations?.policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportForViolations.policyID}`] : undefined;
+                        const reportOwnerLogin = getLoginByAccountID(reportForViolations?.ownerAccountID, personalDetails);
+                        if (hasReportBeenRejectedToSubmitter(reportForViolations)) {
+                            hasAnyReportBeenRejectedToSubmitter = true;
                         }
-                        const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
-                        if (policy) {
-                            submitMoneyRequestOnSearch(hash, [item as Report], [policy], getLoginByAccountID(item.ownerAccountID, personalDetails), getCurrencyDecimals, rules);
-                        } else {
-                            Log.info('[BulkSubmit] Skipping report: policy not found in Onyx', false, {reportID: item?.reportID, policyID: item?.policyID});
+                        for (const transaction of transactionsByReportID.get(reportID) ?? []) {
+                            const transactionViolationsForReport =
+                                getTransactionViolations(transaction, allTransactionViolations, email ?? '', accountID, reportForViolations, reportOwnerLogin, policyForViolations) ?? [];
+                            // Each report has its own policy, so this filter (unlike the dismissal filter above) can't be
+                            // delegated to getReportSubmitViolationSummary - it's called once across every selected report.
+                            // AUTO_REPORTED_REJECTED_EXPENSE and a pending RTER card-match are kept regardless of
+                            // shouldShowViolation, same as getReportSubmitViolationSummary's own loop - it checks for
+                            // their raw presence (hasTransactionBeenRejected/hasPendingRTERViolation) before any filtering.
+                            filteredViolationsCollection[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] = transactionViolationsForReport.filter(
+                                (violation) =>
+                                    violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE ||
+                                    isPendingRTERViolation(violation) ||
+                                    shouldShowViolation(reportForViolations, policyForViolations, violation.name, email ?? '', accountID, true, transaction),
+                            );
                         }
                     }
 
-                    // List the skipped reports by the name the Search rows display.
-                    if (blockedReportIDs.size > 0) {
-                        const blockedReportNames: string[] = [];
-                        for (const reportID of blockedReportIDs) {
-                            const reportName = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName;
-                            if (reportName) {
-                                blockedReportNames.push(StringUtils.lineBreaksToSpaces(Parser.htmlToText(reportName)));
+                    const runSubmit = (shouldResolveAcknowledgedViolations?: boolean) => {
+                        for (const item of itemsToSubmit) {
+                            const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
+                            if (policy) {
+                                submitMoneyRequestOnSearch(
+                                    hash,
+                                    [item as Report],
+                                    [policy],
+                                    getLoginByAccountID(item.ownerAccountID, personalDetails),
+                                    getCurrencyDecimals,
+                                    rules,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    shouldResolveAcknowledgedViolations,
+                                );
+                            } else {
+                                Log.info('[BulkSubmit] Skipping report: policy not found in Onyx', false, {reportID: item?.reportID, policyID: item?.policyID});
                             }
                         }
-                        showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
-                            title: translate(allReportsShouldMarkAsDone ? 'iou.error.reportsNotMarkedAsDoneTitle' : 'iou.error.reportsNotSubmittedTitle'),
-                            subtitle: translate(allReportsShouldMarkAsDone ? 'iou.error.reportsNotMarkedAsDoneDescription' : 'iou.error.reportsNotSubmittedDescription'),
-                            prompt: blockedReportNames.map((reportName) => `${CONST.DOT_SEPARATOR} ${reportName}`).join('\n'),
-                            confirmText: translate('common.buttonConfirm'),
-                            shouldShowCancelButton: false,
-                            shouldEnablePromptScroll: true,
-                        });
 
-                        if (areAllSelectedReportsBlocked) {
-                            return;
+                        // List the skipped reports by the name the Search rows display.
+                        if (blockedReportIDs.size > 0) {
+                            const blockedReportNames: string[] = [];
+                            for (const reportID of blockedReportIDs) {
+                                const reportName = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName;
+                                if (reportName) {
+                                    blockedReportNames.push(StringUtils.lineBreaksToSpaces(Parser.htmlToText(reportName)));
+                                }
+                            }
+                            showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
+                                title: translate(allReportsShouldMarkAsDone ? 'iou.error.reportsNotMarkedAsDoneTitle' : 'iou.error.reportsNotSubmittedTitle'),
+                                subtitle: translate(allReportsShouldMarkAsDone ? 'iou.error.reportsNotMarkedAsDoneDescription' : 'iou.error.reportsNotSubmittedDescription'),
+                                prompt: blockedReportNames.map((reportName) => `${CONST.DOT_SEPARATOR} ${reportName}`).join('\n'),
+                                confirmText: translate('common.buttonConfirm'),
+                                shouldShowCancelButton: false,
+                                shouldEnablePromptScroll: true,
+                            });
+
+                            if (areAllSelectedReportsBlocked) {
+                                return;
+                            }
                         }
+
+                        // Submitting only changes the report, so the rows keep serving the snapshot's pre-submit report
+                        // context (which still offers Submit) until the snapshot is refetched, the same way approving and
+                        // paying from Search already do.
+                        refreshSearchAfterReportAction({
+                            currentSearchQueryJSON,
+                            currentSearchKey,
+                            shouldCalculateTotals: shouldCalculateTotalsOnRefresh,
+                            isOffline,
+                            isLoading: !!currentSearchResults?.search?.isLoading,
+                        });
+                        clearSelectedTransactions();
+                    };
+
+                    // Consolidate unique violations across every report being submitted, so the modal lists each
+                    // violation once even if it appears on multiple selected reports.
+                    const submitTransactions = [...reportIDsToSubmit].flatMap((reportID) => transactionsByReportID.get(reportID) ?? []);
+                    const summary = getReportSubmitViolationSummary(submitTransactions, filteredViolationsCollection, undefined, undefined, email ?? '', accountID);
+                    if (hasAnyReportBeenRejectedToSubmitter) {
+                        summary.hasReportBeenRejected = true;
                     }
 
-                    // Submitting only changes the report, so the rows keep serving the snapshot's pre-submit report
-                    // context (which still offers Submit) until the snapshot is refetched, the same way approving and
-                    // paying from Search already do.
-                    refreshSearchAfterReportAction({
-                        currentSearchQueryJSON,
-                        currentSearchKey,
-                        shouldCalculateTotals: shouldCalculateTotalsOnRefresh,
-                        isOffline,
-                        isLoading: !!currentSearchResults?.search?.isLoading,
+                    if (!hasAnySubmitViolation(summary)) {
+                        runSubmit();
+                        return;
+                    }
+
+                    showSubmitViolationsConfirmModal({
+                        summary,
+                        showConfirmModal,
+                        translate,
+                        dateFnsLocale,
+                        convertToDisplayString,
+                        shouldShowMarkAsDoneCopy: allReportsShouldMarkAsDone,
+                    }).then((result) => {
+                        if (result.action !== ModalActions.CONFIRM) {
+                            return;
+                        }
+                        if (summary.hasPendingCardMatch) {
+                            for (const reportID of reportIDsToSubmit) {
+                                markPendingRTERTransactionsAsCash(
+                                    transactionsByReportID.get(reportID) ?? [],
+                                    filteredViolationsCollection,
+                                    Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {}),
+                                );
+                            }
+                        }
+                        runSubmit(shouldResolveAcknowledged(summary));
                     });
-                    clearSelectedTransactions();
                 },
             });
         }
@@ -3113,6 +3206,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         queryJSON,
         expensifyIcons,
         translate,
+        dateFnsLocale,
+        convertToDisplayString,
         areAllMatchingItemsSelected,
         isExpenseType,
         isOffline,
@@ -3132,6 +3227,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         csvExportLayouts,
         allReports,
         accountID,
+        email,
         currentUserLogin,
         bankAccountList,
         styles.integrationIcon,
