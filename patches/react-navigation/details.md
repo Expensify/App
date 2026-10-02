@@ -28,7 +28,7 @@
 
 ### [@react-navigation+core+7.22.1+003+root-state-not-undefined.patch](@react-navigation+core+7.22.1+003+root-state-not-undefined.patch)
 
-- Reason: Keep `NavigationContainerRef.getRootState()` typed as `NavigationState` instead of `NavigationState | undefined`. Types only, no runtime change: the implementation already returned `undefined` before the container ref mounted in 7.21.12, the type just did not admit it. Around 30 call sites (including `navigationRef.current?.getRootState().routes` in the navigation tests) hand the result straight to helpers that require a state object, and they all run behind the app's readiness gate (`NavigationRoot`'s `onReady`, `navigationRef.isReady()`), so guarding each one is a separate refactor rather than part of an upgrade.
+- Reason: Keep `NavigationContainerRef.getRootState()` typed as `NavigationState` instead of `NavigationState | undefined`. Types only, no runtime change: the implementation already returned `undefined` before the container ref mounted in 7.21.12, the type just did not admit it. Around 120 call sites in `src/` alone (plus examples such as `navigationRef.current?.getRootState().routes` in the navigation tests) hand the result straight to helpers that require a state object, and they all run behind the app's readiness gate (`NavigationRoot`'s `onReady`, `navigationRef.isReady()`), so guarding each one is a separate refactor rather than part of an upgrade.
 - Upstream PR/issue: https://github.com/react-navigation/react-navigation/commit/4e6eaaac6fad57d09ab5a828484b8ffeb4cfc6e5 (core 7.21.13, "fix return type of getRootState")
 - E/App issue: [#101715](https://github.com/Expensify/App/issues/101715)
 - PR Introducing Patch: N/A
