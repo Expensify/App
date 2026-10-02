@@ -7625,6 +7625,21 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                     invalidAddress: 'Bitte geben Sie eine gültige Adresse ein',
                     distanceTooLarge: 'Die Entfernung ist zu groß.',
                 },
+                workArrangement: {
+                    title: 'Standardarbeitsmodell',
+                    officeBasedTitle: 'Bürobasiert',
+                    officeBasedHelp: 'Mitglied pendelt zu einem Büro. Gewöhnliche Arbeitswege sind von der Erstattung ausgeschlossen.',
+                    noRegularWorkplaceTitle: 'Keine regelmäßige Arbeitsstätte',
+                    noRegularWorkplaceHelp:
+                        'Das Mitglied arbeitet remote oder hat keinen festen Arbeitsplatz, daher gelten die Regeln für den Arbeitsweg zwischen Wohnung und Arbeitsstätte nicht.',
+                    startingPrompt: {
+                        title: 'Legen Sie eine typische Arbeitsregelung fest',
+                        prompt: 'Wählen Sie die Vereinbarung, die für die meisten aktuellen Mitglieder gilt. Sie können Mitglieder später einzeln oder in großen Mengen aktualisieren.',
+                        officeBasedHelp: 'Die meisten Mitglieder pendeln ins Büro. Gewöhnliche Arbeitswege sind ausgeschlossen.',
+                        noRegularWorkplaceHelp: 'Die meisten Mitglieder arbeiten remote, daher gelten Ausschlüsse für Fahrten zwischen Wohnung und Arbeitsstätte in der Regel nicht.',
+                        confirm: 'Anwenden',
+                    },
+                },
             },
             distance: 'Entfernung',
             centrallyManage: 'Tarife zentral verwalten, in Meilen oder Kilometern nachverfolgen und eine Standardkategorie festlegen.',
@@ -9487,6 +9502,13 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `„${prohibitedExpense}“ zu verbotenen Ausgaben hinzugefügt`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `„${prohibitedExpense}“ aus verbotenen Ausgaben entfernt`,
+        workArrangement: {
+            officeBased: 'bürobasiert',
+            noRegularWorkplace: 'kein fester Arbeitsplatz',
+            set: ({arrangement}: {arrangement: string}) => `Standard-Arbeitsmodell auf ${arrangement} festlegen`,
+            changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
+                `hat die Standardarbeitsregelung in ${arrangement} geändert (zuvor ${previousArrangement})`,
+        },
         commuterExclusions: {
             changedToFixedDistance: ({previousMethod}: {previousMethod: string}) => `Ausschluss von Arbeitswegen in eine feste Entfernung pro Abrechnung geändert (zuvor ${previousMethod})`,
             changedToHomeAndOffice: ({previousMethod}: {previousMethod: string}) => `Ausschluss von Pendelstrecken geändert, um nach Wohnort und Büro zu berechnen (zuvor ${previousMethod})`,

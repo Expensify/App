@@ -7912,6 +7912,20 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                     invalidAddress: 'Παρακαλούμε εισαγάγετε έγκυρη διεύθυνση',
                     distanceTooLarge: 'Η απόσταση είναι πολύ μεγάλη.',
                 },
+                workArrangement: {
+                    title: 'Προεπιλεγμένη εργασιακή ρύθμιση',
+                    officeBasedTitle: 'Με έδρα γραφείο',
+                    officeBasedHelp: 'Το μέλος μετακινείται σε γραφείο. Οι συνηθισμένες μετακινήσεις δεν καλύπτονται από αποζημίωση.',
+                    noRegularWorkplaceTitle: 'Χωρίς τακτικό χώρο εργασίας',
+                    noRegularWorkplaceHelp: 'Το μέλος εργάζεται εξ αποστάσεως ή δεν έχει σταθερό χώρο εργασίας, επομένως δεν ισχύουν οι κανόνες μετακίνησης από το σπίτι προς την εργασία.',
+                    startingPrompt: {
+                        title: 'Ορίστε μια τυπική εργασιακή ρύθμιση',
+                        prompt: 'Επιλέξτε τη ρύθμιση που ισχύει για τα περισσότερα τρέχοντα μέλη. Μπορείτε να ενημερώσετε τα μέλη μεμονωμένα ή μαζικά αργότερα.',
+                        officeBasedHelp: 'Οι περισσότεροι συμμετέχοντες μετακινούνται σε ένα γραφείο. Οι συνήθεις μετακινήσεις από και προς την εργασία εξαιρούνται.',
+                        noRegularWorkplaceHelp: 'Τα περισσότερα μέλη εργάζονται απομακρυσμένα, επομένως οι εξαιρέσεις για τις μετακινήσεις από το σπίτι προς τη δουλειά συνήθως δεν ισχύουν.',
+                        confirm: 'Εφαρμογή',
+                    },
+                },
             },
             distance: 'Απόσταση',
             centrallyManage: 'Διαχειριστείτε κεντρικά τις χρεώσεις, παρακολουθήστε σε μίλια ή χιλιόμετρα και ορίστε μια προεπιλεγμένη κατηγορία.',
@@ -9613,6 +9627,13 @@ ${reportName}`,
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `προστέθηκε το "${prohibitedExpense}" στις απαγορευμένες δαπάνες`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `αφαιρέσατε το «${prohibitedExpense}» από τις απαγορευμένες δαπάνες`,
+        workArrangement: {
+            officeBased: 'με φυσική παρουσία στο γραφείο',
+            noRegularWorkplace: 'κανένας σταθερός χώρος εργασίας',
+            set: ({arrangement}: {arrangement: string}) => `ορίστε την προεπιλεγμένη εργασιακή ρύθμιση σε ${arrangement}`,
+            changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
+                `άλλαξε την προεπιλεγμένη εργασιακή ρύθμιση σε ${arrangement} (προηγουμένως ${previousArrangement})`,
+        },
         commuterExclusions: {
             changedToFixedDistance: ({previousMethod}: {previousMethod: string}) =>
                 `αλλάχθηκε ο αποκλεισμός μετακινήσεων από/προς εργασία σε σταθερή απόσταση ανά αίτημα (προηγουμένως ${previousMethod})`,

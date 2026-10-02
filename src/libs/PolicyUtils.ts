@@ -25,6 +25,7 @@ import type {
     Account,
     ApprovalRule,
     ConnectionLastSync,
+    CommuterExclusions,
     ConnectionName,
     Connections,
     CustomUnit,
@@ -66,6 +67,7 @@ import {isApprovalWorkflowRule, isRuleFilterComparison} from './RuleUtils';
 import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
 import {generateAccountID} from './UserUtils';
 import {isPublicDomain, isValidAccountRoute} from './ValidationUtils';
+import {getEffectiveWorkArrangement} from './WorkArrangementUtils';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 
@@ -406,6 +408,13 @@ function getNumericValue(value: number | string, toLocaleDigit: (arg: string) =>
  */
 function getDistanceRateCustomUnit(policy: OnyxEntry<Policy>): CustomUnit | undefined {
     return Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+}
+
+/**
+ * The workspace-wide work arrangement, which members follow unless they were given one of their own.
+ */
+function hasOfficeWorkArrangement(commuterExclusions: CommuterExclusions | undefined): boolean {
+    return getEffectiveWorkArrangement(undefined, commuterExclusions?.isOfficeWorkArrangement);
 }
 
 /**
@@ -3750,6 +3759,7 @@ export {
     getSageIntacctBankAccounts,
     getSageIntacctExpenseAccounts,
     getDistanceRateCustomUnit,
+    hasOfficeWorkArrangement,
     getPerDiemCustomUnit,
     getPolicyByCustomUnitID,
     getDistanceRateCustomUnitRate,
