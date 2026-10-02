@@ -23,7 +23,7 @@ import type {ReactNode} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
 import React, {useEffect, useMemo} from 'react';
-import {StyleSheet, View} from 'react-native';
+import {View} from 'react-native';
 
 type ToggleSettingOptionRowProps = {
     /** Icon to be shown for the option */
