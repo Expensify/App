@@ -31,6 +31,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
+import getOnyxValue from '../utils/getOnyxValue';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -520,18 +521,52 @@ describe('WorkspaceMemberDetailsPage', () => {
         fireEvent.press(await screen.findByTestId('member-approver-menu-item'), {nativeEvent: {}});
         await waitForBatchedUpdatesWithAct();
 
-        // The owner approves themselves, so the editor would open the workflow the rest of the workspace is on and
-        // let an admin reassign every other member's approver from the owner's own profile.
+        // The owner heads the default workflow, so the editor would open the workflow the rest of the workspace is on
+        // and let an admin reassign every other member's approver from the owner's own profile.
         expect(navigateSpy).toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policy.id));
         expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policy.id, ownerEmail, ownerEmail));
+
+        // The create page is the first step here, unlike the Workflows tab's wizard, so the draft must not look like
+        // it is still on that wizard's opening step. Expenses from discards such a draft when the user leaves it.
+        expect((await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW))?.isInitialFlow).toBe(false);
 
         unmount();
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should send a submit workspace to the upgrade page rather than start a workflow it cannot run', async () => {
+    it('should open the editor for a member who heads a workflow covering only themselves', async () => {
         const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
 
+        // Given an invited member who submits to themselves and forwards to an admin, so they head a workflow that
+        // governs nobody else. Editing it cannot reassign anyone's approver but their own.
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                approver: ownerEmail,
+                employeeList: {
+                    [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: ownerEmail},
+                    [adminPayerEmail]: {email: adminPayerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: ownerEmail},
+                    [invitedEmail]: {email: invitedEmail, role: CONST.POLICY.ROLE.USER, submitsTo: invitedEmail, forwardsTo: adminPayerEmail},
+                },
+            });
+        });
+
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(invitedAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(await screen.findByTestId('member-approver-menu-item'), {nativeEvent: {}});
+        await waitForBatchedUpdatesWithAct();
+
+        expect(navigateSpy).toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policy.id, invitedEmail, invitedEmail));
+        expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policy.id));
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should hide the approver row on a submit workspace, which presents approvals as off', async () => {
+        // Given a submit workspace, which is created in advanced approval mode even though configuring approvals is
+        // an upgrade away. The Workflows tab shows its approvals toggle off, so this row has nothing to show either.
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
                 type: CONST.POLICY.TYPE.SUBMIT,
@@ -546,15 +581,7 @@ describe('WorkspaceMemberDetailsPage', () => {
         const {unmount} = renderPage({policyID: policy.id, accountID: String(ownerAccountID)});
         await waitForBatchedUpdatesWithAct();
 
-        fireEvent.press(await screen.findByTestId('member-approver-menu-item'), {nativeEvent: {}});
-        await waitForBatchedUpdatesWithAct();
-
-        // Adding an approver is plan-gated here exactly as it is on the Workflows tab, and the upgrade page comes back
-        // to this member's profile rather than to More Features, since that is where the admin started.
-        expect(navigateSpy).toHaveBeenCalledWith(
-            ROUTES.WORKSPACE_UPGRADE.getRoute(policy.id, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.alias, ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policy.id, ownerAccountID)),
-        );
-        expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policy.id));
+        expect(screen.queryByTestId('member-approver-menu-item')).not.toBeOnTheScreen();
 
         unmount();
         await waitForBatchedUpdatesWithAct();
@@ -582,7 +609,7 @@ describe('WorkspaceMemberDetailsPage', () => {
 
         // Only Control runs the workflows this would create, so a Collect workspace is asked to upgrade first.
         expect(navigateSpy).toHaveBeenCalledWith(
-            ROUTES.WORKSPACE_UPGRADE.getRoute(policy.id, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias, ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policy.id, ownerAccountID)),
+            ROUTES.WORKSPACE_UPGRADE.getRoute(policy.id, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias, ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policy.id)),
         );
         expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policy.id));
 

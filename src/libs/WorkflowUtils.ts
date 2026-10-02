@@ -10,6 +10,7 @@ import type {BankAccountList} from '@src/types/onyx';
 import type {ApprovalWorkflowOnyx, Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type {ApprovalWorkflowActions, ApprovalWorkflowRule, ApprovalWorkflowTriggers} from '@src/types/onyx/ApprovalWorkflowRules';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
@@ -1568,6 +1569,39 @@ function getApprovalWorkflowRulesForPolicy(rulesCollection: OnyxCollection<Rule>
 }
 
 /**
+ * Map every member whose approver is mid-change to that change's pending state.
+ *
+ * A change lands on the policy's employee list or, under the `MULTIPLE_APPROVERS` beta, on the approval workflow
+ * rules, so a surface showing a member's approver has to read whichever one the save went to.
+ *
+ * @param rules the policy's rules, or nothing when the beta is off and the employee list holds the approver.
+ */
+function getApproverPendingActionByMemberEmail(policy: OnyxEntry<Policy>, rules: NonNullable<OnyxCollection<Rule>> | undefined): Record<string, PendingAction> {
+    const pendingActionByMemberEmail: Record<string, PendingAction> = {};
+
+    for (const employee of Object.values(policy?.employeeList ?? {})) {
+        const pendingAction = employee.pendingFields?.submitsTo;
+        if (!employee.email || !pendingAction) {
+            continue;
+        }
+
+        pendingActionByMemberEmail[employee.email] = pendingAction;
+    }
+
+    for (const rule of Object.values(rules ?? {})) {
+        if (!rule?.pendingAction || !isApprovalWorkflowRule(rule)) {
+            continue;
+        }
+
+        for (const submitter of extractSubmitterEmails(rule)) {
+            pendingActionByMemberEmail[submitter] ??= rule.pendingAction;
+        }
+    }
+
+    return pendingActionByMemberEmail;
+}
+
+/**
  * Map every submitter found in the rules to their workflow's first approver.
  */
 function getRulesSubmitterToFirstApprover(rules: Record<string, ApprovalWorkflowRule>, employees: PolicyEmployeeList = {}, defaultApprover?: string): Record<string, string> {
@@ -1841,6 +1875,7 @@ export {
     getEnforcedApprovalWorkflowsForMembers,
     getApprovalWorkflowSource,
     filterRulesForPolicy,
+    getApproverPendingActionByMemberEmail,
     getRulesSubmitterToFirstApprover,
     getRulesSubmitterToWorkflowKey,
     getWorkflowMemberEmails,

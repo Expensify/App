@@ -14,6 +14,7 @@ import {
     extractSubmitterEmails,
     filterRulesForPolicy,
     getApprovalLimitDescription,
+    getApproverPendingActionByMemberEmail,
     getOpenConnectedToPolicyBusinessBankAccounts,
     getApprovalWorkflowSource,
     getOverLimitForwardsToDisplayName,
@@ -2439,6 +2440,43 @@ describe('WorkflowUtils', () => {
 
         it('leaves out workflows that have no approvers', () => {
             expect(getFirstApproverByMemberEmail([buildWorkflow([1], [])])).toEqual({});
+        });
+    });
+
+    describe('getApproverPendingActionByMemberEmail', () => {
+        const approvalRuleFor = (submitter: string, extra: Partial<Omit<Rule, 'actions' | 'filters' | 'triggers'>> = {}): Rule => ({
+            scope: CONST.RULES.SCOPE.POLICY,
+            scopeID: 'policy1',
+            triggers: {'1': CONST.RULES.TRIGGERS.REPORT_SUBMIT},
+            filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: submitter},
+            actions: {'1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: 'b@example.com'}},
+            ...extra,
+        });
+
+        const policyWithEmployees = (employeeList: Policy['employeeList']) => createMock<Policy>({...createRandomPolicy(1), employeeList});
+
+        it('reads the employee list, which is where a save lands while the multiple approvers beta is off', () => {
+            // Given an employee whose approver change is still in flight, the beta being off so no rules are passed.
+            const policy = policyWithEmployees({
+                'a@example.com': {email: 'a@example.com', pendingFields: {submitsTo: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}},
+                'b@example.com': {email: 'b@example.com'},
+            });
+
+            expect(getApproverPendingActionByMemberEmail(policy, undefined)).toEqual({'a@example.com': CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE});
+        });
+
+        it('reads the rules, which is where a save lands while the beta is on and the employee list is untouched', () => {
+            // Given a policy whose employees carry no pending approver change, because the save went to the rules.
+            const policy = policyWithEmployees({'a@example.com': {email: 'a@example.com'}});
+            const rules = {rules_1: approvalRuleFor('a@example.com', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE})};
+
+            expect(getApproverPendingActionByMemberEmail(policy, rules)).toEqual({'a@example.com': CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE});
+        });
+
+        it('leaves out members whose approver is settled', () => {
+            const policy = policyWithEmployees({'a@example.com': {email: 'a@example.com'}});
+
+            expect(getApproverPendingActionByMemberEmail(policy, {rules_1: approvalRuleFor('a@example.com')})).toEqual({});
         });
     });
 

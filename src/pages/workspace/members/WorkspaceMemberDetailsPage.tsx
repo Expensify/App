@@ -172,7 +172,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
 
-    const {approvalWorkflows, enforcedApprovalWorkflows, availableMembers, usedApproverEmails} = useApprovalWorkflows({policy, personalDetails, currentUserLogin});
+    const {approvalWorkflows, enforcedApprovalWorkflows, availableMembers, usedApproverEmails, approverPendingActionByMemberEmail} = useApprovalWorkflows({
+        policy,
+        personalDetails,
+        currentUserLogin,
+    });
 
     // The label follows this member's own workflow depth, not the workspace's.
     const memberApprovalWorkflow = enforcedApprovalWorkflows.find((workflow) => workflow.members.some((workflowMember) => workflowMember.email === memberLogin));
@@ -181,23 +185,35 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     // An HR integration in a read-only approval mode owns the workflows, so the editor rejects manual edits.
     // Keep the row visible for reference but inert, the same way the Workflows tab disables its own actions.
     const shouldAllowApproverEdit = canWriteMembers && !isAnyHRReadOnlyWorkflowMode(policy);
-    // A member at the top of their own chain approves themselves, the workspace owner being the common case.
-    const isSelfApprovingMember = !!memberFirstApprover && memberFirstApprover.email === memberLogin;
+    // A member who heads the default workflow approves themselves, the workspace owner being the common case.
+    // That workflow governs everyone, unlike a workflow a member heads for themselves alone.
+    const headsDefaultWorkflow = !!memberFirstApprover && memberFirstApprover.email === memberLogin && !!memberApprovalWorkflow?.isDefault;
     const approverLabel = getFirstApproverLabel((memberApprovalWorkflow?.approvers.length ?? 0) > 1, translate, toLocaleOrdinalWithWords);
 
     const openMemberApprovalWorkflow = () => {
         // Discard stale onyx edits or the Edit page's resume check would surface a prior abandoned session.
         clearApprovalWorkflow();
 
-        // The editor opens the whole workflow, so a self-approving member has to start their own rather than edit the
-        // one they approve, which would let an admin reassign everyone else on it.
-        if (memberFirstApprover?.email && !isSelfApprovingMember) {
+        // The editor opens the whole workflow, so the member who heads the default one has to start their own rather
+        // than edit the one they approve, which would let an admin reassign the rest of the workspace from here.
+        if (memberFirstApprover?.email && !headsDefaultWorkflow) {
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, memberFirstApprover.email, memberLogin));
             return;
         }
 
+        // Seed the draft before the plan gates so the create page already has it when an upgrade lands there.
+        // This entry point goes straight to the create page, skipping the Expenses from and Approver steps that turn
+        // `isInitialFlow` off, and Expenses from discards the draft on the way out while that flag is still set.
+        setApprovalWorkflow({
+            ...INITIAL_APPROVAL_WORKFLOW,
+            isInitialFlow: false,
+            members: [{email: memberLogin, displayName, avatar: details?.avatar}],
+            availableMembers,
+            usedApproverEmails,
+        });
+
         // Creating a workflow is plan-gated, the same way adding one from the Workflows tab is.
-        const backTo = ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID);
+        const backTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID);
         if (tryNavigateToSubmitWorkspaceUpgrade(policy, true, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.alias, backTo)) {
             return;
         }
@@ -207,13 +223,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             return;
         }
 
-        setApprovalWorkflow({
-            ...INITIAL_APPROVAL_WORKFLOW,
-            members: [{email: memberLogin, displayName, avatar: details?.avatar}],
-            availableMembers,
-            usedApproverEmails,
-        });
-        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID));
+        Navigation.navigate(backTo);
     };
 
     useEffect(() => {
@@ -459,7 +469,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 }}
                             />
                             {isApprovalsEnabled && (
-                                <OfflineWithFeedback pendingAction={member?.pendingFields?.submitsTo}>
+                                <OfflineWithFeedback pendingAction={approverPendingActionByMemberEmail[memberLogin]}>
                                     <MenuItemWithTopDescription
                                         description={approverLabel}
                                         titleComponent={

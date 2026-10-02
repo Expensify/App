@@ -3,6 +3,7 @@ import {
     convertPolicyEmployeesToApprovalWorkflows,
     filterRulesForPolicy,
     getApprovalWorkflowRulesForPolicy,
+    getApproverPendingActionByMemberEmail,
     getEnforcedApprovalWorkflowsForMembers,
 } from '@libs/WorkflowUtils';
 import type {PolicyConversionResult} from '@libs/WorkflowUtils';
@@ -11,6 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PersonalDetailsList} from '@src/types/onyx';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type Rule from '@src/types/onyx/Rule';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -41,6 +43,12 @@ type UseApprovalWorkflowsResult = PolicyConversionResult & {
      * isn't presented as if it still applied.
      */
     enforcedApprovalWorkflows: ApprovalWorkflow[];
+
+    /**
+     * The pending state of each member's approver while a change to it is in flight, keyed by member email. Read this
+     * alongside the approver itself, since the change lands in a different place depending on the beta.
+     */
+    approverPendingActionByMemberEmail: Record<string, PendingAction>;
 };
 
 /** Derives the policy's approval workflows, from rules or from `employeeList` depending on the `MULTIPLE_APPROVERS` beta. */
@@ -62,7 +70,11 @@ function useApprovalWorkflows({policy, personalDetails, currentUserLogin}: UseAp
         ? convertApprovalWorkflowRulesToWorkflows({...params, rules: getApprovalWorkflowRulesForPolicy(rulesCollection, policyID)})
         : convertPolicyEmployeesToApprovalWorkflows(params);
 
-    return {...result, enforcedApprovalWorkflows: getEnforcedApprovalWorkflowsForMembers(result.approvalWorkflows, policy, isMultipleApproversBetaEnabled)};
+    return {
+        ...result,
+        enforcedApprovalWorkflows: getEnforcedApprovalWorkflowsForMembers(result.approvalWorkflows, policy, isMultipleApproversBetaEnabled),
+        approverPendingActionByMemberEmail: getApproverPendingActionByMemberEmail(policy, isMultipleApproversBetaEnabled ? rulesCollection : undefined),
+    };
 }
 
 export default useApprovalWorkflows;
