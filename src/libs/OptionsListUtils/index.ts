@@ -2256,7 +2256,7 @@ function getValidOptions(
             }
 
             const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-            if (!doesReportMatchSearchTerms(report, searchTerms)) {
+            if (!doesReportMatchSearchTerms(report, searchTerms, translate)) {
                 return false;
             }
 
@@ -2374,7 +2374,7 @@ function getValidOptions(
             recentReportOptions = recentReportOptions.filter((report) => !report.reportID || !reportIDsToExclude.has(report.reportID));
         }
     } else if (recentAttendees && recentAttendees?.length > 0) {
-        recentReportOptions = filterReports(recentAttendees as SearchOptionData[], searchTerms) as Array<SearchOption<Report>>;
+        recentReportOptions = filterReports(recentAttendees as SearchOptionData[], searchTerms, translate) as Array<SearchOption<Report>>;
 
         // Only cap the recent attendees when there's no active search. During a search we surface every match, since
         // all recent attendees are excluded from "Contacts" and capped-off matches would otherwise vanish from the list.
@@ -2846,7 +2846,7 @@ function filteredPersonalDetailsOfRecentReports<T extends SearchOptionData>(rece
 /**
  * Filters options based on the search input value
  */
-function filterReports(reports: SearchOptionData[], searchTerms: string[]): SearchOptionData[] {
+function filterReports(reports: SearchOptionData[], searchTerms: string[], translate: LocalizedTranslate): SearchOptionData[] {
     const normalizedSearchTerms = searchTerms.map((term) => StringUtils.normalizeForMatch(term));
     // We search eventually for multiple whitespace separated search terms.
     // We start with the search term at the end, and then narrow down those filtered search results with the next search term.
@@ -2875,6 +2875,12 @@ function filterReports(reports: SearchOptionData[], searchTerms: string[]): Sear
                     }
                 }
 
+                // Let the current user find their self DM by the localized "You"/"Me", like their own contact row
+                if (item.isSelfDM) {
+                    values.push(StringUtils.normalizeForMatch(translate('common.you')));
+                    values.push(StringUtils.normalizeForMatch(translate('common.me')));
+                }
+
                 return uniqFast(values);
             }),
         // We start from all unfiltered reports:
@@ -2889,7 +2895,7 @@ function filterReports(reports: SearchOptionData[], searchTerms: string[]): Sear
  * canonical matcher handles apostrophes, hyphens, zero-width characters, diacritics, and emails searched without
  * their dots, and only runs when the cheap check misses. Narrowing the cheap check silently drops matches.
  */
-function doesReportMatchSearchTerms(report: SearchOption<Report>, searchTerms: string[]): boolean {
+function doesReportMatchSearchTerms(report: SearchOption<Report>, searchTerms: string[], translate: LocalizedTranslate): boolean {
     const normalizeSearchText = (value: string) => deburr(StringUtils.normalizeForMatch(value).toLocaleLowerCase());
     const normalizedSearchTerms = searchTerms.map(normalizeSearchText);
     let searchText = `${report.text ?? ''}${report.login ?? ''}`;
@@ -2903,9 +2909,12 @@ function doesReportMatchSearchTerms(report: SearchOption<Report>, searchTerms: s
         const participantsSearchText = report.participantsList?.map((participant) => [participant.displayName, participant.login].filter(Boolean).join(' ')).join(' ') ?? '';
         searchText += participantsSearchText;
     }
+    if (report.isSelfDM) {
+        searchText += `${translate('common.you')} ${translate('common.me')}`;
+    }
     searchText = normalizeSearchText(searchText);
 
-    return normalizedSearchTerms.every((term) => searchText.includes(term)) || filterReports([report], normalizedSearchTerms).length > 0;
+    return normalizedSearchTerms.every((term) => searchText.includes(term)) || filterReports([report], normalizedSearchTerms, translate).length > 0;
 }
 
 function filterWorkspaceChats(reports: SearchOptionData[], searchTerms: string[]): SearchOptionData[] {
@@ -2990,8 +2999,8 @@ function filterUserToInvite(
     });
 }
 
-function filterSelfDMChat(report: SearchOptionData, searchTerms: string[]): SearchOptionData | undefined {
-    return filterReports([report], searchTerms).at(0);
+function filterSelfDMChat(report: SearchOptionData, searchTerms: string[], translate: LocalizedTranslate): SearchOptionData | undefined {
+    return filterReports([report], searchTerms, translate).at(0);
 }
 
 function filterOptions<T extends SearchOptionData>(
@@ -3013,7 +3022,7 @@ function filterOptions<T extends SearchOptionData>(
     const searchValue = parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : trimmedSearchInput.toLowerCase();
     const searchTerms = searchValue ? searchValue.split(' ') : [];
 
-    const recentReports = filterReports(options.recentReports, searchTerms);
+    const recentReports = filterReports(options.recentReports, searchTerms, translate);
     const personalDetails = filterPersonalDetails(options.personalDetails, searchTerms, currentUserAccountID, translate);
     const currentUserOption = filterCurrentUserOption(options.currentUserOption, searchTerms, translate);
     const userToInvite = filterUserToInvite(
@@ -3036,7 +3045,7 @@ function filterOptions<T extends SearchOptionData>(
     );
     const workspaceChats = filterWorkspaceChats(options.workspaceChats ?? [], searchTerms);
 
-    const selfDMChat = options.selfDMChat ? filterSelfDMChat(options.selfDMChat, searchTerms) : undefined;
+    const selfDMChat = options.selfDMChat ? filterSelfDMChat(options.selfDMChat, searchTerms, translate) : undefined;
 
     return {
         personalDetails,
