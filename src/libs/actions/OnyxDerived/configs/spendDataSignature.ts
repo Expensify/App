@@ -41,12 +41,15 @@ function getCardFingerprint(transaction: Transaction | undefined): string {
     ].join('|');
 }
 
-/** The card fields, plus what the other cards filter or group by: reimbursable, merchant and category. */
+/**
+ * The card fields, plus what the other cards filter or group by: reimbursable, merchant and category.
+ * `pendingAction` moves it again once the server accepts a write, since a refetch sent before that can miss it.
+ */
 function getFingerprint(transaction: Transaction | undefined, cardFingerprint: string): string {
     if (!transaction) {
         return '';
     }
-    return [cardFingerprint, transaction.reimbursable, transaction.merchant, transaction.modifiedMerchant, transaction.category].join('|');
+    return [cardFingerprint, transaction.reimbursable, transaction.merchant, transaction.modifiedMerchant, transaction.category, transaction.pendingAction].join('|');
 }
 
 function getSeenTransaction(transaction: Transaction | undefined): SeenTransaction {

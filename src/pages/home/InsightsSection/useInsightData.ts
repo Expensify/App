@@ -12,9 +12,21 @@ import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import type {Policy} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 function isChartView(view: SearchView): view is ChartView {
     return view === CONST.SEARCH.VIEW.BAR || view === CONST.SEARCH.VIEW.LINE || view === CONST.SEARCH.VIEW.PIE;
+}
+
+/** Joining a workspace adds its members' spend to the chart without touching any local expense. */
+function policyIDsSelector(policies: OnyxCollection<Policy>): string {
+    return Object.values(policies ?? {})
+        .map((policy) => policy?.id)
+        .filter((policyID): policyID is string => !!policyID)
+        .sort()
+        .join(',');
 }
 
 function useInsightData(config: SearchTypeMenuItem | undefined, isConfigResolved = true) {
@@ -28,6 +40,7 @@ function useInsightData(config: SearchTypeMenuItem | undefined, isConfigResolved
     const {isOffline} = useNetwork();
     // The chart is built from a snapshot that no update patches, so an expense change has to move the key.
     const [spendDataSignature] = useOnyx(ONYXKEYS.DERIVED.SPEND_DATA_SIGNATURE);
+    const [policyIDs] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policyIDsSelector});
 
     const retry = () => {
         // `search.isLoading` is persisted and may be stale after a reload. Call `search()` again and let it ignore a request that is still running.
@@ -46,7 +59,7 @@ function useInsightData(config: SearchTypeMenuItem | undefined, isConfigResolved
         });
     };
 
-    useTabFocusedRefresh(SCREENS.HOME, [queryJSON?.hash, isOffline, isConfigResolved, spendDataSignature?.expenses ?? 0].join('|'), retry);
+    useTabFocusedRefresh(SCREENS.HOME, [queryJSON?.hash, isOffline, isConfigResolved, spendDataSignature?.expenses ?? 0, policyIDs ?? ''].join('|'), retry);
 
     const sortedData = useGroupedItems(searchResults, queryJSON);
 

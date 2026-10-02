@@ -3,6 +3,7 @@
  *   - the Insights chart fetches once when Home is the active tab
  *   - closing an RHP over Home does not refetch it
  *   - an expense change moves the derived spend counter and does refetch it
+ *   - joining a workspace fetches it again
  */
 import {renderHook} from '@testing-library/react-native';
 
@@ -89,7 +90,7 @@ const onyxData: Record<string, unknown> = {};
 
 jest.mock('@hooks/useOnyx', () => ({
     __esModule: true,
-    default: jest.fn((key: string) => [onyxData[key]]),
+    default: jest.fn((key: string, options?: {selector?: (value: unknown) => unknown}) => [options?.selector ? options.selector(onyxData[key]) : onyxData[key]]),
 }));
 
 const mockedSearch = jest.mocked(search);
@@ -141,5 +142,30 @@ describe('useInsightData — refresh gating', () => {
 
         // Then the chart fetches again instead of showing a snapshot it knows nothing about
         expect(mockedSearch).toHaveBeenCalledTimes(2);
+    });
+
+    it('fetches again when the user joins a workspace', () => {
+        // Given the chart has already fetched
+        const {rerender} = renderHook(() => useInsightData(config));
+
+        // When a workspace arrives, which brings its members' spend into the chart without changing any local expense
+        onyxData[ONYXKEYS.COLLECTION.POLICY] = {[`${ONYXKEYS.COLLECTION.POLICY}W1`]: {id: 'W1'}};
+        rerender(undefined);
+
+        // Then the chart fetches again so the new spend shows up
+        expect(mockedSearch).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not refetch when a workspace it already knows changes', () => {
+        // Given the chart has fetched with one workspace
+        onyxData[ONYXKEYS.COLLECTION.POLICY] = {[`${ONYXKEYS.COLLECTION.POLICY}W1`]: {id: 'W1'}};
+        const {rerender} = renderHook(() => useInsightData(config));
+
+        // When that workspace is edited, so the set of workspaces stays the same
+        onyxData[ONYXKEYS.COLLECTION.POLICY] = {[`${ONYXKEYS.COLLECTION.POLICY}W1`]: {id: 'W1', name: 'Renamed'}};
+        rerender(undefined);
+
+        // Then nothing is refetched, since the chart only cares which workspaces the user is in
+        expect(mockedSearch).toHaveBeenCalledTimes(1);
     });
 });

@@ -1,5 +1,6 @@
 import spendDataSignatureConfig from '@libs/actions/OnyxDerived/configs/spendDataSignature';
 
+import CONST from '@src/CONST';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardList, Transaction} from '@src/types/onyx';
@@ -186,6 +187,23 @@ describe('spendDataSignature', () => {
         });
 
         // Then the expense counter moves, because the other cards are stale, but the card totals do not refetch
+        expect(result).toEqual({expenses: 1, cardExpenses: 0});
+    });
+
+    it('moves only the expense counter again when the server accepts a new card expense', () => {
+        // Given a card expense created offline, which the derived value saw while it was still pending
+        const pending: Transaction = {...makeTransaction('1', CARD_ID), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
+        seedBaseline({[transactionKey('1')]: pending});
+
+        // When the write is replayed and the server clears `pendingAction`
+        const accepted: OnyxCollection<Transaction> = {[transactionKey('1')]: {...pending, pendingAction: null}};
+        const result = spendDataSignatureConfig.compute([accepted, cardList], {
+            currentValue: {expenses: 0, cardExpenses: 0},
+            sourceValues: {[ONYXKEYS.COLLECTION.TRANSACTION]: accepted},
+        });
+
+        // Then the expense counter moves, because a chart refetch sent with the replay may have been answered before
+        // the server saw the expense, but the card totals wait for writes and do not refetch
         expect(result).toEqual({expenses: 1, cardExpenses: 0});
     });
 
