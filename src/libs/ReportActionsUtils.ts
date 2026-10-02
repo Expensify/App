@@ -2988,6 +2988,7 @@ function getExportIntegrationActionFragments(
                 case CONST.EXPORT_LABELS.INTACCT:
                 case CONST.EXPORT_LABELS.SAGE_INTACCT:
                 case CONST.EXPORT_LABELS.QBD:
+                case CONST.EXPORT_LABELS.BUSINESS_CENTRAL:
                     // These integrations store IDs, not URLs.
                     url = '';
                     break;
