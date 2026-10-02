@@ -36,6 +36,7 @@ import ManualBankAccountDetails from './substeps/ManualBankAccountDetailsStep';
 import PhoneNumber from './substeps/PhoneNumberStep';
 import PlaidBankAccount from './substeps/PlaidBankAccountStep';
 import Success from './substeps/SuccessStep';
+import ValidateCode from './substeps/ValidateCodeStep';
 import getSkippedStepsPersonalInfo from './utils/getSkippedStepsPersonalInfo';
 
 const SUB_PAGE_NAMES = CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES;
@@ -45,13 +46,23 @@ const infoPages = [
     {pageName: SUB_PAGE_NAMES.ADDRESS, component: Address},
     {pageName: SUB_PAGE_NAMES.PHONE_NUMBER, component: PhoneNumber},
     {pageName: SUB_PAGE_NAMES.CONFIRMATION, component: Confirmation},
+    {pageName: SUB_PAGE_NAMES.VALIDATE_CODE, component: ValidateCode},
     {pageName: SUB_PAGE_NAMES.SUCCESS, component: Success},
 ];
 const pagesWithPlaid = [{pageName: SUB_PAGE_NAMES.PLAID_BANK_ACCOUNT, component: PlaidBankAccount}, ...infoPages];
-const pagesWithManualSetup = [{pageName: SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETAILS, component: ManualBankAccountDetails}, ...infoPages];
+const pagesWithManualSetup = [
+    {
+        pageName: SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETAILS,
+        component: ManualBankAccountDetails,
+    },
+    ...infoPages,
+];
 
 const DEFAULT_OBJECT = {};
 const ACCOUNT_OWNERSHIP_ERROR_SUBSTRING = 'account ownership';
+
+// The fields addPersonalBankAccount saves to the user's private personal details
+const PERSONAL_DETAILS_FIELDS = ['legalFirstName', 'legalLastName', 'addressStreet', 'addressStreet2', 'addressCity', 'addressState', 'addressZipCode', 'country', 'phoneNumber'] as const;
 
 function AddPersonalBankAccountPage() {
     const {translate} = useLocalize();
@@ -106,7 +117,7 @@ function AddPersonalBankAccountPage() {
         clearPersonalBankAccount();
     };
 
-    const submitBankAccountForm = () => {
+    const getAccountData = () => {
         const bankAccounts = plaidData?.bankAccounts ?? [];
 
         const selectedPlaidBankAccount = bankAccounts.find((bankAccount) => bankAccount.plaidAccountID === personalBankAccount?.selectedPlaidAccountID);
@@ -142,7 +153,26 @@ function AddPersonalBankAccountPage() {
         if (confirmedOwnershipDetails.current) {
             accountData.confirmedOwnershipDetails = true;
         }
-        addPersonalBankAccount(accountData, personalPolicyID);
+
+        // Compare against the values exactly as saved, without the fallbacks and formatting applied above, so that anything the backend treats as a change also asks for the magic
+        // code here. At worst this asks for a code the backend wouldn't need, such as when a saved phone number isn't in E.164 format.
+        const savedPersonalDetails = {
+            legalFirstName: privatePersonalDetails?.legalFirstName,
+            legalLastName: privatePersonalDetails?.legalLastName,
+            addressStreet,
+            addressStreet2: street2,
+            addressCity: currentAddress?.city,
+            addressState: currentAddress?.state,
+            addressZipCode: currentAddress?.zip,
+            country: currentAddress?.country,
+            phoneNumber: privatePersonalDetails?.phoneNumber,
+        };
+        const hasPersonalDetailsChanges = PERSONAL_DETAILS_FIELDS.some((field) => (accountData[field] ?? '') !== (savedPersonalDetails[field] ?? ''));
+        return {accountData, hasPersonalDetailsChanges};
+    };
+
+    const submitBankAccountForm = (validateCode?: string) => {
+        addPersonalBankAccount(getAccountData().accountData, personalPolicyID, undefined, undefined, undefined, validateCode);
     };
 
     const pages = isManual ? pagesWithManualSetup : pagesWithPlaid;
@@ -172,8 +202,19 @@ function AddPersonalBankAccountPage() {
         }
         // On the confirmation step we submit the bank account first; the success step is
         // only shown once the request succeeds (see the effect below).
+        // Saving a changed name, address, or phone number to the user's private personal details requires a magic code, as it does from Profile > Private.
         if (currentPageName === SUB_PAGE_NAMES.CONFIRMATION) {
+            if (getAccountData().hasPersonalDetailsChanges) {
+                nextPage();
+                return;
+            }
             submitBankAccountForm();
+            return;
+        }
+        if (currentPageName === SUB_PAGE_NAMES.VALIDATE_CODE) {
+            if (typeof data === 'string') {
+                submitBankAccountForm(data);
+            }
             return;
         }
         nextPage(data);
@@ -211,7 +252,11 @@ function AddPersonalBankAccountPage() {
             return;
         }
         hasRefreshedExitReport.current = true;
-        openReport({reportID: exitReportID, hasReportActions: hasExitReportActions, shouldMarkAsRead: false});
+        openReport({
+            reportID: exitReportID,
+            hasReportActions: hasExitReportActions,
+            shouldMarkAsRead: false,
+        });
     }, [shouldShowSuccess, exitReportID, currentPageName, openReport, hasExitReportActions]);
 
     useEffect(() => {
@@ -228,6 +273,18 @@ function AddPersonalBankAccountPage() {
 
     if (isRedirecting) {
         return <FullScreenLoadingIndicator />;
+    }
+
+    // The magic code page renders its own screen and header
+    if (currentPageName === SUB_PAGE_NAMES.VALIDATE_CODE) {
+        return (
+            <CurrentPage
+                isEditing={isEditing}
+                onNext={handleNext}
+                onMove={moveTo}
+                prevPage={prevPage}
+            />
+        );
     }
 
     return (

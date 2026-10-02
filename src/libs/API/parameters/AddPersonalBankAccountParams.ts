@@ -18,6 +18,7 @@ type AddPersonalBankAccountParams = {
     addressZip?: string;
     addressCountry?: string;
     confirmedOwnershipDetails?: boolean;
+    validateCode?: string;
 };
 
 export default AddPersonalBankAccountParams;
