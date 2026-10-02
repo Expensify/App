@@ -33,6 +33,9 @@ type WorkspaceMembersTableRowProps = {
 
     /** Whether the approver column is visible on web screens or not */
     shouldShowApproverColumn: boolean;
+
+    /** Whether the bank account column is visible on web screens or not */
+    shouldShowBankAccountColumn: boolean;
 };
 
 export default function WorkspaceMembersTableRow({
@@ -41,6 +44,7 @@ export default function WorkspaceMembersTableRow({
     shouldShowCustomField1Column,
     shouldShowCustomField2Column,
     shouldShowApproverColumn,
+    shouldShowBankAccountColumn,
     shouldUseNarrowTableLayout,
 }: WorkspaceMembersTableRowProps) {
     const theme = useTheme();
@@ -155,6 +159,22 @@ export default function WorkspaceMembersTableRow({
                                     shouldShowTooltip
                                     numberOfLines={1}
                                     text={item.employeePayrollID}
+                                    style={[styles.lh16, styles.optionDisplayName, styles.pre]}
+                                />
+                            )}
+                        </View>
+                    )}
+
+                    {!shouldUseNarrowTableLayout && shouldShowBankAccountColumn && (
+                        <View
+                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
+                            {!!item.bankAccountLastFour && (
+                                <TextWithTooltip
+                                    shouldShowTooltip
+                                    numberOfLines={1}
+                                    text={`${translate('paymentMethodList.accountLastFour')} ${item.bankAccountLastFour}`}
                                     style={[styles.lh16, styles.optionDisplayName, styles.pre]}
                                 />
                             )}

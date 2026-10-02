@@ -2,6 +2,7 @@ import UserAvatar from '@components/Avatar/UserAvatar';
 import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import getBankIcon from '@components/Icon/BankIcons';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
@@ -44,11 +45,13 @@ import {getPhoneNumber, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDe
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {
     areApprovalsEnabled,
+    arePaymentsEnabled,
     canMemberAssignRole,
     canMemberManageMemberWithRole,
     canMemberWrite,
     getReimburserEmail,
     isControlPolicy,
+    isPolicyAdmin,
     isPolicyApprover,
     PAYER_ROLES,
     tryNavigateToSubmitWorkspaceUpgrade,
@@ -131,6 +134,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const {accountID: currentUserAccountID, login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const [cardFeeds] = useCardFeeds(policyID);
     const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
+    const [memberBankAccounts] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_BANK_ACCOUNTS}${policyID}`);
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const [outstandingReportsForPolicy] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {selector: createOutstandingReportsForPolicySelector(policyID)});
@@ -225,6 +229,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const memberCards = workspaceCards
         ? Object.values(workspaceCards).filter((card) => card.accountID === accountID && card.nameValuePairs?.feedCountry !== CONST.TRAVEL.PROGRAM_TRAVEL_US)
         : [];
+
+    const memberBankAccount = isPolicyAdmin(policy) && (arePaymentsEnabled(policy) || !!policy?.isCollectDepositAccountsEnabled) ? memberBankAccounts?.[accountID] : undefined;
+    const memberBankIcon = getBankIcon({bankName: memberBankAccount?.bankName, styles});
 
     const isApprover = isPolicyApprover(policy, memberLogin) || isApproverOfOutstandingPolicyReports(accountID, outstandingReportsForPolicy, privateIsArchivedMap);
     const isTechnicalContact = policy?.technicalContact === details?.login;
@@ -569,6 +576,25 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                             </OfflineWithFeedback>
                                         );
                                     })}
+                                </>
+                            )}
+                            {!!memberBankAccount?.bankAccountLastFour && (
+                                <>
+                                    <View style={[styles.ph5, styles.pv3]}>
+                                        <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting])}>
+                                            {translate('common.bankAccounts')}
+                                        </Text>
+                                    </View>
+                                    <MenuItem
+                                        title={memberBankAccount.bankName ? memberBankAccount.bankName : translate('common.bankAccount')}
+                                        description={memberBankAccount.bankAccountLastFour}
+                                        icon={memberBankIcon.icon}
+                                        iconHeight={memberBankIcon.iconSize}
+                                        iconWidth={memberBankIcon.iconSize}
+                                        iconStyles={memberBankIcon.iconStyles}
+                                        displayInDefaultIconColor
+                                        interactive={false}
+                                    />
                                 </>
                             )}
                         </View>
