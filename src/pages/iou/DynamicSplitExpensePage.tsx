@@ -17,6 +17,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useFrozenSplitTransactionIDs from '@hooks/useFrozenSplitTransactionIDs';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -213,6 +214,22 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const sumOfSplitExpenses = splitExpenses.reduce((acc, item) => acc + (item.amount ?? 0), 0);
     const currencySymbol = getCurrencySymbol(transactionDetails.currency ?? '') ?? transactionDetails.currency ?? CONST.CURRENCY.USD;
 
+    const frozenSplitTransactionIDs = useFrozenSplitTransactionIDs(
+        splitExpenses,
+        allTransactions,
+        allReports,
+        report,
+        currentSearchResults?.data,
+        originalTransaction,
+        currentUserPersonalDetails.login ?? '',
+        currentUserPersonalDetails.accountID,
+        rules,
+        personalDetails,
+        allPolicies,
+        parentReport,
+    );
+    const frozenSplitsContext = {frozenSplitTransactionIDs, searchResultsData: currentSearchResults?.data};
+
     useEffect(() => {
         setErrorMessage('');
     }, [splitExpenses.length]);
@@ -313,6 +330,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
             getCurrencySymbol,
             getCurrencyDecimals,
             allPolicies,
+            frozenSplitsContext,
         );
     };
 
@@ -449,6 +467,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
                 getCurrencySymbol,
                 getCurrencyDecimals,
                 allPolicies,
+                frozenSplitsContext,
             );
         } else {
             const amountInCents = calculateSplitAmountFromPercentage(transactionDetailsAmount, value);
@@ -462,6 +481,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
                 getCurrencySymbol,
                 getCurrencyDecimals,
                 allPolicies,
+                frozenSplitsContext,
             );
         }
     };
