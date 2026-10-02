@@ -182,11 +182,12 @@ describe('useSearchFiltersBar', () => {
 
         it('falls back to having a keyword when there is no default query JSON', () => {
             // Given no default query to compare against and a query with only a keyword
-            mockSearchQueryContext();
+            const keywordQueryJSON = buildQueryJSON(keywordFilters);
+            mockSearchQueryContext({currentSearchQueryJSON: keywordQueryJSON});
             mockMapFiltersFormToLabelValueList.mockReturnValue([]);
 
             // When the hook evaluates the query
-            const {result} = renderHook(() => useSearchFiltersBar(buildQueryJSON(keywordFilters)));
+            const {result} = renderHook(() => useSearchFiltersBar(keywordQueryJSON));
 
             // Then the keyword alone is enough to save the search
             expect(result.current.hasFiltersOrKeywordChanged).toBe(true);
