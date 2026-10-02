@@ -2357,6 +2357,109 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         expect(searchSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID2}`]).toBeDefined();
     });
 
+    it('should replace the original transaction with the splits in the expanded group snapshot of a group-by search', async () => {
+        // Given an expense shown inside an expanded group of a group-by search. The group rows come from the group's own
+        // snapshot, which is different from the current (parent grouped) search snapshot.
+        const expenseReport: Report = {
+            ...createRandomReport(1, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+        };
+        const transaction: Transaction = {
+            amount: 100,
+            currency: 'USD',
+            transactionID: '1',
+            reportID: expenseReport.reportID,
+            created: DateUtils.getDBTime(),
+            merchant: 'test',
+        };
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+        const parentGroupHash = 11;
+        const groupHash = 12;
+        const groupSnapshotData: SearchResults['data'] = {};
+        groupSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupHash}`, {
+            data: groupSnapshotData,
+            search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE, isLoading: false},
+        });
+        await waitForBatchedUpdates();
+        const splitTransactionID1 = '44';
+        const splitTransactionID2 = '45';
+        const splitExpenses = [
+            {amount: transaction.amount / 2, transactionID: splitTransactionID1, created: ''},
+            {amount: transaction.amount / 2, transactionID: splitTransactionID2, created: ''},
+        ];
+
+        let allTransactions: OnyxCollection<Transaction>;
+        let allReports: OnyxCollection<Report>;
+        let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+        let allSnapshots: OnyxCollection<SearchResults>;
+        await getOnyxData({key: ONYXKEYS.COLLECTION.TRANSACTION, callback: (value) => (allTransactions = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT, callback: (value) => (allReports = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, callback: (value) => (allReportNameValuePairs = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.SNAPSHOT, callback: (value) => (allSnapshots = value)});
+
+        const allPolicyTags = await getAllPolicyTags();
+        const reports = getTransactionAndExpenseReports(expenseReport.reportID);
+
+        // When splitting the expense while the current search is the parent grouped search
+        updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled: false,
+            rules: undefined,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
+            allTransactionsList: allTransactions,
+            allReportsList: allReports,
+            allReportActionsList: undefined,
+            allReportNameValuePairsList: allReportNameValuePairs,
+            allSnapshots,
+            transactionData: {
+                reportID: expenseReport.reportID,
+                originalTransactionID: transaction.transactionID,
+                splitExpenses,
+                splitExpensesTotal: transaction.amount,
+            },
+            searchContext: {
+                currentSearchHash: parentGroupHash,
+                activeGroupSearchHashes: [groupHash],
+            },
+            policyCategories: undefined,
+            policy: undefined,
+            policyRecentlyUsedCategories: [],
+            iouReport: expenseReport,
+            firstIOU: undefined,
+            isASAPSubmitBetaEnabled: false,
+            currentUserPersonalDetails,
+            transactionViolations: {},
+            policyRecentlyUsedCurrencies: [],
+            quickAction: undefined,
+            allPolicyTags,
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            transactionReport: reports.transactionReport,
+            expenseReport: reports.expenseReport,
+            isOffline: true,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
+            formatPhoneNumber,
+        });
+
+        await waitForBatchedUpdates();
+
+        // Then the group snapshot should no longer hold the original (which would show as "Unreported" offline) and should hold the splits instead
+        const groupSnapshot = await new Promise<OnyxEntry<SearchResults>>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${groupHash}`,
+                callback: (val) => {
+                    Onyx.disconnect(connection);
+                    resolve(val);
+                },
+            });
+        });
+        expect(groupSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]).toBeUndefined();
+        expect(groupSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID1}`]).toBeDefined();
+        expect(groupSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID2}`]).toBeDefined();
+    });
+
     it('should mark the report for deletion when reverting a split and the single expense moves to a different report', async () => {
         const amount = 10000;
         let expenseReport: OnyxEntry<Report>;
