@@ -10,6 +10,7 @@ import type {BankAccountList} from '@src/types/onyx';
 import type {ApprovalWorkflowOnyx, Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type {ApprovalWorkflowActions, ApprovalWorkflowRule, ApprovalWorkflowTriggers} from '@src/types/onyx/ApprovalWorkflowRules';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
@@ -27,6 +28,7 @@ import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import {getConnectedHRProvider, getHRAdvancedModeFinalApprover, getHRFinalApprover, isAnyHRConnected, isHRAdvancedMode, isAnyHRReadOnlyWorkflowMode} from './merge/HRUtils';
 import {getConnectedATSProvider, isAnyRecruitingReadOnlyWorkflowMode} from './merge/RecruitingUtils';
 import {rand64} from './NumberUtils';
+import {extractFirstAndLastNameFromAvailableDetails} from './PersonalDetailsUtils';
 import {getDefaultApprover, isExpensifyTeam, shouldFilterExpensifyTeam} from './PolicyUtils';
 import {fromIndexMap, isApprovalWorkflowRule, isRuleFilterComparison, toIndexMap} from './RuleUtils';
 
@@ -326,18 +328,23 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
     return {approvalWorkflows: sortedApprovalWorkflows, usedApproverEmails: [...usedApproverEmails], availableMembers};
 }
 
+/** Whether the workspace runs an advanced approval mode, the only modes that enforce more than the default workflow */
+function isAdvancedApprovalEnforced(policy: OnyxEntry<Policy>, isMultipleApproversBetaEnabled: boolean): boolean {
+    return (
+        isMultipleApproversBetaEnabled ||
+        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED ||
+        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL ||
+        isHRAdvancedMode(policy)
+    );
+}
+
 /**
  * The workflows a workspace actually enforces. Only the advanced approval modes run more than one workflow, so under
  * every other mode the default workflow is the only one in force and the rest are inert. They can still be derived
  * from `employeeList`, because downgrading a workspace leaves each member's `submitsTo` in place.
  */
 function getEnforcedApprovalWorkflows(approvalWorkflows: ApprovalWorkflow[], policy: OnyxEntry<Policy>, isMultipleApproversBetaEnabled: boolean): ApprovalWorkflow[] {
-    if (
-        isMultipleApproversBetaEnabled ||
-        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED ||
-        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL ||
-        isHRAdvancedMode(policy)
-    ) {
+    if (isAdvancedApprovalEnforced(policy, isMultipleApproversBetaEnabled)) {
         return approvalWorkflows;
     }
 
@@ -794,7 +801,7 @@ type GetApprovalLimitDescriptionParams = {
 };
 
 /**
- * Get the approval limit description for an approver (e.g., "Reports above $1,000 forward to John Doe")
+ * Get the approval limit description for an approver (e.g., "Approves up to $1,000. Over that, reports forward to John Doe.")
  */
 function getApprovalLimitDescription({approver, currency, translate, formatPhoneNumber, convertToDisplayString}: GetApprovalLimitDescriptionParams): string | undefined {
     if (approver?.approvalLimit == null || !approver?.overLimitForwardsTo) {
@@ -805,10 +812,132 @@ function getApprovalLimitDescription({approver, currency, translate, formatPhone
     const approverName = approver.overLimitForwardsToDisplayName ?? approver.overLimitForwardsTo;
     const approverDisplayName = Str.isSMSLogin(approverName) ? formatPhoneNumber(approverName) : approverName;
 
-    return translate('workflowsApprovalLimitPage.forwardLimitDescription', {
+    return translate('workflowsApprovalLimitPage.approvesUpToDescription', {
         approvalLimit: formattedAmount,
         approverName: approverDisplayName,
     });
+}
+
+/** Whether an employee has an approval limit, which needs both an amount and someone to forward to */
+function hasApprovalLimit(employee: PolicyEmployee | undefined): boolean {
+    return !!employee?.approvalLimit && employee.approvalLimit > 0 && !!employee.overLimitForwardsTo;
+}
+
+/** A row of the Approver limits card */
+type ApprovalLimitGroup = {
+    /** Emails of the approvers sharing this limit, sorted by display name */
+    approvers: string[];
+
+    /** The limit the approvers share */
+    approvalLimit: number;
+
+    /** Email of the approver reports over the limit are forwarded to */
+    overLimitForwardsTo: string;
+
+    /** Pending action of the limit fields while an update is offline */
+    pendingAction?: PendingAction;
+};
+
+type GetApprovalLimitGroupsParams = {
+    /** List of employees in the policy */
+    employees: PolicyEmployeeList;
+
+    /** Personal details of the employees where the key is the email */
+    personalDetailsByEmail: PersonalDetailsList;
+
+    /** Locale comparison function */
+    localeCompare: LocaleContextProps['localeCompare'];
+};
+
+/** Group the approvers that share the same limit and forward-to approver, so each group is one row of the Approver limits card */
+function getApprovalLimitGroups({employees, personalDetailsByEmail, localeCompare}: GetApprovalLimitGroupsParams): ApprovalLimitGroup[] {
+    const groups: Record<string, ApprovalLimitGroup> = {};
+    const getDisplayName = (email: string) => personalDetailsByEmail[email]?.displayName ?? email;
+
+    for (const employee of Object.values(employees)) {
+        const {email, approvalLimit, overLimitForwardsTo} = employee;
+        if (!email || !approvalLimit || approvalLimit <= 0 || !overLimitForwardsTo || employee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
+        }
+
+        const groupKey = `${approvalLimit}-${overLimitForwardsTo}`;
+        groups[groupKey] ??= {approvers: [], approvalLimit, overLimitForwardsTo};
+        groups[groupKey].approvers.push(email);
+        groups[groupKey].pendingAction ??= employee.pendingFields?.approvalLimit ?? employee.pendingFields?.overLimitForwardsTo ?? undefined;
+    }
+
+    return Object.values(groups)
+        .map((group) => ({...group, approvers: group.approvers.sort((a, b) => localeCompare(getDisplayName(a), getDisplayName(b)))}))
+        .sort((a, b) => localeCompare(getDisplayName(a.approvers.at(0) ?? ''), getDisplayName(b.approvers.at(0) ?? '')));
+}
+
+type GetApprovalLimitLoopApproverParams = {
+    /** List of employees in the policy */
+    employees: PolicyEmployeeList;
+
+    /** Emails of the approvers the limit is being saved for */
+    approvers: string[];
+
+    /** The limit being saved */
+    approvalLimit: number;
+
+    /** Email of the approver the limit forwards to */
+    overLimitForwardsTo: string;
+
+    /** Approvers the limit had before this edit. Those taken off it lose their limit once it is saved. */
+    originalApprovers: string[];
+};
+
+/**
+ * Follow where a report over the limit goes from the limit's new approver, as routing will be once the limit is saved.
+ * Each approver passes a report to `overLimitForwardsTo` when it is over their own limit and to `forwardsTo` otherwise,
+ * so both are followed, as long as some report amount could take that path.
+ * Returns the approver on this limit the report could come back to, or undefined when saving would not create a loop.
+ *
+ * example: A forwards to B, and B is being set to forward to A (loops back to B)
+ * example: A forwards to B, B forwards to C over a limit, and C is being set to forward to A (loops back to C)
+ */
+function getApprovalLimitLoopApprover({employees, approvers, approvalLimit, overLimitForwardsTo, originalApprovers}: GetApprovalLimitLoopApproverParams): string | undefined {
+    // Report amounts that can reach `email` are those above `minAmount` and up to `maxAmount`
+    const findLoopApprover = (email: string | undefined, minAmount: number, maxAmount: number, visitedEmails: Set<string>): string | undefined => {
+        if (!email || visitedEmails.has(email)) {
+            return undefined;
+        }
+        if (approvers.includes(email)) {
+            return email;
+        }
+
+        const employee: PolicyEmployee | undefined = employees[email];
+        const nextVisitedEmails = new Set(visitedEmails).add(email);
+        const limit = !originalApprovers.includes(email) && hasApprovalLimit(employee) ? employee?.approvalLimit : undefined;
+
+        if (!limit) {
+            return findLoopApprover(employee?.forwardsTo, minAmount, maxAmount, nextVisitedEmails);
+        }
+
+        const underLimitLoopApprover = minAmount < limit ? findLoopApprover(employee?.forwardsTo, minAmount, Math.min(maxAmount, limit), nextVisitedEmails) : undefined;
+        if (underLimitLoopApprover) {
+            return underLimitLoopApprover;
+        }
+
+        return maxAmount > limit ? findLoopApprover(employee?.overLimitForwardsTo, Math.max(minAmount, limit), maxAmount, nextVisitedEmails) : undefined;
+    };
+
+    // Only reports over this limit reach the new approver
+    return findLoopApprover(overLimitForwardsTo, approvalLimit, Number.POSITIVE_INFINITY, new Set());
+}
+
+/** First name and last initial (e.g. "Priya V."), falling back to the formatted login when there is no name */
+function getApprovalLimitShortName(email: string, personalDetailsByEmail: PersonalDetailsList, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']): string {
+    const personalDetail = personalDetailsByEmail[email];
+    const {firstName, lastName} = personalDetail ? extractFirstAndLastNameFromAvailableDetails(personalDetail) : {firstName: '', lastName: ''};
+
+    if (!firstName) {
+        return formatPhoneNumber(email);
+    }
+
+    const lastInitial = lastName.at(0);
+    return lastInitial ? `${firstName} ${lastInitial}.` : firstName;
 }
 
 /**
@@ -1835,6 +1964,9 @@ export {
     convertApprovalWorkflowToPolicyEmployees,
     extractSubmitterEmails,
     getApprovalLimitDescription,
+    getApprovalLimitGroups,
+    getApprovalLimitLoopApprover,
+    getApprovalLimitShortName,
     getApprovalWorkflowRulesForPolicy,
     getFirstApproverByMemberEmail,
     getEnforcedApprovalWorkflows,
@@ -1844,10 +1976,12 @@ export {
     getRulesSubmitterToFirstApprover,
     getRulesSubmitterToWorkflowKey,
     getWorkflowMemberEmails,
+    hasApprovalLimit,
     hasMultiLevelApprovalWorkflow,
     getFirstApproverLabel,
     hasRuleBasedDefaultWorkflow,
     includesEveryWorkspaceMember,
+    isAdvancedApprovalEnforced,
     isApprovalWorkflowLockedByIntegration,
     getEligibleExistingBusinessBankAccounts,
     getOpenConnectedToPolicyBusinessBankAccounts,

@@ -25,7 +25,7 @@ import {
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ApprovalWorkflowOnyx, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
+import type {ApprovalLimitOnyx, ApprovalWorkflowOnyx, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type {ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
@@ -129,6 +129,18 @@ function createApprovalWorkflow({approvalWorkflow, policy, addExpenseApprovalsTa
     }
 }
 
+/** The approval mode the policy should be in once `updatedEmployees` are applied on top of `previousEmployeeList` */
+function getUpdatedApprovalMode(previousEmployeeList: PolicyEmployeeList, updatedEmployees: PolicyEmployeeList, defaultApprover: string) {
+    // Deep merge at the employee level to preserve fields not included in updatedEmployees (e.g., overLimitForwardsTo)
+    const mergedEmployeeList = Object.fromEntries(Object.keys({...previousEmployeeList, ...updatedEmployees}).map((key) => [key, {...previousEmployeeList[key], ...updatedEmployees[key]}]));
+    const hasMultipleWorkflows = Object.values(mergedEmployeeList).some((employee) => !!employee.submitsTo && employee.submitsTo !== defaultApprover);
+    const defaultApproverEmployee = mergedEmployeeList[defaultApprover];
+    const hasForwardsToChain = !!defaultApproverEmployee?.forwardsTo || !!defaultApproverEmployee?.overLimitForwardsTo;
+    const shouldKeepAdvancedMode = hasMultipleWorkflows || hasForwardsToChain;
+
+    return shouldKeepAdvancedMode ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC;
+}
+
 function updateApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, membersToRemove: Member[], approversToRemove: Approver[], policy: OnyxEntry<Policy>) {
     if (!policy) {
         return;
@@ -175,17 +187,8 @@ function updateApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, membersToRem
         return;
     }
 
-    // Determine if approvalMode should change based on updated employee state
-    // Deep merge at the employee level to preserve fields not included in updatedEmployees (e.g., overLimitForwardsTo)
-    const mergedEmployeeList = Object.fromEntries(Object.keys({...previousEmployeeList, ...updatedEmployees}).map((key) => [key, {...previousEmployeeList[key], ...updatedEmployees[key]}]));
-    const effectiveDefaultApprover = newDefaultApprover ?? previousDefaultApprover ?? '';
-    const hasMultipleWorkflows = Object.values(mergedEmployeeList).some((employee) => !!employee.submitsTo && employee.submitsTo !== effectiveDefaultApprover);
-    const defaultApproverEmployee = mergedEmployeeList[effectiveDefaultApprover];
-    const hasForwardsToChain = !!defaultApproverEmployee?.forwardsTo || !!defaultApproverEmployee?.overLimitForwardsTo;
-    const shouldKeepAdvancedMode = hasMultipleWorkflows || hasForwardsToChain;
     const previousApprovalMode = policy.approvalMode;
-
-    const updatedApprovalMode = shouldKeepAdvancedMode ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC;
+    const updatedApprovalMode = getUpdatedApprovalMode(previousEmployeeList, updatedEmployees, newDefaultApprover ?? previousDefaultApprover ?? '');
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.APPROVAL_WORKFLOW | typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -231,6 +234,113 @@ function updateApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, membersToRem
         policyID: policy.id,
         employees: JSON.stringify(Object.values(updatedEmployees)),
         defaultApprover: newDefaultApprover,
+    };
+    write(WRITE_COMMANDS.UPDATE_WORKSPACE_APPROVAL, parameters, {optimisticData, failureData, successData});
+}
+
+type UpdateApprovalLimitParams = {
+    policy: OnyxEntry<Policy>;
+
+    /** Emails of the approvers the limit applies to. Empty when the limit is deleted. */
+    approvers: string[];
+
+    /** Approvers the limit had before this edit. Those no longer in `approvers` have their limit removed. */
+    originalApprovers: string[];
+
+    /** The limit, in the smallest currency unit */
+    approvalLimit: number | null;
+
+    /** Email of the approver reports over the limit are forwarded to */
+    overLimitForwardsTo: string;
+};
+
+/** Set, change or remove one approval limit for every approver on it */
+function updateApprovalLimit({policy, approvers, originalApprovers, approvalLimit, overLimitForwardsTo}: UpdateApprovalLimitParams) {
+    if (!policy) {
+        return;
+    }
+
+    const previousEmployeeList = Object.fromEntries(Object.entries(policy.employeeList ?? {}).map(([key, value]) => [key, {...value, pendingAction: null}]));
+    const updatedEmployees: PolicyEmployeeList = {};
+    const pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+
+    const setEmployeeApprovalLimit = (email: string, newApprovalLimit: number | null, newOverLimitForwardsTo: string) => {
+        const previousEmployee = previousEmployeeList[email];
+        if ((previousEmployee?.approvalLimit ?? null) === newApprovalLimit && (previousEmployee?.overLimitForwardsTo ?? '') === newOverLimitForwardsTo) {
+            return;
+        }
+
+        const previousPendingAction = policy.employeeList?.[email]?.pendingAction;
+        updatedEmployees[email] = {
+            email,
+            forwardsTo: previousEmployee?.forwardsTo ?? '',
+            approvalLimit: newApprovalLimit,
+            overLimitForwardsTo: newOverLimitForwardsTo,
+            pendingAction: previousPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? previousPendingAction : pendingAction,
+            pendingFields: {
+                approvalLimit: pendingAction,
+                overLimitForwardsTo: pendingAction,
+            },
+        };
+    };
+
+    for (const email of approvers) {
+        setEmployeeApprovalLimit(email, approvalLimit, overLimitForwardsTo);
+    }
+
+    for (const email of originalApprovers.filter((originalApprover) => !approvers.includes(originalApprover))) {
+        setEmployeeApprovalLimit(email, null, '');
+    }
+
+    if (isEmptyObject(updatedEmployees)) {
+        clearApprovalLimit();
+        return;
+    }
+
+    const previousApprovalMode = policy.approvalMode;
+    const updatedApprovalMode = getUpdatedApprovalMode(previousEmployeeList, updatedEmployees, getDefaultApprover(policy) ?? '');
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.APPROVAL_LIMIT | typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.APPROVAL_LIMIT,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+            value: {
+                employeeList: updatedEmployees,
+                approvalMode: updatedApprovalMode,
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+            value: {
+                employeeList: previousEmployeeList,
+                approvalMode: previousApprovalMode,
+                pendingFields: {employeeList: null},
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+            value: {
+                employeeList: Object.fromEntries(Object.keys(updatedEmployees).map((key) => [key, {pendingAction: null, pendingFields: null}])),
+            },
+        },
+    ];
+
+    const parameters: UpdateWorkspaceApprovalParams = {
+        policyID: policy.id,
+        employees: JSON.stringify(Object.values(updatedEmployees)),
     };
     write(WRITE_COMMANDS.UPDATE_WORKSPACE_APPROVAL, parameters, {optimisticData, failureData, successData});
 }
@@ -692,6 +802,25 @@ function clearApprovalWorkflow() {
     Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, null);
 }
 
+/** Set the approval limit that is being added or edited */
+function setApprovalLimit(approvalLimit: ApprovalLimitOnyx) {
+    Onyx.set(ONYXKEYS.APPROVAL_LIMIT, approvalLimit);
+}
+
+/** Set the approvers of the approval limit that is being added or edited */
+function setApprovalLimitApprovers(approvers: string[]) {
+    Onyx.merge(ONYXKEYS.APPROVAL_LIMIT, {approvers});
+}
+
+/** Set the approver reports over the limit that is being added or edited are forwarded to */
+function setApprovalLimitOverLimitForwardsTo(overLimitForwardsTo: string) {
+    Onyx.merge(ONYXKEYS.APPROVAL_LIMIT, {overLimitForwardsTo});
+}
+
+function clearApprovalLimit() {
+    Onyx.set(ONYXKEYS.APPROVAL_LIMIT, null);
+}
+
 type ApprovalWorkflowOnyxValidated = Omit<ApprovalWorkflowOnyx, 'approvers'> & {approvers: Approver[]};
 
 /**
@@ -740,6 +869,7 @@ export {
     removeApprovalWorkflowRules,
     updateApprovalWorkflow,
     updateApprovalWorkflowRules,
+    updateApprovalLimit,
     removeApprovalWorkflow,
     setApprovalWorkflowMembers,
     setApprovalWorkflowApprover,
@@ -748,6 +878,10 @@ export {
     clearApprovalWorkflowApprover,
     clearApprovalWorkflowApprovers,
     clearApprovalWorkflow,
+    setApprovalLimit,
+    setApprovalLimitApprovers,
+    setApprovalLimitOverLimitForwardsTo,
+    clearApprovalLimit,
     validateApprovalWorkflow,
     setApprovalWorkflowIsInitialFlow,
 };

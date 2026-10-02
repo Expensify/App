@@ -7,7 +7,7 @@ import type AccountData from './AccountData';
 import type AgentNewAvatarDraft from './AgentNewAvatarDraft';
 import type AgentPrompt from './AgentPrompt';
 import type AppReview from './AppReview';
-import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
+import type {ApprovalLimitOnyx, ApprovalWorkflowOnyx} from './ApprovalWorkflow';
 import type {AssignCard, AssignCardData} from './AssignCard';
 import type Attachment from './Attachment';
 import type AvatarCropDraft from './AvatarCropDraft';
@@ -414,6 +414,7 @@ export type {
     StripeCustomerID,
     BillingStatus,
     CancellationDetails,
+    ApprovalLimitOnyx,
     ApprovalWorkflowOnyx,
     CardFeeds,
     CardFeedsStatus,

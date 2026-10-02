@@ -12,6 +12,7 @@ import {
     removeApprovalWorkflow,
     removeApprovalWorkflowRules,
     setApprovalWorkflowApprover,
+    updateApprovalLimit,
     updateApprovalWorkflow,
     updateApprovalWorkflowRules,
 } from '@src/libs/actions/Workflow';
@@ -1025,6 +1026,96 @@ describe('actions/Workflow', () => {
 
             await mockFetch.resume();
             await waitForBatchedUpdates();
+        });
+    });
+
+    describe('updateApprovalLimit', () => {
+        const limitPolicy = createMock<Policy>({
+            id: '123456789',
+            name: 'Test Workspace',
+            role: 'admin',
+            type: 'corporate',
+            owner: ownerEmail,
+            approver: ownerEmail,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            employeeList: {
+                [ownerEmail]: {email: ownerEmail, forwardsTo: '', role: 'admin', submitsTo: ownerEmail},
+                [employee1Email]: {email: employee1Email, forwardsTo: employee3Email, role: 'user', submitsTo: ownerEmail, approvalLimit: 50000, overLimitForwardsTo: ownerEmail},
+                [employee2Email]: {email: employee2Email, forwardsTo: '', role: 'user', submitsTo: ownerEmail, approvalLimit: 50000, overLimitForwardsTo: ownerEmail},
+                [employee3Email]: {email: employee3Email, forwardsTo: '', role: 'user', submitsTo: ownerEmail},
+            },
+        });
+
+        it('applies the edited limit to every approver on it and removes it from approvers taken off it', async () => {
+            mockFetch.pause();
+
+            // Given a limit shared by employee1 and employee2
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${limitPolicy.id}`, limitPolicy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            // When employee2 is taken off it and the amount is raised for employee1
+            updateApprovalLimit({
+                policy: limitPolicy,
+                approvers: [employee1Email],
+                originalApprovers: [employee1Email, employee2Email],
+                approvalLimit: 100000,
+                overLimitForwardsTo: ownerEmail,
+            });
+            await waitForBatchedUpdates();
+
+            // Then employee1 keeps their regular forwardsTo with the new amount, and employee2 no longer has a limit
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${limitPolicy.id}`);
+            expect(updatedPolicy?.employeeList?.[employee1Email]).toMatchObject({forwardsTo: employee3Email, approvalLimit: 100000, overLimitForwardsTo: ownerEmail});
+            expect(updatedPolicy?.employeeList?.[employee2Email]?.approvalLimit).toBeUndefined();
+            expect(updatedPolicy?.employeeList?.[employee2Email]?.overLimitForwardsTo).toBe('');
+
+            // Then only the two changed approvers are sent, so other members are left untouched
+            const requestBody = getFetchMockCalls(WRITE_COMMANDS.UPDATE_WORKSPACE_APPROVAL).at(0)?.[1]?.body;
+            const sentEmployees = JSON.parse(requestBody instanceof FormData ? String(requestBody.get('employees')) : '[]') as Array<{email: string}>;
+            expect(sentEmployees.map((employee) => employee.email)).toEqual([employee1Email, employee2Email]);
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
+        it('removes the limit from every approver on it when it is deleted', async () => {
+            mockFetch.pause();
+
+            // Given a limit shared by employee1 and employee2
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${limitPolicy.id}`, limitPolicy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            // When the limit is deleted
+            updateApprovalLimit({policy: limitPolicy, approvers: [], originalApprovers: [employee1Email, employee2Email], approvalLimit: null, overLimitForwardsTo: ''});
+            await waitForBatchedUpdates();
+
+            // Then neither approver forwards over-limit reports anymore, while employee1's regular chain stays
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${limitPolicy.id}`);
+            expect(updatedPolicy?.employeeList?.[employee1Email]?.overLimitForwardsTo).toBe('');
+            expect(updatedPolicy?.employeeList?.[employee1Email]?.forwardsTo).toBe(employee3Email);
+            expect(updatedPolicy?.employeeList?.[employee2Email]?.overLimitForwardsTo).toBe('');
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
+        it('rolls the limit back when the request fails', async () => {
+            // Given a limit shared by employee1 and employee2, and a request that will fail
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${limitPolicy.id}`, limitPolicy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+            mockFetch.fail();
+
+            // When the limit is deleted
+            updateApprovalLimit({policy: limitPolicy, approvers: [], originalApprovers: [employee1Email, employee2Email], approvalLimit: null, overLimitForwardsTo: ''});
+            await waitForBatchedUpdates();
+
+            // Then both approvers get their limit back
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${limitPolicy.id}`);
+            expect(updatedPolicy?.employeeList?.[employee1Email]).toMatchObject({approvalLimit: 50000, overLimitForwardsTo: ownerEmail});
+            expect(updatedPolicy?.employeeList?.[employee2Email]).toMatchObject({approvalLimit: 50000, overLimitForwardsTo: ownerEmail});
         });
     });
 

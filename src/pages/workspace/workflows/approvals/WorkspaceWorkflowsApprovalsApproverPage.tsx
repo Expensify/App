@@ -11,7 +11,7 @@ import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePersonalDetailsByEmail from '@hooks/usePersonalDetailsByEmail';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {clearApprovalWorkflowApprover, clearApprovalWorkflowApprovers, setApprovalWorkflowApprover} from '@libs/actions/Workflow';
+import {clearApprovalWorkflowApprover, clearApprovalWorkflowApprovers, setApprovalWorkflowApprover, setApprovalWorkflowIsInitialFlow} from '@libs/actions/Workflow';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -28,14 +28,14 @@ import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPol
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useNavigationState} from '@react-navigation/native';
 import React, {useCallback, useMemo, useState} from 'react';
 
 type WorkspaceWorkflowsApprovalsApproverPageProps = WithPolicyAndFullscreenLoadingProps &
-    PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER | typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER_CHANGE>;
+    PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER>;
 
 function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsApproverPageProps) {
     const styles = useThemeStyles();
@@ -57,7 +57,6 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     // while this screen is still mounted during the dismiss animation.
     const [removingApproverEmail, setRemovingApproverEmail] = useState<string>();
 
-    const isChangeApproverRoute = route.name === SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER_CHANGE;
     const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && approvalWorkflow?.isInitialFlow;
     const currentApprover = approvalWorkflow?.approvers[approverIndex];
     const selectedApproverEmail = currentApprover?.email;
@@ -177,11 +176,6 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
             if (isRemovingApprover) {
                 setRemovingApproverEmail(visibleSelectedApproverEmail);
                 clearApprovalWorkflowApprover({approverIndex, currentApprovalWorkflow: approvalWorkflow});
-                if (isChangeApproverRoute && approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT) {
-                    // Don't compare params — see goBack above.
-                    Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover, approvalWorkflow?.memberEmail), {compareParams: false});
-                    return;
-                }
                 goBack();
                 return;
             }
@@ -199,8 +193,9 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                     email: newSelectedEmail,
                     avatar,
                     displayName,
-                    approvalLimit: null,
-                    overLimitForwardsTo: '',
+                    // Limits belong to the approver and are managed from the Approver limits card, so keep whatever they already have.
+                    approvalLimit: employeeList?.[newSelectedEmail]?.approvalLimit ?? null,
+                    overLimitForwardsTo: employeeList?.[newSelectedEmail]?.overLimitForwardsTo ?? '',
                 },
                 approverIndex,
                 currentApprovalWorkflow: approvalWorkflow,
@@ -208,13 +203,19 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 personalDetailsByEmail,
             });
 
-            // If this is the change approver route, go back to the Approval Limit page
-            // Otherwise, navigate forward to set the approval limit
-            if (isChangeApproverRoute) {
-                Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(route.params.policyID, approverIndex));
-            } else {
-                Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(route.params.policyID, approverIndex));
+            if (approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT) {
+                // Don't compare params, for the same reason as goBack above.
+                Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover, approvalWorkflow?.memberEmail), {compareParams: false});
+                return;
             }
+
+            if (!isInitialCreationFlow) {
+                Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID));
+                return;
+            }
+
+            setApprovalWorkflowIsInitialFlow(false);
+            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID));
         },
         [
             approverIndex,
@@ -226,7 +227,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
             route.params.policyID,
             goBack,
             personalDetailsByEmail,
-            isChangeApproverRoute,
+            isInitialCreationFlow,
             firstApprover,
             visibleSelectedApproverEmail,
         ],
