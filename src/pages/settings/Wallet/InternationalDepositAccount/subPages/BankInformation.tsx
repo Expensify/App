@@ -1,4 +1,5 @@
 import AddressSearch from '@components/AddressSearch';
+import CollapsibleHeaderOnKeyboardGroupMember from '@components/CollapsibleHeaderOnKeyboard/GroupMember';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -87,7 +88,9 @@ function BankInformation({isEditing, onNext, formValues, fieldsMap}: CustomSubPa
             enabledWhenOffline
         >
             <View style={styles.ph5}>
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('addPersonalBankAccount.bankInformationStepHeader')}</Text>
+                <CollapsibleHeaderOnKeyboardGroupMember>
+                    <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('addPersonalBankAccount.bankInformationStepHeader')}</Text>
+                </CollapsibleHeaderOnKeyboardGroupMember>
                 {Object.values(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION] ?? {})
                     .sort((a, b) => CONST.CORPAY_FIELDS.BANK_INFORMATION_FIELDS.indexOf(a.id) - CONST.CORPAY_FIELDS.BANK_INFORMATION_FIELDS.indexOf(b.id))
                     .map((field, index) => {

@@ -1,4 +1,5 @@
 import Button from '@components/Button';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -14,6 +15,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -56,6 +58,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
     const isCommuterExclusionsEnabled = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS);
 
     const [policyData] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
@@ -190,6 +193,24 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
         </View>
     );
 
+    const footer = (
+        <FixedFooter addBottomSafeAreaPadding>
+            {!!inlineError && (
+                <FormHelpMessage
+                    message={inlineError}
+                    style={styles.mb3}
+                />
+            )}
+            <Button
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={CONST.BUTTON_SIZE.LARGE}
+                onPress={onSave}
+            >
+                <Button.Text>{translate('common.save')}</Button.Text>
+            </Button>
+        </FixedFooter>
+    );
+
     const options: ExclusionOption[] = [
         {
             text: translate('workspace.distanceRates.commuterExclusions.optionDisabledTitle'),
@@ -225,10 +246,12 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
                 testID="PolicyCommuterExclusionsPage"
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.distanceRates.commuterExclusions.title')}
-                    onBackButtonPress={goBackToSettings}
-                />
+                <CollapsibleHeaderOnKeyboard>
+                    <HeaderWithBackButton
+                        title={translate('workspace.distanceRates.commuterExclusions.title')}
+                        onBackButtonPress={goBackToSettings}
+                    />
+                </CollapsibleHeaderOnKeyboard>
                 <OfflineWithFeedback
                     errors={getLatestErrorField(policyData ?? {}, 'commuterExclusions')}
                     pendingAction={policyData?.pendingFields?.commuterExclusions}
@@ -246,23 +269,10 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
                         shouldUpdateFocusedIndex
                         alternateNumberOfSupportedLines={2}
                         disableKeyboardShortcuts
+                        listFooterContent={shouldFooterBeInsideList ? footer : undefined}
                     />
                 </OfflineWithFeedback>
-                <FixedFooter addBottomSafeAreaPadding>
-                    {!!inlineError && (
-                        <FormHelpMessage
-                            message={inlineError}
-                            style={styles.mb3}
-                        />
-                    )}
-                    <Button
-                        variant={CONST.BUTTON_VARIANT.SUCCESS}
-                        size={CONST.BUTTON_SIZE.LARGE}
-                        onPress={onSave}
-                    >
-                        <Button.Text>{translate('common.save')}</Button.Text>
-                    </Button>
-                </FixedFooter>
+                {!shouldFooterBeInsideList && footer}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

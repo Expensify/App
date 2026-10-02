@@ -1,4 +1,5 @@
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
+import CollapsibleHeaderOnKeyboardGroupMember from '@components/CollapsibleHeaderOnKeyboard/GroupMember';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -174,8 +175,10 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
 
     return (
         <ScrollView contentContainerStyle={styles.flexGrow1}>
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('addPersonalBankAccount.confirmationStepHeader')}</Text>
-            <Text style={[styles.mb6, styles.ph5, styles.textSupporting]}>{translate('addPersonalBankAccount.confirmationStepSubHeader')}</Text>
+            <CollapsibleHeaderOnKeyboardGroupMember>
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('addPersonalBankAccount.confirmationStepHeader')}</Text>
+                <Text style={[styles.mb6, styles.ph5, styles.textSupporting]}>{translate('addPersonalBankAccount.confirmationStepSubHeader')}</Text>
+            </CollapsibleHeaderOnKeyboardGroupMember>
             {summaryItems.map(({id, description, title, interactive, disabled, onPress}) => (
                 <MenuItemField
                     key={id}

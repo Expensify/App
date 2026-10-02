@@ -3,6 +3,7 @@ import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -25,6 +26,7 @@ import type {ListItem} from './SelectionList/types';
 
 import BlockingView from './BlockingViews/BlockingView';
 import FullPageNotFoundView from './BlockingViews/FullPageNotFoundView';
+import CollapsibleHeaderOnKeyboard from './CollapsibleHeaderOnKeyboard';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import ScreenWrapper from './ScreenWrapper';
 import SelectionList from './SelectionList';
@@ -85,6 +87,7 @@ function ApproverSelectionList({
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const shouldShowTextInput = shouldShowTextInputProp ?? allApprovers?.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const lazyIllustrations = useMemoizedLazyIllustrations(['TurtleInShell']);
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
 
     const handleSearchChange = useCallback(
         (term: string) => {
@@ -169,11 +172,13 @@ function ApproverSelectionList({
                 onLinkPress={goBackFromInvalidPolicy}
                 addBottomSafeAreaPadding
             >
-                <HeaderWithBackButton
-                    title={headerTitle}
-                    onBackButtonPress={onBackButtonPress}
-                />
-                {subtitle}
+                <CollapsibleHeaderOnKeyboard>
+                    <HeaderWithBackButton
+                        title={headerTitle}
+                        onBackButtonPress={onBackButtonPress}
+                    />
+                    {subtitle}
+                </CollapsibleHeaderOnKeyboard>
                 <SelectionList
                     key={selectionListKey}
                     data={data}
@@ -188,6 +193,7 @@ function ApproverSelectionList({
                     shouldShowTextInput={shouldShowTextInput}
                     shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
                     footerContent={footerContent}
+                    shouldFooterBeInsideList={shouldFooterBeInsideList}
                     addBottomSafeAreaPadding
                     shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
                     disableMaintainingScrollPosition

@@ -3,6 +3,7 @@ import SelectionListWithSections from '@components/SelectionList/SelectionListWi
 import type {Section, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
 import {MouseProvider} from '@hooks/useMouseContext';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {RefObject} from 'react';
@@ -44,6 +45,7 @@ type ConfirmationListLayoutProps = {
 function ConfirmationListLayout({transactionID, sections, listRef, listFooterContent, isCompactMode = false, onSelectRow, onDismissError}: ConfirmationListLayoutProps) {
     const styles = useThemeStyles();
     const {isReadOnly} = useConfirmationData();
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
 
     // The list drops its bottom safe-area padding only when there is no footer, so the read-only case must pass
     // `undefined` rather than a footer that renders nothing.
@@ -68,6 +70,7 @@ function ConfirmationListLayout({transactionID, sections, listRef, listFooterCon
                 shouldPreventDefaultFocusOnSelectRow
                 shouldShowListEmptyContent={false}
                 footerContent={footerContent}
+                shouldFooterBeInsideList={shouldFooterBeInsideList}
                 listFooterContent={listFooterContent}
                 style={selectionListStyle}
                 keyboardShouldPersistTaps="handled"
