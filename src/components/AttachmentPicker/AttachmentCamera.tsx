@@ -10,6 +10,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
+import useCameraPhotoAspectRatio from '@hooks/useCameraPhotoAspectRatio';
 import useIsPlatformMuted from '@hooks/useIsPlatformMuted';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -20,27 +21,30 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
+import {capturePhotoToPath} from '@libs/cameraCapture';
+import getWideLensZoom from '@libs/cameraCapture/getWideLensZoom';
+import selectWideCameraDevice from '@libs/cameraCapture/selectWideCameraDevice';
 import {getFileName} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
-import getVideoResolutionFormatFilter from '@libs/getVideoResolutionFormatFilter';
 import isInLandscapeMode from '@libs/isInLandscapeMode';
 import {logCameraCaptureFailed, logCameraRuntimeError} from '@libs/telemetry/ReceiptObservability';
 
 import CameraPermission from '@pages/iou/request/step/IOURequestStepScan/CameraPermission';
-import getCameraAspectRatio from '@pages/iou/request/step/IOURequestStepScan/getCameraAspectRatio';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import type {Camera, CameraRuntimeError, PhotoFile} from 'react-native-vision-camera';
+import type {CameraRef} from 'react-native-vision-camera';
 
 import React, {useEffect, useRef, useState} from 'react';
 import {Alert, AppState, View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
 import Animated from 'react-native-reanimated';
-import {useCameraDevice, useCameraDevices, useCameraFormat, Camera as VisionCamera} from 'react-native-vision-camera';
+import {useCameraDevice, useCameraDevices, usePhotoOutput, Camera as VisionCamera} from 'react-native-vision-camera';
+
+const PHOTO_TARGET_RESOLUTION = {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT};
 
 type CapturedPhoto = {
     uri: string;
@@ -81,29 +85,20 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
     const isCapturing = useRef(false);
     const isActiveRef = useRef(false);
-    const cameraRef = useRef<Camera>(null);
-
-    const device = useCameraDevice(cameraPosition, {
-        physicalDevices: ['wide-angle-camera', 'ultra-wide-angle-camera'],
-    });
+    const cameraRef = useRef<CameraRef>(null);
 
     const cameraDevices = useCameraDevices();
+    const defaultDevice = useCameraDevice(cameraPosition);
+    const device = selectWideCameraDevice(cameraDevices, cameraPosition, defaultDevice);
     const canFlipCamera = cameraDevices.some((d) => d.position === 'front') && cameraDevices.some((d) => d.position === 'back');
 
-    const format = useCameraFormat(device, [
-        {photoAspectRatio: CONST.RECEIPT_CAMERA.PHOTO_ASPECT_RATIO},
-        {
-            photoResolution: {
-                width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH,
-                height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT,
-            },
-        },
-        getVideoResolutionFormatFilter(windowWidth, windowHeight),
-    ]);
+    // Owned by the component that renders the camera: an output shared between sessions aborts (VisionCamera #4156).
+    // v5's default 'native' container is HEIC on iOS.
+    const photoOutput = usePhotoOutput({targetResolution: PHOTO_TARGET_RESOLUTION, containerFormat: 'jpeg', qualityPrioritization: 'quality'});
     const hasFlash = !!device?.hasFlash;
-    const cameraAspectRatio = getCameraAspectRatio(format, isLandscape);
+    const {cameraAspectRatio, updatePhotoResolution} = useCameraPhotoAspectRatio(photoOutput, PHOTO_TARGET_RESOLUTION, isLandscape);
 
-    const {tapGesture, cameraFocusIndicatorAnimatedStyle} = useTapToFocusGesture(cameraRef, device?.supportsFocus ?? false);
+    const {tapGesture, cameraFocusIndicatorAnimatedStyle} = useTapToFocusGesture(cameraRef, device?.supportsFocusMetering ?? false);
 
     const askForPermissions = () => requestCameraPermission(translate, setCameraPermissionStatus);
 
@@ -164,13 +159,11 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
 
         isCapturing.current = true;
 
-        cameraRef.current
-            .takePhoto({
-                flash: flash && hasFlash ? 'on' : 'off',
-                enableShutterSound: !isPlatformMuted,
-            })
-            .then((photo: PhotoFile) => {
-                // Discard capture if the camera was closed while takePhoto was in-flight
+        capturePhotoToPath(photoOutput, {
+            flashMode: flash && hasFlash ? 'on' : 'off',
+            enableShutterSound: !isPlatformMuted,
+        })
+            .then((photo) => {
                 if (!isActiveRef.current) {
                     return;
                 }
@@ -199,12 +192,12 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
             });
     };
 
-    const handleCameraError = (error: CameraRuntimeError) => {
+    const handleCameraError = (error: Error) => {
         if (!isActiveRef.current) {
             return;
         }
         Alert.alert(translate('receipt.cameraErrorTitle'), translate('receipt.cameraErrorMessage'));
-        logCameraRuntimeError({code: error.code, message: error.message});
+        logCameraRuntimeError(error);
     };
 
     const handleClose = () => {
@@ -283,12 +276,12 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
                                         <VisionCamera
                                             ref={cameraRef}
                                             device={device}
-                                            format={format ?? undefined}
+                                            outputs={[photoOutput]}
+                                            onConfigured={updatePhotoResolution}
+                                            onStarted={updatePhotoResolution}
                                             style={styles.flex1}
-                                            zoom={device.neutralZoom}
-                                            photo
+                                            zoom={getWideLensZoom(device)}
                                             isActive={isVisible}
-                                            photoQualityBalance="quality"
                                             onError={handleCameraError}
                                         />
                                         <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />

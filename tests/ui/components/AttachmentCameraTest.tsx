@@ -16,7 +16,10 @@ import createMock from '../../utils/createMock';
 import {translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
-const mockTakePhoto = jest.fn(() => Promise.resolve({path: '/tmp/photos/shot.jpg', width: 3024, height: 4032}));
+function createMockPhoto() {
+    return {width: 4032, height: 3024, orientation: 'right', saveToTemporaryFileAsync: jest.fn(() => Promise.resolve('/tmp/photos/shot.jpg')), dispose: jest.fn()};
+}
+const mockCapturePhoto = jest.fn(() => Promise.resolve(createMockPhoto()));
 let mockPermissionStatus = 'granted';
 
 jest.mock('@libs/isInLandscapeMode');
@@ -42,16 +45,16 @@ jest.mock('react-native-vision-camera', () => {
     return {
         useCameraDevice: jest.fn(),
         useCameraDevices: jest.fn(() => []),
-        useCameraFormat: jest.fn(() => null),
+        usePhotoOutput: jest.fn(() => ({capturePhoto: mockCapturePhoto})),
         Camera: actualReact.forwardRef((_props: Record<string, unknown>, ref: React.ForwardedRef<unknown>) => {
-            actualReact.useImperativeHandle(ref, () => ({takePhoto: mockTakePhoto, focus: jest.fn(() => Promise.resolve())}));
+            actualReact.useImperativeHandle(ref, () => ({focusTo: jest.fn(() => Promise.resolve())}));
             return null;
         }),
     };
 });
 
-const BACK_DEVICE = createMock<CameraDevice>({id: 'back', position: 'back', hasFlash: true, supportsFocus: true, neutralZoom: 1});
-const FRONT_DEVICE = createMock<CameraDevice>({id: 'front', position: 'front', hasFlash: false, supportsFocus: true, neutralZoom: 1});
+const BACK_DEVICE = createMock<CameraDevice>({id: 'back', position: 'back', hasFlash: true, supportsFocusMetering: true, physicalDevices: [], zoomLensSwitchFactors: []});
+const FRONT_DEVICE = createMock<CameraDevice>({id: 'front', position: 'front', hasFlash: false, supportsFocusMetering: true, physicalDevices: [], zoomLensSwitchFactors: []});
 
 const mockedUseCameraDevice = jest.mocked(useCameraDevice);
 const mockedUseCameraDevices = jest.mocked(useCameraDevices);
@@ -87,7 +90,7 @@ describe('AttachmentCamera', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
         mockPermissionStatus = 'granted';
-        mockTakePhoto.mockResolvedValue({path: '/tmp/photos/shot.jpg', width: 3024, height: 4032});
+        mockCapturePhoto.mockImplementation(() => Promise.resolve(createMockPhoto()));
         mockedUseCameraDevice.mockReturnValue(BACK_DEVICE);
         mockedUseCameraDevices.mockReturnValue([BACK_DEVICE, FRONT_DEVICE]);
         mockedIsInLandscapeMode.mockReturnValue(false);
@@ -122,7 +125,7 @@ describe('AttachmentCamera', () => {
         fireEvent.press(screen.getByLabelText(translateLocal('receipt.shutter')));
         await waitForBatchedUpdatesWithAct();
 
-        expect(mockTakePhoto).toHaveBeenCalledTimes(1);
+        expect(mockCapturePhoto).toHaveBeenCalledTimes(1);
         expect(onCapture).toHaveBeenCalledWith([expect.objectContaining({fileName: 'shot.jpg', type: 'image/jpeg', width: 3024, height: 4032})]);
     });
 
@@ -135,11 +138,11 @@ describe('AttachmentCamera', () => {
         fireEvent.press(shutter);
         await waitForBatchedUpdatesWithAct();
 
-        expect(mockTakePhoto).toHaveBeenCalledTimes(1);
+        expect(mockCapturePhoto).toHaveBeenCalledTimes(1);
     });
 
     it('surfaces a capture failure instead of failing silently', async () => {
-        mockTakePhoto.mockRejectedValueOnce(new Error('capture failed'));
+        mockCapturePhoto.mockRejectedValueOnce(new Error('capture failed'));
         const {onCapture} = renderCamera();
         await waitForBatchedUpdatesWithAct();
 
@@ -185,7 +188,7 @@ describe('AttachmentCamera', () => {
         fireEvent.press(screen.getByLabelText(translateLocal('receipt.shutter')));
         await waitForBatchedUpdatesWithAct();
 
-        expect(mockTakePhoto).not.toHaveBeenCalled();
+        expect(mockCapturePhoto).not.toHaveBeenCalled();
         expect(onCapture).not.toHaveBeenCalled();
     });
 

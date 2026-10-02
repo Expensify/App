@@ -407,6 +407,30 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - NitroImage (0.15.2):
+    - hermes-engine
+    - NitroModules
+    - RCTRequired
+    - RCTTypeSafety
+    - React-callinvoker
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
   - NitroModules (0.37.1):
     - hermes-engine
     - RCTRequired
@@ -3030,11 +3054,6 @@ PODS:
     - Turf
     - Yoga
   - RNNitroSQLite (9.8.3):
-    - boost
-    - DoubleConversion
-    - fast_float
-    - fmt
-    - glog
     - hermes-engine
     - NitroModules
     - RCTRequired
@@ -3427,12 +3446,31 @@ PODS:
   - Turf (4.0.0)
   - TweetNacl (1.0.2)
   - UMAppLoader (57.0.1)
-  - VisionCamera (4.7.2):
-    - VisionCamera/Core (= 4.7.2)
-    - VisionCamera/React (= 4.7.2)
-  - VisionCamera/Core (4.7.2)
-  - VisionCamera/React (4.7.2):
+  - VisionCamera (5.2.3):
+    - hermes-engine
+    - NitroImage
+    - NitroModules
+    - RCTRequired
+    - RCTTypeSafety
+    - React-callinvoker
     - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -3466,6 +3504,7 @@ DEPENDENCIES:
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
   - lottie-react-native (from `../node_modules/lottie-react-native`)
   - NitroFetch (from `../node_modules/react-native-nitro-fetch`)
+  - NitroImage (from `../node_modules/react-native-nitro-image`)
   - NitroModules (from `../node_modules/react-native-nitro-modules`)
   - NWWebSocket (~> 0.5.10)
   - "onfido-react-native-sdk (from `../node_modules/@onfido/react-native-sdk`)"
@@ -3693,6 +3732,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/lottie-react-native"
   NitroFetch:
     :path: "../node_modules/react-native-nitro-fetch"
+  NitroImage:
+    :path: "../node_modules/react-native-nitro-image"
   NitroModules:
     :path: "../node_modules/react-native-nitro-modules"
   onfido-react-native-sdk:
@@ -3996,6 +4037,7 @@ SPEC CHECKSUMS:
   MapboxMaps: 22340ae0e0d47b2e4761019b1d6c569ab04e088d
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   NitroFetch: 42521ebe6c3f291b2be0e1d73c7fe95c4e4ea0b8
+  NitroImage: 03c650b246b841609b53236df5c03549d156e9ad
   NitroModules: 6232dc95a28a7a221227e618733ce0e674e8753b
   NWWebSocket: 873eb4b18acd0317da70cdba388d792a3187ce00
   Onfido: 65454f91d10758193c857fd149417f6efbea84c5
@@ -4062,7 +4104,7 @@ SPEC CHECKSUMS:
   react-native-skia: b3c25cbcfdc2d4f68b73390ff1b50ef2a9bc5968
   react-native-view-shot: 6da2aaa0404b8d617ab1689550acdb251d759af9
   react-native-wallet: 69c8fde0b0e16899b95b2689f7cb737f4ec247f9
-  react-native-webview: 36fd14012dd0352c90b960ea7860fbc53876593b
+  react-native-webview: 006d1ead1d2708b2fd1b6639a759139963b39e55
   React-NativeModulesApple: a092d89b58f635ebfab88048b0eda9fb516819fd
   React-networking: ee8e1504d7c1c73a3655bf545ca1184bebae4c7f
   React-oscompat: 0b72a7e926954a0415ccd83e0748b6561fe45367
@@ -4098,7 +4140,7 @@ SPEC CHECKSUMS:
   ReactCodegen: cd296de5e1c422deebafff34134d1721b5c29704
   ReactCommon: d5c1bb4427bf51c443de5926aac332c89ddd9363
   ReactNativeBiometrics: 1fb6ad206cfd39900e952b1abcdcdba22bdd6fd9
-  ReactNativeDependencies: fa0a54b3f5319ae0e3b9aff32bfee7a424b88e66
+  ReactNativeDependencies: 4227659c64db3eab64c6ea87b5695fd329922798
   ReactNativeHybridApp: a35e7f25b54a370ada94c01309ccb1ff0954b949
   RNAppleAuthentication: 9027af8aa92b4719ef1b6030a8e954d37079473a
   RNCClipboard: 7a7d4557bfd3370b35c99dfecd92ae7b9fc4948a
@@ -4109,10 +4151,10 @@ SPEC CHECKSUMS:
   RNFS: 89de7d7f4c0f6bafa05343c578f61118c8282ed8
   RNGestureHandler: 85e32defcf23dd3b023356355c5c1dd1d9d51bde
   RNGoogleSignin: 89877c73f0fbf6af2038fbdb7b73b5a25b8330cc
-  RNLiveMarkdown: f4c383d846d5d756f42bdf6006e85d5baf0ebfc8
+  RNLiveMarkdown: ae654419aef52e634a04551805c9e5ab8690442d
   RNLocalize: 82e7aa2857ce5dcd9e2a0c04f8c34c2ed50821df
   rnmapbox-maps: 54eb40428a4fd89f484a492fc7186bc1c1eea9ce
-  RNNitroSQLite: c986393b7cb0e5e4587d0c9f7108e56ee8db9627
+  RNNitroSQLite: 56c1f2b950788d3923ca6163c7a8117b6c31cc0d
   RNPermissions: 32bd3b977f28442af0900b102f4458f0f9f9b77c
   RNReactNativeHapticFeedback: 6c8677db48f62a635e6a2065f5d2bd02498d7a73
   RNReanimated: f093c30aa11e45a8044dcc19417f44cffa1c4e1d
@@ -4131,7 +4173,7 @@ SPEC CHECKSUMS:
   Turf: c9eb11a65d96af58cac523460fd40fec5061b081
   TweetNacl: 3abf4d1d2082b0114e7a67410e300892448951e6
   UMAppLoader: 173cb90a3039aa9c1b84bace4487e1907a4a5a39
-  VisionCamera: 30b358b807324c692064f78385e9a732ce1bebfe
+  VisionCamera: c0e2c308592613de270de5f6e722b53d04a26f0d
   Yoga: c30c859b7e9b75e547b600b486fe33165f60de00
 
 PODFILE CHECKSUM: 64b30fca02abc208520075c2e1275b24533fa805

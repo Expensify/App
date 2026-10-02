@@ -1,13 +1,14 @@
 import {useFullScreenLoaderActions, useFullScreenLoaderState} from '@components/FullScreenLoaderContext';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
+import selectWideCameraDevice from '@libs/cameraCapture/selectWideCameraDevice';
 import {showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
 
 import CameraPermission from '@pages/iou/request/step/IOURequestStepScan/CameraPermission';
 
 import type React from 'react';
-import type {Camera, Point} from 'react-native-vision-camera';
+import type {CameraRef, Point} from 'react-native-vision-camera';
 
 import {useFocusEffect} from '@react-navigation/core';
 import {useCallback, useRef, useState} from 'react';
@@ -15,7 +16,7 @@ import {AppState} from 'react-native';
 import {Gesture} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
 import {useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
-import {useCameraDevice} from 'react-native-vision-camera';
+import {useCameraDevice, useCameraDevices} from 'react-native-vision-camera';
 import {scheduleOnRN} from 'react-native-worklets';
 
 import useIsPlatformMuted from './useIsPlatformMuted';
@@ -54,9 +55,9 @@ function useNativeCamera({onFocusStart, onFocusCleanup}: UseNativeCameraOptions)
     const {isLoaderVisible} = useFullScreenLoaderState();
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
 
-    const device = useCameraDevice('back', {
-        physicalDevices: ['wide-angle-camera', 'ultra-wide-angle-camera'],
-    });
+    const cameraDevices = useCameraDevices();
+    const defaultDevice = useCameraDevice('back');
+    const device = selectWideCameraDevice(cameraDevices, 'back', defaultDevice);
 
     const isPlatformMuted = useIsPlatformMuted();
 
@@ -65,11 +66,11 @@ function useNativeCamera({onFocusStart, onFocusCleanup}: UseNativeCameraOptions)
     const [flash, setFlash] = useState(false);
     const [didCapturePhoto, setDidCapturePhoto] = useState(false);
     const [isAttachmentPickerActive, setIsAttachmentPickerActive] = useState(false);
-    const camera = useRef<Camera>(null);
+    const camera = useRef<CameraRef>(null);
 
     const askForPermissions = useCallback(() => requestCameraPermission(translate, setCameraPermissionStatus), [translate]);
 
-    const {tapGesture, cameraFocusIndicatorAnimatedStyle} = useTapToFocusGesture(camera, device?.supportsFocus ?? false);
+    const {tapGesture, cameraFocusIndicatorAnimatedStyle} = useTapToFocusGesture(camera, device?.supportsFocusMetering ?? false);
 
     // Refresh camera permission on screen focus and app state changes
     useFocusEffect(
@@ -126,20 +127,25 @@ function useNativeCamera({onFocusStart, onFocusCleanup}: UseNativeCameraOptions)
  * Module-level so React Compiler never sees the `cameraRef.current` read. Doing it inside a hook body
  * trips the "no ref access during render" rule, making OXC bail on the file and diverge from Babel.
  */
-function focusCameraAtPoint(cameraRef: React.RefObject<Camera | null>, point: Point) {
+// How CameraX (Android) and VisionCamera (iOS) reject a focus request that a newer tap replaced.
+const FOCUS_CANCELLED_MESSAGES = ['Cancelled by another startFocusAndMetering()', 'The metering operation has been canceled!'];
+
+function focusCameraAtPoint(cameraRef: React.RefObject<CameraRef | null>, point: Point) {
     if (!cameraRef.current) {
         return;
     }
 
-    cameraRef.current.focus(point).catch((error: Record<string, unknown>) => {
-        if (error.message === '[unknown/unknown] Cancelled by another startFocusAndMetering()') {
+    // Android throws "MeteringModes cannot be empty!" for the default options.
+    cameraRef.current.focusTo(point, {modes: ['AF', 'AE']}).catch((error: unknown) => {
+        const message = error instanceof Error ? error.message : String(error);
+        if (FOCUS_CANCELLED_MESSAGES.some((cancelled) => message.includes(cancelled))) {
             return;
         }
-        Log.warn('Error focusing camera', error);
+        Log.warn('Error focusing camera', {message: message.split('\n').at(0)});
     });
 }
 
-function useTapToFocusGesture(cameraRef: React.RefObject<Camera | null>, supportsFocus: boolean) {
+function useTapToFocusGesture(cameraRef: React.RefObject<CameraRef | null>, supportsFocus: boolean) {
     const focusIndicatorOpacity = useSharedValue(0);
     const focusIndicatorScale = useSharedValue(2);
     const focusIndicatorPosition = useSharedValue({x: 0, y: 0});

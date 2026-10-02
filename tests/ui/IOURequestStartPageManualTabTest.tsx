@@ -33,6 +33,8 @@ jest.mock('@rnmapbox/maps', () => ({
 
 jest.mock('react-native-vision-camera', () => ({
     useCameraDevice: jest.fn(),
+    useCameraDevices: jest.fn(() => []),
+    usePhotoOutput: jest.fn(() => ({capturePhoto: jest.fn()})),
 }));
 
 // The page is rendered outside a navigator screen, so give the hooks that read the route a static one.
