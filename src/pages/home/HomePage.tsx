@@ -1,5 +1,6 @@
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import QuickCreationActionsBar from '@components/Navigation/QuickCreationActionsBar';
+import useTabBarContentInsetStyle from '@components/Navigation/TabBarBottomContent/useTabBarContentInsetStyle';
 import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
 import TopBar from '@components/Navigation/TopBar';
 import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
@@ -43,6 +44,7 @@ function HomePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.HOME);
+    const contentContainerStyle = useTabBarContentInsetStyle(styles.homePageContentContainer, true);
     const {translate} = useLocalize();
     useDocumentTitle(translate('common.home'));
     const {isOffline} = useNetwork({onReconnect: openHomePage});
@@ -153,7 +155,7 @@ function HomePage() {
                         style={styles.homePageScrollView}
                         // Lets UIKit inset the end of the list past the translucent iOS tab bar that the content runs under.
                         contentInsetAdjustmentBehavior="automatic"
-                        contentContainerStyle={styles.homePageContentContainer}
+                        contentContainerStyle={contentContainerStyle}
                         addBottomSafeAreaPadding
                         keyboardShouldPersistTaps="handled"
                     >

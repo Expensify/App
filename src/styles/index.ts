@@ -774,6 +774,15 @@ const staticStyles = (theme: ThemeColors) =>
             height: variables.androidNativeTabBarHeight,
         },
 
+        // Lays a tab root screen's copy of the floating bar over the bottom of its content.
+        floatingTabBarOverlay: {
+            position: 'absolute',
+            right: 0,
+            bottom: 0,
+            left: 0,
+            overflow: 'visible',
+        },
+
         // The gap between the floating bar and the bottom edge of the screen.
         floatingTabBarBottomInset: {
             paddingBottom: variables.floatingTabBarBottomInset,

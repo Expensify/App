@@ -1,3 +1,4 @@
+import useTabBarContentInsetStyle from '@components/Navigation/TabBarBottomContent/useTabBarContentInsetStyle';
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
@@ -74,6 +75,7 @@ function BaseSearchList({
     disabledIndexes,
     overrideItemLayout,
 }: BaseSearchListProps) {
+    const tabBarInsetContentContainerStyle = useTabBarContentInsetStyle(contentContainerStyle);
     const hasKeyBeenPressed = useRef(false);
     const isFocused = useIsFocused();
     const {focusedCellId, isEditingCell} = useEditingCellState();
@@ -193,7 +195,7 @@ function BaseSearchList({
             CellRendererComponent={CellRendererComponent}
             removeClippedSubviews
             drawDistance={250}
-            contentContainerStyle={contentContainerStyle}
+            contentContainerStyle={tabBarInsetContentContainerStyle}
             maintainVisibleContentPosition={{disabled: true}}
             stickyHeaderIndices={stickyHeaderIndices}
             stickyHeaderConfig={stickyHeaderConfig}

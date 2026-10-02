@@ -1,3 +1,4 @@
+import useTabBarContentInsetStyle from '@components/Navigation/TabBarBottomContent/useTabBarContentInsetStyle';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 
 import useNetwork from '@hooks/useNetwork';
@@ -45,6 +46,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const [personalDetails] = useAllPersonalDetails();
 
     const styles = useThemeStyles();
+    const contentContainerStyle = useTabBarContentInsetStyle(contentContainerStyles);
     const estimatedItemSize = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
 
     // When the first item renders we want to call the onFirstItemRendered callback.
@@ -167,7 +169,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     indicatorStyle="white"
                     keyboardShouldPersistTaps="always"
                     CellRendererComponent={OptionRowRendererComponent}
-                    contentContainerStyle={StyleSheet.flatten(contentContainerStyles)}
+                    contentContainerStyle={StyleSheet.flatten(contentContainerStyle)}
                     data={data}
                     testID="lhn-options-list"
                     keyExtractor={keyExtractor}
