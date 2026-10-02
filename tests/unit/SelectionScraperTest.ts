@@ -1,3 +1,4 @@
+import type * as ClipboardTextWebModule from '@libs/Clipboard/getClipboardText/index';
 import type * as SelectionScraperWebModule from '@libs/SelectionScraper/index';
 import installTransformedChildren from '@libs/SelectionScraper/installTransformedChildren';
 
@@ -8,6 +9,7 @@ import {Element, Text} from 'domhandler';
 // cspell:ignore mtext
 // Selection scraping only exists in the web implementation. The native variant always returns an empty string.
 const {default: SelectionScraper} = jest.requireActual<typeof SelectionScraperWebModule>('@libs/SelectionScraper/index.ts');
+const {default: getClipboardText} = jest.requireActual<typeof ClipboardTextWebModule>('@libs/Clipboard/getClipboardText/index.ts');
 
 const copyableRowAttribute = `data-${CONST.COPYABLE_ROW_ELEMENT}`;
 const copyableTextAttribute = `data-${CONST.COPYABLE_TEXT_ELEMENT}`;
@@ -92,6 +94,42 @@ describe('SelectionScraper', () => {
         selectText(getTextNode('amount'), 1, getTextNode('amount'), 4);
 
         expect(SelectionScraper.getCurrentSelection()).toBe('123');
+    });
+
+    it.each([
+        {startOffset: 0, endOffset: 11, expectedText: 'Ann Manager'},
+        {startOffset: 0, endOffset: 3, expectedText: 'Ann'},
+    ])('preserves exactly "$expectedText" in the approver clipboard text', ({startOffset, endOffset, expectedText}) => {
+        // Given an approver cell whose avatar must not become part of the copied name.
+        createFixture(
+            `<div ${copyableRowAttribute}="true">` + `<span ${hiddenElementAttribute}="true">A</span>` + `<span id="approver" ${copyableTextAttribute}="true">Ann Manager</span>` + '</div>',
+        );
+
+        // When the user selects either the whole name or just its first word.
+        selectText(getTextNode('approver'), startOffset, getTextNode('approver'), endOffset);
+        const selectionHTML = SelectionScraper.getCurrentSelection();
+
+        // Then the clipboard payload preserves the exact selection, not the full field or avatar initial.
+        expect(selectionHTML).toBe(expectedText);
+        expect(getClipboardText(selectionHTML)).toBe(expectedText);
+    });
+
+    it('excludes approver avatar text when the selection range crosses the avatar', () => {
+        // Given an excluded avatar next to a copyable approver name in an interactive row.
+        createFixture(
+            `<div ${copyableRowAttribute}="true">` +
+                `<span id="approver-avatar" ${hiddenElementAttribute}="true">A</span>` +
+                `<span id="approver" ${copyableTextAttribute}="true">Ann Manager</span>` +
+                '</div>',
+        );
+
+        // When selection handles extend across the avatar as well as the name.
+        selectText(getTextNode('approver-avatar'), 0, getTextNode('approver'), 'Ann Manager'.length);
+        const selectionHTML = SelectionScraper.getCurrentSelection();
+
+        // Then the copied plain text and HTML exclude the avatar initial.
+        expect(selectionHTML).toBe('<span>Ann Manager</span>');
+        expect(getClipboardText(selectionHTML)).toBe('Ann Manager');
     });
 
     it('preserves partial first and last cell boundaries in multi-row selections', () => {

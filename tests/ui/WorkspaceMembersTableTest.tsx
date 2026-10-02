@@ -9,6 +9,7 @@ import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperS
 import type {TableHandle} from '@components/Table';
 import type {WorkspaceMemberRowData, WorkspaceMembersTableColumnKey} from '@components/Tables/WorkspaceMembersTable';
 import WorkspaceMembersTable from '@components/Tables/WorkspaceMembersTable';
+import type * as TextWithTooltipModule from '@components/TextWithTooltip';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 
@@ -29,6 +30,9 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
     __esModule: true,
     default: jest.fn(() => ({shouldUseNarrowLayout: false, isSmallScreenWidth: false, isMediumScreenWidth: false})),
 }));
+
+// Jest resolves native modules by default; copyable text selection is a web-only feature.
+jest.mock('@components/TextWithTooltip', () => jest.requireActual<typeof TextWithTooltipModule>('@components/TextWithTooltip/index.tsx'));
 
 const SCREEN_WRAPPER_STATUS = {didScreenTransitionEnd: true, isSafeAreaTopPaddingApplied: true, isSafeAreaBottomPaddingApplied: true};
 
@@ -86,7 +90,7 @@ describe('WorkspaceMembersTable', () => {
         });
     });
 
-    it('marks approver names as copyable and excludes member and approver avatars from selection', async () => {
+    it('marks approver names as copyable on web and excludes member and approver avatars from selection', async () => {
         // Given a member with an approver displayed in the wide table layout.
         const member = buildMember({
             keyForList: 'walter',
@@ -103,7 +107,7 @@ describe('WorkspaceMembersTable', () => {
         renderTable([member], tableRef);
         await waitForBatchedUpdatesWithAct();
 
-        // Then only the approver name is marked as selectable, while avatar text is excluded from copied content.
+        // Then the approver name is selectable, while avatar text is excluded from copied content.
         expect(screen.getByText('Ann Manager')).toHaveProp('selectable', true);
         expect(screen.getByText('Ann Manager')).toHaveProp('dataSet', expect.objectContaining({[CONST.COPYABLE_TEXT_ELEMENT]: true}));
         const avatars = screen.UNSAFE_getAllByType(AccountAvatar);
