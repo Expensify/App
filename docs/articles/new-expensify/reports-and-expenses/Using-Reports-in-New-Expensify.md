@@ -210,8 +210,8 @@ Expensify ensures cross-platform consistency where possible. However, certain fe
 2. Select **Expense** from the Type filter.
 3. Apply the **Draft** filter to view all unsubmitted reports.
 
-## Why can I see another member's Draft reports in Spend?
-If you're an approver in a member's approval workflow or a Workspace Admin, you can view that member's reports in **Spend > Reports**, including Draft (unsubmitted) reports. The member's copilots can view them too. This is expected — viewing Draft reports is not limited to Workspace Admins.
+## Why can I see another member's Draft reports
+If you're an approver in a member's approval workflow or a Workspace Admin, you can view that member's reports in **Spend > Reports**, including Draft (unsubmitted) reports.
 
 A Draft report you can see in **Reports** won't appear under **Needs approval** until the member submits it.
 
