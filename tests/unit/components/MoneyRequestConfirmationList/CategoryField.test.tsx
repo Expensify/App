@@ -4,6 +4,7 @@ import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFiel
 import CategoryField from '@components/MoneyRequestConfirmationList/sections/CategoryField';
 
 import CONST from '@src/CONST';
+import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 
@@ -33,13 +34,15 @@ const REPORT_ID = 'reportID';
 const disabledPolicy: Policy = {...createRandomPolicy(1), autoCategorizeNewExpenses: false};
 const enabledPolicy: Policy = {...createRandomPolicy(1), autoCategorizeNewExpenses: true};
 
-const renderCategoryField = (isCategoryRequired: boolean, policy: Policy | undefined) =>
+type ConfirmationIOUType = Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
+
+const renderCategoryField = (isCategoryRequired: boolean, policy: Policy | undefined, iouType: ConfirmationIOUType = CONST.IOU.TYPE.SUBMIT) =>
     render(
         <ConfirmationFieldsProvider
             transactionID={TRANSACTION_ID}
             reportID={REPORT_ID}
             action={CONST.IOU.ACTION.CREATE}
-            iouType={CONST.IOU.TYPE.SUBMIT}
+            iouType={iouType}
         >
             <CategoryField
                 isCategoryRequired={isCategoryRequired}
@@ -47,7 +50,7 @@ const renderCategoryField = (isCategoryRequired: boolean, policy: Policy | undef
                 isReadOnly={false}
                 transactionID={TRANSACTION_ID}
                 action={CONST.IOU.ACTION.CREATE}
-                iouType={CONST.IOU.TYPE.SUBMIT}
+                iouType={iouType}
                 reportID={REPORT_ID}
                 reportActionID={undefined}
                 policy={policy}
@@ -143,6 +146,20 @@ describe('CategoryField', () => {
         // Then the row must not say Automatic, because a turned-off workspace never categorizes the receipt
         await waitFor(() => {
             expect(screen.getByText('Travel')).toBeOnTheScreen();
+        });
+        expect(screen.queryByText('common.automatic')).toBeNull();
+    });
+
+    it('does not promise an automatic category on an invoice', async () => {
+        // Given a manual invoice on a workspace that categorizes new expenses
+        await givenManualExpense();
+
+        // When the confirmation form renders an optional category row for an invoice
+        renderCategoryField(false, enabledPolicy, CONST.IOU.TYPE.INVOICE);
+
+        // Then the row must not say Automatic, because invoices are never auto-categorized
+        await waitFor(() => {
+            expect(screen.getByText('Meals')).toBeOnTheScreen();
         });
         expect(screen.queryByText('common.automatic')).toBeNull();
     });
