@@ -1,0 +1,56 @@
+diff --git a/node_modules/react-native/Libraries/StyleSheet/StyleSheetTypes.d.ts b/node_modules/react-native/Libraries/StyleSheet/StyleSheetTypes.d.ts
+--- a/node_modules/react-native/Libraries/StyleSheet/StyleSheetTypes.d.ts
++++ b/node_modules/react-native/Libraries/StyleSheet/StyleSheetTypes.d.ts
+@@ -27,7 +27,23 @@
+ type AnimatableNumericValue = number | Animated.AnimatedNode;
+ type AnimatableStringValue = string | Animated.AnimatedNode;
+ 
+-export type CursorValue = 'auto' | 'pointer';
++export type CursorValue =
++  | 'auto'
++  | 'pointer'
++  | 'default'
++  | 'not-allowed'
++  | 'move'
++  | 'unset'
++  | 'zoom-in'
++  | 'grab'
++  | 'grabbing'
++  | 'zoom-out'
++  | 'initial'
++  | 'text'
++  | 'ew-resize'
++  | 'ns-resize'
++  | 'nesw-resize'
++  | 'nwse-resize';
+ 
+ /**
+  * Flex Prop Types
+diff --git a/node_modules/react-native/types_generated/Libraries/StyleSheet/StyleSheetTypes.d.ts b/node_modules/react-native/types_generated/Libraries/StyleSheet/StyleSheetTypes.d.ts
+--- a/node_modules/react-native/types_generated/Libraries/StyleSheet/StyleSheetTypes.d.ts
++++ b/node_modules/react-native/types_generated/Libraries/StyleSheet/StyleSheetTypes.d.ts
+@@ -32,7 +32,23 @@
+   bottom: number;
+ };
+ export type DimensionValue = number | string | "auto" | null;
+-export type CursorValue = "auto" | "pointer";
++export type CursorValue =
++  | "auto"
++  | "pointer"
++  | "default"
++  | "not-allowed"
++  | "move"
++  | "unset"
++  | "zoom-in"
++  | "grab"
++  | "grabbing"
++  | "zoom-out"
++  | "initial"
++  | "text"
++  | "ew-resize"
++  | "ns-resize"
++  | "nesw-resize"
++  | "nwse-resize";
+ /**
+  * React Native's layout system is based on Flexbox and is powered both
+  * on iOS and Android by an open source project called `Yoga`:

@@ -2,11 +2,10 @@ import type {SearchQueryJSON} from '@components/Search/types';
 
 import {flushPendingSearchWrite, getSearchWriteWatchKey, hasPendingSearchWrite} from '@libs/pendingSearchWrite';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {isSearchDataLoaded, isTransactionSearchType} from '@libs/SearchUIUtils';
+import {isReportActionEntry, isSearchDataLoaded, isTransactionEntry, isTransactionSearchType} from '@libs/SearchUIUtils';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type SearchResults from '@src/types/onyx/SearchResults';
@@ -125,7 +124,7 @@ function useOptimisticSearchTracking({searchResults, queryJSON, transactions, re
         if (tracking.hasSwappedFromParent) {
             return;
         }
-        const watchedTx = transactions?.[optimisticWatchKey as `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`];
+        const watchedTx = transactions?.[optimisticWatchKey];
         if (watchedTx?.reportID !== CONST.REPORT.SPLIT_REPORT_ID) {
             return;
         }
@@ -135,7 +134,10 @@ function useOptimisticSearchTracking({searchResults, queryJSON, transactions, re
         if (!childEntry) {
             return;
         }
-        const childKey = childEntry[0] as `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
+        const childKey = childEntry[0];
+        if (!isTransactionEntry(childKey)) {
+            return;
+        }
         tracking.optimisticWatchKey = childKey;
         tracking.hasSwappedFromParent = true;
         const rafID = requestAnimationFrame(() => setOptimisticWatchKey(childKey));
@@ -149,21 +151,19 @@ function useOptimisticSearchTracking({searchResults, queryJSON, transactions, re
             return searchData;
         }
 
-        const optimisticTransactionKey = optimisticWatchKey.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)
-            ? (optimisticWatchKey as `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`)
-            : undefined;
+        const optimisticTransactionKey = isTransactionEntry(optimisticWatchKey) ? optimisticWatchKey : undefined;
         const optimisticTransaction = optimisticTransactionKey ? transactions?.[optimisticTransactionKey] : undefined;
         if (!optimisticTransactionKey || !optimisticTransaction?.transactionID || searchData[optimisticTransactionKey] || optimisticTransaction.reportID === CONST.REPORT.SPLIT_REPORT_ID) {
             return searchData;
         }
 
-        const nextSearchData = {
+        const nextSearchData: SearchResults['data'] = {
             ...searchData,
             [optimisticTransactionKey]: optimisticTransaction,
-        } as SearchResults['data'];
+        };
 
         for (const [reportActionsKey, actions] of Object.entries(reportActions ?? {})) {
-            if (!actions) {
+            if (!actions || !isReportActionEntry(reportActionsKey)) {
                 continue;
             }
 
@@ -178,7 +178,7 @@ function useOptimisticSearchTracking({searchResults, queryJSON, transactions, re
                 continue;
             }
 
-            nextSearchData[reportActionsKey as `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`] = actions;
+            nextSearchData[reportActionsKey] = actions;
         }
 
         return nextSearchData;
