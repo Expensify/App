@@ -103,8 +103,33 @@ describe('navigateToCreatedExpense', () => {
         });
         await waitForBatchedUpdates();
 
-        // Then the transaction thread still opens, since the list does not show the expense itself
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute('thread-1', undefined, undefined, ''), {forceReplace: false});
+        // Then the transaction thread opens on top of the report already open, since the list does not show the expense itself
+        expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: 'thread-1', backTo: ''}), {forceReplace: false});
+    });
+
+    it('should open the expense report then the thread RHP with the prev/next arrows on a narrow layout when the report has multiple transactions', async () => {
+        // Given the user is on a chat in the Inbox tab on a narrow layout, and the report holds several expenses
+        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+        mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
+        mockGetIsNarrowLayout.mockReturnValue(true);
+        mockGetFocusedReportId.mockReturnValue('chat-1');
+
+        // When they press "View"
+        navigateToCreatedExpense({
+            threadReportID: 'thread-1',
+            transactionID: 'txn-1',
+            iouReportID: 'iou-1',
+            reportTransactions: [buildTransaction('txn-1'), buildTransaction('txn-2')],
+        });
+        await waitForBatchedUpdates();
+
+        // Then the thread opens in the RHP on top of its report, the same as opening it from the report preview
+        const reportRoute = ROUTES.REPORT_WITH_ID.getRoute('iou-1', undefined, undefined, '');
+        expect(setActiveTransactionIDs).toHaveBeenCalledWith(['txn-1', 'txn-2']);
+        expect(Navigation.navigate).toHaveBeenCalledTimes(2);
+        expect(Navigation.navigate).toHaveBeenNthCalledWith(1, reportRoute);
+        expect(Navigation.navigate).toHaveBeenNthCalledWith(2, ROUTES.SEARCH_REPORT.getRoute({reportID: 'thread-1', backTo: reportRoute}), {forceReplace: false});
     });
 
     it('should still navigate when the focused report is a different one', async () => {

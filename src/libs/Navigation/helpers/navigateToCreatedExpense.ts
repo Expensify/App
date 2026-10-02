@@ -62,6 +62,19 @@ function navigateToCreatedExpense({threadReportID, transactionID, iouReportID, r
         return;
     }
 
+    // Same as opening the expense from its report preview: the thread goes in the RHP on top of its report, so the
+    // prev/next arrows show.
+    if (getIsNarrowLayout() && iouReportID && hasMultipleReportTransactions) {
+        const shouldOpenExpenseReport = !forceReplace && focusedReportID !== iouReportID;
+        const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, backTo);
+        if (shouldOpenExpenseReport) {
+            Navigation.navigate(reportRoute);
+        }
+        setActiveTransactionIDs(openableTransactionIDs);
+        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo: shouldOpenExpenseReport ? reportRoute : backTo}), {forceReplace});
+        return;
+    }
+
     if (getIsNarrowLayout()) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(threadReportID, undefined, undefined, backTo), {forceReplace});
         return;
