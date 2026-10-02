@@ -1,20 +1,21 @@
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 
 import {getExportLabelsForConnection, getStandardExportTemplateDisplayName} from '@libs/AccountingUtils';
+import {getExportTemplates} from '@libs/actions/Search';
+import {isAdminOfCardEnabledPolicy} from '@libs/PolicyUtils';
 import {getAllPolicyValues, getConnectedIntegrationNamesForPolicies, getFilterFromQuery} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ExportTemplate, Policy} from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import useCombinedExportTemplates from './useCombinedExportTemplates';
+import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 
 type UseExportedToFilterDataResult = {
     exportedToFilterOptions: string[];
-    combinedUniqueExportTemplates: ExportTemplate[];
     connectedIntegrationNames: Set<string>;
 };
 
@@ -35,7 +36,6 @@ function exportedToPoliciesSelector(policies: OnyxCollection<Policy>): OnyxColle
             id: policy.id,
             name: policy.name,
             connections: policy.connections,
-            exportLayouts: policy.exportLayouts,
             outputCurrency: policy.outputCurrency,
             role: policy.role,
             areCompanyCardsEnabled: policy.areCompanyCardsEnabled,
@@ -51,21 +51,34 @@ function exportedToPoliciesSelector(policies: OnyxCollection<Policy>): OnyxColle
  * When currentSearchQueryJSON has policyID, options are scoped to those workspaces so form hydration and autocomplete stay consistent.
  */
 export default function useExportedToFilterOptions(): UseExportedToFilterDataResult {
+    const {translate, localeCompare} = useLocalize();
     const {currentSearchQueryJSON} = useSearchQueryContext();
     const policyIDs = getFilterFromQuery(currentSearchQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: exportedToPoliciesSelector});
+    const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES);
 
     // When search is scoped to workspaces, use only those policies otherwise use all.
     const policiesToUse = getAllPolicyValues(policyIDs, ONYXKEYS.COLLECTION.POLICY, policies);
-    const {combinedExportTemplates: combinedUniqueExportTemplates} = useCombinedExportTemplates(policiesToUse);
+
+    // In-app templates can't be identified in the exported-to filter, so skip building them and aggregate the per-policy flags instead
+    const {customTemplates, defaultTemplates} = getExportTemplates(
+        integrationsExportTemplates ?? [],
+        {},
+        translate,
+        localeCompare,
+        undefined,
+        true,
+        false,
+        policiesToUse.some((policy) => policy.outputCurrency === CONST.CURRENCY.CAD),
+        policiesToUse.some((policy) => isAdminOfCardEnabledPolicy(policy)),
+    );
 
     const integrationConnectionNamesSet = new Set<string>(CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES);
 
     const standardAndCustomExportTemplates: string[] = [];
-    for (const template of combinedUniqueExportTemplates) {
-        // Classic export formats map to in-app templates and cannot be identified in exported-to filter.
-        if (template.type === CONST.EXPORT_TEMPLATE_TYPES.IN_APP || integrationConnectionNamesSet.has(template.templateName)) {
+    for (const template of [...customTemplates, ...defaultTemplates]) {
+        if (integrationConnectionNamesSet.has(template.templateName)) {
             continue;
         }
 
@@ -88,7 +101,6 @@ export default function useExportedToFilterOptions(): UseExportedToFilterDataRes
 
     return {
         exportedToFilterOptions,
-        combinedUniqueExportTemplates,
         connectedIntegrationNames,
     };
 }
