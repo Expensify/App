@@ -7817,6 +7817,12 @@ const plainStyles = (theme: ThemeColors) =>
             height: variables.componentSizeNormal,
         },
 
+        // Cards sit as close together as the page's own gutter on narrow layouts, the way the home page's do.
+        insightsCardGapStyle: (shouldUseNarrowLayout: boolean) =>
+            ({
+                gap: shouldUseNarrowLayout ? variables.insightsCardGapNarrow : variables.insightsCardGap,
+            }) satisfies ViewStyle,
+
         homePageContentContainer: (shouldUseNarrowLayout: boolean) =>
             ({
                 flexGrow: 1,
@@ -7848,7 +7854,6 @@ const plainStyles = (theme: ThemeColors) =>
             width: '100%',
             maxWidth: variables.centeredContentMaxWidth,
             alignSelf: 'center',
-            gap: variables.insightsCardGap,
         } satisfies ViewStyle,
 
         insightsDashboardScrollView: {
@@ -7863,11 +7868,6 @@ const plainStyles = (theme: ThemeColors) =>
         insightsChartGrid: {
             flexDirection: 'row',
             alignItems: 'flex-start',
-            gap: variables.insightsCardGap,
-        } satisfies ViewStyle,
-
-        insightsChartColumn: {
-            gap: variables.insightsCardGap,
         } satisfies ViewStyle,
 
         insightsEmptyStateIllustration: {

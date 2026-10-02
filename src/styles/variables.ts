@@ -143,6 +143,7 @@ export default {
     conciergeAskColumnMaxWidth: 720,
     centeredContentMaxWidth: 1200,
     insightsCardGap: 20,
+    insightsCardGapNarrow: 12,
     insightsEmptyStateIllustrationSize: 136,
     minScanTooltipWidth: 320,
     uploadViewMargin: 20,

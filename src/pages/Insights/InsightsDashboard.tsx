@@ -125,10 +125,10 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
     return (
         <ScrollView
             style={styles.insightsDashboardScrollView}
-            contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb5]}
+            contentContainerStyle={[styles.flexGrow1, shouldUseNarrowLayout ? styles.ph3 : styles.ph5, styles.pb5]}
             addBottomSafeAreaPadding
         >
-            <View style={styles.insightsDashboardLayout}>
+            <View style={[styles.insightsDashboardLayout, styles.insightsCardGapStyle(shouldUseNarrowLayout)]}>
                 <InsightsChartWidget
                     chart={headlineChart.chart}
                     queryJSON={headlineChart.queryJSON}
@@ -137,12 +137,12 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
                     onRetry={onRetry}
                     onGroupByChange={onGroupByChange}
                 />
-                <View style={styles.insightsChartGrid}>
+                <View style={[styles.insightsChartGrid, styles.insightsCardGapStyle(shouldUseNarrowLayout)]}>
                     {columns.map((columnCharts, columnIndex) => (
                         <View
                             // eslint-disable-next-line react/no-array-index-key -- columns are fixed positions
                             key={columnIndex}
-                            style={[styles.flex1, styles.insightsChartColumn]}
+                            style={[styles.flex1, styles.insightsCardGapStyle(shouldUseNarrowLayout)]}
                         >
                             {columnCharts.map(({chart, queryJSON, snapshot}) => (
                                 <InsightsChartWidget

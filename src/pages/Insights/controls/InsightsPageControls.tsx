@@ -62,7 +62,7 @@ function InsightsPageControls({filters, defaultFilters, onChange}: InsightsPageC
                 showsHorizontalScrollIndicator={false}
                 keyboardShouldPersistTaps="always"
                 style={[styles.flexGrow0, styles.flexShrink0, styles.pb5]}
-                contentContainerStyle={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.ph5]}
+                contentContainerStyle={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.ph3]}
             >
                 {controls}
             </ScrollView>
