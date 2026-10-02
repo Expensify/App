@@ -94,8 +94,16 @@ function useFooterDerivedFlags({
 
     // A flag for showing the billable field
     const shouldShowBillable = isBillableEnabledOnPolicy(policy);
+    // A locked field normally hides the toggle, but an expense that already disagrees with the policy
+    // default has to stay correctable - otherwise it is silently stuck on the wrong value.
+    // An absent `defaultReimbursable` means "reimbursable", matching the expense creation path.
+    const isCurrentTransactionReimbursableDifferentFromPolicyDefault = !!transaction?.reimbursable !== (policy?.defaultReimbursable ?? true);
     const shouldShowReimbursable =
-        (isPolicyExpenseChat || isTrackExpense) && !!policy && policy?.disabledFields?.reimbursable !== true && !isManagedCardTransaction(transaction) && !isTypeInvoice;
+        (isPolicyExpenseChat || isTrackExpense) &&
+        !!policy &&
+        (policy?.disabledFields?.reimbursable !== true || isCurrentTransactionReimbursableDifferentFromPolicyDefault) &&
+        !isManagedCardTransaction(transaction) &&
+        !isTypeInvoice;
     // Submit workspaces ship Categories/Distance enabled by default, so never route their fields to the upgrade gate.
     const isSubmitWorkspace = isSubmitPolicy(policy);
     const shouldNavigateToUpgradePath = !isSubmitWorkspace && canNavigateToUpgradePath;
