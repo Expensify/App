@@ -2,7 +2,7 @@ import Button from '@components/Button';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -42,6 +42,7 @@ function CopyPolicySettingsConfirmPage() {
     const [copyPolicySettingsState, copyPolicySettingsMetadata] = useOnyx(ONYXKEYS.COPY_POLICY_SETTINGS);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const [allRules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const sourcePolicy = sourcePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`] : undefined;
     const targetPolicyIDs = copyPolicySettingsState?.targetPolicyIDs ?? [];
@@ -91,7 +92,7 @@ function CopyPolicySettingsConfirmPage() {
             Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_UPGRADE.getRoute(sourcePolicyID));
             return;
         }
-        copyPolicySettings(sourcePolicy, targetPolicies, parts, allPolicyCategories, allPolicyTags);
+        copyPolicySettings(sourcePolicy, targetPolicies, parts, allPolicyCategories, allPolicyTags, allRules);
         Navigation.dismissModal();
     };
 
@@ -133,19 +134,17 @@ function CopyPolicySettingsConfirmPage() {
                         </View>
                     </View>
                     <View style={[styles.mt4]}>
-                        <MenuItemWithTopDescription
-                            title={translatedParts}
-                            description={translate('common.settings')}
+                        <MenuItemField
+                            name={translate('common.settings')}
+                            value={translatedParts}
+                            numberOfLinesValue={0}
                             onPress={navigateToSelectFeatures}
-                            shouldShowRightIcon
-                            numberOfLinesTitle={0}
                         />
-                        <MenuItemWithTopDescription
-                            title={targetPolicies.map((policy) => policy?.name).join(', ')}
-                            description={translate('common.workspaces')}
+                        <MenuItemField
+                            name={translate('common.workspaces')}
+                            value={targetPolicies.map((policy) => policy?.name).join(', ')}
+                            numberOfLinesValue={0}
                             onPress={navigateToSelectWorkspaces}
-                            shouldShowRightIcon
-                            numberOfLinesTitle={0}
                         />
                     </View>
                 </ScrollView>

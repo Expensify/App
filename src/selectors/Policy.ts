@@ -1,7 +1,10 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import {hasSynchronizationErrorMessage, isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
 import isTeachersUnitePolicyID from '@libs/isTeachersUnitePolicyID';
 import {getConnectedHRProvider} from '@libs/merge/HRUtils';
+import type {PolicyPaymentAttribution} from '@libs/PolicyPaymentUtils';
 import {
     canSendInvoice,
     getActiveAdminWorkspaces,
@@ -19,6 +22,7 @@ import {
     isTimeTrackingEnabled,
     shouldShowPolicy,
 } from '@libs/PolicyUtils';
+import type {BillingRestrictionPolicy} from '@libs/SubscriptionUtils';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
@@ -278,6 +282,29 @@ const createPoliciesForDomainCardsSelector = (domainNames: string[]) => {
     };
 };
 
+/**
+ * Creates a selector returning only the policies for the given IDs, so a consumer interested in a
+ * known handful of workspaces doesn't re-render when unrelated policies change.
+ */
+const createPoliciesByIDsSelector = (policyIDs: string[]) => {
+    const policyKeys = new Set(policyIDs.map((policyID) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`));
+
+    return (policies: OnyxCollection<Policy>): NonNullable<OnyxCollection<Policy>> => {
+        if (policyKeys.size === 0) {
+            return {};
+        }
+
+        const filtered: NonNullable<OnyxCollection<Policy>> = {};
+        for (const key of policyKeys) {
+            const policy = policies?.[key];
+            if (policy) {
+                filtered[key] = policy;
+            }
+        }
+        return filtered;
+    };
+};
+
 const policyTimeTrackingSelector = (policy: OnyxEntry<Policy>) =>
     policy && {
         outputCurrency: policy.outputCurrency,
@@ -355,28 +382,32 @@ type FilteredPoliciesInfo = {
     /** Number of policies that should be shown to the user (short-circuited at 2) */
     filteredPoliciesCount: number;
 
-    /** ID of the first policy that should be shown to the user */
-    firstPolicyID: string | undefined;
+    /** The first policy to show the user, projected to the billing-gate fields — see `BillingRestrictionPolicy`. */
+    firstPolicy: BillingRestrictionPolicy | undefined;
 };
 
+/** Projects a policy down to just the fields the billing gate reads — see `BillingRestrictionPolicy`. */
+const billingRestrictionPolicySelector = (policy: OnyxEntry<Policy>): BillingRestrictionPolicy | undefined => (policy ? {id: policy.id, ownerAccountID: policy.ownerAccountID} : undefined);
+
+// Fixed-size output: same shape on 5 workspaces or 5000, so no employeeList/customUnits deepEqual
 const createFilteredPoliciesInfoSelector =
     (email: string | undefined) =>
     (policies: OnyxCollection<Policy>): FilteredPoliciesInfo => {
         let filteredPoliciesCount = 0;
-        let firstPolicyID: string | undefined;
+        let firstPolicy: BillingRestrictionPolicy | undefined;
         for (const policy of Object.values(policies ?? {})) {
             if (!policy || !shouldShowPolicy(policy, false, email) || isTeachersUnitePolicyID(policy.id)) {
                 continue;
             }
             if (filteredPoliciesCount === 0) {
-                firstPolicyID = policy.id;
+                firstPolicy = billingRestrictionPolicySelector(policy);
             }
             filteredPoliciesCount++;
             if (filteredPoliciesCount > 1) {
                 break;
             }
         }
-        return {filteredPoliciesCount, firstPolicyID};
+        return {filteredPoliciesCount, firstPolicy};
     };
 
 const hasOnlyPersonalPoliciesSelector = (policies: OnyxCollection<Policy>): boolean => {
@@ -450,13 +481,13 @@ const hasReusablePoliciesConnectedToSelector = (policies: OnyxCollection<Policy>
 // cspell:disable-next-line
 const WORKSPACE_TRANSLATIONS = 'Workspace|Espacio de trabajo|Espace de travail|Spazio di lavoro|ワークスペース|Werkruimte|Przestrzeń robocza|Espaço de trabalho|工作区';
 
-function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: string, userDisplayName: string | undefined): number | undefined {
+function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: string, userDisplayName: string | undefined, localeTranslate: LocalizedTranslate): number | undefined {
     const emailParts = email.split('@');
     if (emailParts.length !== 2) {
         return undefined;
     }
 
-    const displayNameForWorkspace = getDisplayNameForWorkspace(email, userDisplayName);
+    const displayNameForWorkspace = getDisplayNameForWorkspace(email, userDisplayName, localeTranslate);
     // find default named workspaces and increment the last number
     const escapedName = escapeRegExp(displayNameForWorkspace);
 
@@ -475,13 +506,18 @@ function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: st
 
 const policyNameSelector = (policy: OnyxEntry<Policy>) => policy?.name;
 
+/** The policy fields a workspace avatar renders from. */
+const policyAvatarFieldsSelector = (policy: OnyxEntry<Policy>): Pick<Policy, 'avatarURL' | 'name'> | undefined => (policy ? {avatarURL: policy.avatarURL, name: policy.name} : undefined);
+
 const policyTypeSelector = (policy: OnyxEntry<Policy>) => policy?.type;
 
 const policyRoleSelector = (policy: OnyxEntry<Policy>) => policy?.role;
 
 const areInvoicesEnabledSelector = (policy: OnyxEntry<Policy>) => policy?.areInvoicesEnabled;
 
-const policyACHAccountNumberSelector = (policy: OnyxEntry<Policy>) => policy?.achAccount?.accountNumber;
+/** The policy fields that attribute a payment to a bank account (see `getBankAccountLastFourDigits`). */
+const policyPaymentAttributionSelector = (policy: OnyxEntry<Policy>): PolicyPaymentAttribution | undefined =>
+    policy ? {achAccount: policy.achAccount, reimburser: policy.reimburser} : undefined;
 
 function isAdminForPolicyByIDSelector(policyID?: string) {
     return (policies: OnyxCollection<Policy> | null): boolean => {
@@ -521,6 +557,7 @@ export {
     createOwnedPaidPoliciesCountsSelector,
     createCopySettingsEligibleTargetsSelector,
     createFilteredPoliciesInfoSelector,
+    billingRestrictionPolicySelector,
     createWorkspaceListPoliciesSelector,
     activeAdminPoliciesSelector,
     hasActiveAdminPoliciesSelector,
@@ -528,6 +565,7 @@ export {
     createTimeSensitiveAdminPoliciesSelector,
     createHasWorkspaceToSubmitToSelector,
     createPoliciesForDomainCardsSelector,
+    createPoliciesByIDsSelector,
     policyTimeTrackingSelector,
     createIOURequestStartPoliciesSelector,
     policyMapper,
@@ -537,11 +575,12 @@ export {
     lastWorkspaceNumberSelector,
     hasOnlyPersonalPoliciesSelector,
     homeAndOfficeCommuterExclusionPolicyNameSelector,
+    policyAvatarFieldsSelector,
     policyNameSelector,
     policyRoleSelector,
     policyTypeSelector,
     areInvoicesEnabledSelector,
-    policyACHAccountNumberSelector,
+    policyPaymentAttributionSelector,
     createAdminPoliciesSelector,
     isAdminForPolicyByIDSelector,
 };

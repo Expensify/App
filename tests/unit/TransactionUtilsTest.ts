@@ -3,6 +3,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import DateUtils from '@libs/DateUtils';
 import {translate as translateWithLocale} from '@libs/Localize';
 import {doesMoneyRequestDraftHaveUserInput, shouldShowBrokenConnectionViolation, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
+import hasDistanceRouteErrors from '@libs/TransactionUtils/hasDistanceRouteErrors';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -54,6 +55,7 @@ const FAKE_OPEN_REPORT_ID = 'FAKE_OPEN_REPORT_ID';
 const FAKE_OPEN_REPORT_SECOND_USER_ID = 'FAKE_OPEN_REPORT_SECOND_USER_ID';
 const FAKE_PROCESSING_REPORT_ID = 'FAKE_PROCESSING_REPORT_ID';
 const FAKE_APPROVED_REPORT_ID = 'FAKE_APPROVED_REPORT_ID';
+const FAKE_SETTLED_REPORT_ID = 'FAKE_SETTLED_REPORT_ID';
 const FAKE_CHAT_REPORT_ID = '12345';
 const openReport = {
     reportID: FAKE_OPEN_REPORT_ID,
@@ -74,6 +76,13 @@ const approvedReport = {
     type: CONST.REPORT.TYPE.EXPENSE,
     stateNum: CONST.REPORT.STATE_NUM.APPROVED,
 };
+const settledReport = {
+    reportID: FAKE_SETTLED_REPORT_ID,
+    ownerAccountID: CURRENT_USER_ID,
+    type: CONST.REPORT.TYPE.EXPENSE,
+    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+    statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+};
 const secondUserOpenReport = {
     reportID: FAKE_OPEN_REPORT_SECOND_USER_ID,
     ownerAccountID: SECOND_USER_ID,
@@ -92,6 +101,7 @@ const reportCollectionDataSet = {
     [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OPEN_REPORT_ID}`]: openReport,
     [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_PROCESSING_REPORT_ID}`]: processingReport,
     [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_APPROVED_REPORT_ID}`]: approvedReport,
+    [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_SETTLED_REPORT_ID}`]: settledReport,
     [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OPEN_REPORT_SECOND_USER_ID}`]: secondUserOpenReport,
     [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_CHAT_REPORT_ID}`]: chatReport,
 } as OnyxCollection<Report>;
@@ -1201,6 +1211,114 @@ describe('TransactionUtils', () => {
             expect(updatedTransaction.modifiedAmount).toBe(170);
         });
 
+        it('does not carry a home and office exclusion onto edited waypoints', () => {
+            // A home and office exclusion is derived from where the trip started and ended, so an edited trip
+            // must not keep the deduction of the commute it used to be.
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE},
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {default: {customUnitRateID: 'rate', currency: CONST.CURRENCY.USD, rate: 10}},
+                        attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                    },
+                },
+            };
+
+            // Given a 10 mile home to office commute that was excluded in full
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rate',
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10,
+                        commuterExclusion: 10,
+                        reimbursableDistance: 0,
+                        commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE,
+                    },
+                    waypoints: {waypoint0: {address: 'Home'}, waypoint1: {address: 'Office'}},
+                },
+            });
+
+            // When its waypoints are edited to a 20 mile trip, the preview having been cleared with the routes
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                policy: fakePolicy,
+                transactionChanges: {
+                    waypoints: {waypoint0: {address: 'Client site'}, waypoint1: {address: 'Another client'}},
+                    routes: {route0: {distance: 32186.88, geometry: {coordinates: [[0, 0]], type: 'LineString'}}},
+                },
+                personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            // Then the whole 20 miles is reimbursable, rather than the old commute coming off it
+            expect(updatedTransaction.comment?.customUnit?.commuterExclusion ?? 0).toBe(0);
+            expect(updatedTransaction.modifiedAmount).toBe(200);
+        });
+
+        it('applies the fresh home and office decision to edited waypoints', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE},
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {default: {customUnitRateID: 'rate', currency: CONST.CURRENCY.USD, rate: 10}},
+                        attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                    },
+                },
+            };
+
+            // Given a commute that was excluded in full, and a decision for the edited trip saying it still
+            // leaves home, with a 4 mile usual commute
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rate',
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10,
+                        commuterExclusion: 10,
+                        reimbursableDistance: 0,
+                        commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE,
+                    },
+                    waypoints: {waypoint0: {address: 'Home'}, waypoint1: {address: 'Office'}},
+                },
+                commuterExclusionPreview: {
+                    policyID: fakePolicy.id,
+                    hasExclusion: true,
+                    isWholeTripExcluded: false,
+                    commuteDistanceMeters: 6437.376,
+                },
+            });
+
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                policy: fakePolicy,
+                transactionChanges: {
+                    waypoints: {waypoint0: {address: 'Home'}, waypoint1: {address: 'Client site'}},
+                    routes: {route0: {distance: 32186.88, geometry: {coordinates: [[0, 0]], type: 'LineString'}}},
+                },
+                personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            // Then only the usual commute comes off the 20 mile trip, not the old full-trip exclusion
+            expect(updatedTransaction.comment?.customUnit?.quantity).toBe(20);
+            expect(updatedTransaction.comment?.customUnit?.commuterExclusion).toBeCloseTo(4);
+            expect(updatedTransaction.comment?.customUnit?.reimbursableDistance).toBeCloseTo(16);
+            expect(updatedTransaction.modifiedAmount).toBe(160);
+        });
+
         it('should negate modifiedAmount when isFromExpenseReport is true', () => {
             const transaction = generateTransaction();
             const newAmount = 500;
@@ -1775,6 +1893,47 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('hasDistanceRouteErrors', () => {
+        it('returns false when the route is clean', () => {
+            expect(hasDistanceRouteErrors(generateTransaction())).toBe(false);
+            expect(hasDistanceRouteErrors(generateTransaction({errors: {}, errorFields: {}}))).toBe(false);
+        });
+
+        it('returns true for a route or waypoint error', () => {
+            expect(hasDistanceRouteErrors(generateTransaction({errorFields: {route: {someError: 'No route found'}}}))).toBe(true);
+            expect(hasDistanceRouteErrors(generateTransaction({errorFields: {waypoints: {someError: 'Bad waypoint'}}}))).toBe(true);
+        });
+
+        it('ignores errors that say nothing about the route, such as a failed payment', () => {
+            expect(hasDistanceRouteErrors(generateTransaction({errors: {someError: 'Something went wrong'}}))).toBe(false);
+        });
+    });
+
+    describe('isMapBasedDistanceRequest', () => {
+        const UPDATE = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+        const PDF_RECEIPT = {source: 'https://www.expensify.com/receipts/w_abc123.pdf', filename: 'w_abc123.pdf'};
+
+        function generateMapDistanceTransaction(values: Partial<Transaction> = {}): Transaction {
+            return generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, receipt: PDF_RECEIPT, ...values});
+        }
+
+        // New Expensify draws its own distance e-receipt for these, so the generated PDF beside them is never shown.
+        it('is true for a map distance expense whichever receipt it stores', () => {
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateMapDistanceTransaction())).toBe(true);
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateMapDistanceTransaction({receipt: undefined}))).toBe(true);
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateMapDistanceTransaction({pendingFields: {merchant: UPDATE}}))).toBe(true);
+        });
+
+        it('is true for a GPS distance expense, which also has a route to draw', () => {
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateMapDistanceTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS}))).toBe(true);
+        });
+
+        it('is false for odometer and non-distance expenses, which keep their own receipt', () => {
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateMapDistanceTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER}))).toBe(false);
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateTransaction({receipt: undefined}))).toBe(false);
+        });
+    });
+
     describe('calculateTaxAmount', () => {
         it('returns 0 for undefined percentage', () => {
             const result = TransactionUtils.calculateTaxAmount(undefined, 10000, 2);
@@ -1899,6 +2058,115 @@ describe('TransactionUtils', () => {
 
             expect(showBrokenConnectionViolation).toBe(false);
         });
+
+        it('should return false for the report status bar when the expense report has been paid', () => {
+            const policy = createMock<Policy>({role: CONST.POLICY.ROLE.USER});
+            const transaction = generateTransaction();
+            const transactionViolations = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [
+                    {
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        name: CONST.VIOLATIONS.RTER,
+                        data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH},
+                    },
+                ],
+            };
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(
+                [transaction],
+                settledReport,
+                CURRENT_USER_EMAIL,
+                policy,
+                transactionViolations,
+                CURRENT_USER_EMAIL,
+                CURRENT_USER_ID,
+            );
+
+            expect(showBrokenConnectionViolation).toBe(false);
+        });
+
+        it('should return true for the report status bar when the same expense report is still processing', () => {
+            const policy = createMock<Policy>({role: CONST.POLICY.ROLE.USER});
+            const transaction = generateTransaction();
+            const transactionViolations = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [
+                    {
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        name: CONST.VIOLATIONS.RTER,
+                        data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH},
+                    },
+                ],
+            };
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(
+                [transaction],
+                processingReport,
+                CURRENT_USER_EMAIL,
+                policy,
+                transactionViolations,
+                CURRENT_USER_EMAIL,
+                CURRENT_USER_ID,
+            );
+
+            expect(showBrokenConnectionViolation).toBe(true);
+        });
+    });
+
+    describe('getVisibleTransactionViolations', () => {
+        const brokenConnectionViolation: TransactionViolation = {
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+            name: CONST.VIOLATIONS.RTER,
+            data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH},
+        };
+
+        it('should hide an RTER violation on a paid report when shouldShowRterForSettledReport is false', () => {
+            const policy = createMock<Policy>({role: CONST.POLICY.ROLE.USER});
+            const transaction = generateTransaction({reportID: FAKE_SETTLED_REPORT_ID});
+            const visibleViolations = TransactionUtils.getVisibleTransactionViolations(
+                transaction,
+                [brokenConnectionViolation],
+                CURRENT_USER_EMAIL,
+                CURRENT_USER_ID,
+                settledReport,
+                CURRENT_USER_EMAIL,
+                policy,
+                false,
+            );
+
+            expect(visibleViolations).toEqual([]);
+        });
+
+        it('should keep an RTER violation on a paid report when shouldShowRterForSettledReport is true', () => {
+            const policy = createMock<Policy>({role: CONST.POLICY.ROLE.USER});
+            const transaction = generateTransaction({reportID: FAKE_SETTLED_REPORT_ID});
+            const visibleViolations = TransactionUtils.getVisibleTransactionViolations(
+                transaction,
+                [brokenConnectionViolation],
+                CURRENT_USER_EMAIL,
+                CURRENT_USER_ID,
+                settledReport,
+                CURRENT_USER_EMAIL,
+                policy,
+                true,
+            );
+
+            expect(visibleViolations).toEqual([brokenConnectionViolation]);
+        });
+
+        it('should keep an RTER violation on a report that has not been paid even when shouldShowRterForSettledReport is false', () => {
+            const policy = createMock<Policy>({role: CONST.POLICY.ROLE.USER});
+            const transaction = generateTransaction({reportID: FAKE_PROCESSING_REPORT_ID});
+            const visibleViolations = TransactionUtils.getVisibleTransactionViolations(
+                transaction,
+                [brokenConnectionViolation],
+                CURRENT_USER_EMAIL,
+                CURRENT_USER_ID,
+                processingReport,
+                CURRENT_USER_EMAIL,
+                policy,
+                false,
+            );
+
+            expect(visibleViolations).toEqual([brokenConnectionViolation]);
+        });
     });
 
     describe('hasPendingRTERViolation', () => {
@@ -1947,6 +2215,59 @@ describe('TransactionUtils', () => {
                     }),
                 ),
             ).toBe(false);
+        });
+    });
+
+    describe('areRequiredFieldsEmpty', () => {
+        const regularChatReport: Report = createRandomReport(888);
+
+        it('does not flag a zero amount on an unreported expense', () => {
+            // Given a $0 track expense created in the self DM, which stores the transaction as unreported
+            const transaction = generateTransaction({reportID: CONST.REPORT.UNREPORTED_REPORT_ID, amount: 0, merchant: 'Coffee Shop'});
+
+            // When we check whether its required fields are empty, with no report to look up (reportID '0' resolves to nothing)
+            const result = TransactionUtils.areRequiredFieldsEmpty(transaction, undefined);
+
+            // Then the zero amount is not treated as missing, because an unreported expense deliberately allows $0
+            expect(result).toBe(false);
+        });
+
+        it('does not flag a zero amount on an unreported expense whose receipt scan failed', () => {
+            // Given a $0 unreported expense whose receipt scan failed
+            const transaction = generateTransaction({
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                amount: 0,
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+            });
+
+            // When we check whether its required fields are empty
+            const result = TransactionUtils.areRequiredFieldsEmpty(transaction, undefined);
+
+            // Then the amount is still not treated as missing, because being unreported is the only condition for allowing $0
+            expect(result).toBe(false);
+        });
+
+        it('still flags a zero amount on a regular chat report', () => {
+            // Given a $0 expense on a reported, non-expense report
+            const transaction = generateTransaction({reportID: regularChatReport.reportID, amount: 0, merchant: 'Coffee Shop'});
+
+            // When we check whether its required fields are empty
+            const result = TransactionUtils.areRequiredFieldsEmpty(transaction, regularChatReport);
+
+            // Then the existing behaviour is preserved: $0 is only valid on an unreported expense
+            expect(result).toBe(true);
+        });
+
+        it('ignores the amount on an expense report and checks the merchant instead', () => {
+            // Given a $0 expense on an expense report, where only a missing merchant counts as a missing field
+            const transaction = generateTransaction({reportID: openReport.reportID, amount: 0, merchant: 'Coffee Shop'});
+
+            // When we check whether its required fields are empty
+            const result = TransactionUtils.areRequiredFieldsEmpty(transaction, openReport as Report);
+
+            // Then the valid merchant means nothing is missing, unchanged by the rule that only unreported expenses allow $0
+            expect(result).toBe(false);
         });
     });
 
@@ -2631,6 +2952,26 @@ describe('TransactionUtils', () => {
 
             expect(TransactionUtils.shouldShowViolation(expenseReport, policy, CONST.VIOLATIONS.MISSING_CATEGORY, 'test@example.com', CURRENT_USER_ID, true, transaction)).toBe(false);
         });
+
+        it('should return false for duplicated transaction violation on an IOU report', () => {
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+            };
+            const policy: Policy = createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL);
+
+            expect(TransactionUtils.shouldShowViolation(iouReport, policy, CONST.VIOLATIONS.DUPLICATED_TRANSACTION, CURRENT_USER_EMAIL, CURRENT_USER_ID)).toBe(false);
+        });
+
+        it('should return true for duplicated transaction violation on an expense report', () => {
+            const expenseReport: Report = {
+                ...createRandomReport(3, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            const policy: Policy = createRandomPolicy(3, CONST.POLICY.TYPE.TEAM);
+
+            expect(TransactionUtils.shouldShowViolation(expenseReport, policy, CONST.VIOLATIONS.DUPLICATED_TRANSACTION, CURRENT_USER_EMAIL, CURRENT_USER_ID)).toBe(true);
+        });
     });
 
     describe('getReportOwnerAsAttendee', () => {
@@ -3053,6 +3394,30 @@ describe('TransactionUtils', () => {
             expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined)).toBe(true);
         });
 
+        it('should return false when auto-categorize new expenses is disabled on the policy', () => {
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
+            const policy = {...createRandomPolicy(0), autoCategorizeNewExpenses: false};
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined, policy)).toBe(false);
+        });
+
+        it('should return true when auto-categorize new expenses is enabled on the policy', () => {
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
+            const policy = {...createRandomPolicy(0), autoCategorizeNewExpenses: true};
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined, policy)).toBe(true);
+        });
+
         it('should return true when within auto-categorization grace period', () => {
             // Set pendingAutoCategorizationTime to 30 seconds ago (within 1 minute grace period)
             const thirtySecondsAgo = new Date(Date.now() - 30 * 1000);
@@ -3068,6 +3433,22 @@ describe('TransactionUtils', () => {
             });
 
             expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined)).toBe(true);
+        });
+
+        it('should return false during the grace period when auto-categorize new expenses is disabled', () => {
+            const thirtySecondsAgo = new Date(Date.now() - 30 * 1000);
+            const pendingAutoCategorizationTime = thirtySecondsAgo.toISOString().replace('T', ' ').replace('Z', '');
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                comment: {
+                    pendingAutoCategorizationTime,
+                },
+            });
+            const policy = {...createRandomPolicy(0), autoCategorizeNewExpenses: false};
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined, policy)).toBe(false);
         });
 
         it('should return false when auto-categorization grace period has passed', () => {
@@ -3157,6 +3538,61 @@ describe('TransactionUtils', () => {
             });
 
             expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, invoiceReport)).toBe(false);
+        });
+    });
+
+    describe('willFieldBeAutomaticallyFilled', () => {
+        it('should promise an automatic category on a manual expense', () => {
+            // Given a manually created expense, which carries no receipt to read a category off
+            const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL, category: ''});
+
+            // When asking whether the category will be filled in for the user
+            // Then it is, because categorization runs once the expense is created rather than off a receipt
+            expect(TransactionUtils.willFieldBeAutomaticallyFilled(transaction, 'category')).toBe(true);
+        });
+
+        it('should not promise anything but the category on a manual expense', () => {
+            // Given the same manual expense
+            const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL, category: ''});
+
+            // When asking about the fields that are only ever read off a receipt
+            // Then none of them is promised, since a manual expense has no receipt to read them from
+            expect(TransactionUtils.willFieldBeAutomaticallyFilled(transaction, 'amount')).toBe(false);
+            expect(TransactionUtils.willFieldBeAutomaticallyFilled(transaction, 'merchant')).toBe(false);
+            expect(TransactionUtils.willFieldBeAutomaticallyFilled(transaction, 'date')).toBe(false);
+        });
+
+        it('should not promise an automatic category on a distance expense', () => {
+            // Given a distance expense, whose fields are computed from the route rather than categorized on create
+            const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE, category: ''});
+
+            // When asking whether the category will be filled in for the user
+            // Then it is not, so the row keeps showing what the workspace still needs from them
+            expect(TransactionUtils.willFieldBeAutomaticallyFilled(transaction, 'category')).toBe(false);
+        });
+
+        it('should promise the scanned fields on a scan expense with a receipt', () => {
+            // Given a scan expense that has a receipt for SmartScan to read
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                receipt: {receiptID: 1, source: 'source', state: CONST.IOU.RECEIPT_STATE.SCAN_READY},
+                amount: 0,
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+            });
+
+            // When asking about each field SmartScan fills in
+            // Then all of them are promised, because they are read off that receipt
+            expect(TransactionUtils.willFieldBeAutomaticallyFilled(transaction, 'amount')).toBe(true);
+            expect(TransactionUtils.willFieldBeAutomaticallyFilled(transaction, 'merchant')).toBe(true);
+            expect(TransactionUtils.willFieldBeAutomaticallyFilled(transaction, 'date')).toBe(true);
+            expect(TransactionUtils.willFieldBeAutomaticallyFilled(transaction, 'category')).toBe(true);
+        });
+
+        it('should promise nothing when there is no transaction', () => {
+            // Given no transaction at all, e.g. before the draft has been written
+            // When asking whether a field will be filled in
+            // Then nothing is promised, so no row claims a value it can't deliver
+            expect(TransactionUtils.willFieldBeAutomaticallyFilled(undefined, 'category')).toBe(false);
         });
     });
 
@@ -5833,5 +6269,40 @@ describe('getReservationNights', () => {
         // Los Angeles falls back on 2026-11-01, so anchoring these dates to UTC would put check-out an hour before check-in
         process.env.TZ = 'America/Los_Angeles';
         expect(TransactionUtils.getReservationNights(generateTransaction({receipt: {hotelReservationStartDate: '2026-11-01', hotelReservationEndDate: '2026-11-02'}}))).toBe(1);
+    });
+});
+
+describe('buildOptimisticTransaction distance customUnit', () => {
+    const existingRateID = 'existingRateID';
+
+    function buildManualDistanceDraft(): Transaction {
+        return generateTransaction({
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+            comment: {customUnit: {customUnitRateID: existingRateID, quantity: 10, name: CONST.CUSTOM_UNITS.NAME_DISTANCE}},
+        });
+    }
+
+    it('keeps the existing rate ID when no rate is passed in', () => {
+        const existingTransaction = buildManualDistanceDraft();
+
+        const optimisticTransaction = TransactionUtils.buildOptimisticTransaction({
+            existingTransaction,
+            transactionParams: {amount: 1000, currency: CONST.CURRENCY.USD, reportID: '1', comment: '', created: '2026-09-08', distance: 10},
+        });
+
+        expect(optimisticTransaction.comment?.customUnit?.customUnitRateID).toBe(existingRateID);
+    });
+
+    it('does not mutate the existing transaction customUnit', () => {
+        const existingTransaction = buildManualDistanceDraft();
+
+        const optimisticTransaction = TransactionUtils.buildOptimisticTransaction({
+            existingTransaction,
+            transactionParams: {amount: 1000, currency: CONST.CURRENCY.USD, reportID: '1', comment: '', created: '2026-09-08', distance: 25, customUnitRateID: 'newRateID'},
+        });
+
+        expect(optimisticTransaction.comment?.customUnit?.customUnitRateID).toBe('newRateID');
+        expect(existingTransaction.comment?.customUnit?.customUnitRateID).toBe(existingRateID);
+        expect(existingTransaction.comment?.customUnit?.quantity).toBe(10);
     });
 });

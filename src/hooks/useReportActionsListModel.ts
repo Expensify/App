@@ -19,6 +19,7 @@ import useOnyx from './useOnyx';
 import useParentReportAction from './useParentReportAction';
 import useReportActionsPagination from './useReportActionsPagination';
 import useReportActionsVisibility from './useReportActionsVisibility';
+import {useDerivedIsEmptyReport} from './useReportAttributes';
 import useReportIsArchived from './useReportIsArchived';
 
 /**
@@ -61,12 +62,13 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
     const hasLoadingOlderReportActionsError = reportLoadingState?.hasLoadingOlderReportActionsError;
 
     const {sessionStartTime, hadMessagesAtSessionStart: conciergeHadMessagesAtSessionStart} = useConciergeSessionState();
-    const {isAskConciergeChat, isHistoryExpanded} = useConciergeAskState(reportID);
+    const {isHistoryExpanded} = useConciergeAskState(reportID);
     const {setShowFullHistory: setConciergeShowFullHistory, setHadMessagesAtSessionStart: setConciergeHadMessagesAtSessionStart} = useConciergeSessionActions();
     const isReportTransactionThread = isReportTransactionThreadUtil(report);
     const shouldBeAlignedToTop = shouldReportAlignToTop(report, parentReportAction);
 
     const isReportArchived = useReportIsArchived(reportID);
+    const derivedIsEmptyReport = useDerivedIsEmptyReport(reportID);
     const canPerformWriteAction = !!canUserPerformWriteAction(report, isReportArchived);
 
     const isAppLoadPending = useIsAppLoadPending();
@@ -100,7 +102,7 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
         hasOlderActions,
         loadOlderChats,
         mainDMSessionStartTime: sessionStartTime,
-        conciergeShowFullHistory: isHistoryExpanded || !!reportActionIDFromRoute || (!isAskConciergeChat && !!report?.hasOutstandingChildTask),
+        conciergeShowFullHistory: isHistoryExpanded || !!reportActionIDFromRoute,
         setConciergeShowFullHistory,
         conciergeHadMessagesAtSessionStart,
         setConciergeHadMessagesAtSessionStart,
@@ -140,6 +142,7 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
         isConciergeMainDM,
         hasCachedReportActions,
         showConciergeSidePanelWelcome,
+        derivedIsEmptyReport,
     };
 
     // The render state slice on `ReportActionsListStateContext`; this is what drives list re-renders.
@@ -160,6 +163,7 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
         isConciergeHiddenHistory,
         showFullHistory,
         hasPreviousMessages,
+        allReportActionIDs,
     };
 
     // The command handles on `ReportActionsListActionsContext`. Referentially stable, so actions-only

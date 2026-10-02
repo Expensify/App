@@ -12,6 +12,7 @@ import useMoneyRequestPolicyTags from '@hooks/useMoneyRequestPolicyTags';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePreMountDestination from '@hooks/usePreMountDestination';
@@ -31,6 +32,7 @@ import {
     updateLastLocationPermissionPrompt,
 } from '@libs/actions/IOU/MoneyRequest';
 import {setMoneyRequestReceipt} from '@libs/actions/IOU/Receipt';
+import signalExpenseAddedGrowl from '@libs/actions/IOU/signalExpenseAddedGrowl';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
 import type {GPSPoint as GpsPoint} from '@libs/actions/IOU/types/TrackExpenseTransactionParams';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -53,7 +55,7 @@ import {getReportOrDraftReport, isMoneyRequestReport, isSelfDM} from '@libs/Repo
 import {cancelSpan, endSpan} from '@libs/telemetry/activeSpans';
 import {logReceiptAdoptFailed, logReceiptCaptured, logReceiptSubmitted, mintAndStampReceiptTraceId} from '@libs/telemetry/ReceiptObservability';
 import {cancelTracking} from '@libs/telemetry/submitFollowUpAction';
-import {getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue} from '@libs/TransactionUtils';
+import {getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue, hasAllManuallyEnteredScanFields} from '@libs/TransactionUtils';
 
 import DraftWorkspaceOpener from '@pages/iou/request/step/confirmation/DraftWorkspaceOpener';
 import getSubmitExpensePreMountDestinationRoute from '@pages/iou/request/step/confirmation/getSubmitExpensePreMountDestinationRoute';
@@ -88,7 +90,7 @@ function SubmitDetailsPage({
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
-    const [personalDetails] = useOnyx(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`);
+    const [personalDetails] = useAllPersonalDetails();
     const report: OnyxEntry<ReportType> = useReportOrReportDraft(reportOrAccountID);
     const routeReportID = isMoneyRequestReport(report) ? report?.chatReportID : report?.reportID;
     const draftReportID = unknownUserDetails ? unknownUserDetails.reportID : routeReportID;
@@ -130,7 +132,6 @@ function SubmitDetailsPage({
     const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
     const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
 
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalPolicy = usePersonalPolicy();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
@@ -147,7 +148,8 @@ function SubmitDetailsPage({
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const fileUri = shouldUsePreValidatedFile ? (validFilesToUpload?.uri ?? '') : (currentAttachment?.content ?? '');
     const fileName = shouldUsePreValidatedFile ? getFileName(validFilesToUpload?.uri ?? CONST.ATTACHMENT_IMAGE_DEFAULT_NAME) : getFileName(currentAttachment?.content ?? '');
     const fileType = shouldUsePreValidatedFile ? (validFilesToUpload?.type ?? CONST.RECEIPT_ALLOWED_FILE_TYPES.JPEG) : (currentAttachment?.mimeType ?? '');
@@ -181,7 +183,18 @@ function SubmitDetailsPage({
         showErrorAlert(errorTitle, errorMessage);
     }, [errorTitle, errorMessage]);
 
+    // Feed the date / currency the user entered back into `initMoneyRequest`, which re-runs whenever late Onyx data
+    // lands and would otherwise re-seed them from the policy, discarding what they typed.
+    const enteredDate = transaction?.isCreatedSet ? transaction.created : undefined;
+    // Latch the currency rather than reading it live: clearing the amount resets `isAmountSet` while the picked
+    // currency stays on the draft, so a live read would let the next re-seed swap it for the policy's currency.
+    const enteredCurrencyRef = useRef<string | undefined>(undefined);
+
     useEffect(() => {
+        if (transaction?.isAmountSet && transaction.currency) {
+            enteredCurrencyRef.current = transaction.currency;
+        }
+
         initMoneyRequest({
             reportID: reportOrAccountID,
             policy,
@@ -190,14 +203,27 @@ function SubmitDetailsPage({
             newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
             report,
             parentReport,
-            currentDate,
+            currentDate: enteredDate ?? currentDate,
+            overrideCurrency: enteredCurrencyRef.current,
             hasOnlyPersonalPolicies,
             draftTransactionIDs,
         });
         // Populate transaction.participants so IOURequestStepReport can highlight the destination (mirrors other expense flows).
         setMoneyRequestParticipantsFromReport(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, report, currentUserPersonalDetails.accountID);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportOrAccountID, policy, personalPolicy, report, parentReport, currentDate, currentUserPersonalDetails.accountID, hasOnlyPersonalPolicies]);
+    }, [
+        reportOrAccountID,
+        policy,
+        personalPolicy,
+        report,
+        parentReport,
+        currentDate,
+        currentUserPersonalDetails.accountID,
+        hasOnlyPersonalPolicies,
+        enteredDate,
+        transaction?.isAmountSet,
+        transaction?.currency,
+    ]);
 
     // Use the branch-aware values computed above: for a share that needs conversion (e.g. HEIC), these resolve to the
     // converted JPEG from VALIDATED_FILE_OBJECT; otherwise they fall back to the raw attachment. Re-deriving from
@@ -418,7 +444,6 @@ function SubmitDetailsPage({
                     conciergeChat,
                     quickAction,
                     recentWaypoints,
-                    betas,
                     draftTransactionIDs,
                     isSelfTourViewed,
                     optimisticTransactionID,
@@ -431,6 +456,7 @@ function SubmitDetailsPage({
                 const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
 
                 requestMoney({
+                    isVendorMatchingBetaEnabled,
                     getCurrencyDecimals,
                     report: reportToSubmit,
                     participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
@@ -469,7 +495,6 @@ function SubmitDetailsPage({
                     draftTransactionIDs,
                     isSelfTourViewed,
                     conciergeChat,
-                    betas,
                     personalDetails,
                     optimisticTransactionID,
                     isTrackIntentUser,
@@ -479,6 +504,10 @@ function SubmitDetailsPage({
                     rules,
                 });
             }
+
+            // requestMoney/trackExpense only signal the growl for the global-create flow and the share
+            // extension isn't flagged as such, so signal it here instead.
+            signalExpenseAddedGrowl(optimisticTransactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
         };
 
         const cleanupParams = {
@@ -542,7 +571,7 @@ function SubmitDetailsPage({
 
     const onSuccess = (file: File, locationPermissionGranted?: boolean) => {
         const receipt: Receipt = file;
-        receipt.state = file && CONST.IOU.RECEIPT_STATE.SCAN_READY;
+        receipt.state = hasAllManuallyEnteredScanFields(transaction) ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCAN_READY;
         // The share flow builds the receipt here by hand and skips buildReceiptFiles, so this is the only place to stamp
         // the trace id and log the capture.
         const receiptTraceId = mintAndStampReceiptTraceId(receipt);
@@ -689,27 +718,33 @@ function SubmitDetailsPage({
                         isPolicyExpenseChat={isPolicyExpenseChat}
                         policyID={policy?.id}
                         isConfirming={isConfirming}
-                        onConfirm={() => onConfirm(true)}
-                        receiptPath={currentReceiptSource}
-                        receiptFilename={currentReceiptName}
+                        onConfirm={() => onConfirm(!hasAllManuallyEnteredScanFields(transaction))}
                         reportID={reportOrAccountID}
-                        shouldShowSmartScanFields={false}
-                        shouldDisplayReceipt
-                        isReceiptEditable
+                        // The share flow always creates a Scan expense from the shared file: it is never a split, never
+                        // a moved tracked expense and never a test receipt, so the amount / merchant / date are always
+                        // offered behind "Show more" here, exactly as they are on the in-app Scan confirmation.
+                        shouldShowSmartScanFields
+                        canEnterScanFieldsManually
                         action={CONST.IOU.ACTION.CREATE}
-                        onPDFLoadError={() => {
-                            if (errorTitle) {
-                                return;
-                            }
-                            setErrorTitle(translate('attachmentPicker.attachmentError'));
-                            setErrorMessage(translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
-                        }}
-                        onPDFPassword={() => {
-                            if (errorTitle) {
-                                return;
-                            }
-                            setErrorTitle(translate('attachmentPicker.attachmentError'));
-                            setErrorMessage(translate('attachmentPicker.protectedPDFNotSupported'));
+                        receiptOptions={{
+                            receiptPath: currentReceiptSource,
+                            receiptFilename: currentReceiptName,
+                            shouldDisplayReceipt: true,
+                            isReceiptEditable: true,
+                            onPDFLoadError: () => {
+                                if (errorTitle) {
+                                    return;
+                                }
+                                setErrorTitle(translate('attachmentPicker.attachmentError'));
+                                setErrorMessage(translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
+                            },
+                            onPDFPassword: () => {
+                                if (errorTitle) {
+                                    return;
+                                }
+                                setErrorTitle(translate('attachmentPicker.attachmentError'));
+                                setErrorMessage(translate('attachmentPicker.protectedPDFNotSupported'));
+                            },
                         }}
                     />
                 </View>
