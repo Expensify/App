@@ -24,7 +24,7 @@ import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 
 import {deleteAgent} from '@libs/actions/Agent';
-import {disconnect, openSecuritySettingsPage} from '@libs/actions/Delegate';
+import {DISCONNECT_RESULT, disconnect, openSecuritySettingsPage} from '@libs/actions/Delegate';
 import {getRuleBotEnforcedPolicy} from '@libs/AgentRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasDeviceManagementError} from '@libs/UserUtils';
@@ -226,11 +226,11 @@ function SecuritySettingsPage() {
                     // The DeleteAgent command must be issued by the agent's owner, but while copiloting the session is
                     // authenticated as the agent itself. So capture the agent's identity, end the copilot session
                     // (which restores the owner's session and auth token), and only then delete the agent as the
-                    // owner. If the disconnect fails the owner's session was never restored, so skip the delete.
+                    // owner. Unless the server ended the session and restored the owner with fresh tokens, skip the delete.
                     const agentAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
                     const agentLogin = currentUserPersonalDetails.login;
-                    const didDisconnect = await disconnect({stashedCredentials, stashedSession});
-                    if (!didDisconnect) {
+                    const disconnectResult = await disconnect({stashedCredentials, stashedSession});
+                    if (disconnectResult !== DISCONNECT_RESULT.RESTORED) {
                         return;
                     }
                     deleteAgent(agentAccountID, agentLogin, allPolicies, false);

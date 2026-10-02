@@ -22,6 +22,7 @@ import type Credentials from '@src/types/onyx/Credentials';
 import type Session from '@src/types/onyx/Session';
 
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
@@ -122,6 +123,25 @@ type WithActivePolicyID = {
 };
 
 type DisconnectParams = WithStashedCredentials & WithStashedSession;
+
+const DISCONNECT_RESULT = {
+    /** The server ended the copilot session and the original session was restored with fresh tokens */
+    RESTORED: 'restored',
+
+    /** The server response was incomplete, so the original session was restored from the stash */
+    RESTORED_FROM_STASH: 'restoredFromStash',
+
+    /**
+     * The server ended the copilot session, but restoring the original session threw partway. SESSION is written first,
+     * so it most likely holds the original account already; if not, the next request reauthenticates with the stash.
+     */
+    RESTORE_INTERRUPTED: 'restoreInterrupted',
+
+    /** The request failed, so the copilot session is still active */
+    FAILED: 'failed',
+} as const;
+
+type DisconnectResult = ValueOf<typeof DISCONNECT_RESULT>;
 
 // Clear delegator-level errors
 type ClearDelegatorErrorsParams = WithDelegatedAccess;
@@ -261,7 +281,7 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
         });
 }
 
-function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
+function disconnect({stashedCredentials, stashedSession}: DisconnectParams): Promise<DisconnectResult> {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -301,11 +321,11 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
     ];
 
     // We need to access the authToken directly from the response to update the session
-    // The promise resolves to true only once the original session is fully restored, so callers can gate
-    // follow-up work that must run under the original user's identity (e.g. deleting the agent).
+    // The promise resolves to a DISCONNECT_RESULT once the flow settles, so callers can gate follow-up work that
+    // must run under the original user's identity (e.g. deleting the agent) on how the session was restored.
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.DISCONNECT_AS_DELEGATE, {}, {optimisticData, successData, failureData})
-        .then((response) => {
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.DISCONNECT_AS_DELEGATE, {}, {optimisticData, successData, failureData}).then(
+        (response) => {
             const restoreToStashed = () =>
                 restoreDelegateSession({
                     authToken: stashedSession?.authToken,
@@ -317,37 +337,46 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
                     creationDate: stashedSession?.creationDate,
                 });
 
-            if (!response?.authToken || !response?.encryptedAuthToken) {
-                Log.alert('[Delegate] No auth token returned while disconnecting as a delegate');
-                return restoreToStashed().then(() => false);
-            }
+            const restoreOriginalSession = (): Promise<DisconnectResult> => {
+                if (!response?.authToken || !response?.encryptedAuthToken) {
+                    Log.alert('[Delegate] No auth token returned while disconnecting as a delegate');
+                    return restoreToStashed().then(() => DISCONNECT_RESULT.RESTORED_FROM_STASH);
+                }
 
-            if (!response?.requesterID || !response?.requesterEmail) {
-                Log.alert('[Delegate] No requester data returned while disconnecting as a delegate');
-                return restoreToStashed().then(() => false);
-            }
+                if (!response?.requesterID || !response?.requesterEmail) {
+                    Log.alert('[Delegate] No requester data returned while disconnecting as a delegate');
+                    return restoreToStashed().then(() => DISCONNECT_RESULT.RESTORED_FROM_STASH);
+                }
 
-            clearPreservedSearchNavigatorStates();
+                clearPreservedSearchNavigatorStates();
 
-            const requesterEmail = response.requesterEmail;
-            const authToken = response.authToken;
-            return SequentialQueue.waitForIdle()
-                .then(() =>
-                    restoreDelegateSession({
-                        authToken,
-                        encryptedAuthToken: response.encryptedAuthToken,
-                        accountID: response.requesterID,
-                        email: requesterEmail,
-                        stashedCredentials,
-                        stashedSession,
-                    }),
-                )
-                .then(() => true);
-        })
-        .catch((error) => {
+                const requesterEmail = response.requesterEmail;
+                const authToken = response.authToken;
+                return SequentialQueue.waitForIdle()
+                    .then(() =>
+                        restoreDelegateSession({
+                            authToken,
+                            encryptedAuthToken: response.encryptedAuthToken,
+                            accountID: response.requesterID,
+                            email: requesterEmail,
+                            stashedCredentials,
+                            stashedSession,
+                        }),
+                    )
+                    .then(() => DISCONNECT_RESULT.RESTORED);
+            };
+
+            return restoreOriginalSession().catch((error) => {
+                Log.alert('[Delegate] Error restoring the original session after disconnecting as a delegate', {error});
+                return DISCONNECT_RESULT.RESTORE_INTERRUPTED;
+            });
+        },
+        // Only a failed request leaves the copilot session untouched; errors thrown while restoring are handled above
+        (error) => {
             Log.alert('[Delegate] Error disconnecting as a delegate', {error});
-            return false;
-        });
+            return DISCONNECT_RESULT.FAILED;
+        },
+    );
 }
 
 function clearDelegatorErrors({delegatedAccess}: ClearDelegatorErrorsParams) {
@@ -687,6 +716,82 @@ function removeDelegator({email, delegatedAccess}: RemoveDelegateParams) {
     });
 }
 
+type RemoveSelfAsDelegateParams = WithStashedCredentials &
+    WithStashedSession & {
+        /** Email of the delegator the copilot is currently acting as */
+        delegatorEmail: string;
+
+        /** Email of the acting copilot, whose row shows the error when the copilot session cannot be ended */
+        delegateEmail: string;
+    };
+
+/**
+ * Removes the acting copilot from the delegator's copilots. The original session is restored before the access is
+ * revoked: revoking first invalidates the restricted token the app is running on, and killing the app before the
+ * restore completes persists that revoked token in both NewDot and OldDot. See Expensify/App#93458.
+ */
+function removeSelfAsDelegate({delegatorEmail, delegateEmail, stashedCredentials, stashedSession}: RemoveSelfAsDelegateParams) {
+    return disconnect({stashedCredentials, stashedSession}).then((disconnectResult) => {
+        // Restoring from the stash still returns the copilot to their own account, so only a failed request blocks the removal
+        if (disconnectResult === DISCONNECT_RESULT.FAILED) {
+            Log.alert('[Delegate] Unable to restore the original session, skipping copilot removal');
+
+            // The copilot is still acting as the delegator, so the error goes on their own row in the delegator's copilots list
+            Onyx.merge(ONYXKEYS.ACCOUNT, {
+                delegatedAccess: {
+                    errorFields: {
+                        removeDelegate: {
+                            [delegateEmail]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('delegate.genericError'),
+                        },
+                    },
+                },
+            });
+            return;
+        }
+
+        const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ACCOUNT,
+                value: {
+                    delegatedAccess: {
+                        errorFields: {
+                            removeDelegator: {
+                                [delegatorEmail]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        ];
+
+        const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ACCOUNT,
+                value: {
+                    delegatedAccess: {
+                        errorFields: {
+                            removeDelegator: {
+                                [delegatorEmail]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('delegate.genericError'),
+                            },
+                        },
+                    },
+                },
+            },
+        ];
+
+        const parameters: APIRemoveDelegatorParams = {delegatorEmail};
+
+        // The delegators list of the restored account is not known here, so it is refreshed from the server once the removal is written
+        API.write(WRITE_COMMANDS.REMOVE_DELEGATOR, parameters, {
+            optimisticData,
+            failureData,
+        });
+        openSecuritySettingsPage();
+    });
+}
+
 function clearDelegateErrorsByField({email, fieldName, delegatedAccess}: ClearDelegateErrorsByFieldParams) {
     if (!delegatedAccess) {
         return;
@@ -887,6 +992,7 @@ function openSecuritySettingsPage() {
 
 export {
     KEYS_TO_PRESERVE_DELEGATE_ACCESS,
+    DISCONNECT_RESULT,
     connect,
     disconnect,
     clearDelegatorErrors,
@@ -897,6 +1003,7 @@ export {
     updateDelegateRole,
     removeDelegate,
     removeDelegator,
+    removeSelfAsDelegate,
     openSecuritySettingsPage,
     clearOnyxForDelegateTransition,
 };
