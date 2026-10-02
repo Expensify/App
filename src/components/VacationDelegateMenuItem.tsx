@@ -1,24 +1,85 @@
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useVacationDelegatePersonalDetails from '@hooks/useVacationDelegatePersonalDetails';
 
 import getVacationDelegateDisplayName from '@libs/getVacationDelegateDisplayName';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
+import {formatVacationDelegateClearDateTime, getVacationDelegateClearDateTime, isVacationDelegateExpired} from '@libs/VacationDelegateUtils';
 
-import CONST from '@src/CONST';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+
+import type CONST from '@src/CONST';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
 
+import type {ValueOf} from 'type-fest';
+
 import React from 'react';
 
-import UserAvatar from './Avatar/UserAvatar';
 import MenuItem from './MenuItem';
 import MenuItemField from './MenuItem/presets/MenuItemField';
-import MenuItemWithLabel from './MenuItem/presets/MenuItemWithLabel';
 import OfflineWithFeedback from './OfflineWithFeedback';
+import UserPill from './UserPill';
+
+type VacationDelegateMenuItemRowProps = {
+    /** Text above the delegate, naming what the row holds */
+    label: string;
+
+    /** Name shown in the delegate's pill */
+    displayName: string;
+
+    /** Avatar shown in the delegate's pill */
+    avatar?: AvatarSource;
+
+    /** Account ID of the delegate */
+    accountID?: number;
+
+    /** Login of the delegate */
+    login?: string;
+
+    /** Text under the pill saying when the delegate clears */
+    untilText?: string;
+
+    /** Indicator shown next to the chevron */
+    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
+};
+
+/**
+ * The line of a set vacation delegate, without a `MenuItem.Root` of its own: the label, the delegate as a pill, and when it clears.
+ * The pill is not a text leaf, so the `Root` around it should get an `accessibilityLabel` that names the delegate.
+ */
+function VacationDelegateMenuItemRow({label, displayName, avatar, accountID, login, untilText, brickRoadIndicator}: VacationDelegateMenuItemRowProps) {
+    const styles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
+
+    return (
+        <MenuItem.Row>
+            <MenuItem.Content>
+                <MenuItem.FieldName>{label}</MenuItem.FieldName>
+                <UserPill
+                    avatar={avatar ?? icons.FallbackAvatar}
+                    displayName={displayName}
+                    accountID={accountID}
+                    email={login}
+                    style={styles.userPillStandalone}
+                />
+                {!!untilText && <MenuItem.Description>{untilText}</MenuItem.Description>}
+            </MenuItem.Content>
+            <MenuItem.Trailing>
+                {!!brickRoadIndicator && <MenuItem.BrickRoadIndicator status={brickRoadIndicator} />}
+                <MenuItem.Chevron />
+            </MenuItem.Trailing>
+        </MenuItem.Row>
+    );
+}
 
 type VacationDelegateSectionProps = {
     vacationDelegate?: BaseVacationDelegate;
+
+    /** Text above the delegate. Defaults to "Vacation delegate" */
+    label?: string;
 
     /** Errors related to setting the vacation delegate */
     errors?: Errors;
@@ -29,7 +90,7 @@ type VacationDelegateSectionProps = {
     /**
      * Callback used to clear/reset errors related to the vacation delegate
      */
-    onCloseError: () => void;
+    onCloseError?: () => void;
 
     /**
      * Callback triggered when the section is pressed.
@@ -38,17 +99,19 @@ type VacationDelegateSectionProps = {
     onPress: () => void;
 };
 
-function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCloseError, onPress}: VacationDelegateSectionProps) {
+function VacationDelegateMenuItemPreset({vacationDelegate, label, errors, pendingAction, onCloseError, onPress}: VacationDelegateSectionProps) {
     const styles = useThemeStyles();
-    const {translate, formatPhoneNumber} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
+    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {timezone} = useCurrentUserPersonalDetails();
 
-    const hasVacationDelegate = !!vacationDelegate?.delegate;
+    const rowLabel = label ?? translate('common.vacationDelegate');
+    const hasVacationDelegate = !!vacationDelegate?.delegate && !isVacationDelegateExpired(vacationDelegate?.clearAfter);
     const vacationDelegatePersonalDetails = useVacationDelegatePersonalDetails(vacationDelegate?.delegate);
 
     const rawDelegateLogin = vacationDelegatePersonalDetails?.login ?? vacationDelegate?.delegate ?? '';
     const delegateDisplayName = getVacationDelegateDisplayName(rawDelegateLogin, vacationDelegatePersonalDetails?.displayName, formatPhoneNumber);
-    const delegateDescription = formatPhoneNumber(rawDelegateLogin);
+    const clearDate = formatVacationDelegateClearDateTime(getVacationDelegateClearDateTime(vacationDelegate?.clearAfter, timezone?.selected), dateFnsLocale);
+    const untilText = clearDate ? translate('statusPage.vacationDelegate.until', clearDate) : '';
 
     return (
         <OfflineWithFeedback
@@ -56,38 +119,32 @@ function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCl
             errors={errors}
             errorRowStyles={styles.mh5}
             onClose={onCloseError}
-            style={hasVacationDelegate && styles.mt4}
             shouldHideOnDelete={false}
         >
             {hasVacationDelegate ? (
-                <MenuItemWithLabel
-                    label={translate('common.vacationDelegate')}
-                    onPress={onPress}
+                <MenuItem.Root
+                    onPress={callFunctionIfActionIsAllowed(onPress)}
+                    accessibilityLabel={[rowLabel, delegateDisplayName, untilText].filter(Boolean).join(', ')}
                 >
-                    <MenuItem.Row>
-                        <MenuItem.Leading>
-                            <UserAvatar
-                                source={vacationDelegatePersonalDetails?.avatar ?? icons.FallbackAvatar}
-                                accountID={vacationDelegatePersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
-                            />
-                        </MenuItem.Leading>
-                        <MenuItem.Content>
-                            <MenuItem.Title>{delegateDisplayName}</MenuItem.Title>
-                            {!!delegateDescription && <MenuItem.Description numberOfLines={1}>{delegateDescription}</MenuItem.Description>}
-                        </MenuItem.Content>
-                        <MenuItem.Trailing>
-                            <MenuItem.Chevron />
-                        </MenuItem.Trailing>
-                    </MenuItem.Row>
-                </MenuItemWithLabel>
+                    <VacationDelegateMenuItemRow
+                        label={rowLabel}
+                        displayName={delegateDisplayName}
+                        avatar={vacationDelegatePersonalDetails?.avatar}
+                        accountID={vacationDelegatePersonalDetails?.accountID}
+                        login={rawDelegateLogin}
+                        untilText={untilText}
+                    />
+                </MenuItem.Root>
             ) : (
                 <MenuItemField
-                    name={translate('common.vacationDelegate')}
+                    name={rowLabel}
                     onPress={onPress}
                 />
             )}
         </OfflineWithFeedback>
     );
 }
+
+const VacationDelegateMenuItem = Object.assign(VacationDelegateMenuItemPreset, {Row: VacationDelegateMenuItemRow});
 
 export default VacationDelegateMenuItem;

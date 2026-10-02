@@ -1064,7 +1064,7 @@ const formatInTimeZoneWithFallback: typeof formatInTimeZone = (date, timeZone, f
  * @param timeZone - Target timezone to display the date in
  * @returns Date string in yyyy-MM-dd format, or empty string if invalid
  */
-function formatUTCDateTimeToDateInTimezone(utcDateTime: string, timeZone: SelectedTimezone | undefined, formatStr = CONST.DATE.FNS_FORMAT_STRING): string {
+function formatUTCDateTimeToDateInTimezone(utcDateTime: string, timeZone: SelectedTimezone | undefined, formatStr: string = CONST.DATE.FNS_FORMAT_STRING): string {
     if (!utcDateTime || !timeZone) {
         return '';
     }
@@ -1334,6 +1334,7 @@ const DateUtils = {
     formatViolationSnapshotStartedAtDate,
     normalizeDateToStartOfDay,
     normalizeDateToEndOfDay,
+    formatDBTimeWithoutMilliseconds,
     getMonthDateRange,
     getWeekDateRange,
     isDateStringInMonth,

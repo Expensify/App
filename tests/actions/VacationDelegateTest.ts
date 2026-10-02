@@ -215,6 +215,31 @@ describe('actions/VacationDelegate', () => {
             expect(vacationDelegate?.pendingDelegate).toBe('delegate@test.com');
         });
 
+        it('parks the picked clear after datetime next to the pick on a 305 and puts the saved one back', async () => {
+            // Given a saved delegate that clears on one date, and a mocked 305 for a pick that clears on another
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {creator: 'admin@test.com', delegate: 'old@test.com', clearAfter: '2026-09-30 06:59:59'});
+            jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(async () => ({
+                jsonCode: CONST.JSON_CODE.POLICY_DIFF_WARNING,
+                data: {policyDiff: {adminPolicies: ['1'], nonAdminPolicies: []}},
+            }));
+
+            // When the new delegate is picked with its clear after datetime
+            await setVacationDelegate({
+                creator: 'admin@test.com',
+                delegate: 'delegate@test.com',
+                clearAfter: '2026-10-02 06:59:59',
+                currentDelegate: 'old@test.com',
+                currentClearAfter: '2026-09-30 06:59:59',
+            });
+            await waitForBatchedUpdates();
+
+            // Then the saved datetime stays in place, since the backend saved nothing, and the picked one waits with the pick
+            // so the missing workspaces step can send it again
+            const vacationDelegate = await getOnyxValue(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
+            expect(vacationDelegate?.clearAfter).toBe('2026-09-30 06:59:59');
+            expect(vacationDelegate?.pendingClearAfter).toBe('2026-10-02 06:59:59');
+        });
+
         it('applies the failureData it could not attach when the response fails, since the caller may have already navigated away', async () => {
             // Given a mocked non-305 error response, with no failureData attached to the request (see the first test
             // above), so the action has to apply it itself instead of relying on a caller that may no longer be mounted
@@ -350,6 +375,29 @@ describe('actions/VacationDelegate', () => {
             expect(vacationDelegate?.pendingAction).toBeFalsy();
             expect(vacationDelegate?.policyDiff).toBeFalsy();
             expect(vacationDelegate?.pendingDelegate).toBeFalsy();
+        });
+
+        it('restores the previous clear after datetime along with the previous delegate', async () => {
+            // Given a failed change that replaced both the delegate and the datetime it clears after
+            const timestamp = 123;
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {
+                delegate: 'delegate@test.com',
+                clearAfter: '2026-10-02 06:59:59',
+                previousDelegate: 'old@test.com',
+                previousClearAfter: '2026-09-30 06:59:59',
+                pendingClearAfter: '2026-10-02 06:59:59',
+                errors: {[timestamp]: 'Some error'},
+            });
+
+            // When the error is dismissed
+            clearVacationDelegateError('old@test.com', '2026-09-30 06:59:59');
+            await waitForBatchedUpdates();
+
+            // Then the last confirmed datetime is back, so the profile does not show a date the backend never saved
+            const vacationDelegate = await getOnyxValue(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
+            expect(vacationDelegate?.clearAfter).toBe('2026-09-30 06:59:59');
+            expect(vacationDelegate?.previousClearAfter).toBeFalsy();
+            expect(vacationDelegate?.pendingClearAfter).toBeFalsy();
         });
     });
 });

@@ -1,5 +1,4 @@
 import Button from '@components/Button';
-import DelegatorList from '@components/DelegatorList';
 import EmojiPickerButtonDropdown from '@components/EmojiPicker/EmojiPickerButtonDropdown';
 import FixedFooter from '@components/FixedFooter';
 import FormProvider from '@components/Form/FormProvider';
@@ -11,7 +10,6 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import VacationDelegateMenuItem from '@components/VacationDelegateMenuItem';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -27,11 +25,9 @@ import {isMobileChrome} from '@libs/Browser';
 import DateUtils from '@libs/DateUtils';
 import focusAfterModalClose from '@libs/focusAfterModalClose';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
-import getVacationDelegateErrors from '@libs/getVacationDelegateErrors';
 import Navigation from '@libs/Navigation/Navigation';
 
 import {clearCustomStatus, clearDraftCustomStatus, updateCustomStatus, updateDraftCustomStatus} from '@userActions/User';
-import {clearVacationDelegateError} from '@userActions/VacationDelegate';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -66,8 +62,6 @@ function StatusPage() {
     const formRef = useRef<FormRef>(null);
     const [brickRoadIndicator, setBrickRoadIndicator] = useState<ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>>();
 
-    const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
-    const hasActiveDelegations = !!vacationDelegate?.delegatorFor?.length;
     const isFormLoading = !!formState?.isLoading;
 
     const currentUserEmojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
@@ -244,27 +238,6 @@ function StatusPage() {
                         />
                     )}
                 </View>
-                <View style={[styles.mb2, styles.mt6]}>
-                    <Text style={[styles.headerText, styles.mh5, styles.mb2]}>{translate('common.vacationDelegate')}</Text>
-                    {hasActiveDelegations ? (
-                        <DelegatorList
-                            delegators={vacationDelegate?.delegatorFor}
-                            message={translate('statusPage.cannotSetVacationDelegate')}
-                        />
-                    ) : (
-                        <>
-                            <Text style={[styles.mh5, styles.mb1]}>{translate('statusPage.setVacationDelegate')}</Text>
-                            <VacationDelegateMenuItem
-                                vacationDelegate={vacationDelegate}
-                                errors={getVacationDelegateErrors(vacationDelegate)}
-                                pendingAction={vacationDelegate?.pendingAction}
-                                onCloseError={() => clearVacationDelegateError(vacationDelegate?.previousDelegate)}
-                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE)}
-                            />
-                        </>
-                    )}
-                </View>
-
                 {isInLandscapeMode && saveButton}
             </FormProvider>
 

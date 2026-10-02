@@ -13,9 +13,10 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {clearDraftValues} from '@libs/actions/FormActions';
 import {openWorkspaceMembersPage} from '@libs/actions/Policy/Member';
 import {clearVacationDelegateError, inviteVacationDelegateToWorkspaces, setVacationDelegate} from '@libs/actions/VacationDelegate';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
@@ -28,7 +29,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {NavigationAction} from '@react-navigation/native';
 
-import {useNavigation, usePreventRemove} from '@react-navigation/native';
+import {usePreventRemove} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
 
 import MissingWorkspacesFooter from './MissingWorkspacesFooter';
@@ -37,13 +38,13 @@ import WorkspaceSection from './WorkspaceSection';
 
 type ScreenInput = {
     delegate: string;
+    clearAfter?: string;
     policyDiff: VacationDelegatePolicyDiff;
 };
 
 function VacationDelegateMissingWorkspacesPage() {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const navigation = useNavigation();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const [vacationDelegate, vacationDelegateMetadata] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
@@ -52,7 +53,9 @@ function VacationDelegateMissingWorkspacesPage() {
 
     const creator = currentUserPersonalDetails.login ?? '';
     const delegate = submittedInput?.delegate ?? vacationDelegate?.pendingDelegate ?? '';
+    const clearAfter = submittedInput ? submittedInput.clearAfter : vacationDelegate?.pendingClearAfter;
     const previousDelegate = vacationDelegate?.previousDelegate;
+    const previousClearAfter = vacationDelegate?.previousClearAfter;
     const policyDiff = submittedInput?.policyDiff ?? vacationDelegate?.policyDiff;
     const adminPolicies = policyDiff?.adminPolicies ?? [];
     const nonAdminPolicies = policyDiff?.nonAdminPolicies ?? [];
@@ -89,11 +92,13 @@ function VacationDelegateMissingWorkspacesPage() {
 
     usePreventRemove(!!policyDiff, ({data}: {data: {action: NavigationAction}}) => {
         if (!isSubmittingRef.current && policyDiff) {
-            setSubmittedInput({delegate, policyDiff});
-            clearVacationDelegateError(previousDelegate);
+            setSubmittedInput({delegate, clearAfter, policyDiff});
+            clearVacationDelegateError(previousDelegate, previousClearAfter);
         }
 
-        navigation.dispatch(data.action);
+        // Replayed through the container: this screen's own dispatch stamps its key as the action's source, and a stack
+        // above this one (e.g. the root when the whole RHP closes) can't find that key, so it would drop the action.
+        navigationRef.dispatch(data.action);
     });
 
     if (!submittedInput && isLoadingOnyxValue(vacationDelegateMetadata)) {
@@ -126,9 +131,10 @@ function VacationDelegateMissingWorkspacesPage() {
             });
         }
 
-        setSubmittedInput({delegate, policyDiff});
-        setVacationDelegate({creator, delegate, currentDelegate: previousDelegate, shouldOverridePolicyDiffWarning: true});
-        Navigation.goBack(ROUTES.SETTINGS_STATUS);
+        setSubmittedInput({delegate, clearAfter, policyDiff});
+        setVacationDelegate({creator, delegate, clearAfter, currentDelegate: previousDelegate, currentClearAfter: previousClearAfter, shouldOverridePolicyDiffWarning: true});
+        clearDraftValues(ONYXKEYS.FORMS.VACATION_DELEGATE_FORM);
+        Navigation.dismissModal();
     };
 
     return (

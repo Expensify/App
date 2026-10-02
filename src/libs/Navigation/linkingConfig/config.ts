@@ -523,6 +523,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_VACATION_DELEGATE,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE_SELECT]: {
+                            path: ROUTES.SETTINGS_VACATION_DELEGATE_SELECT,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE_MISSING_WORKSPACES]: {
                             path: ROUTES.SETTINGS_VACATION_DELEGATE_MISSING_WORKSPACES,
                             exact: true,
@@ -1580,6 +1584,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.DOMAIN.VACATION_DELEGATE]: {
                             path: ROUTES.DOMAIN_VACATION_DELEGATE.route,
+                        },
+                        [SCREENS.DOMAIN.VACATION_DELEGATE_SELECT]: {
+                            path: ROUTES.DOMAIN_VACATION_DELEGATE_SELECT.route,
                         },
                         [SCREENS.DOMAIN.ADD_MEMBER]: {
                             path: ROUTES.DOMAIN_ADD_MEMBER.route,

@@ -82,6 +82,20 @@ type DateInputWithPickerProps = DatePickerBaseProps &
          * @default false
          */
         shouldHideCalendarIcon?: boolean;
+
+        /**
+         * Keeps the trailing calendar icon once a date is picked, instead of leaving that space to the clear button.
+         * Pair it with `shouldHideClearButton` when the date should only be changed through the picker.
+         * @default false
+         */
+        shouldKeepCalendarIconWhenSelected?: boolean;
+
+        /**
+         * Keeps the label above the input even when it is empty and not focused, so the date format placeholder always shows.
+         * Pass `false` to let the empty label sit inside the input, like a regular text input.
+         * @default true
+         */
+        shouldForceActiveLabel?: boolean;
     };
 
 type DatePickerProps = {
