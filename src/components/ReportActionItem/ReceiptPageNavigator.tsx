@@ -95,17 +95,7 @@ function ReceiptPageNavigator({page, pageCount, isLoading, onChangePage}: Receip
                 onPress={() => onChangePage(page - 1)}
                 sentryLabel={CONST.SENTRY_LABEL.RECEIPT.PREVIOUS_PAGE_BUTTON}
             />
-            {/* The zero-height widest label keeps the column at least that wide, so the buttons stay put as the page
-                number changes, while the visible label is never narrowed below its own width */}
-            <View style={styles.alignItemsCenter}>
-                <Text style={labelStyle}>{translate('receipt.pageCount', {page, pageCount})}</Text>
-                <Text
-                    style={[labelStyle, styles.h0, styles.overflowHidden]}
-                    aria-hidden
-                >
-                    {translate('receipt.pageCount', {page: pageCount, pageCount})}
-                </Text>
-            </View>
+            <Text style={labelStyle}>{translate('receipt.pageCount', {page, pageCount})}</Text>
             <PageButton
                 icon={icons.ArrowRight}
                 label={translate('common.next')}
