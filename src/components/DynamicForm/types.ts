@@ -14,6 +14,9 @@ type DynamicFormValues = Partial<Record<string, FormValue>>;
 /** The variant of one type. An intersection rather than Extract, since one variant can cover several types, such as select and radio. */
 type DynamicFormFieldOfType<TType extends DynamicFormFieldType> = DynamicFormField & {type: TType};
 
+/** `auto` shows a step indicator at three or more pages, `stepper` always, `pages` never */
+type DynamicFormLayout = 'auto' | 'pages' | 'stepper';
+
 type DynamicFormFlowProps = Pick<DynamicFormFieldsProps, 'currency' | 'onRefreshRequirements'> & {
     fields: DynamicFormSchemaField[];
 
@@ -40,6 +43,11 @@ type DynamicFormFlowProps = Pick<DynamicFormFieldsProps, 'currency' | 'onRefresh
 
     isSubmitting?: boolean;
     submitError?: string;
+
+    layout?: DynamicFormLayout;
+
+    /** Whether a confirmation page follows the last page. By default only forms with more than five pages get one, and the last page of the others submits. */
+    hasConfirmation?: boolean;
 };
 
 /** Props of every page in the flow: useSubPage's routing props plus the form's data */
@@ -57,8 +65,11 @@ type DynamicFormSubPageProps = SubPageProps &
 
         onOpenListItemEditor: NonNullable<DynamicFormFieldsProps['onOpenListItemEditor']>;
 
+        /** The last page submits the form, since no confirmation page follows */
+        isLastPage: boolean;
+
         /** Saves a list entry from its editor page. Without `itemID` it adds a new entry. */
         onListItemSave: (listKey: string, itemID: string | undefined, answers: DynamicFormValues) => void;
     };
 
-export type {DynamicFormFieldOfType, DynamicFormFlowProps, DynamicFormSubPageProps, DynamicFormValues};
+export type {DynamicFormFieldOfType, DynamicFormFlowProps, DynamicFormLayout, DynamicFormSubPageProps, DynamicFormValues};

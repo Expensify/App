@@ -1,7 +1,7 @@
 import {render} from '@testing-library/react-native';
 
 import DynamicFormFlow from '@components/DynamicForm';
-import type {DynamicFormSubPageProps} from '@components/DynamicForm/types';
+import type {DynamicFormLayout, DynamicFormSubPageProps} from '@components/DynamicForm/types';
 import {getListItems, getListItemSensitiveKey} from '@components/DynamicForm/utils/listItems';
 import type {FormValue} from '@components/Form/types';
 
@@ -31,6 +31,7 @@ const mockPrevPage = jest.fn();
 const mockResetToPage = jest.fn();
 const mockMoveTo = jest.fn();
 let mockOnBackButtonPress: (() => void) | undefined;
+const mockStepWrapper = jest.fn<null, [{stepNames: string[]; startStepIndex: number}]>(() => null);
 
 jest.mock('@hooks/useSubPage', () => jest.fn());
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
@@ -44,6 +45,7 @@ jest.mock('@userActions/DynamicForm', () => ({
 jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn(), goBack: jest.fn()}));
 jest.mock('@components/ScreenWrapper', () => jest.fn(({children}: {children: React.ReactNode}) => children));
 jest.mock('@components/FullscreenLoadingIndicator', () => jest.fn(() => null));
+jest.mock('@components/InteractiveStepWrapper', () => jest.fn((props: {stepNames: string[]; startStepIndex: number}) => mockStepWrapper(props)));
 jest.mock('@components/Header/composed/HeaderWithBackButtonAndTitle', () =>
     jest.fn(({onBackButtonPress}: {onBackButtonPress: () => void}) => {
         mockOnBackButtonPress = onBackButtonPress;
@@ -70,9 +72,20 @@ type RenderFlowOptions = {
     pageIndex?: number;
     currentPageName?: string;
     isRedirecting?: boolean;
+    hasConfirmation?: boolean;
+    layout?: DynamicFormLayout;
 };
 
-async function renderFlow({flowFields = fields, draft = {}, sensitiveAnswers = {}, pageIndex = 0, currentPageName = 'personal-details', isRedirecting = false}: RenderFlowOptions = {}) {
+async function renderFlow({
+    flowFields = fields,
+    draft = {},
+    sensitiveAnswers = {},
+    pageIndex = 0,
+    currentPageName = 'personal-details',
+    isRedirecting = false,
+    hasConfirmation,
+    layout,
+}: RenderFlowOptions = {}) {
     await Onyx.set(`${FORM_ID}Draft`, draft);
     await Onyx.set(ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS, {[FORM_ID]: sensitiveAnswers});
     jest.mocked(useSubPage<DynamicFormSubPageProps>).mockReturnValue({
@@ -101,6 +114,8 @@ async function renderFlow({flowFields = fields, draft = {}, sensitiveAnswers = {
             onSubmit={onSubmit}
             onBack={onBack}
             onGroupSubmit={onGroupSubmit}
+            hasConfirmation={hasConfirmation}
+            layout={layout}
         />,
     );
     await waitForBatchedUpdatesWithAct();
@@ -124,12 +139,63 @@ describe('DynamicFormFlow', () => {
 
     it('makes one page per group plus a confirmation page, and skips pages with nothing to ask', async () => {
         // Given a private recipient, so the company page has no visible field
-        // When the flow renders
-        const {subPageOptions} = await renderFlow({draft: {legalType: 'PRIVATE'}});
+        // When the flow renders with a confirmation page
+        const {subPageOptions} = await renderFlow({draft: {legalType: 'PRIVATE'}, hasConfirmation: true});
 
         // Then every group is a page before the confirmation page, and the company page is skipped
         expect(subPageOptions.pages.map((page) => page.pageName)).toEqual(['personal-details', 'recipient', 'company', 'confirm']);
         expect(subPageOptions.skipPages).toEqual(['company']);
+    });
+
+    it('adds a confirmation page by default only to forms with more than five pages', async () => {
+        // Given a form of six pages, and the shorter default form
+        const sixPages: DynamicFormField[] = ['One', 'Two', 'Three', 'Four', 'Five', 'Six'].map((group) => ({key: group, type: 'text', required: true, group}));
+
+        // When the flow renders each
+        const longForm = (await renderFlow({flowFields: sixPages, currentPageName: 'one'})).subPageOptions;
+        const shortForm = (await renderFlow()).subPageOptions;
+
+        // Then only the long form ends on a confirmation page, so a short one does not ask the user to read their answers again
+        expect(longForm.pages.at(-1)?.pageName).toBe('confirm');
+        expect(shortForm.pages.map((page) => page.pageName)).toEqual(['personal-details', 'recipient', 'company']);
+    });
+
+    it('submits from the last page, with its answers, when no confirmation page follows', async () => {
+        // Given the recipient page, the last one shown while no business recipient is chosen, with the first page answered
+        const {pageProps, subPageOptions, onSubmit} = await renderFlow({draft: {firstName: 'Jane'}, sensitiveAnswers: {ssn: '123456789'}, pageIndex: 1, currentPageName: 'recipient'});
+
+        // When the user picks a private recipient, and useSubPage finishes the flow with the page's answers
+        subPageOptions.onFinished({legalType: 'PRIVATE'});
+
+        // Then the page is marked last, so it shows Confirm, and the submission holds its answer, which the draft does not have yet
+        expect(pageProps?.isLastPage).toBe(true);
+        expect(onSubmit).toHaveBeenCalledWith({firstName: 'Jane', legalType: 'PRIVATE', ssn: '123456789'});
+    });
+
+    it('resumes a complete form without a confirmation page on its last page', async () => {
+        // Given a complete form without sensitive fields or a confirmation page
+        const flowFields = fields.filter((field) => field.key !== 'ssn');
+
+        // When the flow renders
+        const {subPageOptions} = await renderFlow({flowFields, draft: {firstName: 'Jane', legalType: 'PRIVATE'}});
+
+        // Then it opens on the recipient page, the last one this recipient sees
+        expect(subPageOptions.startFrom).toBe(1);
+    });
+
+    it('shows a step indicator from three pages on, unless the layout turns it off', async () => {
+        // Given a business recipient, so all three pages are shown
+        const draft = {legalType: 'BUSINESS'};
+
+        // When the flow renders with the default layout, and then with plain pages
+        await renderFlow({draft, pageIndex: 1, currentPageName: 'recipient'});
+        const autoLayout = mockStepWrapper.mock.lastCall?.[0];
+        mockStepWrapper.mockClear();
+        await renderFlow({draft, layout: 'pages'});
+
+        // Then the default layout names every page and highlights the current one, and plain pages have no indicator
+        expect(autoLayout).toEqual(expect.objectContaining({stepNames: ['Personal details', 'Recipient', 'Company'], startStepIndex: 1}));
+        expect(mockStepWrapper).not.toHaveBeenCalled();
     });
 
     it('starts a new form on its first page that has something to ask', async () => {
@@ -160,8 +226,8 @@ describe('DynamicFormFlow', () => {
         // Given a complete form without sensitive fields
         const flowFields = fields.filter((field) => field.key !== 'ssn');
 
-        // When the flow renders
-        const {subPageOptions} = await renderFlow({flowFields, draft: {firstName: 'Jane', legalType: 'PRIVATE'}});
+        // When the flow renders with a confirmation page
+        const {subPageOptions} = await renderFlow({flowFields, draft: {firstName: 'Jane', legalType: 'PRIVATE'}, hasConfirmation: true});
 
         // Then it opens on the confirmation page, where the user only has to confirm
         expect(subPageOptions.startFrom).toBe(3);
@@ -336,6 +402,7 @@ describe('DynamicFormFlow', () => {
                 draft: {directors: [jane]},
                 sensitiveAnswers: {[getListItemSensitiveKey('directors', 'jane', 'ssn')]: '123456789'},
                 currentPageName: 'confirm',
+                hasConfirmation: true,
             });
 
             // When the user confirms

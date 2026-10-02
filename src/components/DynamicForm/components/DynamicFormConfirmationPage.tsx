@@ -15,7 +15,8 @@ function DynamicFormConfirmationPage({isEditing, onNext, onMove, groups, values,
     return (
         <ConfirmationStep
             isEditing={isEditing}
-            onNext={onNext}
+            // The flow submits whatever onNext carries, and the press event is not answers
+            onNext={() => onNext()}
             onMove={onMove}
             pageTitle={confirmationTitle}
             groups={getConfirmationItems(groups, values, translate, {onEditGroup: onMove, onEditListItem: onOpenListItemEditor})}

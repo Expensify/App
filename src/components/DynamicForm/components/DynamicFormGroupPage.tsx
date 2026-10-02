@@ -18,6 +18,7 @@ import DynamicFormFields from './DynamicFormFields';
 function DynamicFormGroupPage({
     currentPageName,
     isEditing,
+    isLastPage,
     onNext,
     formID,
     fields,
@@ -40,11 +41,12 @@ function DynamicFormGroupPage({
     return (
         <FormProvider
             formID={formID}
-            submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
+            submitButtonText={translate(isEditing || isLastPage ? 'common.confirm' : 'common.next')}
             validate={(inputValues) => getDynamicFieldErrors(group.fields, withInputValues(inputValues), translate, fields)}
             onSubmit={(inputValues) => {
-                onGroupSubmit(group, toDynamicFormValues(inputValues));
-                onNext();
+                const pageValues = toDynamicFormValues(inputValues);
+                onGroupSubmit(group, pageValues);
+                onNext(pageValues);
             }}
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={styles.mb0}

@@ -1,12 +1,11 @@
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
-import ScreenWrapper from '@components/ScreenWrapper';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
 
 import Navigation from '@libs/Navigation/Navigation';
+import {findLastPageIndex} from '@libs/SubPageUtils';
 
 import {clearSensitiveAnswers, forgetSensitiveAnswers, saveDraftAnswers, saveSensitiveAnswers, startListItemEdit} from '@userActions/DynamicForm';
 
@@ -24,16 +23,22 @@ import DynamicFormConfirmationPage from './components/DynamicFormConfirmationPag
 import DynamicFormFields from './components/DynamicFormFields';
 import DynamicFormGroupPage from './components/DynamicFormGroupPage';
 import DynamicFormListItemPage from './components/DynamicFormListItemPage';
+import DynamicFormShell from './components/DynamicFormShell';
 import getDynamicFieldErrors, {isAnswered} from './utils/getDynamicFieldErrors';
 import getSubmittedAnswers from './utils/getSubmittedAnswers';
 import getVisibleFields from './utils/getVisibleFields';
-import groupFieldsIntoPages, {CONFIRMATION_PAGE_SLUG} from './utils/groupFieldsIntoPages';
+import groupFieldsIntoPages, {CONFIRMATION_PAGE_SLUG, getGroupTitle} from './utils/groupFieldsIntoPages';
 import isSensitiveField from './utils/isSensitiveField';
 import isSupportedField from './utils/isSupportedField';
 import {getListItemPageName, getListItems, getListItemSensitiveKey, getRemovedListItemSensitiveKeys, parseListItemPageName} from './utils/listItems';
 import toDynamicFormValues from './utils/toDynamicFormValues';
 
-/** A whole dynamic form: one page per group, skipping pages with nothing to ask, then a confirmation page */
+const CONFIRMATION_MIN_PAGES = 5;
+
+/** Flows shorter than this read as one form, so `auto` gives them no step indicator */
+const STEP_INDICATOR_MIN_PAGES = 3;
+
+/** A whole dynamic form: one page per group, skipping pages with nothing to ask, then a confirmation page on longer forms */
 function DynamicFormFlow({
     fields: schemaFields,
     formID,
@@ -49,6 +54,8 @@ function DynamicFormFlow({
     onRefreshRequirements,
     isSubmitting,
     submitError,
+    layout = 'auto',
+    hasConfirmation,
 }: DynamicFormFlowProps) {
     const {translate} = useLocalize();
     const [draft, draftMetadata] = useOnyx(`${formID}Draft`);
@@ -60,16 +67,21 @@ function DynamicFormFlow({
     const fields = schemaFields.filter(isSupportedField);
     const groups = groupFieldsIntoPages(fields);
     const listFields = fields.filter((field): field is DynamicFormListField => field.type === 'list');
+    const shownGroups = groups.filter((group) => getVisibleFields(group.fields, values, fields).length > 0);
+
+    // A form with nothing to ask still needs a page to submit from
+    const hasConfirmationPage = (hasConfirmation ?? groups.length > CONFIRMATION_MIN_PAGES) || shownGroups.length === 0;
 
     // Entry editors come after the confirmation page and are skipped by Next and Back, so only an entry's Add, Edit or row opens them
     const listItemPageNames = listFields.flatMap((field) => [getListItemPageName(field.key), ...getListItems(values[field.key]).map((item) => getListItemPageName(field.key, item.id))]);
     const pages = [
         ...groups.map((group) => ({pageName: group.slug, component: DynamicFormGroupPage})),
-        {pageName: CONFIRMATION_PAGE_SLUG, component: DynamicFormConfirmationPage},
+        ...(hasConfirmationPage ? [{pageName: CONFIRMATION_PAGE_SLUG, component: DynamicFormConfirmationPage}] : []),
         ...listItemPageNames.map((pageName) => ({pageName, component: DynamicFormListItemPage})),
     ];
-    const skipPages = [...groups.filter((group) => getVisibleFields(group.fields, values, fields).length === 0).map((group) => group.slug), ...listItemPageNames];
+    const skipPages = [...groups.filter((group) => !shownGroups.includes(group)).map((group) => group.slug), ...listItemPageNames];
     const firstShownPageIndex = pages.findIndex((page) => !skipPages.includes(page.pageName));
+    const lastShownPageIndex = findLastPageIndex<DynamicFormSubPageProps>(pages, skipPages);
     const getFirstIncompleteGroupIndex = (answers: DynamicFormValues) => groups.findIndex((group) => Object.keys(getDynamicFieldErrors(group.fields, answers, translate, fields)).length > 0);
 
     // A visit opened without a page in the URL drops the sensitive answers of earlier visits, so it starts from what the draft holds
@@ -78,7 +90,7 @@ function DynamicFormFlow({
         startFrom = -1;
     } else if (Object.values(draftValues).some((value) => isAnswered(value))) {
         const firstIncompleteIndex = getFirstIncompleteGroupIndex(draftValues);
-        startFrom = firstIncompleteIndex === -1 ? groups.length : firstIncompleteIndex;
+        startFrom = firstIncompleteIndex === -1 ? lastShownPageIndex : firstIncompleteIndex;
     }
 
     const {CurrentPage, isEditing, currentPageName, pageIndex, nextPage, prevPage, moveTo, resetToPage, isRedirecting} = useSubPage<DynamicFormSubPageProps>({
@@ -90,18 +102,20 @@ function DynamicFormFlow({
         onFinished: submitIfComplete,
     });
 
-    /** The confirmation page can be opened by URL before every page is answered, so an incomplete form goes back to its first gap instead */
-    function submitIfComplete() {
-        const firstIncompleteIndex = getFirstIncompleteGroupIndex(values);
+    /** The confirmation page can be opened by URL before every page is answered, so an incomplete form goes back to its first gap instead. Without a confirmation page the last page's answers arrive here, before their draft is saved. */
+    function submitIfComplete(lastPageValues?: unknown) {
+        const answers = {...values, ...toDynamicFormValues(lastPageValues)};
+        const firstIncompleteIndex = getFirstIncompleteGroupIndex(answers);
         const incompleteGroup = firstIncompleteIndex === -1 ? undefined : groups.at(firstIncompleteIndex);
         if (incompleteGroup) {
             resetToPage(incompleteGroup.slug);
             return;
         }
-        onSubmit(getSubmittedAnswers(fields, values));
+        onSubmit(getSubmittedAnswers(fields, answers));
     }
 
     const listItemPage = parseListItemPageName(currentPageName);
+    const findListGroup = (listKey: string) => groups.find((group) => group.fields.some((field) => field.key === listKey));
     const isOnSkippedGroupPage = !listItemPage && skipPages.some((pageName) => pageName === currentPageName);
     const isOnUnavailablePage = !isDraftLoading && !isRedirecting && (!pages.some((page) => page.pageName === currentPageName) || isOnSkippedGroupPage);
 
@@ -157,7 +171,7 @@ function DynamicFormFlow({
 
     /** An entry opened from the confirmation page, or from a page edited from it, returns there */
     const closeListItemEditor = (listKey: string) => {
-        const listGroup = groups.find((group) => group.fields.some((field) => field.key === listKey));
+        const listGroup = findListGroup(listKey);
         returnTo(isEditing || !listGroup ? CONFIRMATION_PAGE_SLUG : listGroup.slug);
     };
 
@@ -210,20 +224,27 @@ function DynamicFormFlow({
         prevPage();
     };
 
+    // An entry editor highlights its list's step, and the confirmation page the last one
+    const stepGroup = groups.find((group) => group.slug === currentPageName) ?? (listItemPage && findListGroup(listItemPage.listKey));
+    const stepNames = [...shownGroups.map((group) => getGroupTitle(group, translate)), ...(hasConfirmationPage ? [translate('common.confirm')] : [])];
+    const stepIndex = stepGroup ? Math.max(shownGroups.indexOf(stepGroup), 0) : stepNames.length - 1;
+    const isStepIndicatorAsked = layout === 'auto' ? shownGroups.length >= STEP_INDICATOR_MIN_PAGES : layout === 'stepper';
+
     return (
-        <ScreenWrapper
+        <DynamicFormShell
             testID={testID}
-            shouldEnableMaxHeight
+            headerTitle={headerTitle}
+            onBackButtonPress={goBack}
+            stepNames={stepNames}
+            stepIndex={stepIndex}
+            shouldShowStepIndicator={isStepIndicatorAsked && stepNames.length > 1}
         >
-            <HeaderWithBackButtonAndTitle
-                title={headerTitle}
-                onBackButtonPress={goBack}
-            />
             {isDraftLoading || isRedirecting || isOnUnavailablePage ? (
                 <FullscreenLoadingIndicator />
             ) : (
                 <CurrentPage
                     isEditing={isEditing}
+                    isLastPage={!hasConfirmationPage && pageIndex === lastShownPageIndex}
                     currentPageName={currentPageName}
                     onNext={nextPage}
                     onMove={moveTo}
@@ -242,7 +263,7 @@ function DynamicFormFlow({
                     submitError={submitError}
                 />
             )}
-        </ScreenWrapper>
+        </DynamicFormShell>
     );
 }
 
