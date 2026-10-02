@@ -23,6 +23,7 @@ import useConfirmApproval from './useConfirmApproval';
 type ApprovePrimaryActionProps = {
     reportID: string | undefined;
     chatReportID: string | undefined;
+    /** Disables the Approve button, e.g. while expenses are selected */
     isDisabled?: boolean;
 };
 

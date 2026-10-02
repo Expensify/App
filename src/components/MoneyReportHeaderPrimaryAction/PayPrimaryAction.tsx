@@ -44,6 +44,7 @@ import useTransactionThreadData from './useTransactionThreadData';
 type PayPrimaryActionProps = {
     reportID: string | undefined;
     chatReportID: string | undefined;
+    /** Disables the Pay button, e.g. while expenses are selected */
     isDisabled?: boolean;
 };
 

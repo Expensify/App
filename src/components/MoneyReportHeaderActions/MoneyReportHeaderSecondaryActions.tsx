@@ -87,6 +87,7 @@ type MoneyReportHeaderSecondaryActionsProps = {
     isReportInSearch?: boolean;
     backTo?: Route;
     dropdownMenuRef?: React.RefObject<ButtonWithDropdownMenuRef>;
+    /** Disables the "More" dropdown, e.g. while expenses are selected */
     isDisabled?: boolean;
 };
 

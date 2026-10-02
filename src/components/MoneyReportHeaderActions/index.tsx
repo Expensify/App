@@ -69,9 +69,9 @@ function MoneyReportHeaderActions({reportID, primaryAction, isReportInSearch, ba
 
     const narrowedPrimaryAction = narrowPrimaryAction(primaryAction);
 
-    // A wide layout acts on the selection through the bulk action bar floating over the list instead, which leaves the
-    // report's own actions in the header while a selection is being built up.
-    if (hasSelectedTransactions && !isTransactionThread && shouldUseNarrowLayoutOnWideRHP) {
+    // A wide layout acts on the selection through the bulk action bar floating over the list instead, so the report's own
+    // actions stay in the header but are disabled while a selection is being built up.
+    if (shouldDisableReportActions && shouldUseNarrowLayoutOnWideRHP) {
         return (
             <View style={shouldDisplayNarrowMoreButton ? undefined : [styles.dFlex, styles.w100, styles.ph5, styles.pb3]}>
                 <MoneyReportHeaderSelectionDropdown

@@ -20,6 +20,7 @@ import React from 'react';
 type ExportPrimaryActionProps = {
     reportID: string | undefined;
     onExportModalOpen: () => void;
+    /** Disables the Export button, e.g. while expenses are selected */
     isDisabled?: boolean;
 };
 

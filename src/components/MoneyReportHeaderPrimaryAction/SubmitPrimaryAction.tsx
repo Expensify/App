@@ -50,6 +50,7 @@ const ANCHOR_ALIGNMENT = {
 
 type SubmitPrimaryActionProps = {
     reportID: string | undefined;
+    /** Disables the Submit button, e.g. while expenses are selected */
     isDisabled?: boolean;
 };
 
