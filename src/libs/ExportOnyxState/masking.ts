@@ -152,6 +152,11 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
         allowList: ['externalID', 'enabled', 'origin'],
         maskList: ['name'],
     },
+    // These are other members' bank details, so mask them in exports.
+    [ONYXKEYS.COLLECTION.POLICY_MEMBER_BANK_ACCOUNTS]: {
+        allowList: [],
+        maskList: ['bankName', 'bankAccountLastFour'],
+    },
     [ONYXKEYS.USER_WALLET]: {
         allowList: ['currentBalance', 'availableBalance', 'tierName'],
         maskList: [],
