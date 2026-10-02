@@ -366,3 +366,12 @@
 - Upstream PR/issue: fix behind the flag in https://github.com/facebook/react/pull/30954, enabled for react-dom in https://github.com/facebook/react/pull/34372, flag removed in https://github.com/facebook/react/pull/35918. react-native `main` already ships the React 19.3 renderer with the unconditional cleanup; drop this patch when the adopted RN release does.
 - E/App issue: https://github.com/Expensify/App/issues/98254
 - PR introducing patch: https://github.com/Expensify/App/pull/101577
+
+### [react-native+0.86.0+045+web-cursor-types.patch](react-native+0.86.0+045+web-cursor-types.patch)
+
+- Reason: Adds the fourteen additional web cursor literals already used by App to React Native's finite `CursorValue` union, retaining `auto` and `pointer`. Both `Libraries/StyleSheet/StyleSheetTypes.d.ts` and the strict API entrypoint's `types_generated/Libraries/StyleSheet/StyleSheetTypes.d.ts` receive the same union. App's native cursor styles remain empty objects. This broadens the shared TypeScript declaration for native callers as well, without establishing native runtime support for the web literals.
+- Generated declaration: `Libraries/StyleSheet/StyleSheetTypes.js` is the upstream source and `scripts/js-api/build-types/index.js` is its generator. This is a declaration patch applied after generation. The generator is not shipped in the inspected installation, so upstream regeneration is not claimed.
+- Installation check: Compare both patched declaration entrypoints against the exact sixteen literals and unchanged surrounding declarations. The approved installation contains the same two declaration changes.
+- Upstream PR/issue: Not filed.
+- E/App issue: Not filed.
+- PR introducing patch: This PR.
