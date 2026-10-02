@@ -85,7 +85,11 @@ function useApplyWorkspaceCurrencyChange(policy: OnyxEntry<Policy>) {
             });
             return;
         }
-        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(backTo));
+        if (backTo) {
+            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(backTo));
+            return;
+        }
+        Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
     };
 }
 

@@ -3,7 +3,8 @@ import * as APIModule from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import {isPolicyPayer} from '@libs/PolicyUtils';
-import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
+// eslint-disable-next-line no-restricted-imports -- Namespace import is required to spy on ReportUtils without replacing the production module.
+import * as ReportUtils from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -7959,7 +7960,7 @@ describe('actions/Policy', () => {
             expect(optimisticReport?.unheldNonReimbursableTotal).toBe(-0);
 
             // And the Total rendered for the converted report is positive rather than -$50.00
-            expect(getMoneyRequestSpendBreakdown(optimisticReport).totalDisplaySpend).toBe(5000);
+            expect(ReportUtils.getMoneyRequestSpendBreakdown(optimisticReport).totalDisplaySpend).toBe(5000);
         });
     });
 });
