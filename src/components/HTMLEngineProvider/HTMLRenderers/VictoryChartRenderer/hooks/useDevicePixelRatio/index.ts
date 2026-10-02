@@ -1,8 +1,14 @@
 import {useSyncExternalStore} from 'react';
 
+// The server chart renderer bundles these web modules and runs without a window.
+const hasWindow = typeof window !== 'undefined';
+
 // Moving the window to a display with another pixel ratio changes no layout, so nothing else re-renders the chart.
 // A resolution query matches a single ratio, so it is re-armed for each new one.
 function subscribe(onChange: () => void) {
+    if (!hasWindow) {
+        return () => {};
+    }
     let query = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
     const handleChange = () => {
         query.removeEventListener('change', handleChange);
@@ -15,7 +21,7 @@ function subscribe(onChange: () => void) {
 }
 
 function getSnapshot() {
-    return window.devicePixelRatio;
+    return hasWindow ? window.devicePixelRatio : 1;
 }
 
 function useDevicePixelRatio(): number {
