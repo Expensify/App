@@ -1,6 +1,6 @@
 # @desc   Complete onboarding with minimal choices (skip work email, pick "Something else" purpose, enter generic name). Lands on Home.
-# @pre    text="What’s your work email?"
-# @post   text="Home"
+# @pre    role="heading" label="What’s your work email?" || text="What’s your work email?"
+# @post   role="heading" label="Home" || text="Home"
 # @post   role="button" label="Search"
 # @param  FIRST_NAME First name to enter on onboarding profile step.
 # @param  LAST_NAME Last name to enter on onboarding profile step.
