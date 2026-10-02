@@ -15,6 +15,7 @@ import {
     getOverLimitForwardsToDisplayName,
     getWorkflowMemberEmails,
     hasRuleBasedDefaultWorkflow,
+    includesEveryWorkspaceMember,
     mergeWorkflowMembersWithAvailableMembers,
     reconcileApprovalWorkflowRulesForCreate,
     reconcileApprovalWorkflowRulesForEdit,
@@ -672,10 +673,22 @@ type SelectApprovalWorkflowForEditParams = {
     approvers?: Approver[];
     /** Identity anchor of the member whose workflow is being edited, preserved across sub-page back routes. */
     memberEmail?: string;
+    /** The policy's default workflow, where members taken out of this workflow go back to. */
+    defaultApprovalWorkflow?: ApprovalWorkflow;
+    /** Set by the "+N more" shortcut, which skips the Edit RHP, so the members page knows to save the workflow itself. */
+    isFastEdit?: boolean;
 };
 
 /** Commits a workflow to onyx in EDIT mode so any sub-page can be entered directly, skipping the Edit RHP. */
-function selectApprovalWorkflowForEdit({workflow, defaultWorkflowMembers, usedApproverEmails, approvers, memberEmail}: SelectApprovalWorkflowForEditParams) {
+function selectApprovalWorkflowForEdit({
+    workflow,
+    defaultWorkflowMembers,
+    usedApproverEmails,
+    approvers,
+    memberEmail,
+    defaultApprovalWorkflow,
+    isFastEdit,
+}: SelectApprovalWorkflowForEditParams) {
     setApprovalWorkflow({
         ...workflow,
         approvers: approvers ?? workflow.approvers,
@@ -684,12 +697,45 @@ function selectApprovalWorkflowForEdit({workflow, defaultWorkflowMembers, usedAp
         action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
         errors: null,
         originalApprovers: workflow.approvers,
+        originalMembers: workflow.members,
+        defaultApprovalWorkflow,
         memberEmail,
+        isFastEdit,
     });
 }
 
 function clearApprovalWorkflow() {
     Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, null);
+}
+
+type SaveFastEditApprovalWorkflowParams = {
+    approvalWorkflow: ApprovalWorkflowOnyx;
+    policy: OnyxEntry<Policy>;
+    rules: OnyxCollection<Rule>;
+    isMultipleApproversBetaEnabled: boolean;
+};
+
+/** Saves the member changes made through the "+N more" shortcut and discards the draft, since no edit page will. */
+function saveFastEditApprovalWorkflow({approvalWorkflow, policy, rules, isMultipleApproversBetaEnabled}: SaveFastEditApprovalWorkflowParams) {
+    // A workflow with everyone in it leaves every other workflow empty, so it becomes the default one
+    const isDefault = approvalWorkflow.isDefault || includesEveryWorkspaceMember(getWorkflowMemberEmails(approvalWorkflow.members), policy?.employeeList);
+    const workflow: ApprovalWorkflow = {...approvalWorkflow, isDefault, approvers: approvalWorkflow.approvers.filter((approver): approver is Approver => !!approver)};
+    const originalMembers = approvalWorkflow.originalMembers ?? [];
+
+    if (isMultipleApproversBetaEnabled) {
+        updateApprovalWorkflowRules({
+            approvalWorkflow: workflow,
+            initialApprovalWorkflow: {...workflow, members: originalMembers},
+            policy,
+            rules,
+            defaultApprovalWorkflow: approvalWorkflow.defaultApprovalWorkflow,
+        });
+    } else {
+        const membersToRemove = originalMembers.filter((originalMember) => !workflow.members.some((member) => member.email === originalMember.email));
+        updateApprovalWorkflow(workflow, membersToRemove, [], policy);
+    }
+
+    clearApprovalWorkflow();
 }
 
 type ApprovalWorkflowOnyxValidated = Omit<ApprovalWorkflowOnyx, 'approvers'> & {approvers: Approver[]};
@@ -748,6 +794,7 @@ export {
     clearApprovalWorkflowApprover,
     clearApprovalWorkflowApprovers,
     clearApprovalWorkflow,
+    saveFastEditApprovalWorkflow,
     validateApprovalWorkflow,
     setApprovalWorkflowIsInitialFlow,
 };
