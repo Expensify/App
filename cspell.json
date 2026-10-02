@@ -621,6 +621,7 @@
         "DONTWAIT",
         "NONBLOCK",
         "dotlottie",
+        "dppx",
         "dsyms",
         "dylib",
         "dualEntry",

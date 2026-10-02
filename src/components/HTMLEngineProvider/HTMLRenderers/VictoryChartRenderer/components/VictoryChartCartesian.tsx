@@ -2,6 +2,7 @@ import ChartFontsLoaderProvider from '@components/Charts/context/ChartFontsLoade
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import {useVictoryChartLayoutScale} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartLayoutContext';
 import {VictoryChartRenderArgsProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartRenderArgsContext';
+import useDevicePixelRatio from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/hooks/useDevicePixelRatio';
 import type {CartesianChartData, YKey} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import getChartCanvasProps from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getChartCanvasProps';
 import getChartDesignWidth from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getChartDesignWidth';
@@ -43,6 +44,7 @@ type VictoryChartCartesianProps = {
 function VictoryChartCartesian({explicitSize, headless, shouldUseStaticCanvas, onRenderArgs}: VictoryChartCartesianProps) {
     const {tnode, data, xKey, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, labelItems, legendItems, chartContentStyles, pixelScale} = useVictoryChartContext();
     const layoutScale = useVictoryChartLayoutScale();
+    const devicePixelRatio = useDevicePixelRatio();
     const theme = useTheme();
     const timezone = useCurrentTimezone();
     const designWidth = getChartDesignWidth(explicitSize, chartContentStyles.width);
@@ -71,7 +73,7 @@ function VictoryChartCartesian({explicitSize, headless, shouldUseStaticCanvas, o
             domainPadding={domainPadding}
             padding={padding}
             {...getChartLayoutModeProps(explicitSize, headless)}
-            canvasProps={getChartCanvasProps(shouldUseStaticCanvas, layoutScale)}
+            canvasProps={getChartCanvasProps(shouldUseStaticCanvas, layoutScale, devicePixelRatio)}
             renderOutside={(renderArgs) => {
                 const overlayContent = (
                     <VictoryChartRenderArgsProvider value={{...renderArgs, pixelScale}}>

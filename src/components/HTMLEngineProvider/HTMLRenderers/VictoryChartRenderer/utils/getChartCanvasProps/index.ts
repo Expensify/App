@@ -1,5 +1,3 @@
-import {PixelRatio} from 'react-native';
-
 import type GetChartCanvasProps from './types';
 
 /**
@@ -10,10 +8,10 @@ import type GetChartCanvasProps from './types';
  * Inline charts are painted through a CSS scale (see VictoryChartContainerFixed), so the backing store
  * follows the painted size. At scale 1 the density is left to Skia, which keeps tracking browser zoom.
  */
-const getChartCanvasProps: GetChartCanvasProps = (shouldUseStaticCanvas, layoutScale) => ({
+const getChartCanvasProps: GetChartCanvasProps = (shouldUseStaticCanvas, layoutScale, devicePixelRatio) => ({
     // eslint-disable-next-line @typescript-eslint/naming-convention -- prop name is defined by react-native-skia
     ...(shouldUseStaticCanvas ? {__destroyWebGLContextAfterRender: true} : {}),
-    ...(layoutScale < 1 ? {pixelDensity: PixelRatio.get() * layoutScale} : {}),
+    ...(layoutScale < 1 ? {pixelDensity: devicePixelRatio * layoutScale} : {}),
 });
 
 export default getChartCanvasProps;
