@@ -100,6 +100,9 @@ function useCopyPolicySettingsProgressModal() {
             confirmText: translate('workspace.copyPolicySettings.progress.letMeKnowPrompt'),
             cancelText: '',
             shouldShowCancelButton: false,
+            // The X is the only way to close this step. Without it onCancel is reachable only by backdrop press,
+            // Escape, or browser back, so a user who walks away from the copy never asks to be told if it fails.
+            shouldShowDismissIcon: true,
             isTitleLoading: true,
             onConfirm: () => {
                 requestCopyPolicySettingsNotification();
@@ -143,7 +146,8 @@ function useCopyPolicySettingsProgressModal() {
 }
 
 function CopyPolicySettingsProgressModal() {
-    const {isVisible, title, prompt, confirmText, cancelText, shouldShowCancelButton, isTitleLoading, danger, onConfirm, onCancel} = useCopyPolicySettingsProgressModal();
+    const {isVisible, title, prompt, confirmText, cancelText, shouldShowCancelButton, shouldShowDismissIcon, isTitleLoading, danger, onConfirm, onCancel} =
+        useCopyPolicySettingsProgressModal();
 
     return (
         // eslint-disable-next-line @typescript-eslint/no-deprecated -- The global useConfirmModal()/showConfirmModal() API is one-shot (its promise resolves on the first confirm/cancel and the modal unmounts). This progress modal must stay open across multiple Onyx state transitions ('loading' → notify-requested → 'complete') and update its content in place, which the global system does not support.
@@ -156,6 +160,7 @@ function CopyPolicySettingsProgressModal() {
             confirmText={confirmText}
             cancelText={cancelText}
             shouldShowCancelButton={shouldShowCancelButton}
+            shouldShowDismissIcon={shouldShowDismissIcon}
             isTitleLoading={isTitleLoading}
             shouldHandleNavigationBack
             buttonVariant={danger ? CONST.BUTTON_VARIANT.DANGER : CONST.BUTTON_VARIANT.SUCCESS}
