@@ -7553,7 +7553,7 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
         export: {
             notReadyHeading: 'Nicht bereit zum Export',
             notReadyDescription:
-                'Entwürfe oder ausstehende Spesenabrechnungen können nicht in das Buchhaltungssystem exportiert werden. Bitte genehmige oder bezahle diese Spesen, bevor du sie exportierst.',
+                'Entwürfe oder ausstehende Spesenabrechnungen können nicht in das Buchhaltungssystem exportiert werden.\n\nBitte genehmige oder bezahle diese Spesen, bevor du sie exportierst.',
         },
         invoices: {
             sendInvoice: 'Rechnung senden',

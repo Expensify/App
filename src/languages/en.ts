@@ -8015,7 +8015,7 @@ const translations = {
         },
         export: {
             notReadyHeading: 'Not ready to export',
-            notReadyDescription: 'Draft or pending expense reports cannot be exported to the accounting system. Please approve or pay these expenses before exporting them.',
+            notReadyDescription: 'Draft or pending expense reports cannot be exported to the accounting system.\n\nPlease approve or pay these expenses before exporting them.',
         },
         invoices: {
             sendInvoice: 'Send invoice',

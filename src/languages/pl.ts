@@ -7518,7 +7518,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
         },
         export: {
             notReadyHeading: 'Niegotowe do eksportu',
-            notReadyDescription: 'Szkiców ani oczekujących raportów wydatków nie można wyeksportować do systemu księgowego. Zatwierdź lub opłać te wydatki przed ich eksportem.',
+            notReadyDescription: 'Szkiców ani oczekujących raportów wydatków nie można wyeksportować do systemu księgowego.\n\nZatwierdź lub opłać te wydatki przed ich eksportem.',
         },
         invoices: {
             sendInvoice: 'Wyślij fakturę',
