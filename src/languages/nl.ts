@@ -10355,6 +10355,12 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
     distance: {
         addStop: 'Stop toevoegen',
         address: 'Adres',
+        reuseRoute: 'Route hergebruiken',
+        reusePriorRoute: 'Vorige route hergebruiken',
+        choosePreviousRoute: 'Kies hieronder een eerdere route:',
+        findARoute: 'Zoek een route',
+        lastUsed: ({date}: {date: string}) => `Laatst gebruikt op ${date}`,
+        end: 'Einde',
         waypointDescription: {
             start: 'Start',
             stop: 'Stop',
