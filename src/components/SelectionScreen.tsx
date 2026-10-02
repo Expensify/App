@@ -147,6 +147,9 @@ function SelectionScreen<T = string>({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const isConnectionEmpty = isEmpty(policy?.connections?.[connectionName]);
 
+    // Keep the pinned selection visible while searching. This Only applies to searchable selectors.
+    const isSearchableList = !!textInputOptions;
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -183,7 +186,9 @@ function SelectionScreen<T = string>({
                         listFooterContent={listFooterContent}
                         style={{listItemWrapperStyle}}
                         shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
-                        shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
+                        shouldUpdateFocusedIndex={isSearchableList || shouldUpdateFocusedIndex}
+                        shouldScrollToFocusedIndexOnMount={!isSearchableList}
+                        disableMaintainingScrollPosition={isSearchableList}
                         alternateNumberOfSupportedLines={2}
                         isRowMultilineSupported={isRowMultilineSupported}
                         addBottomSafeAreaPadding
