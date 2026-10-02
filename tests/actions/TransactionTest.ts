@@ -759,6 +759,7 @@ describe('actions/Transaction', () => {
                     transactionViolations: {},
                     reports,
                     isTrackIntentUser: false,
+                    cardList: undefined,
                 });
                 await waitForBatchedUpdates();
 
