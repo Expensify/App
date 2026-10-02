@@ -103,7 +103,8 @@ Onyx.connectWithoutView({
 });
 
 let allSnapshots: OnyxCollection<OnyxTypes.SearchResults> = {};
-Onyx.connect({
+// Expense actions run outside React and use this cache to optimistically update loaded searches without a view subscription.
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.SNAPSHOT,
     callback: (value) => {
         allSnapshots = value ?? {};
