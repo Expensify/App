@@ -17,7 +17,7 @@ import variables from '@styles/variables';
 import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
 import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from '@userActions/Session';
 import {getBackToParam} from '@userActions/TestTool';
-import {setIsDebugModeEnabled, setShouldShowBranchNameInTitle, setShouldShowExtraNavItems} from '@userActions/User';
+import {setIsDebugModeEnabled, setShouldShowAskConciergeNavItem, setShouldShowBranchNameInTitle, setShouldShowExtraNavItems} from '@userActions/User';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -49,6 +49,7 @@ function TestToolMenu({serverPageRoute}: TestToolMenuProps) {
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const [shouldShowBranchNameInTitle = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE);
     const [shouldShowExtraNavItems = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_EXTRA_NAV_ITEMS);
+    const [shouldShowAskConciergeNavItem = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_ASK_CONCIERGE_NAV_ITEM);
     const styles = useThemeStyles();
     const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
@@ -98,6 +99,15 @@ function TestToolMenu({serverPageRoute}: TestToolMenuProps) {
                             accessibilityLabel={translate('initialSettingsPage.troubleshoot.showExtraNavItems')}
                             isOn={shouldShowExtraNavItems}
                             onToggle={() => setShouldShowExtraNavItems(!shouldShowExtraNavItems)}
+                        />
+                    </TestToolRow>
+
+                    {/* When toggled on, the navigation bar lists the Ask Concierge destination. */}
+                    <TestToolRow title="Ask Concierge nav item">
+                        <Switch
+                            accessibilityLabel="Ask Concierge nav item"
+                            isOn={shouldShowAskConciergeNavItem}
+                            onToggle={() => setShouldShowAskConciergeNavItem(!shouldShowAskConciergeNavItem)}
                         />
                     </TestToolRow>
 

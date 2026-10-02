@@ -39,6 +39,7 @@ import {
     isArchivedNonExpenseReport,
     isArchivedReport,
     isCanceledTaskReport,
+    isChatThread,
     isExpenseReport,
     isHarvestCreatedExpenseReport,
     isInvoiceReport,
@@ -497,7 +498,8 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                     keyExtractor={keyExtractor}
                     drawDistance={1500}
                     renderScrollComponent={renderActionSheetAwareScrollView}
-                    contentContainerStyle={styles.chatContentScrollView}
+                    // An inverted list pads its visual top with paddingBottom. A thread opens on its first message, so it needs far less of it.
+                    contentContainerStyle={[styles.chatContentScrollView, isChatThread(report) && styles.pb2]}
                     onEndReached={loadOlderChatsOnEndReached}
                     onEndReachedThreshold={0.75}
                     onStartReached={loadNewerChatsAfterTransitions}

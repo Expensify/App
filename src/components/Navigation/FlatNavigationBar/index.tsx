@@ -103,7 +103,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const {isBetaEnabled} = usePermissions();
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
 
-    const navIcons = useMemoizedLazyExpensifyIcons(['Home', 'Inbox', 'Receipt', 'Document', 'Connect', 'Bookmark', 'PieChart', 'Buildings', 'Coins', 'InvoiceGeneric', 'LuggageWithLines']);
+    const navIcons = useMemoizedLazyExpensifyIcons(['Home', 'Inbox', 'Receipt', 'Document', 'Connect', 'Bookmark', 'PieChart', 'Buildings', 'Coins', 'InvoiceGeneric', 'LuggageWithLines', 'Concierge']);
     const searchIcons = useMemoizedLazyExpensifyIcons(SEARCH_TYPE_MENU_ICON_NAMES);
 
     const {currentSearchKey} = useSearchQueryContext();
@@ -115,6 +115,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
     const [shouldShowExtraNavItems = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_EXTRA_NAV_ITEMS);
+    const [shouldShowAskConciergeNavItem = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_ASK_CONCIERGE_NAV_ITEM);
     const [lastExpensesSearchQuery] = useOnyx(ONYXKEYS.SEARCH_FILTERS, {selector: lastExpensesSearchQuerySelector});
 
     const {chatTabBrickRoad} = useSidebarOrderedReportsState();
@@ -208,6 +209,16 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
         });
     };
 
+    const navigateToAskConcierge = () => {
+        if (selectedTab === NAVIGATION_TABS.ASK_CONCIERGE) {
+            return;
+        }
+        clearSelectedText();
+        interceptAnonymousUser(() => {
+            Navigation.navigate(ROUTES.ASK_CONCIERGE);
+        });
+    };
+
     const navigateToInsights = () => {
         if (selectedTab === NAVIGATION_TABS.INSIGHTS) {
             return;
@@ -298,6 +309,15 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                     sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
                                     onPress={navigateToHome}
                                 />
+                                {shouldShowAskConciergeNavItem && (
+                                    <FlatNavItem
+                                        isCollapsed={isVisuallyCollapsed}
+                                        label="Concierge"
+                                        icon={navIcons.Concierge}
+                                        isSelected={selectedTab === NAVIGATION_TABS.ASK_CONCIERGE}
+                                        onPress={navigateToAskConcierge}
+                                    />
+                                )}
                                 <FlatNavItem
                                     isCollapsed={isVisuallyCollapsed}
                                     label={translate('common.inbox')}

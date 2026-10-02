@@ -17,6 +17,9 @@ type ConciergeSessionStateContextType = {
 
 type ConciergeSessionActionsContextType = {
     startSession: (unreadBoundary?: string | null) => void;
+
+    /** Starts a fresh session now, which hides everything said so far behind "Show history" */
+    resetSession: () => void;
     setShowFullHistory: (show: boolean) => void;
     setHadMessagesAtSessionStart: (value: boolean) => void;
 };
@@ -29,6 +32,7 @@ const ConciergeSessionStateContext = createContext<ConciergeSessionStateContextT
 
 const ConciergeSessionActionsContext = createContext<ConciergeSessionActionsContextType>({
     startSession: () => {},
+    resetSession: () => {},
     setShowFullHistory: () => {},
     setHadMessagesAtSessionStart: () => {},
 });
@@ -105,8 +109,15 @@ function ConciergeSessionProvider({children}: PropsWithChildren) {
         }
     }, []);
 
+    const resetSession = useCallback(() => {
+        sessionCreatedAtRef.current = Date.now();
+        setSessionStartTime(getServerAnchoredDBTime());
+        setShowFullHistory(false);
+        setHadMessagesAtSessionStart(false);
+    }, []);
+
     const stateValue = useMemo(() => ({sessionStartTime, showFullHistory, hadMessagesAtSessionStart}), [sessionStartTime, showFullHistory, hadMessagesAtSessionStart]);
-    const actionsValue = useMemo(() => ({startSession, setShowFullHistory, setHadMessagesAtSessionStart}), [startSession]);
+    const actionsValue = useMemo(() => ({startSession, resetSession, setShowFullHistory, setHadMessagesAtSessionStart}), [startSession, resetSession]);
 
     return (
         <ConciergeSessionStateContext.Provider value={stateValue}>

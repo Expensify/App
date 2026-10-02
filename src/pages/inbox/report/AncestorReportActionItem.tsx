@@ -59,6 +59,10 @@ type AncestorReportActionItemProps = {
 
     linkedTransactionRouteError: Errors | undefined;
     parentReportAction: OnyxEntry<ReportAction>;
+
+    /** The message a thread hangs off needs no "Thread" line above it: it is the thread's own first message */
+    shouldHideThreadDivider?: boolean;
+
     shouldUseThreadDividerLine: boolean;
     transactionThreadReport: OnyxEntry<Report>;
 };
@@ -77,6 +81,7 @@ function AncestorReportActionItem({
     isSelfTourViewed,
     linkedTransactionRouteError,
     parentReportAction,
+    shouldHideThreadDivider = false,
     shouldUseThreadDividerLine,
     transactionThreadReport,
 }: AncestorReportActionItemProps) {
@@ -89,7 +94,7 @@ function AncestorReportActionItem({
 
     const {isBetaEnabled} = usePermissions();
 
-    const shouldDisplayThreadDivider = !isTripPreview(reportAction);
+    const shouldDisplayThreadDivider = !isTripPreview(reportAction) && !shouldHideThreadDivider;
     const isAncestorReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`]);
     const canOpenAncestorReport = canCurrentUserOpenReport(report, isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), hasGuidesEmails, isAncestorReportArchived);
 

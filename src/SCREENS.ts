@@ -17,6 +17,7 @@ const PROTECTED_SCREENS = {
 const SCREENS = {
     ...PROTECTED_SCREENS,
     INSIGHTS: 'Insights',
+    ASK_CONCIERGE: 'AskConcierge',
     MORE: 'More',
     REPORT: 'Report',
     DYNAMIC_PROFILE_AVATAR: 'Dynamic_Profile_Avatar',

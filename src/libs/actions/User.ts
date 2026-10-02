@@ -1348,6 +1348,10 @@ function setShouldShowExtraNavItems(value: boolean) {
     Onyx.set(ONYXKEYS.SHOULD_SHOW_EXTRA_NAV_ITEMS, value);
 }
 
+function setShouldShowAskConciergeNavItem(value: boolean) {
+    Onyx.set(ONYXKEYS.SHOULD_SHOW_ASK_CONCIERGE_NAV_ITEM, value);
+}
+
 function setBetaOverride(beta: Beta, value: boolean) {
     Onyx.merge(ONYXKEYS.BETA_OVERRIDES, {[beta]: value});
 }
@@ -1999,6 +2003,7 @@ export {
     setIsDebugModeEnabled,
     setShouldShowBranchNameInTitle,
     setShouldShowExtraNavItems,
+    setShouldShowAskConciergeNavItem,
     setBetaOverride,
     clearBetaOverride,
     clearBetaOverrides,

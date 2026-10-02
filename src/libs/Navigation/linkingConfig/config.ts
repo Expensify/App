@@ -2390,6 +2390,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     path: ROUTES.INSIGHTS.route,
                     exact: true,
                 },
+                [SCREENS.ASK_CONCIERGE]: {
+                    path: ROUTES.ASK_CONCIERGE,
+                    exact: true,
+                },
                 [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: {
                     screens: {
                         [SCREENS.SETTINGS.ROOT]: ROUTES.SETTINGS,
