@@ -5,8 +5,8 @@ import getBankIcon from '@components/Icon/BankIcons';
 import type {BankName} from '@components/Icon/BankIconsUtils';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
@@ -38,6 +38,7 @@ import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
 import {pressLockedBankAccount} from '@userActions/BankAccounts';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import {navigateToConciergeChat} from '@userActions/Report';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -359,18 +360,22 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                             onClose={() => clearPolicyErrorField(policy?.id, CONST.POLICY.COLLECTION_KEYS.REIMBURSER)}
                             errorRowStyles={[styles.ml7]}
                         >
-                            <MenuItemWithTopDescription
-                                title={displayNameForAuthorizedPayer ?? ''}
-                                titleStyle={styles.textNormalThemeText}
-                                descriptionTextStyle={styles.textLabelSupportingNormal}
-                                description={translate('workflowsPayerPage.payer')}
-                                onPress={canChangePayer ? () => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_PAYER.getRoute(policyID)) : undefined}
-                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.AUTHORIZED_PAYER}
-                                shouldShowRightIcon={canChangePayer}
-                                interactive={canChangePayer}
-                                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
-                                brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            />
+                            <View style={[styles.mt3, styles.mbn3]}>
+                                <MenuItemSectionRoot
+                                    onPress={canChangePayer ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_PAYER.getRoute(policyID))) : undefined}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.AUTHORIZED_PAYER}
+                                >
+                                    <MenuItemField.Row
+                                        name={translate('workflowsPayerPage.payer')}
+                                        value={displayNameForAuthorizedPayer}
+                                    >
+                                        <>
+                                            {hasReimburserError && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                                            {canChangePayer && <MenuItem.Chevron />}
+                                        </>
+                                    </MenuItemField.Row>
+                                </MenuItemSectionRoot>
+                            </View>
                         </OfflineWithFeedback>
                     )}
                     {canWritePayments && canConfigureCurrencyConversionFees && (
@@ -380,20 +385,23 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                             onClose={() => clearPolicyErrorField(policy?.id, CONST.POLICY.COLLECTION_KEYS.GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY)}
                             errorRowStyles={[styles.mt3]}
                         >
-                            <MenuItemWithTopDescription
-                                title={
-                                    policy?.globalReimbursementFXPreferCompany
-                                        ? translate('workflowsCurrencyConversionFeesPage.companyPays')
-                                        : translate('workflowsCurrencyConversionFeesPage.employeePays')
-                                }
-                                titleStyle={styles.textNormalThemeText}
-                                descriptionTextStyle={styles.textLabelSupportingNormal}
-                                description={translate('workflowsCurrencyConversionFeesPage.title')}
-                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CURRENCY_CONVERSION_FEES.getRoute(policyID))}
-                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.CURRENCY_CONVERSION_FEES}
-                                shouldShowRightIcon
-                                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
-                            />
+                            <View style={[styles.mt3, styles.mbn3]}>
+                                <MenuItemSectionRoot
+                                    onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CURRENCY_CONVERSION_FEES.getRoute(policyID)))}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.CURRENCY_CONVERSION_FEES}
+                                >
+                                    <MenuItemField.Row
+                                        name={translate('workflowsCurrencyConversionFeesPage.title')}
+                                        value={
+                                            policy?.globalReimbursementFXPreferCompany
+                                                ? translate('workflowsCurrencyConversionFeesPage.companyPays')
+                                                : translate('workflowsCurrencyConversionFeesPage.employeePays')
+                                        }
+                                    >
+                                        <MenuItem.Chevron />
+                                    </MenuItemField.Row>
+                                </MenuItemSectionRoot>
+                            </View>
                         </OfflineWithFeedback>
                     )}
                 </>

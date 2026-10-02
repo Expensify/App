@@ -3029,7 +3029,7 @@ PODS:
     - ReactNativeDependencies
     - Turf
     - Yoga
-  - RNNitroSQLite (9.8.2):
+  - RNNitroSQLite (9.8.3):
     - boost
     - DoubleConversion
     - fast_float
