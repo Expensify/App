@@ -35,6 +35,20 @@ const data: Row[] = [{keyForList: 'row', value: 'cell'}];
 /** Turns the width the columns should share into the `tableWidth` the hook has to be handed to produce it. */
 const tableWidthFor = (availableWidth: number) => availableWidth + ROW_CHROME_WIDTH + (columns.length - 1) * GAP_WIDTH;
 
+/** Renders the hook with dynamic sizing on and resizing off, which every case here shares. */
+const renderWidths = (tableWidth: number, tableColumns: Array<TableColumn<string, Row>> = columns) =>
+    renderHook(() =>
+        useDynamicColumnWidths<Row, string>({
+            columns: tableColumns,
+            data,
+            tableWidth,
+            isEnabled: true,
+            hasSelectionColumn: false,
+            isColumnResizingEnabled: false,
+            columnWidthOverrides: undefined,
+        }),
+    );
+
 const widthsFrom = (gridTemplateColumns: string[] | undefined) => (gridTemplateColumns ?? []).map((track) => Number.parseInt(track, 10));
 
 describe('useDynamicColumnWidths', () => {
@@ -54,7 +68,7 @@ describe('useDynamicColumnWidths', () => {
     it('squeezes past the readable minimum instead of scrolling, when the squeeze floors still fit', () => {
         // 360 <= 400 < 540: the squeeze floors fit but the scroll floors do not, which is the boundary the two floors
         // exist to separate. On a single 180px floor this table would have scrolled.
-        const {result} = renderHook(() => useDynamicColumnWidths<Row, string>({columns, data, tableWidth: tableWidthFor(400), isEnabled: true, hasSelectionColumn: false}));
+        const {result} = renderWidths(tableWidthFor(400));
 
         const widths = widthsFrom(result.current.gridTemplateColumns);
 
@@ -72,7 +86,7 @@ describe('useDynamicColumnWidths', () => {
     it('lays the columns out at the wider scroll floor once even the squeeze floors overflow', () => {
         // 360 > 300, so the table scrolls. Horizontal room stops being scarce at that point, so the columns take 180px
         // rather than staying squeezed at 120px.
-        const {result} = renderHook(() => useDynamicColumnWidths<Row, string>({columns, data, tableWidth: tableWidthFor(300), isEnabled: true, hasSelectionColumn: false}));
+        const {result} = renderWidths(tableWidthFor(300));
 
         expect(widthsFrom(result.current.gridTemplateColumns)).toEqual([180, 180, 180]);
         expect(result.current.scrollWidth).toBe(180 * columns.length + (columns.length - 1) * GAP_WIDTH + ROW_CHROME_WIDTH);
@@ -83,7 +97,7 @@ describe('useDynamicColumnWidths', () => {
         // ellipsize its own heading.
         measuredWidthByText.first = 200 - SORT_ICON_WIDTH;
 
-        const {result} = renderHook(() => useDynamicColumnWidths<Row, string>({columns, data, tableWidth: tableWidthFor(300), isEnabled: true, hasSelectionColumn: false}));
+        const {result} = renderWidths(tableWidthFor(300));
 
         expect(widthsFrom(result.current.gridTemplateColumns).at(0)).toBeGreaterThanOrEqual(200);
     });
@@ -91,7 +105,7 @@ describe('useDynamicColumnWidths', () => {
     it('leaves a short column at its content width rather than inflating it to the minimum', () => {
         measuredWidthByText['first-cell'] = 60;
 
-        const {result} = renderHook(() => useDynamicColumnWidths<Row, string>({columns, data, tableWidth: tableWidthFor(300), isEnabled: true, hasSelectionColumn: false}));
+        const {result} = renderWidths(tableWidthFor(300));
 
         expect(widthsFrom(result.current.gridTemplateColumns).at(0)).toBe(60);
     });
@@ -101,9 +115,7 @@ describe('useDynamicColumnWidths', () => {
         const columnsWithFitContent = columnsWithSizingOn('first', {shouldFitContent: true});
 
         // When the table is too narrow for every column to have what it wants
-        const {result} = renderHook(() =>
-            useDynamicColumnWidths<Row, string>({columns: columnsWithFitContent, data, tableWidth: tableWidthFor(300), isEnabled: true, hasSelectionColumn: false}),
-        );
+        const {result} = renderWidths(tableWidthFor(300), columnsWithFitContent);
 
         // Then it keeps all 300px of its content while the free-text columns fall back to their floor
         expect(widthsFrom(result.current.gridTemplateColumns)).toEqual([300, 180, 180]);
@@ -114,9 +126,7 @@ describe('useDynamicColumnWidths', () => {
         const columnsWithMinWidth = columnsWithSizingOn('first', {minWidth: 250});
 
         // When the table is too narrow for every column to have what it wants
-        const {result} = renderHook(() =>
-            useDynamicColumnWidths<Row, string>({columns: columnsWithMinWidth, data, tableWidth: tableWidthFor(300), isEnabled: true, hasSelectionColumn: false}),
-        );
+        const {result} = renderWidths(tableWidthFor(300), columnsWithMinWidth);
 
         // Then the declared minimum decides, rather than the 180px floor below it or the 300px of content above it
         expect(widthsFrom(result.current.gridTemplateColumns).at(0)).toBe(250);
@@ -128,9 +138,7 @@ describe('useDynamicColumnWidths', () => {
 
         // When the table is measured at a width the capped column brings the total under: 40 + 120 + 120 fits in 300,
         // while the unclamped 120 + 120 + 120 would not
-        const {result} = renderHook(() =>
-            useDynamicColumnWidths<Row, string>({columns: columnsWithMaxWidth, data, tableWidth: tableWidthFor(300), isEnabled: true, hasSelectionColumn: false}),
-        );
+        const {result} = renderWidths(tableWidthFor(300), columnsWithMaxWidth);
 
         // Then the table lays out in place instead of scrolling, and the capped column is held at its cap
         const widths = widthsFrom(result.current.gridTemplateColumns);
@@ -149,18 +157,14 @@ describe('useDynamicColumnWidths', () => {
 
         // Squeeze floor: 360 (unclamped, ignoring the extra width) would fit 450, so this stays in the squeeze
         // branch rather than the scroll one. With the avatar's 20px added on top, the true floor is 140, not 120.
-        const squeezed = renderHook(() =>
-            useDynamicColumnWidths<Row, string>({columns: columnsWithAvatar, data, tableWidth: tableWidthFor(450), isEnabled: true, hasSelectionColumn: false}),
-        );
+        const squeezed = renderWidths(tableWidthFor(450), columnsWithAvatar);
         for (const width of widthsFrom(squeezed.result.current.gridTemplateColumns)) {
             expect(width).toBeGreaterThanOrEqual(140);
         }
 
         // Scroll floor: three squeeze floors of 140 overflow 300, so the table scrolls and each column takes the
         // wider scroll floor plus the avatar width: 180 + 20 = 200.
-        const scrolled = renderHook(() =>
-            useDynamicColumnWidths<Row, string>({columns: columnsWithAvatar, data, tableWidth: tableWidthFor(300), isEnabled: true, hasSelectionColumn: false}),
-        );
+        const scrolled = renderWidths(tableWidthFor(300), columnsWithAvatar);
         expect(widthsFrom(scrolled.result.current.gridTemplateColumns)).toEqual([200, 200, 200]);
     });
 });

@@ -9252,6 +9252,28 @@ const CONST = {
             /** The cap a column opts into through `dynamicSizing.maxWidth`, so one unusually long value doesn't take room the columns after it need. */
             MAX_FREE_TEXT_COLUMN_WIDTH: 180,
         },
+
+        /** Stored-width keys, one per column set rather than per screen, so tables with the same columns share widths. */
+        COLUMN_RESIZING_IDS: {
+            WORKSPACE_MEMBERS: 'workspaceMembers',
+        },
+
+        COLUMN_RESIZE: {
+            /** Narrowest drag width. Low enough to hide most content, but wide enough to keep the column's edge reachable. */
+            MIN_WIDTH: 48,
+
+            /** Widest drag width, so one drag can't push later columns out of reach. */
+            MAX_WIDTH: 1200,
+
+            /** Width of the invisible drag strip centred on a column's edge. */
+            HANDLE_HIT_WIDTH: 12,
+
+            /** Width of the line shown while a column's edge is dragged. */
+            INDICATOR_WIDTH: 2,
+
+            /** Shown on the handle, and on the whole page mid-drag so it doesn't flicker once the pointer outruns the handle. */
+            CURSOR: 'col-resize',
+        },
     },
 
     SENTRY_LABEL: {

@@ -1,5 +1,5 @@
 import type {DynamicColumnConstraints} from '@components/Table/calculateDynamicColumnWidths';
-import calculateDynamicColumnWidths from '@components/Table/calculateDynamicColumnWidths';
+import calculateDynamicColumnWidths, {distributeEqualWidths} from '@components/Table/calculateDynamicColumnWidths';
 
 /**
  * A free-text column: squeezable down to `minWidth`, and uncapped, which is what the hook passes when a column doesn't
@@ -227,5 +227,31 @@ describe('calculateDynamicColumnWidths', () => {
             expect(result.widths.every((width) => Number.isInteger(width))).toBe(true);
             expect(result.widths.at(0)).toBe(Math.max(...result.widths));
         });
+    });
+});
+
+describe('distributeEqualWidths', () => {
+    // Given no columns to share the width
+    // When equal widths are distributed
+    // Then nothing is produced, so a caller can't read a width for a column that isn't there
+    it('produces nothing for no columns', () => {
+        expect(distributeEqualWidths(0, 900)).toEqual([]);
+    });
+
+    // Given a width that divides evenly between the columns
+    // When equal widths are distributed
+    // Then every column takes the same share
+    it('splits an evenly divisible width equally', () => {
+        expect(distributeEqualWidths(3, 900)).toEqual([300, 300, 300]);
+    });
+
+    // Given a width that does not divide evenly
+    // When equal widths are distributed
+    // Then the remainder goes to the first column, so the columns still sum exactly to the available width
+    it('hands the rounding remainder to the first column', () => {
+        const widths = distributeEqualWidths(3, 901);
+
+        expect(widths).toEqual([301, 300, 300]);
+        expect(sumOf(widths)).toBe(901);
     });
 });

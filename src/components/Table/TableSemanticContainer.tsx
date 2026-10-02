@@ -1,6 +1,5 @@
 import ScrollView from '@components/ScrollView';
 
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {canMeasureText} from '@libs/measureTextWidth';
@@ -10,8 +9,11 @@ import type {LayoutChangeEvent} from 'react-native';
 import React from 'react';
 import {View} from 'react-native';
 
+import ColumnResizeScope from './columnResize/ColumnResizeScope';
+import {getColumnsWidthStyle} from './columnResize/columnWidthExpressions';
 import {getTableContainerAccessibilityProps} from './tableAccessibility';
 import TableBody from './TableBody';
+import {useTableContext} from './TableContext';
 import TableHeader from './TableHeader';
 
 type TableSemanticContainerProps = {
@@ -49,8 +51,9 @@ type TableSemanticContainerProps = {
      * The width the rows need when the columns don't fit, which scrolls the header/body run horizontally as one so the
      * header stays aligned with its rows. Set only for tables whose filter bar isn't in the list. The others are
      * scrolled by the list itself (see `TableBody`).
+     * Resizable tables always pass a CSS expression, so a drag past the edge scrolls without a re-render.
      */
-    scrollWidth: number | undefined;
+    scrollWidth: number | string | undefined;
 
     /**
      * Measures the width the table's columns have to share. This node is the right thing to measure because it keeps the
@@ -87,9 +90,9 @@ function TableSemanticContainer({
     children,
 }: TableSemanticContainerProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
+    const {columnResize} = useTableContext();
 
-    const shouldWrapTableRun = isEnabled || (shouldUseDynamicColumns && canMeasureText()) || onLayout !== undefined || scrollWidth !== undefined;
+    const shouldWrapTableRun = isEnabled || (shouldUseDynamicColumns && canMeasureText()) || onLayout !== undefined || scrollWidth !== undefined || !!columnResize;
     if (!shouldWrapTableRun) {
         return children;
     }
@@ -101,7 +104,7 @@ function TableSemanticContainer({
     // Use `React.Children.toArray` so the children's top-level keys (`.0`, `.1`, …) match the wrapped branch below;
     // otherwise React remounts a child across the empty↔non-empty boundary — for `Table.FilterBar` that runs its
     // unmount cleanup and wipes the active search string.
-    if (isEnabled && rowCount === 0 && !rendersBodyWhenEmpty && onLayout === undefined && scrollWidth === undefined) {
+    if (isEnabled && rowCount === 0 && !rendersBodyWhenEmpty && onLayout === undefined && scrollWidth === undefined && !columnResize) {
         return React.Children.toArray(children);
     }
 
@@ -130,20 +133,25 @@ function TableSemanticContainer({
         // The columns don't fit, so the header and the body scroll horizontally as one and stay aligned. The content
         // container carries the width they need, and the rows fill it, matching how the Search table scrolls.
         renderedChildren.push(
-            scrollWidth ? (
-                <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator
-                    key={`tableSemanticContainerScroll-${renderedChildren.length}`}
-                    style={[styles.flex1, styles.mnh0]}
-                    contentContainerStyle={StyleUtils.getWidthStyle(scrollWidth)}
-                    onLayout={onLayout}
-                >
-                    {rowGroupContainer}
-                </ScrollView>
-            ) : (
-                rowGroupContainer
-            ),
+            // Wraps the scroller too, so one width write resizes its content along with the header and rows.
+            <ColumnResizeScope
+                key={`tableSemanticContainerScope-${renderedChildren.length}`}
+                onScopeElement={columnResize?.setScopeElement}
+            >
+                {scrollWidth ? (
+                    <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator
+                        style={[styles.flex1, styles.mnh0]}
+                        contentContainerStyle={getColumnsWidthStyle(scrollWidth)}
+                        onLayout={onLayout}
+                    >
+                        {rowGroupContainer}
+                    </ScrollView>
+                ) : (
+                    rowGroupContainer
+                )}
+            </ColumnResizeScope>,
         );
         rowGroup = [];
     };
