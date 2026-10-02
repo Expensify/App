@@ -10,6 +10,8 @@ import type {OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+import {saveReportDraftComment} from './Report';
+
 /** Auth resets the eligibility on success, which removes the offer from Home and Subscription. */
 function acceptEarlyRenewalOffer(offerID: string) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.EARLY_RENEWAL_OFFER_ELIGIBILITY>> = [
@@ -54,4 +56,8 @@ function clearEarlyRenewalOfferErrors() {
     Onyx.merge(ONYXKEYS.EARLY_RENEWAL_OFFER_ELIGIBILITY, {errors: null});
 }
 
-export {acceptEarlyRenewalOffer, clearEarlyRenewalOfferErrors};
+function draftEarlyRenewalMessage(reportID: string, message: string, openAdminsRoom: () => void) {
+    saveReportDraftComment(reportID, message, openAdminsRoom);
+}
+
+export {acceptEarlyRenewalOffer, clearEarlyRenewalOfferErrors, draftEarlyRenewalMessage};
