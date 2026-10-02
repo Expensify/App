@@ -39,9 +39,10 @@ function getCurrentRouteBackTo() {
  */
 function navigateToCreatedExpense({threadReportID, transactionID, iouReportID, reportTransactions}: NavigateToCreatedExpenseParams) {
     // Don't reopen an expense the user is already looking at
-    const hasMultipleReportTransactions = iouReportID
-        ? reportTransactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length > 1
-        : false;
+    const openableTransactionIDs = reportTransactions
+        .filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+        .map((transaction) => transaction.transactionID);
+    const hasMultipleReportTransactions = iouReportID ? openableTransactionIDs.length > 1 : false;
     const focusedReportID = Navigation.getFocusedReportId();
     if (focusedReportID === threadReportID || (!hasMultipleReportTransactions && !!iouReportID && focusedReportID === iouReportID)) {
         return;
@@ -76,7 +77,8 @@ function navigateToCreatedExpense({threadReportID, transactionID, iouReportID, r
             // Defer so the thread RHP stacks on top of the expense report navigation above. This is always a
             // push (never a replace) - it stacks on the report we just opened, not on the previously-open one.
             setNavigationActionToMicrotaskQueue(() => {
-                setActiveTransactionIDs([transactionID]).then(() => {
+                // Seed every expense on the report, not just this one, so the thread shows the prev/next arrows.
+                setActiveTransactionIDs(openableTransactionIDs).then(() => {
                     Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo: Navigation.getActiveRoute()}));
                 });
             });

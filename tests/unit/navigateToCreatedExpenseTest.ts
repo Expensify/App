@@ -1,3 +1,4 @@
+import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import type isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
 import navigateToCreatedExpense from '@libs/Navigation/helpers/navigateToCreatedExpense';
 import Navigation from '@libs/Navigation/Navigation';
@@ -180,6 +181,26 @@ describe('navigateToCreatedExpense', () => {
         // Then the expense report opens with the thread RHP stacked on top of it
         expect(Navigation.navigate).toHaveBeenNthCalledWith(1, ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: 'iou-1', backTo: ''}), {forceReplace: false});
         expect(Navigation.navigate).toHaveBeenNthCalledWith(2, ROUTES.SEARCH_REPORT.getRoute({reportID: 'thread-1', backTo: ''}));
+    });
+
+    it('should seed every non-deleted expense on the report so the thread shows the prev/next arrows', async () => {
+        // Given the user is on the Inbox tab on a wide layout and the expense report holds several transactions, one pending delete
+        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+        mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
+        mockGetIsNarrowLayout.mockReturnValue(false);
+        const deletedTransaction = {...buildTransaction('txn-3'), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+
+        // When they press "View"
+        navigateToCreatedExpense({
+            threadReportID: 'thread-1',
+            transactionID: 'txn-1',
+            iouReportID: 'iou-1',
+            reportTransactions: [buildTransaction('txn-1'), buildTransaction('txn-2'), deletedTransaction],
+        });
+        await waitForBatchedUpdates();
+
+        // Then the arrows cover the report's other expenses, but skip the one being deleted
+        expect(setActiveTransactionIDs).toHaveBeenCalledWith(['txn-1', 'txn-2']);
     });
 
     it('should open the expense report without the replaced RHP backTo, so deleting the report falls back to its chat', async () => {
