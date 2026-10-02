@@ -1,5 +1,5 @@
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
-import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+import type {SearchListItem, TransactionGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchColumnType, SearchData, SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
 
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
@@ -78,10 +78,8 @@ type UseSearchSnapshotParams = {
     queryJSON: Readonly<SearchQueryJSON>;
     /** The current search snapshot, owned by the ancestor and passed in. */
     searchResults: SearchResults | undefined;
-    /** Keys flagged for the post-create highlight animation. */
-    newSearchResultKeys: Set<string> | null | undefined;
     /** Full TRANSACTION + REPORT_ACTIONS collections used by the optimistic-row tracking. Threaded in from
-     *  the parent (which already subscribes to them for the highlight hook) so we don't open duplicate
+     *  the parent (which already subscribes to them for the refetch hook) so we don't open duplicate
      *  full-collection reads. */
     transactions: OptimisticTrackingParams['transactions'];
     reportActions: OptimisticTrackingParams['reportActions'];
@@ -97,7 +95,7 @@ const EMPTY_COLUMNS: SearchColumnType[] = [];
 const EMPTY_HASHES: string[] = [];
 const EMPTY_GROUP_ITEMS: TransactionGroupListItemType[] = [];
 
-/** How many leading rows the cap keeps: `rowLimit` rows on screen, stretched down to the last ticked or highlighted row. */
+/** How many leading rows the cap keeps: `rowLimit` rows on screen, stretched down to the last ticked row. */
 function getRowLimitEnd(rows: SearchListItem[], rowLimit: number, selectedTransactions: SelectedTransactions | undefined, isOffline: boolean): number {
     const isKeySelected = (key: string | undefined) => !!key && !!selectedTransactions?.[key]?.isSelected;
     let shownRowCount = 0;
@@ -109,7 +107,7 @@ function getRowLimitEnd(rows: SearchListItem[], rowLimit: number, selectedTransa
         }
         shownRowCount += 1;
         const isRowSelected = isKeySelected(row.keyForList) || (isTransactionGroupListItemType(row) && row.transactions.some((transaction) => isKeySelected(transaction.keyForList)));
-        if (shownRowCount <= rowLimit || !!row.shouldAnimateInHighlight || isRowSelected) {
+        if (shownRowCount <= rowLimit || isRowSelected) {
             end = index + 1;
         }
     }
@@ -122,19 +120,11 @@ const hashToString = (queryHash?: number) => (queryHash || queryHash === 0 ? Str
  * Single data layer for the Search screen.
  *
  * Owns the live inputs `getSections` needs for sort/group correctness, runs the deferral-gated
- * sort/group/paginate projection, stamps the post-create highlight, enriches grouped views with their
- * per-group sub-snapshots, and absorbs the optimistic-row resilience. Returns the sorted rows plus the
- * list-level meta and the optimistic-tracking carriers that `<Search>` consumes.
+ * sort/group/paginate projection, enriches grouped views with their per-group sub-snapshots, and absorbs
+ * the optimistic-row resilience. Returns the sorted rows plus the list-level meta and the
+ * optimistic-tracking carriers that `<Search>` consumes.
  */
-function useSearchSnapshot({
-    queryJSON,
-    searchResults,
-    newSearchResultKeys,
-    transactions,
-    reportActions,
-    visibleRowLimit,
-    selectedTransactions,
-}: UseSearchSnapshotParams): SearchSnapshotResult {
+function useSearchSnapshot({queryJSON, searchResults, transactions, reportActions, visibleRowLimit, selectedTransactions}: UseSearchSnapshotParams): SearchSnapshotResult {
     const {type, sortBy, sortOrder, hash, groupBy} = queryJSON;
 
     const {isOffline} = useNetwork();
@@ -356,8 +346,8 @@ function useSearchSnapshot({
         exportReportActions,
     ]);
 
-    // Stage 3: sort the (enriched) data, then stamp the post-create highlight on each row. getSortedSections
-    // accepts the full section union; our SearchListItem[] is a compatible subset of that input.
+    // Stage 3: sort the (enriched) data. getSortedSections accepts the full section union; our
+    // SearchListItem[] is a compatible subset of that input.
     const chartData = useMemo<SearchListItem[]>(() => {
         if (!shouldComputeSections) {
             return EMPTY_DATA;
@@ -368,47 +358,13 @@ function useSearchSnapshot({
             policyTags,
             fallbackPolicyID: policyForMovingExpensesID,
         }).map((item) => {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- chat variant rows are report actions
-            const reportActionID = (item as ReportActionListItemType).reportActionID;
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- non-chat variant rows carry a transactionID
-            const transactionID = (item as TransactionListItemType).transactionID;
-            const baseKey = isChat ? `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionID}` : `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
-
-            const isBaseKeyMatch = !!newSearchResultKeys?.has(baseKey);
-
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- group rows expose nested transactions
-            const groupTransactionsForHighlight = (item as TransactionGroupListItemType)?.transactions;
-            const isAnyTransactionMatch =
-                !isChat &&
-                groupTransactionsForHighlight?.some((transaction) => {
-                    const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`;
-                    return !!newSearchResultKeys?.has(transactionKey);
-                });
-
-            const shouldAnimateInHighlight = isBaseKeyMatch || isAnyTransactionMatch;
-
-            if (item.shouldAnimateInHighlight === shouldAnimateInHighlight && item.hash === hash) {
+            if (item.hash === hash) {
                 return item;
             }
 
-            return {...item, shouldAnimateInHighlight, hash};
+            return {...item, hash};
         });
-    }, [
-        shouldComputeSections,
-        type,
-        filteredData,
-        localeCompare,
-        translate,
-        sortBy,
-        sortOrder,
-        validGroupBy,
-        policyCategories,
-        policyTags,
-        policyForMovingExpensesID,
-        isChat,
-        newSearchResultKeys,
-        hash,
-    ]);
+    }, [shouldComputeSections, type, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy, policyCategories, policyTags, policyForMovingExpensesID, hash]);
 
     // Keep the optimistic row visible across a snapshot-replacement gap for up to
     // OPTIMISTIC_ROLLBACK_GRACE_MS until the new snapshot picks it up or the grace expires.

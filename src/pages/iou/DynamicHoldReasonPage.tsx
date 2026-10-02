@@ -82,7 +82,17 @@ function DynamicHoldReasonPage({route}: DynamicHoldReasonPageProps) {
             return;
         }
 
-        putOnHold(transactionID, values.comment, holdReportID, isOffline, currentUserLogin ?? '', currentUserAccountID, transactionViolations, isTrackIntentUser, delegateAccountID, {
+        putOnHold({
+            transactionID,
+            transaction,
+            comment: values.comment,
+            initialReportID: holdReportID,
+            isOffline,
+            currentUserLogin: currentUserLogin ?? '',
+            currentUserAccountID,
+            transactionViolations,
+            isTrackIntentUser,
+            delegateAccountID,
             rules,
             ancestors,
         });
