@@ -74,11 +74,8 @@ export default createOnyxDerivedValueConfig({
         const transactionUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION];
 
         if (!transactionUpdates) {
-            // Rebuilding reads every transaction, so only do it when transactions changed but we got no
-            // delta: the first load, or a restore from disk. A card write leaves the old map valid.
-            // `!hasBaseline` forces the first build: before all connections are set a recompute returns early
-            // without recording what triggered it, so the first flush names only the dependency that connected
-            // last. If that is the card list, waiting on a TRANSACTION trigger leaves the map empty all session.
+            // Rebuilding reads every expense, so only do it on the first load or when expenses changed without a list
+            // of what changed. `!hasBaseline` forces the first build, since the first run may name only the card list.
             if (!hasBaseline || hasKeyTriggeredCompute(ONYXKEYS.COLLECTION.TRANSACTION, triggeredKeys)) {
                 rebuildBaseline(transactions);
             }
@@ -103,8 +100,6 @@ export default createOnyxDerivedValueConfig({
             }
             hasChangedExpense = true;
 
-            // A deleted expense is `undefined` everywhere, so its card comes from what we stored for it.
-            // A merchant, category or reimbursable edit leaves the card totals as they were.
             const cardID = transaction?.cardID ?? lastSeen?.cardID;
             if (cardID !== undefined && !!cardList?.[String(cardID)] && seen.cardFingerprint !== lastSeen?.cardFingerprint) {
                 hasChangedCardExpense = true;
