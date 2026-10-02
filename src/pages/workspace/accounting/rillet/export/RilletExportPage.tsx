@@ -8,11 +8,15 @@ import Text from '@components/Text';
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsLists from '@hooks/useCardsLists';
+import useDefaultFundID from '@hooks/useDefaultFundID';
+import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getRilletExpensifyCardAccountCode} from '@libs/AccountingUtils';
 import {clearRilletErrorField, updateRilletExportToMultipleAccounts} from '@libs/actions/connections/Rillet';
 import {areCardsCustomExportInErrorFields, findMatchingCards, getCardsCustomExportPendingAction, getCardsUsingCustomExportCount} from '@libs/CardFeedUtils';
+import {getCardFeedWithDomainID, isExpensifyCardFullySetUp} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
@@ -50,6 +54,12 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
     const cardProgramsOfflineFeedbackKeys = Object.values(cardFeeds ?? {}).map((program) => `${CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${program.feed}`);
     const cardsUsingCustomAccountsCount = getCardsUsingCustomExportCount(cardFeeds ?? {}, cardLists, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT);
     const hasActiveCards = findMatchingCards(cardFeeds ?? {}, cardLists).length > 0;
+    const expensifyCardFeeds = useExpensifyCardFeeds(policyID);
+    const isExpensifyCardsEnabled = Object.values(expensifyCardFeeds ?? {}).some((cardSettings) => isExpensifyCardFullySetUp(policy, cardSettings));
+    const defaultFundID = useDefaultFundID(policyID);
+    const expensifyCardAccountCode = getRilletExpensifyCardAccountCode(policy);
+    const expensifyCardAccount = rilletData?.accounts?.find((account) => account.code === expensifyCardAccountCode);
+    const expensifyCardOfflineFeedbackKey = `${CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${CONST.EXPENSIFY_CARD.BANK}`;
 
     const {isAccordionExpanded: isExportToMultipleAccountsAccordionExpanded, shouldAnimateAccordionSection: shouldAnimateExportToMultipleAccountsAccordionSection} =
         useAccordionAnimation(exportToMultipleAccounts);
@@ -133,6 +143,26 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
                     )}
                 </MenuItemField>
             </OfflineWithFeedback>
+            {isExpensifyCardsEnabled && (
+                <OfflineWithFeedback pendingAction={settingsPendingAction([expensifyCardOfflineFeedbackKey], rilletConfig?.pendingFields)}>
+                    <MenuItemField
+                        name={translate('workspace.common.expensifyCard')}
+                        onPress={() => {
+                            if (!policyID) {
+                                return;
+                            }
+                            Navigation.navigate(
+                                ROUTES.POLICY_ACCOUNTING_RILLET_CARD_PROGRAM_ACCOUNT_SELECTOR.getRoute(policyID, getCardFeedWithDomainID(CONST.EXPENSIFY_CARD.BANK, defaultFundID)),
+                            );
+                        }}
+                        value={expensifyCardAccount ? `${expensifyCardAccount.code} ${expensifyCardAccount.name}` : undefined}
+                    >
+                        {areSettingsInErrorFields([expensifyCardOfflineFeedbackKey], rilletConfig?.errorFields) && (
+                            <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                        )}
+                    </MenuItemField>
+                </OfflineWithFeedback>
+            )}
             {hasActiveCards && (
                 <>
                     <ToggleSettingOptionRow
