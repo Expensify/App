@@ -5,16 +5,19 @@ import {getListItems, getListItemSensitiveAnswers, parseListItemPageName} from '
 import summarizeListItem from '@components/DynamicForm/utils/summarizeListItem';
 import toDynamicFormValues from '@components/DynamicForm/utils/toDynamicFormValues';
 import FormProvider from '@components/Form/FormProvider';
+import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {startListItemEdit} from '@userActions/DynamicForm';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {DynamicFormListField} from '@src/types/onyx';
 
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 
 import DynamicFormFields from './DynamicFormFields';
 
@@ -24,10 +27,29 @@ function DynamicFormListItemPage({currentPageName, fields, values, currency, onL
     const styles = useThemeStyles();
     const page = parseListItemPageName(currentPageName);
     const listField = fields.find((field): field is DynamicFormListField => field.type === 'list' && field.key === page?.listKey);
+    const item = listField ? getListItems(values[listField.key]).find((candidate) => candidate.id === page?.itemID) : undefined;
+    const [filledPageName, setFilledPageName] = useState<string>();
+
+    // The editor form is shared by every entry, so it is filled with this entry's answers before its inputs mount
+    useEffect(() => {
+        let isCancelled = false;
+        startListItemEdit(item ?? {}).then(() => {
+            if (isCancelled) {
+                return;
+            }
+            setFilledPageName(currentPageName);
+        });
+        return () => {
+            isCancelled = true;
+        };
+    }, [currentPageName, item]);
+
     if (!page || !listField) {
         return null;
     }
-    const item = getListItems(values[listField.key]).find((candidate) => candidate.id === page.itemID);
+    if (filledPageName !== currentPageName) {
+        return <FullscreenLoadingIndicator />;
+    }
     const sensitiveAnswers = item ? getListItemSensitiveAnswers(listField, item.id, values) : {};
     const withInputValues = (inputValues: unknown) => ({...sensitiveAnswers, ...toDynamicFormValues(inputValues)});
     const itemLabel = getLocalizedText(translate, listField.itemLabelKey, listField.itemLabel);

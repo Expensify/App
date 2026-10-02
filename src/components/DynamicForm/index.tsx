@@ -7,7 +7,7 @@ import useSubPage from '@hooks/useSubPage';
 import Navigation from '@libs/Navigation/Navigation';
 import {findLastPageIndex} from '@libs/SubPageUtils';
 
-import {clearSensitiveAnswers, forgetSensitiveAnswers, saveDraftAnswers, saveSensitiveAnswers, startListItemEdit} from '@userActions/DynamicForm';
+import {clearSensitiveAnswers, forgetSensitiveAnswers, saveDraftAnswers, saveSensitiveAnswers} from '@userActions/DynamicForm';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {DynamicFormListField, DynamicFormListItem} from '@src/types/onyx';
@@ -176,10 +176,8 @@ function DynamicFormFlow({
     };
 
     const openListItemEditor = (listKey: string, itemID?: string) => {
-        const item = getListItems(values[listKey]).find((candidate) => candidate.id === itemID);
         const editorIndex = pages.findIndex((page) => page.pageName === getListItemPageName(listKey, itemID));
-        const shouldEdit = isEditing || currentPageName === CONFIRMATION_PAGE_SLUG;
-        startListItemEdit(item?.answers ?? {}).then(() => moveTo(editorIndex, shouldEdit));
+        moveTo(editorIndex, isEditing || currentPageName === CONFIRMATION_PAGE_SLUG);
     };
 
     /** The entry is drafted with the form, except its sensitive answers, which are kept in memory under the entry */
@@ -190,13 +188,13 @@ function DynamicFormFlow({
         }
         const id = itemID ?? Str.guid();
         const sensitiveKeys = new Set(listField.itemFields.filter(isSensitiveField).map((field) => field.key));
-        const item: DynamicFormListItem = {id, answers: {}};
+        const item: DynamicFormListItem = {id};
         const sensitiveAnswers: Record<string, string> = {};
         for (const [key, answer] of Object.entries(getSubmittedAnswers(listField.itemFields, itemValues))) {
             if (sensitiveKeys.has(key) && typeof answer === 'string') {
                 sensitiveAnswers[getListItemSensitiveKey(listKey, id, key)] = answer;
             } else {
-                item.answers[key] = answer;
+                item[key] = answer;
             }
         }
         const items = getListItems(values[listKey]);

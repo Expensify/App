@@ -33,7 +33,7 @@ import DynamicFormFlow from "@components/DynamicForm";
 - Answers are saved to the form draft as the user types, and again, cleaned, when they leave a page with Next.
 - `onGroupSubmit` receives each page's visible answers, for flows that save page by page.
 - `onSubmit` receives the answers to every visible field. Answers left on fields that were hidden later are not sent.
-- `onRefreshRequirements` is called when a field marked `refreshRequirementsOnChange` changes, so the screen can fetch the schema again. Typed fields call it when the user leaves the input, not on every keystroke.
+- `onRefreshRequirements` is called when a field marked `refreshOnChange` changes, so the screen can fetch the schema again. Typed fields call it when the user leaves the input, not on every keystroke.
 
 ### One page: `DynamicFormFields`
 
@@ -52,7 +52,7 @@ import { DynamicFormFields, getDynamicFieldErrors } from "@components/DynamicFor
 </FormProvider>;
 ```
 
-Pass `inputValues` from the render prop, so `showWhen` and `dependsOn` react to the user's answers as they type. When `fields` is one page of a bigger form, pass the whole form as `allFields`, since a field can depend on an answer asked on another page. List fields need `DynamicFormFlow`, which owns their editor pages.
+Pass `inputValues` from the render prop, so `showWhen` and `dependsOn` react to the user's answers as they type. When `fields` is one page of a bigger form, pass the whole form as `allFields`, since a field can depend on an answer asked on another page. Outside `DynamicFormFlow`, list entries are edited in a modal.
 
 ## The field format
 
@@ -74,7 +74,7 @@ Pass `inputValues` from the render prop, so `showWhen` and `dependsOn` react to 
 | `file`               | `UploadFile`, allowing several files unless `maxFiles` says otherwise                                                                   | `maxFiles`                                                                                                         |
 | `amount`             | `AmountForm`. With `currencyKey`, a `CurrencyPicker` above it saves the currency under that key.                                        | `currencyKey`                                                                                                      |
 | `percent`            | `PercentageForm`                                                                                                                        |                                                                                                                    |
-| `list`               | Rows with Add, Edit and Remove. Each entry is edited on its own page in the flow.                                                       | `itemFields`, `itemLabel`, `addItemDescription`, `minItems`, `maxItems`                                            |
+| `list`               | Rows with Add, Edit and Remove. Each entry is edited on its own page in the flow, or in a modal outside it.                             | `itemFields`, `itemLabel`, `addItemDescription`, `minItems`, `maxItems`                                            |
 
 Every type also takes:
 
@@ -84,9 +84,9 @@ Every type also takes:
 - `group`: the page the field is asked on in `DynamicFormFlow`
 - `section`: consecutive fields sharing it render under one title
 - `showWhen`: shown only while another answer is one of the listed values. A list answer counts when any chosen value matches. A field whose controlling field is hidden stays hidden.
-- `refreshRequirementsOnChange`: see `onRefreshRequirements` above
+- `refreshOnChange`: see `onRefreshRequirements` above
 
-A choice field that is the only question on its page is drawn as the page itself, as an inline list. Fields it reveals, such as an "Other" description, do not count, so the layout stays put when they appear.
+A choice or list field that is the only question on its page is drawn as the page itself, as an inline list, and the page title asks the question in place of its label. Fields it reveals, such as an "Other" description, do not count, so the layout stays put when they appear.
 
 The server can send a type this App version does not know. The schema is typed `DynamicFormSchemaField` for that reason: such a field is left out and logged once, so a newer schema never blocks the form.
 
@@ -100,7 +100,7 @@ The server can send a type this App version does not know. The schema is typed `
 
 ## List fields
 
-A `list` field holds repeated entries, such as a company's owners. Its value is an array of `{id, answers}`, where `id` is made on the device. Each entry is edited on its own page after the other pages, which Next and Back skip, using the `dynamicFormListItemForm` form. Sensitive entry answers are kept in memory per entry and are sent back with their entry on submit. On the confirmation page each entry is a row of its own.
+A `list` field holds repeated entries, such as a company's owners. Its value is an array of entries, each holding its answers keyed by item field key and an `id` made on the device. In the flow each entry is edited on its own page after the other pages, which Next and Back skip, using the `dynamicFormListItemForm` form; the page fills that form with the entry's answers when it opens. Sensitive entry answers are kept in memory per entry and are sent back with their entry on submit. On the confirmation page each entry is a row of its own.
 
 ## Adding a field type
 

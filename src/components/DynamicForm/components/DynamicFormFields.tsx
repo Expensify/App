@@ -30,10 +30,10 @@ type DynamicFormFieldsProps = {
     /** Currency of amount fields that let the user pick none */
     currency?: string;
 
-    /** Called when the user changes a field marked `refreshRequirementsOnChange`, with the draft key that changed, so the screen can fetch the schema again */
+    /** Called when the user changes a field marked `refreshOnChange`, with the draft key that changed, so the screen can fetch the schema again */
     onRefreshRequirements?: (inputID: string, value: FormValue) => void;
 
-    /** Opens the editor page of a list entry, or of a new one without `itemID`. DynamicFormFlow passes it; without it list entries cannot be added or edited. */
+    /** Opens the editor page of a list entry, or of a new one without `itemID`. DynamicFormFlow passes it; without it list entries are edited in a modal. */
     onOpenListItemEditor?: (listKey: string, itemID?: string) => void;
 };
 
@@ -55,6 +55,14 @@ function DynamicFormFields({fields, allFields = fields, values, currency = CONST
             onRefreshRequirements?.(inputID, value);
         }
     };
+
+    const renderFields = (itemFields: DynamicFormField[], itemValues: DynamicFormValues) => (
+        <DynamicFormFields
+            fields={itemFields}
+            values={itemValues}
+            currency={currency}
+        />
+    );
 
     return visibleFields.map((field, index) => {
         const label = getFieldLabel(field, translate);
@@ -78,11 +86,11 @@ function DynamicFormFields({fields, allFields = fields, values, currency = CONST
             );
         }
 
-        const shouldRefreshOnBlur = !!field.refreshRequirementsOnChange && isTypedField(field);
-        const shouldRefreshOnChange = !!field.refreshRequirementsOnChange && !isTypedField(field);
+        const shouldRefreshOnBlur = !!field.refreshOnChange && isTypedField(field);
+        const shouldRefreshOnChange = !!field.refreshOnChange && !isTypedField(field);
         const {input, isMenuRow, labelAbove, showsDescription} = renderDynamicField(
             field,
-            {values, translate, styles, currency, isLoneField: field === loneField, onOpenListItemEditor},
+            {values, translate, styles, currency, isLoneField: field === loneField, onOpenListItemEditor, renderFields},
             {
                 inputID: field.key,
                 shouldSaveDraft: !isSensitiveField(field),

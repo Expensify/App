@@ -302,7 +302,7 @@ describe('getDynamicFieldErrors', () => {
 
         // When it holds no entry, and when it holds one entry without a first name
         const emptyErrors = getDynamicFieldErrors([directors], {directors: []}, translateLocal);
-        const shortErrors = getDynamicFieldErrors([directors], {directors: [{id: 'jane', answers: {firstName: ''}}]}, translateLocal);
+        const shortErrors = getDynamicFieldErrors([directors], {directors: [{id: 'jane', firstName: ''}]}, translateLocal);
 
         // Then the empty list is required, and the short list shows both the size and the entry's missing name, while the SSN kept outside the entry is not checked
         expect(emptyErrors).toEqual({directors: translateLocal('common.error.fieldRequired')});

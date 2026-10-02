@@ -56,7 +56,7 @@ describe('getConfirmationItems', () => {
                 ],
             },
         ];
-        const values = {directors: [{id: 'jane', answers: {firstName: 'Jane', lastName: 'Doe'}}]};
+        const values = {directors: [{id: 'jane', firstName: 'Jane', lastName: 'Doe'}]};
         const onEditListItem = jest.fn();
 
         // When the confirmation sections are built and the entry row is tapped

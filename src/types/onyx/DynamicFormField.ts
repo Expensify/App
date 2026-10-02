@@ -42,7 +42,7 @@ type DynamicFormFieldBase = {
     readonly?: boolean;
 
     /** Changing the answer changes which other fields are required, so the screen fetches the schema again */
-    refreshRequirementsOnChange?: boolean;
+    refreshOnChange?: boolean;
 
     /** Shown only while another answer is one of these values */
     showWhen?: {
@@ -171,10 +171,10 @@ type DynamicFormField =
     | DynamicFormListField
     | DynamicFormPlainField;
 
-/** One entry of a list field. The `id` is made on the device, to key the entry's row and editor page. */
+/** One entry of a list field: its answers keyed by item field key, and an `id` made on the device to key the entry's row and editor page */
 type DynamicFormListItem = {
     id: string;
-    answers: Partial<Record<string, FormValue>>;
+    [fieldKey: string]: FormValue | undefined;
 };
 
 /** A field as the schema sends it, which can be of a type this App version does not know */

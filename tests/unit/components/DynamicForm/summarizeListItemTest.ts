@@ -16,7 +16,7 @@ describe('summarizeListItem', () => {
             {key: 'role', type: 'select', required: true, values: [{key: 'CEO', label: 'Chief executive'}]},
             {key: 'title', type: 'text', required: false},
         ];
-        const owner = {id: 'jane', answers: {firstName: 'Jane', lastName: 'Doe', ssn: '123456789', dateOfBirth: '1980-04-19', ownership: '40', role: 'CEO', title: 'Founder'}};
+        const owner = {id: 'jane', firstName: 'Jane', lastName: 'Doe', ssn: '123456789', dateOfBirth: '1980-04-19', ownership: '40', role: 'CEO', title: 'Founder'};
 
         // When the entry is summarized
         const summary = summarizeListItem(owner, itemFields, translateLocal);
@@ -30,7 +30,7 @@ describe('summarizeListItem', () => {
         const itemFields: DynamicFormField[] = [{key: 'role', type: 'select', required: true, values: [{key: 'CEO', label: 'Chief executive'}]}];
 
         // When it is summarized
-        const summary = summarizeListItem({id: 'one', answers: {role: 'CEO'}}, itemFields, translateLocal);
+        const summary = summarizeListItem({id: 'one', role: 'CEO'}, itemFields, translateLocal);
 
         // Then the choice names the row, so it is never left without a title
         expect(summary).toEqual({title: 'Chief executive', description: ''});

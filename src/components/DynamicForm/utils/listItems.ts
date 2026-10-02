@@ -27,7 +27,7 @@ function getListItemSensitiveKey(listKey: string, itemID: string, fieldKey: stri
 }
 
 function isListItem(value: unknown): value is DynamicFormListItem {
-    return typeof value === 'object' && value !== null && 'id' in value && typeof value.id === 'string' && 'answers' in value && typeof value.answers === 'object' && value.answers !== null;
+    return typeof value === 'object' && value !== null && 'id' in value && typeof value.id === 'string';
 }
 
 /** The entries stored under a list field's key, ignoring anything malformed */

@@ -10,7 +10,7 @@ import type {SubPageProps} from '@hooks/useSubPage/types';
 
 import Navigation from '@libs/Navigation/Navigation';
 
-import {clearSensitiveAnswers, forgetSensitiveAnswers, saveDraftAnswers, saveSensitiveAnswers, startListItemEdit} from '@userActions/DynamicForm';
+import {clearSensitiveAnswers, forgetSensitiveAnswers, saveDraftAnswers, saveSensitiveAnswers} from '@userActions/DynamicForm';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -40,7 +40,6 @@ jest.mock('@userActions/DynamicForm', () => ({
     saveSensitiveAnswers: jest.fn(),
     clearSensitiveAnswers: jest.fn(),
     forgetSensitiveAnswers: jest.fn(),
-    startListItemEdit: jest.fn(() => Promise.resolve()),
 }));
 jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn(), goBack: jest.fn()}));
 jest.mock('@components/ScreenWrapper', () => jest.fn(({children}: {children: React.ReactNode}) => children));
@@ -319,7 +318,7 @@ describe('DynamicFormFlow', () => {
                 ],
             },
         ];
-        const jane = {id: 'jane', answers: {firstName: 'Jane'}};
+        const jane = {id: 'jane', firstName: 'Jane'};
 
         it('keeps the entry editors out of Next and Back', async () => {
             // Given a list with one entry
@@ -330,16 +329,14 @@ describe('DynamicFormFlow', () => {
             expect(subPageOptions.skipPages).toEqual(expect.arrayContaining(['directors~new', 'directors~jane']));
         });
 
-        it('fills the editor with the entry before opening it', async () => {
+        it('opens the entry editor page when the user edits an entry', async () => {
             // Given the list page with one entry
             const {pageProps, subPageOptions} = await renderFlow({flowFields: listFields, draft: {directors: [jane]}, currentPageName: 'directors'});
 
             // When the user edits the entry
             pageProps?.onOpenListItemEditor('directors', 'jane');
-            await waitForBatchedUpdatesWithAct();
 
-            // Then the editor form gets the entry's answers first, so its inputs open filled in, and then the entry's editor page opens
-            expect(startListItemEdit).toHaveBeenCalledWith({firstName: 'Jane'});
+            // Then the entry's editor page opens, outside edit mode since the list page was not opened from the confirmation page
             expect(mockMoveTo).toHaveBeenCalledWith(
                 subPageOptions.pages.findIndex((page) => page.pageName === 'directors~jane'),
                 false,
@@ -355,7 +352,8 @@ describe('DynamicFormFlow', () => {
 
             // Then the entry is added to the draft without its SSN, the SSN is kept in memory under the entry, and the list page opens again
             const draftedItems = getListItems(jest.mocked(saveDraftAnswers).mock.lastCall?.[1].directors);
-            expect(draftedItems.map((item) => item.answers)).toEqual([{firstName: 'John'}]);
+            expect(draftedItems.map((item) => item.firstName)).toEqual(['John']);
+            expect(draftedItems.at(0)?.ssn).toBeUndefined();
             expect(jest.mocked(saveSensitiveAnswers).mock.lastCall).toEqual([
                 FORM_ID,
                 Object.fromEntries(draftedItems.map((item) => [getListItemSensitiveKey('directors', item.id, 'ssn'), '123456789'])),
@@ -409,7 +407,7 @@ describe('DynamicFormFlow', () => {
             subPageOptions.onFinished();
 
             // Then the entry is submitted with its SSN back in place
-            expect(onSubmit).toHaveBeenCalledWith({directors: [{id: 'jane', answers: {firstName: 'Jane', ssn: '123456789'}}]});
+            expect(onSubmit).toHaveBeenCalledWith({directors: [{id: 'jane', firstName: 'Jane', ssn: '123456789'}]});
         });
     });
 

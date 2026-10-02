@@ -119,7 +119,7 @@ function getListErrors(field: DynamicFormListField, values: DynamicFormValues, t
         messages.push(translate('dynamicForm.error.tooManyItems', {max: field.maxItems}));
     }
     const itemFields = field.itemFields.filter((itemField) => !isSensitiveField(itemField));
-    const firstItemError = items.map((item) => Object.values(getDynamicFieldErrors(itemFields, item.answers, translate)).at(0)).find(Boolean);
+    const firstItemError = items.map((item) => Object.values(getDynamicFieldErrors(itemFields, item, translate)).at(0)).find(Boolean);
     if (firstItemError) {
         messages.push(firstItemError);
     }

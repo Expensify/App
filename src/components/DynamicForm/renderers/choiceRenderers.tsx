@@ -23,12 +23,11 @@ function getChoiceOptionsList(choices: Choice[]): Record<string, string> {
     return Object.fromEntries(choices.map((choice) => [choice.value, choice.label]));
 }
 
-/** A lone choice field is the page itself: its options are listed inline under the question */
+/** A lone choice field is the page itself: its options are listed inline, and the page title asks the question */
 function renderInlineChoice(label: string, choices: Choice[], inputProps: DynamicFieldInputProps, canSelectMultiple: boolean, isSearchable: boolean): DynamicFieldInput {
     const listProps = {items: choices, isSearchable, searchInputLabel: label};
     return {
         isMenuRow: true,
-        labelAbove: 'heading',
         input: canSelectMultiple ? (
             <InputWrapper
                 InputComponent={InlineSelectionListAdapter}
@@ -131,7 +130,7 @@ const CHOICE_RENDERERS: Pick<DynamicFieldRendererMap, 'select' | 'radio' | 'mult
         }
         return {
             isMenuRow: true,
-            labelAbove: isLoneField ? 'heading' : 'prompt',
+            labelAbove: isLoneField ? undefined : 'prompt',
             input: (
                 <InputWrapper
                     InputComponent={RadioButtons}
@@ -163,7 +162,6 @@ const CHOICE_RENDERERS: Pick<DynamicFieldRendererMap, 'select' | 'radio' | 'mult
         if (isLoneField) {
             return {
                 isMenuRow: true,
-                labelAbove: 'heading',
                 input: (
                     <InputWrapper
                         InputComponent={CurrencyInlineListAdapter}
@@ -187,7 +185,7 @@ const CHOICE_RENDERERS: Pick<DynamicFieldRendererMap, 'select' | 'radio' | 'mult
         if (field.presentation === 'yesNo') {
             return {
                 isMenuRow: true,
-                labelAbove: isLoneField ? 'heading' : 'prompt',
+                labelAbove: isLoneField ? undefined : 'prompt',
                 input: (
                     <InputWrapper
                         InputComponent={YesNoAdapter}

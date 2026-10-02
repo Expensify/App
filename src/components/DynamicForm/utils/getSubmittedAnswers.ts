@@ -34,7 +34,7 @@ function getSubmittedAnswers(fields: DynamicFormField[], values: DynamicFormValu
         if (field.type === 'list' && values[field.key] !== undefined) {
             answers[field.key] = getListItems(values[field.key]).map((item) => ({
                 id: item.id,
-                answers: getSubmittedAnswers(field.itemFields, {...item.answers, ...getListItemSensitiveAnswers(field, item.id, values)}),
+                ...getSubmittedAnswers(field.itemFields, {...item, ...getListItemSensitiveAnswers(field, item.id, values)}),
             }));
         }
     }

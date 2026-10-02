@@ -60,7 +60,7 @@ const originalBankAccountFields: DynamicFormField[] = [
             {key: 'PRIVATE', label: 'Person'},
             {key: 'BUSINESS', label: 'Business'},
         ],
-        refreshRequirementsOnChange: true,
+        refreshOnChange: true,
     },
     {
         key: 'accountType',
@@ -97,7 +97,7 @@ const originalBankAccountFields: DynamicFormField[] = [
     {key: 'settlementCurrency', label: 'Settlement currency', group: 'Account details', type: 'currency', required: true},
     {key: 'operatingCountries', label: 'Countries you operate in', group: 'Account holder details', type: 'countryMultiselect', required: true},
     {key: 'dateOfBirth', label: 'Date of birth', labelKey: 'common.dob', group: 'Account holder details', type: 'date', rule: 'dateOfBirth', required: true},
-    {key: 'country', label: 'Country', labelKey: 'common.country', group: 'Account holder details', type: 'country', required: true, refreshRequirementsOnChange: true},
+    {key: 'country', label: 'Country', labelKey: 'common.country', group: 'Account holder details', type: 'country', required: true, refreshOnChange: true},
     {key: 'address', label: 'Address', labelKey: 'common.address', group: 'Account holder details', type: 'address', required: true},
     {
         key: 'useCases',
@@ -292,8 +292,8 @@ const PRESETS = {
         fields: [owners],
         draftValues: {
             owners: [
-                {id: 'alice', answers: {ownerType: 'INDIVIDUAL', firstName: 'Alice', lastName: 'Nguyen', countryOfResidence: 'US', ownership: '25'}},
-                {id: 'acme', answers: {ownerType: 'COMPANY', companyName: 'Acme Holdings', countryOfResidence: 'GB', ownership: '40'}},
+                {id: 'alice', ownerType: 'INDIVIDUAL', firstName: 'Alice', lastName: 'Nguyen', countryOfResidence: 'US', ownership: '25'},
+                {id: 'acme', ownerType: 'COMPANY', companyName: 'Acme Holdings', countryOfResidence: 'GB', ownership: '40'},
             ],
         },
     },

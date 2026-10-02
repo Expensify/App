@@ -313,7 +313,7 @@ describe('DynamicFormFields', () => {
     it('asks the screen to refetch the schema only when a refreshing field changes', () => {
         // Given a currency field that changes the requirements, next to one that does not
         const onRefreshRequirements = jest.fn();
-        const payoutCurrency: DynamicFormField = {key: 'payoutCurrency', type: 'currency', required: true, refreshRequirementsOnChange: true};
+        const payoutCurrency: DynamicFormField = {key: 'payoutCurrency', type: 'currency', required: true, refreshOnChange: true};
         const nickname: DynamicFormField = {key: 'nickname', type: 'text', required: false};
         const rendered = renderFields([payoutCurrency, nickname], {}, {onRefreshRequirements});
 
@@ -351,9 +351,9 @@ describe('DynamicFormFields', () => {
         // When it renders
         const rendered = renderFields([field]);
 
-        // Then the choice is drawn as the page itself, under the question
+        // Then the choice is drawn as the page itself, and the label is left to the page title instead of repeating it
         expect(rendered.get('answer')?.InputComponent).toBe(ExpectedInput);
-        expect(screen.getByText('The question')).toBeOnTheScreen();
+        expect(screen.queryByText('The question')).not.toBeOnTheScreen();
     });
 
     it('keeps a lone list as the page when it reveals a follow-up field', () => {
@@ -422,7 +422,7 @@ describe('DynamicFormFields', () => {
     it('asks a typed field that changes the requirements to refetch them when the user leaves it, not on every keystroke', () => {
         // Given a text field that changes the requirements
         const onRefreshRequirements = jest.fn();
-        const bankCode: DynamicFormField = {key: 'bankCode', type: 'text', required: true, refreshRequirementsOnChange: true};
+        const bankCode: DynamicFormField = {key: 'bankCode', type: 'text', required: true, refreshOnChange: true};
         const rendered = renderFields([bankCode], {bankCode: '0261'}, {onRefreshRequirements});
 
         // When the user leaves the input
