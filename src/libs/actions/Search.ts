@@ -1097,16 +1097,19 @@ function openSearchTagFiltersPage(
     params: OpenSearchTagFiltersPageParams,
     shouldCancelPendingRequests = false,
     currentResults: SearchTagFilterItem[] = [],
-): Promise<{hasMore: boolean; nextCursor: string}> {
+): Promise<{hasMore: boolean; nextCursor: string; tags?: SearchTagFilterItem[]}> {
     if (shouldCancelPendingRequests) {
         HttpUtils.cancelPendingRequests(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_TAG_FILTERS_PAGE);
     }
+
+    const policyIDsKey = !params.policyIDs ? 'all' : params.policyIDs;
+    const resultsKey: `${typeof ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS}${string}` = `${ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS}${policyIDsKey}`;
 
     const optimisticData: AnyOnyxUpdate[] = shouldCancelPendingRequests
         ? [
               {
                   onyxMethod: Onyx.METHOD.SET,
-                  key: ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS,
+                  key: resultsKey,
                   value: [],
               },
           ]
@@ -1117,12 +1120,11 @@ function openSearchTagFiltersPage(
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- OpenSearchTagFiltersPage response fields are command-specific and not declared on the shared Response type
         const tagFiltersResponse = response as OpenSearchTagFiltersPageResponse | undefined;
         const newTags = tagFiltersResponse?.tags ?? [];
-        if (params.cursor && newTags.length > 0) {
-            Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS, [...currentResults, ...newTags]);
-        }
+        Onyx.set(resultsKey, params.cursor ? [...currentResults, ...newTags] : newTags);
         return {
             hasMore: !!tagFiltersResponse?.hasMore,
             nextCursor: tagFiltersResponse?.nextCursor ?? '',
+            tags: newTags,
         };
     });
 }
@@ -1131,18 +1133,25 @@ function openSearchTagFiltersPage(
  * Updates the pagination state for tag filter search.
  * Stored in RAM-only Onyx key so it survives component remounts but resets on app restart.
  */
-function setSearchTagFiltersPagination(hasMore: boolean, nextCursor: string, searchQuery: string) {
-    Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION, {
+function setSearchTagFiltersPagination(
+    hasMore: boolean,
+    nextCursor: string,
+    searchQuery: string,
+    policyIDs?: string,
+    baseResults?: SearchTagFilterItem[],
+    baseHasMore?: boolean,
+    baseCursor?: string,
+) {
+    const policyIDsKey = !policyIDs ? 'all' : policyIDs;
+    Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION}${policyIDsKey}`, {
         hasMore,
         nextCursor,
         searchQuery,
+        policyIDs,
+        baseResults,
+        baseHasMore,
+        baseCursor,
     });
-}
-
-/** Resets tag filter pagination and cached results when the filter closes. */
-function clearSearchTagFiltersState() {
-    setSearchTagFiltersPagination(false, '', '');
-    Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS, []);
 }
 
 function openBulkChangeApproverPage(reportIDList: OpenBulkChangeApproverPageParams['reportIDList']) {
@@ -2628,7 +2637,6 @@ export {
     openSearchCategoryFiltersPage,
     openSearchTagFiltersPage,
     setSearchTagFiltersPagination,
-    clearSearchTagFiltersState,
     getPolicyFromSearchSnapshot,
     getReportFromSearchSnapshot,
     getReportActionsFromSearchSnapshot,
