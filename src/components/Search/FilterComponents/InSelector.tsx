@@ -1,3 +1,4 @@
+import {useActivePolicyContext} from '@components/ActivePolicyProvider';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {SearchFilterCommonProps} from '@components/Search/types';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
@@ -65,6 +66,8 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const {activePolicyID} = useActivePolicyContext();
+
     const sortedReportActionsData = useSortedReportActionsData();
     const sortedActions = sortedReportActionsData?.sortedActions;
 
@@ -160,23 +163,25 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                   rules,
               }).options;
 
-    const chatOptions = filterAndOrderOptions(
-        defaultOptions,
-        cleanSearchTerm,
+    const chatOptions = filterAndOrderOptions({
+        options: defaultOptions,
+        searchInputValue: cleanSearchTerm,
         countryCode,
         loginList,
         currentUserEmail,
         currentUserAccountID,
         personalDetails,
-        {
+        config: {
             dateFnsLocale,
             convertToDisplayString,
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             currentUserAccountID,
         },
+        translate,
         rules,
-    );
+        activePolicyID,
+    });
 
     const sections: SelectionListSections = [];
 
