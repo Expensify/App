@@ -225,6 +225,13 @@ const RESERVATION_TYPE = {
     TRAIN: 'train',
 } as const;
 
+/** Every event that can fire a rule, across all rule kinds. Hoisted so `RULES` can list subsets of it. */
+const RULE_TRIGGERS = {
+    REPORT_SUBMIT: 'ReportSubmit',
+    REPORT_APPROVE: 'ReportApprove',
+    CREATE_TRANSACTION: 'CreateTransaction',
+} as const;
+
 const EMAIL = {
     ACCOUNTING: 'accounting@expensify.com',
     ACCOUNTS_PAYABLE: 'accountspayable@expensify.com',
@@ -3501,6 +3508,7 @@ const CONST = {
         PROVINCIAL_TAX_POSTING_ACCOUNT: 'provincialTaxPostingAccount',
         ALLOW_FOREIGN_CURRENCY: 'allowForeignCurrency',
         EXPORT_TO_NEXT_OPEN_PERIOD: 'exportToNextOpenPeriod',
+        SPLIT_EXPORTS_BY_POSTING_PERIOD: 'splitExportsByPostingPeriod',
         IMPORT_FIELDS: ['departments', 'classes', 'locations'],
         AUTO_SYNC: 'autoSync',
         ACCOUNTING_METHOD: 'accountingMethod',
@@ -5581,6 +5589,14 @@ const CONST = {
     SUBSCRIPTION: {
         TEAM_2025_PRICING_START_DATE: new Date(2025, 3, 1),
         PRICING_TYPE_2025: 'team2025Pricing',
+        EARLY_RENEWAL: {
+            NON_INCENTIVIZED_START: '2026-10-01T00:00:00Z',
+            INCENTIVIZED_START: '2026-10-15T00:00:00Z',
+            CAMPAIGN_END: '2027-01-01T00:00:00Z',
+            OFFER_ID: {
+                NON_INCENTIVIZED_ONE_YEAR: 'nonIncentivizedOneYear',
+            },
+        },
         TYPE: {
             ANNUAL: 'yearly2018',
             PAY_PER_USE: 'monthly2018',
@@ -8759,16 +8775,33 @@ const CONST = {
     RULES: {
         SCOPE: {
             POLICY: 'policy',
+            ACCOUNT: 'account',
+        },
+        TRIGGERS: RULE_TRIGGERS,
+        /** Every action a rule can perform, across all rule kinds. */
+        ACTIONS: {
+            FORWARD_TO: 'ForwardTo',
+            APPROVE_REPORT: 'ApproveReport',
+            SET: 'Set',
         },
         APPROVAL_WORKFLOW: {
-            TRIGGER: {
-                REPORT_SUBMIT: 'ReportSubmit',
-                REPORT_APPROVE: 'ReportApprove',
+            /** A rule firing only on these is an approval workflow rather than an expense default. */
+            TRIGGERS: [RULE_TRIGGERS.REPORT_SUBMIT, RULE_TRIGGERS.REPORT_APPROVE],
+        },
+        EXPENSE_DEFAULT: {
+            /** Expense fields a `Set` action can write to */
+            FIELD: {
+                BILLABLE: 'billable',
+                CATEGORY: 'category',
+                COMMENT: 'comment',
+                MERCHANT: 'merchant',
+                REIMBURSABLE: 'reimbursable',
+                TAG: 'tag',
+                TAX: 'tax',
+                VENDOR_ID: 'vendorID',
             },
-            ACTION: {
-                FORWARD_TO: 'ForwardTo',
-                APPROVE_REPORT: 'ApproveReport',
-            },
+            /** Every expense default rule is created with the same priority, per the rules engine spec */
+            PRIORITY: 10000,
         },
     },
 

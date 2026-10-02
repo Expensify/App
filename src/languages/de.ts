@@ -5512,6 +5512,11 @@ ${amount} für ${merchant} – ${date}`,
             journalEntriesProvTaxPostingAccount: 'Buchungszeilen-Konto für Provinzsteuerbuchungen',
             foreignCurrencyAmount: 'Betrag in Fremdwährung exportieren',
             exportToNextOpenPeriod: 'In die nächste offene Periode exportieren',
+            exportToNextOpenPeriodLockedSubtitle:
+                'Um den Export in die nächste offene Periode zu deaktivieren, deaktiviere zuerst die Aufteilung nicht erstattungsfähiger Exporte nach Periode.',
+            splitExportsByPostingPeriod: 'Exporte nach Buchungsperiode aufteilen',
+            splitExportsByPostingPeriodSubtitle:
+                'Aktiviere den Export in die nächste offene Periode, um die Aufteilung nicht erstattungsfähiger Exporte nach Periode in NetSuite zu aktivieren',
             nonReimbursableJournalPostingAccount: 'Nicht erstattungsfähiges Konto für Buchungssätze',
             reimbursableJournalPostingAccount: 'Konto für die Verbuchung erstattungsfähiger Posten',
             journalPostingPreference: {
@@ -11700,6 +11705,14 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             title: 'Erstellen Sie Ihre eigenen Agenten',
             description: `<muted-text>Erstellen Sie benutzerdefinierte Agenten, die Ausgaben anhand Ihrer Regeln prüfen, genehmigen und weiterleiten. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Mehr erfahren</a>.</muted-text>`,
         },
+    },
+    earlyRenewal: {
+        confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) =>
+            `Verlängern Sie Ihr Abonnement für einen Zeitraum von 12 Monaten, von ${startDate} bis ${endDate}.`,
+        title: 'Verlängern Sie Ihr Expensify-Abonnement',
+        subtitle: 'Eine Sache weniger zu erledigen vor dem neuen Jahr.',
+        confirmTitle: 'Verlängerung bestätigen',
+        renew: 'Erneuern',
     },
 };
 export default translations;
