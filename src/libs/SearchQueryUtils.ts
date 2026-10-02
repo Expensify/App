@@ -1401,16 +1401,20 @@ function getAllPolicyValues<T extends OnyxCollectionKey>(
     policyID: Filter | undefined,
     key: T,
     policyData: OnyxCollection<OnyxCollectionValuesMapping[T]>,
+    policies?: OnyxCollection<OnyxTypes.Policy>,
 ): Array<OnyxCollectionValuesMapping[T]> {
     if (!policyData || !policyID || !policyID.value) {
         return Object.values(policyData ?? {}).filter((data): data is NonNullable<typeof data> => !!data);
     }
 
+    const policiesForResolution = policies ?? (key === ONYXKEYS.COLLECTION.POLICY ? (policyData as OnyxCollection<OnyxTypes.Policy>) : undefined);
+    const resolvedValues = policiesForResolution ? policyID.value.map((id) => resolvePolicyIDFromName(id, policiesForResolution)) : policyID.value;
+
     if (policyID.isNegated) {
         return Object.keys(policyData).reduce(
             (acc, curr) => {
                 const id = curr.replace(key, '');
-                if (!policyID.value?.includes(id) && policyData[curr]) {
+                if (!resolvedValues.includes(id) && policyData[curr]) {
                     acc.push(policyData[curr]);
                 }
                 return acc;
@@ -1419,23 +1423,27 @@ function getAllPolicyValues<T extends OnyxCollectionKey>(
         );
     }
 
-    return policyID.value.map((id) => policyData?.[`${key}${id}`]).filter((data): data is NonNullable<typeof data> => !!data);
+    return resolvedValues.map((id) => policyData?.[`${key}${id}`]).filter((data): data is NonNullable<typeof data> => !!data);
 }
 
 function getAllPolicyValuesMap<T extends OnyxCollectionKey>(
     policyID: Filter | undefined,
     key: T,
     policyData: OnyxCollection<OnyxCollectionValuesMapping[T]>,
+    policies?: OnyxCollection<OnyxTypes.Policy>,
 ): OnyxCollection<OnyxCollectionValuesMapping[T]> {
     if (!policyData || !policyID || !policyID.value) {
         return {};
     }
 
+    const policiesForResolution = policies ?? (key === ONYXKEYS.COLLECTION.POLICY ? (policyData as OnyxCollection<OnyxTypes.Policy>) : undefined);
+    const resolvedValues = policiesForResolution ? policyID.value.map((id) => resolvePolicyIDFromName(id, policiesForResolution)) : policyID.value;
+
     if (policyID.isNegated) {
         return Object.keys(policyData).reduce(
             (acc, curr) => {
                 const id = curr.replace(key, '');
-                if (!policyID.value?.includes(id) && policyData[curr]) {
+                if (!resolvedValues.includes(id) && policyData[curr]) {
                     acc[curr] = policyData[curr];
                 }
                 return acc;
@@ -1444,7 +1452,7 @@ function getAllPolicyValuesMap<T extends OnyxCollectionKey>(
         );
     }
 
-    return policyID.value.reduce(
+    return resolvedValues.reduce(
         (acc, curr) => {
             if (policyData?.[`${key}${curr}`]) {
                 acc[`${key}${curr}`] = policyData?.[`${key}${curr}`];
@@ -1630,6 +1638,7 @@ function buildFilterFormValuesFromQuery(
     exportedToFilterOptions?: string[],
     currentUserAccountID?: number,
     bankAccountList?: OnyxTypes.BankAccountList,
+    policies?: OnyxCollection<OnyxTypes.Policy>,
 ) {
     const filters = queryJSON.flatFilters;
     const filtersForm = {} as Partial<SearchAdvancedFiltersForm>;
@@ -1767,7 +1776,7 @@ function buildFilterFormValuesFromQuery(
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
             const uniqueCategories = new Set<string>();
-            const categoryLists = getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, policyCategories);
+            const categoryLists = getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, policyCategories, policies);
             for (const item of categoryLists) {
                 for (const category of Object.values(item ?? {})) {
                     uniqueCategories.add(category.name);
