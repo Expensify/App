@@ -4689,14 +4689,7 @@ function getReasonAndReportActionThatRequiresAttention(
         !hasOnlyPendingTransactions &&
         !isFallbackReportExcludedForHeldExpenses;
 
-    // Any action badge beats an unread mention, which falls back to a green dot linked to the oldest unread mention.
-    const unreadMentionResult = isUnreadWithMention(optionOrReport)
-        ? {
-              reason: CONST.REQUIRES_ATTENTION_REASONS.IS_UNREAD_WITH_MENTION,
-              reportAction: getOldestUnreadMentionReportAction(optionOrReport, reportActions, currentUserLogin, currentUserAccountID),
-          }
-        : null;
-
+    // Task and IOU actions beat an unread mention, even when no action badge could be computed for them.
     if (actionTypeForAssigneeToComplete) {
         const isAssigneeExpenseAction = actionTypeForAssigneeToComplete === CONST.REPORT.ACTION_TYPES_FOR_ASSIGNEE_TO_COMPLETE.EXPENSE;
         if (isAssigneeExpenseAction) {
@@ -4710,9 +4703,6 @@ function getReasonAndReportActionThatRequiresAttention(
                 currentUserAccountID,
                 reportActions,
             );
-            if (!assigneeBadge && unreadMentionResult) {
-                return unreadMentionResult;
-            }
             return {
                 reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,
                 ...(assigneeBadge ? {actionBadge: assigneeBadge} : {}),
@@ -4742,15 +4732,20 @@ function getReasonAndReportActionThatRequiresAttention(
         };
     }
 
-    if (unreadMentionResult && !(hasValidIOUAction && actionBadge)) {
-        return unreadMentionResult;
-    }
-
     if (hasValidIOUAction) {
         return {
             reason: CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION,
             reportAction: iouReportActionToApproveOrPay,
             actionBadge,
+        };
+    }
+
+    // An unread mention falls back to a green dot linked to the oldest unread mention. It stays above the invoice room
+    // branch, which can return null.
+    if (isUnreadWithMention(optionOrReport)) {
+        return {
+            reason: CONST.REQUIRES_ATTENTION_REASONS.IS_UNREAD_WITH_MENTION,
+            reportAction: getOldestUnreadMentionReportAction(optionOrReport, reportActions, currentUserLogin, currentUserAccountID),
         };
     }
 

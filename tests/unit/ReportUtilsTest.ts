@@ -12907,7 +12907,7 @@ describe('ReportUtils', () => {
                 expect(result?.reportAction?.reportActionID).toBe('oldest-unread-mention');
             });
 
-            it('should return the unread mention when the outstanding child request has no badge', async () => {
+            it('should return the IOU action instead of an unread mention when the outstanding child request has no badge', async () => {
                 // Given a chat flagged with an outstanding child request but no IOU preview to badge, plus an unread mention
                 const mentionAction = buildMentionAction('mention-without-badge', '2024-01-01 00:00:00.000');
                 const workspaceChat = {
@@ -12925,9 +12925,9 @@ describe('ReportUtils', () => {
                 // When the reason is retrieved
                 const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID);
 
-                // Then the mention wins because there is no badge to show, and the green dot links to the mention
-                expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_UNREAD_WITH_MENTION);
-                expect(result?.reportAction?.reportActionID).toBe('mention-without-badge');
+                // Then the IOU action still wins over the mention, even though no badge could be computed for it
+                expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
+                expect(result?.actionBadge).toBeUndefined();
             });
 
             it('should still require attention for an invoice room with an unread mention', async () => {
