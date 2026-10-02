@@ -185,18 +185,15 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     // An HR integration in a read-only approval mode owns the workflows, so the editor rejects manual edits.
     // Keep the row visible for reference but inert, the same way the Workflows tab disables its own actions.
     const shouldAllowApproverEdit = canWriteMembers && !isAnyHRReadOnlyWorkflowMode(policy);
-    // A member who heads the default workflow approves themselves, the workspace owner being the common case.
-    // That workflow governs everyone, unlike a workflow a member heads for themselves alone.
-    const headsDefaultWorkflow = !!memberFirstApprover && memberFirstApprover.email === memberLogin && !!memberApprovalWorkflow?.isDefault;
     const approverLabel = getFirstApproverLabel((memberApprovalWorkflow?.approvers.length ?? 0) > 1, translate, toLocaleOrdinalWithWords);
 
     const openMemberApprovalWorkflow = () => {
         // Discard stale onyx edits or the Edit page's resume check would surface a prior abandoned session.
         clearApprovalWorkflow();
 
-        // The editor opens the whole workflow, so the member who heads the default one has to start their own rather
-        // than edit the one they approve, which would let an admin reassign the rest of the workspace from here.
-        if (memberFirstApprover?.email && !headsDefaultWorkflow) {
+        // A member who approves their own expenses still has a workflow, so open it rather than offering to build a
+        // second one. The row names them as their own approver, and a blank create page would contradict that.
+        if (memberFirstApprover?.email) {
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, memberFirstApprover.email, memberLogin));
             return;
         }

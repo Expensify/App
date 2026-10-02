@@ -501,9 +501,10 @@ describe('WorkspaceMemberDetailsPage', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should start a new workflow rather than open the one a self-approving member approves', async () => {
+    it('should open the workflow a self-approving member heads rather than offer them a second one', async () => {
         const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
 
+        // Given the owner, who approves their own expenses and heads the workflow the rest of the workspace is on.
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
                 approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
@@ -521,10 +522,32 @@ describe('WorkspaceMemberDetailsPage', () => {
         fireEvent.press(await screen.findByTestId('member-approver-menu-item'), {nativeEvent: {}});
         await waitForBatchedUpdatesWithAct();
 
-        // The owner heads the default workflow, so the editor would open the workflow the rest of the workspace is on
-        // and let an admin reassign every other member's approver from the owner's own profile.
+        // The row names them as their own approver, so a blank create page would contradict the value it shows.
+        expect(navigateSpy).toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policy.id, ownerEmail, ownerEmail));
+        expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policy.id));
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should start a workflow for a member who submits to nobody', async () => {
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+
+        // Given a workspace where nobody submits to anyone, so this member has no workflow to open.
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                approver: ownerEmail,
+            });
+        });
+
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(invitedAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(await screen.findByTestId('member-approver-menu-item'), {nativeEvent: {}});
+        await waitForBatchedUpdatesWithAct();
+
         expect(navigateSpy).toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policy.id));
-        expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policy.id, ownerEmail, ownerEmail));
 
         // The create page is the first step here, unlike the Workflows tab's wizard, so the draft must not look like
         // it is still on that wizard's opening step. Expenses from discards such a draft when the user leaves it.
@@ -595,13 +618,11 @@ describe('WorkspaceMemberDetailsPage', () => {
                 type: CONST.POLICY.TYPE.TEAM,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                 approver: ownerEmail,
-                employeeList: {
-                    [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: ownerEmail},
-                },
             });
         });
 
-        const {unmount} = renderPage({policyID: policy.id, accountID: String(ownerAccountID)});
+        // Given a member who submits to nobody, so the row starts a workflow instead of opening one.
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(invitedAccountID)});
         await waitForBatchedUpdatesWithAct();
 
         fireEvent.press(await screen.findByTestId('member-approver-menu-item'), {nativeEvent: {}});
