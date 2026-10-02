@@ -250,6 +250,8 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
             errorFields: {
                 route: null,
             },
+            // A waypoint edit means the trip no longer matches a reused route, so route fetching must run again
+            isReusedRoute: undefined,
         };
     }
     if (shouldUseSplitDraft) {

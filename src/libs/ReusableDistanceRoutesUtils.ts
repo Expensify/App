@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
 import type {ReusableDistanceRoute} from '@src/types/onyx';
-import type {Waypoint} from '@src/types/onyx/Transaction';
+import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 
 import DateUtils from './DateUtils';
 import tokenizedSearch from './tokenizedSearch';
@@ -14,7 +14,22 @@ function getOrderedWaypoints(route: ReusableDistanceRoute): Waypoint[] {
     return Object.keys(route.waypoints)
         .map(getWaypointIndex)
         .sort((a, b) => a - b)
-        .map((index) => route.waypoints[`waypoint${index}`]);
+        .map((index) => route.waypoints[`waypoint${index}`])
+        .filter((waypoint): waypoint is Waypoint => !!waypoint);
+}
+
+/**
+ * Makes waypoint keys contiguous and adds a unique keyForList, which the waypoint editor
+ * uses to map rows to indexes. Stored waypoints have neither.
+ */
+function normalizeRouteWaypoints(route: ReusableDistanceRoute): WaypointCollection {
+    return getOrderedWaypoints(route).reduce((acc: WaypointCollection, waypoint, index) => {
+        acc[`waypoint${index}`] = {
+            ...waypoint,
+            keyForList: waypoint.keyForList ?? `${waypoint.name ?? 'waypoint'}_${route.transactionID}_${index}`,
+        };
+        return acc;
+    }, {});
 }
 
 /**
@@ -56,4 +71,4 @@ function getRouteThumbnailSource(receiptSource: string | undefined): string | un
     return `${resolvedSource}.1024.jpg`;
 }
 
-export {getOrderedWaypoints, getRouteEndpoints, filterRoutes, formatLastUsed, getRouteThumbnailSource};
+export {getOrderedWaypoints, getRouteEndpoints, filterRoutes, formatLastUsed, getRouteThumbnailSource, normalizeRouteWaypoints};

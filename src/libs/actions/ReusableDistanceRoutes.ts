@@ -1,5 +1,6 @@
 import {read} from '@libs/API';
 import {READ_COMMANDS} from '@libs/API/types';
+import {normalizeRouteWaypoints} from '@libs/ReusableDistanceRoutesUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,7 +45,8 @@ function fetchReusableDistanceRoutes() {
  * Seeds the draft transaction from a reused route.
  */
 function selectReusableRoute(transactionID: string, route: ReusableDistanceRoute, existingWaypoints?: WaypointCollection) {
-    return updateWaypoints(transactionID, route.waypoints, CONST.TRANSACTION.STATE.DRAFT, existingWaypoints).then(() =>
+    const waypoints = normalizeRouteWaypoints(route);
+    return updateWaypoints(transactionID, waypoints, CONST.TRANSACTION.STATE.DRAFT, existingWaypoints).then(() =>
         Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
             iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
             isReusedRoute: true,
