@@ -98,8 +98,8 @@ describe('TaskListItem text selection', () => {
         mockIsLargeScreenWidth = false;
 
         // When the row is rendered, then its avatar is hidden from copied text.
-        const {UNSAFE_getByType} = renderTaskItem();
-        const avatar = UNSAFE_getByType(UserAvatar);
+        const renderResult = renderTaskItem();
+        const avatar = renderResult.UNSAFE_getByType(UserAvatar);
         expect(avatar.parent?.props).toMatchObject({
             dataSet: {[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true},
         });
