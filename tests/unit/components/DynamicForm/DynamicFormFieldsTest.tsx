@@ -6,7 +6,6 @@ import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import CountryPicker from '@components/CountryPicker';
 import CurrencyPicker from '@components/CurrencyPicker';
 import DatePicker from '@components/DatePicker';
-import AmountWithCurrencyAdapter from '@components/DynamicForm/adapters/AmountWithCurrencyAdapter';
 import CurrencyInlineListAdapter from '@components/DynamicForm/adapters/CurrencyInlineListAdapter';
 import FileUploadAdapter from '@components/DynamicForm/adapters/FileUploadAdapter';
 import InlineSelectionListAdapter from '@components/DynamicForm/adapters/InlineSelectionListAdapter';
@@ -22,7 +21,7 @@ import TextInput from '@components/TextInput';
 import ValuePicker from '@components/ValuePicker';
 
 import CONST from '@src/CONST';
-import type {DynamicFormField, DynamicFormFieldType} from '@src/types/onyx';
+import type {DynamicFormField, DynamicFormFieldType, DynamicFormSchemaField} from '@src/types/onyx';
 
 import type {ComponentType} from 'react';
 
@@ -41,8 +40,9 @@ type CapturedInputProps = {
     valueType?: string;
     fileLimit?: number;
     currency?: string;
-    currencyKey?: string;
+    defaultValue?: string;
     onValueChange?: (value: string, key: string) => void;
+    onBlur?: () => void;
 };
 
 const mockInputWrapper = jest.fn((props: CapturedInputProps) => props.inputID);
@@ -60,11 +60,18 @@ jest.mock('@hooks/useLocalize', () =>
 
 jest.mock('@hooks/useThemeStyles', () => jest.fn(() => new Proxy({}, {get: () => ({})})));
 
-function renderFields(fields: DynamicFormField[], values: DynamicFormValues = {}, currency?: string, onRefreshRequirements?: (inputID: string, value: unknown) => void) {
+type RenderFieldsOptions = {
+    allFields?: DynamicFormField[];
+    currency?: string;
+    onRefreshRequirements?: (inputID: string, value: unknown) => void;
+};
+
+function renderFields(fields: DynamicFormSchemaField[], values: DynamicFormValues = {}, {allFields, currency, onRefreshRequirements}: RenderFieldsOptions = {}) {
     mockInputWrapper.mockClear();
     render(
         <DynamicFormFields
             fields={fields}
+            allFields={allFields}
             values={values}
             currency={currency}
             onRefreshRequirements={onRefreshRequirements}
@@ -76,7 +83,7 @@ function renderFields(fields: DynamicFormField[], values: DynamicFormValues = {}
 /** A second question on the page, so the field under test is drawn as a row rather than as the whole page */
 const otherQuestion: DynamicFormField = {key: 'otherQuestion', type: 'text', required: false};
 
-const EXPECTED_INPUT_BY_TYPE: Record<DynamicFormFieldType, ComponentType | ((...args: never[]) => unknown)> = {
+const EXPECTED_INPUT_BY_TYPE: Record<DynamicFormFieldType, ComponentType<never>> = {
     text: TextInput,
     number: TextInput,
     select: ValuePicker,
@@ -93,17 +100,18 @@ const EXPECTED_INPUT_BY_TYPE: Record<DynamicFormFieldType, ComponentType | ((...
     percent: PercentageForm,
 };
 
+const FIELD_TYPES = Object.keys(EXPECTED_INPUT_BY_TYPE).filter((type): type is DynamicFormFieldType => Object.hasOwn(EXPECTED_INPUT_BY_TYPE, type));
+
 describe('DynamicFormFields', () => {
-    it.each(Object.entries(EXPECTED_INPUT_BY_TYPE))('renders a %s field with its input', (type, ExpectedInput) => {
-        // Given a field of one type with nothing but the required properties, next to another question
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the keys of EXPECTED_INPUT_BY_TYPE are field types, Object.entries types them as strings
-        const field = {key: 'answer', type, required: false} as DynamicFormField;
+    it.each(FIELD_TYPES)('renders a %s field with its input', (type) => {
+        // Given a field of one type with nothing but the required properties, next to another question so it is drawn as a row
+        const field: DynamicFormField = {key: 'answer', type, required: false};
 
         // When it renders
         const rendered = renderFields([field, otherQuestion]);
 
-        // Then it is drawn by the input its type maps to
-        expect(rendered.get('answer')?.InputComponent).toBe(ExpectedInput);
+        // Then it is drawn by the input its type maps to, which is what a schema without layout hints gets
+        expect(rendered.get('answer')?.InputComponent).toBe(EXPECTED_INPUT_BY_TYPE[type]);
     });
 
     it('keeps sensitive answers out of the draft', () => {
@@ -166,7 +174,7 @@ describe('DynamicFormFields', () => {
         // When the fields render
         const rendered = renderFields([accountNumber]);
 
-        // Then the example is the hint
+        // Then the example is the hint, so the user sees the expected format before typing
         expect(rendered.get('accountNumber')?.hint).toBe('dynamicForm.exampleHint:12345678');
     });
 
@@ -197,12 +205,7 @@ describe('DynamicFormFields', () => {
             required: true,
             showWhen: {key: 'legalType', equals: ['BUSINESS']},
         };
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- stands in for a server type the App does not know
-        const signature = {
-            key: 'signature',
-            type: 'signature',
-            required: true,
-        } as unknown as DynamicFormField;
+        const signature: DynamicFormSchemaField = {key: 'signature', type: 'signature', required: true};
 
         // When the fields render for a private recipient
         const rendered = renderFields([email, companyName, signature], {legalType: 'PRIVATE'});
@@ -241,7 +244,7 @@ describe('DynamicFormFields', () => {
         // When the fields render
         renderFields([firstName, lastName]);
 
-        // Then the section title appears once
+        // Then the section title appears once, heading the run rather than each field
         expect(screen.getAllByText('Legal name')).toHaveLength(1);
     });
 
@@ -273,11 +276,12 @@ describe('DynamicFormFields', () => {
         const expectedVolume: DynamicFormField = {key: 'expectedVolume', type: 'amount', required: true, currencyKey: 'expectedVolumeCurrency'};
 
         // When it renders before and after a currency is picked
-        const beforePick = renderFields([expectedVolume], {}, CONST.CURRENCY.GBP);
-        const afterPick = renderFields([expectedVolume], {expectedVolumeCurrency: CONST.CURRENCY.EUR}, CONST.CURRENCY.GBP);
+        const beforePick = renderFields([expectedVolume], {}, {currency: CONST.CURRENCY.GBP});
+        const afterPick = renderFields([expectedVolume], {expectedVolumeCurrency: CONST.CURRENCY.EUR}, {currency: CONST.CURRENCY.GBP});
 
-        // Then it shows the currency picker, priced in the screen currency until the user picks one
-        expect(beforePick.get('expectedVolume')).toMatchObject({InputComponent: AmountWithCurrencyAdapter, currency: CONST.CURRENCY.GBP, currencyKey: 'expectedVolumeCurrency'});
+        // Then the currency picker starts on the screen currency, so the form submits a currency even if the user never opens it, and the amount follows the pick
+        expect(beforePick.get('expectedVolumeCurrency')).toMatchObject({InputComponent: CurrencyPicker, defaultValue: CONST.CURRENCY.GBP});
+        expect(beforePick.get('expectedVolume')).toMatchObject({InputComponent: AmountForm, currency: CONST.CURRENCY.GBP});
         expect(afterPick.get('expectedVolume')?.currency).toBe(CONST.CURRENCY.EUR);
     });
 
@@ -300,7 +304,7 @@ describe('DynamicFormFields', () => {
         // When it renders
         const rendered = renderFields([phone]);
 
-        // Then the phone keyboard opens
+        // Then the phone keyboard opens, since the schema names the rule rather than the keyboard
         expect(rendered.get('phone')?.inputMode).toBe(CONST.INPUT_MODE.TEL);
     });
 
@@ -309,7 +313,7 @@ describe('DynamicFormFields', () => {
         const onRefreshRequirements = jest.fn();
         const payoutCurrency: DynamicFormField = {key: 'payoutCurrency', type: 'currency', required: true, refreshRequirementsOnChange: true};
         const nickname: DynamicFormField = {key: 'nickname', type: 'text', required: false};
-        const rendered = renderFields([payoutCurrency, nickname], {}, undefined, onRefreshRequirements);
+        const rendered = renderFields([payoutCurrency, nickname], {}, {onRefreshRequirements});
 
         // When the user changes the currency
         rendered.get('payoutCurrency')?.onValueChange?.('EUR', 'payoutCurrency');
@@ -338,7 +342,6 @@ describe('DynamicFormFields', () => {
         ['country', InlineSelectionListAdapter],
         ['countryMultiselect', InlineSelectionListAdapter],
         ['currency', CurrencyInlineListAdapter],
-        ['boolean', YesNoAdapter],
     ] as const)('draws a %s field alone on its page as the page itself', (type, ExpectedInput) => {
         // Given the only question on the page
         const field: DynamicFormField = {key: 'answer', label: 'The question', type, required: true};
@@ -371,7 +374,60 @@ describe('DynamicFormFields', () => {
         // When it renders
         const rendered = renderFields([legalType, otherQuestion]);
 
-        // Then it is a tab row
+        // Then it is a tab row, as the schema asked
         expect(rendered.get('legalType')?.InputComponent).toBe(TabsAdapter);
+    });
+
+    it('asks a boolean as Yes/No only when the schema says so, keeping a lone boolean a checkbox', () => {
+        // Given a lone consent boolean, and a lone boolean with the Yes/No presentation
+        const acceptTerms: DynamicFormField = {key: 'acceptTerms', type: 'boolean', required: true};
+        const isUSCitizen: DynamicFormField = {key: 'isUSCitizen', type: 'boolean', required: true, presentation: 'yesNo'};
+
+        // When each renders alone
+        const consent = renderFields([acceptTerms]);
+        const question = renderFields([isUSCitizen]);
+
+        // Then the consent stays a checkbox the user must tick, and only the question offers No as an answer
+        expect(consent.get('acceptTerms')?.InputComponent).toBe(CheckboxWithLabel);
+        expect(question.get('isUSCitizen')?.InputComponent).toBe(YesNoAdapter);
+    });
+
+    it('hides a field whose controlling field is hidden on another page', () => {
+        // Given a proof upload on its own page, revealed by a source of funds that is only asked for risky industries
+        const industry: DynamicFormField = {key: 'industry', type: 'select', required: true, group: 'Business', values: [{key: 'SAFE'}, {key: 'RISKY'}]};
+        const sourceOfFunds: DynamicFormField = {key: 'sourceOfFunds', type: 'select', required: true, group: 'Funds', showWhen: {key: 'industry', equals: ['RISKY']}};
+        const proof: DynamicFormField = {key: 'proof', type: 'file', required: true, group: 'Proof', showWhen: {key: 'sourceOfFunds', equals: ['SALARY']}};
+
+        // When the proof page renders for a safe industry, with a source of funds left from an earlier risky answer
+        const rendered = renderFields([proof], {industry: 'SAFE', sourceOfFunds: 'SALARY'}, {allFields: [industry, sourceOfFunds, proof]});
+
+        // Then the proof is not asked, as the submission would leave it out
+        expect(rendered.size).toBe(0);
+    });
+
+    it('asks for the state only in countries the state picker covers', () => {
+        // Given an address in the UK
+        const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: true};
+        const addressKeys = getAddressInputKeys(homeAddress.key);
+
+        // When it renders
+        const rendered = renderFields([homeAddress], {[addressKeys.country]: 'GB'});
+
+        // Then there is no state input, since the picker only lists US states and Canadian provinces
+        expect(rendered.has(addressKeys.state)).toBe(false);
+    });
+
+    it('asks a typed field that changes the requirements to refetch them when the user leaves it, not on every keystroke', () => {
+        // Given a text field that changes the requirements
+        const onRefreshRequirements = jest.fn();
+        const bankCode: DynamicFormField = {key: 'bankCode', type: 'text', required: true, refreshRequirementsOnChange: true};
+        const rendered = renderFields([bankCode], {bankCode: '0261'}, {onRefreshRequirements});
+
+        // When the user leaves the input
+        rendered.get('bankCode')?.onBlur?.();
+
+        // Then the screen fetches the requirements once with the typed answer, and typing alone fetches nothing
+        expect(onRefreshRequirements).toHaveBeenCalledWith('bankCode', '0261');
+        expect(rendered.get('bankCode')?.onValueChange).toBeUndefined();
     });
 });

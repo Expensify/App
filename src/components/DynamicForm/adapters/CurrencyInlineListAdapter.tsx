@@ -8,10 +8,9 @@ import React from 'react';
 import {View} from 'react-native';
 
 type CurrencyInlineListAdapterProps = {
-    /** Picked currency code supplied by the FormProvider */
+    /** Currency code */
     value?: string;
 
-    /** Callback to update the currency in the FormProvider */
     onInputChange?: (value: string) => void;
 
     errorText?: string;

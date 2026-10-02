@@ -14,17 +14,8 @@ import StringUtils from '@libs/StringUtils';
 import React from 'react';
 import {View} from 'react-native';
 
-type InlineSelectionListAdapterProps = {
+type InlineSelectionListAdapterBaseProps = {
     items: Choice[];
-
-    /** Several options can be picked, and the value is the list of their keys */
-    canSelectMultiple?: boolean;
-
-    /** Picked option key, or keys, supplied by the FormProvider */
-    value?: string | string[];
-
-    /** Callback to update the selection in the FormProvider */
-    onInputChange?: (value: string | string[]) => void;
 
     errorText?: string;
 
@@ -34,23 +25,39 @@ type InlineSelectionListAdapterProps = {
     searchInputLabel?: string;
 };
 
+type InlineSelectionListAdapterSingleProps = {
+    canSelectMultiple?: false;
+
+    /** Key of the picked option */
+    value?: string;
+
+    onInputChange?: (value: string) => void;
+};
+
+type InlineSelectionListAdapterMultipleProps = {
+    canSelectMultiple: true;
+
+    /** Keys of the picked options */
+    value?: string[];
+
+    onInputChange?: (value: string[]) => void;
+};
+
+type InlineSelectionListAdapterProps = InlineSelectionListAdapterBaseProps & (InlineSelectionListAdapterSingleProps | InlineSelectionListAdapterMultipleProps);
+
 /** A choice list shown as the page itself, for a choice field that is alone on its page */
-function InlineSelectionListAdapter({
-    items,
-    canSelectMultiple = false,
-    value,
-    onInputChange = () => {},
-    errorText = '',
-    isSearchable = false,
-    searchInputLabel,
-}: InlineSelectionListAdapterProps) {
+function InlineSelectionListAdapter(props: InlineSelectionListAdapterProps) {
+    const {items, errorText = '', isSearchable = false, searchInputLabel} = props;
     const styles = useThemeStyles();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+    const isOffered = (key: string) => items.some((item) => item.value === key);
+
     let selectedKeys: string[] = [];
-    if (Array.isArray(value)) {
-        selectedKeys = value;
-    } else if (value) {
-        selectedKeys = [value];
+    if (props.canSelectMultiple) {
+        // A key the options no longer offer could not be unchecked, so it is dropped
+        selectedKeys = Array.isArray(props.value) ? props.value.filter(isOffered) : [];
+    } else if (props.value) {
+        selectedKeys = [props.value];
     }
     const options = items.map((item) => ({
         value: item.value,
@@ -66,19 +73,19 @@ function InlineSelectionListAdapter({
         if (!key) {
             return;
         }
-        if (!canSelectMultiple) {
-            onInputChange(key);
+        if (!props.canSelectMultiple) {
+            props.onInputChange?.(key);
             return;
         }
-        onInputChange(selectedKeys.includes(key) ? selectedKeys.filter((selectedKey) => selectedKey !== key) : [...selectedKeys, key]);
+        props.onInputChange?.(selectedKeys.includes(key) ? selectedKeys.filter((selectedKey) => selectedKey !== key) : [...selectedKeys, key]);
     };
 
     return (
         <>
             <SelectionList
                 data={data}
-                canSelectMultiple={canSelectMultiple}
-                ListItem={canSelectMultiple ? MultiSelectListItem : SingleSelectListItem}
+                canSelectMultiple={!!props.canSelectMultiple}
+                ListItem={props.canSelectMultiple ? MultiSelectListItem : SingleSelectListItem}
                 onSelectRow={selectItem}
                 onSelectionButtonPress={selectItem}
                 shouldShowTextInput={isSearchable}

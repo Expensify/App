@@ -1,16 +1,12 @@
 import type {TranslationPaths} from '@src/languages/types';
+import type {OnyxFormKey} from '@src/ONYXKEYS';
 
 import type {InputModeOptions} from 'react-native';
 
 /** One allowed value of a select or radio field */
-type DynamicFormFieldOption = {
+type DynamicFormFieldOption = Pick<DynamicFormFieldBase, 'label' | 'labelKey'> & {
     /** Value submitted to the server */
     key: string;
-
-    /** The schema author's wording, shown when there is no labelKey */
-    label?: string;
-
-    labelKey?: TranslationPaths;
 };
 
 /** What every field type has in common */
@@ -43,10 +39,7 @@ type DynamicFormFieldBase = {
     /** Shown as a plain row with its prefilled value, never edited or validated */
     readonly?: boolean;
 
-    /** Never written to the form draft, for SSNs and account numbers */
-    sensitive?: boolean;
-
-    /** Changing the answer changes which other fields are required, so the screen fetches the schema again. Wise's `refreshRequirementsOnChange`. */
+    /** Changing the answer changes which other fields are required, so the screen fetches the schema again */
     refreshRequirementsOnChange?: boolean;
 
     /** Shown only while another answer is one of these values */
@@ -72,10 +65,13 @@ type DynamicFormTextField = DynamicFormFieldBase & {
     multiline?: boolean;
 
     rule?: 'legalName' | 'phone';
+
+    /** Never written to the form draft, for SSNs and account numbers */
+    sensitive?: boolean;
 };
 
 /** Text that must parse as a finite number, typed on the numeric keyboard */
-type DynamicFormNumberField = DynamicFormFieldBase & Pick<DynamicFormTextField, 'regex' | 'minLength' | 'maxLength' | 'example'> & {type: 'number'};
+type DynamicFormNumberField = DynamicFormFieldBase & Pick<DynamicFormTextField, 'regex' | 'minLength' | 'maxLength' | 'example' | 'sensitive'> & {type: 'number'};
 
 /** One answer out of a list of options */
 type DynamicFormChoiceField = DynamicFormFieldBase & {
@@ -126,9 +122,15 @@ type DynamicFormCountryField = DynamicFormFieldBase & {
     type: 'country' | 'countryMultiselect';
 };
 
+/** A checkbox, which must be ticked when required, or a Yes/No question, where No is an answer too */
+type DynamicFormBooleanField = DynamicFormFieldBase & {
+    type: 'boolean';
+    presentation?: 'yesNo';
+};
+
 /** Types that need nothing beyond the common properties */
 type DynamicFormPlainField = DynamicFormFieldBase & {
-    type: 'boolean' | 'currency' | 'percent';
+    type: 'currency' | 'percent';
 };
 
 /** One field of a schema-driven form, as the server sends it or as an App-owned schema declares it */
@@ -142,10 +144,14 @@ type DynamicFormField =
     | DynamicFormFileField
     | DynamicFormAmountField
     | DynamicFormCountryField
+    | DynamicFormBooleanField
     | DynamicFormPlainField;
 
+/** A field as the schema sends it, which can be of a type this App version does not know */
+type DynamicFormSchemaField = DynamicFormField | (DynamicFormFieldBase & {type: string});
+
 /** Answers to sensitive fields, keyed by form ID, then by field key. Kept in memory only, never in a draft. */
-type DynamicFormSensitiveAnswers = Record<string, Record<string, string>>;
+type DynamicFormSensitiveAnswers = Partial<Record<OnyxFormKey, Record<string, string>>>;
 
 /** Every type the renderer and validator handle */
 type DynamicFormFieldType = DynamicFormField['type'];
@@ -153,6 +159,7 @@ type DynamicFormFieldType = DynamicFormField['type'];
 export type {
     DynamicFormAddressField,
     DynamicFormAmountField,
+    DynamicFormBooleanField,
     DynamicFormChoiceField,
     DynamicFormCountryField,
     DynamicFormFileField,
@@ -163,6 +170,7 @@ export type {
     DynamicFormFieldType,
     DynamicFormNumberField,
     DynamicFormPlainField,
+    DynamicFormSchemaField,
     DynamicFormSensitiveAnswers,
     DynamicFormTextField,
 };

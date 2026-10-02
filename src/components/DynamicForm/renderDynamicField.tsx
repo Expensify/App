@@ -4,7 +4,7 @@ import CountryPicker from '@components/CountryPicker';
 import CurrencyPicker from '@components/CurrencyPicker';
 import DatePicker from '@components/DatePicker';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormValue} from '@components/Form/types';
+import type {InputComponentBaseProps} from '@components/Form/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import PercentageForm from '@components/PercentageForm';
 import PushRowWithModal from '@components/PushRowWithModal';
@@ -19,45 +19,42 @@ import getTextInputAutocorrectProps from '@libs/getTextInputAutocorrectProps';
 import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
 
 import CONST from '@src/CONST';
-import type {DynamicFormFieldType} from '@src/types/onyx';
-import type {DynamicFormNumberField, DynamicFormTextField} from '@src/types/onyx/DynamicFormField';
+import type {ThemeStyles} from '@src/styles';
+import type {DynamicFormFieldType, DynamicFormNumberField, DynamicFormTextField} from '@src/types/onyx';
 
 import type {ReactElement} from 'react';
+import type {InputModeOptions} from 'react-native';
 
 import React from 'react';
+import {View} from 'react-native';
 
+import type {DynamicFormFieldsProps} from './components/DynamicFormFields';
 import type {DynamicFormFieldOfType, DynamicFormValues} from './types';
 
-import AmountWithCurrencyAdapter from './adapters/AmountWithCurrencyAdapter';
 import CurrencyInlineListAdapter from './adapters/CurrencyInlineListAdapter';
 import FileUploadAdapter from './adapters/FileUploadAdapter';
 import InlineSelectionListAdapter from './adapters/InlineSelectionListAdapter';
 import TabsAdapter from './adapters/TabsAdapter';
 import YesNoAdapter from './adapters/YesNoAdapter';
-import getAddressInputKeys from './utils/getAddressInputKeys';
+import getAddressInputKeys, {isStateAsked} from './utils/getAddressInputKeys';
 import {getFieldChoices} from './utils/getFieldOptions';
 import getLocalizedText, {getFieldLabel} from './utils/getLocalizedText';
 
-type DynamicFieldContext = {
-    values: DynamicFormValues;
-    translate: LocalizedTranslate;
+type DynamicFieldContext = Pick<DynamicFormFieldsProps, 'values'> &
+    Required<Pick<DynamicFormFieldsProps, 'currency'>> & {
+        translate: LocalizedTranslate;
+        styles: ThemeStyles;
 
-    /** Currency of amount fields that let the user pick none */
-    currency: string;
-
-    /** The field is the page's only question, so a choice is drawn as the page itself instead of as a row */
-    isAloneOnPage: boolean;
-
-    /** Called when an answer changes the schema, with the draft key that changed */
-    onRefreshRequirements?: (inputID: string, value: FormValue) => void;
-};
+        /** The field is the page's only question, so a choice is drawn as the page itself instead of as a row */
+        isLoneField: boolean;
+    };
 
 /** Props every input gets from the renderer */
-type DynamicFieldInputProps = Required<ForwardedFSClassProps> & {
-    inputID: string;
-    shouldSaveDraft: boolean;
-    onValueChange?: (value: FormValue, key: string) => void;
-};
+type DynamicFieldInputProps = Required<ForwardedFSClassProps> &
+    Required<Pick<InputComponentBaseProps, 'inputID' | 'shouldSaveDraft'>> &
+    Pick<InputComponentBaseProps, 'onValueChange'> & {
+        onBlur?: () => void;
+    };
 
 type DynamicFieldInput = {
     input: ReactElement;
@@ -92,20 +89,53 @@ function getSensitiveDefaultValue(field: DynamicFormTextField | DynamicFormNumbe
     return field.sensitive && typeof value === 'string' ? value : undefined;
 }
 
+function renderTextInput(
+    field: DynamicFormTextField | DynamicFormNumberField,
+    {values, translate}: DynamicFieldContext,
+    inputProps: DynamicFieldInputProps,
+    inputMode: InputModeOptions | undefined,
+    isMultiline = false,
+): DynamicFieldInput {
+    return {
+        isMenuRow: false,
+        showsDescription: true,
+        input: (
+            <InputWrapper
+                InputComponent={TextInput}
+                {...inputProps}
+                defaultValue={getSensitiveDefaultValue(field, values)}
+                label={getFieldLabel(field, translate)}
+                hint={getTextHint(field, translate)}
+                maxLength={field.maxLength}
+                inputMode={inputMode}
+                multiline={isMultiline}
+                autoGrowHeight={isMultiline}
+                {...(isMultiline ? {} : getTextInputAutocorrectProps())}
+            />
+        ),
+    };
+}
+
 /** A lone choice field is the page itself: its options are listed inline under the question */
 function renderInlineChoice(label: string, choices: Choice[], inputProps: DynamicFieldInputProps, canSelectMultiple: boolean, isSearchable: boolean): DynamicFieldInput {
+    const listProps = {items: choices, isSearchable, searchInputLabel: label};
     return {
         isMenuRow: true,
         labelAbove: 'heading',
-        input: (
+        input: canSelectMultiple ? (
             <InputWrapper
                 InputComponent={InlineSelectionListAdapter}
                 {...inputProps}
-                valueType={canSelectMultiple ? 'stringList' : 'string'}
-                items={choices}
-                canSelectMultiple={canSelectMultiple}
-                isSearchable={isSearchable}
-                searchInputLabel={label}
+                {...listProps}
+                valueType="stringList"
+                canSelectMultiple
+            />
+        ) : (
+            <InputWrapper
+                InputComponent={InlineSelectionListAdapter}
+                {...inputProps}
+                {...listProps}
+                valueType="string"
             />
         ),
     };
@@ -125,10 +155,10 @@ function renderTabs(choices: Choice[], inputProps: DynamicFieldInputProps): Dyna
     };
 }
 
-const renderMultiChoice: DynamicFieldRenderer<'multiselect' | 'countryMultiselect'> = (field, {values, translate, isAloneOnPage}, inputProps) => {
+const renderMultiChoice: DynamicFieldRenderer<'multiselect' | 'countryMultiselect'> = (field, {values, translate, isLoneField}, inputProps) => {
     const label = getFieldLabel(field, translate);
     const choices = getFieldChoices(field, values, translate);
-    if (isAloneOnPage) {
+    if (isLoneField) {
         return renderInlineChoice(label, choices, inputProps, true, choices.length > CONST.STANDARD_LIST_ITEM_LIMIT);
     }
     return {
@@ -149,48 +179,16 @@ const renderMultiChoice: DynamicFieldRenderer<'multiselect' | 'countryMultiselec
 };
 
 const RENDERERS: {[TType in DynamicFormFieldType]: DynamicFieldRenderer<TType>} = {
-    text: (field, {values, translate}, inputProps) => ({
-        isMenuRow: false,
-        showsDescription: true,
-        input: (
-            <InputWrapper
-                InputComponent={TextInput}
-                {...inputProps}
-                defaultValue={getSensitiveDefaultValue(field, values)}
-                label={getFieldLabel(field, translate)}
-                hint={getTextHint(field, translate)}
-                maxLength={field.maxLength}
-                inputMode={field.keyboard ?? (field.rule === 'phone' ? CONST.INPUT_MODE.TEL : undefined)}
-                multiline={field.multiline}
-                autoGrowHeight={field.multiline}
-                {...(field.multiline ? {} : getTextInputAutocorrectProps())}
-            />
-        ),
-    }),
-    number: (field, {values, translate}, inputProps) => ({
-        isMenuRow: false,
-        showsDescription: true,
-        input: (
-            <InputWrapper
-                InputComponent={TextInput}
-                {...inputProps}
-                defaultValue={getSensitiveDefaultValue(field, values)}
-                label={getFieldLabel(field, translate)}
-                hint={getTextHint(field, translate)}
-                maxLength={field.maxLength}
-                inputMode={CONST.INPUT_MODE.NUMERIC}
-                {...getTextInputAutocorrectProps()}
-            />
-        ),
-    }),
-    select: (field, {values, translate, isAloneOnPage}, inputProps) => {
+    text: (field, context, inputProps) => renderTextInput(field, context, inputProps, field.keyboard ?? (field.rule === 'phone' ? CONST.INPUT_MODE.TEL : undefined), field.multiline),
+    number: (field, context, inputProps) => renderTextInput(field, context, inputProps, CONST.INPUT_MODE.NUMERIC),
+    select: (field, {values, translate, isLoneField}, inputProps) => {
         const label = getFieldLabel(field, translate);
         const choices = getFieldChoices(field, values, translate);
         const isLong = choices.length > CONST.STANDARD_LIST_ITEM_LIMIT;
         if (field.presentation === 'tabs') {
             return renderTabs(choices, inputProps);
         }
-        if (isAloneOnPage) {
+        if (isLoneField) {
             return renderInlineChoice(label, choices, inputProps, false, isLong);
         }
         if (isLong) {
@@ -220,14 +218,14 @@ const RENDERERS: {[TType in DynamicFormFieldType]: DynamicFieldRenderer<TType>} 
             ),
         };
     },
-    radio: (field, {values, translate, isAloneOnPage}, inputProps) => {
+    radio: (field, {values, translate, isLoneField}, inputProps) => {
         const choices = getFieldChoices(field, values, translate);
         if (field.presentation === 'tabs') {
             return renderTabs(choices, inputProps);
         }
         return {
             isMenuRow: true,
-            labelAbove: isAloneOnPage ? 'heading' : 'prompt',
+            labelAbove: isLoneField ? 'heading' : 'prompt',
             input: (
                 <InputWrapper
                     InputComponent={RadioButtons}
@@ -248,11 +246,11 @@ const RENDERERS: {[TType in DynamicFormFieldType]: DynamicFieldRenderer<TType>} 
             />
         ),
     }),
-    boolean: (field, {translate, isAloneOnPage}, inputProps) => {
-        if (isAloneOnPage) {
+    boolean: (field, {translate, isLoneField}, inputProps) => {
+        if (field.presentation === 'yesNo') {
             return {
                 isMenuRow: true,
-                labelAbove: 'heading',
+                labelAbove: isLoneField ? 'heading' : 'prompt',
                 input: (
                     <InputWrapper
                         InputComponent={YesNoAdapter}
@@ -274,9 +272,9 @@ const RENDERERS: {[TType in DynamicFormFieldType]: DynamicFieldRenderer<TType>} 
             ),
         };
     },
-    country: (field, {values, translate, isAloneOnPage}, inputProps) => {
+    country: (field, {values, translate, isLoneField}, inputProps) => {
         const label = getFieldLabel(field, translate);
-        if (isAloneOnPage) {
+        if (isLoneField) {
             return renderInlineChoice(label, getFieldChoices(field, values, translate), inputProps, false, true);
         }
         return {
@@ -290,8 +288,8 @@ const RENDERERS: {[TType in DynamicFormFieldType]: DynamicFieldRenderer<TType>} 
             ),
         };
     },
-    currency: (field, {translate, isAloneOnPage}, inputProps) => {
-        if (isAloneOnPage) {
+    currency: (field, {translate, isLoneField}, inputProps) => {
+        if (isLoneField) {
             return {
                 isMenuRow: true,
                 labelAbove: 'heading',
@@ -314,7 +312,7 @@ const RENDERERS: {[TType in DynamicFormFieldType]: DynamicFieldRenderer<TType>} 
             ),
         };
     },
-    address: (field, {onRefreshRequirements}, {shouldSaveDraft, forwardedFSClass}) => {
+    address: (field, {values}, {shouldSaveDraft, forwardedFSClass, onValueChange}) => {
         const addressKeys = getAddressInputKeys(field.key);
         return {
             isMenuRow: false,
@@ -325,12 +323,13 @@ const RENDERERS: {[TType in DynamicFormFieldType]: DynamicFieldRenderer<TType>} 
                     streetTranslationKey="common.streetAddress"
                     shouldSaveDraft={shouldSaveDraft}
                     shouldDisplayCountrySelector
+                    shouldDisplayStateSelector={isStateAsked(values[addressKeys.country])}
                     forwardedFSClass={forwardedFSClass}
                     onCountryChange={(country) => {
-                        if (!field.refreshRequirementsOnChange || typeof country !== 'string') {
+                        if (typeof country !== 'string') {
                             return;
                         }
-                        onRefreshRequirements?.(addressKeys.country, country);
+                        onValueChange?.(country, addressKeys.country);
                     }}
                 />
             ),
@@ -357,34 +356,37 @@ const RENDERERS: {[TType in DynamicFormFieldType]: DynamicFieldRenderer<TType>} 
             ),
         };
     },
-    amount: (field, {values, translate, currency}, inputProps) => {
-        const label = getFieldLabel(field, translate);
+    amount: (field, {values, translate, styles, currency}, inputProps) => {
+        const chosenCurrency = field.currencyKey ? values[field.currencyKey] : undefined;
+        const amountInput = (
+            <InputWrapper
+                InputComponent={AmountForm}
+                {...inputProps}
+                label={getFieldLabel(field, translate)}
+                currency={typeof chosenCurrency === 'string' && chosenCurrency !== '' ? chosenCurrency : currency}
+                displayAsTextInput
+                isCurrencyPressable={false}
+            />
+        );
         if (!field.currencyKey) {
-            return {
-                isMenuRow: false,
-                input: (
-                    <InputWrapper
-                        InputComponent={AmountForm}
-                        {...inputProps}
-                        label={label}
-                        currency={currency}
-                        displayAsTextInput
-                        isCurrencyPressable={false}
-                    />
-                ),
-            };
+            return {isMenuRow: false, input: amountInput};
         }
-        const chosenCurrency = values[field.currencyKey];
         return {
             isMenuRow: false,
             input: (
-                <InputWrapper
-                    InputComponent={AmountWithCurrencyAdapter}
-                    {...inputProps}
-                    label={label}
-                    currency={typeof chosenCurrency === 'string' && chosenCurrency !== '' ? chosenCurrency : currency}
-                    currencyKey={field.currencyKey}
-                />
+                <>
+                    <View style={[styles.mhn5, styles.mb2]}>
+                        <InputWrapper
+                            InputComponent={CurrencyPicker}
+                            inputID={field.currencyKey}
+                            shouldSaveDraft={inputProps.shouldSaveDraft}
+                            forwardedFSClass={inputProps.forwardedFSClass}
+                            defaultValue={currency}
+                            label={translate('common.currency')}
+                        />
+                    </View>
+                    {amountInput}
+                </>
             ),
         };
     },

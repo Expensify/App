@@ -41,7 +41,7 @@ describe('YesNoAdapter', () => {
         // When it renders
         const radioProps = mockedRadioButtons.mock.lastCall?.[0];
 
-        // Then neither option is checked
+        // Then neither option is checked, so the user is not nudged towards an answer
         expect(radioProps?.value).toBe('');
     });
 });

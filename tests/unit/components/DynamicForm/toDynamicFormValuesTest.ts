@@ -9,6 +9,7 @@ describe('toDynamicFormValues', () => {
             countries: ['GB', 'US'],
             files: [{name: 'passport.pdf'}],
             errors: {name: 'Required'},
+            errorList: [{message: 'Required'}],
             mixedList: ['GB', 1],
             count: 3,
         };
@@ -21,9 +22,9 @@ describe('toDynamicFormValues', () => {
     });
 
     it('returns no answers for a missing draft', () => {
-        // Given no draft yet
+        // Given no draft yet, as on a first visit
         // When it is read
-        // Then there are no answers
+        // Then there are no answers, so the form starts empty instead of failing
         expect(toDynamicFormValues(undefined)).toEqual({});
     });
 });

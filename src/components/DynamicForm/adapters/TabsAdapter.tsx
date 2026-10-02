@@ -10,10 +10,9 @@ import {View} from 'react-native';
 type TabsAdapterProps = {
     items: Choice[];
 
-    /** Picked option key supplied by the FormProvider */
+    /** Key of the picked option */
     value?: string;
 
-    /** Callback to update the choice in the FormProvider */
     onInputChange?: (value: string) => void;
 
     errorText?: string;

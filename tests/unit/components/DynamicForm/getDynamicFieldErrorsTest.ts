@@ -6,7 +6,7 @@ import {getCountryZipRegexDetails} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
-import type {DynamicFormField} from '@src/types/onyx';
+import type {DynamicFormField, DynamicFormSchemaField} from '@src/types/onyx';
 
 import {format, subYears} from 'date-fns';
 
@@ -175,12 +175,7 @@ describe('getDynamicFieldErrors', () => {
 
     it('drops a field of an unknown type instead of blocking submission', () => {
         // Given a required field whose type this App version does not know, as a newer server could send
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- stands in for a server type the App does not know
-        const signature = {
-            key: 'signature',
-            type: 'signature',
-            required: true,
-        } as unknown as DynamicFormField;
+        const signature: DynamicFormSchemaField = {key: 'signature', type: 'signature', required: true};
 
         // When the form is validated twice
         getDynamicFieldErrors([signature], {}, translateLocal);
@@ -215,7 +210,7 @@ describe('getDynamicFieldErrors', () => {
         });
     });
 
-    it('treats an empty multiselect as unanswered and rejects a choice no longer offered', () => {
+    it('treats a multiselect as unanswered when it holds no option still offered', () => {
         // Given a required multiselect whose options depend on the business type
         const industries: DynamicFormField = {
             key: 'industries',
@@ -224,13 +219,15 @@ describe('getDynamicFieldErrors', () => {
             dependsOn: {key: 'businessType', valuesBy: {RETAIL: [{key: 'CLOTHING'}], SERVICES: [{key: 'CONSULTING'}]}},
         };
 
-        // When it is left empty, and when it keeps a retail choice after the business type changed to services
+        // When it is left empty, when it keeps only a retail choice after the business type changed to services, and when it also has a services choice
         const emptyErrors = getDynamicFieldErrors([industries], {businessType: 'RETAIL', industries: []}, translateLocal);
         const staleErrors = getDynamicFieldErrors([industries], {businessType: 'SERVICES', industries: ['CLOTHING']}, translateLocal);
+        const mixedErrors = getDynamicFieldErrors([industries], {businessType: 'SERVICES', industries: ['CLOTHING', 'CONSULTING']}, translateLocal);
 
-        // Then the empty list is flagged as required, and the stale choice as invalid
+        // Then the list inputs show no stale choice the user could clear, so a list of only stale choices is flagged as required, like an empty one
         expect(emptyErrors).toEqual({industries: translateLocal('common.error.fieldRequired')});
-        expect(staleErrors).toEqual({industries: translateLocal('dynamicForm.error.invalidOption')});
+        expect(staleErrors).toEqual({industries: translateLocal('common.error.fieldRequired')});
+        expect(mixedErrors).toEqual({});
     });
 
     it('flags each missing part of a required address on its own input', () => {
@@ -244,6 +241,19 @@ describe('getDynamicFieldErrors', () => {
         // Then city, state, zip and country are each flagged, so every empty input shows its own error
         const required = translateLocal('common.error.fieldRequired');
         expect(errors).toEqual({[addressKeys.city]: required, [addressKeys.state]: required, [addressKeys.zipCode]: required, [addressKeys.country]: required});
+    });
+
+    it('requires the state only in countries the state picker covers', () => {
+        // Given a required UK address with every part but the state
+        const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: true};
+        const addressKeys = getAddressInputKeys(homeAddress.key);
+        const values = {homeAddress: '1 High Street', [addressKeys.city]: 'London', [addressKeys.zipCode]: 'SW1A 1AA', [addressKeys.country]: 'GB'};
+
+        // When the form is validated
+        const errors = getDynamicFieldErrors([homeAddress], values, translateLocal);
+
+        // Then nothing is flagged, since the picker only lists US states and Canadian provinces
+        expect(errors).toEqual({});
     });
 
     it('accepts US and international phone numbers and rejects incomplete ones', () => {
@@ -261,16 +271,32 @@ describe('getDynamicFieldErrors', () => {
         expect(incompleteErrors).toEqual({phone: translateLocal('common.error.phoneNumber')});
     });
 
-    it('accepts No as the answer to a lone Yes/No question', () => {
-        // Given a required boolean that is the only question on the page, so it is asked as Yes/No
-        const hasOtherOwners: DynamicFormField = {key: 'hasOtherOwners', type: 'boolean', required: true};
+    it('accepts No as the answer to a Yes/No question, but not as consent', () => {
+        // Given a required Yes/No question and a required consent checkbox, each alone on its page
+        const hasOtherOwners: DynamicFormField = {key: 'hasOtherOwners', type: 'boolean', required: true, presentation: 'yesNo'};
+        const acceptTerms: DynamicFormField = {key: 'acceptTerms', type: 'boolean', required: true};
 
-        // When it is answered No, and when it is not answered
+        // When the question is answered No or not at all, and the checkbox is left empty
         const noErrors = getDynamicFieldErrors([hasOtherOwners], {hasOtherOwners: false}, translateLocal);
         const unansweredErrors = getDynamicFieldErrors([hasOtherOwners], {hasOtherOwners: ''}, translateLocal);
+        const consentErrors = getDynamicFieldErrors([acceptTerms], {acceptTerms: false}, translateLocal);
 
-        // Then No is a valid answer, and only the unanswered question is flagged
+        // Then No answers the question, while an unanswered question and an empty checkbox are flagged, since every checkbox must be ticked
         expect(noErrors).toEqual({});
         expect(unansweredErrors).toEqual({hasOtherOwners: translateLocal('common.error.fieldRequired')});
+        expect(consentErrors).toEqual({acceptTerms: translateLocal('common.error.fieldRequired')});
+    });
+
+    it('skips a field whose controlling field is hidden on another page', () => {
+        // Given a proof upload revealed by a source of funds, which is only asked for risky industries, each on its own page
+        const industry: DynamicFormField = {key: 'industry', type: 'select', required: true, values: [{key: 'SAFE'}, {key: 'RISKY'}]};
+        const sourceOfFunds: DynamicFormField = {key: 'sourceOfFunds', type: 'select', required: true, showWhen: {key: 'industry', equals: ['RISKY']}};
+        const proof: DynamicFormField = {key: 'proof', type: 'file', required: true, showWhen: {key: 'sourceOfFunds', equals: ['SALARY']}};
+
+        // When the proof page is validated for a safe industry, with a source of funds left from an earlier risky answer
+        const errors = getDynamicFieldErrors([proof], {industry: 'SAFE', sourceOfFunds: 'SALARY'}, translateLocal, [industry, sourceOfFunds, proof]);
+
+        // Then the proof is not required, since it is not asked
+        expect(errors).toEqual({});
     });
 });

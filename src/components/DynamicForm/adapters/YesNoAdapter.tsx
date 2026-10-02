@@ -8,16 +8,15 @@ const YES = 'yes';
 const NO = 'no';
 
 type YesNoAdapterProps = {
-    /** Answer supplied by the FormProvider. The empty string means unanswered. */
+    /** The empty string means unanswered */
     value?: boolean | '';
 
-    /** Callback to update the answer in the FormProvider */
     onInputChange?: (value: boolean) => void;
 
     errorText?: string;
 };
 
-/** A boolean asked as a Yes/No question, for a boolean that is alone on its page */
+/** A boolean asked as a Yes/No question, where No is an answer too */
 function YesNoAdapter({value, onInputChange = () => {}, errorText}: YesNoAdapterProps) {
     const {translate} = useLocalize();
     let checkedValue = '';

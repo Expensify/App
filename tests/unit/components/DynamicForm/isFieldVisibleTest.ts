@@ -1,4 +1,4 @@
-import isFieldVisible from '@components/DynamicForm/utils/isFieldVisible';
+import {isFieldVisible} from '@components/DynamicForm/utils/getVisibleFields';
 
 import type {DynamicFormField} from '@src/types/onyx';
 
@@ -27,7 +27,7 @@ describe('isFieldVisible', () => {
     it('shows a field without showWhen', () => {
         // Given a field that does not depend on any answer
         // When its visibility is checked with no answers
-        // Then it is visible
+        // Then it is visible, since nothing can hide it
         expect(isFieldVisible(legalType, {}, [legalType])).toBe(true);
     });
 
@@ -48,7 +48,7 @@ describe('isFieldVisible', () => {
         // When companyName keeps a matching answer from before the user switched to a private recipient
         const values = {legalType: 'PRIVATE', companyName: 'Acme'};
 
-        // Then companyNumber stays hidden, because the question it depends on is no longer asked
+        // Then companyNumber stays hidden, because the question it depends on is hidden
         expect(isFieldVisible(companyNumber, values, fields)).toBe(false);
     });
 

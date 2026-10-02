@@ -1,4 +1,4 @@
-import type {DynamicFormField, DynamicFormFieldType} from '@src/types/onyx';
+import type {DynamicFormField, DynamicFormFieldType, DynamicFormSchemaField} from '@src/types/onyx';
 
 import logSchemaProblem from './logSchemaProblem';
 
@@ -19,15 +19,12 @@ const SUPPORTED_FIELD_TYPES: Record<DynamicFormFieldType, true> = {
     percent: true,
 };
 
-/** Server schemas can carry types this App version does not know. Such a field is left out so it neither renders nor blocks submission. */
-function isSupportedField(field: DynamicFormField): boolean {
+/** A field of a type this App version does not know is left out, so it neither renders nor blocks submission */
+function isSupportedField(field: DynamicFormSchemaField): field is DynamicFormField {
     if (Object.hasOwn(SUPPORTED_FIELD_TYPES, field.type)) {
         return true;
     }
-    logSchemaProblem('Unknown field type', {
-        type: String(field.type),
-        key: field.key,
-    });
+    logSchemaProblem('Unknown field type', {type: field.type, key: field.key});
     return false;
 }
 

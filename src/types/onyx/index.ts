@@ -80,7 +80,24 @@ import type DomainHighlightItems from './DomainHighlightItems';
 import type DomainPendingActions from './DomainPendingActions';
 import type Download from './Download';
 import type DuplicateWorkspace from './DuplicateWorkspace';
-import type {DynamicFormField, DynamicFormFieldOption, DynamicFormFieldType, DynamicFormSensitiveAnswers} from './DynamicFormField';
+import type {
+    DynamicFormAddressField,
+    DynamicFormAmountField,
+    DynamicFormBooleanField,
+    DynamicFormChoiceField,
+    DynamicFormCountryField,
+    DynamicFormDateField,
+    DynamicFormField,
+    DynamicFormFieldOption,
+    DynamicFormFieldType,
+    DynamicFormFileField,
+    DynamicFormMultiChoiceField,
+    DynamicFormNumberField,
+    DynamicFormPlainField,
+    DynamicFormSchemaField,
+    DynamicFormSensitiveAnswers,
+    DynamicFormTextField,
+} from './DynamicFormField';
 import type ExpenseRule from './ExpenseRule';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
 import type ExpensifyCardLoadingState from './ExpensifyCardLoadingState';
@@ -436,10 +453,22 @@ export type {
     ShareTempFile,
     CorpayFields,
     CorpayFormField,
+    DynamicFormAddressField,
+    DynamicFormAmountField,
+    DynamicFormBooleanField,
+    DynamicFormChoiceField,
+    DynamicFormCountryField,
+    DynamicFormDateField,
     DynamicFormField,
     DynamicFormFieldOption,
     DynamicFormFieldType,
+    DynamicFormFileField,
+    DynamicFormMultiChoiceField,
+    DynamicFormNumberField,
+    DynamicFormPlainField,
+    DynamicFormSchemaField,
     DynamicFormSensitiveAnswers,
+    DynamicFormTextField,
     JoinablePolicies,
     DismissedProductTraining,
     TravelProvisioning,

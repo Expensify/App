@@ -12,7 +12,7 @@ function isFormValue(value: unknown): value is FormValue {
     return (
         items.every((item) => typeof item === 'string') ||
         items.every((item) => typeof item === 'boolean') ||
-        items.every((item) => typeof item === 'object' && item !== null && !Array.isArray(item))
+        items.every((item) => typeof item === 'object' && item !== null && ('name' in item || 'uri' in item))
     );
 }
 

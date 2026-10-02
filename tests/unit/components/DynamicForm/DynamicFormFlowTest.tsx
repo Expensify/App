@@ -6,9 +6,7 @@ import type {DynamicFormSubPageProps} from '@components/DynamicForm/types';
 import useSubPage from '@hooks/useSubPage';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 
-import Navigation from '@libs/Navigation/Navigation';
-
-import {clearSensitiveAnswers, saveSensitiveAnswers} from '@userActions/DynamicForm';
+import {clearSensitiveAnswers, saveDraftAnswers, saveSensitiveAnswers} from '@userActions/DynamicForm';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -19,17 +17,19 @@ import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../../../utils/waitForBatchedUpdatesWithAct';
 
+/** useSubPage types its page as taking SubPageProps alone, so the flow's props are checked for at run time */
 function hasDynamicFormProps(props: SubPageProps | undefined): props is DynamicFormSubPageProps {
     return !!props && 'onGroupSubmit' in props;
 }
 
 const mockCurrentPage = jest.fn<null, [SubPageProps]>(() => null);
 const mockPrevPage = jest.fn();
+const mockResetToPage = jest.fn();
 let mockOnBackButtonPress: (() => void) | undefined;
 
 jest.mock('@hooks/useSubPage', () => jest.fn());
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
-jest.mock('@userActions/DynamicForm', () => ({saveSensitiveAnswers: jest.fn(), clearSensitiveAnswers: jest.fn()}));
+jest.mock('@userActions/DynamicForm', () => ({saveDraftAnswers: jest.fn(), saveSensitiveAnswers: jest.fn(), clearSensitiveAnswers: jest.fn()}));
 jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn(), goBack: jest.fn()}));
 jest.mock('@components/ScreenWrapper', () => jest.fn(({children}: {children: React.ReactNode}) => children));
 jest.mock('@components/FullscreenLoadingIndicator', () => jest.fn(() => null));
@@ -52,32 +52,35 @@ const fields: DynamicFormField[] = [
 const buildRoute = (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_PERSONAL.getRoute(pageName, action);
 
 type RenderFlowOptions = {
+    flowFields?: DynamicFormField[];
     draft?: Record<string, string>;
     sensitiveAnswers?: Record<string, string>;
     pageIndex?: number;
+    currentPageName?: string;
+    isRedirecting?: boolean;
 };
 
-async function renderFlow({draft = {}, sensitiveAnswers = {}, pageIndex = 0}: RenderFlowOptions = {}) {
+async function renderFlow({flowFields = fields, draft = {}, sensitiveAnswers = {}, pageIndex = 0, currentPageName = 'personal-details', isRedirecting = false}: RenderFlowOptions = {}) {
     await Onyx.set(`${FORM_ID}Draft`, draft);
     await Onyx.set(ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS, {[FORM_ID]: sensitiveAnswers});
     jest.mocked(useSubPage<DynamicFormSubPageProps>).mockReturnValue({
         CurrentPage: mockCurrentPage,
         isEditing: false,
-        currentPageName: 'personal-details',
+        currentPageName,
         pageIndex,
         lastPageIndex: 3,
         nextPage: jest.fn(),
         prevPage: mockPrevPage,
         moveTo: jest.fn(),
-        resetToPage: jest.fn(),
-        isRedirecting: false,
+        resetToPage: mockResetToPage,
+        isRedirecting,
     });
     const onSubmit = jest.fn();
     const onBack = jest.fn();
     const onGroupSubmit = jest.fn();
     render(
         <DynamicFormFlow
-            fields={fields}
+            fields={flowFields}
             formID={FORM_ID}
             headerTitle="Bank account"
             confirmationTitle="Confirm"
@@ -94,10 +97,7 @@ async function renderFlow({draft = {}, sensitiveAnswers = {}, pageIndex = 0}: Re
         throw new Error('useSubPage was not called');
     }
     const pageProps = mockCurrentPage.mock.lastCall?.[0];
-    if (!hasDynamicFormProps(pageProps)) {
-        throw new Error('The current page did not get the flow props');
-    }
-    return {subPageOptions, onSubmit, onBack, onGroupSubmit, pageProps};
+    return {subPageOptions, onSubmit, onBack, onGroupSubmit, pageProps: hasDynamicFormProps(pageProps) ? pageProps : undefined};
 }
 
 describe('DynamicFormFlow', () => {
@@ -120,38 +120,73 @@ describe('DynamicFormFlow', () => {
         expect(subPageOptions.skipPages).toEqual(['company']);
     });
 
-    it('starts a new form on its first page and resumes a started one on its first incomplete page', async () => {
-        // Given an empty draft, then a form whose first page is answered and whose recipient page is not
+    it('starts a new form on its first page that has something to ask', async () => {
+        // Given an empty draft, and a form whose first page only asks a follow-up to a later answer
+        const followUpFirst: DynamicFormField[] = [{key: 'companyNumber', type: 'text', required: true, group: 'Company', showWhen: {key: 'legalType', equals: ['BUSINESS']}}, ...fields];
+
         // When the flow renders each
         const newForm = (await renderFlow()).subPageOptions;
-        const startedForm = (await renderFlow({draft: {firstName: 'Jane'}, sensitiveAnswers: {ssn: '123456789'}})).subPageOptions;
+        const skippedFirstPage = (await renderFlow({flowFields: followUpFirst})).subPageOptions;
 
-        // Then the new form starts on page one, and the started form resumes on the recipient page
+        // Then the first form starts on page one, and the other skips its empty first page instead of showing it
         expect(newForm.startFrom).toBe(0);
-        expect(startedForm.startFrom).toBe(1);
+        expect(skippedFirstPage.startFrom).toBe(1);
     });
 
-    it('opens the confirmation page when every page is complete', async () => {
-        // Given a complete form
-        // When the flow renders
-        const {subPageOptions} = await renderFlow({draft: {firstName: 'Jane', legalType: 'PRIVATE'}, sensitiveAnswers: {ssn: '123456789'}});
+    it('resumes a started form on the first page its draft leaves incomplete', async () => {
+        // Given a form without sensitive fields whose first page is answered and whose recipient page is not
+        const flowFields = fields.filter((field) => field.key !== 'ssn');
 
-        // Then it opens on the confirmation page
+        // When the flow renders
+        const {subPageOptions} = await renderFlow({flowFields, draft: {firstName: 'Jane'}});
+
+        // Then it resumes on the recipient page, so the user does not walk through answered pages again
+        expect(subPageOptions.startFrom).toBe(1);
+    });
+
+    it('opens the confirmation page when the draft completes every page', async () => {
+        // Given a complete form without sensitive fields
+        const flowFields = fields.filter((field) => field.key !== 'ssn');
+
+        // When the flow renders
+        const {subPageOptions} = await renderFlow({flowFields, draft: {firstName: 'Jane', legalType: 'PRIVATE'}});
+
+        // Then it opens on the confirmation page, where the user only has to confirm
         expect(subPageOptions.startFrom).toBe(3);
     });
 
-    it('keeps sensitive answers out of the draft by saving them in memory', async () => {
+    it('drops sensitive answers of an earlier visit and asks for them again on a new visit', async () => {
+        // Given a draft that completes the form, and an SSN kept in memory from an earlier visit
+        // When the flow opens with no page in the URL
+        const {subPageOptions} = await renderFlow({draft: {firstName: 'Jane', legalType: 'PRIVATE'}, sensitiveAnswers: {ssn: '123456789'}, isRedirecting: true});
+
+        // Then the old SSN is cleared and the visit starts on the SSN's page, since sensitive answers last one visit only
+        expect(clearSensitiveAnswers).toHaveBeenCalledWith(FORM_ID);
+        expect(subPageOptions.startFrom).toBe(0);
+    });
+
+    it('moves a URL naming a skipped page to where a new visit starts', async () => {
+        // Given a private recipient, so the company page has nothing to ask
+        // When the URL names the company page
+        await renderFlow({draft: {legalType: 'PRIVATE'}, currentPageName: 'company'});
+
+        // Then the flow moves to the first page instead of showing an empty one
+        expect(mockResetToPage).toHaveBeenCalledWith('personal-details');
+    });
+
+    it('drafts the page answers, keeps sensitive ones in memory, and hands the screen only this page', async () => {
         // Given the first page
         const {pageProps, onGroupSubmit} = await renderFlow();
-        const group = pageProps.groups.at(0);
-        if (!group) {
+        const group = pageProps?.groups.at(0);
+        if (!pageProps || !group) {
             throw new Error('No first page');
         }
 
-        // When the user leaves it with Next
-        pageProps.onGroupSubmit(group, {firstName: 'Jane', ssn: '123456789'});
+        // When the user leaves it with Next, with FormProvider's values also holding another page's answer
+        pageProps.onGroupSubmit(group, {firstName: 'Jane', ssn: '123456789', legalType: 'PRIVATE'});
 
-        // Then only the SSN goes to memory, and the screen still gets the whole page
+        // Then the name is drafted as submitted, the SSN goes to memory only, and the screen gets this page's answers alone
+        expect(saveDraftAnswers).toHaveBeenCalledWith(FORM_ID, {firstName: 'Jane'});
         expect(saveSensitiveAnswers).toHaveBeenCalledWith(FORM_ID, {ssn: '123456789'});
         expect(onGroupSubmit).toHaveBeenCalledWith(group, {firstName: 'Jane', ssn: '123456789'});
     });
@@ -174,8 +209,8 @@ describe('DynamicFormFlow', () => {
         // When the user confirms from the confirmation page
         subPageOptions.onFinished();
 
-        // Then the first page opens and nothing is submitted
-        expect(Navigation.navigate).toHaveBeenCalledWith(buildRoute('personal-details'));
+        // Then the first page opens the way useSubPage changes pages, and nothing is submitted
+        expect(mockResetToPage).toHaveBeenCalledWith('personal-details');
         expect(onSubmit).not.toHaveBeenCalled();
     });
 

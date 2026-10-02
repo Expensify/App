@@ -3,8 +3,7 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {Choice} from '@components/RadioButtons';
 
 import CONST from '@src/CONST';
-import type {DynamicFormFieldOption} from '@src/types/onyx';
-import type {DynamicFormChoiceField, DynamicFormCountryField, DynamicFormMultiChoiceField} from '@src/types/onyx/DynamicFormField';
+import type {DynamicFormChoiceField, DynamicFormCountryField, DynamicFormFieldOption, DynamicFormMultiChoiceField} from '@src/types/onyx';
 
 import getLocalizedText from './getLocalizedText';
 import isCountryCode from './isCountryCode';
@@ -29,12 +28,11 @@ function getListedOptions(field: DynamicFormChoiceField | DynamicFormMultiChoice
 /** The options a choice field offers right now, picked by the answer it depends on */
 function getFieldOptions(field: DynamicFormOptionField, values: DynamicFormValues): DynamicFormFieldOption[] {
     switch (field.type) {
-        case 'select':
-        case 'radio':
-        case 'multiselect':
-            return getListedOptions(field, values);
-        default:
+        case 'country':
+        case 'countryMultiselect':
             return COUNTRY_OPTIONS;
+        default:
+            return getListedOptions(field, values);
     }
 }
 

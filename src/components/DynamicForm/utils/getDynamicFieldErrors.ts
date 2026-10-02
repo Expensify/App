@@ -14,22 +14,32 @@ import {
     meetsMinimumAgeRequirement,
 } from '@libs/ValidationUtils';
 
-import type {DynamicFormField, DynamicFormFieldType} from '@src/types/onyx';
-import type {DynamicFormAddressField, DynamicFormChoiceField, DynamicFormNumberField, DynamicFormTextField} from '@src/types/onyx/DynamicFormField';
+import type {
+    DynamicFormAddressField,
+    DynamicFormChoiceField,
+    DynamicFormCountryField,
+    DynamicFormField,
+    DynamicFormFieldType,
+    DynamicFormMultiChoiceField,
+    DynamicFormNumberField,
+    DynamicFormSchemaField,
+    DynamicFormTextField,
+} from '@src/types/onyx';
 
-import getAddressInputKeys from './getAddressInputKeys';
+import getAddressInputKeys, {isStateAsked} from './getAddressInputKeys';
 import getFieldOptions from './getFieldOptions';
-import getVisibleFields, {getLoneField} from './getVisibleFields';
+import getVisibleFields from './getVisibleFields';
 import isCountryCode from './isCountryCode';
+import isSupportedField from './isSupportedField';
 import logSchemaProblem from './logSchemaProblem';
 
 /** Checks a field the user has answered. Unanswered fields only get the required check. */
 type FieldValidator<TType extends DynamicFormFieldType> = (field: DynamicFormFieldOfType<TType>, values: DynamicFormValues, translate: LocalizedTranslate) => string[];
 
-/** A lone boolean is a Yes/No question, so No answers it. Among other fields it is a consent checkbox, so only a ticked box does. */
-function isAnswered(value: FormValue | undefined, isAloneOnPage = false): boolean {
+/** A checkbox that is not ticked is unanswered. `isNoAnAnswer` is for a Yes/No question, where No answers it. */
+function isAnswered(value: FormValue | undefined, isNoAnAnswer = false): boolean {
     if (typeof value === 'boolean') {
-        return isAloneOnPage || value;
+        return value || isNoAnAnswer;
     }
     if (typeof value === 'string') {
         return value.trim() !== '';
@@ -52,6 +62,12 @@ function getStringListAnswer(field: DynamicFormField, values: DynamicFormValues)
     }
     const items: unknown[] = value;
     return items.filter((item): item is string => typeof item === 'string');
+}
+
+/** The chosen keys the field still offers. Options change with the answer they depend on, and a key no longer offered is dropped. */
+function getOfferedChoices(field: DynamicFormMultiChoiceField | DynamicFormCountryField, values: DynamicFormValues): string[] {
+    const offeredKeys = new Set(getFieldOptions(field, values).map((option) => option.key));
+    return getStringListAnswer(field, values).filter((key) => offeredKeys.has(key));
 }
 
 function matchesRegex(value: string, pattern: string, fieldKey: string): boolean {
@@ -84,10 +100,9 @@ function getChoiceErrors(field: DynamicFormChoiceField, values: DynamicFormValue
     return isOffered ? [] : [translate('dynamicForm.error.invalidOption')];
 }
 
+/** The list inputs only show offered options, so a list holding nothing but keys no longer offered reads as empty */
 function getMultiChoiceErrors(field: DynamicFormFieldOfType<'multiselect' | 'countryMultiselect'>, values: DynamicFormValues, translate: LocalizedTranslate): string[] {
-    const offeredKeys = new Set(getFieldOptions(field, values).map((option) => option.key));
-    const isEveryChoiceOffered = getStringListAnswer(field, values).every((key) => offeredKeys.has(key));
-    return isEveryChoiceOffered ? [] : [translate('dynamicForm.error.invalidOption')];
+    return field.required && getOfferedChoices(field, values).length === 0 ? [translate('common.error.fieldRequired')] : [];
 }
 
 /** For inputs that only accept valid answers: UploadFile checks type, size and count, AmountForm and PercentageForm reject invalid typing */
@@ -108,11 +123,7 @@ const VALIDATORS: {[TType in DynamicFormFieldType]: FieldValidator<TType>} = {
     number: (field, values, translate) => {
         const value = getStringAnswer(field, values);
         if (!Number.isFinite(Number(value))) {
-            return [
-                translate('dynamicForm.error.invalidFormat', {
-                    example: field.example,
-                }),
-            ];
+            return [translate('dynamicForm.error.invalidFormat', {example: field.example})];
         }
         return getFormatErrors(field, value, translate);
     },
@@ -132,7 +143,7 @@ const VALIDATORS: {[TType in DynamicFormFieldType]: FieldValidator<TType>} = {
         return meetsMinimumAgeRequirement(value) ? [] : [translate('bankAccount.error.age')];
     },
     // The street is the field's own value and needs no check beyond required. getAddressPartErrors checks the other parts.
-    address: () => [],
+    address: noChecks,
     multiselect: getMultiChoiceErrors,
     countryMultiselect: getMultiChoiceErrors,
     boolean: noChecks,
@@ -146,9 +157,11 @@ const VALIDATORS: {[TType in DynamicFormFieldType]: FieldValidator<TType>} = {
 /** Each address part has its own input, so its errors go under its own draft key */
 function getAddressPartErrors(field: DynamicFormAddressField, values: DynamicFormValues, translate: LocalizedTranslate): Array<[inputID: string, message: string]> {
     const addressKeys = getAddressInputKeys(field.key);
+    const chosenCountry = values[addressKeys.country];
     const partErrors: Array<[string, string]> = [];
     if (field.required) {
-        for (const partKey of [addressKeys.city, addressKeys.state, addressKeys.zipCode, addressKeys.country]) {
+        const requiredPartKeys = [addressKeys.city, addressKeys.zipCode, addressKeys.country, ...(isStateAsked(chosenCountry) ? [addressKeys.state] : [])];
+        for (const partKey of requiredPartKeys) {
             if (!isAnswered(values[partKey])) {
                 partErrors.push([partKey, translate('common.error.fieldRequired')]);
             }
@@ -158,7 +171,6 @@ function getAddressPartErrors(field: DynamicFormAddressField, values: DynamicFor
     if (field.rule !== 'zipCode' || typeof zipCode !== 'string' || zipCode === '') {
         return partErrors;
     }
-    const chosenCountry = values[addressKeys.country];
     const country = typeof chosenCountry === 'string' && isCountryCode(chosenCountry) ? chosenCountry : '';
     if (!isValidZipCodeForCountry(zipCode, country)) {
         partErrors.push([addressKeys.zipCode, translate('privatePersonalDetails.error.incorrectZipFormat', getCountryZipRegexDetails(country)?.samples)]);
@@ -171,12 +183,15 @@ function validateField<TType extends DynamicFormFieldType>(field: DynamicFormFie
     return validate(field, values, translate);
 }
 
-/** Errors for the fields the user can see, keyed by field key, in the shape FormProvider's `validate` returns */
-function getDynamicFieldErrors(fields: DynamicFormField[], values: DynamicFormValues, translate: LocalizedTranslate): Record<string, string> {
+/** Errors for the fields the user can see, keyed by draft key, in the shape FormProvider's `validate` returns. Pass the whole form as `allFields` when `fields` is one page of it. */
+function getDynamicFieldErrors(
+    fields: DynamicFormSchemaField[],
+    values: DynamicFormValues,
+    translate: LocalizedTranslate,
+    allFields: DynamicFormSchemaField[] = fields,
+): Record<string, string> {
     const errors: Record<string, string> = {};
-    const visibleFields = getVisibleFields(fields, values);
-    const loneField = getLoneField(visibleFields);
-    for (const field of visibleFields) {
+    for (const field of getVisibleFields(fields.filter(isSupportedField), values, allFields.filter(isSupportedField))) {
         if (field.readonly) {
             continue;
         }
@@ -185,7 +200,7 @@ function getDynamicFieldErrors(fields: DynamicFormField[], values: DynamicFormVa
                 addErrorMessage(errors, inputID, message);
             }
         }
-        if (!isAnswered(values[field.key], field === loneField)) {
+        if (!isAnswered(values[field.key], field.type === 'boolean' && field.presentation === 'yesNo')) {
             if (field.required) {
                 addErrorMessage(errors, field.key, translate('common.error.fieldRequired'));
             }
@@ -199,3 +214,4 @@ function getDynamicFieldErrors(fields: DynamicFormField[], values: DynamicFormVa
 }
 
 export default getDynamicFieldErrors;
+export {getOfferedChoices, isAnswered};

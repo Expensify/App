@@ -7,16 +7,13 @@ import type {ComponentProps} from 'react';
 import React, {useState} from 'react';
 
 type FileUploadAdapterProps = Pick<ComponentProps<typeof UploadFile>, 'buttonText' | 'acceptedFileTypes' | 'fileLimit' | 'maxFileSize'> & {
-    /** Files supplied by the FormProvider */
     value?: FileObject[];
-
-    /** Callback to update the files in the FormProvider */
     onInputChange?: (value: FileObject[]) => void;
 
     errorText?: string;
 };
 
-/** UploadFile reports only newly added files and never reports removals, so this keeps FormProvider's value as the whole list */
+/** UploadFile reports each upload and removal on its own, so this keeps FormProvider's value as the whole list */
 function FileUploadAdapter({value, onInputChange = () => {}, errorText = '', ...uploadFileProps}: FileUploadAdapterProps) {
     const [uploadError, setUploadError] = useState('');
     const files = Array.isArray(value) ? value : [];

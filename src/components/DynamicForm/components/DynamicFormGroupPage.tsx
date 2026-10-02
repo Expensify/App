@@ -15,7 +15,7 @@ import React from 'react';
 import DynamicFormFields from './DynamicFormFields';
 
 /** One page of a dynamic form flow: the group's title, its fields and a Next button */
-function DynamicFormGroupPage({currentPageName, isEditing, onNext, formID, groups, values, currency, onRefreshRequirements, onGroupSubmit}: DynamicFormSubPageProps) {
+function DynamicFormGroupPage({currentPageName, isEditing, onNext, formID, fields, groups, values, currency, onRefreshRequirements, onGroupSubmit}: DynamicFormSubPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const group = groups.find((candidate) => candidate.slug === currentPageName);
@@ -23,12 +23,13 @@ function DynamicFormGroupPage({currentPageName, isEditing, onNext, formID, group
         return null;
     }
     const title = getGroupTitle(group, translate);
+    const withInputValues = (inputValues: unknown) => ({...values, ...toDynamicFormValues(inputValues)});
 
     return (
         <FormProvider
             formID={formID}
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
-            validate={(inputValues) => getDynamicFieldErrors(group.fields, {...values, ...toDynamicFormValues(inputValues)}, translate)}
+            validate={(inputValues) => getDynamicFieldErrors(group.fields, withInputValues(inputValues), translate, fields)}
             onSubmit={(inputValues) => {
                 onGroupSubmit(group, toDynamicFormValues(inputValues));
                 onNext();
@@ -43,7 +44,8 @@ function DynamicFormGroupPage({currentPageName, isEditing, onNext, formID, group
                     {!!title && <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{title}</Text>}
                     <DynamicFormFields
                         fields={group.fields}
-                        values={{...values, ...toDynamicFormValues(inputValues)}}
+                        allFields={fields}
+                        values={withInputValues(inputValues)}
                         currency={currency}
                         onRefreshRequirements={onRefreshRequirements}
                     />

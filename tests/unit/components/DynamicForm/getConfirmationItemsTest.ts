@@ -26,4 +26,15 @@ describe('getConfirmationItems', () => {
         ]);
         expect(onEditGroup).toHaveBeenCalledWith(1);
     });
+
+    it('hides all but the last four characters of a sensitive answer', () => {
+        // Given a sensitive SSN
+        const fields: DynamicFormField[] = [{key: 'ssn', type: 'text', required: true, sensitive: true}];
+
+        // When the confirmation rows are built
+        const items = getConfirmationItems(groupFieldsIntoPages(fields), {ssn: '123456789'}, translateLocal, jest.fn());
+
+        // Then the row shows only the last four digits, enough for the user to recognize the number
+        expect(items.at(0)?.title).toBe('•••••6789');
+    });
 });

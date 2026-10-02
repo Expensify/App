@@ -34,4 +34,31 @@ describe('getSubmittedAnswers', () => {
         // Then every part travels with its field
         expect(answers).toEqual(values);
     });
+
+    it('leaves out list choices the options no longer offer', () => {
+        // Given industries whose options depend on the business type, holding a retail choice from before the type changed to services
+        const fields: DynamicFormField[] = [
+            {key: 'industries', type: 'multiselect', required: true, dependsOn: {key: 'businessType', valuesBy: {RETAIL: [{key: 'CLOTHING'}], SERVICES: [{key: 'CONSULTING'}]}}},
+        ];
+        const values = {businessType: 'SERVICES', industries: ['CLOTHING', 'CONSULTING']};
+
+        // When the answers are collected
+        const answers = getSubmittedAnswers(fields, values);
+
+        // Then only the offered choice is sent, as the list inputs only show offered choices
+        expect(answers).toEqual({industries: ['CONSULTING']});
+    });
+
+    it('drops a field hidden by an answer on another page', () => {
+        // Given a proof revealed by a source of funds, which is only asked for risky industries
+        const industry: DynamicFormField = {key: 'industry', type: 'select', required: true, values: [{key: 'SAFE'}, {key: 'RISKY'}]};
+        const sourceOfFunds: DynamicFormField = {key: 'sourceOfFunds', type: 'select', required: true, showWhen: {key: 'industry', equals: ['RISKY']}};
+        const proof: DynamicFormField = {key: 'proof', type: 'text', required: true, showWhen: {key: 'sourceOfFunds', equals: ['SALARY']}};
+
+        // When the proof page's answers are collected for a safe industry, with answers left from an earlier risky one
+        const answers = getSubmittedAnswers([proof], {industry: 'SAFE', sourceOfFunds: 'SALARY', proof: 'payslip'}, [industry, sourceOfFunds, proof]);
+
+        // Then the proof is not sent, matching the page, which does not ask for it
+        expect(answers).toEqual({});
+    });
 });
