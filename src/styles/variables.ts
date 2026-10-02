@@ -107,7 +107,7 @@ export default {
     mobileResponsiveWidthBreakpoint: 800,
     tabletResponsiveWidthBreakpoint: 1024,
     sidePanelResponsiveWidthBreakpoint: 1300,
-    connectionsThreeColumnBreakpoint: 1800,
+    connectionCardMinWidth: 300,
     iosSafeAreaInsetsPercentage: 0.7,
     androidSafeAreaInsetsPercentage: 1,
     sideBarWidth: 375,

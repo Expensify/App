@@ -4988,9 +4988,18 @@ const staticStyles = (theme: ThemeColors) =>
             scrollMarginInline: variables.tabSelectorScrollMarginInline,
         },
 
-        // Three 26% bases fit a row with the gaps, while a fourth does not
-        connectionCardThreeColumns: {
+        // Rows are spaced by each card's top margin so the zero-height fillers add no space. The negative margin cancels the first row's.
+        connectionsGrid: {
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            columnGap: 12,
+            marginTop: -12,
+        },
+
+        // Cards wrap by their minimum width. Three 26% bases fit a row with the gaps, while a fourth does not.
+        connectionCard: {
             flexBasis: '26%',
+            minWidth: variables.connectionCardMinWidth,
         },
 
         connectionsTabButton: {

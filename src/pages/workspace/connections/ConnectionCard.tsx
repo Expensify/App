@@ -27,11 +27,11 @@ import type {ConnectionListing} from './types';
 type ConnectionCardProps = {
     listing: ConnectionListing;
 
-    /** How many cards share a row */
-    columnCount: number;
+    /** Stacks the card at full width instead of wrapping it by its minimum width */
+    shouldUseFullWidth: boolean;
 };
 
-function ConnectionCard({listing, columnCount}: ConnectionCardProps) {
+function ConnectionCard({listing, shouldUseFullWidth}: ConnectionCardProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -79,11 +79,8 @@ function ConnectionCard({listing, columnCount}: ConnectionCardProps) {
             style={[
                 styles.workspaceSectionMoreFeaturesItem,
                 styles.p0,
-                styles.mt0,
                 styles.overflowHidden,
-                StyleUtils.getMinimumWidth(0),
-                columnCount === 1 && styles.flexBasis100,
-                columnCount === 3 && styles.connectionCardThreeColumns,
+                shouldUseFullWidth ? [styles.flexBasis100, StyleUtils.getMinimumWidth(0)] : styles.connectionCard,
             ]}
         >
             <MenuItem
