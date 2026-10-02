@@ -2674,6 +2674,195 @@ describe('actions/Report', () => {
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 0);
     });
 
+    describe('editing a comment while its attachment is still uploading', () => {
+        const reportID = '123';
+        const reportActionID = '722';
+        const localSource = 'blob:https://dev.new.expensify.com:8082/1b3b-4817';
+        const syncedSource = `https://www.expensify.com/chat-attachments/${reportActionID}/w_abc.csv`;
+        const uploadingHtml = `hello<br /><br /><a href="${localSource}" ${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="${localSource}" data-expensify-source="${localSource}" data-name="file.csv" data-attachment-id="1">file.csv</a>`;
+        const syncedHtml = `hello<br /><br /><a href="${syncedSource}" data-expensify-source="${syncedSource}" data-attachment-id="1">file.csv</a>`;
+        const editKeepingAttachment = `hello edited\n\n[file.csv](${localSource})`;
+
+        const seedUploadingComment = async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [reportActionID]: {
+                    reportID,
+                    reportActionID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    created: '2024-10-21 10:37:59.881',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: uploadingHtml, text: 'hello [Attachment]'}],
+                },
+            });
+            await waitForBatchedUpdates();
+        };
+
+        const getAction = async () => (await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`))?.[reportActionID];
+
+        const syncAttachment = async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [reportActionID]: {pendingAction: null, message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: syncedHtml, text: 'hello [Attachment]'}]},
+            });
+            await waitForBatchedUpdates();
+            await waitForBatchedUpdates();
+        };
+
+        const getUpdateCommentRequests = () => PersistedRequests.getAll().filter((request) => request.command === WRITE_COMMANDS.UPDATE_COMMENT);
+
+        it('lets a later edit that removes the attachment win over the edit still waiting on the upload', async () => {
+            // Given a comment whose attachment is still uploading, and an edit that keeps the attachment
+            global.fetch = TestHelper.createGlobalFetchMock();
+            setHasRadio(false);
+            await seedUploadingComment();
+
+            Report.editReportComment({reportID}, await getAction(), editKeepingAttachment, undefined, '', undefined);
+            await waitForBatchedUpdates();
+
+            // Then that edit is parked until the upload lands instead of being sent
+            expect(getUpdateCommentRequests()).toHaveLength(0);
+            expect((await OnyxUtils.get(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS))?.[reportActionID]?.textForNewComment).toBe(editKeepingAttachment);
+
+            // When a second edit removes the attachment
+            Report.editReportComment({reportID}, await getAction(), 'hello removed', undefined, '', undefined);
+            await waitForBatchedUpdates();
+
+            // Then the parked edit is dropped
+            expect((await OnyxUtils.get(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS))?.[reportActionID]).toBeUndefined();
+
+            await syncAttachment();
+
+            // And once the attachment syncs, only the removal reaches the server
+            const requests = getUpdateCommentRequests();
+            expect(requests).toHaveLength(1);
+            expect(requests.at(0)?.data?.reportComment).toBe('hello removed');
+        });
+
+        it('drops an edit superseded before its deferral was echoed back from Onyx', async () => {
+            global.fetch = TestHelper.createGlobalFetchMock();
+            setHasRadio(false);
+            await seedUploadingComment();
+            const action = await getAction();
+
+            // Given a comment whose attachment is still uploading
+            // When an edit is deferred on the upload and a second edit removes the attachment before Onyx echoes
+            // the deferral back, which is the only thing the clear is allowed to read
+            Report.editReportComment({reportID}, action, editKeepingAttachment, undefined, '', undefined);
+            Report.editReportComment({reportID}, action, 'hello removed', undefined, '', undefined);
+            await waitForBatchedUpdates();
+
+            // Then the superseded edit is not left armed
+            expect((await OnyxUtils.get(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS))?.[reportActionID]).toBeUndefined();
+
+            await syncAttachment();
+
+            // And the removal is the only thing that reaches the server
+            const requests = getUpdateCommentRequests();
+            expect(requests).toHaveLength(1);
+            expect(requests.at(0)?.data?.reportComment).toBe('hello removed');
+        });
+
+        it('replays an edit restored from Onyx once the attachment has synced', async () => {
+            // Given a comment whose attachment is still uploading, and a deferred edit already in Onyx, as after an app restart
+            global.fetch = TestHelper.createGlobalFetchMock();
+            setHasRadio(false);
+            await seedUploadingComment();
+
+            await Onyx.merge(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS, {[reportActionID]: {reportID, textForNewComment: editKeepingAttachment, currentUserLogin: ''}});
+            await waitForBatchedUpdates();
+
+            // Then nothing is sent while the upload is pending
+            expect(getUpdateCommentRequests()).toHaveLength(0);
+
+            // When the attachment syncs
+            await syncAttachment();
+
+            // Then the restored edit is sent once, against the synced attachment, and cleared from Onyx
+            const requests = getUpdateCommentRequests();
+            expect(requests).toHaveLength(1);
+            expect(requests.at(0)?.data?.reportComment).toContain('hello edited');
+            expect(requests.at(0)?.data?.reportComment).toContain(syncedSource);
+            expect((await OnyxUtils.get(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS))?.[reportActionID]).toBeUndefined();
+        });
+    });
+
+    it('renames the queued attachment back when an offline edit restores its original name', async () => {
+        global.fetch = TestHelper.createGlobalFetchMock();
+        const REPORT_ID = '1';
+        const localUri = 'file:///storage/emulated/0/Android/data/com.expensify.chat/files/Download/Receipts-Upload/original.csv';
+
+        setHasRadio(false);
+        await waitForBatchedUpdates();
+
+        // Given a text and attachment comment queued offline
+        const file = Object.assign(new File(['id,total\n1,2'], 'original.csv', {type: 'text/csv'}), {uri: localUri, source: localUri});
+        const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
+        Report.addAttachmentWithComment({
+            report: REPORT,
+            notifyReportID: REPORT_ID,
+            ancestors: [],
+            attachments: file,
+            currentUserAccountID: 1,
+            text: 'hello',
+            delegateAccountID: undefined,
+            conciergeReportID: undefined,
+        });
+        await waitForBatchedUpdates();
+
+        const queuedAttachment = () => PersistedRequests.getAll().find((request) => request.command === WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT);
+        const queuedFileName = () => {
+            const queuedFile = queuedAttachment()?.data?.file;
+            return queuedFile instanceof File ? queuedFile.name : undefined;
+        };
+        const queuedReportActionID = queuedAttachment()?.data?.reportActionID;
+        const reportActionID = typeof queuedReportActionID === 'string' ? queuedReportActionID : '';
+        const getAction = async () => (await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`))?.[reportActionID];
+
+        // When it is renamed while still offline
+        Report.editReportComment({reportID: REPORT_ID}, await getAction(), `hello\n\n[renamed.csv](${localUri})`, undefined, '', undefined);
+        await waitForBatchedUpdates();
+
+        expect(queuedFileName()).toBe('renamed.csv');
+
+        // And then renamed back to the name the picker gave it
+        Report.editReportComment({reportID: REPORT_ID}, await getAction(), `hello\n\n[original.csv](${localUri})`, undefined, '', undefined);
+        await waitForBatchedUpdates();
+
+        // Then the file that uploads carries the name the comment now shows
+        expect(queuedFileName()).toBe('original.csv');
+    });
+
+    it('keeps the literal file name when an edit label reads as markdown emphasis', async () => {
+        global.fetch = TestHelper.createGlobalFetchMock();
+        const reportID = '123';
+        const attachmentURL = 'https://www.expensify.com/chat-attachments/722/w_abc.csv';
+
+        setHasRadio(false);
+        await waitForBatchedUpdates();
+
+        // Given a synced attachment-only comment
+        const action: OnyxEntry<OnyxTypes.ReportAction> = {
+            reportID,
+            reportActionID: '722',
+            actionName: 'ADDCOMMENT',
+            created: '2024-10-21 10:37:59.881',
+            message: [{type: 'COMMENT', html: `<a href="${attachmentURL}" data-expensify-source="${attachmentURL}" data-attachment-id="1">report.csv</a>`, text: '[Attachment]'}],
+        };
+
+        // When it is renamed to a label whose underscores the parser would read as emphasis
+        Report.editReportComment({reportID}, action, `[_my_report_.csv](${attachmentURL})`, undefined, '', undefined);
+
+        // Then the queued edit carries the label as plain text inside the anchor
+        const request = PersistedRequests.getAll().at(0);
+        expect(request?.command).toBe(WRITE_COMMANDS.UPDATE_COMMENT);
+        expect(request?.data?.reportComment).toContain('>_my_report_.csv</a>');
+        expect(request?.data?.reportComment).not.toContain('<em>');
+
+        await waitForBatchedUpdates();
+        setHasRadio(true);
+        await waitForBatchedUpdates();
+    });
+
     it('it should only send the last sequential UpdateComment request to BE', async () => {
         global.fetch = TestHelper.createGlobalFetchMock();
         const reportID = '123';

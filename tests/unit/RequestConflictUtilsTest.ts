@@ -163,6 +163,68 @@ describe('RequestConflictUtils', () => {
         });
     });
 
+    it('resolveEditCommentWithNewAddCommentRequest should rename the queued attachment when the edit renamed it', () => {
+        // Given a text-and-attachment request still queued, with the file picked on native as a plain object
+        const reportActionID = '2';
+        const persistedRequests = [
+            {command: 'AddTextAndAttachment', data: {reportActionID, reportComment: 'test', file: {uri: 'blob:local', name: 'data.csv'}, attachmentID: '5'}},
+            {command: 'OpenReport'},
+        ];
+        const parameters = {reportID: '1', reportActionID, reportComment: 'text edited'};
+
+        // When an edit renames the attachment before the request is sent
+        const result = resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, false, 'renamed.csv');
+
+        // Then the queued request carries the edited text and the file under its new name, since the server names the attachment after the upload
+        expect(result).toEqual({
+            conflictAction: {
+                type: 'replace',
+                index: 0,
+                request: {
+                    command: 'AddTextAndAttachment',
+                    data: {reportID: '1', reportActionID, reportComment: 'text edited', file: {uri: 'blob:local', name: 'renamed.csv'}, attachmentID: '5'},
+                },
+            },
+        });
+    });
+
+    it('resolveEditCommentWithNewAddCommentRequest should rebuild a renamed File, whose name cannot be reassigned', () => {
+        // Given a queued request whose attachment is a web File, where the name is read-only
+        const reportActionID = '2';
+        const file = new File(['id,total\n1,2'], 'data.csv', {type: 'text/csv'});
+        const queuedRequest = {command: 'AddTextAndAttachment', data: {reportActionID, reportComment: 'test', file, attachmentID: '5'}};
+        const persistedRequests = [queuedRequest, {command: 'OpenReport'}];
+        const parameters = {reportID: '1', reportActionID, reportComment: 'text edited'};
+
+        // When an edit renames the attachment before the request is sent
+        resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, false, 'renamed.csv');
+        const renamedFile = queuedRequest.data.file;
+
+        // Then a new File under the new name replaces it and keeps the original type
+        expect(renamedFile).toBeInstanceOf(File);
+        expect(renamedFile.name).toBe('renamed.csv');
+        expect(renamedFile.type).toBe('text/csv');
+    });
+
+    it('resolveEditCommentWithNewAddCommentRequest should keep the native upload properties when it renames a File', () => {
+        // Given a queued attachment shaped the way readFileAsync builds one for the native share flow
+        const reportActionID = '2';
+        const localUri = 'file:///storage/emulated/0/Android/data/com.expensify.chat/files/Download/Receipts-Upload/data.csv';
+        const file = Object.assign(new File(['id,total\n1,2'], 'data.csv', {type: 'text/csv'}), {uri: localUri, source: localUri});
+        const queuedRequest = {command: 'AddTextAndAttachment', data: {reportActionID, reportComment: 'test', file, attachmentID: '5'}};
+        const persistedRequests = [queuedRequest, {command: 'OpenReport'}];
+        const parameters = {reportID: '1', reportActionID, reportComment: 'text edited'};
+
+        // When an offline edit renames it
+        resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, false, 'renamed.csv');
+        const renamedFile = queuedRequest.data.file;
+
+        // Then the properties the native payload reads to find the file on disk survive the rename
+        expect(renamedFile.name).toBe('renamed.csv');
+        expect(renamedFile.source).toBe(localUri);
+        expect(renamedFile.uri).toBe(localUri);
+    });
+
     it('resolveEditCommentWithNewAddCommentRequest should keep the queued attachment when the edit kept it', () => {
         const reportActionID = '2';
         const persistedRequests = [{command: 'AddTextAndAttachment', data: {reportActionID, reportComment: 'test', file: {uri: 'blob:local'}, attachmentID: '5'}}, {command: 'OpenReport'}];

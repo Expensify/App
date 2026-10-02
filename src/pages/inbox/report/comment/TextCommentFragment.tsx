@@ -7,6 +7,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {wrapAttachmentAnchorsInBlocks} from '@libs/AttachmentAnchorUtils';
 import convertToLTR from '@libs/convertToLTR';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {containsOnlyCustomEmoji as containsOnlyCustomEmojiUtil, containsOnlyEmojis as containsOnlyEmojisUtil, splitTextWithEmojis} from '@libs/EmojiUtils';
@@ -98,7 +99,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
             htmlWithTag = `<muted-text>${htmlWithTag}<muted-text>`;
         }
 
-        htmlWithTag = adjustExpensifyLinksForEnv(getHtmlWithAttachmentID(htmlWithTag, reportActionID));
+        htmlWithTag = adjustExpensifyLinksForEnv(wrapAttachmentAnchorsInBlocks(getHtmlWithAttachmentID(htmlWithTag, reportActionID)));
 
         return (
             <View onLayout={endSendMessageVisibleSpanOnLayout}>
