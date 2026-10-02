@@ -73,7 +73,6 @@ type PayInvoiceArgs = {
     paymentMethod?: PaymentMethod;
     activePolicy?: OnyxTypes.Policy;
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
     isASAPSubmitBetaEnabled: boolean;
     isSelfTourViewed: boolean | undefined;
     defaultWorkspaceName: string;
@@ -112,7 +111,6 @@ type PayMoneyRequestFunctionParams = {
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
     policy?: OnyxEntry<OnyxTypes.Policy>;
     chatReportPolicy: OnyxEntry<OnyxTypes.Policy>;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
     isASAPSubmitBetaEnabled: boolean;
     isSelfTourViewed: boolean | undefined;
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
@@ -147,7 +145,6 @@ function getPayMoneyRequestParams({
     existingB2BInvoiceReport,
     activePolicy,
     conciergeChat,
-    betas,
     isASAPSubmitBetaEnabled,
     isSelfTourViewed,
     defaultWorkspaceName,
@@ -175,7 +172,6 @@ function getPayMoneyRequestParams({
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
     isASAPSubmitBetaEnabled: boolean;
     isSelfTourViewed: boolean | undefined;
     defaultWorkspaceName?: string;
@@ -229,10 +225,7 @@ function getPayMoneyRequestParams({
             activePolicy,
             conciergeChat,
             companySize: introSelected?.companySize as OnboardingCompanySize,
-            betas,
             isSelfTourViewed,
-            // hasActiveAdminPolicies is only needed if lastUsedPaymentMethod is passed
-            hasActiveAdminPolicies: undefined,
             delegateAccountID,
             // This workspace is created by the invoice payment command, which does not apply CreatePolicy's
             // paid-workspace check, so the #admins room keeps starting out pinned here.
@@ -827,7 +820,6 @@ function completePaymentOnboarding(
     paymentSelected: ValueOf<typeof CONST.PAYMENT_SELECTED>,
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
     isSelfTourViewed: boolean | undefined,
-    betas: OnyxEntry<OnyxTypes.Beta[]>,
     currentUserAccountID: number,
     conciergeChat: OnyxEntry<OnyxTypes.Report>,
     delegateAccountID: number | undefined,
@@ -885,7 +877,6 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         activePolicy,
         policy,
         chatReportPolicy,
-        betas,
         isASAPSubmitBetaEnabled,
         isSelfTourViewed,
         conciergeChat,
@@ -913,7 +904,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
     }
 
     const paymentSelected = paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
-    completePaymentOnboarding(paymentSelected, introSelected, isSelfTourViewed, betas, currentUserAccountID, conciergeChat, delegateAccountID);
+    completePaymentOnboarding(paymentSelected, introSelected, isSelfTourViewed, currentUserAccountID, conciergeChat, delegateAccountID);
 
     const recipient = {accountID: iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {params: payMoneyRequestParams, onyxData} = getPayMoneyRequestParams({
@@ -930,7 +921,6 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         // payMoneyRequest never creates a payer workspace (no payAsBusiness branch), so currency and conciergeChat are unused here.
         currentUserLocalCurrency: undefined,
         conciergeChat: undefined,
-        betas,
         isASAPSubmitBetaEnabled,
         isSelfTourViewed,
         bankAccountID: paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
@@ -1138,7 +1128,6 @@ function payInvoice({
     paymentMethod,
     activePolicy,
     conciergeChat,
-    betas,
     isASAPSubmitBetaEnabled,
     isSelfTourViewed,
     defaultWorkspaceName,
@@ -1180,7 +1169,6 @@ function payInvoice({
         currentUserEmailParam,
         currentUserLocalCurrency,
         introSelected,
-        betas,
         isASAPSubmitBetaEnabled,
         isSelfTourViewed,
         defaultWorkspaceName,
@@ -1192,7 +1180,7 @@ function payInvoice({
     });
 
     const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
-    completePaymentOnboarding(paymentSelected, introSelected, isSelfTourViewed, betas, currentUserAccountIDParam, conciergeChat, delegateAccountID);
+    completePaymentOnboarding(paymentSelected, introSelected, isSelfTourViewed, currentUserAccountIDParam, conciergeChat, delegateAccountID);
 
     let params: PayInvoiceParams = {
         reportID: invoiceReport?.reportID,

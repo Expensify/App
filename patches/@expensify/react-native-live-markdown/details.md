@@ -1,6 +1,6 @@
 # `@expensify/react-native-live-markdown` patches
 
-### [@expensify+react-native-live-markdown+0.1.336+001+worklets-0.12-runSync.patch](@expensify+react-native-live-markdown+0.1.336+001+worklets-0.12-runSync.patch)
+### [@expensify+react-native-live-markdown+0.1.342+001+worklets-0.12-runSync.patch](@expensify+react-native-live-markdown+0.1.342+001+worklets-0.12-runSync.patch)
 
 - Reason:
 

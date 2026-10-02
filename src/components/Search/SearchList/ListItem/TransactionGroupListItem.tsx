@@ -10,7 +10,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useRowHighlightAnimation from '@hooks/useRowHighlightAnimation';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
@@ -69,6 +68,7 @@ import shouldCollapseExpandedGroupAfterPendingDelete from './shouldCollapseExpan
 import TagListItemHeader from './TagListItemHeader';
 import TransactionGroupListExpandedItem from './TransactionGroupListExpanded';
 import useGroupChildren from './useGroupChildren';
+import useGroupOpenForShiftRange from './useGroupOpenForShiftRange';
 import useLiveRowCapabilities from './useLiveRowCapabilities';
 import WeekListItemHeader from './WeekListItemHeader';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
@@ -143,6 +143,10 @@ function TransactionGroupListItemImpl({
 
     const [transactionsVisibleLimit, setTransactionsVisibleLimit] = useState(CONST.TRANSACTION.RESULTS_PAGE_SIZE as number);
     const [isExpanded, setIsExpanded] = useState(false);
+
+    // Expense-report rows are already part of the list, so only group-by views need this.
+    useGroupOpenForShiftRange(groupItem.keyForList, isExpanded && !isExpenseReportType);
+
     const {transactions, isSelectAllChecked, isIndeterminate} = useGroupChildren({
         groupKey: groupItem.keyForList,
         groupTransactions: groupItem.transactions,
@@ -201,12 +205,6 @@ function TransactionGroupListItemImpl({
     const StyleUtils = useStyleUtils();
     const {isSelected: liveRowSelected} = useRowSelection(item?.keyForList);
     const isItemSelected = isSelectAllChecked || (liveRowSelected && (isExpenseReportType || transactionsWithoutPendingDelete.length === 0));
-
-    const animatedHighlightStyle = useRowHighlightAnimation({
-        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
-        isSelected: isItemSelected,
-        shouldApplyOtherStyles: false,
-    });
 
     const pressableStyle = [
         styles.transactionGroupListItemStyle,
@@ -296,8 +294,9 @@ function TransactionGroupListItemImpl({
         onLongPressRow?.(transaction as ListItem);
     };
 
-    const handleSelectionButtonPress = (val: ListItem) => {
-        onSelectionButtonPress?.(val, isExpenseReportType ? undefined : transactions);
+    // Group headers never send shiftKey, so only an expanded child row can start a range from here.
+    const handleSelectionButtonPress = (val: ListItem, _itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => {
+        onSelectionButtonPress?.(val, isExpenseReportType ? undefined : transactions, shiftKey);
     };
 
     const onExpandIconPress = () => {
@@ -560,7 +559,7 @@ function TransactionGroupListItemImpl({
                 onFocus={onFocus}
                 wrapperStyle={[
                     styles.mh5,
-                    animatedHighlightStyle,
+                    StyleUtils.getSearchRowBackgroundStyle(!!isItemSelected),
                     styles.userSelectNone,
                     isLargeScreenWidth
                         ? [StyleUtils.getSearchTableGroupRowBorderStyle(isFirstItem, isLastItem, isItemSelected), isLastItem && styles.overflowHidden]
