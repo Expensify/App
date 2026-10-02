@@ -616,7 +616,7 @@ function ReportActionItem({
                                                 }
                                                 shouldHideOnDelete={!isDeletedParentAction}
                                                 errors={(linkedTransactionRouteError ?? !isOnSearch) ? getLatestErrorMessageField(action as OnyxDataWithErrors) : {}}
-                                                errorRowStyles={[styles.ml10, styles.mr2]}
+                                                errorRowStyles={styles.ml10}
                                                 needsOffscreenAlphaCompositing={isMoneyRequestAction(action)}
                                                 shouldDisableStrikeThrough
                                             >
