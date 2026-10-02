@@ -380,16 +380,16 @@ describe('DynamicFormFields', () => {
         expect(rendered.get('legalType')?.InputComponent).toBe(TabsAdapter);
     });
 
-    it('asks a boolean as Yes/No only when the schema says so, keeping a lone boolean a checkbox', () => {
-        // Given a lone consent boolean, and a lone boolean with the Yes/No presentation
+    it('asks a lone boolean as Yes/No, and a boolean among other fields as a checkbox', () => {
+        // Given a consent boolean next to another question, and a boolean alone on its page
         const acceptTerms: DynamicFormField = {key: 'acceptTerms', type: 'boolean', required: true};
-        const isUSCitizen: DynamicFormField = {key: 'isUSCitizen', type: 'boolean', required: true, presentation: 'yesNo'};
+        const isUSCitizen: DynamicFormField = {key: 'isUSCitizen', type: 'boolean', required: true};
 
-        // When each renders alone
-        const consent = renderFields([acceptTerms]);
+        // When each renders
+        const consent = renderFields([acceptTerms, otherQuestion]);
         const question = renderFields([isUSCitizen]);
 
-        // Then the consent stays a checkbox the user must tick, and only the question offers No as an answer
+        // Then the consent is a checkbox the user must tick, and the lone question offers No as an answer
         expect(consent.get('acceptTerms')?.InputComponent).toBe(CheckboxWithLabel);
         expect(question.get('isUSCitizen')?.InputComponent).toBe(YesNoAdapter);
     });

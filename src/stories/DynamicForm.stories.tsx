@@ -302,11 +302,7 @@ const PRESETS = {
         draftValues: {},
     },
     yesNoQuestion: {
-        fields: [{key: 'hasOtherOwners', label: 'Does anyone else own 25% or more?', group: 'Ownership', type: 'boolean', required: true, presentation: 'yesNo'}],
-        draftValues: {},
-    },
-    loneCheckbox: {
-        fields: accountHolder.filter((field) => field.key === 'acceptTerms'),
+        fields: [{key: 'hasOtherOwners', label: 'Does anyone else own 25% or more?', group: 'Ownership', type: 'boolean', required: true}],
         draftValues: {},
     },
     loneCountry: {
@@ -519,25 +515,10 @@ const BusinessOnboarding = presetFlowStory('businessOnboarding');
 const OwnersList = presetFlowStory('owners');
 const LoneMultiselect = presetFlowStory('loneMultiselect');
 const YesNoQuestion = presetFlowStory('yesNoQuestion');
-const LoneCheckbox = presetFlowStory('loneCheckbox');
 const LoneCountry = presetFlowStory('loneCountry');
 const LoneCurrency = presetFlowStory('loneCurrency');
 const AmountWithCurrency = presetFlowStory('amountWithCurrency');
 const UnknownType = presetFlowStory('unknownType');
 
 export default story;
-export {
-    FlowStory,
-    PlaygroundStory,
-    AllFieldTypes,
-    BankAccount,
-    BusinessOnboarding,
-    OwnersList,
-    LoneMultiselect,
-    YesNoQuestion,
-    LoneCheckbox,
-    LoneCountry,
-    LoneCurrency,
-    AmountWithCurrency,
-    UnknownType,
-};
+export {FlowStory, PlaygroundStory, AllFieldTypes, BankAccount, BusinessOnboarding, OwnersList, LoneMultiselect, YesNoQuestion, LoneCountry, LoneCurrency, AmountWithCurrency, UnknownType};

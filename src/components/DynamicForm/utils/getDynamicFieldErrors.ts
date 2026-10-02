@@ -29,7 +29,7 @@ import type {
 
 import getAddressInputKeys, {isStateAsked} from './getAddressInputKeys';
 import getFieldOptions from './getFieldOptions';
-import getVisibleFields from './getVisibleFields';
+import getVisibleFields, {getLoneField} from './getVisibleFields';
 import isCountryCode from './isCountryCode';
 import isSensitiveField from './isSensitiveField';
 import isSupportedField from './isSupportedField';
@@ -39,7 +39,7 @@ import logSchemaProblem from './logSchemaProblem';
 /** Checks a field the user has answered. Unanswered fields only get the required check. */
 type FieldValidator<TType extends DynamicFormFieldType> = (field: DynamicFormFieldOfType<TType>, values: DynamicFormValues, translate: LocalizedTranslate) => string[];
 
-/** A checkbox that is not ticked is unanswered. `isNoAnAnswer` is for a Yes/No question, where No answers it. */
+/** A checkbox that is not ticked is unanswered. `isNoAnAnswer` is for a boolean asked as a Yes/No question, where No answers it. */
 function isAnswered(value: FormValue | undefined, isNoAnAnswer = false): boolean {
     if (typeof value === 'boolean') {
         return value || isNoAnAnswer;
@@ -213,7 +213,9 @@ function getDynamicFieldErrors(
     allFields: DynamicFormSchemaField[] = fields,
 ): Record<string, string> {
     const errors: Record<string, string> = {};
-    for (const field of getVisibleFields(fields.filter(isSupportedField), values, allFields.filter(isSupportedField))) {
+    const visibleFields = getVisibleFields(fields.filter(isSupportedField), values, allFields.filter(isSupportedField));
+    const loneField = getLoneField(visibleFields);
+    for (const field of visibleFields) {
         if (field.readonly) {
             continue;
         }
@@ -222,7 +224,7 @@ function getDynamicFieldErrors(
                 addErrorMessage(errors, inputID, message);
             }
         }
-        if (!isAnswered(values[field.key], field.type === 'boolean' && field.presentation === 'yesNo')) {
+        if (!isAnswered(values[field.key], field.type === 'boolean' && field === loneField)) {
             if (field.required) {
                 addErrorMessage(errors, field.key, translate('common.error.fieldRequired'));
             }
