@@ -101,9 +101,7 @@ describe('SelectionScraper', () => {
         {startOffset: 0, endOffset: 3, expectedText: 'Ann'},
     ])('preserves exactly "$expectedText" in the approver clipboard text', ({startOffset, endOffset, expectedText}) => {
         // Given an approver cell whose avatar must not become part of the copied name.
-        createFixture(
-            `<div ${copyableRowAttribute}="true">` + `<span ${hiddenElementAttribute}="true">A</span>` + `<span id="approver" ${copyableTextAttribute}="true">Ann Manager</span>` + '</div>',
-        );
+        createFixture(`<div ${copyableRowAttribute}="true"><span ${hiddenElementAttribute}="true">A</span><span id="approver" ${copyableTextAttribute}="true">Ann Manager</span></div>`);
 
         // When the user selects either the whole name or just its first word.
         selectText(getTextNode('approver'), startOffset, getTextNode('approver'), endOffset);
@@ -117,10 +115,7 @@ describe('SelectionScraper', () => {
     it('excludes approver avatar text when the selection range crosses the avatar', () => {
         // Given an excluded avatar next to a copyable approver name in an interactive row.
         createFixture(
-            `<div ${copyableRowAttribute}="true">` +
-                `<span id="approver-avatar" ${hiddenElementAttribute}="true">A</span>` +
-                `<span id="approver" ${copyableTextAttribute}="true">Ann Manager</span>` +
-                '</div>',
+            `<div ${copyableRowAttribute}="true"><span id="approver-avatar" ${hiddenElementAttribute}="true">A</span><span id="approver" ${copyableTextAttribute}="true">Ann Manager</span></div>`,
         );
 
         // When selection handles extend across the avatar as well as the name.
