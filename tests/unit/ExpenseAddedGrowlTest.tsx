@@ -223,6 +223,32 @@ describe('ExpenseAddedGrowl', () => {
         expect(mockNavigateToCreatedExpense).toHaveBeenCalledWith({threadReportID: 'thread-1', transactionID: '1', iouReportID: undefined, reportTransactions: []});
     });
 
+    it('does nothing when View is pressed after the expense was deleted offline', async () => {
+        // Given the expense was deleted offline while its growl was showing, so it is only pending delete
+        render(<ExpenseAddedGrowl />);
+        await flush(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, {
+                transactionID: '1',
+                reportID: 'report-1',
+                transactionThreadReportID: 'thread-1',
+            });
+            const signal: Record<string, SearchDataTypes> = {};
+            signal['1'] = EXPENSE;
+            await Onyx.merge(ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS, signal);
+        });
+        await flush(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+        });
+
+        // When View is pressed
+        lastGrowlProps()?.action?.onPress();
+
+        // Then no thread is rebuilt or opened, since it would only show a loading skeleton
+        expect(mockSetOptimisticTransactionThread).not.toHaveBeenCalled();
+        expect(mockCreateTransactionThreadReport).not.toHaveBeenCalled();
+        expect(mockNavigateToCreatedExpense).not.toHaveBeenCalled();
+    });
+
     it('resolves an existing transaction thread from the IOU action when View is pressed', async () => {
         // Given the transaction thread is recorded on its IOU action
         const transactionID = getOriginalMessage(actionR14932)?.IOUTransactionID;
