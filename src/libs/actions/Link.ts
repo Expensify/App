@@ -2,10 +2,11 @@ import * as API from '@libs/API';
 import type {GenerateSpotnanaTokenParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
-import * as Environment from '@libs/Environment/Environment';
+import buildOldDotURL from '@libs/buildOldDotURL';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import Log from '@libs/Log';
+import {setDeepLinkToOpenAfterOnboarding} from '@libs/navigateAfterOnboarding';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
@@ -32,7 +33,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
-import type {Beta, IntroSelected, Report} from '@src/types/onyx';
+import type {IntroSelected, Report, ReportNameValuePairs} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -43,40 +44,14 @@ import {doneCheckingPublicRoom, navigateToConciergeChat, openReport} from './Rep
 import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
 import {setOnboardingErrorMessage} from './Welcome';
 
-let currentUserEmail = '';
 let currentUserAccountID: number = CONST.DEFAULT_NUMBER_ID;
 // Use connectWithoutView since this is to open an external link and doesn't affect any UI
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
-        currentUserEmail = value?.email ?? '';
         currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     },
 });
-
-function buildOldDotURL(url: string, shortLivedAuthToken?: string): Promise<string> {
-    const hashIndex = url.lastIndexOf('#');
-    const hasHashParams = hashIndex !== -1;
-    const hasURLParams = url.indexOf('?') !== -1;
-    let originURL = url;
-    let hashParams = '';
-    if (hasHashParams) {
-        originURL = url.substring(0, hashIndex);
-        hashParams = url.substring(hashIndex);
-    }
-
-    const authTokenParam = shortLivedAuthToken ? `authToken=${shortLivedAuthToken}` : '';
-    const emailParam = `email=${encodeURIComponent(currentUserEmail)}`;
-    const paramsArray = [authTokenParam, emailParam];
-    const params = paramsArray.filter(Boolean).join('&');
-
-    return Environment.getOldDotEnvironmentURL().then((environmentURL) => {
-        const oldDotDomain = addTrailingForwardSlash(environmentURL);
-
-        // If the URL contains # or ?, we can assume they don't need to have the `?` token to start listing url parameters.
-        return `${oldDotDomain}${originURL}${hasURLParams ? '&' : '?'}${params}${hashParams}`;
-    });
-}
 
 function openOldDotLink(url: string, shouldOpenInSameTab = false) {
     if (getIsOffline()) {
@@ -457,8 +432,8 @@ function openReportFromDeepLink(
     conciergeReportID: string | undefined,
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
-    betas: OnyxEntry<Beta[]>,
     callerAccountID: number,
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
 ) {
     const reportID = getReportIDFromLink(url);
 
@@ -479,7 +454,6 @@ function openReportFromDeepLink(
             personalDetails: undefined,
             parentReportActionID: '0',
             isFromDeepLink: true,
-            betas,
             hasReportActions: false,
             currentUserAccountID: callerAccountID,
         });
@@ -591,30 +565,6 @@ function openReportFromDeepLink(
                         const state = navigationRef.getRootState();
                         const currentFocusedRoute = findFocusedRoute(state);
 
-                        if (isOnboardingFlowName(currentFocusedRoute?.name)) {
-                            setOnboardingErrorMessage('onboarding.purpose.errorBackButton');
-                            return;
-                        }
-
-                        if (shouldSkipDeepLinkNavigation(route)) {
-                            return;
-                        }
-
-                        if (currentFocusedRoute?.name !== SCREENS.HOME && route === ROUTES.HOME) {
-                            return;
-                        }
-
-                        // Drop a deep link captured before onboarding finished: navigateAfterOnboarding owns the
-                        // post-onboarding destination and overrides it anyway, so honoring it only risks the flash (#91437).
-                        if (initialHasCompletedGuidedSetupFlow === false) {
-                            return;
-                        }
-
-                        // Navigation for signed users is handled by react-navigation.
-                        if (isAuthenticated) {
-                            return;
-                        }
-
                         const navigateHandler = (reportParam?: OnyxEntry<Report>) => {
                             // Skip if the user already is in the deeplinked route.
                             const deeplinkRoute = route as Route;
@@ -627,13 +577,13 @@ function openReportFromDeepLink(
                             // If the report does not exist, navigate to the last accessed report or Concierge chat
                             if (reportID && (!report?.reportID || report.errorFields?.notFound)) {
                                 // TODO: Pass guideAccountIDs once callers are fully migrated — PR 33 (https://github.com/Expensify/App/issues/66413); findLastAccessedReport falls back to hasExpensifyGuidesEmails → allPersonalDetails
-                                const lastAccessedReportID = findLastAccessedReport(false, undefined, shouldOpenOnAdminRoom(), reportID)?.reportID;
+                                const lastAccessedReportID = findLastAccessedReport(false, undefined, shouldOpenOnAdminRoom(), reportID, reportNameValuePairs)?.reportID;
                                 if (lastAccessedReportID) {
                                     const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
                                     Navigation.navigate(lastAccessedReportRoute, {forceReplace: Navigation.getTopmostReportId() === reportID, waitForTransition: true});
                                     return;
                                 }
-                                navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, shouldDismissModal: false});
+                                navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, shouldDismissModal: false});
                                 return;
                             }
 
@@ -641,22 +591,80 @@ function openReportFromDeepLink(
                             const forceReplace = navigationRef.getRootState().routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
                             Navigation.navigate(deeplinkRoute, {forceReplace, waitForTransition: true});
                         };
-                        // If we log with deeplink with reportID and data for this report is not available yet,
-                        // then we will wait for Onyx to completely merge data from OpenReport API with OpenApp API in AuthScreens
-                        if (reportID && !isAuthenticated && !reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID) {
-                            const reportConnection = Onyx.connectWithoutView({
-                                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                                // eslint-disable-next-line rulesdir/prefer-early-return
-                                callback: (report) => {
-                                    if (report?.errorFields?.notFound || report?.reportID || (report === undefined && CONST.REGEX.NON_NUMERIC.test(reportID))) {
+
+                        const openDeepLink = () => {
+                            // OpenApp and OpenReport may not have written this report yet, and navigateHandler would read the missing
+                            // report as "does not exist" and send the user to the last accessed report or Concierge instead.
+                            if (reportID && !isAuthenticated && !reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID) {
+                                const reportConnection = Onyx.connectWithoutView({
+                                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                                    callback: (report) => {
+                                        if (!report?.errorFields?.notFound && !report?.reportID && !(report === undefined && CONST.REGEX.NON_NUMERIC.test(reportID))) {
+                                            return;
+                                        }
                                         Onyx.disconnect(reportConnection);
                                         navigateHandler(report);
-                                    }
-                                },
-                            });
-                        } else {
+                                    },
+                                });
+                                return;
+                            }
+
                             navigateHandler();
+                        };
+
+                        // Shared with the onboarding branch below, which sits above this check and would otherwise let a parked link
+                        // replay past it.
+                        const shouldDropDeepLink = () => shouldSkipDeepLinkNavigation(route) || (currentFocusedRoute?.name !== SCREENS.HOME && route === ROUTES.HOME);
+
+                        // Opening the link while onboarding still owns the screen flashes the "Not here" page, so hand it to
+                        // navigateAfterOnboarding, which runs after the modal is gone and would otherwise lose it.
+                        const deferUntilAfterOnboarding = () => {
+                            if (initialHasCompletedGuidedSetupFlow !== false || shouldDropDeepLink()) {
+                                return false;
+                            }
+
+                            setDeepLinkToOpenAfterOnboarding(() => {
+                                // A new account can finish onboarding before OpenApp does. Opening the link then shows its loading
+                                // skeleton, so wait until report data has loaded. This runs in navigation code, outside React, so
+                                // useOnyx is not available.
+                                const loadingConnection = Onyx.connectWithoutView({
+                                    key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                                    callback: (isLoadingReportData) => {
+                                        if (isLoadingReportData) {
+                                            return;
+                                        }
+                                        Onyx.disconnect(loadingConnection);
+                                        openDeepLink();
+                                    },
+                                });
+                                return true;
+                            });
+                            return true;
+                        };
+
+                        if (isOnboardingFlowName(currentFocusedRoute?.name)) {
+                            if (deferUntilAfterOnboarding()) {
+                                return;
+                            }
+
+                            setOnboardingErrorMessage('onboarding.purpose.errorBackButton');
+                            return;
                         }
+
+                        if (shouldDropDeepLink()) {
+                            return;
+                        }
+
+                        // Navigation for signed users is handled by react-navigation.
+                        if (isAuthenticated) {
+                            return;
+                        }
+
+                        if (deferUntilAfterOnboarding()) {
+                            return;
+                        }
+
+                        openDeepLink();
                     };
 
                     if (hasCompletedGuidedSetupFlowSelector(val) || isAnonymousUser()) {
@@ -714,7 +722,6 @@ export {
     openTravelDotLink,
     buildTravelDotURL,
     getTravelDotLink,
-    buildOldDotURL,
     openReportFromDeepLink,
     getShortLivedAuthTokenURL,
 };

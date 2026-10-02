@@ -26,7 +26,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-const {MIN_FREE_TEXT_COLUMN_WIDTH, MAX_FREE_TEXT_COLUMN_WIDTH} = CONST.TABLES.DYNAMIC_COLUMNS;
+const {MIN_FREE_TEXT_COLUMN_WIDTH, SCROLLED_FREE_TEXT_COLUMN_WIDTH} = CONST.TABLES.DYNAMIC_COLUMNS;
 
 /** How wide a dynamically sized column was resolved to, and how far it may be squeezed before the table scrolls. */
 type SearchColumnSizing = {
@@ -148,11 +148,10 @@ function useSearchColumnWidths({
     // It does not have to be exact. The resolved widths are applied as a flex basis that still grows and shrinks, so an
     // inset a few px out shows as the columns sharing a little more or less room rather than as dead space at the end
     // of the row. What it does decide is which of the four states the table is in, and "close" is enough for that.
+    // A table showing enough fixed columns to overrun its own width leaves this at zero or less. That is the scrolling
+    // case rather than a reason to stop: the columns are still measured, and each one is sized to its content so an
+    // empty column stays narrow instead of claiming an equal share of a budget that does not exist.
     const availableWidth = tableWidth - getSearchTableRowInsetWidth(columns.length) - fixedColumnsWidth;
-
-    if (availableWidth <= 0) {
-        return noColumnSizing;
-    }
 
     const constraints: DynamicColumnConstraints[] = [];
     const contentWidths: number[] = [];
@@ -224,7 +223,7 @@ function useSearchColumnWidths({
         // scrolls either way, and letting one unusually long value set the width would push every column after it out
         // of view for the sake of a single row. Below the cap nothing is capped at all, which is why this is applied
         // here rather than as the constraint the resolver sees.
-        const scrolledWidth = shouldHug ? contentWidth : Math.max(Math.min(contentWidth, MAX_FREE_TEXT_COLUMN_WIDTH + getSearchColumnExtraWidth(column)), constraint.minWidth);
+        const scrolledWidth = shouldHug ? contentWidth : Math.max(Math.min(contentWidth, SCROLLED_FREE_TEXT_COLUMN_WIDTH + getSearchColumnExtraWidth(column)), constraint.minWidth);
 
         columnSizing[column] = {
             shouldHug,

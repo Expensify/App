@@ -1,3 +1,4 @@
+import {useActivePolicyContext} from '@components/ActivePolicyProvider';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {SearchFilterCommonProps} from '@components/Search/types';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
@@ -13,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useSortedReportActionsData from '@hooks/useSortedReportActionsData';
 
 import {searchInServer} from '@libs/actions/Report';
@@ -49,10 +51,11 @@ function getSelectedOptionData(option: Option & Pick<OptionData, 'reportID'>): O
 
 function InSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: InSelectorProps) {
     const {translate, dateFnsLocale} = useLocalize();
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
     const {convertToDisplayString} = useCurrencyListActions();
     const personalDetails = usePersonalDetails();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const {options, isLoading} = useFilteredOptions({
+    const {options, isLoading, getReportByID} = useFilteredOptions({
         enabled: ready,
         isSearching: !!debouncedSearchTerm.trim(),
         // The sections below read recentReports and never personalDetails, so contacts would never reach the list.
@@ -63,6 +66,8 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const {activePolicyID} = useActivePolicyContext();
+
     const sortedReportActionsData = useSortedReportActionsData();
     const sortedActions = sortedReportActionsData?.sortedActions;
 
@@ -98,6 +103,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                     conciergeReportID,
                     reportAttributesDerived,
                     isTrackIntentUser,
+                    currentUserAccountID,
                 }),
             ),
             isSelected,
@@ -118,6 +124,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                 policyTags: reportPolicyTags,
                 conciergeReportID,
                 isTrackIntentUser,
+                currentUserAccountID,
                 rules,
             },
         );
@@ -152,25 +159,29 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                   conciergeReportID,
                   isTrackIntentUser,
                   translate,
+                  getReportByID,
                   rules,
               }).options;
 
-    const chatOptions = filterAndOrderOptions(
-        defaultOptions,
-        cleanSearchTerm,
+    const chatOptions = filterAndOrderOptions({
+        options: defaultOptions,
+        searchInputValue: cleanSearchTerm,
         countryCode,
         loginList,
         currentUserEmail,
         currentUserAccountID,
         personalDetails,
-        {
+        config: {
             dateFnsLocale,
             convertToDisplayString,
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+            currentUserAccountID,
         },
+        translate,
         rules,
-    );
+        activePolicyID,
+    });
 
     const sections: SelectionListSections = [];
 
@@ -265,6 +276,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                 shouldShowTextInput
                 style={selectionListStyle}
                 footerContent={footer}
+                shouldFooterBeInsideList={shouldFooterBeInsideList}
             />
         </ListFilterView>
     );

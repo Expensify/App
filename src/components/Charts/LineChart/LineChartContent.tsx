@@ -82,13 +82,13 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
     const measurements = useChartLabelMeasurements(data, fontManager, variables.iconSizeExtraSmall);
     const {lineHeight, firstLabelWidth, lastLabelWidth, maxLabelWidth, labelWidths} = measurements;
 
-    const {formatValue} = useChartLabelFormats({
+    const {formatValue, formatCompactValue} = useChartLabelFormats({
         data,
         unit: yAxisUnit,
         unitPosition: yAxisUnitPosition,
     });
 
-    const yAxisLabelWidth = getYAxisLabelWidth(data, formatValue, fontManager, variables.iconSizeExtraSmall, BASE_DOMAIN_PADDING);
+    const yAxisLabelWidth = getYAxisLabelWidth(data, formatCompactValue, fontManager, variables.iconSizeExtraSmall, BASE_DOMAIN_PADDING);
 
     const tickSpacing = plotAreaWidth > 0 && data.length > 0 ? plotAreaWidth / data.length : 0;
     const chartPaddingLeft = yAxisLabelWidth + GLYPH_PADDING;
@@ -214,7 +214,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
                         fontSize={variables.iconSizeExtraSmall}
                         fontManager={fontManager}
                         labelColor={theme.textSupporting}
-                        formatValue={formatValue}
+                        formatValue={formatCompactValue}
                         leftAlign
                     />
                 )}
@@ -243,7 +243,10 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
     }
 
     return (
-        <GestureDetector gesture={customGestures}>
+        <GestureDetector
+            gesture={customGestures}
+            touchAction="pan-y"
+        >
             <Animated.View
                 style={[styles.chartContent, dynamicChartStyle, cursorStyle]}
                 onLayout={handleLayout}
@@ -260,6 +263,9 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
                         xAxis={{
                             tickCount: data.length,
                             lineWidth: VictoryTheme.axis.xLineWidth,
+                            // "outset" makes victory-native reserve 2 * yAxis.labelOffset below the plot for labels it
+                            // doesn't draw (we render ChartXAxisLabels ourselves), on top of our own labelSpace.
+                            labelPosition: 'inset',
                         }}
                         yAxis={[
                             {
