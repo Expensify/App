@@ -3393,12 +3393,13 @@ ${amount} für ${merchant} – ${date}`,
         whereYouWork: 'Wo arbeitest du?',
         errorSelection: 'Wähle eine Option, um fortzufahren',
         purpose: {
-            title: 'Was möchtest du heute tun?',
-            errorContinue: 'Bitte auf „Weiter“ drücken, um die Einrichtung abzuschließen',
-            errorBackButton: 'Bitte beantworte die Einrichtungsfragen, um die App verwenden zu können',
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Ausgaben bei meinem Arbeitgeber einreichen',
-            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Verwalte die Ausgaben meines Teams',
-            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Geschäftsausgaben nachverfolgen',
+            title: 'Was möchten Sie heute tun?',
+            errorContinue: 'Bitte drücken Sie auf „Weiter“, um die Einrichtung abzuschließen',
+            errorBackButton: 'Bitte beantworten Sie die Einrichtungsfragen, um die App verwenden zu können',
+            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: 'Treten Sie dem Unternehmensarbeitsbereich bei',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Spesen bei meinem Arbeitgeber einreichen',
+            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Ausgaben meines Teams verwalten',
+            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Ausgaben für mein Unternehmen erfassen',
             [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Meine persönlichen Ausgaben organisieren',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Etwas anderes',
         },
@@ -3457,6 +3458,8 @@ ${amount} für ${merchant} – ${date}`,
             title: 'Arbeits-E-Mail konnte nicht hinzugefügt werden',
             subtitle: (workEmail: string | undefined) =>
                 `Wir konnten ${workEmail} nicht hinzufügen. Bitte versuche es später in den Einstellungen erneut oder chatte mit Concierge, um Unterstützung zu erhalten.`,
+            validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
+                `Wir konnten ${workEmail} nicht hinzufügen. Um diese Konten zusammenzuführen, melden Sie sich bitte als ${workEmail} an und gehen Sie zu Konto > Sicherheit > Konten zusammenführen, um den Vorgang abzuschließen.`,
             workAccountClosedSubtitle:
                 'Das Arbeitskonto, das mit dieser E-Mail-Adresse verknüpft ist, wurde geschlossen. Bitte wenden Sie sich an Ihre Unternehmensadministratorin bzw. Ihren Unternehmensadministrator, um es zu reaktivieren, oder registrieren Sie sich mit einer anderen E-Mail-Adresse.',
             domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} ist ein domänengesteuerter Login für ein bestehendes Expensify-Konto.`,
@@ -3695,6 +3698,34 @@ ${amount} für ${merchant} – ${date}`,
                     Und schon bist du fertig!
                 `),
             },
+            addWorkEmailTask: {
+                title: 'Fügen Sie Ihre Arbeits-E-Mail hinzu',
+                description: ({workEmailLink = ''}) =>
+                    Str.dedent(`
+                        1. Öffnen Sie [Arbeits-E-Mail hinzufügen](${workEmailLink}).
+                        2. Geben Sie Ihre geschäftliche E-Mail-Adresse ein.
+                        3. Geben Sie den Code ein, den wir Ihnen per E-Mail schicken.
+                        4. Wählen Sie einen Arbeitsbereich, dem Sie beitreten möchten, oder klicken Sie auf *Beitritt anfragen*, um eine Anfrage an die Eigentümerin bzw. den Eigentümer des Arbeitsbereichs zu senden.
+                    `),
+            },
+            validateEmailTask: {
+                title: 'Bestätigen Sie Ihre E-Mail-Adresse',
+                description: ({validateEmailLink = '', workEmail = ''}) =>
+                    Str.dedent(`
+                        1. Öffnen Sie [Bestätigen Sie Ihr Konto](${validateEmailLink}).
+                        2. Geben Sie den Code ein, den wir an ${workEmail} gesendet haben.
+                        3. Wählen Sie einen Workspace zum Beitreten aus oder klicken Sie auf *Beitritt anfragen*, um eine Anfrage an den Workspace-Inhaber zu senden.
+                    `),
+            },
+            joinWorkspaceTask: {
+                title: 'Treten Sie dem Arbeitsbereich Ihres Unternehmens bei',
+                description: ({joinWorkspaceLink = ''}) =>
+                    Str.dedent(`
+                        1. Öffnen Sie [Einem Arbeitsbereich beitreten](${joinWorkspaceLink}).
+                        2. Suchen Sie Ihr Team in der Liste. Jedes zeigt die:nen Besitzer:in und die Anzahl der Personen an, die darin sind, die größten zuerst. Klicken Sie auf *Mehr anzeigen*, wenn Sie Ihres nicht sehen.
+                        3. Klicken Sie auf *Jetzt beitreten* oder auf *Beitritt anfragen*, wenn eine Admin-Genehmigung erforderlich ist.
+                    `),
+            },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `Machen Sie eine [Probefahrt](${testDriveURL})` : 'Mach eine Probefahrt'),
@@ -3717,6 +3748,14 @@ ${amount} für ${merchant} – ${date}`,
             onboardingChatSplitMessage: 'Rechnungen mit Freund*innen zu teilen ist so einfach wie das Senden einer Nachricht. So geht’s.',
             onboardingAdminMessage: 'Erfahre, wie du als Admin den Arbeitsbereich deines Teams verwaltest und deine eigenen Ausgaben einreichst.',
             onboardingTestDriveReceiverMessage: '*Du erhältst 3 Monate gratis! Leg unten los.*',
+            onboardingJoinWorkspaceAddWorkEmailMessage:
+                'Da Sie dem Workspace Ihres Unternehmens beitreten möchten, habe ich keinen eigenen für Sie erstellt. Fügen Sie Ihre geschäftliche E-Mail-Adresse hinzu, und ich prüfe, welchen Workspaces Ihres Unternehmens Sie beitreten können.',
+            onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
+                `Da Sie dem Workspace Ihres Unternehmens beitreten möchten, habe ich keinen eigenen für Sie erstellt. Bestätigen Sie Ihre E-Mail-Adresse, und ich prüfe, welchen Workspaces bei ${companyDomain} Sie beitreten können.`,
+            onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
+                `Da Sie dem Workspace Ihres Unternehmens beitreten möchten, habe ich keinen eigenen für Sie erstellt. Ihr Team bei ${companyDomain} ist bereits auf Expensify. [Sehen Sie sich die Workspaces an, denen Sie beitreten können.](${joinWorkspaceLink})`,
+            onboardingJoinWorkspaceEmptyMessage:
+                'Es sieht nicht so aus, als hätte Ihr Unternehmen beitretbare Arbeitsbereiche. Bitte wenden Sie sich an Ihre Verwaltungsperson und lassen Sie sich in deren Arbeitsbereich einladen.',
         },
         workspace: {
             title: 'Bleib mit einem Workspace organisiert',

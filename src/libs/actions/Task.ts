@@ -517,6 +517,8 @@ function buildTaskData(
     parentReportAction: OnyxEntry<ReportAction> | undefined,
     delegateEmail: string | undefined,
     actorAccountID?: number,
+    completedTaskReportActionID?: string,
+    parentReportIDOverride?: string,
 ): {
     optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>>;
     failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>>;
@@ -527,6 +529,9 @@ function buildTaskData(
     // `actorAccountID` lets the caller attribute the optimistic completion to whoever the backend will (e.g. Concierge
     // when a task is completed as a side effect). It falls back to the current user inside buildOptimisticTaskReportAction.
     const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, delegateEmail, message, actorAccountID);
+    if (completedTaskReportActionID) {
+        completedTaskReportAction.reportActionID = completedTaskReportActionID;
+    }
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -577,7 +582,7 @@ function buildTaskData(
         },
     ];
 
-    const parentReportID = taskReport?.parentReportID;
+    const parentReportID = parentReportIDOverride ?? taskReport?.parentReportID;
     const parentReportActionID = parentReportAction?.reportActionID ?? taskReport?.parentReportActionID;
 
     if (parentReportID && parentReportActionID) {
@@ -627,6 +632,34 @@ function buildTaskData(
     };
 
     return {optimisticData, failureData, successData, parameters};
+}
+
+/** Apply a task completion after another command has completed the task on the backend. */
+function completeTaskAfterSuccessfulSideEffect(
+    taskReport: OnyxEntry<OnyxTypes.Report>,
+    hasOutstandingChildTaskInParentReport: boolean,
+    hasOutstandingChildTask: boolean,
+    parentReportAction: OnyxEntry<ReportAction> | undefined,
+    completedTaskReportActionID: string | undefined,
+    parentReportIDOverride?: string,
+) {
+    if (!taskReport?.reportID || !completedTaskReportActionID) {
+        return Promise.resolve();
+    }
+
+    const {optimisticData, successData} = buildTaskData(
+        taskReport,
+        taskReport.reportID,
+        hasOutstandingChildTaskInParentReport,
+        hasOutstandingChildTask,
+        parentReportAction,
+        undefined,
+        CONST.ACCOUNT_ID.CONCIERGE,
+        completedTaskReportActionID,
+        parentReportIDOverride,
+    );
+
+    return Onyx.update([...optimisticData, ...successData]);
 }
 
 /**
@@ -1493,6 +1526,58 @@ function getFinishOnboardingTaskOnyxData(
 
     return {};
 }
+
+/** An onboarding task completion that a parent command's `successData` carries, plus the action ID to forward to it. */
+type OnboardingTaskCompletionOnSuccessData = {
+    successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>>;
+    completedTaskReportActionID?: string;
+};
+
+/**
+ * Build the Onyx data that ticks an onboarding task which the backend completes as a side effect of another command.
+ *
+ * Spread `successData` into that command's `successData` and forward `completedTaskReportActionID` in its parameters.
+ * The tick deliberately lands on success only, never optimistically:
+ * - a completion applied up front survives a failed parent command, because nothing sent it and nothing rolls it back;
+ * - screens that key off the task's completed state would close before the command's follow-up step (for example the
+ *   validate-code screen that `AddWorkEmail` can ask for) has a chance to open.
+ *
+ * The action ID goes to the backend so it reuses this action rather than creating a second "marked as complete" one.
+ */
+function getOnboardingTaskCompletionOnSuccessData(
+    taskReport: OnyxEntry<OnyxTypes.Report>,
+    taskParentReport: OnyxEntry<OnyxTypes.Report>,
+    isParentReportArchived: boolean,
+    currentUserAccountID: number,
+    hasOutstandingChildTask: boolean,
+    parentReportAction: OnyxEntry<ReportAction> | undefined,
+): OnboardingTaskCompletionOnSuccessData {
+    const {
+        optimisticData = [],
+        successData = [],
+        completedTaskReportActionID,
+    } = getFinishOnboardingTaskOnyxData(
+        taskReport,
+        taskParentReport,
+        isParentReportArchived,
+        currentUserAccountID,
+        hasOutstandingChildTask,
+        parentReportAction,
+        // delegateEmail: matches the pattern in createPolicyTag, which also passes undefined pending Onyx-value threading
+        undefined,
+        // The parent command already completes the task on the backend, so an extra CompleteTask request would be
+        // both redundant and impossible to roll back when that command fails.
+        false,
+        // The backend attributes this completion to Concierge, so the optimistic action is built as Concierge too to
+        // avoid a wrong-owner flash.
+        CONST.ACCOUNT_ID.CONCIERGE,
+    );
+
+    // `optimisticData` holds the completion itself and `successData` only clears its pending state. Applying both once
+    // the parent command succeeds leaves the task complete with nothing still pending.
+    return {successData: [...optimisticData, ...successData], completedTaskReportActionID};
+}
+
 function completeTestDriveTask(
     viewTourTaskReport: OnyxEntry<OnyxTypes.Report>,
     viewTourTaskParentReport: OnyxEntry<OnyxTypes.Report>,
@@ -1529,6 +1614,7 @@ export {
     reopenTask,
     buildTaskData,
     completeTask,
+    completeTaskAfterSuccessfulSideEffect,
     getReviewWorkspaceSettingsTaskCompletionData,
     clearOutTaskInfoAndNavigate,
     startOutCreateTaskQuickAction,
@@ -1539,6 +1625,7 @@ export {
     canModifyTask,
     canActionTask,
     getFinishOnboardingTaskOnyxData,
+    getOnboardingTaskCompletionOnSuccessData,
     completeTestDriveTask,
 };
 

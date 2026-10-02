@@ -22,6 +22,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnboardingRefManager from '@libs/OnboardingRefManager';
 import type {TOnboardingRef} from '@libs/OnboardingRefManager';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
+import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 
 import variables from '@styles/variables';
 
@@ -37,6 +38,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useIsFocused} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {PUBLIC_DOMAINS_SET} from 'expensify-common';
 import React, {useCallback, useImperativeHandle, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
@@ -56,17 +58,18 @@ function getOnboardingChoices(customChoices: OnboardingPurpose[]) {
 function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, route}: BaseOnboardingPurposeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['Abacus', 'Binoculars', 'CalculatorMoney', 'ReceiptUpload', 'PiggyBank']);
+    const illustrations = useMemoizedLazyIllustrations(['Abacus', 'Binoculars', 'BriefcaseHandshake', 'CalculatorMoney', 'ReceiptUpload', 'PiggyBank']);
 
     const menuIcons = useMemo(
         () => ({
+            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: illustrations.BriefcaseHandshake,
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: illustrations.ReceiptUpload,
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: illustrations.Abacus,
             [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: illustrations.CalculatorMoney,
             [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: illustrations.PiggyBank,
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: illustrations.Binoculars,
         }),
-        [illustrations.Abacus, illustrations.Binoculars, illustrations.CalculatorMoney, illustrations.ReceiptUpload, illustrations.PiggyBank],
+        [illustrations.Abacus, illustrations.Binoculars, illustrations.BriefcaseHandshake, illustrations.CalculatorMoney, illustrations.ReceiptUpload, illustrations.PiggyBank],
     );
     const {onboardingIsMediumOrLargerScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -86,6 +89,9 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const isValidated = isCurrentUserValidated(loginList, session?.email);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
     const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
@@ -112,6 +118,23 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
             onPress: () => {
                 setOnboardingPurposeSelected(choice);
                 setOnboardingErrorMessage(null);
+
+                // A validated private-domain account already has the work email needed to look up joinable workspaces,
+                // so it skips straight to the list. A public-domain account has no work email on file regardless of
+                // validation, so it still needs to add one; an unvalidated private-domain one already has one and
+                // only needs to validate it.
+                if (choice === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE) {
+                    const isCurrentPrimaryPublicDomain = PUBLIC_DOMAINS_SET.has(session?.email?.split('@').at(1)?.toLowerCase() ?? '');
+                    if (isValidated && !isCurrentPrimaryPublicDomain) {
+                        Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()));
+                        return;
+                    }
+                    Navigation.navigate(
+                        isCurrentPrimaryPublicDomain ? ROUTES.ONBOARDING_WORK_EMAIL.getRoute() : ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(ROUTES.ONBOARDING_PURPOSE.getRoute()),
+                    );
+                    return;
+                }
+
                 if (choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
                     Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(route.params?.backTo));
                     return;

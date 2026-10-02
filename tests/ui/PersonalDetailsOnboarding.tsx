@@ -219,7 +219,7 @@ describe('OnboardingPersonalDetails Page', () => {
     });
 
     it('should create a Submit workspace when submitting form with EMPLOYER and public domain', async () => {
-        jest.spyOn(Navigation, 'dismissModal').mockImplementation(() => {});
+        jest.spyOn(Navigation, 'dismissModal').mockImplementation(({afterTransition} = {}) => afterTransition?.());
         jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((callback: () => void) => callback());
 
         await TestHelper.signInWithTestUser();
@@ -259,6 +259,35 @@ describe('OnboardingPersonalDetails Page', () => {
             expect(navigate).toHaveBeenCalledWith(
                 ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE}), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}),
             );
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should create an Add work email task when a validated public-domain user joins a workspace', async () => {
+        await TestHelper.signInWithTestUser(1, fakeEmail);
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {
+                isFromPublicDomain: true,
+            });
+            await Onyx.merge(ONYXKEYS.LOGINS, mockLoginList);
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM, {
+                firstName: 'Test',
+            });
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+        });
+
+        const {unmount} = renderOnboardingPersonalDetailsPage(SCREENS.ONBOARDING.PERSONAL_DETAILS, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
+
+        await waitFor(() => {
+            const onboardingMessage = mockCompleteOnboarding.mock.calls.at(-1)?.[0]?.onboardingMessage;
+            expect(onboardingMessage?.tasks.at(0)?.type).toBe(CONST.ONBOARDING_TASK_TYPE.ADD_WORK_EMAIL);
         });
 
         unmount();
