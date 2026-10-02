@@ -3436,16 +3436,15 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                     `连接${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : '到'} [${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '你的' : ''} ${integrationName}](${workspaceAccountingLink})`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     Str.dedent(`
-                        连接 ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '你的' : '至'} ${integrationName}，实现自动费用编码与同步，让月末结账轻松无比。
+                        连接 ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '你的' : '到'} ${integrationName}，实现自动费用编码与同步，让月末结算轻松无忧。
 
                         1. 点击 *Workspaces*。
-                        2. 选择您的工作区。
-                        3. 点击 *Accounting*。
+                        2. 选择你的工作区。
+                        3. 点击 *Connections*。
                         4. 找到 ${integrationName}。
                         5. 点击 *Connect*。
 
-                        [带我前往会计页面](${workspaceAccountingLink})。
-                    `),
+                        [前往连接页面](${workspaceAccountingLink})。`),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `连接[您的公司卡](${corporateCardLink})`,
@@ -4713,6 +4712,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             readOnlyActionTitle: '别急……',
             readOnlyActionPrompt: '你的工作区角色可以查看这些设置，但不能编辑。',
             noAccessActionPrompt: '您的工作区角色无权访问这些设置。如需访问，请联系管理员。',
+            connections: '连接',
         },
         createdForClient: {
             title: '您已为客户创建了工作区！',
@@ -6230,10 +6230,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 title: '整理',
                 subtitle: '分组并分析支出，记录每一笔已缴税款。',
             },
-            integrateSection: {
-                title: '集成',
-                subtitle: '将 Expensify 连接到常用的金融产品。',
-            },
             distanceRates: {
                 title: '距离费率',
                 subtitle: '添加、更新并执行费率。',
@@ -6433,27 +6429,18 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             },
             connections: {
                 title: '会计',
-                subtitle: '同步您的科目表等数据。',
-            },
-            mcp: {
-                title: 'MCP',
-                subtitle: '将 AI 助手连接到您的 Expensify 账户。',
             },
             receiptPartners: {
                 title: '收据合作伙伴',
-                subtitle: '自动导入收据。',
             },
             connectionsWarningModal: {
                 featureEnabledTitle: '别急……',
                 featureEnabledText: '若要启用或停用此功能，您需要更改会计导入设置。',
-                disconnectText: '要停用会计功能，您需要从工作区中断开您的会计连接。',
                 manageSettings: '管理设置',
             },
             receiptPartnersWarningModal: {
                 featureEnabledTitle: '断开与 Uber 的连接',
-                disconnectText: '若要禁用此功能，请先断开 Uber for Business 集成。',
                 description: '确定要断开与此集成的连接吗？',
-                confirmText: '明白了',
             },
             workflowWarningModal: {
                 featureEnabledTitle: '别急……',
@@ -6469,14 +6456,12 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 subtitle: '为时间跟踪设置可计费的小时费率。',
                 defaultHourlyRate: '默认时薪',
             },
-            hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `若要禁用人力资源功能，请先将此工作区与 ${integration} 断开连接。`},
             vendors: {
                 title: '供应商',
                 subtitle: '将卡片报销与从您的会计软件导入的供应商进行匹配。',
                 disabledTitle: '别急...',
                 disabledMessage: '要启用或禁用此功能，您需要更改会计导入设置。',
             },
-            recruitingWarningModal: {disconnectText: ({integration}: {integration: string}) => `若要停用招聘功能，请先将此工作区与 ${integration} 断开连接。`},
         },
         reports: {
             reportsCustomTitleExamples: '示例：',
@@ -6974,7 +6959,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             disconnect: '断开连接',
             reinstall: '重新安装连接器',
             disconnectTitle: (connectionName = '集成') => `断开连接 ${connectionName}`,
-            connectTitle: (connectionName) => `连接 ${connectionName}`,
             syncError: (connectionName) => `无法连接到 ${connectionName}`,
             accounts: '会计科目表',
             taxes: '税费',
@@ -6991,12 +6975,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'NetSuite 员工默认值',
             },
             disconnectPrompt: (connectionName = '此集成') => `你确定要断开与 ${connectionName} 的连接吗？`,
-            connectPrompt: (connectionName) => `确定要连接 ${connectionName} 吗？这将删除所有现有的会计连接。`,
             enterCredentials: '请输入您的凭证',
             reconnect: '重新连接',
             updateCredentials: '更新凭证',
             claimOffer: {
-                badgeText: '优惠可用！',
                 xero: {
                     headline: '免费使用 Xero 长达 6 个月！',
                     description: '<muted-text><centered-text>第一次使用 Xero？Expensify 客户可享受 6 个月免费试用。请在下方领取优惠。</centered-text></muted-text>',
@@ -8324,10 +8306,6 @@ ${reportName}`,
         },
         hr: {
             title: '人力资源',
-            connectionsSubtitle: '连接您的 HR 系统以同步员工数据，自动将报销匹配到正确的员工，并在无需手动操作的情况下保持团队报销的准确性。',
-            subtitle: '连接人力资源工具，保持员工审批同步。',
-            alreadyConnectedTitle: '无法连接到多个人力资源平台',
-            alreadyConnectedPrompt: '在连接其他人力资源平台之前，您必须先断开当前的人力资源平台。',
             connectionDescription: (providerName: string) => `连接 ${providerName}，以在您的工作区中同步员工审批。`,
             providerApprovalMode: (providerName: string) => `${providerName} 审批模式`,
             providerFinalApprover: (providerName: string) => `${providerName} 最终审批人`,
@@ -8379,13 +8357,9 @@ ${reportName}`,
         },
         recruiting: {
             title: '招聘',
-            connectionsSubtitle: '连接招聘系统以同步候选人数据，自动将报销匹配到正确的人员，并在无需手动操作的情况下保持团队报销数据的准确。',
-            alreadyConnectedTitle: '无法连接到多个 ATS 平台',
-            alreadyConnectedPrompt: '在连接其他 ATS 之前，必须先断开当前的 ATS。',
             syncing: '正在同步候选人',
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>已连接。${setupLink ? `<a href="${setupLink}">完成设置</a>` : '完成设置'} 个可导入候选项。</muted-text-label>`,
-            dontSeeYourATS: `<muted-text-label>没有看到你的 ATS？<a href="#">询问 Concierge</a>，我们可以帮你添加。</muted-text-label>`,
             importSettings: '导入设置',
             defaultApprover: '默认审批人',
             approverFields: {recruiter: '招聘人员', recruitingCoordinator: '招聘协调员'},
@@ -8401,7 +8375,6 @@ ${reportName}`,
                 offices: {title: '办公室', description: '选择你想与此工作区同步的候选人办公地点', toggleTitle: '办公室', allSelected: '所有办公室'},
                 enableJobStagesOrTags: '启用职位阶段或标签以继续',
             },
-            subtitle: '连接招聘工具并保持候选人审批同步。',
             syncResults: {
                 importedCount: () => ({
                     one: '1 名候选人',
@@ -8416,9 +8389,6 @@ ${reportName}`,
             approvalModeDescriptions: {basic: '选择单个审批人', advanced: `候选人的招聘人员或协调人将成为其报销审批人`, custom: '在 Expensify 中手动设置审批人'},
         },
         merge: {
-            connections: '连接',
-            connect: '连接',
-            findIntegration: '查找集成',
             syncNow: '立即同步',
             disconnect: '断开连接',
             disconnectTitle: (providerName: string) => `断开 ${providerName}`,
@@ -8597,6 +8567,32 @@ ${reportName}`,
             noBankAccountsFoundDescription: '请在 Dynamics 365 Business Central 中添加银行账户，然后重新同步连接',
             noPaymentMethodsFound: '未找到付款方式',
             noPaymentMethodsFoundDescription: '请在 Dynamics 365 Business Central 中添加付款方式，然后重新同步连接',
+        },
+        connections: {
+            tabs: {
+                [CONST.TAB.CONNECTIONS.ALL]: '全部',
+                [CONST.TAB.CONNECTIONS.ACCOUNTING]: '会计',
+                [CONST.TAB.CONNECTIONS.PEOPLE]: '人力资源与员工',
+                [CONST.TAB.CONNECTIONS.RECRUITING]: '招聘',
+                [CONST.TAB.CONNECTIONS.RECEIPTS]: '收据',
+                [CONST.TAB.CONNECTIONS.AI]: 'AI 和 MCP',
+            },
+            findConnections: '查找关联',
+            configure: '配置',
+            fix: '修复',
+            active: '有效',
+            broken: '损坏',
+            brokenConnection: '由于连接中断，无法同步',
+            replaceConnectionTitle: '替换连接？',
+            offer: '优惠',
+            replaceConnectionPrompt: (connectionName: string) => `这将移除你当前的 ${connectionName} 连接。`,
+            hrisListing: (providerName: string) => `${providerName}（HRIS）`,
+            atsListing: (providerName: string) => `${providerName}（ATS）`,
+            suggestIntegration: '没找到适合你的？建议一个集成，我们会进行评估。',
+            noResultsPrompt: '请调整您的搜索条件或',
+            suggestAnIntegration: '建议一个集成',
+            allConnectedTitle: '全部已连接',
+            allConnectedPrompt: '这里的一切都已连接完成。您也可以',
         },
     },
     getAssistancePage: {
@@ -10875,6 +10871,7 @@ ${reportName}`,
         markAllAsRead: '<tooltip>右键点击即可<strong>将所有内容标记为已读</strong>。</tooltip>',
         markAllAsReadTouchScreen: '<tooltip>长按即可<strong>将所有内容标记为已读</strong>。</tooltip>',
         accountMovedToTopBar: '<tooltip>访问你的账户和个人设置。</tooltip>',
+        connectionsMoved: '所有连接尽在一处',
     },
     discardChangesConfirmation: {
         title: '放弃更改？',
