@@ -62,7 +62,6 @@
 "../../src/components/AnimatedSubmitButton/index.tsx"	"react-hooks/refs"	4
 "../../src/components/AnimatedSubmitButton/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/ApproverSelectionList.tsx"	"no-restricted-imports"	1
-"../../src/components/ArchivedReportFooter.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/components/AttachmentPicker/index.native.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/AttachmentPicker/index.native.tsx"	"react-hooks/refs"	1
 "../../src/components/AttachmentPicker/index.tsx"	"react-hooks/refs"	1
@@ -332,7 +331,6 @@
 "../../src/components/Search/FilterDropdowns/BasePopup.tsx"	"no-restricted-imports"	1
 "../../src/components/Search/FilterDropdowns/DateSelectPopup/SelectedDateModifierHeader.tsx"	"no-restricted-imports"	1
 "../../src/components/Search/FilterDropdowns/SortByPopup.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/Search/hooks/useFilterUserValue.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/components/Search/hooks/useOptimisticSearchTracking.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/components/Search/hooks/useStableOptimisticSortedData.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Search/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
@@ -542,7 +540,6 @@
 "../../src/hooks/useSubPage/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/hooks/useTackInputFocus/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/hooks/useTextWithMiddleEllipsis.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/hooks/useTodoSearchResults.ts"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/hooks/useTransactionViolationOfWorkspace.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useViolations.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useWindowDimensions/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -594,7 +591,6 @@
 "../../src/libs/actions/IOU/Duplicate.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/IOU/Hold.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/actions/IOU/Hold.ts"	"no-restricted-syntax"	2
-"../../src/libs/actions/IOU/index.ts"	"rulesdir/no-direct-personal-details-list"	2
 "../../src/libs/actions/IOU/index.ts"	"rulesdir/no-onyx-connect"	11
 "../../src/libs/actions/IOU/MoneyRequest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/IOU/MoneyRequestBuilder.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	2
@@ -613,7 +609,6 @@
 "../../src/libs/actions/IOU/ReportWorkflow.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	5
 "../../src/libs/actions/IOU/ReportWorkflow.ts"	"no-restricted-imports"	1
 "../../src/libs/actions/IOU/ReportWorkflow.ts"	"no-restricted-syntax"	1
-"../../src/libs/actions/IOU/SearchUpdate.ts"	"rulesdir/no-direct-personal-details-list"	2
 "../../src/libs/actions/IOU/SendInvoice.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/IOU/SendInvoice.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/IOU/SendMoney.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -682,7 +677,6 @@
 "../../src/libs/actions/Report/index.ts"	"@typescript-eslint/no-deprecated/reportAction.originalMessage"	1
 "../../src/libs/actions/Report/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	19
 "../../src/libs/actions/Report/index.ts"	"no-restricted-syntax"	7
-"../../src/libs/actions/Report/index.ts"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/libs/actions/Report/index.ts"	"rulesdir/no-onyx-connect"	3
 "../../src/libs/actions/Report/MarkAllMessageAsRead.tsx"	"no-restricted-syntax"	1
 "../../src/libs/actions/ReportLayout.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -701,7 +695,6 @@
 "../../src/libs/actions/Tab.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/Task.ts"	"no-restricted-imports"	1
 "../../src/libs/actions/Task.ts"	"no-restricted-syntax"	5
-"../../src/libs/actions/Task.ts"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/libs/actions/TaxRate.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/TeachersUnite.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/Transaction.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	2
@@ -862,7 +855,6 @@
 "../../src/libs/OptionsListUtils/index.ts"	"@typescript-eslint/no-deprecated/translateLocal"	7
 "../../src/libs/OptionsListUtils/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/PageHTMLCapture/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/Parser.ts"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/libs/Parser.ts"	"rulesdir/no-onyx-connect"	2
 "../../src/libs/ParsingUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/PaymentUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -893,7 +885,6 @@
 "../../src/libs/SearchQueryUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	48
 "../../src/libs/SearchUIUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	71
 "../../src/libs/SearchUIUtils.ts"	"no-restricted-imports"	1
-"../../src/libs/ShortMentionLogins.ts"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/libs/SidebarUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Sound/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/SpendRulesUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
