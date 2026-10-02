@@ -12,11 +12,19 @@ import usePolicy from './usePolicy';
 import useStyleUtils from './useStyleUtils';
 import useThemeStyles from './useThemeStyles';
 
+type DefaultWorkspaceTravelGuardOptions = {
+    /** Whether the default workspace must have finished travel setup, rather than only having the feature switched on */
+    shouldRequireCompletedSetup?: boolean;
+};
+
 /**
  * A traveler is provisioned against their default workspace, so booking from any other workspace opens a session they
  * have no travel profile for. Returns a function that shows the blocking modal and reports whether it blocked.
+ *
+ * Callers that offer their own travel setup path pass shouldRequireCompletedSetup: false, so a default workspace with
+ * unfinished setup reaches that path instead of a modal telling the user to enable what they already enabled.
  */
-function useDefaultWorkspaceTravelGuard() {
+function useDefaultWorkspaceTravelGuard({shouldRequireCompletedSetup = true}: DefaultWorkspaceTravelGuardOptions = {}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -27,7 +35,14 @@ function useDefaultWorkspaceTravelGuard() {
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
 
     const blockIfDefaultWorkspaceLacksTravel = () => {
-        if (!defaultPolicy || (defaultPolicy.isTravelEnabled && hasAcceptedTravelTerms(defaultPolicy, travelSettings))) {
+        if (!defaultPolicy) {
+            return false;
+        }
+
+        const isDefaultWorkspaceBookable = shouldRequireCompletedSetup
+            ? defaultPolicy.isTravelEnabled && hasAcceptedTravelTerms(defaultPolicy, travelSettings)
+            : defaultPolicy.isTravelEnabled;
+        if (isDefaultWorkspaceBookable) {
             return false;
         }
 
