@@ -25,7 +25,7 @@ import type {ListItem} from './SelectionList/types';
 
 import BlockingView from './BlockingViews/BlockingView';
 import FullPageNotFoundView from './BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from './HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from './Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from './ScreenWrapper';
 import SelectionList from './SelectionList';
 import InviteMemberListItem from './SelectionList/ListItem/InviteMemberListItem';
@@ -169,7 +169,7 @@ function ApproverSelectionList({
                 onLinkPress={goBackFromInvalidPolicy}
                 addBottomSafeAreaPadding
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={headerTitle}
                     onBackButtonPress={onBackButtonPress}
                 />

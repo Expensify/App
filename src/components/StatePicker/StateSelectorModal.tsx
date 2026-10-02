@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -86,9 +86,8 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
                 includeSafeAreaPaddingBottom={false}
                 testID="StateSelectorModal"
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={label}
-                    shouldShowBackButton
                     onBackButtonPress={onClose}
                 />
                 <SelectionList

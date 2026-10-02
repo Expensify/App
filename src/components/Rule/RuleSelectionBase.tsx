@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchSingleSelectionPicker from '@components/Search/SearchSingleSelectionPicker';
 
@@ -73,7 +73,7 @@ function RuleSelectionBaseComponent({titleKey, title, testID, onBack, hash, chil
                 offlineIndicatorStyle={styles.mtAuto}
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={title ?? translate(titleKey)}
                     onBackButtonPress={onBack}
                 />

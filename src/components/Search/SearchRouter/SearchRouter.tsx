@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import DeferredAutocompleteList from '@components/Search/DeferredSearchAutocompleteList';
@@ -531,10 +531,9 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             ref={ref}
         >
             {shouldUseNarrowLayout && (
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('common.search')}
                     onBackButtonPress={() => onRouterClose()}
-                    shouldDisplayHelpButton={false}
                 />
             )}
             <View style={[shouldUseNarrowLayout ? styles.mv3 : styles.mv4, shouldUseNarrowLayout ? styles.mh5 : styles.mh4]}>

@@ -1,6 +1,7 @@
 import {render} from '@testing-library/react-native';
 
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
+import HeaderAvatarWithDisplayName from '@components/Header/primitives/HeaderAvatarWithDisplayName';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyReportHeaderActions from '@components/MoneyReportHeaderActions';
 
@@ -44,13 +45,15 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-// `HeaderWithBackButton` is the element under test: the narrow branch renders it with a `title`, the wide
-// branch renders it with the report avatar and the action buttons as children. Pass children through so the
-// wide branch's `MoneyReportHeaderActions` still mounts and can be asserted on.
-jest.mock('@components/HeaderWithBackButton', () => {
-    const reactModule = jest.requireActual<typeof React>('react');
-    return jest.fn(({children}: {children?: React.ReactNode}) => reactModule.createElement(reactModule.Fragment, null, children));
-});
+// The narrow branch renders `HeaderWithBackButtonAndTitle` with a `title`; the wide branch renders a separate
+// tree with `Header.AvatarWithDisplayName` carrying the report. Each is mocked to capture its props so the
+// tests can tell which branch rendered and with what.
+jest.mock('@components/Header/composed/HeaderWithBackButtonAndTitle', () => jest.fn(() => null));
+
+// `Header`, `Header.BackButton`, `Header.Right` and `Header.Actions` are left real: they are plain layout
+// wrappers that pass their children through, which is what lets `MoneyReportHeaderActions` still mount inside
+// them and be asserted on below.
+jest.mock('@components/Header/primitives/HeaderAvatarWithDisplayName', () => jest.fn(() => null));
 
 // Siblings of the header row are stubbed to keep the render lightweight; only their mounting is asserted.
 jest.mock('@components/MoneyReportHeaderActions', () => jest.fn(() => null));
@@ -88,7 +91,8 @@ jest.mock('@hooks/useReportPrimaryAction', () => jest.fn(() => ''));
 jest.mock('@hooks/useThemeStyles', () => jest.fn(() => new Proxy({}, {get: () => ({})})));
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: jest.fn((key: string) => key), numberFormat: jest.fn((num: number) => num.toString()), localeCompare: jest.fn()})));
 
-const mockHeaderWithBackButton = jest.mocked(HeaderWithBackButton);
+const mockHeaderWithBackButtonAndTitle = jest.mocked(HeaderWithBackButtonAndTitle);
+const mockHeaderAvatarWithDisplayName = jest.mocked(HeaderAvatarWithDisplayName);
 const mockMoneyReportHeaderActions = jest.mocked(MoneyReportHeaderActions);
 const mockUseMobileSelectionMode = jest.mocked(useMobileSelectionMode);
 const mockUseNetwork = jest.mocked(useNetwork);
@@ -164,23 +168,34 @@ function mockTransactions(pendingActions: Array<Transaction['pendingAction']>) {
     mockUseTransactionsAndViolationsForReport.mockReturnValue({transactions, violations: {}, isLoaded: true});
 }
 
-const renderHeader = () =>
-    render(
+/**
+ * `HeaderWithBackButtonAndTitle` (narrow) and `Header.AvatarWithDisplayName` (wide) are now two separate
+ * components instead of one conditionally-propped component, so only the branch that actually renders adds a
+ * call to its own mock — the other mock's calls would otherwise stay stale from an earlier render in the same
+ * test. Clearing both right before every (re)render keeps each mock's call list scoped to the latest render.
+ */
+const renderHeader = () => {
+    const result = render(
         <MoneyReportHeader
             reportID={REPORT_ID}
             onBackButtonPress={jest.fn()}
         />,
     );
+    return {
+        ...result,
+        rerender: (ui: React.ReactElement) => {
+            mockHeaderWithBackButtonAndTitle.mockClear();
+            mockHeaderAvatarWithDisplayName.mockClear();
+            result.rerender(ui);
+        },
+    };
+};
 
-/**
- * The title the most recent `HeaderWithBackButton` render was given. Only the narrow selection-mode branch
- * passes one, so this doubles as "which branch rendered". Read one prop at a time rather than asserting on
- * the whole props object, which carries the rendered children and is too deep for Jest to diff.
- */
-const lastHeaderTitle = () => mockHeaderWithBackButton.mock.calls.at(-1)?.at(0)?.title;
+/** The title the most recent render was given — only the narrow selection-mode branch renders this component at all. */
+const lastHeaderTitle = () => mockHeaderWithBackButtonAndTitle.mock.calls.at(-1)?.at(0)?.title;
 
-/** The report the most recent `HeaderWithBackButton` render was given — only the wide branch passes one. */
-const lastHeaderReport = () => mockHeaderWithBackButton.mock.calls.at(-1)?.at(0)?.report;
+/** The report the most recent render was given — only the wide branch renders this component at all. */
+const lastHeaderReport = () => mockHeaderAvatarWithDisplayName.mock.calls.at(-1)?.at(0)?.report;
 
 describe('MoneyReportHeader selection mode header', () => {
     beforeEach(() => {

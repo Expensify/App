@@ -40,7 +40,7 @@ import AvatarWithImagePicker from './AvatarWithImagePicker';
 import CurrencySelector from './CurrencySelector';
 import FormProvider from './Form/FormProvider';
 import InputWrapper from './Form/InputWrapper';
-import HeaderWithBackButton from './HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from './Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import ScrollView from './ScrollView';
 import Switch from './Switch';
@@ -175,7 +175,7 @@ function WorkspaceConfirmationForm({
 
     return (
         <>
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('workspace.new.confirmWorkspace')}
                 onBackButtonPress={onBackButtonPress}
             />

@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -74,7 +74,7 @@ function MonthPickerModal({isVisible, currentMonth, onMonthChange, onClose, shou
                 enableEdgeToEdgeBottomSafeAreaPadding
                 testID="MonthPickerModal"
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('monthPickerPage.month')}
                     onBackButtonPress={onClose}
                 />

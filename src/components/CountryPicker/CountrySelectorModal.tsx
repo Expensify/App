@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -83,9 +83,8 @@ function CountrySelectorModal({isVisible, currentCountry, onCountrySelected, onC
                 includeSafeAreaPaddingBottom={false}
                 testID="CountrySelectorModal"
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={label}
-                    shouldShowBackButton
                     onBackButtonPress={onClose}
                 />
                 <SelectionList

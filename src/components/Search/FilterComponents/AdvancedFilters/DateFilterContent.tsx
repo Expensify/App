@@ -1,5 +1,5 @@
 import Button from '@components/Button';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import DateFilterBase from '@components/Search/FilterComponents/DateFilterBase';
 import type {DateFilterBaseHandle} from '@components/Search/FilterComponents/DateFilterBase';
 import type {SearchDateFilterKeys} from '@components/Search/types';
@@ -38,7 +38,7 @@ function DateFilterContent({baseFilterKey, value, selectedDateModifier, hasFeed,
     return (
         <>
             {!!selectedDateModifier && (
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     style={[styles.h10]}
                     subtitle={getDateModifierTitle(selectedDateModifier, '', translate)}
                     onBackButtonPress={() => dateFilterRef.current?.goBack()}
