@@ -254,7 +254,6 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
 
     const {
         activeSorting,
-        columnResize,
         tableMethods: {updateSorting, toggleColumnSorting},
     } = useTableContext<DataType, ColumnKey>();
 
@@ -353,12 +352,7 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
             {sortButton}
 
             {/* Skipped in the sticky header's hidden twin to avoid duplicate handles. */}
-            {!isAccessibilityHidden && (
-                <ColumnResizeHandle
-                    columnResize={columnResize}
-                    columnKey={column.key}
-                />
-            )}
+            {!isAccessibilityHidden && <ColumnResizeHandle columnKey={column.key} />}
         </View>
     );
 }

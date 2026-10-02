@@ -9,12 +9,11 @@ import type {LayoutChangeEvent} from 'react-native';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {ColumnResizeController} from './columnResize/useColumnResize/types';
-
 import ColumnResizeScope from './columnResize/ColumnResizeScope';
 import {getColumnsWidthStyle} from './columnResize/columnWidthExpressions';
 import {getTableContainerAccessibilityProps} from './tableAccessibility';
 import TableBody from './TableBody';
+import {useTableContext} from './TableContext';
 import TableHeader from './TableHeader';
 
 type TableSemanticContainerProps = {
@@ -56,9 +55,6 @@ type TableSemanticContainerProps = {
      */
     scrollWidth: number | string | undefined;
 
-    /** Resize controller, or `undefined` when not resizable. */
-    columnResize: ColumnResizeController | undefined;
-
     /**
      * Measures the width the table's columns have to share. This node is the right thing to measure because it keeps the
      * table's own width even while its content overflows and scrolls, so measuring it can't feed back into the widths it
@@ -90,11 +86,11 @@ function TableSemanticContainer({
     shouldUseDynamicColumns,
     hasHeaderRow,
     scrollWidth,
-    columnResize,
     onLayout,
     children,
 }: TableSemanticContainerProps) {
     const styles = useThemeStyles();
+    const {columnResize} = useTableContext();
 
     const shouldWrapTableRun = isEnabled || (shouldUseDynamicColumns && canMeasureText()) || onLayout !== undefined || scrollWidth !== undefined || !!columnResize;
     if (!shouldWrapTableRun) {
