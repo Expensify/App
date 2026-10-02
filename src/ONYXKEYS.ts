@@ -79,7 +79,7 @@ const ONYXKEYS = {
     CREDENTIALS: 'credentials',
     STASHED_CREDENTIALS: 'stashedCredentials',
 
-    /** Marketing attribution (UTM params and ad click IDs) captured from the landing URL */
+    /** Marketing attribution (UTM params and Google Ads click ID) captured from the landing URL */
     MARKETING_ATTRIBUTION: 'marketingAttribution',
 
     /** Keeps track if there is modal currently visible or not */

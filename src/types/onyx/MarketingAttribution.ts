@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 /**
- * Marketing attribution captured from the landing URL (UTM params and ad click IDs).
+ * Marketing attribution captured from the landing URL (UTM params and Google Ads click ID).
  * Keys match the request parameter names the backend reads during signup so they can be spread
  * directly into the SignUpUser request.
  */
@@ -22,15 +22,6 @@ type MarketingAttribution = {
 
     /** Google Ads click ID */
     gclid?: string;
-
-    /** Meta (Facebook) click ID */
-    fbclid?: string;
-
-    /** Reddit Ads click ID */
-    rdt_cid?: string;
-
-    /** LinkedIn Ads click ID */
-    li_fat_id?: string;
 };
 
 export default MarketingAttribution;

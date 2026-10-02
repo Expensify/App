@@ -6,14 +6,14 @@ import type MarketingAttribution from '@src/types/onyx/MarketingAttribution';
 import Onyx from 'react-native-onyx';
 
 /**
- * The UTM params and ad click IDs we capture from the landing URL, keyed by their backend request
+ * The UTM params and Google Ads click ID we capture from the landing URL, keyed by their backend request
  * param names. UTM params aren't present on new.expensify.com URLs today, but we capture them
  * anyway so attribution works automatically if that changes.
  */
-const MARKETING_PARAM_KEYS: Array<keyof MarketingAttribution> = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid', 'fbclid', 'rdt_cid', 'li_fat_id'];
+const MARKETING_PARAM_KEYS: Array<keyof MarketingAttribution> = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid'];
 
 /**
- * Captures marketing attribution (UTM params and ad click IDs) from the landing URL and persists it
+ * Captures marketing attribution (UTM params and Google Ads click ID) from the landing URL and persists it
  * to Onyx so it can be sent during signup. This only runs on web, where ad traffic lands, and reads
  * `window.location` directly at app startup before the router can strip the query string.
  *
