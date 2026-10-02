@@ -1,3 +1,4 @@
+import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import TopBarWithLoadingBar from '@components/Navigation/TopBarWithLoadingBar';
@@ -5,7 +6,8 @@ import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -42,6 +44,8 @@ type AskConciergeSidebarProps = {
 
 // A thinking thread breathes its dot rather than animating anything else in the row.
 const PULSE_DURATION_MS = 700;
+
+const EMPTY_STATE_ILLUSTRATION_SIZE = 68;
 const PULSE_MIN_OPACITY = 0.3;
 
 const conciergeProcessingSelector = (reportNameValuePairs: OnyxEntry<ReportNameValuePairs>) => !!getAgentZeroProcessingLabel(reportNameValuePairs, CONST.ACCOUNT_ID.CONCIERGE);
@@ -139,6 +143,8 @@ function AskConciergeRow({label, icon, reportID, isSelected, isUnread, onPress}:
 function AskConciergeSidebar({threads, selectedReportID, onAskNewQuestion, onSelectThread}: AskConciergeSidebarProps) {
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'DotIndicator', 'DotIndicatorUnfilled']);
+    const illustrations = useMemoizedLazyIllustrations(['CommentBubblesBlue']);
+    const {isInLandscapeMode} = useResponsiveLayout();
 
     return (
         <View style={[styles.flex1, styles.h100]}>
@@ -159,22 +165,36 @@ function AskConciergeSidebar({threads, selectedReportID, onAskNewQuestion, onSel
                 </View>
             </TopBarWithLoadingBar>
             {/* The rows carry no margin of their own, so a wrapper insets the whole list the way the navigation bar is inset. */}
-            <ScrollView
-                style={styles.flex1}
-                contentContainerStyle={[styles.mh3, styles.pt1]}
-            >
-                {threads.map((thread) => (
-                    <AskConciergeRow
-                        key={thread.reportID}
-                        label={thread.title}
-                        icon={thread.isUnread ? icons.DotIndicator : icons.DotIndicatorUnfilled}
-                        reportID={thread.reportID}
-                        isSelected={thread.reportID === selectedReportID}
-                        isUnread={thread.isUnread}
-                        onPress={() => onSelectThread(thread.reportID)}
+            {threads.length === 0 ? (
+                <View style={[styles.flex1, isInLandscapeMode ? styles.pv4 : styles.emptyLHNWrapper]}>
+                    <BlockingView
+                        icon={illustrations.CommentBubblesBlue}
+                        iconWidth={EMPTY_STATE_ILLUSTRATION_SIZE}
+                        iconHeight={EMPTY_STATE_ILLUSTRATION_SIZE}
+                        title="No chats"
+                        titleStyles={styles.mb2}
+                        CustomSubtitle={<Text style={[styles.textAlignCenter, styles.textSupporting]}>Start a new chat using the button above</Text>}
+                        accessibilityLabel="No chats"
                     />
-                ))}
-            </ScrollView>
+                </View>
+            ) : (
+                <ScrollView
+                    style={styles.flex1}
+                    contentContainerStyle={[styles.mh3, styles.pt1]}
+                >
+                    {threads.map((thread) => (
+                        <AskConciergeRow
+                            key={thread.reportID}
+                            label={thread.title}
+                            icon={thread.isUnread ? icons.DotIndicator : icons.DotIndicatorUnfilled}
+                            reportID={thread.reportID}
+                            isSelected={thread.reportID === selectedReportID}
+                            isUnread={thread.isUnread}
+                            onPress={() => onSelectThread(thread.reportID)}
+                        />
+                    ))}
+                </ScrollView>
+            )}
         </View>
     );
 }

@@ -140,6 +140,7 @@ import CheckmarkCircle from '@assets/images/simple-illustrations/simple-illustra
 import Clock from '@assets/images/simple-illustrations/simple-illustration__clock.svg';
 import Coins from '@assets/images/simple-illustrations/simple-illustration__coins.svg';
 import CommentBubbles from '@assets/images/simple-illustrations/simple-illustration__commentbubbles.svg';
+import CommentBubblesBlue from '@assets/images/simple-illustrations/simple-illustration__commentbubbles_blue.svg';
 import ConciergeBot from '@assets/images/simple-illustrations/simple-illustration__concierge-bot.svg';
 import ConciergeBubble from '@assets/images/simple-illustrations/simple-illustration__concierge-bubble.svg';
 import CowboyHat from '@assets/images/simple-illustrations/simple-illustration__cowboy-hat.svg';
@@ -423,6 +424,7 @@ const Illustrations = {
     ChatBubbles,
     CheckmarkCircle,
     CommentBubbles,
+    CommentBubblesBlue,
     ConciergeBubble,
     CreditCardEyes,
     CreditCardsNewGreen,

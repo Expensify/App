@@ -28,7 +28,7 @@ function AskConciergeWelcome({reportID, hasPreviousMessages, onShowPreviousMessa
     return (
         <ScrollView
             style={[shouldUseNarrowLayout ? styles.flex1 : [styles.flexShrink1, styles.flexGrow0], styles.conciergeAskColumn]}
-            contentContainerStyle={[shouldUseNarrowLayout && styles.flexGrow1, styles.justifyContentCenter]}
+            contentContainerStyle={[shouldUseNarrowLayout && styles.flexGrow1, styles.justifyContentCenter, styles.pb5]}
             keyboardShouldPersistTaps="handled"
         >
             <AskConciergeEmptyState />
@@ -37,7 +37,7 @@ function AskConciergeWelcome({reportID, hasPreviousMessages, onShowPreviousMessa
                 hasPreviousMessages={hasPreviousMessages}
                 shouldShowFullHistory={false}
                 onShowPreviousMessages={onShowPreviousMessages}
-                containerStyles={styles.pv5}
+                containerStyles={styles.pt5}
             />
         </ScrollView>
     );
