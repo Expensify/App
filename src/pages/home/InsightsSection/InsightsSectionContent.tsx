@@ -5,6 +5,7 @@ import SearchChartView from '@components/Search/SearchChartView';
 import WidgetContainer from '@components/WidgetContainer';
 import WidgetHeaderMenu from '@components/WidgetHeaderMenu';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -30,6 +31,7 @@ import useInsightData from './useInsightData';
 
 function InsightsSectionContent() {
     const styles = useThemeStyles();
+    const {cardPaddingHorizontal} = useLayoutSpacing();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Expand']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -89,7 +91,7 @@ function InsightsSectionContent() {
             {state === INSIGHTS_CHART_STATE.EMPTY && <ChartEmptyState testID="insightsSectionEmptyState" />}
             {state === INSIGHTS_CHART_STATE.ERROR && <ChartErrorState onRetry={retry} />}
             {(state === INSIGHTS_CHART_STATE.LOADING || state === INSIGHTS_CHART_STATE.READY) && (
-                <View style={[shouldUseNarrowLayout ? styles.ph5 : [styles.ph8, styles.pt3], view === CONST.SEARCH.VIEW.PIE && styles.pb6]}>
+                <View style={[cardPaddingHorizontal, !shouldUseNarrowLayout && styles.pt3, view === CONST.SEARCH.VIEW.PIE && styles.pb6]}>
                     <SearchChartView
                         queryJSON={queryJSON}
                         view={view}

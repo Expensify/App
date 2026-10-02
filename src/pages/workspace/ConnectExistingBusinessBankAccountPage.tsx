@@ -129,13 +129,13 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
                     <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 </View>
             ) : (
-                <ScrollView style={[styles.w100, shouldUseNarrowLayout ? [styles.pt3, styles.ph5, styles.pb5] : [styles.pt5, styles.ph8, styles.pb8]]}>
+                <ScrollView style={[styles.w100, styles.ph5, shouldUseNarrowLayout ? styles.pt3 : styles.pt5, styles.pb5]}>
                     <Text>{translate('workspace.bankAccount.chooseAnExisting')}</Text>
                     <PaymentMethodList
                         onPress={handleItemPress}
                         onAddBankAccountPress={handleAddBankAccountPress}
-                        style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
-                        listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                        style={[styles.mt5, styles.mhn5]}
+                        listItemStyle={styles.ph5}
                         itemIconRight={icons.ArrowRight}
                         filterType={CONST.BANK_ACCOUNT.TYPE.BUSINESS}
                         filterCurrency={policyCurrency}

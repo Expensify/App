@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMultipleSnapshots from '@hooks/useMultipleSnapshots';
@@ -60,6 +61,7 @@ type InsightsDashboardContentProps = {
 
 function InsightsDashboardContent({state, headlineChart, supportingCharts, filters, onRetry, onGroupByChange}: InsightsDashboardContentProps) {
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
     const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -122,7 +124,7 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
     return (
         <ScrollView
             style={styles.insightsDashboardScrollView}
-            contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb5]}
+            contentContainerStyle={[styles.flexGrow1, pageGutter, styles.pb5]}
             addBottomSafeAreaPadding
         >
             <View style={styles.insightsDashboardLayout}>

@@ -15,6 +15,7 @@ import TextLink from '@components/TextLink';
 import useApprovalWorkflows from '@hooks/useApprovalWorkflows';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMergeSyncResultsPage from '@hooks/useMergeSyncResultsPage';
@@ -132,6 +133,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     );
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
     const {showConfirmModal} = useConfirmModal();
     const showRuleBotGuardModal = useRuleBotGuardModal();
     const getWorkspaceMembers = () => {
@@ -847,7 +849,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         >
             {() => (
                 <>
-                    {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                    {shouldDisplayButtonsInSeparateLine && <View style={pageGutter}>{getHeaderButtons()}</View>}
                     <DecisionModal
                         title={translate('common.downloadFailedTitle')}
                         prompt={translate('common.downloadFailedDescription')}

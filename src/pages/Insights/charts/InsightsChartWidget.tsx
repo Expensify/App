@@ -8,6 +8,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import WidgetContainer from '@components/WidgetContainer';
 import WidgetHeaderMenu from '@components/WidgetHeaderMenu';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -55,6 +56,7 @@ function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGr
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPaddingHorizontal} = useLayoutSpacing();
     const icons = useMemoizedLazyExpensifyIcons(['Expand']);
 
     const {isOffline} = useNetwork();
@@ -111,7 +113,7 @@ function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGr
                         data={data}
                         isLoading={isLoading}
                         color={chart.color}
-                        chartContainerStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                        chartContainerStyle={cardPaddingHorizontal}
                         renderDetails={
                             shouldShowTable
                                 ? (rows) => (

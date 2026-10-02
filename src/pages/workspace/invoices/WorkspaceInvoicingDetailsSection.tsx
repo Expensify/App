@@ -1,6 +1,7 @@
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Section from '@components/Section';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -12,7 +13,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 type WorkspaceInvoicingDetailsSectionProps = {
     policyID: string;
@@ -25,9 +26,10 @@ function WorkspaceInvoicingDetailsSection({policyID, canWriteMoreFeatures}: Work
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPaddingHorizontal} = useLayoutSpacing();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
-    const horizontalPadding = useMemo(() => (shouldUseNarrowLayout ? styles.ph5 : styles.ph8), [shouldUseNarrowLayout, styles]);
+    const horizontalPadding = cardPaddingHorizontal;
 
     return (
         <Section
