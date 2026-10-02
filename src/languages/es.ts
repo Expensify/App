@@ -3883,6 +3883,14 @@ ${amount} para ${merchant} - ${date}`,
         unlockAlreadyRequestedTitle: 'Solicitud ya enviada',
         unlockAlreadyRequestedDescription: 'Tu solicitud para desbloquear esta cuenta bancaria ya ha sido enviada. Concierge se pondrá en contacto contigo si se necesita algo más.',
     },
+    dynamicForm: {
+        exampleHint: ({example}: {example: string}) => `Ejemplo: ${example}`,
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `Debe tener al menos ${minLength} caracteres`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `Formato inválido. Ejemplo: ${example}` : 'Formato inválido'),
+            invalidOption: 'Elige una de las opciones disponibles',
+        },
+    },
     addPersonalBankAccount: {
         swiftBicFormatError: 'El SWIFT/BIC debe tener 8 u 11 caracteres, con 6 letras seguidas de 2 o 5 letras o números.',
         countrySelectionStepHeader: '¿Dónde está ubicada tu cuenta bancaria?',

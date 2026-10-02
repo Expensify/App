@@ -3945,6 +3945,14 @@ ${amount} per ${merchant} - ${date}`,
         unlockAlreadyRequestedTitle: 'Richiesta già inviata',
         unlockAlreadyRequestedDescription: 'La tua richiesta di sblocco di questo conto bancario è già stata inviata. Concierge ti contatterà se servirà altro.',
     },
+    dynamicForm: {
+        exampleHint: ({example}: {example: string}) => `Esempio: ${example}`,
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `Deve contenere almeno ${minLength} caratteri`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `Formato non valido. Esempio: ${example}` : 'Formato non valido'),
+            invalidOption: 'Scegli una delle opzioni disponibili',
+        },
+    },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Lo SWIFT/BIC deve essere lungo 8 o 11 caratteri, con 6 lettere seguite da 2 oppure 5 lettere o numeri.',
         countrySelectionStepHeader: 'Dove si trova il tuo conto bancario?',

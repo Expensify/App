@@ -3823,6 +3823,14 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         unlockAlreadyRequestedTitle: '请求已提交',
         unlockAlreadyRequestedDescription: '您解锁此银行账户的请求已发送。如需其他信息，Concierge 会与您联系。',
     },
+    dynamicForm: {
+        exampleHint: ({example}: {example: string}) => `示例：${example}`,
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `至少需要 ${minLength} 个字符`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `格式无效。示例：${example}` : '格式无效'),
+            invalidOption: '请从可用选项中选择',
+        },
+    },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC 必须为 8 或 11 个字符长度，由 6 个字母后接 2 或 5 个字母或数字组成。',
         countrySelectionStepHeader: '您的银行账户位于哪个国家/地区？',
