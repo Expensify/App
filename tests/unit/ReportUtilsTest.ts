@@ -60,6 +60,7 @@ import {
     canAddTransaction,
     canBeAutoReimbursed,
     canCreateRequest,
+    canDeleteCardTransactionByLiabilityType,
     canDeleteMoneyRequestReport,
     canDeleteReportAction,
     canDeleteTransaction,
@@ -6294,6 +6295,20 @@ describe('ReportUtils', () => {
                     canDeleteMoneyRequestReport(draftReport, [cashTransaction, expensifyCardTransaction], [cashIOUAction, cardIOUAction], currentUserAccountID, undefined, adminPolicy, true),
                 ).toBe(false);
             });
+
+            it('should not allow a member to delete their own draft report containing an Expensify Card transaction', () => {
+                const ownDraftReport = {...draftReport, ownerAccountID: currentUserAccountID};
+                const expensifyCardTransaction = {
+                    ...createRandomTransaction(908),
+                    reportID: ownDraftReport.reportID,
+                    managedCard: false,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    comment: {liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT},
+                };
+                const iouAction = buildIOUActionForTransaction(ownDraftReport.reportID, expensifyCardTransaction.transactionID, currentUserAccountID);
+
+                expect(canDeleteMoneyRequestReport(ownDraftReport, [expensifyCardTransaction], [iouAction], currentUserAccountID, undefined, memberPolicy, true)).toBe(false);
+            });
         });
 
         it('should allow deletion if the expense report is submitted but not yet approved by anyone', async () => {
@@ -10101,6 +10116,22 @@ describe('ReportUtils', () => {
     });
 
     describe('canDeleteReportAction', () => {
+        it('should not allow an Expensify Card transaction to be deleted when managedCard is missing', () => {
+            // Given an Expensify Card transaction whose managed-card metadata is unavailable
+            const transaction = {
+                ...createRandomTransaction(1000),
+                managedCard: false,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+                comment: {liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT},
+            };
+
+            // When checking whether the transaction can be deleted
+            const canDeleteTransactionByLiability = canDeleteCardTransactionByLiabilityType(transaction);
+
+            // Then the bank identifies it as an Expensify Card transaction and deletion stays blocked
+            expect(canDeleteTransactionByLiability).toBe(false);
+        });
+
         it('should return false for delete button visibility if transaction is not allowed to be deleted', async () => {
             // Given a restricted managed-card expense on an open expense report owned by the current user
             const expenseReport = {

@@ -3219,6 +3219,10 @@ function shouldCurrentUserSubmitReport(iouReport: OnyxEntry<Report>, chatReport:
  * Checks whether the card transaction support deleting based on liability type
  */
 function canDeleteCardTransactionByLiabilityType(transaction: OnyxEntry<Transaction>): boolean {
+    if (isExpensifyCardTransaction(transaction)) {
+        return false;
+    }
+
     const isCardTransaction = isCardTransactionTransactionUtils(transaction);
     if (!isCardTransaction) {
         return true;
@@ -3251,6 +3255,12 @@ function canDeleteMoneyRequestReport(
         return true;
     }
 
+    const hasExpensifyCardTransaction = reportTransactions.some(isExpensifyCardTransaction);
+    const hasRestrictedCorporateCardTransaction = reportTransactions.some((reportTransaction) => reportTransaction.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT);
+    if (isReportLevelDelete && (hasExpensifyCardTransaction || (!isReportPolicyAdmin && hasRestrictedCorporateCardTransaction))) {
+        return false;
+    }
+
     const isUnreported = isSelfDM(report) || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const canCardTransactionBeDeleted = canDeleteCardTransactionByLiabilityType(transaction);
     if (isUnreported) {
@@ -3258,11 +3268,10 @@ function canDeleteMoneyRequestReport(
     }
 
     // Admins can delete a draft report even when they are not its submitter, but not its individual expenses.
-    // Third-party card liability does not apply here because deleting a report leaves its expenses unreported.
-    // Reports containing Expensify Card transactions must still be preserved.
+    // Admins can delete reports containing third-party card expenses because those expenses become unreported.
     const isDraft = report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN;
     if (isDraft && isReportPolicyAdmin && isReportLevelDelete) {
-        return reportTransactions.every((reportTransaction) => !isExpensifyCardTransaction(reportTransaction));
+        return true;
     }
 
     if (isInvoiceReport(report)) {
