@@ -1,4 +1,4 @@
-/** The line marking a hovered or dragged column edge, toggled through custom properties so hovering never re-renders the table. */
+/** The line marking a dragged column edge, toggled through custom properties so a drag never re-renders the table. */
 import {RESIZE_INDICATOR_HEIGHT_VARIABLE, RESIZE_INDICATOR_OPACITY_VARIABLE, RESIZE_INDICATOR_TOP_VARIABLE, TABLE_ROW_SELECTOR} from '@components/Table/columnResize/columnWidthExpressions';
 
 import type {RefObject} from 'react';
@@ -11,14 +11,12 @@ const INDICATOR_OPACITY = {
 } as const;
 
 type ResizeIndicator = {
-    /** Shows the line at the given handle, hiding the one at any other handle. */
     revealIndicator: (handleElement: HTMLElement) => void;
 
-    /** Hides the line, unless a drag is still carrying it. */
     hideIndicator: () => void;
 };
 
-/** Shows the handle's line. Measured once per reveal. The line lives in the handle, so drags and scrolls carry it. */
+/** Measured once per drag. The line lives in the handle, so drags and scrolls carry it. */
 function drawIndicatorAtHandle(scopeElement: HTMLElement | null, handleElement: HTMLElement) {
     const handleRect = handleElement.getBoundingClientRect();
     const headerRowTop = (handleElement.closest(TABLE_ROW_SELECTOR) ?? handleElement).getBoundingClientRect().top;
@@ -40,25 +38,16 @@ function drawIndicatorAtHandle(scopeElement: HTMLElement | null, handleElement: 
     handleElement.style.setProperty(RESIZE_INDICATOR_OPACITY_VARIABLE, INDICATOR_OPACITY.VISIBLE);
 }
 
-function useResizeIndicator(scopeElementRef: RefObject<HTMLElement | null>, dragRef: RefObject<unknown>): ResizeIndicator {
-    // The handle whose line is showing, so a drag ending away from it can still hide it.
+function useResizeIndicator(scopeElementRef: RefObject<HTMLElement | null>): ResizeIndicator {
+    // Lost pointer capture hands over no element, so the dragged handle is remembered to hide its line.
     const activeHandleElementRef = useRef<HTMLElement | null>(null);
 
     const revealIndicator = (handleElement: HTMLElement) => {
-        if (activeHandleElementRef.current !== handleElement) {
-            activeHandleElementRef.current?.style.setProperty(RESIZE_INDICATOR_OPACITY_VARIABLE, INDICATOR_OPACITY.HIDDEN);
-        }
-
         activeHandleElementRef.current = handleElement;
         drawIndicatorAtHandle(scopeElementRef.current, handleElement);
     };
 
     const hideIndicator = () => {
-        // A drag that has left the handle behind still shows where the edge is going.
-        if (dragRef.current) {
-            return;
-        }
-
         activeHandleElementRef.current?.style.setProperty(RESIZE_INDICATOR_OPACITY_VARIABLE, INDICATOR_OPACITY.HIDDEN);
         activeHandleElementRef.current = null;
     };

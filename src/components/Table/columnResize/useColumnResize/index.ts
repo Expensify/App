@@ -32,7 +32,7 @@ type Drag = {
 function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnWidths, columnGap}: UseColumnResizeParams): ColumnResizeController | undefined {
     const dragRef = useRef<Drag | null>(null);
     const {scopeElementRef, setScopeElement, writeColumnWidth, readColumnWidth, clearLiveWidths} = useLiveColumnWidths({resolvedColumnWidths, dragRef});
-    const {revealIndicator, hideIndicator} = useResizeIndicator(scopeElementRef, dragRef);
+    const {revealIndicator, hideIndicator} = useResizeIndicator(scopeElementRef);
 
     const resetDrag = () => {
         dragRef.current = null;
@@ -42,6 +42,7 @@ function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnW
     // Shared by pointerup, lost capture and cancel, so every way a drag can end keeps the width the user sees.
     const endDrag = (drag: Drag) => {
         resetDrag();
+        hideIndicator();
 
         const width = readColumnWidth(drag.columnKey) ?? drag.startWidth;
 
@@ -100,14 +101,6 @@ function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnW
         }
 
         endDrag(drag);
-
-        // Releasing capture doesn't reliably fire pointerleave, so hit-test the moved handle instead.
-        const handleRect = event.currentTarget.getBoundingClientRect();
-        const isPointerStillOnHandle = event.clientX >= handleRect.left && event.clientX <= handleRect.right && event.clientY >= handleRect.top && event.clientY <= handleRect.bottom;
-
-        if (!isPointerStillOnHandle) {
-            hideIndicator();
-        }
     };
 
     /** Ends a drag whose pointer capture the browser reclaimed. Also fires after a normal pointerup, when it's a no-op. */
@@ -119,7 +112,6 @@ function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnW
         }
 
         endDrag(drag);
-        hideIndicator();
     };
 
     // Unmounting mid-drag would otherwise leave the resize cursor on the document and a dangling drag.
@@ -151,8 +143,6 @@ function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnW
             onPointerUp: handlePointerUp,
             onPointerCancel: handleLostPointerCapture,
             onLostPointerCapture: handleLostPointerCapture,
-            onPointerEnter: (event) => revealIndicator(event.currentTarget),
-            onPointerLeave: hideIndicator,
         };
     };
 

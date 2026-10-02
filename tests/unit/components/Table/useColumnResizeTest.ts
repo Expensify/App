@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import {getColumnWidthVariableName} from '@components/Table/columnResize/columnWidthExpressions';
+import {RESIZE_INDICATOR_OPACITY_VARIABLE, getColumnWidthVariableName} from '@components/Table/columnResize/columnWidthExpressions';
 import type UseColumnResize from '@components/Table/columnResize/useColumnResize';
 import type {UseColumnResizeParams} from '@components/Table/columnResize/useColumnResize/types';
 
@@ -157,6 +157,31 @@ describe('useColumnResize', () => {
         expect(setTableColumnWidth).toHaveBeenCalledTimes(1);
         expect(setTableColumnWidth).toHaveBeenCalledWith(COLUMN_RESIZING_ID, 'name', 240);
         expect(document.body.style.cursor).toBe('');
+    });
+
+    it('shows the edge line only while dragging, not on hover', () => {
+        // Given a resizable column
+        const {handleElement, getHandleProps} = renderColumnResize();
+        const readLineOpacity = () => handleElement.style.getPropertyValue(RESIZE_INDICATOR_OPACITY_VARIABLE);
+
+        // Then hovering its edge has nothing to show the line with, since design reserves hover for header splitters
+        expect(getHandleProps().onPointerEnter).toBeUndefined();
+
+        // When its edge is pressed
+        act(() => {
+            getHandleProps().onPointerDown?.(createPointerEvent(handleElement, {clientX: 100}));
+        });
+
+        // Then the tall line appears, so the user sees which edge is moving
+        expect(readLineOpacity()).toBe('1');
+
+        // When the pointer is released
+        act(() => {
+            getHandleProps().onPointerUp?.(createPointerEvent(handleElement, {clientX: 100}));
+        });
+
+        // Then the line goes away, even with the pointer still over the edge
+        expect(readLineOpacity()).toBe('0');
     });
 
     it('ignores the secondary button', () => {
