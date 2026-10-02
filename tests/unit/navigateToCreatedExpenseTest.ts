@@ -361,7 +361,7 @@ describe('navigateToCreatedExpense', () => {
         expect(setActiveTransactionIDs).toHaveBeenCalledWith(['txn-1', 'txn-2']);
     });
 
-    it('should seed the expenses oldest first, the order the report lists them, rather than in creation order', async () => {
+    it('should seed the expenses oldest first rather than in creation order', async () => {
         // Given the expenses were created in a different order than their dates
         mockIsReportTopmostSplitNavigator.mockReturnValue(true);
         mockGetIsNarrowLayout.mockReturnValue(false);

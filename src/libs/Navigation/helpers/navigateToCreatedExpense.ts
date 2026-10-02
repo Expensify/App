@@ -50,7 +50,8 @@ function getCurrentRouteBackTo() {
  * switched tabs while the growl was up, so the destination follows wherever they are now.
  */
 function navigateToCreatedExpense({threadReportID, transactionID, iouReportID, reportTransactions}: NavigateToCreatedExpenseParams) {
-    // Oldest first, the report's default order, so the prev/next arrows step through expenses as the report lists them
+    // Oldest first, so the prev/next arrows follow the expense dates. Grouped layouts (e.g. by category) list them
+    // differently, which only the report view knows.
     const openableTransactionIDs = reportTransactions
         .filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
         .sort(compareByCreated)
