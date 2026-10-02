@@ -114,10 +114,9 @@ function MoneyRequestReportGroupHeader({
                         style={[styles.textBold, textStyle, styles.flexShrink1, shouldShowCheckbox && shouldUseNarrowLayout && styles.ml2]}
                         numberOfLines={1}
                     >
-                        {displayName}
+                        <Text style={[styles.textBold, textStyle]}>{displayName}</Text>
+                        {` ${CONST.DOT_SEPARATOR} ${formattedAmount}`}
                     </Text>
-                    <Text style={[styles.textBold, textStyle, styles.mh1]}>{CONST.DOT_SEPARATOR}</Text>
-                    <Text style={[styles.textBold, textStyle]}>{formattedAmount}</Text>
                 </View>
             </View>
         </OfflineWithFeedback>
