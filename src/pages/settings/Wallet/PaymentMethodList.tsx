@@ -13,7 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getBankAccountConnectionStatus, getBankAccountSearchLabel, getBankAccountState, isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
+import {getBankAccountConnectionStatus, getBankAccountState, isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import type {BankAccountConnectionStatus} from '@libs/BankAccountUtils';
 import {
     getAssignedCardSortKey,
@@ -634,9 +634,11 @@ function PaymentMethodList({
                     ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.FIX_BANK_ACCOUNT.getRoute(methodID.toString())))
                     : undefined;
 
+            const rowTitle = paymentMethod.title?.includes(CONST.MASKED_PAN_PREFIX) ? paymentMethod.accountData?.additionalData?.bankName : paymentMethod.title;
+
             return {
                 ...paymentMethod,
-                title: paymentMethod.title?.includes(CONST.MASKED_PAN_PREFIX) ? paymentMethod.accountData?.additionalData?.bankName : paymentMethod.title,
+                title: rowTitle,
                 onPress: paymentMethodPress,
                 onThreeDotsMenuPress: paymentMethodThreeDotsPress,
                 disabled: paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
@@ -653,7 +655,7 @@ function PaymentMethodList({
                           paymentMethodThreeDotsPress,
                           paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                           onFixPress,
-                          getBankAccountSearchLabel(paymentMethod as BankAccount),
+                          rowTitle,
                       )
                     : undefined,
             };
