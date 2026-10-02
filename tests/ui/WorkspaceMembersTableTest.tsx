@@ -1,5 +1,6 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
+import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import {ModalProvider} from '@components/Modal/Global/ModalContext';
@@ -83,6 +84,36 @@ describe('WorkspaceMembersTable', () => {
         await act(async () => {
             await Onyx.clear();
         });
+    });
+
+    it('marks approver names as copyable and excludes member and approver avatars from selection', async () => {
+        // Given a member with an approver displayed in the wide table layout.
+        const member = buildMember({
+            keyForList: 'walter',
+            login: 'walter@example.com',
+            email: 'walter@example.com',
+            name: 'Walter',
+            accountID: 1,
+            approverAccountID: 10,
+            approverDisplayName: 'Ann Manager',
+        });
+        const tableRef = React.createRef<TableHandle<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey, string>>();
+
+        // When the member row is rendered with the approver column visible.
+        renderTable([member], tableRef);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then only the approver name is marked as selectable, while avatar text is excluded from copied content.
+        expect(screen.getByText('Ann Manager')).toHaveProp('selectable', true);
+        expect(screen.getByText('Ann Manager')).toHaveProp('dataSet', expect.objectContaining({[CONST.COPYABLE_TEXT_ELEMENT]: true}));
+        const avatars = screen.UNSAFE_getAllByType(AccountAvatar);
+        expect(avatars).toHaveLength(2);
+        for (const avatar of avatars) {
+            expect(avatar.parent?.props).toMatchObject({
+                style: {userSelect: 'none'},
+                dataSet: {[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true},
+            });
+        }
     });
 
     describe('approver sorting', () => {

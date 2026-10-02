@@ -122,17 +122,23 @@ export default function WorkspaceMembersTableRow({
                         >
                             {!!item.approverDisplayName && !!item.approverAccountID && (
                                 <>
-                                    <AccountAvatar
-                                        accountID={item.approverAccountID}
-                                        accountEmail={item.approverLogin}
-                                        fallbackDisplayName={item.approverDisplayName}
-                                        size={CONST.AVATAR_SIZE.XXX_SMALL}
-                                        containerStyle={StyleUtils.getWidthAndHeightStyle(variables.avatarSizeXxxSmall)}
-                                    />
+                                    <View
+                                        style={styles.userSelectNone}
+                                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                    >
+                                        <AccountAvatar
+                                            accountID={item.approverAccountID}
+                                            accountEmail={item.approverLogin}
+                                            fallbackDisplayName={item.approverDisplayName}
+                                            size={CONST.AVATAR_SIZE.XXX_SMALL}
+                                            containerStyle={StyleUtils.getWidthAndHeightStyle(variables.avatarSizeXxxSmall)}
+                                        />
+                                    </View>
                                     <TextWithTooltip
                                         shouldShowTooltip
                                         numberOfLines={1}
                                         text={item.approverDisplayName}
+                                        isCopyable
                                     />
                                 </>
                             )}
