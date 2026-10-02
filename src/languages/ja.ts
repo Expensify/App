@@ -8077,6 +8077,8 @@ ${reportName}`,
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `この機能を利用するには、${featureName} を追加してください。`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `[その他の機能](${moreFeaturesLink})に移動し、${featureName} を有効にしてこの機能を利用できるようにしてください。`,
+                preventPayoutNonReimbursableReportsTitle: '精算対象外のレポートを支払済みにできないようにする',
+                preventPayoutNonReimbursableReportsSubtitle: '管理者が非精算レポートを支払済みにマークできないようにします。',
             },
             agentsPromoBanner: {
                 title: '必要なルールが見つかりませんか？エージェントを追加してください',
@@ -9517,6 +9519,8 @@ ${reportName}`,
             `${displayName}さんの勤務形態を${newArrangement}（以前は${oldArrangement}）に変更しました`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `デフォルトの勤務形態を${newArrangement}（以前は${oldArrangement}）に変更しました`,
+        preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
+            `「精算不要レポートを支払済みにしない」を「${newValue === 'true' ? '有効' : '無効'}」（以前は「${oldValue === 'true' ? '有効' : '無効'}」）に更新しました`,
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',

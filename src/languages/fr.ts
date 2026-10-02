@@ -8249,6 +8249,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Ajoutez ${featureName} pour déverrouiller cette fonctionnalité.`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Allez dans [plus de fonctionnalités](${moreFeaturesLink}) et activez ${featureName} pour déverrouiller cette fonctionnalité.`,
+                preventPayoutNonReimbursableReportsTitle: 'Empêcher de marquer les notes de frais non remboursables comme payées',
+                preventPayoutNonReimbursableReportsSubtitle: 'Ne pas autoriser les administrateurs à marquer les notes de frais non remboursables comme payées.',
             },
             agentsPromoBanner: {
                 title: 'Vous ne voyez pas la règle dont vous avez besoin ? Ajoutez un agent',
@@ -9728,6 +9730,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             `a modifié l’organisation du travail de ${displayName} en ${newArrangement} (auparavant ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `a modifié le mode de travail par défaut en ${newArrangement} (auparavant ${oldArrangement})`,
+        preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
+            `mis à jour « Empêcher de marquer les notes de frais non remboursables comme payées » en « ${newValue === 'true' ? 'Activé' : 'Désactivé'} » (auparavant « ${oldValue === 'true' ? 'Activé' : 'Désactivé'} »)`,
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',
