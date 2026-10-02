@@ -16,6 +16,7 @@ const mockGetIsNarrowLayout = jest.fn<boolean, []>();
 const mockGetCurrentRoute = jest.fn<{params?: Record<string, unknown>} | undefined, []>();
 const mockGetFocusedReportId = jest.fn<string | undefined, [unknown]>();
 const mockGetRootState = jest.fn<unknown, []>(() => ({routes: []}));
+const mockGetTopmostReportId = jest.fn<string | undefined, []>();
 
 function buildTransaction(transactionID: string): Transaction {
     return {transactionID, reportID: 'iou-1', amount: 0, created: '', currency: CONST.CURRENCY.USD, merchant: '', comment: {}};
@@ -34,8 +35,10 @@ jest.mock('@libs/actions/TransactionThreadNavigation', () => ({
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
+    dismissModal: jest.fn(),
     getActiveRoute: jest.fn(() => ''),
     getFocusedReportId: (state: unknown) => mockGetFocusedReportId(state),
+    getTopmostReportId: () => mockGetTopmostReportId(),
     navigationRef: {
         getRootState: () => mockGetRootState(),
         current: {
@@ -55,6 +58,7 @@ describe('navigateToCreatedExpense', () => {
         mockGetCurrentRoute.mockReturnValue(undefined);
         mockGetFocusedReportId.mockReturnValue(undefined);
         mockGetRootState.mockReturnValue({routes: []});
+        mockGetTopmostReportId.mockReturnValue(undefined);
     });
 
     it('should do nothing when the user already has the transaction thread open', async () => {
@@ -129,7 +133,105 @@ describe('navigateToCreatedExpense', () => {
         expect(setActiveTransactionIDs).toHaveBeenCalledWith(['txn-1', 'txn-2']);
         expect(Navigation.navigate).toHaveBeenCalledTimes(2);
         expect(Navigation.navigate).toHaveBeenNthCalledWith(1, reportRoute);
-        expect(Navigation.navigate).toHaveBeenNthCalledWith(2, ROUTES.SEARCH_REPORT.getRoute({reportID: 'thread-1', backTo: reportRoute}), {forceReplace: false});
+        expect(Navigation.navigate).toHaveBeenNthCalledWith(2, ROUTES.SEARCH_REPORT.getRoute({reportID: 'thread-1', backTo: reportRoute}));
+    });
+
+    it('should replace the open RHP with the thread on a narrow layout when the expense report is under it', async () => {
+        // Given another expense of the same report is open in the RHP, on top of the full screen expense report
+        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+        mockGetIsNarrowLayout.mockReturnValue(true);
+        mockIsReportOpenInRHP.mockReturnValue(true);
+        mockGetFocusedReportId.mockReturnValue('other-thread');
+        mockGetTopmostReportId.mockReturnValue('iou-1');
+        mockGetCurrentRoute.mockReturnValue({params: {backTo: 'r/iou-1'}});
+
+        // When the user presses "View"
+        navigateToCreatedExpense({
+            threadReportID: 'thread-1',
+            transactionID: 'txn-1',
+            iouReportID: 'iou-1',
+            reportTransactions: [buildTransaction('txn-1'), buildTransaction('txn-2')],
+        });
+        await waitForBatchedUpdates();
+
+        // Then the thread replaces the open RHP, so going back lands on the expense report under it
+        expect(Navigation.dismissModal).not.toHaveBeenCalled();
+        expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: 'thread-1', backTo: 'r/iou-1'}), {forceReplace: true});
+    });
+
+    it('should close the open RHP before opening the expense report and thread on a narrow layout when the RHP is over another report', async () => {
+        // Given an expense of a different report is open in the RHP, on top of that other report
+        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+        mockGetIsNarrowLayout.mockReturnValue(true);
+        mockIsReportOpenInRHP.mockReturnValue(true);
+        mockGetFocusedReportId.mockReturnValue('other-thread');
+        mockGetTopmostReportId.mockReturnValue('other-iou');
+
+        // When the user presses "View"
+        navigateToCreatedExpense({
+            threadReportID: 'thread-1',
+            transactionID: 'txn-1',
+            iouReportID: 'iou-1',
+            reportTransactions: [buildTransaction('txn-1'), buildTransaction('txn-2')],
+        });
+        await waitForBatchedUpdates();
+
+        // Then the RHP closes first, since a full screen report would be pushed above it instead of replacing it
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+        const afterTransition = jest.mocked(Navigation.dismissModal).mock.calls.at(0)?.at(0)?.afterTransition;
+        afterTransition?.();
+
+        // And then the expense report opens with the thread on top of it
+        const reportRoute = ROUTES.REPORT_WITH_ID.getRoute('iou-1', undefined, undefined, '');
+        expect(setActiveTransactionIDs).toHaveBeenCalledWith(['txn-1', 'txn-2']);
+        expect(Navigation.navigate).toHaveBeenCalledTimes(2);
+        expect(Navigation.navigate).toHaveBeenNthCalledWith(1, reportRoute);
+        expect(Navigation.navigate).toHaveBeenNthCalledWith(2, ROUTES.SEARCH_REPORT.getRoute({reportID: 'thread-1', backTo: reportRoute}));
+    });
+
+    it('should fall back to the expense report as the thread backTo when the replaced RHP had none', async () => {
+        // Given an expense of the same report is open in the RHP without a backTo, on top of the full screen expense report
+        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+        mockGetIsNarrowLayout.mockReturnValue(true);
+        mockIsReportOpenInRHP.mockReturnValue(true);
+        mockGetFocusedReportId.mockReturnValue('other-thread');
+        mockGetTopmostReportId.mockReturnValue('iou-1');
+        mockGetCurrentRoute.mockReturnValue({params: {}});
+
+        // When the user presses "View"
+        navigateToCreatedExpense({
+            threadReportID: 'thread-1',
+            transactionID: 'txn-1',
+            iouReportID: 'iou-1',
+            reportTransactions: [buildTransaction('txn-1'), buildTransaction('txn-2')],
+        });
+        await waitForBatchedUpdates();
+
+        // Then the thread still points back at its expense report, so a reload keeps the user in the Inbox
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: 'thread-1', backTo: ROUTES.REPORT_WITH_ID.getRoute('iou-1')}), {forceReplace: true});
+    });
+
+    it('should close the RHP showing the expense report itself before stacking the thread on a narrow layout', async () => {
+        // Given the expense report itself is open in the RHP, on top of a chat
+        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+        mockGetIsNarrowLayout.mockReturnValue(true);
+        mockIsReportOpenInRHP.mockReturnValue(true);
+        mockGetFocusedReportId.mockReturnValue('iou-1');
+        mockGetTopmostReportId.mockReturnValue('chat-1');
+
+        // When the user presses "View"
+        navigateToCreatedExpense({
+            threadReportID: 'thread-1',
+            transactionID: 'txn-1',
+            iouReportID: 'iou-1',
+            reportTransactions: [buildTransaction('txn-1'), buildTransaction('txn-2')],
+        });
+        await waitForBatchedUpdates();
+
+        // Then the RHP closes instead of being replaced by the thread, so going back still lands on the expense report
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+        expect(Navigation.dismissModal).toHaveBeenCalledTimes(1);
     });
 
     it('should still navigate when the focused report is a different one', async () => {
@@ -226,6 +328,27 @@ describe('navigateToCreatedExpense', () => {
 
         // Then the arrows cover the report's other expenses, but skip the one being deleted
         expect(setActiveTransactionIDs).toHaveBeenCalledWith(['txn-1', 'txn-2']);
+    });
+
+    it('should seed the expenses oldest first, the order the report lists them, rather than in creation order', async () => {
+        // Given the expenses were created in a different order than their dates
+        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+        mockGetIsNarrowLayout.mockReturnValue(false);
+        const octoberExpense = {...buildTransaction('txn-oct'), created: '2026-10-01'};
+        const septemberExpense = {...buildTransaction('txn-sep'), created: '2026-09-15'};
+        const newExpense = {...buildTransaction('txn-new'), created: '2026-09-20'};
+
+        // When the user presses "View" on the newest expense
+        navigateToCreatedExpense({
+            threadReportID: 'thread-1',
+            transactionID: 'txn-new',
+            iouReportID: 'iou-1',
+            reportTransactions: [octoberExpense, septemberExpense, newExpense],
+        });
+        await waitForBatchedUpdates();
+
+        // Then the arrows follow the dates, so "Next" from the new expense opens the October one
+        expect(setActiveTransactionIDs).toHaveBeenCalledWith(['txn-sep', 'txn-new', 'txn-oct']);
     });
 
     it('should open the expense report without the replaced RHP backTo, so deleting the report falls back to its chat', async () => {

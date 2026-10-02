@@ -1,6 +1,7 @@
 import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import {getCreated} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -25,6 +26,16 @@ type NavigateToCreatedExpenseParams = {
     reportTransactions: Transaction[];
 };
 
+// Created dates are ISO strings, so comparing them as strings orders them chronologically
+function compareByCreated(a: Transaction, b: Transaction) {
+    const createdA = getCreated(a);
+    const createdB = getCreated(b);
+    if (createdA === createdB) {
+        return 0;
+    }
+    return createdA < createdB ? -1 : 1;
+}
+
 function getCurrentRouteBackTo() {
     const params = navigationRef.current?.getCurrentRoute()?.params;
     if (typeof params !== 'object' || params === null || !('backTo' in params) || typeof params.backTo !== 'string') {
@@ -38,12 +49,15 @@ function getCurrentRouteBackTo() {
  * switched tabs while the growl was up, so the destination follows wherever they are now.
  */
 function navigateToCreatedExpense({threadReportID, transactionID, iouReportID, reportTransactions}: NavigateToCreatedExpenseParams) {
-    // Don't reopen an expense the user is already looking at
+    // Oldest first, the report's default order, so the prev/next arrows step through expenses as the report lists them
     const openableTransactionIDs = reportTransactions
         .filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+        .sort(compareByCreated)
         .map((transaction) => transaction.transactionID);
     const hasMultipleReportTransactions = iouReportID ? openableTransactionIDs.length > 1 : false;
-    // getState() can miss a just-opened RHP's nested state, so read the full tree.
+
+    // Don't reopen an expense the user is already looking at. getState() can miss a just-opened RHP's nested state,
+    // so read the full tree.
     const focusedReportID = Navigation.getFocusedReportId(navigationRef.getRootState());
     if (focusedReportID === threadReportID || (!hasMultipleReportTransactions && !!iouReportID && focusedReportID === iouReportID)) {
         return;
@@ -66,13 +80,27 @@ function navigateToCreatedExpense({threadReportID, transactionID, iouReportID, r
     // Same as opening the expense from its report preview: the thread goes in the RHP on top of its report, so the
     // prev/next arrows show.
     if (getIsNarrowLayout() && iouReportID && hasMultipleReportTransactions) {
-        const shouldOpenExpenseReport = !forceReplace && focusedReportID !== iouReportID;
-        const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, backTo);
-        if (shouldOpenExpenseReport) {
-            Navigation.navigate(reportRoute);
+        // The expense report is already open full screen, with or without an RHP above it, so the thread goes on top of it.
+        if ((!forceReplace && focusedReportID === iouReportID) || (forceReplace && Navigation.getTopmostReportId() === iouReportID)) {
+            setActiveTransactionIDs(openableTransactionIDs);
+            const threadBackTo = backTo ?? ROUTES.REPORT_WITH_ID.getRoute(iouReportID);
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo: threadBackTo}), {forceReplace});
+            return;
         }
-        setActiveTransactionIDs(openableTransactionIDs);
-        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo: shouldOpenExpenseReport ? reportRoute : backTo}), {forceReplace});
+
+        const openThreadOnExpenseReport = (reportBackTo?: string) => {
+            const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, reportBackTo);
+            Navigation.navigate(reportRoute);
+            setActiveTransactionIDs(openableTransactionIDs);
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo: reportRoute}));
+        };
+
+        // A full screen report would be pushed above the open RHP instead of replacing it, so close the RHP first.
+        if (forceReplace) {
+            Navigation.dismissModal({afterTransition: () => openThreadOnExpenseReport(Navigation.getActiveRoute())});
+            return;
+        }
+        openThreadOnExpenseReport(backTo);
         return;
     }
 
