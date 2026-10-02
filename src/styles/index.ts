@@ -6862,7 +6862,7 @@ const staticStyles = (theme: ThemeColors) =>
             height: 12,
         },
         chartInlineTable: {
-            marginTop: 24,
+            marginTop: 32,
             rowGap: 24,
         },
         chartInlineTableDot: {
