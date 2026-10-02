@@ -1593,10 +1593,10 @@ describe('WorkflowUtils', () => {
 
     describe('getApprovalLimitGroups', () => {
         const limitPersonalDetailsByEmail: PersonalDetailsList = {
-            'priya@example.com': {accountID: 1, login: 'priya@example.com', displayName: 'Priya Verma'},
-            'sam@example.com': {accountID: 2, login: 'sam@example.com', displayName: 'Sam Borton'},
+            'priya@example.com': {accountID: 1, login: 'priya@example.com', displayName: 'Priya Smith'},
+            'sam@example.com': {accountID: 2, login: 'sam@example.com', displayName: 'Sam Brown'},
             'adam@example.com': {accountID: 3, login: 'adam@example.com', displayName: 'Adam Ant'},
-            'elena@example.com': {accountID: 4, login: 'elena@example.com', displayName: 'Elena Boggs'},
+            'elena@example.com': {accountID: 4, login: 'elena@example.com', displayName: 'Elena Gray'},
         };
 
         it('Should share one row between approvers with the same limit and forward-to approver', () => {
@@ -1752,13 +1752,13 @@ describe('WorkflowUtils', () => {
     describe('getApprovalLimitShortName', () => {
         it('Should use the first name and last initial', () => {
             // Given an approver with a first and last name
-            const shortNamePersonalDetailsByEmail: PersonalDetailsList = {'priya@example.com': {accountID: 1, login: 'priya@example.com', firstName: 'Priya', lastName: 'Verma'}};
+            const shortNamePersonalDetailsByEmail: PersonalDetailsList = {'priya@example.com': {accountID: 1, login: 'priya@example.com', firstName: 'Priya', lastName: 'Smith'}};
 
             // When their short name is built
             const shortName = getApprovalLimitShortName('priya@example.com', shortNamePersonalDetailsByEmail, formatPhoneNumber);
 
             // Then it is shortened the way the summary line names people
-            expect(shortName).toBe('Priya V.');
+            expect(shortName).toBe('Priya S.');
         });
 
         it('Should fall back to the login when there is no name', () => {

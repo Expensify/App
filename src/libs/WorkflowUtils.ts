@@ -1994,4 +1994,4 @@ export {
     reconcileApprovalWorkflowRulesForRemove,
     updateWorkflowDataOnApproverRemoval,
 };
-export type {ApprovalLimitGroup, ApprovalWorkflowRulesDiff, PolicyConversionResult};
+export type {ApprovalWorkflowRulesDiff, PolicyConversionResult};
