@@ -3463,6 +3463,6 @@ export {
 // Re-exported with `export *` rather than through the block above: a named re-export becomes a getter that throws
 // while this module is still loading, which breaks tests that spread `jest.requireActual('@libs/PolicyUtils')`
 // from inside an import cycle.
-export * from './tags';
+export * from './Tag';
 
 export type {MemberEmailsToAccountIDs, PolicyFeature, PolicyFeatureAccess};
