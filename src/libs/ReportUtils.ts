@@ -4580,12 +4580,15 @@ function getOldestUnreadMentionReportAction(
 ): ReportAction | undefined {
     let oldestUnreadMentionAction: ReportAction | undefined;
     for (const action of Object.values(reportActions)) {
+        // Cheap checks run first, so most read actions are skipped before the mention regex and the visibility check
         if (
+            !isReportActionUnread(action, reportOrOption?.lastReadTime) ||
+            wasActionTakenByCurrentUser(action, currentUserAccountID) ||
             action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
             isDeletedAction(action) ||
-            wasActionTakenByCurrentUser(action, currentUserAccountID) ||
-            !isReportActionUnread(action, reportOrOption?.lastReadTime) ||
-            !didMessageMentionCurrentUser(action, currentUserLogin, currentUserAccountID)
+            !didMessageMentionCurrentUser(action, currentUserLogin, currentUserAccountID) ||
+            // A hidden action, like a whisper to someone else, can't be linked to, so the LHN link would be dropped
+            !isReportActionVisible(action, reportOrOption?.reportID, undefined, undefined, currentUserAccountID)
         ) {
             continue;
         }
