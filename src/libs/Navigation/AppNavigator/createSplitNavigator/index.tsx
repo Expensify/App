@@ -1,4 +1,5 @@
 import useNavigationResetOnLayoutChange from '@libs/Navigation/AppNavigator/useNavigationResetOnLayoutChange';
+import {isLiveWideTabPreMountRouteKey} from '@libs/Navigation/helpers/wideTabPreMountRouteKey';
 import createPlatformStackNavigatorComponent from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent';
 import defaultPlatformStackScreenOptions from '@libs/Navigation/PlatformStackNavigation/defaultPlatformStackScreenOptions';
 import type {
@@ -33,7 +34,19 @@ function getCustomSplitNavigatorState({state, shouldUseNarrowLayout}: CustomStat
     }
 
     const centralScreenRoutes = state.routes.slice(1);
-    const routesToRender = shouldUseNarrowLayout ? state.routes.slice(-2) : [sidebarScreenRoute, ...centralScreenRoutes.slice(-2)];
+    if (shouldUseNarrowLayout) {
+        const routesToRender = state.routes.slice(-2);
+        return {...state, routes: routesToRender, index: routesToRender.length - 1};
+    }
+
+    // A hidden wide submit pre-mount does not take one of the two central slots, so the screens rendered before it stay mounted.
+    const keptCentralRouteKeys = new Set(
+        centralScreenRoutes
+            .filter((route) => !isLiveWideTabPreMountRouteKey(route.key))
+            .slice(-2)
+            .map((route) => route.key),
+    );
+    const routesToRender = [sidebarScreenRoute, ...centralScreenRoutes.filter((route) => keptCentralRouteKeys.has(route.key) || isLiveWideTabPreMountRouteKey(route.key))];
 
     return {...state, routes: routesToRender, index: routesToRender.length - 1};
 }
