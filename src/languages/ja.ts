@@ -11489,5 +11489,12 @@ ${reportName}`,
             description: `<muted-text>設定したルールに基づいて経費を確認、承認、振り分けるカスタムエージェントを作成できます。<a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">さらに詳しく</a>。</muted-text>`,
         },
     },
+    earlyRenewal: {
+        confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} から ${endDate} までの12か月契約でサブスクリプションを更新します。`,
+        title: 'Expensify のサブスクリプションを更新する',
+        subtitle: '新年までにやることがひとつ減りました。',
+        confirmTitle: '更新を確認',
+        renew: '更新する',
+    },
 };
 export default translations;

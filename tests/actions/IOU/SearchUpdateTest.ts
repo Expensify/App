@@ -1,3 +1,4 @@
+import type {TransactionMonthGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import {getGroupPendingDeleteOnyxUpdate, getSearchOnyxUpdate, shouldOptimisticallyUpdateSearch} from '@libs/actions/IOU/SearchUpdate';
@@ -5,13 +6,15 @@ import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import '@libs/actions/IOU/MoneyRequest';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import type * as SearchQueryUtils from '@libs/SearchQueryUtils';
+import {isTransactionMatchWithGroupItem} from '@libs/SearchUIUtils';
+import {hasMissingSmartscanFields} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@src/libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Policy, Report, Transaction} from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -23,6 +26,7 @@ import currencyList from '../../unit/currencyList.json';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import createMock from '../../utils/createMock';
+import getOnyxValue from '../../utils/getOnyxValue';
 import {getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -704,17 +708,134 @@ describe('actions/IOU', () => {
         // Repro of #99500: a self-DM split submitted to a workspace inherits a stale `(none)`/`Expense` placeholder
         // `modifiedMerchant` in its snapshot at split-creation time. Because `isMerchantMissing` reads
         // `modifiedMerchant` before `merchant`, spreading the fresh transaction via Onyx.merge would keep the stale
-        // placeholder and show a false "Missing Merchant". The snapshot write must clear it with `null` (which
-        // Onyx.merge honors) so `isMerchantMissing` falls through to the merchant the user actually entered.
+        // placeholder and show a false "Missing Merchant". The snapshot write must clear it with `''` (which
+        // Onyx.merge honors and every reader treats as "not set") so `isMerchantMissing` falls through to the
+        // merchant the user actually entered, while keeping the key for later merges to land on (#101700).
         it.each([undefined, '', CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, CONST.TRANSACTION.DEFAULT_MERCHANT])(
-            'clears a non-genuine modifiedMerchant (%s) with null so the stale placeholder cannot survive the Onyx.merge',
+            'clears a non-genuine modifiedMerchant (%s) with an empty string so the stale placeholder cannot survive the Onyx.merge',
             (modifiedMerchant) => {
+                // Given a transaction whose modifiedMerchant is absent or a placeholder
+                // When the optimistic snapshot update is built for it
                 const {update, transactionKey} = getSnapshotUpdateForModifiedMerchant(modifiedMerchant);
+
+                // Then the snapshot keeps the entered merchant and resets modifiedMerchant to the "not set" value
                 expect(update).toBeDefined();
                 expect(update?.value).toHaveProperty(['data', transactionKey, 'merchant'], 'Coffee Shop');
-                expect(update?.value).toHaveProperty(['data', transactionKey, 'modifiedMerchant'], null);
+                expect(update?.value).toHaveProperty(['data', transactionKey, 'modifiedMerchant'], '');
             },
         );
+
+        it('lets the SmartScan result reach the optimistic snapshot entry so Spend does not show Missing merchant', async () => {
+            // Given a scanned expense whose optimistic snapshot entry is written by the client, before the scan
+            // result exists. Onyx only mirrors keys that already exist on a snapshot entry into it, so the entry
+            // must carry the modified* keys for the SmartScan result to reach Spend > Expenses (#101700).
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: iouReport.reportID,
+                reimbursable: true,
+                amount: 0,
+                currency: 'UZS',
+                created: '2026-09-28',
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                modifiedMerchant: undefined,
+                modifiedAmount: undefined,
+                modifiedCurrency: undefined,
+                modifiedCreated: undefined,
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING},
+            };
+            const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}` as const;
+            const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${unapprovedCashHash}` as const;
+            const result = getSearchOnyxUpdate({
+                transaction,
+                participant: {accountID: 42, login: 'test@test.com'},
+                iouReport,
+                iouAction: undefined,
+                policy: undefined,
+                transactionThreadReportID: undefined,
+                isFromOneTransactionReport: false,
+                isInvoice: false,
+            });
+            await Onyx.set(transactionKey, transaction);
+            await Onyx.update(result?.optimisticData ?? []);
+            await waitForBatchedUpdates();
+
+            // When SmartScan completes and the server merges its result into the live transaction
+            await Onyx.update([
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: transactionKey,
+                    value: {
+                        modifiedMerchant: 'Blue Bottle Coffee',
+                        modifiedAmount: -3114,
+                        modifiedCurrency: 'USD',
+                        modifiedCreated: '2026-09-15 10:42:00',
+                        receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE},
+                    },
+                },
+            ]);
+            await waitForBatchedUpdates();
+
+            // Then the snapshot entry carries the scanned values and no longer reports missing SmartScan fields
+            const snapshot = await getOnyxValue(snapshotKey);
+            const snapshotTransaction = snapshot?.data?.[transactionKey];
+            expect(snapshotTransaction?.modifiedMerchant).toBe('Blue Bottle Coffee');
+            expect(snapshotTransaction?.modifiedAmount).toBe(-3114);
+            expect(snapshotTransaction?.modifiedCurrency).toBe('USD');
+            expect(snapshotTransaction?.modifiedCreated).toBe('2026-09-15 10:42:00');
+            expect(snapshotTransaction?.receipt?.state).toBe(CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE);
+            expect(hasMissingSmartscanFields(snapshotTransaction, iouReport)).toBe(false);
+        });
+
+        it('seeds modifiedCreated with created so the snapshot row stays in its group-by date bucket before the scan lands', async () => {
+            // Given a scanned expense that has no modifiedCreated yet. The group-by date buckets read
+            // `modifiedCreated ?? created`, so an empty-string seed would win over `created` and drop the row out of its bucket.
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                reimbursable: true,
+                created: '2026-09-18',
+                modifiedCreated: undefined,
+            };
+
+            // When the optimistic snapshot update is built for it
+            const result = getSearchOnyxUpdate({
+                transaction,
+                participant: {accountID: 42, login: 'test@test.com'},
+                iouReport,
+                iouAction: undefined,
+                policy: undefined,
+                transactionThreadReportID: undefined,
+                isFromOneTransactionReport: false,
+                isInvoice: false,
+            });
+
+            // Then the snapshot row carries the creation date as modifiedCreated and still matches its month bucket
+            const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${unapprovedCashHash}` as const;
+            const update = result?.optimisticData?.find((u) => u.key === snapshotKey);
+            const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}` as const;
+            expect(update?.value).toHaveProperty(['data', transactionKey, 'modifiedCreated'], '2026-09-18');
+            await Onyx.update(result?.optimisticData ?? []);
+            await waitForBatchedUpdates();
+            const snapshot = await getOnyxValue(snapshotKey);
+            const snapshotTransaction = snapshot?.data?.[transactionKey];
+            expect(snapshotTransaction).toBeDefined();
+            if (!snapshotTransaction) {
+                return;
+            }
+            const monthGroup = createMock<TransactionMonthGroupListItemType>({groupedBy: CONST.SEARCH.GROUP_BY.MONTH, year: 2026, month: 9});
+            expect(isTransactionMatchWithGroupItem(snapshotTransaction, monthGroup, CONST.SEARCH.GROUP_BY.MONTH)).toBe(true);
+        });
 
         it('preserves a genuinely edited modifiedMerchant in the snapshot', () => {
             // The clear must only apply to an absent/placeholder modifiedMerchant. A real edited merchant is a
