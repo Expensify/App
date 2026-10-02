@@ -175,7 +175,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const invitedEmails = useMemo(() => Object.keys(invitedEmailsToAccountIDsDraft ?? {}), [invitedEmailsToAccountIDsDraft]);
 
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
-    const {approvalWorkflows, enforcedApprovalWorkflows} = useApprovalWorkflows({policy, personalDetails, currentUserLogin});
+    const {approvalWorkflows, enforcedApprovalWorkflows, approverPendingActionByMemberEmail} = useApprovalWorkflows({policy, personalDetails, currentUserLogin});
 
     const canSelectMultiple = canWriteMembers && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
 
@@ -429,7 +429,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 shouldShowEmployeeUserID: shouldShowCustomField1Column,
                 shouldShowEmployeePayrollID: shouldShowCustomField2Column,
                 errors: getLatestErrorMessageField(policyEmployee),
-                pendingAction: policyEmployee.pendingAction,
+                // Changing only who a member submits to can leave their own record untouched, so fall back to the
+                // approver's pending state to keep the row dimmed while that change is still in flight.
+                pendingAction: policyEmployee.pendingAction ?? (shouldShowApproverColumn ? approverPendingActionByMemberEmail[login] : undefined),
                 disabled: isPendingDeleteOrError,
                 // Note which secondary login was used to invite this primary login
                 invitedSecondaryLogin: details?.login ? (invitedPrimaryToSecondaryLogins[details.login] ?? '') : '',
@@ -451,6 +453,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         shouldShowCustomField2Column,
         shouldShowApproverColumn,
         firstApproverByMemberEmail,
+        approverPendingActionByMemberEmail,
         policyMemberEmailsToAccountIDs,
         invitedPrimaryToSecondaryLogins,
         openMemberDetails,

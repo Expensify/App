@@ -8,6 +8,7 @@ import {ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
+import useNetwork from '@hooks/useNetwork';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
@@ -32,6 +33,18 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
+jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
+
+const hasPendingOpacity = (style: unknown): boolean => {
+    const entries: unknown[] = Array.isArray(style) ? style : [style];
+    return entries.some((entry) => {
+        if (!entry || typeof entry !== 'object' || !('opacity' in entry)) {
+            return false;
+        }
+        const {opacity} = entry;
+        return opacity === 0.5;
+    });
+};
 
 TestHelper.setupGlobalFetchMock();
 
@@ -722,6 +735,41 @@ describe('WorkspaceMembers', () => {
             const adminRow = screen.getByLabelText(new RegExp(`^Admin User, ${adminEmail}, ${TestHelper.translateLocal('common.approver')}: Admin User`));
             expect(adminRow).toBeOnTheScreen();
 
+            unmount();
+        });
+
+        it('dims a member row while approvals are being turned back on offline', async () => {
+            // Given approvals being re-enabled offline. That rewrites who everyone submits to, but it marks the
+            // policy rather than the employees, so the row has no field of its own to read the change from.
+            const mockedUseNetwork = jest.mocked(useNetwork);
+            mockedUseNetwork.mockReturnValue({isOffline: true});
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                    pendingFields: {approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    employeeList: {
+                        [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: adminEmail},
+                        [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: adminEmail},
+                    },
+                });
+            });
+
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            const ownerRow = await screen.findByLabelText(new RegExp(`^Owner User, ${ownerEmail}, ${TestHelper.translateLocal('common.approver')}: Admin User`));
+
+            // OfflineWithFeedback dims a wrapper around the row rather than the row node itself.
+            let node: typeof ownerRow | null = ownerRow;
+            let dimmed = false;
+            while (node && !dimmed) {
+                dimmed = hasPendingOpacity(node.props?.style);
+                node = node.parent;
+            }
+            expect(dimmed).toBe(true);
+
+            mockedUseNetwork.mockReturnValue({isOffline: false});
             unmount();
         });
 

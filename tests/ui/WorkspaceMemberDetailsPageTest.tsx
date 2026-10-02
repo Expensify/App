@@ -8,6 +8,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginProvider';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
+import useNetwork from '@hooks/useNetwork';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
@@ -37,6 +38,18 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
+jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
+
+const hasPendingOpacity = (style: unknown): boolean => {
+    const entries: unknown[] = Array.isArray(style) ? style : [style];
+    return entries.some((entry) => {
+        if (!entry || typeof entry !== 'object' || !('opacity' in entry)) {
+            return false;
+        }
+        const {opacity} = entry;
+        return opacity === 0.5;
+    });
+};
 
 TestHelper.setupGlobalFetchMock();
 
@@ -93,6 +106,19 @@ describe('WorkspaceMemberDetailsPage', () => {
             [primaryEmail]: {email: primaryEmail, role: CONST.POLICY.ROLE.USER},
             [adminPayerEmail]: {email: adminPayerEmail, role: CONST.POLICY.ROLE.ADMIN},
         },
+    };
+
+    // OfflineWithFeedback dims a wrapper around its children rather than the child itself, so the assertion has to
+    // walk up from the row to find it.
+    const isDimmedByAnAncestor = (node: ReturnType<typeof screen.getByTestId>) => {
+        let current: ReturnType<typeof screen.getByTestId> | null = node;
+        while (current) {
+            if (hasPendingOpacity(current.props?.style)) {
+                return true;
+            }
+            current = current.parent;
+        }
+        return false;
     };
 
     beforeAll(() => {
@@ -663,6 +689,37 @@ describe('WorkspaceMemberDetailsPage', () => {
             expect(screen.getByTestId('NotFoundPage')).toBeOnTheScreen();
         });
         expect(screen.queryByTestId('WorkspaceMemberDetailsPage')).not.toBeOnTheScreen();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should dim the approver row while approvals are being turned back on offline', async () => {
+        // Given approvals being re-enabled offline. That rewrites who everyone submits to, but it marks the policy
+        // rather than the employees, so the row has no per-member field to read the change from.
+        const mockedUseNetwork = jest.mocked(useNetwork);
+        mockedUseNetwork.mockReturnValue({isOffline: true});
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                approver: ownerEmail,
+                pendingFields: {approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                employeeList: {
+                    [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: ownerEmail},
+                    [invitedEmail]: {email: invitedEmail, role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
+                },
+            });
+        });
+
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(invitedAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        const approverItem = await screen.findByTestId('member-approver-menu-item');
+
+        expect(isDimmedByAnAncestor(approverItem)).toBe(true);
+
+        mockedUseNetwork.mockReturnValue({isOffline: false});
 
         unmount();
         await waitForBatchedUpdatesWithAct();
