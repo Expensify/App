@@ -4,6 +4,7 @@ import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useReimbursementAccountConfirmationEdit from '@hooks/useReimbursementAccountConfirmationEdit';
 import useSubPage from '@hooks/useSubPage';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -54,7 +55,8 @@ function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames, backTo}: No
     const isSubmittingRef = useRef(false);
 
     const submit = () => {
-        const {formFields, isLoading, isSuccess, ...corpayData} = corpayFields ?? {};
+        // These values describe the cached Corpay field request and are not bank-account form inputs accepted by BankAccount_CreateCorpay.
+        const {formFields, isLoading, isSuccess, isWithdrawal, isBusinessBankAccount, ...corpayData} = corpayFields ?? {};
 
         isSubmittingRef.current = true;
         createCorpayBankAccount({...values, ...corpayData} as ReimbursementAccountForm, policyID);
@@ -111,9 +113,17 @@ function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames, backTo}: No
         buildRoute,
     });
 
+    const {moveToEditPage, submitEdit, cancelEdit} = useReimbursementAccountConfirmationEdit({
+        isEditing,
+        reimbursementAccountDraft,
+        nextPage,
+        moveTo,
+    });
+
     const handleBackButtonPress = () => {
         clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
         if (isEditing) {
+            cancelEdit();
             Navigation.goBack(buildRoute(SUB_PAGE_NAMES.CONFIRMATION));
             return;
         }
@@ -143,8 +153,8 @@ function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames, backTo}: No
         >
             <CurrentPage
                 isEditing={isEditing}
-                onNext={nextPage}
-                onMove={moveTo}
+                onNext={submitEdit}
+                onMove={moveToEditPage}
                 currentPageName={currentPageName}
                 corpayFields={corpayFields}
             />

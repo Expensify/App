@@ -109,6 +109,9 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
     /** Prevents the submit button from triggering blur on mouse down. */
     shouldPreventDefaultFocusOnPressSubmit?: boolean;
 
+    /** Whether to initialize input values from the form draft. */
+    shouldUseDraftValues?: boolean;
+
     /**
      * Controls how keyboard dismissal interacts with form submission.
      * - `DISMISS_THEN_SUBMIT` (default): waits for the keyboard to fully dismiss before calling `onSubmit`.
@@ -150,6 +153,7 @@ function FormProvider({
     keyboardSubmitBehavior = CONST.KEYBOARD_SUBMIT_BEHAVIOR.DISMISS_THEN_SUBMIT,
     onBeforeSubmit,
     shouldShowLoadingImmediatelyOnPress = true,
+    shouldUseDraftValues = true,
     ref,
     ...rest
 }: FormProviderProps) {
@@ -160,11 +164,11 @@ function FormProvider({
     const inputRefs = useRef<InputRefs>({});
     const formWrapperRef = useRef<FormWrapperRef>(null);
     const touchedInputs = useRef<Record<string, boolean>>({});
-    const [inputValues, setInputValues] = useState<Form>(() => ({...draftValues}));
+    const [inputValues, setInputValues] = useState<Form>(() => (shouldUseDraftValues ? {...draftValues} : {}));
     const isLoadingDraftValues = isLoadingOnyxValue(draftValuesMetadata);
     const previousDraftValues = useRef(draftValues);
 
-    if (!isLoadingDraftValues && draftValues !== previousDraftValues.current) {
+    if (shouldUseDraftValues && !isLoadingDraftValues && draftValues !== previousDraftValues.current) {
         previousDraftValues.current = draftValues;
         setInputValues({...inputValues, ...draftValues});
     }

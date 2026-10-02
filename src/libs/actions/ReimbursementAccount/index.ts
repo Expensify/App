@@ -39,6 +39,24 @@ function updateReimbursementAccountDraft(bankAccountData: Partial<ReimbursementA
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {draftStep: undefined});
 }
 
+function startReimbursementAccountEdit(editDraftSnapshot: OnyxEntry<ReimbursementAccountForm>) {
+    const snapshot = {...(editDraftSnapshot ?? {})};
+    delete snapshot.editDraftSnapshot;
+    Onyx.merge(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {editDraftSnapshot: snapshot});
+}
+
+function finishReimbursementAccountEdit() {
+    Onyx.merge(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {editDraftSnapshot: null});
+}
+
+function cancelReimbursementAccountEdit(editDraftSnapshot: ReimbursementAccountForm['editDraftSnapshot']) {
+    if (editDraftSnapshot) {
+        Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, editDraftSnapshot);
+    }
+
+    finishReimbursementAccountEdit();
+}
+
 function clearReimbursementAccountDraft() {
     Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {});
 }
@@ -128,6 +146,9 @@ export {
     setBankAccountSubStep,
     hideBankAccountErrors,
     updateReimbursementAccountDraft,
+    startReimbursementAccountEdit,
+    finishReimbursementAccountEdit,
+    cancelReimbursementAccountEdit,
     requestResetBankAccount,
     cancelResetBankAccount,
     clearReimbursementAccount,

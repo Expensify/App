@@ -177,7 +177,18 @@ type BeneficialOwnersStepBaseProps = {
 
 // BeneficialOwnerDraftData is saved under dynamic key which consists of prefix, beneficial owner ID and input key
 type BeneficialOwnerDataKey = `beneficialOwner_${string}_${string}`;
-type ReimbursementAccountFormExtraProps = BeneficialOwnersStepExtraProps & {bankAccountID?: number; isComingFromExpensifyCard?: boolean};
+type ReimbursementAccountFormExtraProps = BeneficialOwnersStepExtraProps & {
+    bankAccountID?: number;
+    isComingFromExpensifyCard?: boolean;
+    /** Where the bank account setup was started */
+    source?: string;
+    /** Last focused page in an unfinished Wallet business bank account setup */
+    currentPage?: string;
+    /** Last focused subpage in an unfinished Wallet business bank account setup */
+    currentSubPage?: string;
+    /** Whether the last focused Wallet business bank account subpage was opened for editing */
+    currentPageAction?: 'edit';
+};
 
 type BeneficialOwnersStepExtraProps = {
     [key: BeneficialOwnerDataKey]: string | FileObject[];
@@ -458,7 +469,7 @@ type NonUSDReimbursementAccountAdditionalProps = {
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_STATEMENT]: FileObject[];
 };
 
-type ReimbursementAccountForm = ReimbursementAccountFormExtraProps &
+type ReimbursementAccountFormWithoutEditSnapshot = ReimbursementAccountFormExtraProps &
     Form<
         InputID,
         BeneficialOwnersStepBaseProps &
@@ -471,6 +482,13 @@ type ReimbursementAccountForm = ReimbursementAccountFormExtraProps &
             ReimbursementAccountProps &
             NonUSDReimbursementAccountAdditionalProps
     > & {currency?: string};
+
+type ReimbursementAccountEditDraftSnapshot = Partial<ReimbursementAccountFormWithoutEditSnapshot>;
+
+type ReimbursementAccountForm = ReimbursementAccountFormWithoutEditSnapshot & {
+    /** Values from before the current confirmation-page edit, used to cancel an unconfirmed edit after reopening the flow */
+    editDraftSnapshot?: ReimbursementAccountEditDraftSnapshot | null;
+};
 
 export type {
     ReimbursementAccountForm,

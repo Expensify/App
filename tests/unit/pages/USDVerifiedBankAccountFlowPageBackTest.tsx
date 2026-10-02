@@ -10,6 +10,8 @@ import type {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/type
 
 import USDVerifiedBankAccountFlowPage from '@pages/ReimbursementAccount/USD/USDVerifiedBankAccountFlowPage';
 
+import {clearReimbursementAccount} from '@userActions/ReimbursementAccount';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -131,8 +133,8 @@ describe('USDVerifiedBankAccountFlowPage back press', () => {
             // When the user presses back
             pressStepBackButton(mockConnectBankAccount);
 
-            // Then it goes where the user came from, not to the setup entry point
-            expect(Navigation.goBack).toHaveBeenCalledWith(BACK_TO);
+            // Then it goes where the user came from and clears the Workspace state after the transition
+            expect(Navigation.goBack).toHaveBeenCalledWith(BACK_TO, {afterTransition: clearReimbursementAccount});
             expect(Navigation.goBack).not.toHaveBeenCalledWith(expect.stringContaining('bank-account/new'));
         });
 

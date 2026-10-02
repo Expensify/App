@@ -12,6 +12,7 @@ import ReimbursementAccountPage from '@pages/ReimbursementAccount/ReimbursementA
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Policy, ReimbursementAccount} from '@src/types/onyx';
 
@@ -57,17 +58,33 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     default: jest.requireActual<typeof ReimbursementAccountTestUtils>('../../utils/ReimbursementAccountTestUtils').createNavigationMock(),
 }));
 
+const mockGetPaymentMethods = jest.fn();
+jest.mock('@userActions/PaymentMethods', () => ({
+    getPaymentMethods: () => {
+        mockGetPaymentMethods();
+    },
+}));
+
 // Stub the terminal screens so the assertions are about which branch the page picked, not about their internals.
 let mockLoaderBackPress: (() => void) | undefined;
+let mockContinuePress: (() => void) | undefined;
 const mockEntryPoint = jest.fn(() => null);
 const mockLoadingIndicator = jest.fn((props: {onBackButtonPress: () => void}) => {
     mockLoaderBackPress = props.onBackButtonPress;
     return null;
 });
+type MockEntryPointProps = {
+    onContinuePress: () => void;
+    shouldShowContinueSetupButton: boolean | null;
+};
+const mockVerifiedBankAccountFlowEntryPoint = jest.fn((props: MockEntryPointProps) => {
+    mockContinuePress = props.onContinuePress;
+    return mockEntryPoint();
+});
 
 jest.mock('@pages/ReimbursementAccount/VerifiedBankAccountFlowEntryPoint', () => ({
     __esModule: true,
-    default: () => mockEntryPoint(),
+    default: (props: MockEntryPointProps) => mockVerifiedBankAccountFlowEntryPoint(props),
 }));
 
 jest.mock('@components/ReimbursementAccountLoadingIndicator', () => ({
@@ -90,6 +107,9 @@ const EUR_POLICY: Policy = {...USD_POLICY, outputCurrency: CONST.CURRENCY.EUR};
 const MEMBER_POLICY: Policy = {...USD_POLICY, role: CONST.POLICY.ROLE.USER};
 
 const PENDING_DELETE_POLICY: Policy = {...USD_POLICY, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+
+const DEFAULT_REIMBURSEMENT_ACCOUNT = createMock<ReimbursementAccount>(CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA);
+const ACCOUNT_CREATED_AT = '2026-09-26 15:00:27';
 
 // A policy that has loaded without publishing a currency. `Policy` declares outputCurrency as required, so the mock
 // helper is what lets this fixture describe the partially-loaded shape Onyx can actually hold.
@@ -135,6 +155,7 @@ const renderPage = async (params: RouteParams = {policyID: POLICY_ID}) => {
 
 const validationRoute = (backTo?: string) =>
     backTo ? `bank-account/new/us/validation?policyID=${POLICY_ID}&backTo=${encodeURIComponent(backTo)}` : `bank-account/new/us/validation?policyID=${POLICY_ID}`;
+const walletValidationRoute = `bank-account/new/us/validation?backTo=${encodeURIComponent(ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE)}`;
 
 /**
  * Asserts the page neither navigated into the validation step nor parked itself on the redirect loader, which is the
@@ -162,6 +183,7 @@ describe('ReimbursementAccountPage pending USD redirect', () => {
     beforeEach(() => {
         mockIsFocused = true;
         mockLoaderBackPress = undefined;
+        mockContinuePress = undefined;
     });
 
     afterEach(async () => {
@@ -248,6 +270,167 @@ describe('ReimbursementAccountPage pending USD redirect', () => {
             // Then only the account survives: the draft is wiped, so the stale amounts cannot be resubmitted
             expect(await getReimbursementAccount()).toEqual(PENDING_ACCOUNT);
             const draft = await getReimbursementAccountDraft();
+            expect(draft?.amount1).toBeUndefined();
+            expect(draft?.amount2).toBeUndefined();
+            expect(draft?.amount3).toBeUndefined();
+        });
+
+        it('clears Wallet validation values and account errors on dismissal while preserving resume fields', async () => {
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {
+                    country: CONST.COUNTRY.US,
+                    currency: CONST.CURRENCY.USD,
+                    source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                    currentPage: CONST.BANK_ACCOUNT.PAGE_NAMES.COMPANY,
+                    currentSubPage: CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.SUB_PAGE_NAMES.ADDRESS,
+                    amount1: '1.11',
+                    amount2: '2.22',
+                    amount3: '3.33',
+                    companyName: 'Example company',
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+            await seedOnyx({
+                ...PENDING_ACCOUNT,
+                error: 'Validation failed',
+                errors: {amount1: 'Invalid amount'},
+            });
+            const {unmount} = await renderPage({bankAccountID: String(PENDING_ACCOUNT.achData?.bankAccountID), backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
+
+            await act(async () => {
+                unmount();
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            expect(await getReimbursementAccount()).toEqual(CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA);
+            const draft = await getReimbursementAccountDraft();
+            expect(draft?.country).toBe(CONST.COUNTRY.US);
+            expect(draft?.currency).toBe(CONST.CURRENCY.USD);
+            expect(draft?.source).toBe(CONST.BANK_ACCOUNT.SOURCE.WALLET);
+            expect(draft?.bankAccountID).toBe(PENDING_ACCOUNT.achData?.bankAccountID);
+            expect(draft?.currentPage).toBe(CONST.BANK_ACCOUNT.PAGE_NAMES.COMPANY);
+            expect(draft?.currentSubPage).toBe(CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.SUB_PAGE_NAMES.ADDRESS);
+            expect(draft?.amount1).toBeUndefined();
+            expect(draft?.amount2).toBeUndefined();
+            expect(draft?.amount3).toBeUndefined();
+            expect(draft?.companyName).toBe('Example company');
+        });
+
+        it('preserves the pre-edit snapshot when a Wallet edit is dismissed', async () => {
+            const editDraftSnapshot = {
+                firstName: 'Alberta 1',
+                lastName: 'Charleson',
+            };
+            await seedOnyx(PENDING_ACCOUNT);
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {
+                    country: CONST.COUNTRY.US,
+                    currency: CONST.CURRENCY.USD,
+                    source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                    currentPage: CONST.BANK_ACCOUNT.PAGE_NAMES.REQUESTOR,
+                    currentSubPage: CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.SUB_PAGE_NAMES.FULL_NAME,
+                    currentPageAction: 'edit',
+                    firstName: 'Alberta',
+                    lastName: 'Charleson',
+                    editDraftSnapshot,
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+            const {unmount} = await renderPage({bankAccountID: String(PENDING_ACCOUNT.achData?.bankAccountID), backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
+
+            await act(async () => {
+                unmount();
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            const draft = await getReimbursementAccountDraft();
+            expect(draft?.editDraftSnapshot).toEqual(editDraftSnapshot);
+            expect(draft?.firstName).toBe('Alberta');
+        });
+
+        it('preserves unfinished Wallet bank information before an account is created', async () => {
+            // Given a Wallet business setup with locally saved bank information and no backend account
+            await seedOnyx(DEFAULT_REIMBURSEMENT_ACCOUNT, null);
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {
+                    country: CONST.COUNTRY.US,
+                    currency: CONST.CURRENCY.USD,
+                    source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                    currentPage: CONST.BANK_ACCOUNT.PAGE_NAMES.BANK_ACCOUNT,
+                    currentSubPage: CONST.BANK_ACCOUNT.BANK_INFO_STEP.SUB_PAGE_NAMES.MANUAL,
+                    routingNumber: '021000021',
+                    accountNumber: '123456789',
+                    amount1: '1.11',
+                    amount2: '2.22',
+                    amount3: '3.33',
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+            const {unmount} = await renderPage({backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
+
+            // When the unfinished flow is dismissed
+            await act(async () => {
+                unmount();
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // Then resumable progress and entered values survive, but validation attempts do not
+            const draft = await getReimbursementAccountDraft();
+            expect(draft).toEqual(
+                expect.objectContaining({
+                    country: CONST.COUNTRY.US,
+                    currency: CONST.CURRENCY.USD,
+                    source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                    currentPage: CONST.BANK_ACCOUNT.PAGE_NAMES.BANK_ACCOUNT,
+                    currentSubPage: CONST.BANK_ACCOUNT.BANK_INFO_STEP.SUB_PAGE_NAMES.MANUAL,
+                    routingNumber: '021000021',
+                    accountNumber: '123456789',
+                }),
+            );
+            expect(draft?.amount1).toBeUndefined();
+            expect(draft?.amount2).toBeUndefined();
+            expect(draft?.amount3).toBeUndefined();
+        });
+
+        it('preserves the account while a Wallet route navigates into validation', async () => {
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {
+                    country: CONST.COUNTRY.US,
+                    currency: CONST.CURRENCY.USD,
+                    source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                    amount1: '1.11',
+                    amount2: '2.22',
+                    amount3: '3.33',
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+            await seedOnyx({...PENDING_ACCOUNT, achData: buildAchData({currentStep: CONST.BANK_ACCOUNT.STEP.VALIDATION})});
+            const {unmount} = await renderPage({bankAccountID: String(PENDING_ACCOUNT.achData?.bankAccountID), backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
+            expect(mockEntryPoint).toHaveBeenCalled();
+
+            await act(async () => {
+                mockContinuePress?.();
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            await act(async () => {
+                unmount();
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(walletValidationRoute);
+            expect(await getReimbursementAccount()).toEqual(
+                expect.objectContaining({
+                    achData: expect.objectContaining({
+                        bankAccountID: PENDING_ACCOUNT.achData?.bankAccountID,
+                        subStep: CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL,
+                    }),
+                }),
+            );
+            const draft = await getReimbursementAccountDraft();
+            expect(draft?.country).toBe(CONST.COUNTRY.US);
+            expect(draft?.currency).toBe(CONST.CURRENCY.USD);
+            expect(draft?.source).toBe(CONST.BANK_ACCOUNT.SOURCE.WALLET);
             expect(draft?.amount1).toBeUndefined();
             expect(draft?.amount2).toBeUndefined();
             expect(draft?.amount3).toBeUndefined();
@@ -481,6 +664,300 @@ describe('ReimbursementAccountPage pending USD redirect', () => {
 
             // Then the existing cleanup still resets the account
             expect(await getReimbursementAccount()).toEqual(CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA);
+        });
+    });
+
+    describe('Wallet business setup resume', () => {
+        it('keeps the root mounted and resumes a USD manual draft before account creation', async () => {
+            // Given a Wallet USD draft saved on manual bank information before a backend account exists
+            await seedOnyx(DEFAULT_REIMBURSEMENT_ACCOUNT, null);
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {
+                    country: CONST.COUNTRY.US,
+                    currency: CONST.CURRENCY.USD,
+                    source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                    currentPage: CONST.BANK_ACCOUNT.PAGE_NAMES.BANK_ACCOUNT,
+                    currentSubPage: CONST.BANK_ACCOUNT.BANK_INFO_STEP.SUB_PAGE_NAMES.MANUAL,
+                    routingNumber: '021000021',
+                    accountNumber: '123456789',
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+            await renderPage({backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
+
+            // Then the root owns the flow lifecycle while redirecting directly to the saved bank-info screen
+            expect(Navigation.navigate).toHaveBeenCalledWith(
+                ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({
+                    page: CONST.BANK_ACCOUNT.PAGE_NAMES.BANK_ACCOUNT,
+                    subPage: CONST.BANK_ACCOUNT.BANK_INFO_STEP.SUB_PAGE_NAMES.MANUAL,
+                    backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE,
+                }),
+            );
+            expect(mockEntryPoint).not.toHaveBeenCalled();
+            expect(mockLoadingIndicator).toHaveBeenCalled();
+        });
+
+        it('leaves the local Wallet resume flow when Back focuses the root again', async () => {
+            // Given the root redirected a local USD draft to its saved bank-information page
+            await seedOnyx(DEFAULT_REIMBURSEMENT_ACCOUNT, null);
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {
+                    country: CONST.COUNTRY.US,
+                    currency: CONST.CURRENCY.USD,
+                    source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                    currentPage: CONST.BANK_ACCOUNT.PAGE_NAMES.BANK_ACCOUNT,
+                    currentSubPage: CONST.BANK_ACCOUNT.BANK_INFO_STEP.SUB_PAGE_NAMES.MANUAL,
+                    routingNumber: '021000021',
+                    accountNumber: '123456789',
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+            const params: RouteParams = {backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE};
+            const {rerender} = await renderPage(params);
+            expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+
+            // When the resumed page covers the root and Back focuses it again
+            mockIsFocused = false;
+            rerender(pageElement(params));
+            await waitForBatchedUpdatesWithAct();
+            mockIsFocused = true;
+            rerender(pageElement(params));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it exits through backTo instead of remaining on the loader or redirecting again
+            expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE);
+            expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+        });
+
+        it('keeps the root mounted and resumes a USD Plaid draft before account creation', async () => {
+            // Given a Wallet USD draft saved after selecting an account through Plaid
+            await seedOnyx(DEFAULT_REIMBURSEMENT_ACCOUNT, null);
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {
+                    country: CONST.COUNTRY.US,
+                    currency: CONST.CURRENCY.USD,
+                    source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                    currentPage: CONST.BANK_ACCOUNT.PAGE_NAMES.BANK_ACCOUNT,
+                    currentSubPage: CONST.BANK_ACCOUNT.BANK_INFO_STEP.SUB_PAGE_NAMES.PLAID,
+                    plaidAccountID: 'plaid-account-id',
+                    plaidAccessToken: 'plaid-access-token',
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+            await renderPage({backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
+
+            // Then the root owns the flow lifecycle while redirecting directly to the saved Plaid selection
+            expect(Navigation.navigate).toHaveBeenCalledWith(
+                ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({
+                    page: CONST.BANK_ACCOUNT.PAGE_NAMES.BANK_ACCOUNT,
+                    subPage: CONST.BANK_ACCOUNT.BANK_INFO_STEP.SUB_PAGE_NAMES.PLAID,
+                    backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE,
+                }),
+            );
+            expect(mockEntryPoint).not.toHaveBeenCalled();
+            expect(mockLoadingIndicator).toHaveBeenCalled();
+        });
+
+        it('refreshes the Wallet bank account list when dismissed after USD bank information is completed', async () => {
+            // Given a resumed Wallet flow in which Step 2 creates the backend bank account and advances to Step 3
+            await seedOnyx(DEFAULT_REIMBURSEMENT_ACCOUNT, null);
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {
+                    country: CONST.COUNTRY.US,
+                    currency: CONST.CURRENCY.USD,
+                    source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                    currentPage: CONST.BANK_ACCOUNT.PAGE_NAMES.BANK_ACCOUNT,
+                    currentSubPage: CONST.BANK_ACCOUNT.BANK_INFO_STEP.SUB_PAGE_NAMES.MANUAL,
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+            const {unmount} = await renderPage({backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
+                    ...PENDING_ACCOUNT,
+                    achData: buildAchData({currentStep: CONST.BANK_ACCOUNT.STEP.REQUESTOR, state: CONST.BANK_ACCOUNT.STATE.SETUP}),
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // When the first Step 3 screen is dismissed
+            await act(async () => {
+                unmount();
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // Then Wallet reloads its payment methods, allowing the newly incomplete account card to appear
+            expect(mockGetPaymentMethods).toHaveBeenCalled();
+            expect((await getReimbursementAccountDraft())?.bankAccountID).toBe(PENDING_ACCOUNT.achData?.bankAccountID);
+        });
+
+        it('keeps the root mounted and resumes a non-USD bank-info draft before account creation', async () => {
+            // Given a Wallet EUR draft saved on account-holder details before a backend account exists
+            await seedOnyx(DEFAULT_REIMBURSEMENT_ACCOUNT, null);
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {
+                    country: 'DE',
+                    currency: CONST.CURRENCY.EUR,
+                    source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                    currentPage: CONST.NON_USD_BANK_ACCOUNT.PAGE_NAME.BANK_INFO,
+                    currentSubPage: CONST.NON_USD_BANK_ACCOUNT.BANK_INFO_STEP.SUB_PAGE_NAMES.ACCOUNT_HOLDER_DETAILS,
+                    currentPageAction: 'edit',
+                    routingNumber: 'TESTBIC',
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+            await renderPage({backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
+
+            // Then it bypasses Continue setup while keeping the root lifecycle mounted underneath
+            expect(Navigation.navigate).toHaveBeenCalledWith(
+                ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({
+                    page: CONST.NON_USD_BANK_ACCOUNT.PAGE_NAME.BANK_INFO,
+                    subPage: CONST.NON_USD_BANK_ACCOUNT.BANK_INFO_STEP.SUB_PAGE_NAMES.ACCOUNT_HOLDER_DETAILS,
+                    action: 'edit',
+                    backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE,
+                }),
+            );
+            expect(mockEntryPoint).not.toHaveBeenCalled();
+            expect(mockLoadingIndicator).toHaveBeenCalled();
+        });
+
+        it('refreshes the Wallet bank account list when dismissed after non-USD bank information is completed', async () => {
+            // Given a resumed Wallet flow in which Step 2 creates the backend bank account and advances to Step 3
+            await seedOnyx(DEFAULT_REIMBURSEMENT_ACCOUNT, null);
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {
+                    country: 'DE',
+                    currency: CONST.CURRENCY.EUR,
+                    source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                    currentPage: CONST.NON_USD_BANK_ACCOUNT.PAGE_NAME.BANK_INFO,
+                    currentSubPage: CONST.NON_USD_BANK_ACCOUNT.BANK_INFO_STEP.SUB_PAGE_NAMES.CONFIRMATION,
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+            const {unmount} = await renderPage({backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
+                    ...PENDING_ACCOUNT,
+                    achData: buildAchData({currency: CONST.CURRENCY.EUR, country: 'DE', state: CONST.BANK_ACCOUNT.STATE.PENDING, created: ACCOUNT_CREATED_AT, corpay: {}}),
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // When the first Step 3 screen is dismissed
+            await act(async () => {
+                unmount();
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // Then Wallet reloads its payment methods, allowing the newly incomplete account card to appear
+            expect(mockGetPaymentMethods).toHaveBeenCalled();
+            expect((await getReimbursementAccountDraft())?.bankAccountID).toBe(PENDING_ACCOUNT.achData?.bankAccountID);
+        });
+
+        it('restores the exact USD subpage only within the backend-derived major step', async () => {
+            // Given a created Wallet USD account saved on the company address subpage
+            await seedOnyx({...PENDING_ACCOUNT, achData: buildAchData({currentStep: CONST.BANK_ACCOUNT.STEP.COMPANY, state: CONST.BANK_ACCOUNT.STATE.SETUP})}, null);
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {
+                    bankAccountID: PENDING_ACCOUNT.achData?.bankAccountID,
+                    country: CONST.COUNTRY.US,
+                    currency: CONST.CURRENCY.USD,
+                    source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                    currentPage: CONST.BANK_ACCOUNT.PAGE_NAMES.COMPANY,
+                    currentSubPage: CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.SUB_PAGE_NAMES.ADDRESS,
+                    currentPageAction: 'edit',
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+            await renderPage({bankAccountID: String(PENDING_ACCOUNT.achData?.bankAccountID), backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
+
+            // When setup is continued
+            await act(async () => {
+                mockContinuePress?.();
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // Then the exact saved address subpage is restored
+            expect(Navigation.navigate).toHaveBeenCalledWith(
+                ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({
+                    page: CONST.BANK_ACCOUNT.PAGE_NAMES.COMPANY,
+                    subPage: CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.SUB_PAGE_NAMES.ADDRESS,
+                    action: 'edit',
+                    backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE,
+                }),
+            );
+        });
+
+        it('restores an earlier USD page after navigating backward from the backend-derived step', async () => {
+            // Given the backend has advanced to Company while the Wallet route was dismissed on Personal confirmation
+            await seedOnyx({...PENDING_ACCOUNT, achData: buildAchData({currentStep: CONST.BANK_ACCOUNT.STEP.COMPANY, state: CONST.BANK_ACCOUNT.STATE.SETUP})}, null);
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {
+                    bankAccountID: PENDING_ACCOUNT.achData?.bankAccountID,
+                    country: CONST.COUNTRY.US,
+                    currency: CONST.CURRENCY.USD,
+                    source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                    currentPage: CONST.BANK_ACCOUNT.PAGE_NAMES.REQUESTOR,
+                    currentSubPage: CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.SUB_PAGE_NAMES.CONFIRMATION,
+                    companyName: 'Example company',
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+            await renderPage({bankAccountID: String(PENDING_ACCOUNT.achData?.bankAccountID), backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
+
+            // When setup is continued
+            await act(async () => {
+                mockContinuePress?.();
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // Then the focused Personal confirmation page wins over the later Company fallback
+            expect(Navigation.navigate).toHaveBeenCalledWith(
+                ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({
+                    page: CONST.BANK_ACCOUNT.PAGE_NAMES.REQUESTOR,
+                    subPage: CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.SUB_PAGE_NAMES.CONFIRMATION,
+                    backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE,
+                }),
+            );
+        });
+
+        it('restores the exact non-USD subpage only within the backend-derived major step', async () => {
+            // Given a created Wallet EUR account saved on the business website subpage
+            await seedOnyx(
+                {
+                    ...PENDING_ACCOUNT,
+                    achData: buildAchData({state: CONST.BANK_ACCOUNT.STATE.SETUP, currency: CONST.CURRENCY.EUR, country: 'DE', created: ACCOUNT_CREATED_AT, corpay: {}}),
+                },
+                null,
+            );
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {
+                    bankAccountID: PENDING_ACCOUNT.achData?.bankAccountID,
+                    country: 'DE',
+                    currency: CONST.CURRENCY.EUR,
+                    source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                    currentPage: CONST.NON_USD_BANK_ACCOUNT.PAGE_NAME.BUSINESS_INFO,
+                    currentSubPage: CONST.NON_USD_BANK_ACCOUNT.BUSINESS_INFO_STEP.SUB_PAGE_NAMES.WEBSITE,
+                    companyName: 'Example company',
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+            await renderPage({bankAccountID: String(PENDING_ACCOUNT.achData?.bankAccountID), backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
+
+            // When setup is continued
+            act(() => {
+                mockContinuePress?.();
+            });
+
+            // Then the exact saved website subpage is restored
+            expect(Navigation.navigate).toHaveBeenCalledWith(
+                ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({
+                    policyID: '',
+                    page: CONST.NON_USD_BANK_ACCOUNT.PAGE_NAME.BUSINESS_INFO,
+                    subPage: CONST.NON_USD_BANK_ACCOUNT.BUSINESS_INFO_STEP.SUB_PAGE_NAMES.WEBSITE,
+                    backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE,
+                }),
+            );
         });
     });
 });

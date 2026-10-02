@@ -2,6 +2,7 @@ import {render} from '@testing-library/react-native';
 
 import FormContext from '@components/Form/FormContext';
 import type {RegisterInput} from '@components/Form/FormContext';
+import FormDraftPersistenceContext from '@components/Form/FormDraftPersistenceContext';
 import InputWrapper from '@components/Form/InputWrapper';
 import TextInput from '@components/TextInput';
 
@@ -35,6 +36,8 @@ type RegistrationInput = {
     multiline?: boolean;
     shouldSubmitForm?: boolean;
     submitBehavior?: SubmitBehavior;
+    shouldSaveDraft?: boolean;
+    shouldPersistDraft?: boolean;
 };
 
 type RegistrationResult = {
@@ -43,6 +46,9 @@ type RegistrationResult = {
 
     /** The `submitBehavior` InputWrapper resolved for the input */
     submitBehavior?: SubmitBehavior;
+
+    /** Whether the input registration will persist value changes */
+    shouldSaveDraft?: boolean;
 };
 
 /**
@@ -50,7 +56,15 @@ type RegistrationResult = {
  * `registerInput` receives (inputID, shouldSubmitForm, inputProps), so we read the computed
  * `shouldSubmitForm` and the resolved `submitBehavior` straight off the recorded call.
  */
-function renderAndCaptureRegistration({autoGrowSingleLine, autoGrowHeight, multiline, shouldSubmitForm, submitBehavior}: RegistrationInput): RegistrationResult {
+function renderAndCaptureRegistration({
+    autoGrowSingleLine,
+    autoGrowHeight,
+    multiline,
+    shouldSubmitForm,
+    submitBehavior,
+    shouldSaveDraft,
+    shouldPersistDraft = false,
+}: RegistrationInput): RegistrationResult {
     const registerInput: jest.MockedFunction<RegisterInput> = jest.fn((_inputID, _shouldSubmitForm, inputProps) => inputProps);
     const contextValue = {
         registerInput,
@@ -59,21 +73,24 @@ function renderAndCaptureRegistration({autoGrowSingleLine, autoGrowHeight, multi
     };
 
     render(
-        <FormContext.Provider value={contextValue}>
-            <InputWrapper
-                InputComponent={TextInput}
-                inputID="testInput"
-                autoGrowSingleLine={autoGrowSingleLine}
-                autoGrowHeight={autoGrowHeight}
-                multiline={multiline}
-                shouldSubmitForm={shouldSubmitForm}
-                submitBehavior={submitBehavior}
-            />
-        </FormContext.Provider>,
+        <FormDraftPersistenceContext.Provider value={shouldPersistDraft}>
+            <FormContext.Provider value={contextValue}>
+                <InputWrapper
+                    InputComponent={TextInput}
+                    inputID="testInput"
+                    autoGrowSingleLine={autoGrowSingleLine}
+                    autoGrowHeight={autoGrowHeight}
+                    multiline={multiline}
+                    shouldSubmitForm={shouldSubmitForm}
+                    submitBehavior={submitBehavior}
+                    shouldSaveDraft={shouldSaveDraft}
+                />
+            </FormContext.Provider>
+        </FormDraftPersistenceContext.Provider>,
     );
 
     const call = registerInput.mock.calls.at(0);
-    return {shouldSubmitForm: call?.[1], submitBehavior: call?.[2]?.submitBehavior};
+    return {shouldSubmitForm: call?.[1], submitBehavior: call?.[2]?.submitBehavior, shouldSaveDraft: call?.[2]?.shouldSaveDraft};
 }
 
 describe('InputWrapper - shouldReallySubmitForm', () => {
@@ -155,5 +172,23 @@ describe('InputWrapper - shouldReallySubmitForm', () => {
             // On a touch device with no hardware keyboard, a multi-line input must reserve the return key for new lines.
             expect(shouldSubmitForm).toBe(false);
         });
+    });
+});
+
+describe('InputWrapper - forced draft persistence', () => {
+    it('forces draft saving inside a persistence provider', () => {
+        // Given an edit input that normally opts out of saving drafts
+        const {shouldSaveDraft} = renderAndCaptureRegistration({shouldSaveDraft: false, shouldPersistDraft: true});
+
+        // Then the surrounding flow can preserve its value if it is dismissed before submission
+        expect(shouldSaveDraft).toBe(true);
+    });
+
+    it('keeps the input behavior unchanged outside a persistence provider', () => {
+        // Given the same edit input outside the scoped provider
+        const {shouldSaveDraft} = renderAndCaptureRegistration({shouldSaveDraft: false});
+
+        // Then the input's original draft behavior is retained
+        expect(shouldSaveDraft).toBe(false);
     });
 });

@@ -1,3 +1,5 @@
+import FormDraftPersistenceContext from '@components/Form/FormDraftPersistenceContext';
+
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -6,6 +8,9 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/types';
 
+import {setDraftValues} from '@userActions/FormActions';
+import {clearReimbursementAccount} from '@userActions/ReimbursementAccount';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -13,7 +18,8 @@ import type SCREENS from '@src/SCREENS';
 
 import type {ComponentRef} from 'react';
 
-import React, {useCallback, useMemo, useRef} from 'react';
+import {useIsFocused} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 
 import type USDPageProps from './types';
@@ -102,9 +108,27 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
     const policyID = route.params?.policyID;
     const currentPage = route.params?.page;
     const currentSubPage = route.params?.subPage;
+    const currentPageAction = route.params?.action;
     const backTo = route.params?.backTo;
+    const isFocused = useIsFocused();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const bankInfoSubStep = reimbursementAccount?.achData?.subStep;
+    const isKnownBankInfoSubStep = bankInfoSubStep === BANK_INFO_SUB_PAGES.MANUAL || bankInfoSubStep === BANK_INFO_SUB_PAGES.PLAID;
+    // BankInfo renders from achData.subStep, which can change before the URL updates. Persist what the user actually sees.
+    const currentRenderedSubPage = currentPage === PAGE_NAMES.BANK_ACCOUNT && isKnownBankInfoSubStep ? bankInfoSubStep : currentSubPage;
+
+    useEffect(() => {
+        if (!isFocused || backTo !== ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE || !currentPage) {
+            return;
+        }
+
+        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {
+            currentPage,
+            currentSubPage: currentRenderedSubPage ?? null,
+            currentPageAction: currentPageAction ?? null,
+        });
+    }, [backTo, currentPage, currentPageAction, currentRenderedSubPage, isFocused]);
 
     const requestorStepRef = useRef<ComponentRef<typeof View>>(null);
     const isOnfidoSetupComplete = reimbursementAccount?.achData?.isOnfidoSetupComplete;
@@ -124,17 +148,30 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
     // Skip the KYB documents page unless the backend's verification checks flagged documents that still need to be uploaded.
     const shouldSkipKYBDocs = useCallback((pageName?: string) => pageName === PAGE_NAMES.KYB_DOCS && !isKYBDocumentsRequired, [isKYBDocumentsRequired]);
 
+    const leavePendingValidationFlow = useCallback(() => {
+        if (backTo === ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE) {
+            Navigation.goBack(backTo);
+            return;
+        }
+
+        const options = {afterTransition: clearReimbursementAccount};
+        if (backTo) {
+            Navigation.goBack(backTo, options);
+            return;
+        }
+        Navigation.dismissModal(options);
+    }, [backTo]);
+
     // The bank-info step renders either the Plaid or the manual variant depending on the setup type the user
     // picked earlier in the flow
     const getSubPageForNavigation = useCallback(
         (page: PageEntry | undefined, fallbackSubPage: string | undefined) => {
-            const bankInfoSubStep = reimbursementAccount?.achData?.subStep;
             if (page?.pageName === PAGE_NAMES.BANK_ACCOUNT && bankInfoSubStep) {
                 return bankInfoSubStep;
             }
             return fallbackSubPage;
         },
-        [reimbursementAccount?.achData?.subStep],
+        [bankInfoSubStep],
     );
 
     const onSubmit = useCallback(() => {
@@ -158,11 +195,7 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
         // setup pages doesn't make sense. Leave the flow entirely rather than popping to ReimbursementAccountPage:
         // that page redirects a pending account straight back here, so returning to it would trap the user in a loop.
         if (currentEntry?.pageName === PAGE_NAMES.VALIDATION && reimbursementAccount?.achData?.state === CONST.BANK_ACCOUNT.STATE.PENDING) {
-            if (backTo) {
-                Navigation.goBack(backTo);
-            } else {
-                Navigation.dismissModal();
-            }
+            leavePendingValidationFlow();
             return;
         }
 
@@ -179,19 +212,31 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
         }
         const prevPage = pages.at(prevIndex);
         Navigation.goBack(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: prevPage?.pageName, subPage: getSubPageForNavigation(prevPage, prevPage?.lastSubPage), backTo}));
-    }, [backTo, currentEntry?.pageName, currentPageIndex, policyID, reimbursementAccount?.achData?.state, shouldSkipVerifyIdentity, shouldSkipKYBDocs, getSubPageForNavigation]);
+    }, [
+        backTo,
+        currentEntry?.pageName,
+        currentPageIndex,
+        policyID,
+        reimbursementAccount?.achData?.state,
+        shouldSkipVerifyIdentity,
+        shouldSkipKYBDocs,
+        getSubPageForNavigation,
+        leavePendingValidationFlow,
+    ]);
 
     return (
         <View style={[styles.flex1, styles.appBG]}>
-            <CurrentPage
-                onSubmit={onSubmit}
-                onBackButtonPress={onBackButtonPress}
-                policyID={policyID}
-                currentSubPage={currentSubPage}
-                stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
-                ref={isRequestorStep ? requestorStepRef : undefined}
-                backTo={backTo}
-            />
+            <FormDraftPersistenceContext.Provider value={backTo === ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE && currentPageAction === 'edit'}>
+                <CurrentPage
+                    onSubmit={onSubmit}
+                    onBackButtonPress={onBackButtonPress}
+                    policyID={policyID}
+                    currentSubPage={currentSubPage}
+                    stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
+                    ref={isRequestorStep ? requestorStepRef : undefined}
+                    backTo={backTo}
+                />
+            </FormDraftPersistenceContext.Provider>
         </View>
     );
 }
