@@ -121,6 +121,28 @@ function getAccountingIntegrationDisplayName(policy: OnyxEntry<Policy>, connecti
     return CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName];
 }
 
+function getRilletExpensifyCardAccountCode(policy: OnyxEntry<Policy>): string | undefined {
+    const connection = policy?.connections?.rillet;
+    const exportConfiguration = connection?.config?.export;
+    const programAccountCode = exportConfiguration?.cardProgramAccounts?.[CONST.EXPENSIFY_CARD.BANK];
+    if (programAccountCode?.trim() && programAccountCode !== CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE) {
+        return programAccountCode;
+    }
+
+    const legacyAccountID = exportConfiguration?.expensifyCardAccount;
+    if (legacyAccountID?.trim()) {
+        return connection?.data?.accounts?.find((account) => account.id === legacyAccountID)?.code;
+    }
+
+    return exportConfiguration?.creditCardAccountCode;
+}
+
+function getDualEntryExpensifyCardAccountID(policy: OnyxEntry<Policy>): string | undefined {
+    const exportConfiguration = policy?.connections?.dualEntry?.config?.export;
+    const programAccountID = exportConfiguration?.cardProgramAccounts?.[CONST.EXPENSIFY_CARD.BANK];
+    return programAccountID?.trim() && programAccountID !== CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE ? programAccountID : exportConfiguration?.creditCardAccountID;
+}
+
 function getStandardExportTemplateDisplayName(templateName: string): string {
     return STANDARD_EXPORT_TEMPLATE_NAME_MAPPING[templateName as keyof typeof STANDARD_EXPORT_TEMPLATE_NAME_MAPPING] ?? templateName;
 }
@@ -138,11 +160,13 @@ function isStandardExportTemplateLabel(label: string): boolean {
 export {
     getAccountingIntegrationDisplayName,
     getConnectionNameFromRouteParam,
+    getDualEntryExpensifyCardAccountID,
     getExportLabelForConnection,
     getExportLabelsForConnection,
     getQBORefreshTokenExpiryDate,
     getQBORefreshTokenExpiryStatus,
     getQuickbooksOnlineIntegrationName,
+    getRilletExpensifyCardAccountCode,
     getRouteParamForConnection,
     getStandardExportTemplateDisplayName,
     isStandardExportTemplate,
