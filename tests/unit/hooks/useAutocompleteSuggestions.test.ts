@@ -6,6 +6,7 @@ import useNetwork from '@hooks/useNetwork';
 import {openSearchCategoryFiltersPage} from '@libs/actions/Search';
 import {getSearchOptions} from '@libs/OptionsListUtils';
 import type * as SearchAutocompleteUtils from '@libs/SearchAutocompleteUtils';
+import type * as SearchQueryUtils from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -93,6 +94,7 @@ jest.mock('@libs/CategoryUtils', () => ({
 jest.mock('@libs/SearchQueryUtils', () => ({
     getUserFriendlyKey: jest.fn((key: string) => key),
     getUserFriendlyValue: jest.fn((value: string) => value),
+    isFilterSupported: jest.requireActual<typeof SearchQueryUtils>('@libs/SearchQueryUtils').isFilterSupported,
 }));
 
 jest.mock('@libs/SearchUIUtils', () => ({
@@ -459,6 +461,36 @@ describe('useAutocompleteSuggestions', () => {
         const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'in:general in:'}));
 
         expect(result.current).toEqual([]);
+    });
+
+    it('returns no in: suggestions when the query has an explicit type that does not support in:', () => {
+        // Given a query with type:expense, which does not support the in: filter
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.IN, value: ''},
+            ranges: [{key: CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE, value: CONST.SEARCH.DATA_TYPES.EXPENSE, start: 0, length: 12}],
+        });
+
+        // When the user starts typing an in: value
+        const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'type:expense in:'}));
+
+        // Then no chat suggestions are shown, because selecting one would build a query that can never match any expense
+        expect(result.current).toEqual([]);
+        expect(mockedGetSearchOptions).not.toHaveBeenCalled();
+    });
+
+    it('returns in: suggestions when the query has an explicit type that supports in:', () => {
+        // Given a query with type:chat, which supports the in: filter
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.IN, value: ''},
+            ranges: [{key: CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE, value: CONST.SEARCH.DATA_TYPES.CHAT, start: 0, length: 9}],
+        });
+
+        // When the user starts typing an in: value
+        const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'type:chat in:'}));
+
+        // Then chat suggestions are still shown
+        expect(result.current.length).toBeGreaterThan(0);
+        expect(result.current.at(0)?.filterKey).toBe(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN);
     });
 
     it('returns empty array for unknown autocomplete key', () => {
