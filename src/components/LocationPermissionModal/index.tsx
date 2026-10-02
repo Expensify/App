@@ -118,8 +118,6 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
                 return;
             }
 
-            // A blocked prompt already spent this prompt window: the user answered it, whether or not the settings
-            // screen can open, so asking again on the next open would loop the same dead-end prompt.
             if (hasError) {
                 updateLastLocationPermissionPrompt();
             }
