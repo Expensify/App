@@ -24,11 +24,11 @@ class FileIntentHandler(private val context: Context) : AbstractIntentHandler() 
     private fun handleSingleFileIntent(intent: Intent, context: Context, shouldLaunchActivity: Boolean) {
         val fileUri = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM) ?: return
         val resultingPath = FileUtils.copyUriToStorage(fileUri, context) ?: return
-        val mimeType = try {
+        val mimeType = intent.type ?: try {
             context.contentResolver.getType(fileUri)
         } catch (exception: Exception) {
             null
-        } ?: intent.type
+        }
         val shareFileObject = ShareFileObject(resultingPath, mimeType)
 
         val sharedPreferences = context.getSharedPreferences(IntentHandlerConstants.preferencesFile, Context.MODE_PRIVATE)

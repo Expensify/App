@@ -61,11 +61,11 @@ class TextIntentHandler(private val context: Context) : AbstractIntentHandler() 
     private fun handleTextFileIntent(intent: Intent, context: Context, shouldLaunchActivity: Boolean): Boolean {
         val fileUri = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM) ?: return false
         val resultingPath = FileUtils.copyUriToStorage(fileUri, context) ?: return false
-        val mimeType = try {
+        val mimeType = intent.type ?: try {
             context.contentResolver.getType(fileUri)
         } catch (exception: Exception) {
             null
-        } ?: intent.type
+        }
         val shareFileObject = ShareFileObject(resultingPath, mimeType)
         return saveToSharedPreferences(IntentHandlerConstants.shareObjectProperty, shareFileObject.toString(), shouldLaunchActivity)
     }
