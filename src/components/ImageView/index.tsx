@@ -20,7 +20,7 @@ import type {Dimensions} from '@src/types/utils/Layout';
 import type {ComponentRef} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useEffectEvent, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type ImageViewProps from './types';
@@ -33,6 +33,8 @@ function calculateZoomScale(containerSize: Dimensions, imageSize: Dimensions) {
     return Math.min(containerSize.width / imageSize.width, containerSize.height / imageSize.height);
 }
 
+const LOADING_CONTEXT = {context: 'ImageView'};
+
 function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageViewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -41,6 +43,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
     const canUseTouchScreen = canUseTouchScreenUtil();
 
     const [isLoading, setIsLoading] = useState(true);
+    const [hasLoadFailed, setHasLoadFailed] = useState(false);
     const [containerSize, setContainerSize] = useState<Dimensions>({width: 0, height: 0});
     const [imageSize, setImageSize] = useState<Dimensions>({width: 0, height: 0});
 
@@ -66,7 +69,13 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
 
         setImageSize({width: 0, height: 0});
         setIsLoading(true);
+        setHasLoadFailed(false);
         resetZoom();
+    };
+
+    const handleError = () => {
+        setHasLoadFailed(true);
+        onError?.();
     };
 
     const imageLoad = ({nativeEvent: size}: ImageOnLoadEvent) => {
@@ -85,6 +94,18 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
     }
 
     const shouldShowOfflineIndicator = isOffline && !isLoading && !isLocalToUserDeviceFile;
+    const shouldShowLoadingIndicator = !isImageLoaded && !shouldShowOfflineIndicator && !hasLoadFailed;
+
+    /** The image may never emit onLoad/onError, so treat a spinner that outlives the timeout as a load failure. */
+    const failStuckLoad = useEffectEvent(handleError);
+    useEffect(() => {
+        if (canUseTouchScreen || isOffline || !shouldShowLoadingIndicator) {
+            return;
+        }
+        const timeout = setTimeout(failStuckLoad, CONST.TIMING.ACTIVITY_INDICATOR_TIMEOUT);
+        return () => clearTimeout(timeout);
+    }, [canUseTouchScreen, isOffline, shouldShowLoadingIndicator]);
+
     if (canUseTouchScreen) {
         return (
             <Lightbox
@@ -127,13 +148,19 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
                     waitForSession={() => {
                         setImageSize({width: 0, height: 0});
                         setIsLoading(true);
+                        setHasLoadFailed(false);
                         resetZoom();
                     }}
-                    onError={onError}
+                    onError={handleError}
                 />
             </PressableWithoutFeedback>
 
-            {!isImageLoaded && !shouldShowOfflineIndicator && <LoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
+            {shouldShowLoadingIndicator && (
+                <LoadingIndicator
+                    style={[styles.opacity1, styles.bgTransparent]}
+                    extraLoadingContext={LOADING_CONTEXT}
+                />
+            )}
             {!isImageLoaded && shouldShowOfflineIndicator && <AttachmentOfflineIndicator />}
         </View>
     );

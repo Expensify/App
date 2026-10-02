@@ -20,13 +20,15 @@ import type {Dimensions} from '@src/types/utils/Layout';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import React, {useState} from 'react';
+import React, {useEffect, useEffectEvent, useState} from 'react';
 import {PixelRatio, StyleSheet, View} from 'react-native';
 import {useSharedValue} from 'react-native-reanimated';
 
 import NUMBER_OF_CONCURRENT_LIGHTBOXES from './numberOfConcurrentLightboxes';
 
 const FALLBACK_OFFSET = 2;
+
+const LOADING_CONTEXT = {context: 'Lightbox'};
 
 const cachedImageDimensions = new Map<string, Dimensions | undefined>();
 
@@ -144,6 +146,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
 
     const [isLightboxImageLoaded, setLightboxImageLoaded] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [hasLoadFailed, setHasLoadFailed] = useState(false);
 
     const isFallbackVisible = !hasSiblingCarouselItems ? !isLightboxVisible : !(isActive && isLightboxVisible && isLightboxImageLoaded);
     const [isFallbackImageLoaded, setFallbackImageLoaded] = useState(false);
@@ -197,6 +200,22 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
 
     const isALocalFile = isLocalFile(uri);
     const shouldShowOfflineIndicator = isOffline && !isLoading && !isALocalFile;
+    const shouldShowLoadingIndicator = !isImageLoaded && !shouldShowOfflineIndicator && !hasLoadFailed;
+
+    const handleError = () => {
+        setHasLoadFailed(true);
+        onError?.();
+    };
+
+    /** The image may never emit onLoad/onError, so treat a spinner that outlives the timeout as a load failure. */
+    const failStuckLoad = useEffectEvent(handleError);
+    useEffect(() => {
+        if (isOffline || !shouldShowLoadingIndicator) {
+            return;
+        }
+        const timeout = setTimeout(failStuckLoad, CONST.TIMING.ACTIVITY_INDICATOR_TIMEOUT);
+        return () => clearTimeout(timeout);
+    }, [isOffline, shouldShowLoadingIndicator]);
 
     return (
         <View
@@ -228,7 +247,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                                     style={[contentSize ?? styles.invisibleImage]}
                                     isAuthTokenRequired={isAuthTokenRequired}
                                     priority={imagePriority}
-                                    onError={onError}
+                                    onError={handleError}
                                     onLoad={(e) => {
                                         updateContentSize(e);
                                         setLightboxImageLoaded(true);
@@ -240,6 +259,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                                         }
                                         setContentSize(cachedImageDimensions.get(uri));
                                         setLightboxImageLoaded(false);
+                                        setHasLoadFailed(false);
                                     }}
                                     onLoadEnd={() => {
                                         setIsLoading(false);
@@ -268,10 +288,11 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                     )}
 
                     {/* Show activity indicator while the lightbox is still loading the image. */}
-                    {!isImageLoaded && !shouldShowOfflineIndicator && (
+                    {shouldShowLoadingIndicator && (
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             style={StyleSheet.absoluteFill}
+                            extraLoadingContext={LOADING_CONTEXT}
                         />
                     )}
                     {!isImageLoaded && shouldShowOfflineIndicator && <AttachmentOfflineIndicator />}

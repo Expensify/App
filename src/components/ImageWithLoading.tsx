@@ -1,10 +1,12 @@
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import CONST from '@src/CONST';
+
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 
 import delay from 'lodash/delay';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useEffectEvent, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {ImageObjectPosition, ImageOnLoadEvent, ImageProps} from './Image/types';
@@ -82,6 +84,18 @@ function ImageWithLoading({
         return () => clearTimeout(timeout);
     }, [isLoading]);
 
+    const shouldShowLoadingIndicator = (previewUri ? isLoading : isLoading && !isImageCached) && !isOffline;
+
+    /** The full image may never emit onLoad/onError, so treat a spinner that outlives the timeout as a load failure. */
+    const failStuckLoad = useEffectEvent(handleError);
+    useEffect(() => {
+        if (!shouldShowLoadingIndicator) {
+            return;
+        }
+        const timeout = setTimeout(failStuckLoad, CONST.TIMING.ACTIVITY_INDICATOR_TIMEOUT);
+        return () => clearTimeout(timeout);
+    }, [shouldShowLoadingIndicator]);
+
     return (
         <View
             style={[styles.w100, styles.h100, containerStyles]}
@@ -126,10 +140,14 @@ function ImageWithLoading({
                 loadingIconSize={loadingIconSize}
                 loadingIndicatorStyles={loadingIndicatorStyles}
             />
-            {(previewUri ? isLoading : isLoading && !isImageCached) && !isOffline && (
+            {shouldShowLoadingIndicator && (
                 <LoadingIndicator
                     iconSize={loadingIconSize}
                     style={[styles.opacity1, styles.bgTransparent, loadingIndicatorStyles]}
+                    extraLoadingContext={{
+                        context: 'ImageWithLoading',
+                        hasPreview: !!previewUri,
+                    }}
                 />
             )}
             {isLoading && shouldShowOfflineIndicator && !isImageCached && <AttachmentOfflineIndicator isPreview />}
