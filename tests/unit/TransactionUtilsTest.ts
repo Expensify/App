@@ -5045,6 +5045,23 @@ describe('TransactionUtils', () => {
             };
         }
 
+        it('retains transaction identity and order while removing nullish and settled entries', () => {
+            // Given real optimistic producers on unresolved, open, submitted and closed reports
+            const unresolved = generateTransaction({reportID: 'unresolved-duplicate-report'});
+            const open = generateTransaction({reportID: MERGE_KEPT_OPEN_REPORT_ID});
+            const submitted = generateTransaction({reportID: MERGE_SUBMITTED_REPORT_ID});
+            const closed = generateTransaction({reportID: MERGE_CLOSED_REPORT_ID});
+
+            // When the production filter consumes the nullable Onyx collection values
+            const result = TransactionUtils.removeSettledAndApprovedTransactions([undefined, unresolved, undefined, open, closed, submitted]);
+
+            // Then the original accepted objects remain in their original order
+            expect(result).toEqual([unresolved, open, submitted]);
+            expect(result.at(0)).toBe(unresolved);
+            expect(result.at(1)).toBe(open);
+            expect(result.at(2)).toBe(submitted);
+        });
+
         it('keeps only duplicates whose report is open or awaiting first approval', () => {
             const keptTransaction = generateTransaction({reportID: MERGE_KEPT_OPEN_REPORT_ID});
             const openDuplicate = generateTransaction({reportID: MERGE_KEPT_OPEN_REPORT_ID});
@@ -5136,6 +5153,100 @@ describe('TransactionUtils', () => {
     });
 
     describe('buildNewTransactionAfterReviewingDuplicates', () => {
+        it('passes the real partial producer into merge accessors without an original transaction', () => {
+            // Given no original Onyx transaction and a valid review payload from the duplicate flow
+            const source = generateTransaction({comment: {comment: 'original', customUnit: {name: 'Distance', quantity: 8}, waypoints: {waypoint0: {address: 'Origin'}}}});
+            const review: ReviewDuplicates = {
+                transactionID: source.transactionID,
+                reportID: 'partial-report',
+                duplicates: [],
+                merchant: 'Reviewed',
+                category: '',
+                tag: '',
+                taxCode: '',
+                taxAmount: 0,
+                description: 'Reviewed description',
+                comment: source.comment ?? {},
+                reimbursable: false,
+                billable: true,
+            };
+
+            // When the real producer builds its partial output and merge consumes it directly
+            const partial = TransactionUtils.buildNewTransactionAfterReviewingDuplicates(review, undefined);
+            const params = TransactionUtils.buildMergeDuplicatesParams(review, [undefined], partial);
+
+            // Then absent amount/currency/date are accepted without completing a fictional transaction
+            expect(Object.hasOwn(partial, 'amount')).toBe(false);
+            expect(params.amount).toBe(-0);
+            expect(params.currency).toBe(CONST.CURRENCY.USD);
+            expect(params.created).toBe('');
+            expect(params.transactionIDList).toEqual([]);
+            expect(partial.comment?.customUnit).toBe(source.comment?.customUnit);
+            expect(partial.comment?.waypoints).toBe(source.comment?.waypoints);
+            expect(partial.comment?.comment).toBe('Reviewed description');
+        });
+
+        it('does not fill an absent review comment from the original', () => {
+            // Given an original distance comment but a review payload that does not supply it
+            const original = generateTransaction({comment: {customUnit: {name: 'Distance', quantity: 8}, waypoints: {waypoint0: {address: 'Origin'}}}});
+
+            // When the production merge preview builds a new comment
+            const partial = TransactionUtils.buildNewTransactionAfterReviewingDuplicates(undefined, original);
+
+            // Then the absent review does not silently inherit distance details from the original
+            expect(partial.comment).toEqual({comment: undefined});
+            expect(Object.hasOwn(partial.comment ?? {}, 'customUnit')).toBe(false);
+            expect(Object.hasOwn(partial.comment ?? {}, 'waypoints')).toBe(false);
+        });
+
+        it.each([undefined, '', 0, '0', -25, '25'])('preserves modified amount coercion and every sign flag for %s', (modifiedAmount) => {
+            // Given the real preview producer and a modified amount supplied by the transaction model
+            const partial = TransactionUtils.buildNewTransactionAfterReviewingDuplicates(
+                undefined,
+                generateTransaction({amount: -100, currency: 'EUR', modifiedCurrency: '', created: '2023-10-01', modifiedCreated: ''}),
+            );
+            const transaction = {...partial, modifiedAmount};
+            const isValid = modifiedAmount !== undefined && modifiedAmount !== '';
+
+            // When callers select IOU, expense, tracked, negative-allowed or conversion-disabled amounts
+            const amount = TransactionUtils.getAmount(transaction);
+            const expense = TransactionUtils.getAmount(transaction, true);
+
+            // Then valid modified zero differs from absent or empty input, and conversion-disabled uses the original
+            expect(TransactionUtils.hasValidModifiedAmount(transaction)).toBe(isValid);
+            expect(amount).toBe(isValid ? Math.abs(Number(modifiedAmount)) : 100);
+            expect(expense).toBe(isValid ? -Number(modifiedAmount) : 100);
+            expect(TransactionUtils.getAmount(transaction, false, true)).toBe(expense);
+            expect(TransactionUtils.getAmount(transaction, false, false, true)).toBe(expense);
+            expect(TransactionUtils.getAmount(transaction, true, false, false, true)).toBe(-100);
+            expect(TransactionUtils.getCurrency(transaction)).toBe('EUR');
+            expect(TransactionUtils.getCreated(transaction)).toBe('2023-10-01');
+            expect(TransactionUtils.getFormattedCreated(transaction)).toBe('2023-10-01');
+        });
+
+        it('keeps null-root defaults, original zero and modified currency/date precedence', () => {
+            // Given the nullable Onyx input accepted by accessors and a real reviewed preview
+            const transaction = TransactionUtils.buildNewTransactionAfterReviewingDuplicates(
+                undefined,
+                generateTransaction({amount: 0, currency: 'EUR', modifiedCurrency: 'GBP', created: '2023-10-01', modifiedCreated: '2023-10-02'}),
+            );
+
+            // When reading the input defaults and the preview's modified fields
+            const amount = TransactionUtils.getAmount(null, true);
+            const currency = TransactionUtils.getCurrency(transaction);
+            const created = TransactionUtils.getCreated(transaction);
+
+            // Then original zero avoids negative zero while supplied modified fields take precedence
+            expect(amount).toBe(0);
+            expect(TransactionUtils.hasValidModifiedAmount(null)).toBe(false);
+            expect(TransactionUtils.getCurrency(null)).toBe(CONST.CURRENCY.USD);
+            expect(TransactionUtils.getCreated(null)).toBe('');
+            expect(TransactionUtils.getAmount(transaction, true)).toBe(0);
+            expect(currency).toBe('GBP');
+            expect(created).toBe('2023-10-02');
+            expect(TransactionUtils.getFormattedCreated(transaction)).toBe('2023-10-02');
+        });
+
         it('preserves the kept transaction tax amount when the selected tax code matches the existing tax code', () => {
             const duplicatedTransaction = generateTransaction({
                 transactionID: 'transaction1',

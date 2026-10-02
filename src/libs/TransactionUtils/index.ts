@@ -466,7 +466,7 @@ function isAmountMissing(transaction: OnyxEntry<Transaction>, isFromExpenseRepor
     return (transaction?.amount === 0 || transaction?.amount === undefined) && (!transaction?.modifiedAmount || transaction?.modifiedAmount === 0 || transaction?.modifiedAmount === '');
 }
 
-function hasValidModifiedAmount(transaction: OnyxEntry<Transaction> | null): boolean {
+function hasValidModifiedAmount(transaction: OnyxInputOrEntry<Partial<Pick<Transaction, 'modifiedAmount'>>>): boolean {
     if (!transaction) {
         return false;
     }
@@ -516,7 +516,13 @@ function getDescription(transaction: OnyxInputOrEntry<Transaction>): string {
 /**
  * Return the amount field from the transaction, return the modifiedAmount if present.
  */
-function getAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseReport = false, isFromTrackedExpense = false, allowNegative = false, disableOppositeConversion = false): number {
+function getAmount(
+    transaction: OnyxInputOrEntry<Partial<Pick<Transaction, 'amount' | 'modifiedAmount'>>>,
+    isFromExpenseReport = false,
+    isFromTrackedExpense = false,
+    allowNegative = false,
+    disableOppositeConversion = false,
+): number {
     // IOU requests cannot have negative values, but they can be stored as negative values, let's return absolute value
     if (!isFromExpenseReport && !isFromTrackedExpense && !allowNegative) {
         const amount = Number(transaction?.modifiedAmount) ?? 0;
@@ -588,7 +594,7 @@ function getFormattedPostedDate(transaction: OnyxInputOrEntry<Transaction>, date
 /**
  * Return the currency field from the transaction, return the modifiedCurrency if present.
  */
-function getCurrency(transaction: OnyxInputOrEntry<Pick<Transaction, 'modifiedCurrency' | 'currency'>>): string {
+function getCurrency(transaction: OnyxInputOrEntry<Partial<Pick<Transaction, 'modifiedCurrency' | 'currency'>>>): string {
     const currency = transaction?.modifiedCurrency ?? '';
     if (currency) {
         return currency;
@@ -985,7 +991,7 @@ function getTagForDisplay(transaction: OnyxEntry<Pick<Transaction, 'tag'>>, tagI
     return getCommaSeparatedTagNameWithSanitizedColons(getTag(transaction, tagIndex));
 }
 
-function getCreated(transaction: OnyxInputOrEntry<Transaction>): string {
+function getCreated(transaction: OnyxInputOrEntry<Partial<Pick<Transaction, 'created' | 'modifiedCreated'>>>): string {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     return transaction?.modifiedCreated ? transaction.modifiedCreated : transaction?.created || '';
 }
@@ -993,7 +999,11 @@ function getCreated(transaction: OnyxInputOrEntry<Transaction>): string {
 /**
  * Return the created field from the transaction, return the modifiedCreated if present.
  */
-function getFormattedCreated(transaction: OnyxInputOrEntry<Transaction>, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING, dateFnsLocale?: DateFnsLocale): string {
+function getFormattedCreated(
+    transaction: OnyxInputOrEntry<Partial<Pick<Transaction, 'created' | 'modifiedCreated'>>>,
+    dateFormat: string = CONST.DATE.FNS_FORMAT_STRING,
+    dateFnsLocale?: DateFnsLocale,
+): string {
     const created = getCreated(transaction);
     return DateUtils.formatWithUTCTimeZone(created, dateFormat, dateFnsLocale);
 }

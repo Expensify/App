@@ -209,7 +209,7 @@ function isReportMergeableForDuplicates(report: OnyxEntry<Report>): boolean {
  * merge request that would fail server-side.
  */
 function removeSettledAndApprovedTransactions(transactions: Array<OnyxEntry<Transaction>>): Transaction[] {
-    return transactions.filter((transaction) => !!transaction && isReportMergeableForDuplicates(getReportOrDraftReport(transaction.reportID))) as Transaction[];
+    return transactions.filter((transaction): transaction is Transaction => !!transaction && isReportMergeableForDuplicates(getReportOrDraftReport(transaction.reportID)));
 }
 
 /**
@@ -443,11 +443,11 @@ function buildMergeDuplicatesParams(
     originalTransaction: Partial<Transaction>,
 ): MergeDuplicatesParams {
     return {
-        amount: -getAmount(originalTransaction as OnyxEntry<Transaction>, true),
+        amount: -getAmount(originalTransaction, true),
         reportID: originalTransaction?.reportID,
         receiptID: originalTransaction?.receipt?.receiptID ?? CONST.DEFAULT_NUMBER_ID,
-        currency: getCurrency(originalTransaction as OnyxEntry<Transaction>),
-        created: getFormattedCreated(originalTransaction as OnyxEntry<Transaction>),
+        currency: getCurrency(originalTransaction),
+        created: getFormattedCreated(originalTransaction),
         transactionID: reviewDuplicates?.transactionID,
         transactionIDList: removeSettledAndApprovedTransactions(duplicatedTransactions ?? []).map((transaction) => transaction.transactionID),
         billable: reviewDuplicates?.billable ?? false,
