@@ -5,7 +5,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
 
-import {clearDraftValues} from '@libs/actions/FormActions';
 import {requestValidateCodeAction} from '@libs/actions/User';
 import {getRuleBotEnforcedPolicy} from '@libs/AgentRulesUtils';
 import {getLatestError} from '@libs/ErrorUtils';
