@@ -126,6 +126,52 @@ describe('ReportFetchHandler', () => {
         expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({reportID: REPORT_ID}));
     });
 
+    it('keeps a pending personal chat local and resumes fetching after reconciliation settles', async () => {
+        // Given a personal chat that is still being created and must not be fetched from the server yet
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.CHAT,
+            participants: {1: {}, 2: {}},
+            pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+        });
+        await waitForBatchedUpdates();
+        const handler = renderHandler();
+        await waitForBatchedUpdates();
+        expect(mockOpenReport).not.toHaveBeenCalled();
+
+        // When the local report finishes reconciliation
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {pendingFields: {createChat: null}, preexistingReportID: null});
+        await waitForBatchedUpdates();
+
+        // Then normal fetching resumes for the canonical report destination
+        expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({reportID: REPORT_ID}));
+        handler.unmount();
+    });
+
+    it('defers openReport while a personal chat points to its canonical replacement', async () => {
+        // Given an optimistic chat whose server response identified a pre-existing canonical chat
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.CHAT,
+            participants: {1: {}, 2: {}},
+            preexistingReportID: 'canonical-chat',
+        });
+        await waitForBatchedUpdates();
+        const handler = renderHandler();
+        await waitForBatchedUpdates();
+        expect(mockOpenReport).not.toHaveBeenCalled();
+
+        // When the report replacement flow clears the reconciliation marker
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {preexistingReportID: null});
+        await waitForBatchedUpdates();
+
+        // Then normal report fetching resumes and the replacement navigation can finish in place
+        expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({reportID: REPORT_ID}));
+        handler.unmount();
+    });
+
     it('clears isPendingCreation once the report exists locally', async () => {
         // Given an optimistic route whose report has just become locally available
         setRouteParams({reportID: REPORT_ID, isPendingCreation: 'true'});

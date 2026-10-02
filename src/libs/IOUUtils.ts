@@ -2,8 +2,9 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import type {IOUAction, IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {OnyxInputOrEntry, Policy, Report, ReportAction, ReportNameValuePairs, Rule, Transaction} from '@src/types/onyx';
+import type {OnyxInputOrEntry, PersonalDetails, Policy, Report, ReportAction, ReportNameValuePairs, Rule, Transaction} from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 
@@ -17,7 +18,7 @@ import Navigation from './Navigation/Navigation';
 import {isGroupPolicy} from './PolicyUtils';
 import {getOriginalMessage} from './ReportActionMessageUtils';
 import {isMoneyRequestAction} from './ReportActionTypeGuards';
-import {canAddTransaction, generateReportID, getChatByParticipants, isArchivedReport, isSelfDM} from './ReportUtils';
+import {canAddTransaction, generateReportID, getChatByParticipants, isArchivedReport, isOneOnOneChat, isSelfDM} from './ReportUtils';
 import {endSpan, getSpan, startSpan} from './telemetry/activeSpans';
 import {getTagArrayFromName, hasRoute, isDistanceRequest} from './TransactionUtils';
 
@@ -518,6 +519,45 @@ function resolveOptimisticChatReportID(participantAccountIDs: number[], existing
     return {optimisticChatReportID: chatReportID, chatReportID};
 }
 
+/** Resolves a personal P2P chat from current reports, allowing a stale account ID only when its login verifies the same recipient. */
+function resolveP2PChatReport(
+    participantAccountID: number,
+    participantLogin: string | undefined,
+    currentUserAccountID: number,
+    reports: OnyxCollection<Report>,
+    personalDetails: OnyxCollection<PersonalDetails>,
+    proposedReportID?: string,
+): OnyxInputOrEntry<Report> | undefined {
+    const existingChat = getChatByParticipants([participantAccountID, currentUserAccountID], reports);
+    if (existingChat?.reportID && isOneOnOneChat(existingChat, currentUserAccountID)) {
+        return existingChat;
+    }
+
+    if (!proposedReportID) {
+        return undefined;
+    }
+
+    const proposedReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${proposedReportID}`];
+    if (!proposedReport?.reportID || !isOneOnOneChat(proposedReport, currentUserAccountID)) {
+        return undefined;
+    }
+
+    const otherParticipantAccountID = Object.keys(proposedReport.participants ?? {})
+        .map(Number)
+        .find((accountID) => accountID !== currentUserAccountID);
+    if (!otherParticipantAccountID) {
+        return undefined;
+    }
+
+    if (otherParticipantAccountID === participantAccountID) {
+        return proposedReport;
+    }
+
+    const normalizedParticipantLogin = participantLogin?.trim().toLowerCase();
+    const normalizedOtherParticipantLogin = personalDetails?.[otherParticipantAccountID]?.login?.trim().toLowerCase();
+    return normalizedParticipantLogin && normalizedParticipantLogin === normalizedOtherParticipantLogin ? proposedReport : undefined;
+}
+
 /** Returns `transactionReportID` if the participant isn't a workspace and has no existing chat, so the ID can be reused for their new chat report; otherwise undefined. */
 function getReusableP2PReportID(participant: Participant, transactionReportID: string | undefined): string | undefined {
     const isBrandNewP2PRecipient = !participant.isPolicyExpenseChat && !participant.reportID;
@@ -689,6 +729,7 @@ export {
     isSelfDMSoleDestination,
     isLookingAroundSearchRoutingActive,
     resolveOptimisticChatReportID,
+    resolveP2PChatReport,
     resolveReportForMoneyRequest,
     resolveEarlyReportID,
     reportHasRealPolicy,

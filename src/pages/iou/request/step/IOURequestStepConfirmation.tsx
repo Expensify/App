@@ -48,6 +48,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     getIsWorkspacesOnlyForTransaction,
     getReusableP2PReportID,
+    resolveP2PChatReport,
     getSelectedWorkspacePolicyID,
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
     isParticipantP2P,
@@ -66,7 +67,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
-import {findSelfDMReportID, generateReportID, getChatByParticipants, getReportOrDraftReport, isMoneyRequestReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
+import {findSelfDMReportID, generateReportID, getReportOrDraftReport, isMoneyRequestReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import {cancelTracking, getPendingSubmitFollowUpAction, isTracking} from '@libs/telemetry/submitFollowUpAction';
 import {
     getRequestType,
@@ -723,19 +724,31 @@ function IOURequestStepConfirmationContent({
 
     // Read reports reactively: if the chat lands mid-flow the optimistic ID must drop out, or we'd reveal an uncreated report.
     const existingP2PChatSelector = useCallback(
-        (reports: Parameters<typeof getChatByParticipants>[1]) =>
-            isP2PDestination ? getChatByParticipants([p2pRecipientAccountID, currentUserPersonalDetails.accountID], reports)?.reportID : undefined,
-        [isP2PDestination, p2pRecipientAccountID, currentUserPersonalDetails.accountID],
+        (reports: Parameters<typeof resolveP2PChatReport>[3]) => {
+            if (!isP2PDestination) {
+                return undefined;
+            }
+            return {
+                reportID: resolveP2PChatReport(p2pRecipientAccountID, firstParticipant?.login, currentUserPersonalDetails.accountID, reports, personalDetails, reusableP2PReportID)?.reportID,
+                proposedReport: reusableP2PReportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reusableP2PReportID}`] : undefined,
+            };
+        },
+        [isP2PDestination, p2pRecipientAccountID, firstParticipant?.login, currentUserPersonalDetails.accountID, personalDetails, reusableP2PReportID],
     );
-    const [existingP2PDestinationReportID] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: existingP2PChatSelector});
-    const optimisticP2PDestinationReportID = !existingP2PDestinationReportID && reusableP2PReportID ? reusableP2PReportID : undefined;
+    const [p2pDestinationResolution] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: existingP2PChatSelector});
+    const existingP2PDestinationReportID = p2pDestinationResolution?.reportID;
+    const proposedP2PReport = p2pDestinationResolution?.proposedReport;
+    const isProposedP2PReportOccupied = !!proposedP2PReport?.reportID && proposedP2PReport.reportID !== existingP2PDestinationReportID;
+    const optimisticP2PDestinationReportID = !existingP2PDestinationReportID && !isProposedP2PReportOccupied ? reusableP2PReportID : undefined;
     // Trust `report` when it already belongs to this participant (their chat, or an IOU report under it), so a
     // flow started from an IOU report keeps that report as destination instead of falling back to the chat.
     const isReportParticipantChat = !!report?.reportID && report.reportID === existingP2PDestinationReportID;
     const isReportUnderParticipantChat = !!report?.reportID && report.chatReportID === existingP2PDestinationReportID;
     const isReportAlignedWithParticipant = isReportParticipantChat || isReportUnderParticipantChat;
     const shouldPreferRouteDestination = isReportAlignedWithParticipant || !!backToReport;
-    const preMountDestinationReportID = optimisticP2PDestinationReportID ?? (shouldPreferRouteDestination ? destinationReportID : (existingP2PDestinationReportID ?? destinationReportID));
+    const preMountDestinationReportID = isProposedP2PReportOccupied
+        ? existingP2PDestinationReportID
+        : (optimisticP2PDestinationReportID ?? (shouldPreferRouteDestination ? destinationReportID : (existingP2PDestinationReportID ?? destinationReportID)));
     const [destinationReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${preMountDestinationReportID}`);
     const destinationReportDraft = reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${preMountDestinationReportID}`];
 

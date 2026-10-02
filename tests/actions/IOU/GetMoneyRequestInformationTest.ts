@@ -361,6 +361,83 @@ describe('getMoneyRequestInformation', () => {
         });
     });
 
+    describe('P2P chat destination resolution', () => {
+        it('keeps an unused proposed ID for a genuinely new recipient', () => {
+            // Given a new recipient and an unused optimistic chat ID
+            const proposedReportID = 'new-recipient-chat';
+
+            // When the builder creates the new personal chat
+            const result = getMoneyRequestInformation({
+                ...baseParams,
+                parentChatReport: undefined,
+                optimisticChatReportID: proposedReportID,
+                participantParams: {
+                    ...baseParams.participantParams,
+                    participant: {...baseParams.participantParams.participant, isPolicyExpenseChat: false, reportID: undefined},
+                },
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+
+            // Then the proposed ID remains the visible optimistic destination
+            expect(result.chatReport.reportID).toBe(proposedReportID);
+            expect(result.onyxData.optimisticData?.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.REPORT}${proposedReportID}`)?.onyxMethod).toBe(Onyx.METHOD.SET);
+        });
+
+        it('reuses a stale-account chat when the login verifies the selected recipient', async () => {
+            // Given an existing personal chat whose recipient account ID differs from the selected participant
+            const staleRecipientID = 300;
+            const candidateReportID = 'offline-p2p-chat';
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: PAYEE_ACCOUNT_ID, email: 'payee@example.com'});
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[staleRecipientID]: {accountID: staleRecipientID, login: 'payer@example.com'}});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${candidateReportID}`, {
+                reportID: candidateReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {[PAYEE_ACCOUNT_ID]: {}, [staleRecipientID]: {}},
+            });
+            await waitForBatchedUpdates();
+
+            // When submission resolves the selected participant against current Onyx data
+            const result = getMoneyRequestInformation({
+                ...baseParams,
+                parentChatReport: undefined,
+                optimisticChatReportID: candidateReportID,
+                participantParams: {
+                    ...baseParams.participantParams,
+                    participant: {...baseParams.participantParams.participant, isPolicyExpenseChat: false, reportID: undefined},
+                },
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+
+            // Then the stale-ID chat is reused and written with MERGE rather than treated as new
+            expect(result.chatReport.reportID).toBe(candidateReportID);
+            expect(result.onyxData.optimisticData?.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.REPORT}${candidateReportID}`)?.onyxMethod).toBe(Onyx.METHOD.MERGE);
+        });
+
+        it('does not overwrite an unrelated report occupying the proposed P2P chat ID', async () => {
+            // Given the candidate ID belongs to an unrelated expense report
+            const occupiedReportID = 'occupied-by-expense';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${occupiedReportID}`, {reportID: occupiedReportID, type: CONST.REPORT.TYPE.EXPENSE});
+            await waitForBatchedUpdates();
+
+            // When a new P2P chat is built using that ID as its optimistic candidate
+            const result = getMoneyRequestInformation({
+                ...baseParams,
+                parentChatReport: undefined,
+                optimisticChatReportID: occupiedReportID,
+                participantParams: {
+                    ...baseParams.participantParams,
+                    participant: {...baseParams.participantParams.participant, isPolicyExpenseChat: false, reportID: undefined},
+                },
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+
+            // Then a free ID is selected and the occupied report key receives no optimistic write
+            expect(result.chatReport.reportID).not.toBe(occupiedReportID);
+            expect(result.onyxData.optimisticData?.some((entry) => entry.key === `${ONYXKEYS.COLLECTION.REPORT}${occupiedReportID}`)).toBe(false);
+            expect(result.onyxData.optimisticData?.some((entry) => entry.key === `${ONYXKEYS.COLLECTION.REPORT}${result.chatReport.reportID}`)).toBe(true);
+        });
+    });
+
     it('does not copy commuter exclusion data to an optimistic split', () => {
         const customUnit = {
             name: CONST.CUSTOM_UNITS.NAME_DISTANCE,

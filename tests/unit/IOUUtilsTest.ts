@@ -941,6 +941,66 @@ describe('getExistingTransactionID', () => {
         });
     });
 
+    describe('resolveP2PChatReport', () => {
+        it('finds an exact participant chat from the supplied current report collection', () => {
+            // Given a matching P2P chat in the caller's current collection
+            const currentUserID = 5;
+            const recipientID = 30;
+            const reports: OnyxCollection<Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}current-chat`]: {
+                    reportID: 'current-chat',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    participants: {[currentUserID]: {}, [recipientID]: {}},
+                } as Report,
+            };
+
+            // When resolving without relying on ReportUtils' default cache
+            const result = IOUUtils.resolveP2PChatReport(recipientID, 'recipient@example.com', currentUserID, reports, {}, 'unused-candidate');
+
+            // Then the current Onyx chat is selected
+            expect(result?.reportID).toBe('current-chat');
+        });
+
+        it('reuses a chat with stale participant account ID only when the login confirms the recipient', () => {
+            // Given a current personal chat whose recipient account ID differs from the selected participant
+            const currentUserID = 5;
+            const staleRecipientID = 30;
+            const reports: OnyxCollection<Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}candidate-chat`]: {
+                    reportID: 'candidate-chat',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    participants: {[currentUserID]: {}, [staleRecipientID]: {}},
+                } as Report,
+            };
+            const personalDetails = {[staleRecipientID]: {accountID: staleRecipientID, login: 'recipient@example.com'}};
+
+            // When the selected account ID cannot match and its login is checked against the proposed report
+            const result = IOUUtils.resolveP2PChatReport(40, ' RECIPIENT@example.com ', currentUserID, reports, personalDetails, 'candidate-chat');
+
+            // Then the existing personal chat is reused because the normalized login verifies its recipient
+            expect(result?.reportID).toBe('candidate-chat');
+        });
+
+        it('does not reuse an occupied report when the recipient cannot be verified', () => {
+            // Given an occupied report ID whose other participant has a different login
+            const currentUserID = 5;
+            const reports: OnyxCollection<Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}occupied`]: {
+                    reportID: 'occupied',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    participants: {[currentUserID]: {}, 30: {}},
+                } as Report,
+            };
+            const personalDetails = {30: {accountID: 30, login: 'someone-else@example.com'}};
+
+            // When the selected recipient login does not match the report participant
+            const result = IOUUtils.resolveP2PChatReport(40, 'recipient@example.com', currentUserID, reports, personalDetails, 'occupied');
+
+            // Then resolution fails closed so callers can choose a free ID instead of overwriting the report
+            expect(result).toBeUndefined();
+        });
+    });
+
     describe('resolveReportForMoneyRequest', () => {
         const policyForResolve: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM, 'Resolve Test Policy'), id: 'resolve-policy'};
         const nonArchivedReportNameValuePair: ReportNameValuePairs = {};

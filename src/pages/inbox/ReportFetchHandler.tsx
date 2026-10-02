@@ -28,6 +28,7 @@ import {
     isChatThread,
     isHiddenForCurrentUser,
     isMoneyRequestReport,
+    isOneOnOneChat,
     isOneTransactionThread,
     isPolicyExpenseChat,
     isPublicRoom,
@@ -136,6 +137,11 @@ function ReportFetchHandler() {
 
     const reportID = reportOnyx?.reportID;
     const report = reportOnyx;
+    const isPersonalChatBeingCreatedOrReconciled =
+        report?.type === CONST.REPORT.TYPE.CHAT &&
+        !isPolicyExpenseChat(report) &&
+        (reportMetadata.isOptimisticReport ||
+            (isOneOnOneChat(report, currentUserAccountID) && (report.pendingFields?.createChat === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || !!report.preexistingReportID)));
 
     const {reportActions: unfilteredReportActions, linkedAction} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
@@ -189,12 +195,9 @@ function ReportFetchHandler() {
             return;
         }
 
-        if (reportMetadata.isOptimisticReport && report?.type === CONST.REPORT.TYPE.CHAT && !isPolicyExpenseChat(report)) {
-            // openReport is intentionally never called for an optimistic chat report, so nothing else can settle its
-            // initial-load state. The stamp written at creation lives in a RAM-only key and is lost on an app restart,
-            // which would leave the report pinned on the loading skeleton once online (the effect below re-arms
-            // isLoadingInitialReportActions while hasOnceLoadedReportActions is false). The persisted local actions are
-            // the complete truth for an optimistic report, so reconstruct the readiness stamp here.
+        if (isPersonalChatBeingCreatedOrReconciled) {
+            // Fetching a client-only chat (or one being replaced by its canonical server chat) can return Not Found
+            // before creation/reconciliation finishes. Its local actions are enough to render the chat meanwhile.
             if (!reportLoadingState.hasOnceLoadedReportActions) {
                 markLocalReportActionsAsLoaded(reportIDFromRoute);
             }
@@ -247,6 +250,16 @@ function ReportFetchHandler() {
             hasCompletedGuidedSetupFlow,
         });
     });
+
+    const wasPersonalChatBeingReconciled = useRef(false);
+    useEffect(() => {
+        const wasReconciled = wasPersonalChatBeingReconciled.current;
+        wasPersonalChatBeingReconciled.current = !!isPersonalChatBeingCreatedOrReconciled;
+        if (!wasReconciled || isPersonalChatBeingCreatedOrReconciled || !isFocused || isOffline || isInPreloadedTab) {
+            return;
+        }
+        fetchReport();
+    }, [isPersonalChatBeingCreatedOrReconciled, isFocused, isOffline, isInPreloadedTab]);
 
     const createOneTransactionThread = useEffectEvent(() => {
         const currentReportTransactions = Object.values(reportTransactionsCollection ?? {}).filter(

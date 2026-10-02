@@ -7,7 +7,7 @@ import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import type {MinimalTransaction} from '@libs/Formula';
-import {updateIOUOwnerAndTotal} from '@libs/IOUUtils';
+import {resolveP2PChatReport, updateIOUOwnerAndTotal} from '@libs/IOUUtils';
 import {translateLocal} from '@libs/Localize';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
@@ -1406,15 +1406,25 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     }
 
     if (!chatReport) {
-        chatReport = getChatByParticipants([payerAccountID, payeeAccountID]) ?? null;
+        chatReport = getChatByParticipants([payerAccountID, payeeAccountID], allReports ?? {}) ?? null;
+    }
+
+    if (!chatReport && !isPolicyExpenseChat) {
+        chatReport = resolveP2PChatReport(payerAccountID, participant.login, payeeAccountID, allReports ?? {}, allPersonalDetails ?? {}, optimisticChatReportID) ?? null;
     }
 
     // If we still don't have a report, it likely doesn't exist and we need to build an optimistic one
     if (!chatReport) {
         isNewChatReport = true;
+        let resolvedOptimisticChatReportID = optimisticChatReportID ?? generateReportID();
+        if (!isPolicyExpenseChat && !isSplitExpense) {
+            while (allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${resolvedOptimisticChatReportID}`]) {
+                resolvedOptimisticChatReportID = generateReportID();
+            }
+        }
         chatReport = buildOptimisticChatReport({
             participantList: [payerAccountID, payeeAccountID],
-            optimisticReportID: optimisticChatReportID,
+            optimisticReportID: resolvedOptimisticChatReportID,
             currentUserAccountID: currentUserAccountIDParam,
         });
     }
