@@ -103,6 +103,8 @@ describe('Bullet list rendering', () => {
         // large number ("one billion two hundred seventy million...") instead of an identifier the user can read out
         it('exposes an aria-label from the markup as the item accessibility label', () => {
             // When the item carries an aria-label spelling out the digits
+            // HTML attribute names are hyphenated, so they can't satisfy the camelCase property naming rule
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             render(<BulletItemRenderer tnode={buildTNodeWithAttributes('1270239450', {'aria-label': '1 2 7 0 2 3 9 4 5 0'})} />);
 
             // Then the item is a single accessibility element named by that label, while the digits stay visible as-is
