@@ -64,18 +64,9 @@ type AskConciergeRowProps = {
     onPress: () => void;
 };
 
-/**
- * Green means unread and nothing else, so hovering a read row leaves its dot alone: opening a thread would
- * otherwise flash the dot green on the way in.
- */
-function getDotFill(isProcessing: boolean, isUnread: boolean, isSelected: boolean, theme: ThemeColors) {
-    if (isProcessing) {
-        return theme.icon;
-    }
-    if (isUnread) {
-        return theme.success;
-    }
-    return isSelected ? theme.iconMenu : theme.icon;
+/** Green means unread and nothing else, so neither hovering a row nor opening it changes the dot's color. */
+function getDotFill(isUnread: boolean, theme: ThemeColors) {
+    return isUnread ? theme.success : theme.icon;
 }
 
 /**
@@ -119,7 +110,7 @@ function AskConciergeRow({label, icon, reportID, isSelected, isUnread, onPress}:
                     <Animated.View style={pulseStyle}>
                         <Icon
                             src={isProcessing ? icons.DotIndicator : icon}
-                            fill={getDotFill(isProcessing, isUnread, isSelected, theme)}
+                            fill={getDotFill(isUnread, theme)}
                             width={variables.iconSizeExtraSmall}
                             height={variables.iconSizeExtraSmall}
                         />
