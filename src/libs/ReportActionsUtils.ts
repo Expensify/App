@@ -3864,7 +3864,7 @@ type ForwardsToOriginalMessage = {
 };
 
 function formatMemberListWithAnd(members: Array<{email: string; name: string}>): string {
-    const emails = members.map((m) => Str.removeSMSDomain(m.email));
+    const emails = members.map((m) => formatPhoneNumber(m.email));
 
     if (emails.length === 1) {
         return emails.at(0) ?? '';

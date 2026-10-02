@@ -22,7 +22,7 @@ import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collec
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
-import {getCurrencyDecimalsLocal, getCurrencySymbolLocal} from '../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 function generateTransaction(values: Partial<Transaction> = {}): Transaction {
@@ -3267,7 +3267,7 @@ describe('TransactionUtils', () => {
                 {email: 'b@x.com', displayName: 'banana', avatarUrl: ''},
                 {email: 'a@x.com', displayName: 'apple', avatarUrl: ''},
             ];
-            expect(TransactionUtils.getAttendeesListDisplayString(attendees)).toBe('banana, apple');
+            expect(TransactionUtils.getAttendeesListDisplayString(attendees, formatPhoneNumber)).toBe('banana, apple');
         });
 
         it('returns attendees alphabetically regardless of insertion order (deploy blocker #89130)', () => {
@@ -3275,7 +3275,7 @@ describe('TransactionUtils', () => {
                 {email: 'b@x.com', displayName: 'banana', avatarUrl: ''},
                 {email: 'a@x.com', displayName: 'apple', avatarUrl: ''},
             ];
-            expect(TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare)).toBe('apple, banana');
+            expect(TransactionUtils.getAttendeesListDisplayString(attendees, formatPhoneNumber, localeCompare)).toBe('apple, banana');
         });
 
         it('uses numeric-aware sort so "User 9" comes before "User 10"', () => {
@@ -3283,7 +3283,7 @@ describe('TransactionUtils', () => {
                 {email: '10@x.com', displayName: 'User 10', avatarUrl: ''},
                 {email: '9@x.com', displayName: 'User 9', avatarUrl: ''},
             ];
-            expect(TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare)).toBe('User 9, User 10');
+            expect(TransactionUtils.getAttendeesListDisplayString(attendees, formatPhoneNumber, localeCompare)).toBe('User 9, User 10');
         });
 
         it('compares case-insensitively so the joined string matches pill order', () => {
@@ -3291,19 +3291,19 @@ describe('TransactionUtils', () => {
                 {email: 'b@x.com', displayName: 'Bob', avatarUrl: ''},
                 {email: 'a@x.com', displayName: 'alice', avatarUrl: ''},
             ];
-            expect(TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare)).toBe('alice, Bob');
+            expect(TransactionUtils.getAttendeesListDisplayString(attendees, formatPhoneNumber, localeCompare)).toBe('alice, Bob');
         });
 
-        it('strips the @expensify.sms domain so phone-login attendees render the same as in pills', () => {
+        it('formats phone-login attendees so they render the same as in pills', () => {
             const attendees: Attendee[] = [
                 {displayName: '+15551234567@expensify.sms', avatarUrl: ''},
                 {displayName: 'Alice', avatarUrl: ''},
             ];
-            expect(TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare)).toBe('+15551234567, Alice');
+            expect(TransactionUtils.getAttendeesListDisplayString(attendees, formatPhoneNumber, localeCompare)).toBe('+1 555-123-4567, Alice');
         });
 
         it('returns empty string for empty array', () => {
-            expect(TransactionUtils.getAttendeesListDisplayString([], localeCompare)).toBe('');
+            expect(TransactionUtils.getAttendeesListDisplayString([], formatPhoneNumber, localeCompare)).toBe('');
         });
 
         it('does not mutate the input array', () => {
@@ -3312,7 +3312,7 @@ describe('TransactionUtils', () => {
                 {email: 'a@x.com', displayName: 'apple', avatarUrl: ''},
             ];
             const snapshot = [...attendees];
-            TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare);
+            TransactionUtils.getAttendeesListDisplayString(attendees, formatPhoneNumber, localeCompare);
             expect(attendees).toEqual(snapshot);
         });
     });

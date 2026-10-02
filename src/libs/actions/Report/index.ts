@@ -5262,7 +5262,7 @@ function showReportActionNotification(
             derivedMovedFromReportName,
         });
     } else {
-        LocalNotification.showCommentNotification(report, reportAction, onClick, derivedReportName);
+        LocalNotification.showCommentNotification(report, reportAction, onClick, derivedReportName, formatPhoneNumber);
     }
 
     notifyNewAction(reportID, undefined, reportAction.actorAccountID === currentUserAccountID);
