@@ -423,6 +423,49 @@ describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation
         expect(resultTabState?.preloadedRouteKeys).toEqual([]);
     });
 
+    it('adds the destination tab to the tab history on wide layout, like a tab switch', () => {
+        // Given a wide layout with the Search tab focused and in the tab history, and the Reports tab covered
+        mockGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
+        mockGetIsNarrowLayout.mockReturnValue(false);
+        mockStubbedParsedState = makeReportsParsedState('B');
+        const existing = makeExistingReportsState([makeRoute(SCREENS.INBOX, undefined, undefined, 'inbox-key')], 0, false);
+        const tabNavigatorState = existing.routes.at(0)?.state;
+        if (tabNavigatorState) {
+            Object.assign(tabNavigatorState, {history: [{type: 'route', key: 'search-tab-key'}]});
+        }
+
+        // When report B in the Reports tab is put under the RHP
+        const result = handleReplaceFullscreenUnderRHP(existing, makeReportsAction('B'), CONFIG_OPTIONS, stackRouter);
+        const resultHistory: unknown[] = result?.routes.at(0)?.state?.history ?? [];
+
+        // Then the history ends on the Reports tab, so tab back goes to Search instead of treating Reports as never visited
+        expect(resultHistory).toEqual([expect.objectContaining({key: 'search-tab-key'}), expect.objectContaining({key: 'reports-split-key'})]);
+    });
+
+    it('keeps the tab history as it is on wide layout when the destination is in the focused tab', () => {
+        // Given a wide layout with the Reports tab focused on report A and last in the tab history
+        mockGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
+        mockGetIsNarrowLayout.mockReturnValue(false);
+        mockStubbedParsedState = makeReportsParsedState('B');
+        const existing = makeExistingReportsState([makeRoute(SCREENS.INBOX, undefined, undefined, 'inbox-key'), makeRoute(SCREENS.REPORT, {reportID: 'A'}, undefined, 'report-a-key')], 1);
+        const tabNavigatorState = existing.routes.at(0)?.state;
+        if (tabNavigatorState) {
+            Object.assign(tabNavigatorState, {
+                history: [
+                    {type: 'route', key: 'search-tab-key'},
+                    {type: 'route', key: 'reports-split-key'},
+                ],
+            });
+        }
+
+        // When report B in the same tab is put under the RHP
+        const result = handleReplaceFullscreenUnderRHP(existing, makeReportsAction('B'), CONFIG_OPTIONS, stackRouter);
+        const resultHistory: unknown[] = result?.routes.at(0)?.state?.history ?? [];
+
+        // Then no duplicate entry is added, since the user did not switch tabs
+        expect(resultHistory).toEqual([expect.objectContaining({key: 'search-tab-key'}), expect.objectContaining({key: 'reports-split-key'})]);
+    });
+
     it('replaces without the pre-mount when its screen is no longer in the destination tab', () => {
         // Given a wide layout where the pre-mounted report was dropped before the reveal
         mockGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);

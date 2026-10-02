@@ -481,6 +481,22 @@ function markFocusedTabRouteForRemount(tabState: TabStateForReplacement, existin
 }
 
 /**
+ * Adds the focused tab to the end of the tab history the way the tab router does when switching tabs (fullHistory).
+ * A realized state is not rehydrated, so without this the history would still end on the tab the user came from.
+ */
+function withFocusedTabInHistory(tabState: TabStateForReplacement): TabStateForReplacement {
+    const focusedRoute = tabState.routes[tabState.index];
+    if (tabState.stale === true || !tabState.history || !focusedRoute || !('key' in focusedRoute) || typeof focusedRoute.key !== 'string') {
+        return tabState;
+    }
+    const lastRouteEntry = tabState.history.findLast((entry) => isRecord(entry) && entry.type === 'route');
+    if (isRecord(lastRouteEntry) && lastRouteEntry.key === focusedRoute.key) {
+        return tabState;
+    }
+    return {...tabState, history: [...tabState.history, {type: 'route', key: focusedRoute.key, params: focusedRoute.params}]};
+}
+
+/**
  * Handles the REPLACE_FULLSCREEN_UNDER_RHP action.
  *
  * Pre-inserts a destination screen underneath the currently open RHP so that dismissing
@@ -555,7 +571,7 @@ function handleReplaceFullscreenUnderRHP(
         const updatedTabState = preMountedRouteKey ? withPreMountedDestination(builtTabState, existingTabState, preMountedRouteKey) : builtTabState;
         // The remount guards against a push-transition flash on narrow layout (#90985). Wide layout renders split screens
         // without a push animation, so keeping the key there avoids remounting the whole split navigator with its sidebar.
-        const staleTabState = existingTabState && getIsNarrowLayout() ? markFocusedTabRouteForRemount(updatedTabState, existingTabState) : updatedTabState;
+        const staleTabState = existingTabState && getIsNarrowLayout() ? markFocusedTabRouteForRemount(updatedTabState, existingTabState) : withFocusedTabInHistory(updatedTabState);
 
         // Drop consumed deep-link hints before remounting, or React Navigation can replay the old target over the new state.
         const updatedTabRoute = {...withSanitizedDeepLinkParams(existingTabRoute, undefined), state: staleTabState} as StackNavigationState<ParamListBase>['routes'][number];
