@@ -80,6 +80,7 @@ const renderPage = () =>
 
 const addApprovalsDescription = () => TestHelper.translateLocal('workflowsPage.addApprovalsDescription');
 const smartLimitPrompt = () => TestHelper.translateLocal('workspace.moreFeatures.workflows.disableApprovalPrompt');
+const configureViaProvider = (provider: string) => TestHelper.translateLocal('workflowsPage.configureViaProvider', {provider});
 const lockedSwitchLabel = () => `${smartLimitPrompt()}, ${TestHelper.translateLocal('common.locked')}`;
 const querySubtitle = (text: string) => screen.queryByText(text, {includeHiddenElements: true});
 
@@ -161,11 +162,11 @@ describe('WorkspaceWorkflowsPageRevamp - Smart Limit approvals lock', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        // Then integration guidance remains the visible subtitle, while the Smart Limit lock remains accessible and disabled.
-        expect(querySubtitle(addApprovalsDescription())).toBeOnTheScreen();
+        // Then integration guidance remains visible and the switch announces the Smart Limit lock while staying pressable for the integration prompt.
+        expect(querySubtitle(configureViaProvider('Gusto'))).toBeOnTheScreen();
         expect(querySubtitle(smartLimitPrompt())).not.toBeOnTheScreen();
         const approvalsSwitch = screen.getByRole(CONST.ROLE.SWITCH, {name: lockedSwitchLabel()});
-        expect(approvalsSwitch.props.accessibilityState).toEqual(expect.objectContaining({disabled: true}));
+        expect(approvalsSwitch.props.accessibilityState).toEqual(expect.objectContaining({checked: true, disabled: false}));
     });
 
     it.each([
