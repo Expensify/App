@@ -282,7 +282,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
         const splitSelectedRate =
             (effectivePolicy ? DistanceRequestUtils.getMileageRates(effectivePolicy, false, currentRateID)[currentRateID] : undefined) ??
             DistanceRequestUtils.getEnabledRateByCustomUnitRateIDFromAnyPolicy(currentRateID, allPolicies);
-        if (!splitSelectedRate?.rate) {
+        if (splitSelectedRate?.rate === undefined) {
             isUnitRateIDOutOfPolicy = true;
         }
     }

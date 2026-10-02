@@ -93,6 +93,18 @@ describe('resolveSplitMileageRate', () => {
 
             expect(result.rate).toBe(DELETED_RATE_VALUE);
         });
+
+        it('returns a $0 rate as a real rate instead of reconstructing one from the transaction', () => {
+            const policy = buildPolicyWithRates({
+                [ACTIVE_RATE_ID]: buildRate(ACTIVE_RATE_ID, {rate: 0, name: ACTIVE_RATE_NAME, index: 0}),
+            });
+            const transaction = buildDistanceTransaction(ACTIVE_RATE_ID, {amount: 0});
+
+            const result = resolveSplitMileageRate({transaction, policy, isSelfDMSplit: false, personalPolicyOutputCurrency: undefined});
+
+            expect(result.rate).toBe(0);
+            expect(result.customUnitRateID).toBe(ACTIVE_RATE_ID);
+        });
     });
 
     describe('selfDM context (isSelfDMSplit=true)', () => {
