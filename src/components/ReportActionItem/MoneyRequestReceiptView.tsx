@@ -242,8 +242,9 @@ function MoneyRequestReceiptView({
     const displayedReceiptSource = ReceiptStorage.resolve(transaction?.receipt?.localSource) ?? transaction?.receipt?.source;
     const prevDisplayedReceiptSource = usePrevious(displayedReceiptSource);
 
-    const [selectedReceiptPage, setSelectedReceiptPage] = useState<{filename?: string; page: number}>({page: 1});
+    const [selectedReceiptPage, setSelectedReceiptPage] = useState<{filename?: string; page: number}>({page: CONST.RECEIPT.FIRST_PDF_PAGE});
     const [loadedReceiptPDFFilename, setLoadedReceiptPDFFilename] = useState<string>();
+    const [failedReceiptPDFFilename, setFailedReceiptPDFFilename] = useState<string>();
 
     useEffect(() => {
         if (!displayedReceiptSource || prevDisplayedReceiptSource === displayedReceiptSource) {
@@ -621,10 +622,12 @@ function MoneyRequestReceiptView({
     // Page and load state are keyed to the filename, not the source URL: the URL changes from local to remote
     // mid-scan without the PDF being reloaded, while a replaced receipt gets a new filename and starts over.
     const receiptFilename = receiptURIs?.filename;
-    const receiptPage = selectedReceiptPage.filename === receiptFilename ? selectedReceiptPage.page : 1;
+    const receiptPage = selectedReceiptPage.filename === receiptFilename ? selectedReceiptPage.page : CONST.RECEIPT.FIRST_PDF_PAGE;
 
-    // Large PDFs take a while to load, and until then only the page 1 thumbnail is visible
-    const shouldShowReceiptPageNavigator = canFlipReceiptPages && !!receiptFilename && loadedReceiptPDFFilename === receiptFilename;
+    // Shown before the PDF loads, with its buttons disabled, so the badge doesn't change size once it can flip.
+    // A PDF that fails to load leaves only the page 1 thumbnail, so the static badge comes back.
+    const shouldShowReceiptPageNavigator = canFlipReceiptPages && !!receiptFilename && failedReceiptPDFFilename !== receiptFilename;
+    const isReceiptPDFLoading = loadedReceiptPDFFilename !== receiptFilename;
 
     const receiptPendingAction = isDistanceRequest ? getPendingFieldAction('waypoints') : getPendingFieldAction('receipt');
     const isReceiptOfflinePending = isOffline && !!receiptPendingAction;
@@ -771,6 +774,7 @@ function MoneyRequestReceiptView({
                                                 canZoomReceipt={canZoomReceipt}
                                                 pdfPage={canFlipReceiptPages ? receiptPage : undefined}
                                                 onPDFLoadSuccess={() => setLoadedReceiptPDFFilename(receiptFilename)}
+                                                onPDFLoadFailure={() => setFailedReceiptPDFFilename(receiptFilename)}
                                                 thumbnail={receiptURIs?.thumbnail}
                                                 fileExtension={receiptURIs?.fileExtension}
                                                 isThumbnail={receiptURIs?.isThumbnail}
@@ -794,12 +798,13 @@ function MoneyRequestReceiptView({
                                 <ReceiptPageNavigator
                                     page={receiptPage}
                                     pageCount={receiptPageCount}
+                                    isLoading={isReceiptPDFLoading}
                                     onChangePage={(page) => setSelectedReceiptPage({filename: receiptFilename, page})}
                                 />
                             )}
                             {shouldShowReceiptPageCount && !shouldShowReceiptPageNavigator && (
                                 <Badge
-                                    text={translate('receipt.pageCount', {page: 1, pageCount: receiptPageCount})}
+                                    text={translate('receipt.pageCount', {page: CONST.RECEIPT.FIRST_PDF_PAGE, pageCount: receiptPageCount})}
                                     badgeStyles={[styles.receiptPageCountBadge, styles.pointerEventsNone]}
                                 />
                             )}

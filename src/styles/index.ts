@@ -4160,7 +4160,7 @@ const staticStyles = (theme: ThemeColors) =>
             left: 12,
             flexDirection: 'row',
             alignItems: 'center',
-            minHeight: 28,
+            minHeight: variables.componentSizeSmall,
             paddingHorizontal: 12,
             gap: 8,
             borderRadius: variables.componentBorderRadiusRounded,

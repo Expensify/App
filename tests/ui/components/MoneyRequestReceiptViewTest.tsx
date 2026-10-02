@@ -53,11 +53,21 @@ jest.mock(
         },
 );
 
-const mockReceiptImage: {shouldCompleteLoad: boolean; shouldLoadPDF: boolean; lastPDFPage?: number} = {shouldCompleteLoad: true, shouldLoadPDF: false};
+const mockReceiptImage: {shouldCompleteLoad: boolean; pdfLoadResult?: 'success' | 'failure'; lastPDFPage?: number} = {shouldCompleteLoad: true};
 
 jest.mock('@components/ReportActionItem/ReportActionItemImage', () => {
     const {useEffect} = jest.requireActual<typeof React>('react');
-    function MockReportActionItemImage({onLoad, onPDFLoadSuccess, pdfPage}: {onLoad?: () => void; onPDFLoadSuccess?: () => void; pdfPage?: number}) {
+    function MockReportActionItemImage({
+        onLoad,
+        onPDFLoadSuccess,
+        onPDFLoadFailure,
+        pdfPage,
+    }: {
+        onLoad?: () => void;
+        onPDFLoadSuccess?: () => void;
+        onPDFLoadFailure?: () => void;
+        pdfPage?: number;
+    }) {
         useEffect(() => {
             mockReceiptImage.lastPDFPage = pdfPage;
         }, [pdfPage]);
@@ -67,15 +77,16 @@ jest.mock('@components/ReportActionItem/ReportActionItemImage', () => {
             }
             onLoad?.();
         }, [onLoad]);
-        const shouldReportPDFLoad = mockReceiptImage.shouldLoadPDF && pdfPage !== undefined;
+        const pdfLoadResult = pdfPage === undefined ? undefined : mockReceiptImage.pdfLoadResult;
         useEffect(() => {
-            if (!shouldReportPDFLoad) {
-                return;
+            if (pdfLoadResult === 'success') {
+                onPDFLoadSuccess?.();
+            } else if (pdfLoadResult === 'failure') {
+                onPDFLoadFailure?.();
             }
-            onPDFLoadSuccess?.();
             // Report once per load, the way the real PDF overlay does
             // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, [shouldReportPDFLoad]);
+        }, [pdfLoadResult]);
         return null;
     }
     return MockReportActionItemImage;
@@ -290,7 +301,7 @@ describe('MoneyRequestReceiptView', () => {
 
     beforeEach(async () => {
         mockReceiptImage.shouldCompleteLoad = true;
-        mockReceiptImage.shouldLoadPDF = false;
+        mockReceiptImage.pdfLoadResult = undefined;
         mockReceiptImage.lastPDFPage = undefined;
         mockDeviceCapabilities.hasHoverSupport = false;
         jest.clearAllMocks();
@@ -470,7 +481,7 @@ describe('MoneyRequestReceiptView', () => {
 
         it('flips pages once the PDF has loaded on a hover-capable device', async () => {
             mockDeviceCapabilities.hasHoverSupport = true;
-            mockReceiptImage.shouldLoadPDF = true;
+            mockReceiptImage.pdfLoadResult = 'success';
             await renderMultiPagePDFReceipt();
 
             expect(screen.getByText(translateLocal('receipt.pageCount', {page: 1, pageCount: 3}))).toBeTruthy();
@@ -490,8 +501,19 @@ describe('MoneyRequestReceiptView', () => {
         });
 
         // Until the PDF loads only the page 1 thumbnail is visible, so flipping would change the label but not the page
-        it('keeps the static badge while the PDF is still loading', async () => {
+        it('disables the page buttons while the PDF is still loading', async () => {
             mockDeviceCapabilities.hasHoverSupport = true;
+            await renderMultiPagePDFReceipt();
+
+            expect(screen.getByText(translateLocal('receipt.pageCount', {page: 1, pageCount: 3}))).toBeTruthy();
+            expect(screen.getByLabelText(translateLocal('common.next'))).toBeDisabled();
+            expect(screen.getByLabelText(translateLocal('common.previous'))).toBeDisabled();
+        });
+
+        // Only the page 1 thumbnail is left when the PDF can't load, so there is nothing to flip
+        it('falls back to the static badge when the PDF fails to load', async () => {
+            mockDeviceCapabilities.hasHoverSupport = true;
+            mockReceiptImage.pdfLoadResult = 'failure';
             await renderMultiPagePDFReceipt();
 
             expect(screen.getByText(translateLocal('receipt.pageCount', {page: 1, pageCount: 3}))).toBeTruthy();
@@ -500,7 +522,7 @@ describe('MoneyRequestReceiptView', () => {
 
         // Without hover support the PDF is never rendered over the thumbnail, so there is nothing to flip
         it('keeps the static badge on devices without hover support', async () => {
-            mockReceiptImage.shouldLoadPDF = true;
+            mockReceiptImage.pdfLoadResult = 'success';
             await renderMultiPagePDFReceipt();
 
             expect(screen.getByText(translateLocal('receipt.pageCount', {page: 1, pageCount: 3}))).toBeTruthy();

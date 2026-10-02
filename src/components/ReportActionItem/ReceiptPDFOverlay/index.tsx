@@ -29,6 +29,12 @@ const oversampleContainerStyle = {
     transformOrigin: 'top left',
 };
 
+const pageContainerStyle = {
+    position: 'absolute' as const,
+    top: CONST.RECEIPT.PDF_PAGE_BORDER,
+    left: 0,
+};
+
 const DOCUMENT_OPTIONS = {
     cMapUrl: '/cmaps/',
     cMapPacked: true,
@@ -61,14 +67,17 @@ type ReceiptPDFPageProps = CanvasLimits & {
 
     /** Called once the page has been drawn */
     onRenderSuccess?: () => void;
+
+    /** Called when the page fails to load or draw */
+    onError: () => void;
 };
 
-function ReceiptPDFPage({pageNumber, width, onRenderSuccess, ...canvasLimits}: ReceiptPDFPageProps) {
+function ReceiptPDFPage({pageNumber, width, onRenderSuccess, onError, ...canvasLimits}: ReceiptPDFPageProps) {
     const [aspectRatio, setAspectRatio] = useState<number>();
     const devicePixelRatio = aspectRatio ? getDevicePixelRatio(width, width * aspectRatio, canvasLimits) : undefined;
 
     return (
-        <div style={{position: 'absolute', top: CONST.RECEIPT.PDF_PAGE_BORDER, left: 0}}>
+        <div style={pageContainerStyle}>
             <Thumbnail
                 pageNumber={pageNumber}
                 width={width}
@@ -77,6 +86,8 @@ function ReceiptPDFPage({pageNumber, width, onRenderSuccess, ...canvasLimits}: R
                 error={null}
                 onLoadSuccess={({originalWidth, originalHeight}) => setAspectRatio(originalHeight / originalWidth)}
                 onRenderSuccess={onRenderSuccess}
+                onLoadError={onError}
+                onRenderError={onError}
             />
         </div>
     );
@@ -187,6 +198,7 @@ function ReceiptPDFOverlay({sourceURL, isAuthTokenRequired = true, onLoadFailure
                                     key={renderedPage}
                                     pageNumber={renderedPage}
                                     width={pageWidth}
+                                    onError={handleLoadError}
                                     {...canvasLimits}
                                 />
                             )}
@@ -196,6 +208,7 @@ function ReceiptPDFOverlay({sourceURL, isAuthTokenRequired = true, onLoadFailure
                                     pageNumber={page}
                                     width={pageWidth}
                                     onRenderSuccess={() => setRenderedPageState({fileURL, page})}
+                                    onError={handleLoadError}
                                     {...canvasLimits}
                                 />
                             )}

@@ -1615,6 +1615,8 @@ const CONST = {
 
         // react-fast-pdf pads each page by this much. The single-page PDF layer matches it to stay framed the same.
         PDF_PAGE_BORDER: 9,
+
+        FIRST_PDF_PAGE: 1,
     },
     RECEIPT_PREVIEW_TOP_BOTTOM_MARGIN: 120,
     REPORT: {

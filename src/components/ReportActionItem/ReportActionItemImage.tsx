@@ -104,6 +104,9 @@ type ReportActionItemImageProps = {
     /** Called once the high-res PDF overlay has loaded its pages */
     onPDFLoadSuccess?: () => void;
 
+    /** Called when the high-res PDF overlay fails, leaving only the thumbnail */
+    onPDFLoadFailure?: () => void;
+
     /** Callback to be called when the image loads */
     onLoad?: (event?: {nativeEvent: {width: number; height: number}}) => void;
 
@@ -138,6 +141,7 @@ function ReportActionItemImage({
     canZoomReceipt = false,
     pdfPage,
     onPDFLoadSuccess,
+    onPDFLoadFailure,
     onLoad,
     onLoadFailure,
 }: ReportActionItemImageProps) {
@@ -249,7 +253,10 @@ function ReportActionItemImage({
                     <ReceiptPDFOverlay
                         sourceURL={pdfSourceURL}
                         isAuthTokenRequired={!effectiveIsLocalFile}
-                        onLoadFailure={onLoadFailure}
+                        onLoadFailure={() => {
+                            onLoadFailure?.();
+                            onPDFLoadFailure?.();
+                        }}
                         page={pdfPage}
                         onLoadSuccess={onPDFLoadSuccess}
                     />

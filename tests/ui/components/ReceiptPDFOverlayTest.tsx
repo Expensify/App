@@ -8,7 +8,7 @@ import type {ComponentType, ReactNode} from 'react';
 
 import React from 'react';
 
-type MockThumbnailProps = {pageNumber: number; width: number; onRenderSuccess?: () => void};
+type MockThumbnailProps = {pageNumber: number; width: number; onRenderSuccess?: () => void; onRenderError?: () => void};
 
 const mockPDFPreviewer = jest.fn(() => null);
 const mockRenderedThumbnails: MockThumbnailProps[] = [];
@@ -28,8 +28,8 @@ jest.mock('@components/PDFThumbnail', () => {
         }, []);
         return children;
     }
-    function MockThumbnail({pageNumber, width, onRenderSuccess}: MockThumbnailProps) {
-        mockRenderedThumbnails.push({pageNumber, width, onRenderSuccess});
+    function MockThumbnail({pageNumber, width, onRenderSuccess, onRenderError}: MockThumbnailProps) {
+        mockRenderedThumbnails.push({pageNumber, width, onRenderSuccess, onRenderError});
         return <MockText>{`page-${pageNumber}`}</MockText>;
     }
     return {Document: MockDocument, Thumbnail: MockThumbnail};
@@ -136,6 +136,18 @@ describe('ReceiptPDFOverlay', () => {
 
         expect(screen.queryByText('page-2')).toBeNull();
         expect(screen.getByText('page-1')).toBeTruthy();
+    });
+
+    it('falls back to the thumbnail when a page fails to render', () => {
+        const onLoadFailure = jest.fn();
+        renderOverlay({page: 1, onLoadFailure});
+
+        act(() => {
+            mockRenderedThumbnails.at(-1)?.onRenderError?.();
+        });
+
+        expect(screen.queryByText('page-1')).toBeNull();
+        expect(onLoadFailure).toHaveBeenCalledTimes(1);
     });
 
     // Page navigation switches on after the receipt loads, so the overlay first mounts without a page
