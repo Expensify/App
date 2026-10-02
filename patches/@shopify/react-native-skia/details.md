@@ -135,30 +135,28 @@
 - E/App issue: https://github.com/Expensify/App/issues/98254
 - PR introducing patch: https://github.com/Expensify/App/pull/100714
 
-### [@shopify+react-native-skia+2.11.2+004+size-backing-store-to-painted-size.patch](@shopify+react-native-skia+2.11.2+004+size-backing-store-to-painted-size.patch)
+### [@shopify+react-native-skia+2.11.2+004+add-web-pixel-density-prop.patch](@shopify+react-native-skia+2.11.2+004+add-web-pixel-density-prop.patch)
 
 - Reason:
 
     ```
     Fixes soft/blurry text inside inline charts on web. WebGLRenderer sizes its backing
-    store from canvas.clientWidth * devicePixelRatio, which is the canvas's layout size.
-    Charts are laid out at their authored design size (680px wide for every summary chart)
-    and fitted to the chat column with a CSS transform, and clientWidth does not report
-    that transform. So the surface is rasterised for the design box and the browser
-    resamples it onto a smaller area: a chat column narrower than 680px paints a 1360px
-    backing store across 1032 to 1162 device pixels. The glyphs are a resampled bitmap
-    while the surrounding chat text is rasterised at device resolution, which is the
-    visible sharpness gap.
+    store from canvas.clientWidth * window.devicePixelRatio, and there is no way to change
+    that density from outside. Summary charts are laid out at their 680px design width and
+    fitted to the chat column with a CSS transform, which clientWidth does not report, so
+    the surface is rasterised for the design box and the browser resamples it onto a
+    smaller area.
 
-    Fix: fold getBoundingClientRect().width / clientWidth, which is exactly the accumulated
-    CSS transform scale, into the pixel density the renderer already derives in onResize, so
-    the backing store and the canvas.scale() applied before drawing match the painted size.
-    Untransformed canvases keep the previous ratio, so nothing else changes.
+    Fix: add an opt-in, web-only pixelDensity prop to Canvas (defaults to
+    window.devicePixelRatio) that both web renderers use for the backing store and the
+    draw scale. Changing the prop recreates the surface even when the CSS size is
+    unchanged. The chart passes devicePixelRatio * its layout scale, so the backing store
+    matches the painted size. Canvases without the prop behave as before.
     ```
 
-- Upstream PR/issue: https://github.com/Shopify/react-native-skia/issues/4084, fix in https://github.com/Shopify/react-native-skia/pull/4085. Drop this patch once a Skia release containing that PR is consumed.
+- Upstream PR/issue: https://github.com/Shopify/react-native-skia/issues/4084, fix in https://github.com/Shopify/react-native-skia/pull/4105. Drop this patch once a Skia release containing that PR is consumed.
 - E/App issue: https://github.com/Expensify/App/issues/95221
-- PR introducing patch: https://github.com/Expensify/App/pull/101291
+- PR introducing patch: https://github.com/Expensify/App/pull/102407
 
 ### [@shopify+react-native-skia+2.11.2+005+load-skia-web-fail-closed.patch](@shopify+react-native-skia+2.11.2+005+load-skia-web-fail-closed.patch)
 

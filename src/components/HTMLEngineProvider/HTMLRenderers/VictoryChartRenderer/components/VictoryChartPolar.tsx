@@ -1,10 +1,11 @@
 import ChartFontsLoaderProvider from '@components/Charts/context/ChartFontsLoaderProvider';
 import {COLOR_KEY, LABEL_KEY, VALUE_KEY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
+import {useVictoryChartLayoutScale} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartLayoutContext';
+import getChartCanvasProps from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getChartCanvasProps';
 import getChartDesignWidth from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getChartDesignWidth';
 import getChartLayoutModeProps from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getChartLayoutModeProps';
 import getHierarchyID from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getHierarchyID';
-import getStaticChartCanvasProps from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getStaticChartCanvasProps';
 
 import useCurrentTimezone from '@hooks/useCurrentTimezone';
 import useTheme from '@hooks/useTheme';
@@ -31,6 +32,7 @@ type VictoryChartPolarProps = {
  */
 function VictoryChartPolar({explicitSize, headless, shouldUseStaticCanvas}: VictoryChartPolarProps) {
     const {tnode, data, labelItems, legendItems, chartContentStyles} = useVictoryChartContext();
+    const layoutScale = useVictoryChartLayoutScale();
     const theme = useTheme();
     const timezone = useCurrentTimezone();
     const designWidth = getChartDesignWidth(explicitSize, chartContentStyles.width);
@@ -67,7 +69,7 @@ function VictoryChartPolar({explicitSize, headless, shouldUseStaticCanvas}: Vict
             valueKey={VALUE_KEY}
             colorKey={COLOR_KEY}
             {...getChartLayoutModeProps(explicitSize, headless)}
-            canvasProps={shouldUseStaticCanvas ? getStaticChartCanvasProps() : undefined}
+            canvasProps={getChartCanvasProps(shouldUseStaticCanvas, layoutScale)}
         >
             {headless ? (
                 <ThemeContext.Provider value={theme}>{chartContent}</ThemeContext.Provider>
