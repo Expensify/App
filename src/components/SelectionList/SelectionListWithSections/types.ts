@@ -77,6 +77,7 @@ type SectionHeader = {
 };
 
 type SectionListItem<TItem extends ListItem> = TItem & {
+    flatIndex: number;
     type: typeof CONST.SECTION_LIST_ITEM_TYPE.ROW;
     /** Unique key for FlashList rendering, containing section info  */
     flatListKey: string;
