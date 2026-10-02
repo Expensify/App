@@ -33,7 +33,7 @@ import {isRecruitingAdvancedMode} from '@libs/merge/RecruitingUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
-import {getApprovalWorkflow, hasDynamicExternalWorkflow, isControlPolicy, isPaidGroupPolicy, isSubmitPolicy, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
+import {getApprovalWorkflow, hasDynamicExternalWorkflow, isControlPolicy, isGroupPolicy, isSubmitPolicy, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import {
     convertApprovalWorkflowRulesToWorkflows,
@@ -291,9 +291,9 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
     const hiddenWorkflowsCount = searchFilteredWorkflows.length - displayedWorkflows.length;
 
     const isDEWEnabled = hasDynamicExternalWorkflow(policy);
-    // A loaded paid group workspace with no stored mode uses the app's ADVANCED default. Keep this separate from
+    // A loaded non-Submit group workspace with no stored mode uses the app's ADVANCED default. Keep this separate from
     // isActive because legacy modes can be configured even though this toggle intentionally displays them as off.
-    const hasConfiguredApprovalWorkflow = isPaidGroupPolicy(policy) && getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    const hasConfiguredApprovalWorkflow = isGroupPolicy(policy) && !isSubmitPolicy(policy) && getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     const isApprovalsLockedBySmartLimit = isSmartLimitEnabled && (hasConfiguredApprovalWorkflow || isDEWEnabled || isWorkflowFromIntegration);
     // A Dynamic External Workflow can be configured to keep the approval workflow out of the customer's hands entirely.
     // The info banner below still explains why the section is empty, but nothing else about the workflows is rendered.

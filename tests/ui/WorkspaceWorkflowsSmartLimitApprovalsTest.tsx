@@ -137,7 +137,7 @@ describe('WorkspaceWorkflowsPageRevamp - Smart Limit approvals lock', () => {
         expect(querySubtitle(smartLimitPrompt())).not.toBeOnTheScreen();
         expect(querySubtitle(addApprovalsDescription())).toBeOnTheScreen();
         const approvalsSwitch = screen.getByRole(CONST.ROLE.SWITCH, {name: addApprovalsDescription()});
-        expect(approvalsSwitch).toHaveAccessibilityState({checked: false, disabled: false});
+        expect(approvalsSwitch.props.accessibilityState).toEqual(expect.objectContaining({checked: false, disabled: false}));
 
         // When the admin enables approvals.
         fireEvent.press(approvalsSwitch);
@@ -160,7 +160,7 @@ describe('WorkspaceWorkflowsPageRevamp - Smart Limit approvals lock', () => {
 
         // Then every configured mode remains locked, and legacy modes retain their existing off display.
         expect(querySubtitle(smartLimitPrompt())).toBeOnTheScreen();
-        expect(screen.getByRole(CONST.ROLE.SWITCH, {name: lockedSwitchLabel()})).toHaveAccessibilityState({checked: isActive, disabled: true});
+        expect(screen.getByRole(CONST.ROLE.SWITCH, {name: lockedSwitchLabel()}).props.accessibilityState).toEqual(expect.objectContaining({checked: isActive, disabled: true}));
     });
 
     it('locks a loaded group policy with a missing mode using the effective ADVANCED default', async () => {
@@ -171,7 +171,7 @@ describe('WorkspaceWorkflowsPageRevamp - Smart Limit approvals lock', () => {
 
         // Then the toggle keeps its established off display but remains locked with the Smart Limit warning.
         expect(querySubtitle(smartLimitPrompt())).toBeOnTheScreen();
-        expect(screen.getByRole(CONST.ROLE.SWITCH, {name: lockedSwitchLabel()})).toHaveAccessibilityState({checked: false, disabled: true});
+        expect(screen.getByRole(CONST.ROLE.SWITCH, {name: lockedSwitchLabel()}).props.accessibilityState).toEqual(expect.objectContaining({checked: false, disabled: true}));
     });
 
     it('does not let the Smart Limit lock block the Submit workspace upgrade path', async () => {
@@ -181,7 +181,7 @@ describe('WorkspaceWorkflowsPageRevamp - Smart Limit approvals lock', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the switch remains off and available so its existing enable handler can route to the upgrade flow.
-        expect(screen.getByRole(CONST.ROLE.SWITCH, {name: addApprovalsDescription()})).toHaveAccessibilityState({checked: false, disabled: false});
+        expect(screen.getByRole(CONST.ROLE.SWITCH, {name: addApprovalsDescription()}).props.accessibilityState).toEqual(expect.objectContaining({checked: false, disabled: false}));
     });
 
     it('keeps the Smart Limit lock when a configured mode has an approval update error', async () => {
@@ -191,7 +191,7 @@ describe('WorkspaceWorkflowsPageRevamp - Smart Limit approvals lock', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the error does not unlock the switch, although the existing active-state logic may display it as off.
-        expect(screen.getByRole(CONST.ROLE.SWITCH, {name: lockedSwitchLabel()})).toHaveAccessibilityState({checked: false, disabled: true});
+        expect(screen.getByRole(CONST.ROLE.SWITCH, {name: lockedSwitchLabel()}).props.accessibilityState).toEqual(expect.objectContaining({checked: false, disabled: true}));
     });
 
     it('leaves approvals unlocked when Smart Limit cards are absent', async () => {
@@ -202,6 +202,6 @@ describe('WorkspaceWorkflowsPageRevamp - Smart Limit approvals lock', () => {
 
         // Then the switch keeps the existing behavior and is available to disable approvals.
         expect(querySubtitle(smartLimitPrompt())).not.toBeOnTheScreen();
-        expect(screen.getByRole(CONST.ROLE.SWITCH, {name: addApprovalsDescription()})).toHaveAccessibilityState({checked: true, disabled: false});
+        expect(screen.getByRole(CONST.ROLE.SWITCH, {name: addApprovalsDescription()}).props.accessibilityState).toEqual(expect.objectContaining({checked: true, disabled: false}));
     });
 });
