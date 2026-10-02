@@ -81,7 +81,7 @@ function ReceiptPageNavigator({page, pageCount, isLoading, onChangePage}: Receip
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'BackArrow']);
-    const labelStyle = [styles.badgeText, styles.textStrong, styles.badgeDefaultText];
+    const labelStyle = [styles.badgeText, styles.textStrong, styles.badgeDefaultText, styles.receiptPageNavigatorLabel];
 
     return (
         <View

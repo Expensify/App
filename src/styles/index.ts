@@ -4167,6 +4167,10 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.badgeDefaultBG,
         },
 
+        receiptPageNavigatorLabel: {
+            whiteSpace: 'nowrap',
+        },
+
         receiptActionButton: {
             width: 40,
             height: 40,
