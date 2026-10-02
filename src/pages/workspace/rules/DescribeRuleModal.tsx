@@ -146,7 +146,6 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
                         inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
                     />
                 </View>
-                <Text style={[styles.textMicroSupporting, styles.textAlignCenter, styles.mt2]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>
             </FormProvider>
         </Modal>
     );
