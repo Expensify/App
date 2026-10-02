@@ -387,7 +387,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const hasAnyCustomField2 = useMemo(() => filteredMembers.some(({policyEmployee}) => !!policyEmployee.employeePayrollID), [filteredMembers]);
     const shouldShowCustomField1Column = isControlPolicyWithWideLayout && hasAnyCustomField1;
     const shouldShowCustomField2Column = isControlPolicyWithWideLayout && hasAnyCustomField2;
-    const shouldShowBankAccountColumn = !shouldUseNarrowLayout && isPolicyAdmin(policy) && (arePaymentsEnabled(policy) || !!policy?.isCollectDepositAccountsEnabled);
+    const shouldShowBankAccountColumn = hasWideTableLayout && isPolicyAdmin(policy) && (arePaymentsEnabled(policy) || !!policy?.isCollectDepositAccountsEnabled);
 
     // Unlike the custom fields, this column applies to every workspace type, so it isn't gated on Control.
     const isApprovalsEnabled = areApprovalsEnabled(policy);
