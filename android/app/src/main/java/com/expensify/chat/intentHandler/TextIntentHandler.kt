@@ -11,9 +11,8 @@ class TextIntentHandler(private val context: Context) : AbstractIntentHandler() 
         super.clearTemporaryFiles(context)
         when(intent.action) {
             Intent.ACTION_SEND -> {
-                if (!handleTextIntent(intent, context, shouldLaunchActivity)) {
-                    return false
-                }
+                handleTextIntent(intent, context, shouldLaunchActivity)
+                // Open the Share screen even if persisting the attachment fails so it can display an error instead of silently discarding the share.
                 if (shouldLaunchActivity) {
                     onCompleted()
                 }
