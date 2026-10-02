@@ -18,7 +18,7 @@ type CapturedPopupProps = {
 };
 
 const mockCapturedPopupProps: {current: CapturedPopupProps | undefined} = {current: undefined};
-const mockCapturedSkeletonProps: {current: {height?: number} | undefined} = {current: undefined};
+const mockCapturedSkeletonProps: {current: {height?: number; shouldStandInForWholeRow?: boolean} | undefined} = {current: undefined};
 
 type MockFilterPopupButtonProps = {
     PopoverComponent: (props: {closeOverlay: () => void; isExpanded: boolean}) => React.ReactNode;
@@ -32,6 +32,14 @@ jest.mock('@hooks/useTheme', () => ({__esModule: true, default: () => new Proxy(
 jest.mock('@hooks/useNetwork', () => ({__esModule: true, default: () => ({isOffline: false})}));
 jest.mock('@hooks/useResponsiveLayout', () => ({__esModule: true, default: () => ({shouldUseNarrowLayout: false, isSmallScreenWidth: false})}));
 jest.mock('@hooks/useKeyboardShortcut', () => ({__esModule: true, default: () => {}}));
+const mockIsFooterSelectorsBetaEnabled = {current: true};
+jest.mock('@hooks/usePermissions', () => ({
+    __esModule: true,
+    default: () => ({
+        isBetaEnabled: (beta: string) => (beta === 'spendFooterSelectors' ? mockIsFooterSelectorsBetaEnabled.current : false),
+        isBetaEnabledOrUnknown: () => false,
+    }),
+}));
 jest.mock('@hooks/useLazyAsset', () => ({useMemoizedLazyExpensifyIcons: () => new Proxy({}, {get: () => undefined})}));
 jest.mock('@hooks/useLocalize', () => ({
     __esModule: true,
@@ -61,8 +69,16 @@ jest.mock('@components/Button', () => {
 });
 jest.mock('@components/Search/SearchPageFooterSkeleton', () => ({
     __esModule: true,
-    default: (props: {height?: number}) => {
+    default: (props: {height?: number; shouldStandInForWholeRow?: boolean}) => {
         mockCapturedSkeletonProps.current = props;
+        return null;
+    },
+}));
+const mockCapturedCurrencyPopupProps: {current: {value?: string; defaultValue?: string} | undefined} = {current: undefined};
+jest.mock('@components/Search/FilterDropdowns/CurrencyPopup', () => ({
+    __esModule: true,
+    default: (props: {value?: string; defaultValue?: string}) => {
+        mockCapturedCurrencyPopupProps.current = props;
         return null;
     },
 }));
@@ -102,8 +118,10 @@ const defaultProps = {
 
 describe('SearchPageFooter', () => {
     beforeEach(() => {
+        mockIsFooterSelectorsBetaEnabled.current = true;
         mockCapturedPopupProps.current = undefined;
         mockCapturedSkeletonProps.current = undefined;
+        mockCapturedCurrencyPopupProps.current = undefined;
     });
 
     it('labels the count with the unit the footer is displaying', () => {
@@ -221,5 +239,63 @@ describe('SearchPageFooter', () => {
                 currency: CONST.CURRENCY.USD,
             }),
         );
+    });
+
+    describe('with the beta off', () => {
+        beforeEach(() => {
+            mockIsFooterSelectorsBetaEnabled.current = false;
+        });
+
+        it('hangs the currency picker off the total itself, with no display menu in between', () => {
+            render(<SearchPageFooter {...defaultProps} />);
+
+            // The menu is never rendered, and the popover the chevron opens is the currency list
+            expect(mockCapturedPopupProps.current).toBeUndefined();
+            expect(mockCapturedCurrencyPopupProps.current).toEqual(expect.objectContaining({value: CONST.CURRENCY.USD, defaultValue: CONST.CURRENCY.USD}));
+        });
+
+        it('labels the count and the total the way they read without the selectors', () => {
+            render(<SearchPageFooter {...defaultProps} />);
+
+            expect(screen.getByText('common.expenses:')).toBeOnTheScreen();
+            expect(screen.getByText('common.totalSpend:')).toBeOnTheScreen();
+            expect(screen.getByText('1204')).toBeOnTheScreen();
+        });
+
+        it('ignores a count selection it cannot offer', () => {
+            render(
+                <SearchPageFooter
+                    {...defaultProps}
+                    countType={CONST.SEARCH.FOOTER_COUNT.REPORTS}
+                />,
+            );
+
+            // Reports would be the label with the beta on; without it the footer only ever counts expenses
+            expect(screen.getByText('common.expenses:')).toBeOnTheScreen();
+            expect(screen.queryByText('common.reports:')).not.toBeOnTheScreen();
+        });
+
+        it('stands the skeleton in for the whole row while the total reloads', () => {
+            render(
+                <SearchPageFooter
+                    {...defaultProps}
+                    isTotalLoading
+                />,
+            );
+
+            expect(mockCapturedSkeletonProps.current).toEqual(expect.objectContaining({shouldStandInForWholeRow: true}));
+        });
+
+        it('renders nothing for the total when there is none, so no chevron is left behind', () => {
+            render(
+                <SearchPageFooter
+                    {...defaultProps}
+                    total={undefined}
+                />,
+            );
+
+            expect(screen.queryByText('common.totalSpend:')).not.toBeOnTheScreen();
+            expect(mockCapturedCurrencyPopupProps.current).toBeUndefined();
+        });
     });
 });
