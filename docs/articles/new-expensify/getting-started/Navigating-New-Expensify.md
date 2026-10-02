@@ -1,13 +1,13 @@
 ---
 title: Navigating New Expensify
-description: Learn how to move around New Expensify using the navigation tabs and Search, including Home, Inbox, Spend, Workspaces, and Account on web and mobile.
-keywords: [New Expensify, navigation tabs, navigation, Home tab, Inbox tab, Inbox filters, Inbox tabs, All tab, Unread tab, To-dos, Mark all as read, mark chats as read, clear unread messages, unread badge, Spend tab, Workspaces tab, Account tab, Scan button, Create button, workspace filter, Search, go to, jump to destination]
+description: Learn how to move around New Expensify using the navigation tabs and Search, including Home, Inbox, Spend, Insights, Workspaces, and Account on web and mobile.
+keywords: [New Expensify, navigation tabs, navigation, Home tab, Inbox tab, Inbox filters, Inbox tabs, All tab, Unread tab, To-dos, Mark all as read, mark chats as read, clear unread messages, unread badge, Spend tab, Insights tab, Workspaces tab, Account tab, where did Account go, Account on mobile, profile picture, Scan button, Create button, workspace filter, Search, go to, jump to destination]
 internalScope: Audience is all Expensify members. Covers how to navigate Expensify using the navigation tabs, how to filter and clear the Inbox using the Inbox tabs, the primary action buttons, and Search navigation suggestions. Does not explain the detailed behavior of the Home tab sections.
 ---
 
 # Navigating New Expensify 
 
-New Expensify uses a consistent navigation layout across web and mobile so you can quickly move between Home, Inbox, Spend, Workspaces, and Account settings.
+New Expensify uses a consistent navigation layout across web and mobile so you can quickly move between Home, Inbox, Spend, Insights, Workspaces, and Account settings.
 
 This guide explains where to find each tab and what it’s used for.
 
@@ -38,8 +38,11 @@ Tabs include:
 - **Home**
 - **Inbox**
 - **Spend**
+- **Insights**
 - **Workspaces**
-- **Account**
+- **Account** (web only)
+
+On mobile, **Account** isn't in the navigation tabs. Instead, tap your profile picture in the top-right corner of the screen.
 
 ---
 
@@ -92,6 +95,16 @@ From **Spend**, you can:
 
 ---
 
+## What the Insights tab is used for
+
+**Insights** shows charts of your spending, such as **Spend over time**, **Top categories**, **Top merchants**, and **Top spenders**.
+
+Use Insights to see spending trends and what changed at a glance. From any chart, you can open the matching expenses in **Spend**.
+
+Learn more about [Insights](/articles/new-expensify/insights/How-to-Use-Insights-in-Expensify).
+
+---
+
 ## What the Workspaces tab is used for
 
 The **Workspaces** tab displays all workspaces you are a member of. 
@@ -113,7 +126,12 @@ Learn how to [create and set up a company workspace](/articles/new-expensify/get
 
 ## What the Account tab is used for
 
-The **Account** tab contains personal and account-level settings.
+**Account** contains personal and account-level settings.
+
+Where you find Account depends on your device:
+
+- **Web:** Select **Account** in the navigation tabs on the left.
+- **Mobile:** Tap your profile picture in the top-right corner of the screen. It appears on top-level pages such as **Home**, **Inbox**, **Spend**, **Insights**, and **Workspaces**.
 
 From Account, you can manage:
 
@@ -140,11 +158,10 @@ Use Account for personal settings and billing.
 
 Paid Workspace Admins may have dedicated support contacts assigned to their account, such as an Account Manager, Partner Manager, or Account Executive. These contacts appear directly on the **Help** page so you can quickly start a conversation with them.
 
-1. Click the navigation tabs (on the left on web, on the bottom on mobile).
-2. Select **Settings**.
-3. Select **Help**.
-4. Below **Concierge**, look for your assigned support contacts.
-5. Click a contact to open a direct message with them.
+1. Open **Account**. On web, select **Account** in the navigation tabs on the left. On mobile, tap your profile picture in the top-right corner.
+2. Select **Help**.
+3. Below **Concierge**, look for your assigned support contacts.
+4. Click a contact to open a direct message with them.
 
 If a support contact has a scheduling link set up, a **Book a call** button also appears next to them here. This works for your Account Manager, Partner Manager, and Guide. Learn [how to book a call with your support contact](#how-to-book-a-call-with-your-support-contact) below.
 
@@ -182,6 +199,7 @@ If you’re not sure where to go:
 - Use **Home** to see what needs attention.
 - Use **Inbox** to manage conversations and approvals.
 - Use **Spend** to view or filter expense reports.
+- Use **Insights** to see spending trends.
 - Use **Workspaces** to manage workspace settings.
 - Use **Account** to update personal settings or subscription details.
 
@@ -192,7 +210,7 @@ If you’re not sure where to go:
 You can move to a top-level destination without using the navigation tabs by typing its name in **Search**.
 
 1. Select **Search** (the magnifying glass icon).
-2. Type the name of the destination you want to open: **Home**, **Inbox**, **Spend**, **Workspaces**, **Domains** or **Account**. You can also type **go** or **go to** before the name, such as **go to inbox**.
+2. Type the name of the destination you want to open: **Home**, **Inbox**, **Spend**, **Insights**, **Workspaces**, **Domains** or **Account**. You can also type **go** or **go to** before the name, such as **go to inbox**.
 3. Select the destination to open it.
 
 You can also use keyboard shortcuts on web to jump directly to specific items:
@@ -243,7 +261,7 @@ On web, navigation tabs appear on the left. On mobile, navigation tabs appear on
 
 ## Can I use Search to move between sections of Expensify?
 
-Yes. Select **Search** (the magnifying glass icon), then type the name of a top-level destination: **Home**, **Inbox**, **Spend**, **Workspaces**, or **Account**. Select the **Go to [destination]** result to open it. You can also type **go** or **go to** before the name.
+Yes. Select **Search** (the magnifying glass icon), then type the name of a top-level destination: **Home**, **Inbox**, **Spend**, **Insights**, **Workspaces**, or **Account**. Select the **Go to [destination]** result to open it. You can also type **go** or **go to** before the name.
 
 ## Can I book travel from Search?
 
@@ -259,7 +277,11 @@ Open the **Workspaces** tab from the navigation tabs.
 
 ## Where do I update my personal profile or billing information?
 
-Open the **Account** tab from the navigation tabs.
+Open **Account**. On web, select **Account** in the navigation tabs on the left. On mobile, tap your profile picture in the top-right corner.
+
+## Where did Account go on mobile?
+
+On mobile, **Account** moved from the navigation tabs on the bottom to your profile picture in the top-right corner of the screen. A tip points to it the first time you see it. On web, **Account** is still in the navigation tabs on the left.
 
 ## What does the green Scan button do?
 

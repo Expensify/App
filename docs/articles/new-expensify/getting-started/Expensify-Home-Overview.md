@@ -115,7 +115,7 @@ The **Recently added** section shows your most recently added expenses, so you c
 
 The chart section on Home shows one spending insight at a time, starting with **Spend over time**, which displays a line chart of your workspace spending trends.
 
-Select the insight title (with the chevron next to it) to open the insight picker, then choose a different insight to show in the chart. The available insights match the ones you can open under **Spend**, and can include:
+Select the insight title (with the chevron next to it) to open the insight picker, then choose a different insight to show in the chart. The available insights match the charts you can see on the **Insights** page, and can include:
 
 - **Spend over time**
 - **Top categories**
@@ -124,11 +124,11 @@ Select the insight title (with the chevron next to it) to open the insight picke
 
 Your selection is saved, so the chart shows the same insight the next time you return to Home, even after you sign out and back in.
 
-To open the selected insight in full, select the three dots **(⋮)**, then select **View**. This takes you to that insight on the **Spend** page.
+To see all your charts, select the three dots **(⋮)**, then select **View**. This opens the **Insights** page.
 
-This section is available to Workspace Admins, Auditors, and approvers on paid workspaces. If an insight doesn't have enough data yet to draw a chart, the section still appears and shows a **Chart unavailable** message instead. If you don't hold one of these roles on any workspace, this section won't appear.
+This section is available to anyone on a paid workspace. The chart uses the same filters you last selected on the **Insights** page. If an insight doesn't have enough data yet to draw a chart, the section still appears and shows a **Chart unavailable** message instead.
 
-To learn more about each insight, see [Learn how to use Insights in Expensify](/articles/new-expensify/insights/How-to-Use-Insights-in-Expensify).
+To learn more about each insight, see [Learn about Insights](/articles/new-expensify/insights/How-to-Use-Insights-in-Expensify).
 
 ---
 
