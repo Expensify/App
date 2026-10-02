@@ -25,7 +25,7 @@ function AskConciergeWelcome({reportID, hasPreviousMessages, onShowPreviousMessa
 
     return (
         <ScrollView
-            style={[shouldUseNarrowLayout ? styles.flex1 : styles.flexShrink1, styles.conciergeAskColumn]}
+            style={[!shouldUseNarrowLayout && styles.flexGrow0, styles.conciergeAskColumn]}
             contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter]}
             keyboardShouldPersistTaps="handled"
         >
