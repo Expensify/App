@@ -36,7 +36,7 @@ function InsightsDataTable({rows, isLoading}: InsightsDataTableProps) {
     const {convertToDisplayString} = useCurrencyListActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    if (true || isLoading) {
+    if (isLoading) {
         return <InsightsDataTableSkeleton fixedNumItems={SKELETON_ROW_COUNT} />;
     }
 
@@ -51,7 +51,7 @@ function InsightsDataTable({rows, isLoading}: InsightsDataTableProps) {
                     key={item.keyForList}
                     style={[styles.flexRow, styles.alignItemsStart, styles.gap5]}
                 >
-                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsStart, styles.gap4]}>
+                    <View style={[styles.flex1, styles.mnw0, styles.flexRow, styles.alignItemsStart, styles.gap4]}>
                         {isMemberGroup(item) ? (
                             <View style={[styles.chartInlineTableAvatarBorder, !!color && StyleUtils.getBorderColorStyle(color)]}>
                                 <UserAvatar
@@ -63,7 +63,7 @@ function InsightsDataTable({rows, isLoading}: InsightsDataTableProps) {
                         ) : (
                             <View style={[styles.chartInlineTableDot, !!color && StyleUtils.getBackgroundColorStyle(color)]} />
                         )}
-                        <Text style={styles.flex1}>{point.label}</Text>
+                        <Text style={[styles.flex1, styles.mnw0, styles.breakWord]}>{point.label}</Text>
                     </View>
                     <Text style={[styles.flexShrink0, styles.textAlignRight]}>{convertToDisplayString(item.total ?? 0, item.currency)}</Text>
                 </View>
