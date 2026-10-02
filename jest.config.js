@@ -16,6 +16,7 @@ const emitsUntestedFiles = !shardMatch || shardMatch[1] === '1';
 
 module.exports = {
     preset: 'jest-expo',
+    resolver: '<rootDir>/jest/resolver.js',
     collectCoverageFrom: emitsUntestedFiles ? ['<rootDir>/src/**/*.{ts,tsx,js,jsx}', '!<rootDir>/src/**/__mocks__/**', '!<rootDir>/src/**/tests/**', '!**/*.d.ts'] : undefined,
     // Keeps the instrumented set identical to `collectCoverageFrom` above on the shards that skip it.
     coveragePathIgnorePatterns: ['/node_modules/', '<rootDir>/(?!src/)', '/__mocks__/', '<rootDir>/src/.*/tests/', '\\.d\\.ts$'],
