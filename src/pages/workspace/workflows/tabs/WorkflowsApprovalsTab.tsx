@@ -293,7 +293,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
     const isDEWEnabled = hasDynamicExternalWorkflow(policy);
     // A loaded non-Submit group workspace with no stored mode uses the app's ADVANCED default. Keep this separate from
     // isActive because legacy modes can be configured even though this toggle intentionally displays them as off.
-    const hasConfiguredApprovalWorkflow = isGroupPolicy(policy) && !isSubmitPolicy(policy) && getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    const hasConfiguredApprovalWorkflow = isGroupPolicy(policy) && !isSubmitPolicyWorkspace && getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     const isApprovalsLockedBySmartLimit = isSmartLimitEnabled && (hasConfiguredApprovalWorkflow || isDEWEnabled || isWorkflowFromIntegration);
     // A Dynamic External Workflow can be configured to keep the approval workflow out of the customer's hands entirely.
     // The info banner below still explains why the section is empty, but nothing else about the workflows is rendered.

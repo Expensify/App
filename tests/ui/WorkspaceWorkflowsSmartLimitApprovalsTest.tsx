@@ -147,6 +147,27 @@ describe('WorkspaceWorkflowsPageRevamp - Smart Limit approvals lock', () => {
         expect(await getApprovalMode()).toBe(CONST.POLICY.APPROVAL_MODE.BASIC);
     });
 
+    it('keeps the Smart Limit accessibility label for an integration-managed workflow with OPTIONAL mode', async () => {
+        // Given a workspace with Smart Limit cards, no configured approval mode, and a connected HR workflow source.
+        await setupPolicy({
+            areApprovalsLockedByExpensifyCard: true,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: {
+                    config: {finalApprover: null, approvalMode: CONST.GUSTO.APPROVAL_MODE.CUSTOM},
+                },
+            },
+        });
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then integration guidance remains the visible subtitle, while the Smart Limit lock remains accessible and disabled.
+        expect(querySubtitle(addApprovalsDescription())).toBeOnTheScreen();
+        expect(querySubtitle(smartLimitPrompt())).not.toBeOnTheScreen();
+        const approvalsSwitch = screen.getByRole(CONST.ROLE.SWITCH, {name: lockedSwitchLabel()});
+        expect(approvalsSwitch.props.accessibilityState).toEqual(expect.objectContaining({disabled: true}));
+    });
+
     it.each([
         [CONST.POLICY.APPROVAL_MODE.BASIC, true],
         [CONST.POLICY.APPROVAL_MODE.ADVANCED, true],
