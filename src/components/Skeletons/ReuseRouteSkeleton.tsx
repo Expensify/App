@@ -8,7 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import ItemListSkeletonView from './ItemListSkeletonView';
@@ -33,7 +33,7 @@ function ReuseRouteSkeleton({fixedNumItems = 3}: ReuseRouteSkeletonProps) {
     const thumbnailHeight = (cardWidth - cardPadding * 2) / thumbnailAspectRatio;
     const contentTop = thumbnailHeight + cardPadding * 2;
 
-    const skeletonRow = useCallback((rowTop: number, valueBarWidth: number) => {
+    const skeletonRow = (rowTop: number, valueBarWidth: number) => {
         const barX = rowPaddingHorizontal + iconSize + iconGap;
         return (
             <>
@@ -55,22 +55,20 @@ function ReuseRouteSkeleton({fixedNumItems = 3}: ReuseRouteSkeletonProps) {
                 />
             </>
         );
-    }, []);
+    };
 
-    const skeletonItem = useCallback(() => {
-        return (
-            <>
-                <SkeletonRect
-                    transform={[{translateX: cardPadding}, {translateY: cardPadding}]}
-                    width={cardWidth - cardPadding * 2}
-                    height={thumbnailHeight}
-                    borderRadius={12}
-                />
-                {skeletonRow(contentTop + 8, 140)}
-                {skeletonRow(contentTop + 8 + rowHeight, 110)}
-            </>
-        );
-    }, [cardWidth, thumbnailHeight, contentTop, skeletonRow]);
+    const skeletonItem = () => (
+        <>
+            <SkeletonRect
+                transform={[{translateX: cardPadding}, {translateY: cardPadding}]}
+                width={cardWidth - cardPadding * 2}
+                height={thumbnailHeight}
+                borderRadius={12}
+            />
+            {skeletonRow(contentTop + 8, 140)}
+            {skeletonRow(contentTop + 8 + rowHeight, 110)}
+        </>
+    );
 
     return (
         <View

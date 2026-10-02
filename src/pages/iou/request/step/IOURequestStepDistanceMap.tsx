@@ -199,9 +199,9 @@ function IOURequestStepDistanceMap({
         fetchReusableDistanceRoutes();
     }, [action]);
 
-    const navigateToReuseRoutePage = useCallback(() => {
+    const navigateToReuseRoutePage = () => {
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_REUSE_ROUTE.getRoute(action, iouType, transactionID, reportID));
-    }, [action, iouType, transactionID, reportID]);
+    };
 
     useEffect(() => {
         if (numberOfWaypoints <= numberOfPreviousWaypoints) {
