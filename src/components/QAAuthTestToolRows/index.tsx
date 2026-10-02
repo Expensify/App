@@ -5,13 +5,13 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getCapturedCloudflareAuthCallback} from '@libs/CloudflareAccess/captureAuthCallbackURL';
 import {isQAAuthConfigured} from '@libs/CloudflareAccess/Config';
-import {getCloudflareSignInOutcome} from '@libs/CloudflareAccess/finishSignInFromURL';
 import DateUtils from '@libs/DateUtils';
 
 import type {CloudflareAuthProbeResult, CloudflareAuthProbeStatus} from '@userActions/CloudflareProbe';
 import {runCloudflareAuthProbe} from '@userActions/CloudflareProbe';
-import {clearCloudflareSession, getCloudflareSession} from '@userActions/CloudflareSession';
+import {clearCloudflareSession, getCloudflareCodeExchangeError, getCloudflareSession} from '@userActions/CloudflareSession';
 
 import CONST from '@src/CONST';
 
@@ -31,8 +31,12 @@ function getFailedRedirectResult(): CloudflareAuthProbeResult | null {
     if (getCloudflareSession()) {
         return null;
     }
-    const {outcome, errorMessage} = getCloudflareSignInOutcome();
-    if (outcome === 'not-a-callback' || outcome === 'exchanging') {
+    const exchangeError = getCloudflareCodeExchangeError();
+    if (exchangeError !== undefined) {
+        return {status: 'signInFailed', detail: exchangeError};
+    }
+    const {outcome, errorMessage} = getCapturedCloudflareAuthCallback();
+    if (outcome === 'not-a-callback' || outcome === 'code-captured') {
         return null;
     }
     return {status: 'signInFailed', detail: errorMessage};
@@ -47,7 +51,7 @@ function QAAuthTestToolRows() {
     const {translate, datetimeToCalendarTime} = useLocalize();
 
     const [isOperationRunning, setIsOperationRunning] = useState(false);
-    // Seeded from the boot-time redirect outcome. An in-flight exchange's failure surfaces when Run joins it
+    // Seeded from the boot-time callback, a settled exchange failure included. One that settles after mount surfaces on the next Run
     const [probeResult, setProbeResult] = useState<CloudflareAuthProbeResult | null>(getFailedRedirectResult);
     // Consecutive probes produce identical results, so without a changing element the button reads as dead
     const [probeCompletedAt, setProbeCompletedAt] = useState<string | null>(null);
@@ -66,7 +70,10 @@ function QAAuthTestToolRows() {
                     onPress={() => {
                         setIsOperationRunning(true);
                         // Never rejects. Failures come back as semantic results
-                        runCloudflareAuthProbe({shouldRedirectOnReauthRequired: probeResult?.status === 'reauthRequired'})
+                        runCloudflareAuthProbe({
+                            shouldRedirectOnReauthRequired: probeResult?.status === 'reauthRequired',
+                            shouldRedirectOnSignInFailed: probeResult?.status === 'signInFailed',
+                        })
                             .then((result) => {
                                 setProbeResult(result);
                                 setProbeCompletedAt(DateUtils.getDBTime());

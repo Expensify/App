@@ -10,6 +10,7 @@ import CONST from '@src/CONST';
 
 import {
     redirectToCloudflareSignIn,
+    getCloudflareCodeExchangeError,
     getCloudflareSession,
     getPendingCloudflareCodeExchange,
     isSessionNearExpiry,
@@ -30,13 +31,22 @@ type CloudflareAuthProbeResult = {
 type CloudflareAuthProbeOptions = {
     /** A press made after seeing reauthRequired. It consents to navigation, so a terminal refresh failure redirects instead of reporting again */
     shouldRedirectOnReauthRequired?: boolean;
+
+    /** A press made after seeing signInFailed. This page load's code is spent, so it consents to a fresh round trip */
+    shouldRedirectOnSignInFailed?: boolean;
 };
 
 /**
  * Never rejects. Every failure comes back as a semantic result, so the UI consumes it with `.then` only.
  * With no session (or on a consented re-auth, see the options) it navigates the tab away and never settles.
  */
-async function runCloudflareAuthProbe({shouldRedirectOnReauthRequired = false}: CloudflareAuthProbeOptions = {}): Promise<CloudflareAuthProbeResult> {
+async function runCloudflareAuthProbe({shouldRedirectOnReauthRequired = false, shouldRedirectOnSignInFailed = false}: CloudflareAuthProbeOptions = {}): Promise<CloudflareAuthProbeResult> {
+    // Checked here rather than in isQAAuthConfigured: only the probe reads CHECK_PATH, and an empty one
+    // would otherwise POST to the bare API root
+    if (!CONFIG.QA_AUTH.CHECK_PATH) {
+        return {status: 'error', detail: 'QA_AUTH_CHECK_PATH is not set'};
+    }
+
     try {
         await waitForCloudflareSessionHydration();
         // A callback boot may still be exchanging the code. Join it instead of starting a second round trip
@@ -51,10 +61,16 @@ async function runCloudflareAuthProbe({shouldRedirectOnReauthRequired = false}: 
 
         const session = getCloudflareSession();
         if (!session) {
+            // The exchange may have failed after the rows mounted, when nothing was pending for this press to join.
+            // Redirecting unasked would only replay the same failure
+            const exchangeError = getCloudflareCodeExchangeError();
+            if (exchangeError !== undefined && !shouldRedirectOnSignInFailed) {
+                return {status: 'signInFailed', detail: exchangeError};
+            }
             // Never settles. Nothing below runs
             await redirectToCloudflareSignIn();
         } else if (isSessionNearExpiry(session)) {
-            const refreshResult = await refreshCloudflareSession();
+            const refreshResult = await refreshCloudflareSession(session.accessToken);
             if (refreshResult === 'reauth-required') {
                 if (shouldRedirectOnReauthRequired) {
                     await redirectToCloudflareSignIn();

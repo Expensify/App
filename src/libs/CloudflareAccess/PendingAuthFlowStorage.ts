@@ -98,9 +98,5 @@ function consumePendingAuthFlow(): PendingAuthFlow | null {
     return {state: parsed.state, codeVerifier: parsed.codeVerifier, returnURL: parsed.returnURL, createdAt: parsed.createdAt};
 }
 
-function clearPendingAuthFlow(): void {
-    getSessionStorage()?.removeItem(CONST.SESSION_STORAGE_KEYS.QA_AUTH_REDIRECT_FLOW);
-}
-
-export {clearPendingAuthFlow, consumePendingAuthFlow, savePendingAuthFlow};
+export {consumePendingAuthFlow, savePendingAuthFlow};
 export type {PendingAuthFlow};
