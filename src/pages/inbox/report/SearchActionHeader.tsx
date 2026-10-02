@@ -37,7 +37,7 @@ type SearchActionHeaderProps = {
 
 function SearchActionHeaderContent({action, report, isWhisper, onPress, children}: SearchActionHeaderProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const personalDetailsList = usePersonalDetails();
@@ -59,7 +59,7 @@ function SearchActionHeaderContent({action, report, isWhisper, onPress, children
         parentReport,
         conciergeReportID,
         linkedTransactions,
-        translate,
+        {translate, formatPhoneNumber},
         convertToDisplayString,
         personalDetailsList,
         derivedReportName,

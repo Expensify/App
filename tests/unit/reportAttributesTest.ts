@@ -272,6 +272,7 @@ describe('reportAttributes compute — policy change code flow', () => {
         const args: Parameters<ReportAttributesConfig['compute']>[0] = [
             overrideReports ?? reports, // reports
             undefined, // preferredLocale
+            undefined, // countryCodeByIP
             undefined, // transactionViolations
             undefined, // reportActions
             undefined, // reportNameValuePairs
@@ -800,7 +801,7 @@ describe('reportAttributes compute — policy change code flow', () => {
 
             const reportMetadata: ReportMetadata = {pendingChatMembers: []};
             const args = buildArgs(policies, singleReport);
-            args[12] = {[`${ONYXKEYS.COLLECTION.REPORT_METADATA}r1`]: reportMetadata};
+            args[13] = {[`${ONYXKEYS.COLLECTION.REPORT_METADATA}r1`]: reportMetadata};
 
             config.compute(args, {
                 currentValue: undefined,
