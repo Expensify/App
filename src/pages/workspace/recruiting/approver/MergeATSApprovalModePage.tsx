@@ -11,6 +11,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import useHasApprovalWorkflowRules from '@hooks/useHasApprovalWorkflowRules';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
@@ -58,6 +59,7 @@ function MergeATSApprovalModePage({
     const currentApprovalMode = getMergeATSApprovalMode(policy);
     const {approvalMode: selectedApprovalMode, approverField, finalApprover} = useMergeATSApprovalDraftState(policyID);
     const {setDraftApprovalMode} = useMergeATSApprovalDraftActions();
+    const hasApprovalWorkflowRules = useHasApprovalWorkflowRules(policyID);
 
     // Advanced mode always has an approver field, since that one falls back to the recruiter field, and its final approver is optional.
     const isApproverMissing = selectedApprovalMode === CONST.MERGE.APPROVAL_MODE.BASIC && !finalApprover;
@@ -106,8 +108,11 @@ function MergeATSApprovalModePage({
     };
 
     const confirmSaveApprovalMode = () => {
-        // Only leaving custom replaces the approval routing the admin set up by hand, so that is the only change worth warning about.
-        const shouldConfirm = currentApprovalMode === CONST.MERGE.APPROVAL_MODE.CUSTOM && selectedApprovalMode !== CONST.MERGE.APPROVAL_MODE.CUSTOM;
+        // Leaving custom replaces the approval routing the admin set up by hand. In every mode but custom the recruiting
+        // provider's syncs set the approvers, so the backend also deletes the workspace's approval workflow rules. Those
+        // are the only changes worth warning about.
+        const shouldDeleteApprovalWorkflowRules = hasApprovalWorkflowRules && selectedApprovalMode !== CONST.MERGE.APPROVAL_MODE.CUSTOM;
+        const shouldConfirm = shouldDeleteApprovalWorkflowRules || (currentApprovalMode === CONST.MERGE.APPROVAL_MODE.CUSTOM && selectedApprovalMode !== CONST.MERGE.APPROVAL_MODE.CUSTOM);
         if (!shouldConfirm) {
             saveApprovalMode();
             return;
@@ -117,11 +122,18 @@ function MergeATSApprovalModePage({
             title: translate('workspace.merge.approvalModeWarningTitle'),
             prompt: (
                 <View style={[styles.renderHTML, styles.flexRow]}>
-                    <RenderHTML html={translate('workspace.merge.approvalModeWarningPrompt', providerName, CONST.CONFIGURE_APPROVAL_WORKFLOWS_HELP_URL)} />
+                    <RenderHTML
+                        html={
+                            shouldDeleteApprovalWorkflowRules
+                                ? translate('workspace.merge.approvalModeDeleteWorkflowsWarningPrompt', providerName, CONST.CONFIGURE_APPROVAL_WORKFLOWS_HELP_URL)
+                                : translate('workspace.merge.approvalModeWarningPrompt', providerName, CONST.CONFIGURE_APPROVAL_WORKFLOWS_HELP_URL)
+                        }
+                    />
                 </View>
             ),
             confirmText: translate('workspace.merge.approvalModeWarningConfirm'),
             cancelText: translate('common.cancel'),
+            ...(shouldDeleteApprovalWorkflowRules && {buttonVariant: CONST.BUTTON_VARIANT.DANGER}),
         }).then((result) => {
             if (result?.action !== ModalActions.CONFIRM) {
                 return;
