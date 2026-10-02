@@ -80,6 +80,7 @@ function SettledGroupWrapper({children}: {children: React.ReactNode}) {
                 totalSelectableItemsCount={loadedChildren.length}
                 searchResults={settledGroupedResults}
                 searchHash={SEARCH_HASH}
+                searchHashWithoutFooterSelections={SEARCH_HASH}
                 transactions={undefined}
                 isMobileSelectionModeEnabled={false}
                 type={CONST.SEARCH.DATA_TYPES.EXPENSE}
@@ -113,6 +114,7 @@ function PagingWrapper({children}: {children: React.ReactNode}) {
                 totalSelectableItemsCount={5}
                 searchResults={undefined}
                 searchHash={SEARCH_HASH}
+                searchHashWithoutFooterSelections={SEARCH_HASH}
                 transactions={undefined}
                 isMobileSelectionModeEnabled={false}
                 type={CONST.SEARCH.DATA_TYPES.EXPENSE}
@@ -135,6 +137,7 @@ function TwoGroupWrapper({children}: {children: React.ReactNode}) {
                 totalSelectableItemsCount={4}
                 searchResults={undefined}
                 searchHash={SEARCH_HASH}
+                searchHashWithoutFooterSelections={SEARCH_HASH}
                 transactions={undefined}
                 isMobileSelectionModeEnabled={false}
                 type={CONST.SEARCH.DATA_TYPES.EXPENSE}
@@ -255,6 +258,7 @@ function SearchChangeWrapper({children}: {children: React.ReactNode}) {
                 totalSelectableItemsCount={2}
                 searchResults={groupedSearchResults}
                 searchHash={groupedSearchHash}
+                searchHashWithoutFooterSelections={groupedSearchHash}
                 transactions={undefined}
                 isMobileSelectionModeEnabled={false}
                 type={CONST.SEARCH.DATA_TYPES.EXPENSE}
@@ -277,6 +281,7 @@ function Wrapper({children}: {children: React.ReactNode}) {
                 totalSelectableItemsCount={2}
                 searchResults={undefined}
                 searchHash={groupedSearchHash}
+                searchHashWithoutFooterSelections={groupedSearchHash}
                 transactions={undefined}
                 isMobileSelectionModeEnabled={false}
                 type={CONST.SEARCH.DATA_TYPES.EXPENSE}
@@ -299,6 +304,7 @@ function FlatWrapper({children}: {children: React.ReactNode}) {
                 totalSelectableItemsCount={flatFilteredData.length}
                 searchResults={flatSearchResults}
                 searchHash={SEARCH_HASH}
+                searchHashWithoutFooterSelections={SEARCH_HASH}
                 transactions={undefined}
                 isMobileSelectionModeEnabled={false}
                 type={CONST.SEARCH.DATA_TYPES.EXPENSE}
@@ -322,6 +328,7 @@ function ReportsWrapper({children}: {children: React.ReactNode}) {
                 totalSelectableItemsCount={totalSelectableItemsCount}
                 searchResults={reportSearchResults}
                 searchHash={SEARCH_HASH}
+                searchHashWithoutFooterSelections={SEARCH_HASH}
                 transactions={undefined}
                 isMobileSelectionModeEnabled={false}
                 type={CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}
@@ -358,6 +365,7 @@ function LoadedReportWrapper({children}: {children: React.ReactNode}) {
                 totalSelectableItemsCount={3}
                 searchResults={undefined}
                 searchHash={SEARCH_HASH}
+                searchHashWithoutFooterSelections={SEARCH_HASH}
                 transactions={undefined}
                 isMobileSelectionModeEnabled={false}
                 type={CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}
@@ -387,6 +395,7 @@ function DeletedRowReportWrapper({children}: {children: React.ReactNode}) {
                 totalSelectableItemsCount={2}
                 searchResults={undefined}
                 searchHash={SEARCH_HASH}
+                searchHashWithoutFooterSelections={SEARCH_HASH}
                 transactions={undefined}
                 isMobileSelectionModeEnabled={false}
                 type={CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}
@@ -409,6 +418,7 @@ function ExpenseReportWrapper({children}: {children: React.ReactNode}) {
                 totalSelectableItemsCount={3}
                 searchResults={undefined}
                 searchHash={SEARCH_HASH}
+                searchHashWithoutFooterSelections={SEARCH_HASH}
                 transactions={undefined}
                 isMobileSelectionModeEnabled={false}
                 type={CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}

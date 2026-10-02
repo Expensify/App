@@ -1460,6 +1460,7 @@ function Search({
                 totalSelectableItemsCount={totalSelectableItemsCount}
                 searchResults={searchResults}
                 searchHash={hash}
+                searchHashWithoutFooterSelections={hashWithoutFooterSelections}
                 transactions={transactions}
                 isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                 type={type}
