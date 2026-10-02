@@ -3,11 +3,15 @@ import useIsCompactPopover from '@components/MenuItem/hooks/useIsCompactPopover'
 import useRemoveNonInteractiveClickHandler from '@components/MenuItem/hooks/useRemoveNonInteractiveClickHandler';
 import MenuItemAccessibilityContext, {useMenuItemAccessibility} from '@components/MenuItem/MenuItemAccessibilityContext';
 import {MenuItemConfigContext, MenuItemInteractionContext} from '@components/MenuItem/MenuItemContext';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import MenuItemSecondaryInteractionContext, {useMenuItemSecondaryInteractionRegistry} from '@components/MenuItem/MenuItemSecondaryInteractionContext';
+import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import ControlSelection from '@libs/ControlSelection';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getButtonState from '@libs/getButtonState';
 
 import variables from '@styles/variables';
@@ -16,7 +20,7 @@ import CONST from '@src/CONST';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import type WithTestID from '@src/types/utils/TestID';
 
-import type {PropsWithChildren} from 'react';
+import type {ComponentRef, PropsWithChildren} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 
 import React, {useRef} from 'react';
@@ -28,7 +32,6 @@ type MenuItemRootProps = PropsWithChildren &
         /** Function to fire when the row is pressed */
         onPress?: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
-        /** Whether the menu item is disabled */
         isDisabled?: boolean;
 
         /**
@@ -37,16 +40,24 @@ type MenuItemRootProps = PropsWithChildren &
          * their text statically should pass it.
          */
         accessibilityLabel?: string;
+
+        /**
+         * Styles layered on top of the row's own, e.g. to give it a bordered container. Applied
+         * before the hover/press background so the row keeps its interaction feedback.
+         */
+        style?: StyleProp<ViewStyle>;
     };
 
-function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testID, accessibilityLabel}: MenuItemRootProps) {
+function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testID, accessibilityLabel, style}: MenuItemRootProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const pressableRef = useRef<View>(null);
+    const pressableRef = useRef<ComponentRef<typeof View>>(null);
     const isCompactPopover = useIsCompactPopover();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isInteractive = !!onPress;
 
-    const {accessibilityLabel: derivedAccessibilityLabel, accessibilityActions} = useMenuItemAccessibility();
+    const {accessibilityLabel: derivedAccessibilityLabel, accessibilityHint, accessibilityActions} = useMenuItemAccessibility();
+    const {handler: registeredSecondaryInteraction, register: registerSecondaryInteraction} = useMenuItemSecondaryInteractionRegistry();
 
     useRemoveNonInteractiveClickHandler(pressableRef, isInteractive);
 
@@ -66,19 +77,29 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testI
         onPress?.(event);
     };
 
+    // Left undefined when no sub-component wants it, so the web keeps its native context menu on a plain row
+    const onSecondaryInteractionAction = registeredSecondaryInteraction
+        ? (event: GestureResponderEvent | MouseEvent) => registeredSecondaryInteraction(event, pressableRef.current)
+        : undefined;
+
     return (
         <MenuItemConfigContext.Provider value={{isDisabled, isInteractive}}>
             <Hoverable>
                 {(isHovered) => (
-                    <PressableWithFeedback
+                    <PressableWithSecondaryInteraction
                         onPress={onPressAction}
-                        pressDimmingValue={!isInteractive ? 1 : variables.pressDimValue}
-                        dimAnimationDuration={variables.instantAnimationDuration}
+                        // A long press on a touch device starts a text selection under the context menu the row is about to open, so block it while the press lasts
+                        onPressIn={() => !!onSecondaryInteractionAction && shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
+                        onPressOut={ControlSelection.unblock}
+                        onSecondaryInteraction={onSecondaryInteractionAction}
+                        activeOpacity={!isInteractive ? 1 : variables.pressDimValue}
+                        opacityAnimationDuration={variables.instantAnimationDuration}
                         style={({pressed}) =>
                             [
                                 styles.popoverMenuItem,
                                 !isInteractive && styles.cursorDefault,
                                 isCompactPopover && styles.compactPopoverMenuItemBase,
+                                style,
                                 StyleUtils.getButtonBackgroundColorStyle(getButtonState({isActive: isHovered, isPressed: pressed, isDisabled, isInteractive}), true),
                                 isDisabled && styles.buttonOpacityDisabled,
                                 isHovered && isInteractive && !pressed && styles.hoveredComponentBG,
@@ -88,6 +109,7 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testI
                         ref={pressableRef}
                         role={isInteractive ? CONST.ROLE.BUTTON : undefined}
                         accessibilityLabel={accessibilityLabel ?? derivedAccessibilityLabel}
+                        accessibilityHint={accessibilityHint}
                         accessible
                         tabIndex={isInteractive ? 0 : -1}
                         sentryLabel={sentryLabel}
@@ -95,17 +117,19 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testI
                     >
                         {({pressed}) => (
                             <MenuItemAccessibilityContext.Provider value={accessibilityLabel === undefined ? accessibilityActions : undefined}>
-                                <MenuItemInteractionContext.Provider
-                                    value={{
-                                        isHovered,
-                                        isPressed: pressed,
-                                    }}
-                                >
-                                    <View style={styles.flex1}>{children}</View>
-                                </MenuItemInteractionContext.Provider>
+                                <MenuItemSecondaryInteractionContext.Provider value={registerSecondaryInteraction}>
+                                    <MenuItemInteractionContext.Provider
+                                        value={{
+                                            isHovered,
+                                            isPressed: pressed,
+                                        }}
+                                    >
+                                        <View style={styles.flex1}>{children}</View>
+                                    </MenuItemInteractionContext.Provider>
+                                </MenuItemSecondaryInteractionContext.Provider>
                             </MenuItemAccessibilityContext.Provider>
                         )}
-                    </PressableWithFeedback>
+                    </PressableWithSecondaryInteraction>
                 )}
             </Hoverable>
         </MenuItemConfigContext.Provider>

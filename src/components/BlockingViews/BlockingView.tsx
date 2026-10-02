@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import Lottie from '@components/Lottie';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
@@ -57,25 +57,15 @@ type BaseBlockingViewProps = {
     /** Function to call when pressing the CTA button. The button only renders when this and `buttonTranslationKey` are both provided */
     onButtonPress?: () => void;
 
-    /** Whether we should embed the link with subtitle */
     shouldEmbedLinkWithSubtitle?: boolean;
-
-    /** Render custom subtitle */
     CustomSubtitle?: React.ReactElement;
 
     /** Determines how the image should be resized to fit its container */
     contentFitImage?: ImageContentFit;
 
-    /** Additional styles to apply to the container */
     containerStyle?: StyleProp<ViewStyle>;
-
-    /** Whether to add bottom safe area padding to the view. */
     addBottomSafeAreaPadding?: boolean;
-
-    /** Accessibility label for the view */
     accessibilityLabel?: string;
-
-    /** Whether to add bottom safe area padding to the content. */
     addOfflineIndicatorBottomSafeAreaPadding?: boolean;
 
     /** A testing ID that can be applied to the element on the page */
@@ -86,10 +76,7 @@ type BlockingViewIconProps = {
     /** Expensicon for the page */
     icon: React.FC<SvgProps> | ImageSourcePropType;
 
-    /** The custom icon width */
     iconWidth?: number;
-
-    /** The custom icon height */
     iconHeight?: number;
 
     /** Color for the icon (should be from theme) */
@@ -100,10 +87,7 @@ type BlockingViewAnimationProps = {
     /** Animation for the page */
     animation: DotLottieAnimation;
 
-    /** Style for the animation */
     animationStyles?: StyleProp<ViewStyle>;
-
-    /** Style for the animation on web */
     animationWebStyle?: WebStyle;
 };
 

@@ -56,13 +56,13 @@ Use the `/react-native-best-practices` skill when working on performance-sensiti
 
 ### Memoization
 
-React Compiler auto-memoizes code in components and hooks (excluding `tests/`). Two different compilers run it: `babel-plugin-react-compiler` on native/Jest (see `babel.config.js`) and `oxc-transform-react` on web (see `config/rsbuild/`). They do not behave identically. The compliance check and the ESLint processor run BOTH compilers via the shared helpers in `config/reactCompiler/` and only relax manual-memoization rules when both compilers memoize the file.
+React Compiler auto-memoizes code in components and hooks (excluding `tests/`). Two different compilers run it: `babel-plugin-react-compiler` on native (see `babel.config.js`) and `oxc-transform-react` on web (see `config/rsbuild/`) and under Jest (see `config/babel/oxcJestTransformer.js`). They do not behave identically. The compliance check and the ESLint processor run BOTH compilers via the shared helpers in `config/reactCompiler/` and only relax manual-memoization rules when both compilers memoize the file.
 
 Do not use `useMemo`, `useCallback`, or `React.memo` in components or hooks that compile with React Compiler.
 
 ### Code Quality
 
-- **ESLint**: Linter. Pre-existing violations are grandfathered via [`eslint-seatbelt`](https://github.com/justjake/eslint-seatbelt).
+- **ESLint**: Linter. Pre-existing violations are grandfathered via the seatbelt ratchet in `scripts/lint/`.
 
 ### Post-Edit Checklist (IMPORTANT)
 
@@ -76,6 +76,8 @@ Do not use `useMemo`, `useCallback`, or `React.memo` in components or hooks that
 ### Testing
 
 App tests use Jest. Tests for `.github/` and `scripts/` live in `tests/tooling/` and run under `bun:test` (`npm run test:bun`) — see `tests/tooling/README.md`.
+
+Every test case must be documented with `// Given`, `// When` and `// Then` comments explaining **why** the test does what it does — see [tests/README.md](tests/README.md#documenting-tests).
 
 ## Special Considerations
 

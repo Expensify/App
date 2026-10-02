@@ -4,8 +4,10 @@ import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/Worksp
 
 import useActivePolicy from '@hooks/useActivePolicy';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
+import useHasOwnedPaidPolicy from '@hooks/useHasOwnedPaidPolicy';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -31,16 +33,17 @@ function DynamicWorkspaceConfirmationPage() {
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path);
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const privateSubscription = usePrivateSubscription();
     const isAnnualSubscription = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
     const activePolicy = useActivePolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
+    const hasOwnedPaidPolicy = useHasOwnedPaidPolicy();
 
     // On narrow layout the new workspace is mounted under this RHP and revealed when the modal
     // dismisses (via revealRouteBeforeDismissingModal). The reveal waits for the new screen to lay
@@ -51,7 +54,7 @@ function DynamicWorkspaceConfirmationPage() {
     const onSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
         // policyID is always supplied by WorkspaceConfirmationForm (stable per form instance).
         const policyID = params.policyID;
-        const isDifferentOwner = !!params.owner && params.owner !== (currentUserPersonalDetails.email ?? '');
+        const isDifferentOwner = !!params.owner?.email && params.owner.email !== (currentUserPersonalDetails.email ?? '');
         const shouldShowSuccessPage = isDifferentOwner && !params.makeMeAdmin;
         const workspaceRoute = isSmallScreenWidth ? ROUTES.WORKSPACE_INITIAL.getRoute(policyID) : ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID);
         const routeToNavigate = shouldShowSuccessPage ? ROUTES.WORKSPACE_CONFIRMATION_SUCCESS : workspaceRoute;
@@ -60,7 +63,7 @@ function DynamicWorkspaceConfirmationPage() {
         }
         createWorkspaceWithPolicyDraftAndNavigateToIt({
             introSelected,
-            policyOwnerEmail: params.owner,
+            policyOwner: params.owner,
             policyName: params.name,
             transitionFromOldDot: false,
             makeMeAdmin: params.makeMeAdmin,
@@ -77,9 +80,10 @@ function DynamicWorkspaceConfirmationPage() {
             shouldCreateControlPolicy: isSubscriptionTypeOfInvoicing(privateSubscription?.type),
             type: params.planType,
             isSelfTourViewed,
-            betas,
             hasActiveAdminPolicies,
+            hasOwnedPaidPolicy,
             isAnnualSubscription,
+            delegateAccountID,
         });
     };
     const currentUrl = getCurrentUrl();

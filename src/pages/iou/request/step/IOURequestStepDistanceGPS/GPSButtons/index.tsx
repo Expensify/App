@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import {useSession} from '@components/OnyxListItemProvider';
@@ -12,9 +12,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {initGpsDraft, resumeGpsTrip as resumeGpsTripUtil} from '@libs/actions/GPSDraftDetails';
 import {isTripStopped as isTripStoppedUtil, stopGpsTrip as stopGpsTripUtil} from '@libs/GPSDraftDetailsUtils';
 
-import BackgroundLocationPermissionsFlow from '@pages/iou/request/step/IOURequestStepDistanceGPS/BackgroundLocationPermissionsFlow';
 import {BACKGROUND_LOCATION_TASK_OPTIONS, BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 import {startGpsTripNotification} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
+import useBackgroundLocationPermissionsFlow from '@pages/iou/request/step/IOURequestStepDistanceGPS/useBackgroundLocationPermissionsFlow';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -49,7 +49,6 @@ type ButtonsProps = {
 };
 
 function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowPermissionsError, reportID, unit, gpsPoints}: ButtonsProps) {
-    const [startPermissionsFlow, setStartPermissionsFlow] = useState(false);
     const [showLocationRequiredModal, setShowLocationRequiredModal] = useState(false);
     const [showZeroDistanceModal, setShowZeroDistanceModal] = useState(false);
     const [showDisabledServicesModal, setShowDisabledServicesModal] = useState(false);
@@ -62,19 +61,6 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
     const {translate} = useLocalize();
 
     const isTripStopped = isTripStoppedUtil(gpsDraftDetails);
-
-    const checkSettingsAndPermissions = async () => {
-        setShouldShowStartError(false);
-
-        const hasLocationServicesEnabled = await hasServicesEnabledAsync();
-
-        if (!hasLocationServicesEnabled) {
-            setShowDisabledServicesModal(true);
-            return;
-        }
-
-        setStartPermissionsFlow(true);
-    };
 
     // Returns true if location tracking was successfully initialized, false otherwise
     const initLocationTracking = async (): Promise<boolean> => {
@@ -108,6 +94,26 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
 
         resumeGpsTripUtil(gpsDraftDetails);
         startGpsTripNotification(translate, reportID, unit, gpsDraftDetails?.distanceInMeters);
+    };
+
+    const startPermissionsFlow = useBackgroundLocationPermissionsFlow({
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises -- the flow starts the trip without awaiting it
+        onGrant: isTripStopped ? resumeGpsTrip : startGpsTrip,
+        onDeny: () => setShowLocationRequiredModal(true),
+        onError: () => setShouldShowPermissionsError(true),
+    });
+
+    const checkSettingsAndPermissions = async () => {
+        setShouldShowStartError(false);
+
+        const hasLocationServicesEnabled = await hasServicesEnabledAsync();
+
+        if (!hasLocationServicesEnabled) {
+            setShowDisabledServicesModal(true);
+            return;
+        }
+
+        startPermissionsFlow();
     };
 
     const stopGpsTrip = () => {
@@ -168,15 +174,6 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
                     </View>
                 </GPSTooltip>
             )}
-
-            <BackgroundLocationPermissionsFlow
-                onError={() => setShouldShowPermissionsError(true)}
-                startPermissionsFlow={startPermissionsFlow}
-                setStartPermissionsFlow={setStartPermissionsFlow}
-                // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                onGrant={isTripStopped ? resumeGpsTrip : startGpsTrip}
-                onDeny={() => setShowLocationRequiredModal(true)}
-            />
 
             <ConfirmModal
                 shouldShowCancelButton={false}

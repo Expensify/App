@@ -3,11 +3,13 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isTripPreview} from '@libs/ReportActionsUtils';
+import {getLatestConciergeFeedbackActionIDFromReportActions, isTripPreview} from '@libs/ReportActionsUtils';
 import {
     canCurrentUserOpenReport,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
@@ -18,14 +20,14 @@ import {
 
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {getStableReportSelector} from '@src/selectors/Report';
-import type {Beta, IntroSelected, PersonalDetails, Report, ReportAction, ReportNameValuePairs} from '@src/types/onyx';
+import type {IntroSelected, PersonalDetails, Report, ReportAction, ReportNameValuePairs} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import {personalDetailsSelector} from '@selectors/PersonalDetails';
 import React from 'react';
 
 import ReportActionItem from './ReportActionItem';
@@ -35,49 +37,32 @@ type AncestorReportActionItemProps = {
     /** Report for this action */
     report: Report;
 
-    /** All the data of the action item */
     reportAction: ReportAction;
 
     /** Should we display the new marker on top of the comment? */
     shouldDisplayNewMarker: boolean;
 
-    /** Report name value pairs for the ancestor reports */
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
 
-    /** Beta features list */
-    allBetas: OnyxEntry<Beta[]>;
-
-    /** Concierge personal details */
     conciergePersonalDetail: OnyxEntry<PersonalDetails>;
-
-    /** The user's Concierge reportID */
     conciergeReportID: string | undefined;
-
-    /** Account ID of the current user */
     currentUserAccountID: number;
 
     /** Model of onboarding */
     introSelected: OnyxEntry<IntroSelected>;
 
-    /** If this is the first visible report action */
     isFirstVisibleReportAction: boolean;
-
-    /** Whether the current report is archived */
     isReportArchived: boolean;
 
     /** Whether the user has viewed the self-guided tour */
     isSelfTourViewed: boolean | undefined;
 
-    /** Linked transaction route error */
     linkedTransactionRouteError: Errors | undefined;
-
-    /** Report action belonging to the report's parent */
     parentReportAction: OnyxEntry<ReportAction>;
 
-    /** If the thread divider line will be used */
+    /** Whether the report being viewed allows the Concierge feedback prompt on the message it hangs off */
+    shouldAllowConciergeFeedback: boolean;
     shouldUseThreadDividerLine: boolean;
-
-    /** The transaction thread report associated with the current report, if any */
     transactionThreadReport: OnyxEntry<Report>;
 };
 
@@ -86,7 +71,6 @@ function AncestorReportActionItem({
     reportAction,
     shouldDisplayNewMarker,
     reportNameValuePairs,
-    allBetas,
     conciergePersonalDetail,
     conciergeReportID,
     currentUserAccountID,
@@ -96,21 +80,27 @@ function AncestorReportActionItem({
     isSelfTourViewed,
     linkedTransactionRouteError,
     parentReportAction,
+    shouldAllowConciergeFeedback,
     shouldUseThreadDividerLine,
     transactionThreadReport,
 }: AncestorReportActionItemProps) {
     const styles = useThemeStyles();
     const currentUserPersonalDetail = useCurrentUserPersonalDetails();
-    const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: personalDetailsSelector(report?.ownerAccountID),
-    });
+    const [reportOwnerPersonalDetail] = usePersonalDetail(report?.ownerAccountID);
     const [guideAccountIDs] = useOnyx(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
     const hasGuidesEmails = hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number), guideAccountIDs);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`, {selector: getStableReportSelector});
 
+    const {isBetaEnabled} = usePermissions();
+
+    // The message shown above a thread belongs to the parent report, so its own actions decide whether it is the newest Concierge answer
+    const [latestConciergeFeedbackActionID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.reportID)}`, {
+        selector: getLatestConciergeFeedbackActionIDFromReportActions,
+    });
+
     const shouldDisplayThreadDivider = !isTripPreview(reportAction);
     const isAncestorReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`]);
-    const canOpenAncestorReport = canCurrentUserOpenReport(report, allBetas, hasGuidesEmails, isAncestorReportArchived);
+    const canOpenAncestorReport = canCurrentUserOpenReport(report, isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), hasGuidesEmails, isAncestorReportArchived);
 
     const {isOffline} = useNetwork();
     const {isInNarrowPaneModal} = useResponsiveLayout();
@@ -143,7 +133,6 @@ function AncestorReportActionItem({
             currentUserAccountID,
             introSelected,
             isSelfTourViewed,
-            allBetas,
             reportOwnerPersonalDetail,
             currentUserPersonalDetail,
             conciergePersonalDetail,
@@ -176,6 +165,7 @@ function AncestorReportActionItem({
                 isFirstVisibleReportAction={isFirstVisibleReportAction}
                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                 isThreadReportParentAction
+                isLatestConciergeFeedbackAction={shouldAllowConciergeFeedback && !!latestConciergeFeedbackActionID && latestConciergeFeedbackActionID === reportAction.reportActionID}
                 linkedTransactionRouteError={linkedTransactionRouteError}
             />
         </OfflineWithFeedback>

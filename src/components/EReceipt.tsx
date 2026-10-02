@@ -55,7 +55,6 @@ type OverrideThemeProps = {
 };
 
 type EReceiptProps = {
-    /* TransactionID of the transaction this EReceipt corresponds to */
     transactionID: string | undefined;
 
     /** The transaction data in search */

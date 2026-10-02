@@ -21,10 +21,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 type RejectReasonFormViewProps = {
-    /** Submit function for submitting form */
     onSubmit: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => void;
-
-    /** Submit function for validating form */
     validate: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => Partial<Record<'comment', string | undefined>>;
 
     /** Link to previous page */

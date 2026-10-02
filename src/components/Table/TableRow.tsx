@@ -17,12 +17,13 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import type {GestureResponderEvent, PressableStateCallbackType} from 'react-native';
+import type {GestureResponderEvent, PressableStateCallbackType, ViewStyle} from 'react-native';
 
 import React from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
+import {rendersColumnHeader} from './buildTableListData';
 import getGridTemplateColumns from './getGridTemplateColumns';
 import {assignCellColumnIndexes, getCellAccessibilityProps, getRowAccessibilityProps, shouldUseTableSemantics} from './tableAccessibility';
 import {useTableContext, useTableRowSemanticID} from './TableContext';
@@ -37,10 +38,7 @@ type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible' | 'accessibil
     /** Whether or not the table row is pressable or not */
     interactive: boolean;
 
-    /** Whether or not the table row should be disabled */
     disabled?: boolean;
-
-    /** The index of the row in the table */
     rowIndex: number;
 
     /** Attributes for when the client is offline and there is an error related to the table row */
@@ -51,6 +49,9 @@ type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible' | 'accessibil
 
     /** Optional content rendered below the row grid */
     rowFooter?: React.ReactNode;
+
+    /** Whether the row is a group header, i.e. a row that labels the rows below it instead of holding data */
+    isGroupHeader?: boolean;
 };
 
 export default function TableRow({
@@ -65,6 +66,7 @@ export default function TableRow({
     offlineWithFeedback,
     checkboxReplacementElement,
     rowFooter,
+    isGroupHeader = false,
     id,
     'aria-hidden': ariaHidden,
     focusable,
@@ -87,9 +89,11 @@ export default function TableRow({
         shouldEnableSelectionInNarrowPaneModal = false,
         tableListMetadata,
         dynamicGridTemplateColumns,
+        listProps,
+        shouldFooterRenderAsLastRow,
     } = useTableContext();
     const semanticRowID = useTableRowSemanticID();
-    const semanticTableHasHeader = !tableListMetadata.hasPageHeader || tableListMetadata.shouldRenderStickyHeader;
+    const semanticTableHasHeader = rendersColumnHeader(tableListMetadata);
     const isAccessibilityHidden = semanticRowID === null || ariaHidden === true;
     const inertProps = isAccessibilityHidden ? {inert: true} : {};
 
@@ -109,7 +113,9 @@ export default function TableRow({
 
     const isDisabled = !!disabled || isAccessibilityHidden;
     const isFirstRow = rowIndex === 0;
-    const isLastRow = rowIndex === rowCount - 1;
+    // A footer that continues the rows owns the rounded bottom corners instead of the last row.
+    const doesFooterOwnBottomRadius = !!shouldFooterRenderAsLastRow && !!listProps?.ListFooterComponent;
+    const isLastRow = rowIndex === rowCount - 1 && !doesFooterOwnBottomRadius;
 
     if (selectionEnabled && isSelectionCheckboxVisible) {
         gridTemplateColumns.unshift(`${variables.tableCheckboxColumnWidth}px`);
@@ -125,14 +131,28 @@ export default function TableRow({
         return null;
     }
 
+    // A group header only labels the rows below it, so it sizes to its own content rather than being pinned to a data-row
+    // height, and keeps the same padding on every layout.
+    let rowHeightStyle: ViewStyle | undefined = styles.tableRowHeight;
+    let rowVerticalPaddingStyle: ViewStyle = styles.tableRowVerticalPadding;
+    let rowContentHeightStyle: ViewStyle | undefined = styles.tableRowContentHeight;
+    if (isGroupHeader) {
+        rowHeightStyle = undefined;
+        rowContentHeightStyle = undefined;
+    } else if (shouldUseNarrowTableLayout) {
+        rowHeightStyle = styles.tableRowHeightCompact;
+        rowVerticalPaddingStyle = styles.tableRowVerticalPaddingCompact;
+        rowContentHeightStyle = styles.tableRowContentHeightCompact;
+    }
+
     const tableRowPressableStyles = [
         styles.mh5,
-        styles.highlightBG,
+        isGroupHeader ? styles.hoveredComponentBG : styles.highlightBG,
         styles.userSelectNone,
         !isFirstRow && styles.borderTop,
         isLastRow && styles.tableBottomRadius,
         item.selected && [styles.activeComponentBG, {borderColor: theme.buttonHoveredBG}],
-        shouldUseNarrowTableLayout ? styles.tableRowHeightCompact : styles.tableRowHeight,
+        rowHeightStyle,
     ];
 
     const tableRowContentContainerStyles = [
@@ -141,7 +161,7 @@ export default function TableRow({
         animatedHighlightStyle,
         isLastRow && styles.tableBottomRadius,
         shouldUseNarrowTableLayout ? styles.ph4 : styles.ph3,
-        shouldUseNarrowTableLayout ? styles.pv4 : styles.pv2,
+        rowVerticalPaddingStyle,
     ];
 
     const tableRowContentStyles = [
@@ -151,6 +171,7 @@ export default function TableRow({
         styles.alignContentCenter,
         styles.gap3,
         styles.dFlex,
+        rowContentHeightStyle,
         // Use Grid on web when available (will override flex if supported)
         !shouldUseNarrowTableLayout && [styles.dGrid, {gridTemplateColumns: gridTemplateColumns.join(' ')}],
     ];

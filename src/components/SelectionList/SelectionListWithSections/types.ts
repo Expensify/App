@@ -4,13 +4,10 @@ import type {BaseSelectionListProps} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
 
 import type {ReactElement, ReactNode} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
+import type {LayoutChangeEvent, ScrollViewProps} from 'react-native';
 
 type Section<TItem extends ListItem> = {
-    /** Title of the section */
     title?: string;
-
-    /** Custom header to display */
     customHeader?: ReactElement;
 
     /** Array of items in the section */
@@ -28,25 +25,15 @@ type Section<TItem extends ListItem> = {
  * Extends BaseSelectionListProps with section-specific features.
  */
 type SelectionListWithSectionsProps<TItem extends ListItem> = BaseSelectionListProps<TItem> & {
-    /** Reference to the SelectionList component */
     ref?: React.Ref<SelectionListWithSectionsHandle>;
-
-    /** Array of sections to display in the list */
     sections: Array<Section<TItem>>;
 
     /** Index to scroll to initially (when different from the initially focused item) */
     initialScrollIndex?: number;
 
-    /** Custom content to display in the header */
     customHeaderContent?: ReactNode;
-
-    /** Whether to hide the keyboard when scrolling the list */
     shouldHideKeyboardOnScroll?: boolean;
-
-    /** Callback to fire when the list is scrolled */
     onScroll?: () => void;
-
-    /** Callback to fire when the list layout changes */
     onLayout?: (event: LayoutChangeEvent) => void;
 
     /** Whether to prevent auto-scrolling to the first index when selecting an item in multi-select mode */
@@ -57,6 +44,14 @@ type SelectionListWithSectionsProps<TItem extends ListItem> = BaseSelectionListP
 
     /** Number of lines to show for title text when multiline is supported */
     titleNumberOfLines?: number;
+
+    /**
+     * Passed straight to the underlying list. Defaults to `always`, which a list whose own text input drives its
+     * rows needs: a row press has to land while that input still holds focus. A list whose rows are inputs of their
+     * own (the expense confirmation form) passes `handled` instead, so a tap that no row claims dismisses the
+     * keyboard the way a tap outside a field is expected to.
+     */
+    keyboardShouldPersistTaps?: ScrollViewProps['keyboardShouldPersistTaps'];
 };
 
 type MeasurableInput = unknown;
@@ -82,7 +77,6 @@ type SectionHeader = {
 };
 
 type SectionListItem<TItem extends ListItem> = TItem & {
-    flatIndex: number;
     type: typeof CONST.SECTION_LIST_ITEM_TYPE.ROW;
     /** Unique key for FlashList rendering, containing section info  */
     flatListKey: string;

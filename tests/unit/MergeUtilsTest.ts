@@ -1,6 +1,9 @@
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+
 import DateUtils from '@libs/DateUtils';
 import {
     getMergeFinalApprover,
+    getMergeFinalApproverDisplayName,
     hasMergeAuthenticationError,
     hasMergeSyncError,
     isMergeConnected,
@@ -12,13 +15,12 @@ import {
 import type {MergeConnectionName} from '@libs/merge/MergeUtils';
 
 import CONST from '@src/CONST';
-import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
-import type {ConnectionLastSync, MergeConnectionLastSync} from '@src/types/onyx/Policy';
+import type PersonalDetails from '@src/types/onyx/PersonalDetails';
+import type {ConnectionLastSync, MergeApprovalMode, MergeConnectionLastSync} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 
-import type {ValueOf} from 'type-fest';
-
 import createRandomPolicy from 'tests/utils/collections/policies';
+import {formatPhoneNumber, translateLocal} from 'tests/utils/TestHelper';
 
 const MERGE_HR = CONST.POLICY.CONNECTIONS.NAME.MERGE_HR;
 const MERGE_ATS = CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS;
@@ -43,7 +45,7 @@ function makeLastSync(overrides: Partial<MergeConnectionLastSync> = {}): Connect
 /** The approval config fields the shared Merge utils read, which both Merge HR and Merge ATS have in common. */
 type MergeApprovalConfig = {
     /** Approval mode configured for the connection */
-    approvalMode?: ValueOf<typeof CONST.MERGE.APPROVAL_MODE> | null;
+    approvalMode?: MergeApprovalMode | null;
 
     /** Workspace member who acts as the final approver */
     finalApprover?: string | null;
@@ -57,11 +59,6 @@ function makeMergePolicy(connectionName: MergeConnectionName, lastSync: Partial<
             : {config: {integration: 'greenhouse' as const, approvalMode: null, finalApprover: null, filters: null, approverField: null, ...config}, lastSync: makeLastSync(lastSync)};
 
     return makePolicy({connections: {[connectionName]: connection}});
-}
-
-function stubTranslate<TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>): string;
-function stubTranslate(path: TranslationPaths): string {
-    return path;
 }
 
 const dbTimeHoursAgo = (hoursAgo: number) => DateUtils.subtractMillisecondsFromDateTime(DateUtils.getDBTime(), hoursAgo * 60 * 60 * 1000);
@@ -158,9 +155,9 @@ describe('MergeUtils', () => {
         describe('getMergeFinalApprover', () => {
             const policyWithApprovalConfig = (config: MergeApprovalConfig) => makeMergePolicy(connectionName, {}, config);
 
-            it('returns null when there is no policy or no connection', () => {
-                expect(getMergeFinalApprover(undefined, connectionName)).toBeNull();
-                expect(getMergeFinalApprover(makePolicy(), connectionName)).toBeNull();
+            it('returns undefined when there is no policy or no connection', () => {
+                expect(getMergeFinalApprover(undefined, connectionName)).toBeUndefined();
+                expect(getMergeFinalApprover(makePolicy(), connectionName)).toBeUndefined();
             });
 
             it('returns the finalApprover when in basic mode', () => {
@@ -173,19 +170,24 @@ describe('MergeUtils', () => {
                 expect(getMergeFinalApprover(policy, connectionName)).toBe('boss@company.com');
             });
 
-            it('returns null when in custom mode', () => {
-                const policy = policyWithApprovalConfig({approvalMode: CONST.MERGE.APPROVAL_MODE.CUSTOM, finalApprover: 'boss@company.com'});
-                expect(getMergeFinalApprover(policy, connectionName)).toBeNull();
+            it('returns the finalApprover when in advanced mode, where it is optional', () => {
+                const policy = policyWithApprovalConfig({approvalMode: CONST.MERGE.APPROVAL_MODE.ADVANCED, finalApprover: 'boss@company.com'});
+                expect(getMergeFinalApprover(policy, connectionName)).toBe('boss@company.com');
             });
 
-            it('returns null when the finalApprover is not set', () => {
+            it('returns undefined when in custom mode, which routes approvals by hand instead', () => {
+                const policy = policyWithApprovalConfig({approvalMode: CONST.MERGE.APPROVAL_MODE.CUSTOM, finalApprover: 'boss@company.com'});
+                expect(getMergeFinalApprover(policy, connectionName)).toBeUndefined();
+            });
+
+            it('returns undefined when the finalApprover is not set', () => {
                 const policy = policyWithApprovalConfig({approvalMode: CONST.MERGE.APPROVAL_MODE.MANAGER, finalApprover: null});
-                expect(getMergeFinalApprover(policy, connectionName)).toBeNull();
+                expect(getMergeFinalApprover(policy, connectionName)).toBeUndefined();
             });
 
             it('ignores the final approver configured on the other Merge connection', () => {
                 const policy = makeMergePolicy(otherConnectionName, {}, {approvalMode: CONST.MERGE.APPROVAL_MODE.BASIC, finalApprover: 'boss@company.com'});
-                expect(getMergeFinalApprover(policy, connectionName)).toBeNull();
+                expect(getMergeFinalApprover(policy, connectionName)).toBeUndefined();
             });
         });
 
@@ -220,6 +222,56 @@ describe('MergeUtils', () => {
         });
     });
 
+    describe('getMergeFinalApproverDisplayName', () => {
+        const APPROVER_LOGIN = 'boss@company.com';
+        const SMS_LOGIN = '+15551234567@expensify.sms';
+
+        const personalDetailsFor = (login: string, overrides: Partial<PersonalDetails> = {}): PersonalDetailsByLogin => ({
+            [login]: {accountID: 42, login, ...overrides},
+        });
+
+        it('returns "not set" when there is no final approver', () => {
+            // Given a connection with no final approver configured
+            // When the approver's display name is resolved
+            // Then the missing approver is called out rather than left blank
+            expect(getMergeFinalApproverDisplayName(undefined, {}, translateLocal, formatPhoneNumber)).toBe('workspace.merge.notSet');
+            expect(getMergeFinalApproverDisplayName(null, {}, translateLocal, formatPhoneNumber)).toBe('workspace.merge.notSet');
+            expect(getMergeFinalApproverDisplayName('', {}, translateLocal, formatPhoneNumber)).toBe('workspace.merge.notSet');
+        });
+
+        it('returns the display name when the approver is a known workspace member', () => {
+            // Given a final approver who is a workspace member with a display name
+            // When the approver's display name is resolved
+            // Then their display name is shown instead of their login
+            const personalDetails = personalDetailsFor(APPROVER_LOGIN, {displayName: 'Boss Man'});
+            expect(getMergeFinalApproverDisplayName(APPROVER_LOGIN, personalDetails, translateLocal, formatPhoneNumber)).toBe('Boss Man');
+        });
+
+        it('falls back to the login when the approver is not among the workspace members', () => {
+            // Given a final approver whose personal details are not loaded
+            // When the approver's display name is resolved
+            // Then their login is shown
+            expect(getMergeFinalApproverDisplayName(APPROVER_LOGIN, {}, translateLocal, formatPhoneNumber)).toBe(APPROVER_LOGIN);
+            expect(getMergeFinalApproverDisplayName(APPROVER_LOGIN, personalDetailsFor('someone.else@company.com'), translateLocal, formatPhoneNumber)).toBe(APPROVER_LOGIN);
+        });
+
+        it('falls back to the login when the approver has no display name set', () => {
+            // Given a final approver who is a workspace member but has not set a display name
+            // When the approver's display name is resolved
+            // Then their login is shown rather than "hidden"
+            expect(getMergeFinalApproverDisplayName(APPROVER_LOGIN, personalDetailsFor(APPROVER_LOGIN), translateLocal, formatPhoneNumber)).toBe(APPROVER_LOGIN);
+            expect(getMergeFinalApproverDisplayName(APPROVER_LOGIN, personalDetailsFor(APPROVER_LOGIN, {displayName: ''}), translateLocal, formatPhoneNumber)).toBe(APPROVER_LOGIN);
+        });
+
+        it('formats the phone number of an SMS approver who has no display name of their own', () => {
+            // Given a final approver who signed up with a phone number, so their display name is their SMS login
+            // When the approver's display name is resolved
+            // Then the phone number is formatted for display
+            const personalDetails = personalDetailsFor(SMS_LOGIN, {displayName: SMS_LOGIN});
+            expect(getMergeFinalApproverDisplayName(SMS_LOGIN, personalDetails, translateLocal, formatPhoneNumber)).toBe(formatPhoneNumber(SMS_LOGIN));
+        });
+    });
+
     describe('showMergeManualSyncLimitModalIfReached', () => {
         const showConfirmModal: jest.MockedFunction<Parameters<typeof showMergeManualSyncLimitModalIfReached>[3]> = jest.fn();
 
@@ -230,14 +282,14 @@ describe('MergeUtils', () => {
         it.each(MERGE_CONNECTIONS)('allows the sync and shows no modal when the %s limit has not been reached', (connectionName) => {
             const policy = makeMergePolicy(connectionName, {manualSyncTimestamps: [dbTimeHoursAgo(1)]});
 
-            expect(showMergeManualSyncLimitModalIfReached(policy, connectionName, stubTranslate, showConfirmModal)).toBe(false);
+            expect(showMergeManualSyncLimitModalIfReached(policy, connectionName, translateLocal, showConfirmModal)).toBe(false);
             expect(showConfirmModal).not.toHaveBeenCalled();
         });
 
         it.each(MERGE_CONNECTIONS)('blocks the sync and shows the modal when the %s limit has been reached', (connectionName) => {
             const policy = makeMergePolicy(connectionName, {manualSyncTimestamps: [dbTimeHoursAgo(1), dbTimeHoursAgo(10)]});
 
-            expect(showMergeManualSyncLimitModalIfReached(policy, connectionName, stubTranslate, showConfirmModal)).toBe(true);
+            expect(showMergeManualSyncLimitModalIfReached(policy, connectionName, translateLocal, showConfirmModal)).toBe(true);
             expect(showConfirmModal).toHaveBeenCalledTimes(1);
             expect(showConfirmModal).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -258,7 +310,7 @@ describe('MergeUtils', () => {
                 },
             });
 
-            expect(showMergeManualSyncLimitModalIfReached(policy, CONST.POLICY.CONNECTIONS.NAME.GUSTO, stubTranslate, showConfirmModal)).toBe(false);
+            expect(showMergeManualSyncLimitModalIfReached(policy, CONST.POLICY.CONNECTIONS.NAME.GUSTO, translateLocal, showConfirmModal)).toBe(false);
             expect(showConfirmModal).not.toHaveBeenCalled();
         });
     });
