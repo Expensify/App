@@ -1,3 +1,4 @@
+/** Decides whether a failed `ReplaceReceipt` can be retried and rebuilds the call from Onyx. */
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
 
 import type {ReplaceReceipt, ReplaceReceiptRetryParams} from '@userActions/IOU/Receipt';
@@ -77,6 +78,7 @@ function buildReplaceReceiptRetryPayload(context: ReceiptRetryContext, receiptFi
 
     return {
         transaction,
+        // `replaceReceipt` only reads `FileObject` fields; native callers pass this same shape, cast to `File` the same way.
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         file: receiptFile as File,
         source: receiptError.source,
