@@ -1,5 +1,4 @@
 import Badge from '@components/Badge';
-import ConfirmedRoute from '@components/ConfirmedRoute';
 import Icon from '@components/Icon';
 import ReceiptImage from '@components/ReceiptImage';
 import SelectableListItem from '@components/SelectionList/ListItem/SelectableListItem';
@@ -8,22 +7,16 @@ import Text from '@components/Text';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getRoute} from '@libs/actions/Transaction';
-import getArrayDepth from '@libs/getArrayDepth';
 import {formatLastUsed, getRouteEndpoints, getRouteThumbnailSource} from '@libs/ReusableDistanceRoutesUtils';
-import {getSelectedRouteKey} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
 
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReusableDistanceRoute} from '@src/types/onyx';
-import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
-import React, {useEffect} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type ReuseRouteListItemData = ListItem & {
@@ -37,53 +30,23 @@ function isReuseRouteListItemData(item: ListItem): item is ReuseRouteListItemDat
 type ReuseRouteThumbnailProps = {
     transactionID: string;
     receiptSource?: string;
-    waypoints: WaypointCollection;
 };
 
 /**
- * Thumbnail for a single reuse-route card. Renders the same live map as the report
- * preview card, which auto-fits the route. Falls back to the static map receipt when
- * the route geometry is not available in Onyx.
+ * Thumbnail for a single reuse-route card. Shows the source expense receipt, which for
+ * distance expenses is the stored map image of the route. It is centered and cropped to
+ * fill the card area.
  */
-function ReuseRouteThumbnail({transactionID, receiptSource, waypoints}: ReuseRouteThumbnailProps) {
+function ReuseRouteThumbnail({transactionID, receiptSource}: ReuseRouteThumbnailProps) {
     const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['Receipt']);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
-
-    const routeKey = transaction ? getSelectedRouteKey(transaction) : '';
-    const coordinates = transaction?.routes?.[routeKey]?.geometry?.coordinates ?? [];
-    const hasRouteGeometry = getArrayDepth(coordinates) === 3 ? coordinates.flat().length > 0 : coordinates.length > 0;
-
-    useEffect(() => {
-        // Route geometry is never stored server-side, so other surfaces get it on demand via
-        // the GetRoute command, which writes it into the transaction's Onyx record.
-        if (transaction && hasRouteGeometry) {
-            return;
-        }
-        getRoute(transactionID, waypoints);
-    }, [transaction, hasRouteGeometry, transactionID, waypoints]);
-
-    if (transaction && hasRouteGeometry) {
-        return (
-            <ConfirmedRoute
-                transaction={transaction}
-                shouldHaveBorderRadius={false}
-                interactive={false}
-                // Static card preview, the camera fit runs on mount so animating it serves no purpose
-                shouldAnimate={false}
-            />
-        );
-    }
-
-    if (!receiptSource) {
-        return null;
-    }
 
     return (
         <ReceiptImage
             source={receiptSource}
             transactionID={transactionID}
             shouldUseThumbnailImage
+            shouldUseInitialObjectPosition
             isAuthTokenRequired
             fallbackIcon={icons.Receipt}
             fallbackIconSize={variables.iconSizeExtraLarge}
@@ -127,7 +90,6 @@ function ReuseRouteListItem<TItem extends ListItem>({item, isFocused, isFocusVis
                     <ReuseRouteThumbnail
                         transactionID={item.route.transactionID}
                         receiptSource={thumbnailSource}
-                        waypoints={item.route.waypoints}
                     />
                 </View>
             </View>
