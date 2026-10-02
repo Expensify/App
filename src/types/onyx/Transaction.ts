@@ -324,7 +324,7 @@ type ReceiptError = {
     action?: string;
 
     /** Parameters required to retry the failed action */
-    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceiptRetryParams;
+    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceiptRetryParams | string;
 
     error: typeof CONST.IOU.RECEIPT_ERROR;
 };
