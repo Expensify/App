@@ -43,13 +43,15 @@ function getCardFingerprint(transaction: Transaction | undefined): string {
 
 /**
  * The card fields, plus what the other cards filter or group by: reimbursable, merchant and category.
- * `pendingAction` moves it again once the server accepts a write, since a refetch sent before that can miss it.
+ * The pending flag moves it again once the server accepts a write, since a refetch sent before that can miss it.
+ * A new expense sets `pendingAction`, an edit only sets `pendingFields`.
  */
 function getFingerprint(transaction: Transaction | undefined, cardFingerprint: string): string {
     if (!transaction) {
         return '';
     }
-    return [cardFingerprint, transaction.reimbursable, transaction.merchant, transaction.modifiedMerchant, transaction.category, transaction.pendingAction].join('|');
+    const hasPendingWrite = !!transaction.pendingAction || Object.values(transaction.pendingFields ?? {}).some((pendingField) => !!pendingField);
+    return [cardFingerprint, transaction.reimbursable, transaction.merchant, transaction.modifiedMerchant, transaction.category, hasPendingWrite].join('|');
 }
 
 function getSeenTransaction(transaction: Transaction | undefined): SeenTransaction {

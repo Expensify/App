@@ -207,6 +207,22 @@ describe('spendDataSignature', () => {
         expect(result).toEqual({expenses: 1, cardExpenses: 0});
     });
 
+    it('moves only the expense counter again when the server accepts an edit', () => {
+        // Given an expense edited offline, which marks only the edited field as pending, not the whole expense
+        const pending: Transaction = {...makeTransaction('1', CARD_ID), modifiedAmount: 7777, pendingFields: {amount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}};
+        seedBaseline({[transactionKey('1')]: pending});
+
+        // When the edit is replayed and the server clears the pending field, leaving every other field as it was
+        const accepted: OnyxCollection<Transaction> = {[transactionKey('1')]: {...pending, pendingFields: {amount: null}}};
+        const result = spendDataSignatureConfig.compute([accepted, cardList], {
+            currentValue: {expenses: 0, cardExpenses: 0},
+            sourceValues: {[ONYXKEYS.COLLECTION.TRANSACTION]: accepted},
+        });
+
+        // Then the expense counter moves, because a chart refetch sent with the replay may show the old amount
+        expect(result).toEqual({expenses: 1, cardExpenses: 0});
+    });
+
     it('moves both counters when a card expense is deleted', () => {
         // Given a card expense the derived value has already seen
         const stored: OnyxCollection<Transaction> = {[transactionKey('1')]: makeTransaction('1', CARD_ID)};
