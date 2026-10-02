@@ -7,7 +7,9 @@ internalScope: Audience is Expensify Cardholders. Covers adding an Expensify Car
 
 # Add the Expensify Card to Apple Pay or Google Wallet
 
-You can use your Expensify Card (currently available for US cardholders only) for contactless in-person payments by adding it to Apple Pay or Google Wallet. Support for UK/EU cardholders will be available towards the end of 2026.
+You can use your Expensify Card for contactless in-person payments by adding it to Apple Pay or Google Wallet.
+- Please note that the ability to add the Expensify Card to Apple Pay or Google Wallet is currently available for US cardholders only.
+- Support for UK/EU cardholders will be available towards the end of 2026.
 
 ---
 
