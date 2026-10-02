@@ -3476,8 +3476,8 @@ ${amount} για ${merchant} - ${date}`,
         },
         interestedFeatures: {
             title: 'Σε ποιες δυνατότητες ενδιαφέρεστε;',
-            featuresAlreadyEnabled: 'Αυτά είναι τα πιο δημοφιλή χαρακτηριστικά μας:',
-            featureYouMayBeInterestedIn: 'Ενεργοποιήστε πρόσθετες λειτουργίες:',
+            featuresAlreadyEnabled: 'Δημοφιλείς λειτουργίες',
+            featureYouMayBeInterestedIn: 'Πρόσθετες λειτουργίες',
         },
         error: {
             requiredFirstName: 'Παρακαλούμε εισαγάγετε το μικρό σας όνομα για να συνεχίσετε',

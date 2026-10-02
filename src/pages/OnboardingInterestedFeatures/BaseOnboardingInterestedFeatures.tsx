@@ -3,18 +3,19 @@ import Checkbox from '@components/Checkbox';
 import FixedFooter from '@components/FixedFooter';
 import Icon from '@components/Icon';
 import OnboardingHeader from '@components/OnboardingHeader';
-import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 
 import useCompleteOnboarding from '@hooks/useCompleteOnboarding';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {
@@ -29,6 +30,8 @@ import type {OnboardingFeatureMapItem} from '@libs/actions/Welcome/OnboardingFea
 import Navigation from '@libs/Navigation/Navigation';
 import {isGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -41,8 +44,11 @@ import type {BaseOnboardingInterestedFeaturesProps, Feature, SectionObject} from
 
 function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardingInterestedFeaturesProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const theme = useTheme();
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['FolderOpen', 'Accounting', 'CompanyCard', 'Workflows', 'Rules', 'Car', 'Tag', 'PerDiem', 'HandCard', 'Luggage', 'Clock']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Checkmark']);
 
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -68,19 +74,39 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 case CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED:
                     return {...feature, title: translate('workspace.moreFeatures.workflows.title'), icon: illustrations.Workflows};
                 case CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED:
-                    return {...feature, title: translate('workspace.moreFeatures.travel.title'), icon: illustrations.Luggage};
+                    return {...feature, title: translate('workspace.moreFeatures.travel.title'), subtitle: translate('workspace.moreFeatures.travel.subtitle'), icon: illustrations.Luggage};
                 case CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED:
-                    return {...feature, title: translate('workspace.moreFeatures.rules.title'), icon: illustrations.Rules};
+                    return {...feature, title: translate('workspace.moreFeatures.rules.title'), subtitle: translate('workspace.moreFeatures.rules.subtitle'), icon: illustrations.Rules};
                 case CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED:
-                    return {...feature, title: translate('workspace.moreFeatures.distanceRates.title'), icon: illustrations.Car};
+                    return {
+                        ...feature,
+                        title: translate('workspace.moreFeatures.distanceRates.title'),
+                        subtitle: translate('workspace.moreFeatures.distanceRates.subtitle'),
+                        icon: illustrations.Car,
+                    };
                 case CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED:
-                    return {...feature, title: translate('workspace.moreFeatures.expensifyCard.title'), icon: illustrations.HandCard};
+                    return {
+                        ...feature,
+                        title: translate('workspace.moreFeatures.expensifyCard.title'),
+                        subtitle: translate('workspace.moreFeatures.expensifyCard.subtitle'),
+                        icon: illustrations.HandCard,
+                    };
                 case CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED:
-                    return {...feature, title: translate('workspace.moreFeatures.tags.title'), icon: illustrations.Tag};
+                    return {...feature, title: translate('workspace.moreFeatures.tags.title'), subtitle: translate('workspace.moreFeatures.tags.subtitle'), icon: illustrations.Tag};
                 case CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED:
-                    return {...feature, title: translate('workspace.moreFeatures.perDiem.title'), icon: illustrations.PerDiem};
+                    return {
+                        ...feature,
+                        title: translate('workspace.moreFeatures.perDiem.title'),
+                        subtitle: translate('workspace.moreFeatures.perDiem.subtitle'),
+                        icon: illustrations.PerDiem,
+                    };
                 case CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED:
-                    return {...feature, title: translate('workspace.moreFeatures.timeTracking.title'), icon: illustrations.Clock};
+                    return {
+                        ...feature,
+                        title: translate('workspace.moreFeatures.timeTracking.title'),
+                        subtitle: translate('workspace.moreFeatures.timeTracking.subtitle'),
+                        icon: illustrations.Clock,
+                    };
                 default:
                     return {...feature, title: feature.id, icon: illustrations.FolderOpen};
             }
@@ -183,41 +209,52 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     const renderItem = useCallback(
         (item: Feature) => {
             const isSelected = selectedFeatures.includes(item.id);
+            const accessibilityLabel = item.subtitle ? `${item.title}. ${item.subtitle}` : item.title;
             return (
-                <PressableWithoutFeedback
+                <Checkbox
                     key={item.id}
-                    onPress={() => {
-                        handleFeatureSelect(item.id);
-                    }}
-                    accessibilityLabel={item.title}
-                    accessible={false}
-                    hoverStyle={styles.hoveredComponentBG}
-                    style={[
-                        styles.onboardingInterestedFeaturesItem,
-                        // 48.5% handles the gap between columns and keeps items aligned when the scrollbar appears
-                        isSmallScreenWidth ? styles.flexBasis100 : {flexBasis: '48.5%', maxWidth: '48.5%'},
+                    accessibilityLabel={accessibilityLabel}
+                    isChecked={isSelected}
+                    onPress={() => handleFeatureSelect(item.id)}
+                    wrapperStyle={[
+                        styles.onboardingInterestedFeaturesItemWrapper,
+                        isSmallScreenWidth ? styles.onboardingInterestedFeaturesItemNarrow : styles.onboardingInterestedFeaturesItemWide,
                     ]}
+                    style={[styles.onboardingInterestedFeaturesItem, isSelected && styles.onboardingInterestedFeaturesItemSelected]}
                     sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.INTERESTED_FEATURES_ITEM}
                 >
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                    <View style={[styles.onboardingInterestedFeaturesItemContent, styles.gap3]}>
                         <Icon
                             src={item.icon}
                             width={48}
                             height={48}
                         />
-                        <Text style={[styles.textStrong]}>{item.title}</Text>
+                        <View style={styles.onboardingInterestedFeaturesItemText}>
+                            <Text style={[styles.textStrong, styles.textAlignCenter]}>{item.title}</Text>
+                            {!!item.subtitle && <Text style={[styles.textSmall, styles.textAlignCenter, styles.mt1]}>{item.subtitle}</Text>}
+                        </View>
                     </View>
-                    <Checkbox
-                        accessibilityLabel={item.title}
-                        isChecked={isSelected}
-                        onPress={() => {
-                            handleFeatureSelect(item.id);
-                        }}
-                    />
-                </PressableWithoutFeedback>
+                    <View
+                        style={[
+                            StyleUtils.getSelectionButtonContainerStyle(20, variables.componentBorderRadiusSmall),
+                            styles.onboardingInterestedFeaturesSelectionButton,
+                            isSelected && styles.checkedContainer,
+                            isSelected && styles.borderColorFocus,
+                        ]}
+                    >
+                        {isSelected && (
+                            <Icon
+                                src={expensifyIcons.Checkmark}
+                                fill={theme.textLight}
+                                height={14}
+                                width={14}
+                            />
+                        )}
+                    </View>
+                </Checkbox>
             );
         },
-        [styles, isSmallScreenWidth, selectedFeatures, handleFeatureSelect],
+        [StyleUtils, expensifyIcons.Checkmark, handleFeatureSelect, isSmallScreenWidth, selectedFeatures, styles, theme.textLight],
     );
 
     const renderSection = useCallback(

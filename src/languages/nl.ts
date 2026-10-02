@@ -3419,8 +3419,8 @@ ${amount} voor ${merchant} - ${date}`,
         },
         interestedFeatures: {
             title: 'In welke functies ben je geïnteresseerd?',
-            featuresAlreadyEnabled: 'Hier zijn onze populairste functies:',
-            featureYouMayBeInterestedIn: 'Schakel extra functies in:',
+            featuresAlreadyEnabled: 'Populaire functies',
+            featureYouMayBeInterestedIn: 'Extra functies',
         },
         error: {
             requiredFirstName: 'Voer je voornaam in om door te gaan',
