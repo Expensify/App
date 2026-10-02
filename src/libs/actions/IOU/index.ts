@@ -1,3 +1,5 @@
+import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -156,6 +158,12 @@ function getAllSnapshots(): OnyxCollection<OnyxTypes.SearchResults> {
     return allSnapshots;
 }
 
+function getIOUAndChatReportForIOUAction(reportAction: OnyxEntry<OnyxTypes.ReportAction>, reports: OnyxCollection<OnyxTypes.Report>) {
+    const iouReportID = isMoneyRequestAction(reportAction) ? reportAction.reportID : undefined;
+    const iouReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
+    return {iouReport, chatReport: reports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`]};
+}
+
 export {
     getAllPersonalDetails,
     getAllTransactions,
@@ -169,4 +177,5 @@ export {
     getCurrentUserAccountIDFromSession,
     getRecentAttendees,
     getAllSnapshots,
+    getIOUAndChatReportForIOUAction,
 };
