@@ -209,12 +209,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             usedApproverEmails,
         });
 
-        // Creating a workflow is plan-gated, the same way adding one from the Workflows tab is.
+        // Creating a workflow is plan-gated, the same way adding one from the Workflows tab is. The `approvals`
+        // upgrade is the only one that fits, since the create page this returns to runs on Control alone.
         const backTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID);
-        if (tryNavigateToSubmitWorkspaceUpgrade(policy, true, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.alias, backTo)) {
-            return;
-        }
-
         if (!isControlPolicy(policy)) {
             Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias, backTo));
             return;
