@@ -114,6 +114,7 @@ function TagPickerModal({
                     onSubmit={handleTagSelected}
                     addBottomSafeAreaPadding={isSmallScreenWidth && !isKeyboardActive}
                     shouldAutoFocusSearchInput
+                    searchInputThreshold={CONST.INLINE_EDIT_PICKER_SEARCH_INPUT_THRESHOLD}
                 />
             </View>
         </PopoverWithMeasuredContent>

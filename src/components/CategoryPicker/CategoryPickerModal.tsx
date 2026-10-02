@@ -34,6 +34,9 @@ type CategoryPickerModalProps = {
 
     selectedCategory?: string;
 
+    /** Whether to show GL codes under each category regardless of the workspace setting */
+    shouldAlwaysShowGLCode?: boolean;
+
     /** Called when the user confirms a category selection */
     onSelected?: (item: ListItem) => void;
 } & Omit<PopoverWithMeasuredContentProps, 'anchorRef' | 'children' | 'onClose'>;
@@ -44,6 +47,7 @@ function CategoryPickerModal({
     anchorPosition,
     policyID,
     selectedCategory,
+    shouldAlwaysShowGLCode = false,
     onSelected,
     anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
     shouldMeasureAnchorPositionFromTop = false,
@@ -89,6 +93,8 @@ function CategoryPickerModal({
                     onSubmit={handleCategorySelect}
                     addBottomSafeAreaPadding={isSmallScreenWidth && !isKeyboardActive}
                     shouldAutoFocusSearchInput
+                    shouldAlwaysShowGLCode={shouldAlwaysShowGLCode}
+                    searchInputThreshold={CONST.INLINE_EDIT_PICKER_SEARCH_INPUT_THRESHOLD}
                 />
             </View>
         </PopoverWithMeasuredContent>

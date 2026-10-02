@@ -1511,6 +1511,16 @@ function getGLCodeFromPolicyTag(tag: {['GL Code']?: string | number} | undefined
 }
 
 /**
+ * Whether at least one selectable tag on the workspace, in any tag list, has a non-blank GL code. Disabled and
+ * pending-deletion tags can't be picked in the tag picker, so their GL codes don't count.
+ */
+function hasAnyTagGLCode(policyTagLists: OnyxEntry<PolicyTagLists>): boolean {
+    return getTagLists(policyTagLists).some((tagList) =>
+        Object.values(tagList.tags ?? {}).some((tag) => !!tag?.enabled && tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!getGLCodeFromPolicyTag(tag).trim()),
+    );
+}
+
+/**
  * Escape colon from tag name
  */
 function escapeTagName(tag: string) {
@@ -3814,6 +3824,7 @@ export {
     getLengthOfTag,
     getTagGLCode,
     getGLCodeFromPolicyTag,
+    hasAnyTagGLCode,
     isPolicyMemberWithoutPendingDelete,
     hasDynamicExternalWorkflow,
     shouldHideDynamicExternalWorkflowPeople,

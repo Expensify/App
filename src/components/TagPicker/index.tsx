@@ -62,6 +62,9 @@ type TagPickerProps = {
 
     /** Whether the search input should auto-focus when the picker mounts. Only opted into by the inline-edit popover wrapper. */
     shouldAutoFocusSearchInput?: boolean;
+
+    /** Number of available tags at which the search input appears. Defaults to `CONST.STANDARD_LIST_ITEM_LIMIT`. */
+    searchInputThreshold?: number;
 };
 
 const getSelectedOptions = (selectedTag: string): SelectedTagOption[] => {
@@ -91,6 +94,7 @@ function TagPicker({
     addBottomSafeAreaPadding = false,
     shouldShowGLCode: shouldShowGLCodeProp,
     shouldAutoFocusSearchInput = false,
+    searchInputThreshold = CONST.STANDARD_LIST_ITEM_LIMIT,
 }: TagPickerProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const [shouldShowGLCodeFromPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
@@ -183,7 +187,7 @@ function TagPicker({
                 listItemTitleStyles: styles.w100,
             }}
             textInputOptions={textInputOptions}
-            shouldShowTextInput={availableTagsCount >= CONST.STANDARD_LIST_ITEM_LIMIT}
+            shouldShowTextInput={availableTagsCount >= searchInputThreshold}
             initiallyFocusedItemKey={selectedOptionKey}
             onSelectRow={onSubmit}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}

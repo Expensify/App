@@ -39,6 +39,15 @@ type CategoryPickerProps = {
 
     /** Whether the search input should auto-focus when the picker mounts. Only opted into by the inline-edit popover wrapper. */
     shouldAutoFocusSearchInput?: boolean;
+
+    /**
+     * Whether to show GL codes regardless of the workspace setting. When false, CategoryPicker reads
+     * `showCategoryGLCodes && glCodes` from the policy in Onyx.
+     */
+    shouldAlwaysShowGLCode?: boolean;
+
+    /** Number of enabled categories at which the search input appears. Defaults to `CONST.STANDARD_LIST_ITEM_LIMIT`. */
+    searchInputThreshold?: number;
 };
 
 const getSelectedOptions = (selectedCategory?: string): Category[] => {
@@ -55,12 +64,22 @@ const getSelectedOptions = (selectedCategory?: string): Category[] => {
     ];
 };
 
-function CategoryPicker({selectedCategory, policyID, onSubmit, shouldShowNoneOption = false, addBottomSafeAreaPadding = false, shouldAutoFocusSearchInput = false}: CategoryPickerProps) {
+function CategoryPicker({
+    selectedCategory,
+    policyID,
+    onSubmit,
+    shouldShowNoneOption = false,
+    addBottomSafeAreaPadding = false,
+    shouldAutoFocusSearchInput = false,
+    shouldAlwaysShowGLCode = false,
+    searchInputThreshold = CONST.STANDARD_LIST_ITEM_LIMIT,
+}: CategoryPickerProps) {
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
-    const [shouldShowGLCode] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(policyID)}`, {
+    const [shouldShowGLCodeFromPolicy] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(policyID)}`, {
         selector: (policy) => !!policy?.showCategoryGLCodes && !!policy?.glCodes,
     });
+    const shouldShowGLCode = shouldAlwaysShowGLCode || !!shouldShowGLCodeFromPolicy;
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${getNonEmptyStringOnyxID(policyID)}`);
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
@@ -125,7 +144,7 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, shouldShowNoneOpt
             sections={sectionsWithNoneOption}
             onSelectRow={onSubmit}
             ListItem={SingleSelectListItem}
-            shouldShowTextInput={categoriesCount >= CONST.STANDARD_LIST_ITEM_LIMIT}
+            shouldShowTextInput={categoriesCount >= searchInputThreshold}
             textInputOptions={textInputOptions}
             initiallyFocusedItemKey={selectedOptionKey}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
