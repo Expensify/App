@@ -91,4 +91,4 @@ function retryReceiptUpload(context: ReceiptRetryContext, onDispatched?: () => P
 }
 
 export default retryReceiptUpload;
-export {canBuildRetryPayload, canRetryReceiptUpload};
+export {canRetryReceiptUpload};
