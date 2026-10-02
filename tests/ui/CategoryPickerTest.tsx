@@ -113,7 +113,7 @@ describe('CategoryPicker', () => {
             <CategoryPicker
                 policyID={POLICY_ID}
                 onSubmit={jest.fn()}
-                shouldShowGLCode
+                shouldAlwaysShowGLCode
             />,
         );
 

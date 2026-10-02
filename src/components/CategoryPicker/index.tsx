@@ -41,10 +41,10 @@ type CategoryPickerProps = {
     shouldAutoFocusSearchInput?: boolean;
 
     /**
-     * Optional override for whether to show GL codes. When omitted, CategoryPicker reads
+     * Whether to show GL codes regardless of the workspace setting. When false, CategoryPicker reads
      * `showCategoryGLCodes && glCodes` from the policy in Onyx.
      */
-    shouldShowGLCode?: boolean;
+    shouldAlwaysShowGLCode?: boolean;
 };
 
 const getSelectedOptions = (selectedCategory?: string): Category[] => {
@@ -68,14 +68,14 @@ function CategoryPicker({
     shouldShowNoneOption = false,
     addBottomSafeAreaPadding = false,
     shouldAutoFocusSearchInput = false,
-    shouldShowGLCode: shouldShowGLCodeProp,
+    shouldAlwaysShowGLCode = false,
 }: CategoryPickerProps) {
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
     const [shouldShowGLCodeFromPolicy] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(policyID)}`, {
         selector: (policy) => !!policy?.showCategoryGLCodes && !!policy?.glCodes,
     });
-    const shouldShowGLCode = shouldShowGLCodeProp ?? shouldShowGLCodeFromPolicy;
+    const shouldShowGLCode = shouldAlwaysShowGLCode || !!shouldShowGLCodeFromPolicy;
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${getNonEmptyStringOnyxID(policyID)}`);
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);

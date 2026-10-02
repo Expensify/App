@@ -52,7 +52,7 @@ function CategoryGLCodeCell({shouldShowTooltip, transactionItem, canEdit, onSave
                 <CategoryPickerModal
                     policyID={policyID}
                     selectedCategory={categoryForComparison}
-                    shouldShowGLCode
+                    shouldAlwaysShowGLCode
                     isVisible={isPopoverVisible}
                     onClose={cancelEditing}
                     anchorPosition={popoverPosition}
