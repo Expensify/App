@@ -229,7 +229,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
         const {mergedPRs: mergedPREntries, submoduleUpdates} = await GitUtils.getMergedPRsDeployedBetween(previousChecklistData.tag, newStagingTag, CONST.APP_REPO);
         const mergedPRs = mergedPREntries.map((pr) => pr.prNumber).sort((a, b) => a - b);
 
-        // Internal QA PRs are listed in their own section, so a cherry-picked one would otherwise reappear in the next checklist
+        // Previous PRs should include PRs and internalQA items
         const previousPRNumbers = new Set([...previousChecklistData.PRList, ...previousChecklistData.internalQAPRList].map((pr) => pr.number));
         const previousMobileExpensifyPRNumbers = new Set(previousChecklistData.PRListMobileExpensify.map((pr) => pr.number));
         core.startGroup('Filtering PRs:');
