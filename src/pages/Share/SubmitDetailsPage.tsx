@@ -65,6 +65,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Report as ReportType} from '@src/types/onyx';
 import type {Receipt} from '@src/types/onyx/Transaction';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {StackScreenProps} from '@react-navigation/stack';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -95,7 +96,8 @@ function SubmitDetailsPage({
     const draftReportID = unknownUserDetails ? unknownUserDetails.reportID : routeReportID;
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${draftReportID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
+    const [transaction, transactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
+    const isLoadingTransaction = isLoadingOnyxValue(transactionMetadata);
     const transactionReport = useReportOrReportDraft(transaction?.reportID);
     const [reportNameValuePair] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(transactionReport?.reportID)}`);
     const iouType = isSelfDM(report) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
@@ -183,6 +185,10 @@ function SubmitDetailsPage({
     }, [errorTitle, errorMessage]);
 
     useEffect(() => {
+        if (isLoadingTransaction) {
+            return;
+        }
+
         initMoneyRequest({
             reportID: reportOrAccountID,
             policy,
@@ -198,7 +204,7 @@ function SubmitDetailsPage({
         // Populate transaction.participants so IOURequestStepReport can highlight the destination (mirrors other expense flows).
         setMoneyRequestParticipantsFromReport(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, report, currentUserPersonalDetails.accountID);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportOrAccountID, policy, personalPolicy, report, parentReport, currentDate, currentUserPersonalDetails.accountID, hasOnlyPersonalPolicies]);
+    }, [reportOrAccountID, policy, personalPolicy, report, parentReport, currentDate, currentUserPersonalDetails.accountID, hasOnlyPersonalPolicies, isLoadingTransaction]);
 
     // Use the branch-aware values computed above: for a share that needs conversion (e.g. HEIC), these resolve to the
     // converted JPEG from VALIDATED_FILE_OBJECT; otherwise they fall back to the raw attachment. Re-deriving from
@@ -210,11 +216,11 @@ function SubmitDetailsPage({
 
     // Seed the draft so isScanRequest() returns true (enables compact mode + receipt rendering).
     useEffect(() => {
-        if (!sharedFileSource) {
+        if (isLoadingTransaction || !sharedFileSource || transaction?.receipt?.source) {
             return;
         }
         setMoneyRequestReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, sharedFileSource, sharedFileName, true, sharedFileType);
-    }, [sharedFileSource, sharedFileName, sharedFileType]);
+    }, [isLoadingTransaction, sharedFileSource, sharedFileName, sharedFileType, transaction?.receipt?.source]);
 
     // Prefer the draft receipt (reflects Replace/Crop) for both display and upload — keeps them in sync.
     const currentReceiptSource = typeof transaction?.receipt?.source === 'string' ? transaction.receipt.source : sharedFileSource;
