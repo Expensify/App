@@ -5,14 +5,16 @@ import Text from '@components/Text';
 
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsLists from '@hooks/useCardsLists';
+import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useSelectionListSearch from '@hooks/useSelectionListSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getRilletExpensifyCardAccountCode} from '@libs/AccountingUtils';
 import {clearRilletErrorField, updateRilletCardProgramAccount} from '@libs/actions/connections/Rillet';
 import {findMatchingCards} from '@libs/CardFeedUtils';
-import {getCustomOrFormattedFeedName} from '@libs/CardUtils';
+import {getCustomOrFormattedFeedName, isExpensifyCardFullySetUp, splitCardFeedWithDomainID} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {sortDefaultToTop} from '@libs/ListUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -53,15 +55,20 @@ function RilletCardProgramAccountSelector({
     const [cardFeeds] = useCardFeeds(policyID);
     const cardFeed = cardFeeds?.[feedWithDomainID];
     const [cardLists] = useCardsLists();
-    const feedKey = cardFeed?.feed;
+    const isExpensifyCard = splitCardFeedWithDomainID(feedWithDomainID)?.feedName === CONST.EXPENSIFY_CARD.BANK;
+    const feedKey = isExpensifyCard ? CONST.EXPENSIFY_CARD.BANK : cardFeed?.feed;
+    const expensifyCardFeeds = useExpensifyCardFeeds(policyID);
+    const isExpensifyCardsEnabled = Object.values(expensifyCardFeeds ?? {}).some((cardSettings) => isExpensifyCardFullySetUp(policy, cardSettings));
     const rilletConfig = policy?.connections?.rillet?.config;
     const rilletData = policy?.connections?.rillet?.data;
     const creditCardAccountCode = rilletConfig?.export?.creditCardAccountCode;
     const cardProgramsUsingCustomAccounts = rilletConfig?.export?.cardProgramAccounts;
-    const cardProgramAccountCode = (feedKey ? cardProgramsUsingCustomAccounts?.[feedKey] : undefined) ?? creditCardAccountCode;
-    const hasActiveCards = feedKey && findMatchingCards(cardFeeds ?? {}, cardLists, feedKey).length > 0;
+    const cardProgramAccountCode = isExpensifyCard
+        ? getRilletExpensifyCardAccountCode(policy)
+        : ((feedKey ? cardProgramsUsingCustomAccounts?.[feedKey] : undefined) ?? creditCardAccountCode);
+    const hasActiveCards = isExpensifyCard ? isExpensifyCardsEnabled : feedKey && findMatchingCards(cardFeeds ?? {}, cardLists, feedKey).length > 0;
     const title = getCustomOrFormattedFeedName(translate, feedKey, cardFeed?.customFeedName, false);
-    const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_RILLET_CARD_PROGRAM_ACCOUNT.getRoute(policyID) : undefined;
+    const backPath = policyID ? (isExpensifyCard ? ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT : ROUTES.POLICY_ACCOUNTING_RILLET_CARD_PROGRAM_ACCOUNT).getRoute(policyID) : undefined;
 
     const data: AccountListItem[] =
         rilletData?.accounts
@@ -99,9 +106,9 @@ function RilletCardProgramAccountSelector({
 
     const selectCreditCardAccount = (item: AccountListItem) => {
         if (item.value !== cardProgramAccountCode && policyID && feedKey) {
-            // Choosing the default account clears the custom account
-            const value = item.value === creditCardAccountCode ? '' : item.value;
-            const oldValue = cardProgramAccountCode === creditCardAccountCode ? undefined : cardProgramAccountCode;
+            // Expensify Card needs an explicit selection to override a saved legacy account
+            const value = !isExpensifyCard && item.value === creditCardAccountCode ? '' : item.value;
+            const oldValue = cardProgramsUsingCustomAccounts?.[feedKey];
             updateRilletCardProgramAccount(policyID, feedKey, value, oldValue);
         }
         Navigation.goBack(backPath);
