@@ -45,6 +45,9 @@ type CategoryPickerProps = {
      * `showCategoryGLCodes && glCodes` from the policy in Onyx.
      */
     shouldAlwaysShowGLCode?: boolean;
+
+    /** Number of enabled categories at which the search input appears. Defaults to `CONST.STANDARD_LIST_ITEM_LIMIT`. */
+    searchInputThreshold?: number;
 };
 
 const getSelectedOptions = (selectedCategory?: string): Category[] => {
@@ -69,6 +72,7 @@ function CategoryPicker({
     addBottomSafeAreaPadding = false,
     shouldAutoFocusSearchInput = false,
     shouldAlwaysShowGLCode = false,
+    searchInputThreshold = CONST.STANDARD_LIST_ITEM_LIMIT,
 }: CategoryPickerProps) {
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -140,7 +144,7 @@ function CategoryPicker({
             sections={sectionsWithNoneOption}
             onSelectRow={onSubmit}
             ListItem={SingleSelectListItem}
-            shouldShowTextInput={categoriesCount >= CONST.STANDARD_LIST_ITEM_LIMIT}
+            shouldShowTextInput={categoriesCount >= searchInputThreshold}
             textInputOptions={textInputOptions}
             initiallyFocusedItemKey={selectedOptionKey}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}

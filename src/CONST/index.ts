@@ -5795,6 +5795,8 @@ const CONST = {
     FORM_CHARACTER_LIMIT: 50,
     STANDARD_LENGTH_LIMIT: 100,
     STANDARD_LIST_ITEM_LIMIT: 12,
+    // The inline category/tag pickers in the expense table are small popovers, so they show the search input sooner than the full-page pickers.
+    INLINE_EDIT_PICKER_SEARCH_INPUT_THRESHOLD: 8,
     SEARCH_BAR_THRESHOLD: 3,
     // Number of approval workflow cards rendered before the "Load more" affordance on Workspace → Workflows.
     WORKFLOW_APPROVALS_INITIAL_BATCH: 5,

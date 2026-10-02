@@ -5,6 +5,7 @@ import SelectionListWithSections from '@components/SelectionList/SelectionListWi
 
 import useOnyx from '@hooks/useOnyx';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyCategories} from '@src/types/onyx';
 
@@ -144,5 +145,53 @@ describe('CategoryPicker', () => {
         for (const key of requestedKeys) {
             expect(collectionKeys).not.toContain(key);
         }
+    });
+
+    describe('search input threshold', () => {
+        const EIGHT_CATEGORIES = Object.fromEntries(
+            Array.from({length: CONST.INLINE_EDIT_PICKER_SEARCH_INPUT_THRESHOLD}, (_, index) => {
+                const name = `Category ${index}`;
+                return [name, makeCategory(name, `${index}`)];
+            }),
+        );
+
+        beforeEach(() => {
+            mockedUseOnyxWithoutSnapshots.mockReturnValue([false, {status: 'loaded'}]);
+            mockedUseOnyx.mockImplementation((key) => {
+                if (key === `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`) {
+                    return [EIGHT_CATEGORIES, {status: 'loaded'}];
+                }
+                return [undefined, {status: 'loaded'}];
+            });
+        });
+
+        it('hides the search input on the full-page picker until there are 12 categories', () => {
+            // Given a workspace with 8 enabled categories, fewer than the full-page threshold of 12
+            // When the picker renders with the default threshold, as the full-page pickers do
+            render(
+                <CategoryPicker
+                    policyID={POLICY_ID}
+                    onSubmit={jest.fn()}
+                />,
+            );
+
+            // Then the search input stays hidden
+            expect(jest.mocked(SelectionListWithSections).mock.lastCall?.[0].shouldShowTextInput).toBe(false);
+        });
+
+        it('shows the search input on the inline picker once there are 8 categories', () => {
+            // Given the same 8 enabled categories
+            // When the picker renders with the lower threshold the inline expense-table popover passes
+            render(
+                <CategoryPicker
+                    policyID={POLICY_ID}
+                    onSubmit={jest.fn()}
+                    searchInputThreshold={CONST.INLINE_EDIT_PICKER_SEARCH_INPUT_THRESHOLD}
+                />,
+            );
+
+            // Then the search input is shown
+            expect(jest.mocked(SelectionListWithSections).mock.lastCall?.[0].shouldShowTextInput).toBe(true);
+        });
     });
 });

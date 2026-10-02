@@ -92,6 +92,7 @@ function CategoryPickerModal({
                     addBottomSafeAreaPadding={isSmallScreenWidth && !isKeyboardActive}
                     shouldAutoFocusSearchInput
                     shouldAlwaysShowGLCode={shouldAlwaysShowGLCode}
+                    searchInputThreshold={CONST.INLINE_EDIT_PICKER_SEARCH_INPUT_THRESHOLD}
                 />
             </View>
         </PopoverWithMeasuredContent>
