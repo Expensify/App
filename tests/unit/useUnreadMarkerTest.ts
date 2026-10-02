@@ -115,6 +115,21 @@ describe('useUnreadMarker', () => {
         expect(result.current.unreadMarkerReportActionIndex).toBe(-1);
     });
 
+    it('ignores a filtered oldestUnread pagination anchor', () => {
+        const exportAction = makeAction('export', {
+            actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+            originalMessage: {label: CONST.EXPORT_LABELS.NETSUITE, lastModified: '2023-01-01 11:00:00.000'},
+        });
+        const {result} = renderUnreadMarker({
+            sortedVisibleReportActions: [exportAction],
+            oldestUnreadReportActionID: exportAction.reportActionID,
+            hasOnceLoadedReportActions: false,
+        });
+
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+        expect(result.current.unreadMarkerReportActionIndex).toBe(-1);
+    });
+
     it('clears the marker when an unreadAction event advances the unread marker time past the message', () => {
         const {result} = renderUnreadMarker({sortedVisibleReportActions: [makeAction('m1')]});
         expect(result.current.unreadMarkerReportActionID).toBe('m1');
@@ -125,6 +140,40 @@ describe('useUnreadMarker', () => {
 
         expect(result.current.unreadMarkerReportActionID).toBeNull();
         expect(result.current.unreadMarkerReportActionIndex).toBe(-1);
+    });
+
+    it('shows the marker when a message is manually marked unread', () => {
+        mockLastReadTime = '2023-01-01 12:00:00.000';
+        const {result} = renderUnreadMarker({sortedVisibleReportActions: [makeAction('m1')]});
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+
+        act(() => {
+            DeviceEventEmitter.emit(`unreadAction_${REPORT_ID}`, LAST_READ_TIME);
+        });
+
+        expect(result.current.unreadMarkerReportActionID).toBe('m1');
+    });
+
+    it('shows the marker for a new message received while scrolled up', () => {
+        const oldMessage = makeAction('old', {created: '2023-01-01 09:00:00.000'});
+        const {result, rerender} = renderHook(
+            (sortedVisibleReportActions: OnyxTypes.ReportAction[]) =>
+                useUnreadMarker({
+                    reportID: REPORT_ID,
+                    sortedVisibleReportActions,
+                    sortedReportActions: sortedVisibleReportActions,
+                    oldestUnreadReportActionID: undefined,
+                    isScrolledOverThreshold: true,
+                    hasOnceLoadedReportActions: true,
+                }),
+            {initialProps: [oldMessage]},
+        );
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+
+        const incoming = makeAction('incoming');
+        rerender([incoming, oldMessage]);
+
+        expect(result.current.unreadMarkerReportActionID).toBe('incoming');
     });
 
     it('does not push the read watermark on a bulk history reveal without a session boundary (marker appears on the next render)', () => {
