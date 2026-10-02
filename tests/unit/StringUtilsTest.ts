@@ -196,4 +196,50 @@ second
             expect(result.charCodeAt(5)).toBe(0xa0);
         });
     });
+
+    describe('truncate', () => {
+        it('returns the string unchanged when it fits', () => {
+            // Given a string no longer than the limit
+            const text = 'abc';
+
+            // When it is truncated to its own length
+            const result = StringUtils.truncate(text, 3);
+
+            // Then it is not changed
+            expect(result).toBe('abc');
+        });
+
+        it('cuts a long string to the limit', () => {
+            // Given a string longer than the limit, like a long single-line label
+            const text = '0'.repeat(10241);
+
+            // When it is truncated
+            const result = StringUtils.truncate(text, 1000);
+
+            // Then only the first 1000 characters are kept
+            expect(result).toBe('0'.repeat(1000));
+        });
+
+        it('does not split a surrogate pair at the limit', () => {
+            // Given an emoji (two UTF-16 code units) that straddles the limit
+            const text = 'ab😊c';
+
+            // When the limit falls between the two halves of the emoji
+            const result = StringUtils.truncate(text, 3);
+
+            // Then the whole emoji is dropped so no lone surrogate is rendered
+            expect(result).toBe('ab');
+        });
+
+        it('keeps a surrogate pair that ends exactly at the limit', () => {
+            // Given an emoji that ends exactly at the limit
+            const text = 'ab😊c';
+
+            // When the limit falls right after the emoji
+            const result = StringUtils.truncate(text, 4);
+
+            // Then the emoji is kept whole
+            expect(result).toBe('ab😊');
+        });
+    });
 });
