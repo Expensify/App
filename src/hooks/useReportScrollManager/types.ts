@@ -14,9 +14,7 @@ type ScrollToIndexOptions = {
 type ReportScrollManagerData = {
     /**
      * Scroll to a list index. `isEditing` suppresses the scroll (web only, defaults to `false`).
-     * Omitting `animated` keeps each platform's default: web animates, native jumps. Two callers override it —
-     * ReportActionItemMessageEdit passes `false` for its Android Chrome keyboard hack, and the action-badge
-     * follow-scroll passes `true` so native animates like web.
+     * Omitting `animated` keeps each platform's default: web animates, native jumps.
      */
     scrollToIndex: (index: number, options?: ScrollToIndexOptions) => void;
     scrollToBottom: () => void;
