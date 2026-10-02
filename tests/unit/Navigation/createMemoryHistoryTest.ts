@@ -5,6 +5,8 @@ type MemoryHistory = {
     push: (options: {path: string; state: NavigationState}) => void;
     go: (distance: number) => Promise<void> | undefined;
     listen: (listener: () => void) => () => void;
+    // Exposed by our `initial` patch on @react-navigation/native
+    items: Array<{path: string; state: NavigationState; id: string}>;
 };
 
 const {
@@ -47,6 +49,8 @@ describe('createMemoryHistory', () => {
         const stopListening = history.listen(listener);
 
         const navigation = history.go(-1);
+        // `window.history.go` is mocked, so set the browser state the way a real traversal would. Otherwise the library treats the traversal as failed
+        window.history.replaceState({id: history.items.at(0)?.id}, '', '/r/1');
         jest.advanceTimersByTime(900);
         window.dispatchEvent(new PopStateEvent('popstate'));
 
@@ -61,17 +65,21 @@ describe('createMemoryHistory', () => {
         const listener = jest.fn();
         const stopListening = history.listen(listener);
         const resolved = jest.fn();
+        const rejected = jest.fn();
 
         const navigation = history.go(-1);
-        navigation?.then(resolved);
+        navigation?.then(resolved, rejected);
 
         jest.advanceTimersByTime(999);
         await Promise.resolve();
         expect(resolved).not.toHaveBeenCalled();
+        expect(rejected).not.toHaveBeenCalled();
 
+        // The traversal never happened, so the library rejects instead of letting callers write history for an entry the browser never landed on
         jest.advanceTimersByTime(1);
-        await expect(navigation).resolves.toBeUndefined();
-        expect(resolved).toHaveBeenCalledTimes(1);
+        await expect(navigation).rejects.toThrow('History was changed during navigation.');
+        expect(resolved).not.toHaveBeenCalled();
+        expect(rejected).toHaveBeenCalledTimes(1);
 
         window.dispatchEvent(new PopStateEvent('popstate'));
         expect(listener).toHaveBeenCalledTimes(1);

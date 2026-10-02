@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-tab-view/src/PagerViewAdapter.tsx b/node_modules/react-native-tab-view/src/PagerViewAdapter.tsx
-index 0000001..01e208c 100644
+index d66b0cb..01e208c 100644
 --- a/node_modules/react-native-tab-view/src/PagerViewAdapter.tsx
 +++ b/node_modules/react-native-tab-view/src/PagerViewAdapter.tsx
 @@ -57,14 +57,28 @@ export function PagerViewAdapter<T extends Route>({
