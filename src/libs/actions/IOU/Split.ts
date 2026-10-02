@@ -2378,7 +2378,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         {onWriteStarted: isMoneyRequestReport ? undefined : () => notifyNewAction(activeReportID, undefined, true)},
     );
 
-    if (isFromGlobalCreate) {
+    if (isFromGlobalCreate && iouType !== CONST.IOU.TYPE.SPLIT) {
         signalExpenseAddedGrowl(parameters.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
     }
 

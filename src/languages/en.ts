@@ -3263,6 +3263,8 @@ const translations = {
             updateAvatar: "There was a problem updating this agent's avatar",
         },
     },
+    agentPromptUpdated: ({updatedBy, previousPrompt, newPrompt}: {updatedBy: string; previousPrompt: string; newPrompt: string}) =>
+        `${updatedBy} updated this agent's instructions.\nPrevious instructions:\n${previousPrompt}\nNew instructions:\n${newPrompt}`,
     newAgentPage: {
         title: 'New agent',
         buildCustomAgent: 'Build custom agent',
@@ -5653,6 +5655,9 @@ const translations = {
             journalEntriesProvTaxPostingAccount: 'Journal entries provincial tax posting account',
             foreignCurrencyAmount: 'Export foreign currency amount',
             exportToNextOpenPeriod: 'Export to next open period',
+            exportToNextOpenPeriodLockedSubtitle: 'To disable export to next open period, first disable split non-reimbursable exports by period.',
+            splitExportsByPostingPeriod: 'Split exports by posting period',
+            splitExportsByPostingPeriodSubtitle: 'Enable export to next open period to enable split non-reimbursable exports by period in NetSuite',
             nonReimbursableJournalPostingAccount: 'Non-reimbursable journal posting account',
             reimbursableJournalPostingAccount: 'Reimbursable journal posting account',
             journalPostingPreference: {

@@ -3148,6 +3148,8 @@ ${amount} per ${merchant} - ${date}`,
             updateAvatar: "Si è verificato un problema durante l'aggiornamento dell'avatar di questo agente",
         },
     },
+    agentPromptUpdated: ({updatedBy, previousPrompt, newPrompt}: {updatedBy: string; previousPrompt: string; newPrompt: string}) =>
+        `${updatedBy} ha aggiornato le istruzioni di questo agente.\nIstruzioni precedenti:\n${previousPrompt}\nNuove istruzioni:\n${newPrompt}`,
     newAgentPage: {
         title: 'Nuovo agente',
         buildCustomAgent: 'Crea un agente personalizzato',
@@ -5476,6 +5478,9 @@ ${amount} per ${merchant} - ${date}`,
             journalEntriesProvTaxPostingAccount: 'Conto di registrazione contabile dell’imposta provinciale',
             foreignCurrencyAmount: 'Esporta importo in valuta estera',
             exportToNextOpenPeriod: 'Esporta nel prossimo periodo aperto',
+            exportToNextOpenPeriodLockedSubtitle: "Per disattivare l'esportazione nel prossimo periodo aperto, disattiva prima la divisione delle esportazioni non rimborsabili per periodo.",
+            splitExportsByPostingPeriod: 'Dividi le esportazioni per periodo di registrazione',
+            splitExportsByPostingPeriodSubtitle: "Attiva l'esportazione nel prossimo periodo aperto per abilitare la divisione delle esportazioni non rimborsabili per periodo in NetSuite",
             nonReimbursableJournalPostingAccount: 'Conto di registrazione per spese non rimborsabili',
             reimbursableJournalPostingAccount: 'Conto di registrazione per rimborsabili',
             journalPostingPreference: {

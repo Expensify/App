@@ -14,7 +14,8 @@ const mockIsSearchTopmostFullScreenRoute = jest.fn<boolean, []>();
 const mockIsReportOpenInRHP = jest.fn<ReturnType<typeof isReportOpenInRHP>, Parameters<typeof isReportOpenInRHP>>();
 const mockGetIsNarrowLayout = jest.fn<boolean, []>();
 const mockGetCurrentRoute = jest.fn<{params?: Record<string, unknown>} | undefined, []>();
-const mockGetFocusedReportId = jest.fn<string | undefined, []>();
+const mockGetFocusedReportId = jest.fn<string | undefined, [unknown]>();
+const mockGetRootState = jest.fn<unknown, []>(() => ({routes: []}));
 
 function buildTransaction(transactionID: string): Transaction {
     return {transactionID, reportID: 'iou-1', amount: 0, created: '', currency: CONST.CURRENCY.USD, merchant: '', comment: {}};
@@ -34,11 +35,9 @@ jest.mock('@libs/actions/TransactionThreadNavigation', () => ({
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     getActiveRoute: jest.fn(() => ''),
-    getFocusedReportId: () => mockGetFocusedReportId(),
+    getFocusedReportId: (state: unknown) => mockGetFocusedReportId(state),
     navigationRef: {
-        getRootState: jest.fn(() => ({
-            routes: [],
-        })),
+        getRootState: () => mockGetRootState(),
         current: {
             getCurrentRoute: () => mockGetCurrentRoute(),
         },
@@ -55,6 +54,7 @@ describe('navigateToCreatedExpense', () => {
         mockIsReportOpenInRHP.mockReturnValue(false);
         mockGetCurrentRoute.mockReturnValue(undefined);
         mockGetFocusedReportId.mockReturnValue(undefined);
+        mockGetRootState.mockReturnValue({routes: []});
     });
 
     it('should do nothing when the user already has the transaction thread open', async () => {
@@ -288,5 +288,27 @@ describe('navigateToCreatedExpense', () => {
         // Then the transaction thread still opens in the Spend RHP
         expect(Navigation.navigate).toHaveBeenCalledTimes(1);
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: 'thread-1', backTo: ''}), {forceReplace: false});
+    });
+
+    it('should do nothing when the transaction thread is open in an RHP the navigation state has not synced yet', async () => {
+        // Given the thread was just opened in the RHP, so only the root state shows it as focused
+        const rootState = {routes: [{name: 'RightModalNavigator'}]};
+        mockGetRootState.mockReturnValue(rootState);
+        mockGetFocusedReportId.mockImplementation((state) => (state === rootState ? 'thread-1' : 'iou-1'));
+        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+        mockGetIsNarrowLayout.mockReturnValue(true);
+        mockIsReportOpenInRHP.mockReturnValue(true);
+
+        // When the user presses "View"
+        navigateToCreatedExpense({
+            threadReportID: 'thread-1',
+            transactionID: 'txn-1',
+            iouReportID: 'iou-1',
+            reportTransactions: [buildTransaction('txn-1'), buildTransaction('txn-2')],
+        });
+        await waitForBatchedUpdates();
+
+        // Then nothing happens, since the user is already looking at the thread
+        expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 });

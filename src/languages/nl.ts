@@ -3152,6 +3152,8 @@ ${amount} voor ${merchant} - ${date}`,
             updateAvatar: 'Er is een probleem opgetreden bij het bijwerken van de avatar van deze agent',
         },
     },
+    agentPromptUpdated: ({updatedBy, previousPrompt, newPrompt}: {updatedBy: string; previousPrompt: string; newPrompt: string}) =>
+        `${updatedBy} heeft de instructies van deze agent bijgewerkt.\nVorige instructies:\n${previousPrompt}\nNieuwe instructies:\n${newPrompt}`,
     newAgentPage: {
         title: 'Nieuwe agent',
         buildCustomAgent: 'Eigen agent bouwen',
@@ -5475,6 +5477,9 @@ ${amount} voor ${merchant} - ${date}`,
             journalEntriesProvTaxPostingAccount: 'Boekingen provinciale belastingboekingsrekening',
             foreignCurrencyAmount: 'Bedrag in vreemde valuta exporteren',
             exportToNextOpenPeriod: 'Exporteren naar volgende open periode',
+            exportToNextOpenPeriodLockedSubtitle: 'Om exporteren naar de volgende open periode uit te schakelen, schakel eerst het splitsen van niet-vergoedbare exports per periode uit.',
+            splitExportsByPostingPeriod: 'Exports splitsen per boekingsperiode',
+            splitExportsByPostingPeriodSubtitle: 'Schakel exporteren naar de volgende open periode in om het splitsen van niet-vergoedbare exports per periode in NetSuite in te schakelen',
             nonReimbursableJournalPostingAccount: 'Niet-vergoedbaar journaalboekkostenrekening',
             reimbursableJournalPostingAccount: 'Boekhoudrekening voor terugbetaalbare boeking',
             journalPostingPreference: {
