@@ -58,7 +58,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
             if (!selectedTransaction.transactionID) {
                 return reportCollection;
             }
-            // eslint-disable-next-line no-param-reassign
+            // eslint-disable-next-line no-param-reassign mutate as recreation is not allowed
             reportCollection[selectedTransaction.transactionID] = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedTransaction?.reportID}`];
             return reportCollection;
         },
