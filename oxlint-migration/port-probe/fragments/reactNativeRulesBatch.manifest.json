@@ -1,0 +1,199 @@
+{
+    "react/jsx-boolean-value": {
+        "fixture": "fixtures/reactNativeRulesA.tsx",
+        "oxlintRule": "react/jsx-boolean-value",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch"
+    },
+    "react/jsx-fragments": {
+        "fixture": "fixtures/reactNativeRulesA.tsx",
+        "oxlintRule": "react/jsx-fragments",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch"
+    },
+    "react/jsx-no-comment-textnodes": {
+        "fixture": "fixtures/reactNativeRulesA.tsx",
+        "oxlintRule": "react/jsx-no-comment-textnodes",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch"
+    },
+    "react/jsx-no-script-url": {
+        "fixture": "fixtures/reactNativeRulesA.tsx",
+        "oxlintRule": "react/jsx-no-script-url",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch"
+    },
+    "react/jsx-no-target-blank": {
+        "fixture": "fixtures/reactNativeRulesA.tsx",
+        "oxlintRule": "react/jsx-no-target-blank",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch"
+    },
+    "react/jsx-no-useless-fragment": {
+        "fixture": "fixtures/reactNativeRulesA.tsx",
+        "oxlintRule": "react/jsx-no-useless-fragment",
+        "expected": 2,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch"
+    },
+    "react/jsx-pascal-case": {
+        "fixture": "fixtures/reactNativeRulesA.tsx",
+        "oxlintRule": "react/jsx-pascal-case",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch"
+    },
+    "react/no-array-index-key": {
+        "fixture": "fixtures/reactNativeRulesA.tsx",
+        "oxlintRule": "react/no-array-index-key",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch"
+    },
+    "react/no-children-prop": {
+        "fixture": "fixtures/reactNativeRulesA.tsx",
+        "oxlintRule": "react/no-children-prop",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch"
+    },
+    "react/no-danger": {
+        "fixture": "fixtures/reactNativeRulesA.tsx",
+        "oxlintRule": "react/no-danger",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch"
+    },
+    "react/no-unescaped-entities": {
+        "fixture": "fixtures/reactNativeRulesA.tsx",
+        "oxlintRule": "react/no-unescaped-entities",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch"
+    },
+    "react/self-closing-comp": {
+        "fixture": "fixtures/reactNativeRulesA.tsx",
+        "oxlintRule": "react/self-closing-comp",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch"
+    },
+    "react/forbid-component-props": {
+        "fixture": "fixtures/reactNativeRulesA.tsx",
+        "oxlintRule": "react/forbid-component-props",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch"
+    },
+    "react/no-did-update-set-state": {
+        "fixture": "fixtures/reactNativeRulesB.tsx",
+        "oxlintRule": "react/no-did-update-set-state",
+        "expected": 0,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch",
+        "oxlintOnly": true,
+        "expectedOxlint": 1,
+        "whyOxlintDivergence": "ESLint's rule switches itself off on React >= 16.3: makeNoMethodSetStateRule's shouldBeNoop returns true for componentDidUpdate once the detected version is at or above 16.3.0 (node_modules/eslint-plugin-react/lib/util/makeNoMethodSetStateRule.js), and both probe configs set settings.react.version to detect against React 19. oxlint's port has no such version gate, so it still reports. The sibling no-will-update-set-state has no noop entry and reports on both tools, which is the control for this row."
+    },
+    "react/no-will-update-set-state": {
+        "fixture": "fixtures/reactNativeRulesB.tsx",
+        "oxlintRule": "react/no-will-update-set-state",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch"
+    },
+    "react/no-redundant-should-component-update": {
+        "fixture": "fixtures/reactNativeRulesB.tsx",
+        "oxlintRule": "react/no-redundant-should-component-update",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch",
+        "oxlintLines": [44],
+        "whyOxlintLines": "same violation, different anchor convention: ESLint reports on the shouldComponentUpdate declaration (line 43), oxlint reports one line further in. Counts match at 1. Same suppression-placement consequence as the tsBatch anchor rows: a disable comment aimed at one tool's line misses the other."
+    },
+    "react/state-in-constructor": {
+        "fixture": "fixtures/reactNativeRulesB.tsx",
+        "oxlintRule": "react/state-in-constructor",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch"
+    },
+    "react/no-unsafe": {
+        "fixture": "fixtures/reactNativeRulesB.tsx",
+        "oxlintRule": "react/no-unsafe",
+        "expected": 2,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch"
+    },
+    "react/jsx-no-duplicate-props": {
+        "fixture": "fixtures/reactNativeRulesC.jsx",
+        "oxlintRule": "react/jsx-no-duplicate-props",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch"
+    },
+    "react/jsx-no-undef": {
+        "fixture": "fixtures/reactNativeRulesC.jsx",
+        "oxlintRule": "react/jsx-no-undef",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch"
+    },
+    "react/no-namespace": {
+        "fixture": "fixtures/reactNativeRulesC.jsx",
+        "oxlintRule": "react/no-namespace",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch"
+    },
+    "react/no-unknown-property": {
+        "fixture": "fixtures/reactNativeRulesC.jsx",
+        "oxlintRule": "react/no-unknown-property",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch"
+    },
+    "react/no-string-refs": {
+        "fixture": "fixtures/reactNativeRulesC.jsx",
+        "oxlintRule": "react/no-string-refs",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch"
+    },
+    "react/no-this-in-sfc": {
+        "fixture": "fixtures/reactNativeRulesC.jsx",
+        "oxlintRule": "react/no-this-in-sfc",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch"
+    },
+    "react/style-prop-object": {
+        "fixture": "fixtures/reactNativeRulesC.jsx",
+        "oxlintRule": "react/style-prop-object",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch"
+    },
+    "react/void-dom-elements-no-children": {
+        "fixture": "fixtures/reactNativeRulesC.jsx",
+        "oxlintRule": "react/void-dom-elements-no-children",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch"
+    },
+    "react/prefer-es6-class": {
+        "fixture": "fixtures/reactNativeRulesC.jsx",
+        "oxlintRule": "react/prefer-es6-class",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch"
+    },
+    "react/no-is-mounted": {
+        "fixture": "fixtures/reactNativeRulesC.jsx",
+        "oxlintRule": "react/no-is-mounted",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch"
+    },
+    "react/require-render-return": {
+        "fixture": "fixtures/reactNativeRulesC.jsx",
+        "oxlintRule": "react/require-render-return",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch"
+    },
+    "react/no-find-dom-node": {
+        "fixture": "fixtures/reactNativeRulesC.jsx",
+        "oxlintRule": "react/no-find-dom-node",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch"
+    },
+    "react/no-render-return-value": {
+        "fixture": "fixtures/reactNativeRulesC.jsx",
+        "oxlintRule": "react/no-render-return-value",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch"
+    },
+    "react-hooks/rules-of-hooks": {
+        "fixture": "fixtures/reactNativeRulesA.tsx",
+        "oxlintRule": "react-hooks/rules-of-hooks",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json with no parity evidence before this batch. Note the asymmetry: oxlint CONFIGURES this rule as react/rules-of-hooks but REPORTS it as react-hooks/rules-of-hooks. Configuring it under react-hooks/ or naming react-hooks in the override's plugins list makes it silently do nothing -- measured, not guessed."
+    }
+}

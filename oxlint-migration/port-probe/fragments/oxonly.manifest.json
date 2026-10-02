@@ -1,0 +1,76 @@
+{
+    "@typescript-eslint/no-require-imports": {
+        "fixture": "fixtures/oxonlyTyped.ts",
+        "oxlintRule": "typescript/no-require-imports",
+        "expected": 1,
+        "why": "enabled in .oxlintrc.json but never in the production ESLint config, so it had zero parity evidence; ESLint's counterpart enabled in this probe only, in the same projectService scope as the typedSample anchor"
+    },
+    "@typescript-eslint/only-throw-error": {
+        "fixture": "fixtures/oxonlyTyped.ts",
+        "oxlintRule": "typescript/only-throw-error",
+        "expected": 1,
+        "why": "typed native rule with no ESLint seatbelt coverage; the adjacent `throw new Error()` control is what proves type information reached both tools"
+    },
+    "@typescript-eslint/prefer-promise-reject-errors": {
+        "fixture": "fixtures/oxonlyTyped.ts",
+        "oxlintRule": "typescript/prefer-promise-reject-errors",
+        "expected": 1,
+        "why": "typed native rule production enables bare 'error'; the control rejects an Error so the row cannot be pinned by a file that always reports"
+    },
+    "@typescript-eslint/require-await": {
+        "fixture": "fixtures/oxonlyTyped.ts",
+        "oxlintRule": "typescript/require-await",
+        "expected": 1,
+        "why": "requires type information on the ESLint side, so it is the strongest evidence in this batch that tsgolint and projectService both resolved the file"
+    },
+    "jsdoc/check-tag-names": {
+        "fixture": "fixtures/oxonlyJsdoc.ts",
+        "oxlintRule": "jsdoc/check-tag-names",
+        "expected": 1,
+        "why": "production enables it through oxlint's native jsdoc plugin with no ESLint counterpart enabled; pinned at production's bare 'error' on both sides"
+    },
+    "jsdoc/require-param": {
+        "fixture": "fixtures/oxonlyJsdoc.ts",
+        "oxlintRule": "jsdoc/require-param",
+        "expected": 1,
+        "why": "same native-jsdoc population; one undocumented parameter so the count is one finding rather than one per parameter",
+        "oxlintLines": [17],
+        "whyOxlintLines": "oxlint's native port anchors require-param on the function declaration (line 17) while eslint-plugin-jsdoc anchors it on the JSDoc block opener (line 14); same finding, different anchor, and the count and rule both agree"
+    },
+    "jsdoc/require-param-type": {
+        "fixture": "fixtures/oxonlyJsdoc.ts",
+        "oxlintRule": "jsdoc/require-param-type",
+        "expected": 1,
+        "why": "same native-jsdoc population; the @param is present so require-param stays quiet and only the missing type reports"
+    },
+    "prefer-regex-literals": {
+        "fixture": "fixtures/oxonlyCore.ts",
+        "oxlintRule": "eslint/prefer-regex-literals",
+        "expected": 1,
+        "why": "oxlint runs ESLint core's rule natively and reports it under the eslint(...) alias; the repo ESLint config switches the rule off while .oxlintrc.json keeps it with disallowRedundantWrapping, an option shape the probe had never exercised"
+    },
+    "arrow-body-style": {
+        "fixture": "fixtures/oxonlyCore.ts",
+        "oxlintRule": "eslint/arrow-body-style",
+        "expected": 1,
+        "why": "native under the eslint(...) alias; the repo ESLint config has it off, .oxlintrc.json runs as-needed with requireReturnForObjectLiteral:false, which is what both sides are pinned to here"
+    },
+    "no-unexpected-multiline": {
+        "fixture": "fixtures/oxonlyCore.ts",
+        "oxlintRule": "eslint/no-unexpected-multiline",
+        "expected": 1,
+        "why": "native under the eslint(...) alias; the ASI hazard's merged expression still type-checks, so the control differs only by a semicolon"
+    },
+    "report-name-utils/no-function-call-in-get-report-name": {
+        "fixture": "fixtures/oxonlyReportName.ts",
+        "oxlintRule": "report-name-utils/no-function-call-in-get-report-name",
+        "expected": 1,
+        "why": "homemade plugin enabled in .oxlintrc.json only, scoped there to src/libs/ReportNameUtils.ts which reports nothing; the same plugin file is loaded on both sides"
+    },
+    "@dword-design/import-alias/prefer-alias": {
+        "fixture": "fixtures/oxonlyAlias.ts",
+        "oxlintRule": "@dword-design/import-alias/prefer-alias",
+        "expected": 1,
+        "why": "JS-sidecar plugin with production's alias map verbatim; the rule matches alias directories against process.cwd(), which compareFixtures.py holds identical for both tools"
+    }
+}
