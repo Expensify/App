@@ -577,6 +577,9 @@ type OriginalMessagePolicyChangeLog = {
      */
     unit?: string;
 
+    /** Previous distance unit when a commuter-exclusion distance changes units */
+    oldUnit?: string;
+
     /** Start date of the custom unit rate (yyyy-MM-dd), used in ADD actions */
     startDate?: string;
 
