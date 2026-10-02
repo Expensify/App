@@ -1,11 +1,14 @@
 import AddressSearch from '@components/AddressSearch';
+import AmountForm from '@components/AmountForm';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import CountryPicker from '@components/CountryPicker';
 import CurrencyPicker from '@components/CurrencyPicker';
 import DatePicker from '@components/DatePicker';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import PercentageForm from '@components/PercentageForm';
 import PushRowWithModal from '@components/PushRowWithModal';
+import type {Choice} from '@components/RadioButtons';
 import RadioButtons from '@components/RadioButtons';
 import TextInput from '@components/TextInput';
 import ValuePicker from '@components/ValuePicker';
@@ -23,6 +26,8 @@ import React from 'react';
 
 import type {DynamicFormFieldOfType, DynamicFormValues} from './types';
 
+import AmountWithCurrencyAdapter from './adapters/AmountWithCurrencyAdapter';
+import FileUploadAdapter from './adapters/FileUploadAdapter';
 import getAddressInputKeys from './utils/getAddressInputKeys';
 import {getFieldChoices} from './utils/getFieldOptions';
 import getLocalizedText, {getFieldLabel} from './utils/getLocalizedText';
@@ -30,6 +35,9 @@ import getLocalizedText, {getFieldLabel} from './utils/getLocalizedText';
 type DynamicFieldContext = {
     values: DynamicFormValues;
     translate: LocalizedTranslate;
+
+    /** Currency of amount fields that let the user pick none */
+    currency: string;
 };
 
 /** Props every input gets from the renderer */
@@ -42,8 +50,8 @@ type DynamicFieldLayout = {
     /** Spans the page edge to edge like a menu row, instead of sitting inside the page padding */
     isMenuRow: boolean;
 
-    /** The input has no label of its own, so the renderer draws the field label above it */
-    shouldRenderLabelAbove?: boolean;
+    /** The input has no label of its own, so the renderer draws the field label above it, as a question prompt or as a bold heading */
+    labelAbove?: 'prompt' | 'heading';
 
     /** The input shows the field description itself, so the renderer does not draw it */
     showsDescription?: boolean;
@@ -51,6 +59,29 @@ type DynamicFieldLayout = {
 
 type DynamicFieldRenderer<TType extends DynamicFormFieldType> = DynamicFieldLayout & {
     render: (field: DynamicFormFieldOfType<TType>, context: DynamicFieldContext, inputProps: DynamicFieldInputProps) => ReactElement;
+};
+
+function getChoiceOptionsList(choices: Choice[]): Record<string, string> {
+    return Object.fromEntries(choices.map((choice) => [choice.value, choice.label]));
+}
+
+const multiChoiceRenderer: DynamicFieldRenderer<'multiselect' | 'countryMultiselect'> = {
+    isMenuRow: true,
+    render: (field, {values, translate}, inputProps) => {
+        const label = getFieldLabel(field, translate);
+        return (
+            <InputWrapper
+                InputComponent={PushRowWithModal}
+                {...inputProps}
+                valueType="stringList"
+                canSelectMultiple
+                optionsList={getChoiceOptionsList(getFieldChoices(field, values, translate))}
+                description={label}
+                modalHeaderTitle={label}
+                searchInputTitle={label}
+            />
+        );
+    },
 };
 
 function getTextHint(field: DynamicFormTextField | DynamicFormNumberField, translate: LocalizedTranslate): string | undefined {
@@ -106,7 +137,7 @@ const RENDERERS: {
                     <InputWrapper
                         InputComponent={PushRowWithModal}
                         {...inputProps}
-                        optionsList={Object.fromEntries(choices.map((choice) => [choice.value, choice.label]))}
+                        optionsList={getChoiceOptionsList(choices)}
                         description={label}
                         modalHeaderTitle={label}
                         searchInputTitle={label}
@@ -125,7 +156,7 @@ const RENDERERS: {
     },
     radio: {
         isMenuRow: true,
-        shouldRenderLabelAbove: true,
+        labelAbove: 'prompt',
         render: (field, {values, translate}, inputProps) => (
             <InputWrapper
                 InputComponent={RadioButtons}
@@ -185,6 +216,65 @@ const RENDERERS: {
                 {...inputProps}
                 label={getFieldLabel(field, translate)}
                 renamedInputKeys={getAddressInputKeys(field.key)}
+            />
+        ),
+    },
+    multiselect: multiChoiceRenderer,
+    countryMultiselect: multiChoiceRenderer,
+    file: {
+        isMenuRow: false,
+        labelAbove: 'heading',
+        render: (field, {translate}, inputProps) => {
+            const fileLimit = field.maxFiles ?? CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT;
+            return (
+                <InputWrapper
+                    InputComponent={FileUploadAdapter}
+                    {...inputProps}
+                    valueType="files"
+                    buttonText={translate(fileLimit > 1 ? 'common.chooseFiles' : 'common.chooseFile')}
+                    fileLimit={fileLimit}
+                    // Wise publishes no document limits, so these are the bank document limits the App already applies
+                    acceptedFileTypes={[...CONST.CORPAY_DOCUMENT.ALLOWED_FILE_TYPES]}
+                    maxFileSize={CONST.CORPAY_DOCUMENT.MAX_FILE_SIZE}
+                />
+            );
+        },
+    },
+    amount: {
+        isMenuRow: false,
+        render: (field, {values, translate, currency}, inputProps) => {
+            const label = getFieldLabel(field, translate);
+            if (!field.currencyKey) {
+                return (
+                    <InputWrapper
+                        InputComponent={AmountForm}
+                        {...inputProps}
+                        label={label}
+                        currency={currency}
+                        displayAsTextInput
+                        isCurrencyPressable={false}
+                    />
+                );
+            }
+            const chosenCurrency = values[field.currencyKey];
+            return (
+                <InputWrapper
+                    InputComponent={AmountWithCurrencyAdapter}
+                    {...inputProps}
+                    label={label}
+                    currency={typeof chosenCurrency === 'string' && chosenCurrency !== '' ? chosenCurrency : currency}
+                    currencyKey={field.currencyKey}
+                />
+            );
+        },
+    },
+    percent: {
+        isMenuRow: false,
+        render: (field, {translate}, inputProps) => (
+            <InputWrapper
+                InputComponent={PercentageForm}
+                {...inputProps}
+                label={getFieldLabel(field, translate)}
             />
         ),
     },

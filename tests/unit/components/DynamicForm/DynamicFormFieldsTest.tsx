@@ -1,12 +1,16 @@
 import {render, screen} from '@testing-library/react-native';
 
 import AddressSearch from '@components/AddressSearch';
+import AmountForm from '@components/AmountForm';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import CountryPicker from '@components/CountryPicker';
 import CurrencyPicker from '@components/CurrencyPicker';
 import DatePicker from '@components/DatePicker';
+import AmountWithCurrencyAdapter from '@components/DynamicForm/adapters/AmountWithCurrencyAdapter';
+import FileUploadAdapter from '@components/DynamicForm/adapters/FileUploadAdapter';
 import DynamicFormFields from '@components/DynamicForm/components/DynamicFormFields';
 import type {DynamicFormValues} from '@components/DynamicForm/types';
+import PercentageForm from '@components/PercentageForm';
 import PushRowWithModal from '@components/PushRowWithModal';
 import RadioButtons from '@components/RadioButtons';
 import TextInput from '@components/TextInput';
@@ -28,6 +32,11 @@ type CapturedInputProps = {
     items?: Array<{value: string; label: string}>;
     optionsList?: Record<string, string>;
     renamedInputKeys?: Record<string, string>;
+    canSelectMultiple?: boolean;
+    valueType?: string;
+    fileLimit?: number;
+    currency?: string;
+    currencyKey?: string;
 };
 
 const mockInputWrapper = jest.fn((props: CapturedInputProps) => props.inputID);
@@ -45,12 +54,13 @@ jest.mock('@hooks/useLocalize', () =>
 
 jest.mock('@hooks/useThemeStyles', () => jest.fn(() => new Proxy({}, {get: () => ({})})));
 
-function renderFields(fields: DynamicFormField[], values: DynamicFormValues = {}) {
+function renderFields(fields: DynamicFormField[], values: DynamicFormValues = {}, currency?: string) {
     mockInputWrapper.mockClear();
     render(
         <DynamicFormFields
             fields={fields}
             values={values}
+            currency={currency}
         />,
     );
     return new Map(mockInputWrapper.mock.calls.map(([props]) => [props.inputID, props]));
@@ -66,6 +76,11 @@ const EXPECTED_INPUT_BY_TYPE: Record<DynamicFormFieldType, ComponentType | ((...
     country: CountryPicker,
     currency: CurrencyPicker,
     address: AddressSearch,
+    multiselect: PushRowWithModal,
+    countryMultiselect: PushRowWithModal,
+    file: FileUploadAdapter,
+    amount: AmountForm,
+    percent: PercentageForm,
 };
 
 describe('DynamicFormFields', () => {
@@ -218,5 +233,41 @@ describe('DynamicFormFields', () => {
 
         // Then the section title appears once
         expect(screen.getAllByText('Legal name')).toHaveLength(1);
+    });
+
+    it('lets the user tick several options of a multiselect and starts it as an empty list', () => {
+        // Given a multiselect field
+        const industries: DynamicFormField = {key: 'industries', label: 'Industries', type: 'multiselect', required: true, values: [{key: 'RETAIL', label: 'Retail'}]};
+
+        // When it renders
+        const rendered = renderFields([industries]);
+
+        // Then the push row allows several choices, and FormProvider starts the answer as a list
+        expect(rendered.get('industries')).toMatchObject({canSelectMultiple: true, valueType: 'stringList', optionsList: {RETAIL: 'Retail'}});
+    });
+
+    it('allows several files by default and names the field above the upload button', () => {
+        // Given a file field with no file limit, alone in the list like the source of funds page
+        const proofOfFunds: DynamicFormField = {key: 'proofOfFunds', label: 'Source of funds document', type: 'file', required: true};
+
+        // When it renders
+        const rendered = renderFields([proofOfFunds]);
+
+        // Then the upload takes up to the App's attachment limit, and the label stays visible as a heading
+        expect(rendered.get('proofOfFunds')).toMatchObject({valueType: 'files', fileLimit: CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT});
+        expect(screen.getByText('Source of funds document')).toBeOnTheScreen();
+    });
+
+    it('prices an amount in the currency the user picked, falling back to the screen currency', () => {
+        // Given an amount whose currency the user picks under another key
+        const expectedVolume: DynamicFormField = {key: 'expectedVolume', type: 'amount', required: true, currencyKey: 'expectedVolumeCurrency'};
+
+        // When it renders before and after a currency is picked
+        const beforePick = renderFields([expectedVolume], {}, CONST.CURRENCY.GBP);
+        const afterPick = renderFields([expectedVolume], {expectedVolumeCurrency: CONST.CURRENCY.EUR}, CONST.CURRENCY.GBP);
+
+        // Then it shows the currency picker, priced in the screen currency until the user picks one
+        expect(beforePick.get('expectedVolume')).toMatchObject({InputComponent: AmountWithCurrencyAdapter, currency: CONST.CURRENCY.GBP, currencyKey: 'expectedVolumeCurrency'});
+        expect(afterPick.get('expectedVolume')?.currency).toBe(CONST.CURRENCY.EUR);
     });
 });

@@ -41,6 +41,15 @@ function getStringAnswer(field: DynamicFormField, values: DynamicFormValues): st
     return typeof value === 'string' ? value : '';
 }
 
+function getStringListAnswer(field: DynamicFormField, values: DynamicFormValues): string[] {
+    const value = values[field.key];
+    if (!Array.isArray(value)) {
+        return [];
+    }
+    const items: unknown[] = value;
+    return items.filter((item): item is string => typeof item === 'string');
+}
+
 function matchesRegex(value: string, pattern: string, fieldKey: string): boolean {
     try {
         return new RegExp(pattern).test(value);
@@ -71,6 +80,13 @@ function getChoiceErrors(field: DynamicFormChoiceField, values: DynamicFormValue
     return isOffered ? [] : [translate('dynamicForm.error.invalidOption')];
 }
 
+function getMultiChoiceErrors(field: DynamicFormFieldOfType<'multiselect' | 'countryMultiselect'>, values: DynamicFormValues, translate: LocalizedTranslate): string[] {
+    const offeredKeys = new Set(getFieldOptions(field, values).map((option) => option.key));
+    const isEveryChoiceOffered = getStringListAnswer(field, values).every((key) => offeredKeys.has(key));
+    return isEveryChoiceOffered ? [] : [translate('dynamicForm.error.invalidOption')];
+}
+
+/** For inputs that only accept valid answers: UploadFile checks type, size and count, AmountForm and PercentageForm reject invalid typing */
 const noChecks = () => [];
 
 const VALIDATORS: {[TType in DynamicFormFieldType]: FieldValidator<TType>} = {
@@ -118,9 +134,14 @@ const VALIDATORS: {[TType in DynamicFormFieldType]: FieldValidator<TType>} = {
         const country = typeof chosenCountry === 'string' && isCountryCode(chosenCountry) ? chosenCountry : '';
         return isValidZipCodeForCountry(zipCode, country) ? [] : [translate('privatePersonalDetails.error.incorrectZipFormat', getCountryZipRegexDetails(country)?.samples)];
     },
+    multiselect: getMultiChoiceErrors,
+    countryMultiselect: getMultiChoiceErrors,
     boolean: noChecks,
     country: noChecks,
     currency: noChecks,
+    file: noChecks,
+    amount: noChecks,
+    percent: noChecks,
 };
 
 function validateField<TType extends DynamicFormFieldType>(field: DynamicFormFieldOfType<TType>, values: DynamicFormValues, translate: LocalizedTranslate): string[] {

@@ -213,4 +213,22 @@ describe('getDynamicFieldErrors', () => {
             regex: '(unclosed',
         });
     });
+
+    it('treats an empty multiselect as unanswered and rejects a choice no longer offered', () => {
+        // Given a required multiselect whose options depend on the business type
+        const industries: DynamicFormField = {
+            key: 'industries',
+            type: 'multiselect',
+            required: true,
+            dependsOn: {key: 'businessType', valuesBy: {RETAIL: [{key: 'CLOTHING'}], SERVICES: [{key: 'CONSULTING'}]}},
+        };
+
+        // When it is left empty, and when it keeps a retail choice after the business type changed to services
+        const emptyErrors = getDynamicFieldErrors([industries], {businessType: 'RETAIL', industries: []}, translateLocal);
+        const staleErrors = getDynamicFieldErrors([industries], {businessType: 'SERVICES', industries: ['CLOTHING']}, translateLocal);
+
+        // Then the empty list is flagged as required, and the stale choice as invalid
+        expect(emptyErrors).toEqual({industries: translateLocal('common.error.fieldRequired')});
+        expect(staleErrors).toEqual({industries: translateLocal('dynamicForm.error.invalidOption')});
+    });
 });

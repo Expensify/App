@@ -20,10 +20,13 @@ type DynamicFormFieldsProps = {
 
     /** Current answers, from FormProvider's render-prop `inputValues`, so showWhen and dependsOn follow the user's typing */
     values: DynamicFormValues;
+
+    /** Currency of amount fields that let the user pick none */
+    currency?: string;
 };
 
 /** The inputs of a schema-driven form. Render it inside a FormProvider and validate with getDynamicFieldErrors. */
-function DynamicFormFields({fields, values}: DynamicFormFieldsProps) {
+function DynamicFormFields({fields, values, currency = CONST.CURRENCY.USD}: DynamicFormFieldsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const visibleFields = getVisibleFields(fields, values);
@@ -50,9 +53,9 @@ function DynamicFormFields({fields, values}: DynamicFormFieldsProps) {
             );
         }
 
-        const {input, isMenuRow, shouldRenderLabelAbove, showsDescription} = renderDynamicField(
+        const {input, isMenuRow, labelAbove, showsDescription} = renderDynamicField(
             field,
-            {values, translate},
+            {values, translate, currency},
             {
                 inputID: field.key,
                 shouldSaveDraft: !field.sensitive,
@@ -65,7 +68,7 @@ function DynamicFormFields({fields, values}: DynamicFormFieldsProps) {
             <React.Fragment key={field.key}>
                 {sectionTitle}
                 <View style={isMenuRow ? [styles.mhn5, styles.pv1] : styles.pv2}>
-                    {!!shouldRenderLabelAbove && <Text style={[styles.mt3, isMenuRow && styles.ph5]}>{label}</Text>}
+                    {!!labelAbove && <Text style={[labelAbove === 'prompt' ? styles.mt3 : [styles.textStrong, styles.mb3], isMenuRow && styles.ph5]}>{label}</Text>}
                     {!!description && <Text style={[styles.textSupporting, styles.mb3, isMenuRow && styles.ph5]}>{description}</Text>}
                     {input}
                 </View>

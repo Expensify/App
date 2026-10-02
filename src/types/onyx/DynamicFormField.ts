@@ -81,6 +81,9 @@ type DynamicFormChoiceField = DynamicFormFieldBase & {
     };
 };
 
+/** Any number of answers out of a list of options */
+type DynamicFormMultiChoiceField = DynamicFormFieldBase & Pick<DynamicFormChoiceField, 'values' | 'dependsOn'> & {type: 'multiselect'};
+
 /** A calendar date, stored as yyyy-MM-dd */
 type DynamicFormDateField = DynamicFormFieldBase & {
     type: 'date';
@@ -93,20 +96,53 @@ type DynamicFormAddressField = DynamicFormFieldBase & {
     rule?: 'zipCode';
 };
 
+/** Uploaded documents */
+type DynamicFormFileField = DynamicFormFieldBase & {
+    type: 'file';
+    maxFiles?: number;
+};
+
+/** A money amount */
+type DynamicFormAmountField = DynamicFormFieldBase & {
+    type: 'amount';
+
+    /** Draft key of the currency the user picks next to the amount. Without it the currency is fixed by the screen. */
+    currencyKey?: string;
+};
+
+/** One country, or any number of countries, picked from every country the App knows */
+type DynamicFormCountryField = DynamicFormFieldBase & {
+    type: 'country' | 'countryMultiselect';
+};
+
 /** Types that need nothing beyond the common properties */
 type DynamicFormPlainField = DynamicFormFieldBase & {
-    type: 'boolean' | 'country' | 'currency';
+    type: 'boolean' | 'currency' | 'percent';
 };
 
 /** One field of a schema-driven form, as the server sends it or as an App-owned schema declares it */
-type DynamicFormField = DynamicFormTextField | DynamicFormNumberField | DynamicFormChoiceField | DynamicFormDateField | DynamicFormAddressField | DynamicFormPlainField;
+type DynamicFormField =
+    | DynamicFormTextField
+    | DynamicFormNumberField
+    | DynamicFormChoiceField
+    | DynamicFormMultiChoiceField
+    | DynamicFormDateField
+    | DynamicFormAddressField
+    | DynamicFormFileField
+    | DynamicFormAmountField
+    | DynamicFormCountryField
+    | DynamicFormPlainField;
 
 /** Every type the renderer and validator handle */
 type DynamicFormFieldType = DynamicFormField['type'];
 
 export type {
     DynamicFormAddressField,
+    DynamicFormAmountField,
     DynamicFormChoiceField,
+    DynamicFormCountryField,
+    DynamicFormFileField,
+    DynamicFormMultiChoiceField,
     DynamicFormDateField,
     DynamicFormField,
     DynamicFormFieldOption,

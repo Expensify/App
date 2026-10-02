@@ -12,6 +12,11 @@ const SUPPORTED_FIELD_TYPES: Record<DynamicFormFieldType, true> = {
     country: true,
     currency: true,
     address: true,
+    multiselect: true,
+    countryMultiselect: true,
+    file: true,
+    amount: true,
+    percent: true,
 };
 
 /** Server schemas can carry types this App version does not know. Such a field is left out so it neither renders nor blocks submission. */
