@@ -60,6 +60,7 @@ import {
 } from '@libs/ReportUtils';
 import trackExpenseCreationError from '@libs/telemetry/trackExpenseCreationError';
 import {
+    canOverlayReceiptPDF,
     didReceiptScanSucceed as didReceiptScanSucceedTransactionUtils,
     hasEReceipt,
     hasPendingDistanceReceiptRegeneration,
@@ -85,7 +86,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {ReceiptError, TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
+import type {ReceiptError, ReceiptSource, TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -104,6 +105,7 @@ import {View} from 'react-native';
 
 import HoveredDistanceEReceipt from './HoveredDistanceEReceipt';
 import {isElementHovered, resetButtonHoverState} from './receiptHoverUtils';
+import ReceiptPageNavigator from './ReceiptPageNavigator';
 import ReportActionItemImage from './ReportActionItemImage';
 
 type MoneyRequestReceiptViewProps = {
@@ -240,6 +242,14 @@ function MoneyRequestReceiptView({
 
     const displayedReceiptSource = ReceiptStorage.resolve(transaction?.receipt?.localSource) ?? transaction?.receipt?.source;
     const prevDisplayedReceiptSource = usePrevious(displayedReceiptSource);
+
+    // The PDF page layer the pill controls, keyed to the receipt source it belongs to. displayedReceiptSource changes
+    // the instant the receipt's underlying file changes (a scan finishing, or the receipt being replaced), so
+    // comparing it against `source` resets stale page/status state in the same render, before anything re-fetches.
+    const [receiptPDFPagesState, setReceiptPDFPagesState] = useState<{source?: ReceiptSource; page: number; status: 'loading' | 'loaded' | 'failed'}>({
+        page: CONST.RECEIPT.FIRST_PDF_PAGE,
+        status: 'loading',
+    });
 
     useEffect(() => {
         if (!displayedReceiptSource || prevDisplayedReceiptSource === displayedReceiptSource) {
@@ -609,6 +619,21 @@ function MoneyRequestReceiptView({
 
     // Show the count badge only after a multi-page PDF receipt loads.
     const shouldShowReceiptPageCount = receiptPageCount > 1 && Str.isPDF(receiptURIs?.filename ?? '') && !isLoading && !(isMapDistanceRequest && isPendingReceiptRegeneration);
+
+    // Pages can only be flipped where ReportActionItemImage renders the real PDF over the thumbnail (hover-capable
+    // devices, using the same eligibility check ReportActionItemImage applies to its own overlay). Elsewhere only a
+    // page 1 thumbnail exists, so the static count badge stays.
+    const canFlipReceiptPages = shouldShowReceiptPageCount && canZoomReceipt && deviceHasHoverSupport && canOverlayReceiptPDF(displayedTransaction);
+
+    const isCurrentReceiptPDFPagesState = receiptPDFPagesState.source === displayedReceiptSource;
+    const receiptPage = isCurrentReceiptPDFPagesState ? Math.min(receiptPDFPagesState.page, receiptPageCount || CONST.RECEIPT.FIRST_PDF_PAGE) : CONST.RECEIPT.FIRST_PDF_PAGE;
+
+    // Shown before the PDF loads, with its buttons disabled, so the badge doesn't change size once it can flip.
+    // A PDF that fails to load leaves only the page 1 thumbnail, so the static badge comes back.
+    const hasReceiptPDFFailed = isCurrentReceiptPDFPagesState && receiptPDFPagesState.status === 'failed';
+    const shouldShowReceiptPageNavigator = canFlipReceiptPages && !hasReceiptPDFFailed;
+    const isReceiptPDFLoading = !isCurrentReceiptPDFPagesState || receiptPDFPagesState.status !== 'loaded';
+
     const receiptPendingAction = isDistanceRequest ? getPendingFieldAction('waypoints') : getPendingFieldAction('receipt');
     const isReceiptOfflinePending = isOffline && !!receiptPendingAction;
     const receiptAuditMessagesRow = (
@@ -752,6 +777,15 @@ function MoneyRequestReceiptView({
                                                 shouldUseThumbnailImage={!fillSpace}
                                                 shouldUseFullHeight={fillSpace}
                                                 canZoomReceipt={canZoomReceipt}
+                                                pdfPage={canFlipReceiptPages ? receiptPage : undefined}
+                                                onPDFLoadSuccess={() =>
+                                                    setReceiptPDFPagesState((prev) => ({
+                                                        source: displayedReceiptSource,
+                                                        page: prev.source === displayedReceiptSource ? prev.page : CONST.RECEIPT.FIRST_PDF_PAGE,
+                                                        status: 'loaded',
+                                                    }))
+                                                }
+                                                onPDFLoadFailure={() => setReceiptPDFPagesState({source: displayedReceiptSource, page: CONST.RECEIPT.FIRST_PDF_PAGE, status: 'failed'})}
                                                 thumbnail={receiptURIs?.thumbnail}
                                                 fileExtension={receiptURIs?.fileExtension}
                                                 isThumbnail={receiptURIs?.isThumbnail}
@@ -771,9 +805,17 @@ function MoneyRequestReceiptView({
                                     )}
                                 </ReceiptHoverZoom>
                             </View>
-                            {shouldShowReceiptPageCount && (
+                            {shouldShowReceiptPageNavigator && (
+                                <ReceiptPageNavigator
+                                    page={receiptPage}
+                                    pageCount={receiptPageCount}
+                                    isLoading={isReceiptPDFLoading}
+                                    onChangePage={(page) => setReceiptPDFPagesState({source: displayedReceiptSource, page, status: 'loaded'})}
+                                />
+                            )}
+                            {shouldShowReceiptPageCount && !shouldShowReceiptPageNavigator && (
                                 <Badge
-                                    text={translate('receipt.pageCount', {pageCount: receiptPageCount})}
+                                    text={translate('receipt.pageCount', {page: CONST.RECEIPT.FIRST_PDF_PAGE, pageCount: receiptPageCount})}
                                     badgeStyles={[styles.receiptPageCountBadge, styles.pointerEventsNone]}
                                 />
                             )}

@@ -305,6 +305,13 @@ const compactPopoverMenuItemBaseStyle = {
 const COMPOSER_SIZE_BUTTON_SIZE = 40;
 const COMPOSER_SIZE_BUTTON_MARGIN = 3;
 
+// Shared by receiptPageCountBadge and receiptPageNavigator so the two can't drift apart.
+const RECEIPT_PAGE_BADGE_POSITION = {
+    position: 'absolute' as const,
+    bottom: 12,
+    left: 12,
+};
+
 const staticStyles = (theme: ThemeColors) =>
     StyleSheet.create({
         ...spacing,
@@ -4148,10 +4155,30 @@ const staticStyles = (theme: ThemeColors) =>
 
         // Float above the receipt to avoid zooming with it.
         receiptPageCountBadge: {
-            position: 'absolute',
-            bottom: 12,
-            left: 12,
+            ...RECEIPT_PAGE_BADGE_POSITION,
             marginLeft: 0,
+        },
+
+        receiptPageNavigator: {
+            ...RECEIPT_PAGE_BADGE_POSITION,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            // Slightly wider than the content, so the pill doesn't visibly jump sideways as the page number grows
+            // or shrinks a digit (e.g. 9 -> 10). Content still grows past this if a locale's label needs more room.
+            minWidth: 108,
+            minHeight: variables.componentSizeSmall,
+            paddingHorizontal: 4,
+            borderRadius: variables.componentBorderRadiusRounded,
+            backgroundColor: theme.badgeDefaultBG,
+        },
+
+        // A real tap target around the small arrow glyph; react-native-web's Pressable doesn't support hitSlop
+        receiptPageNavigatorButton: {
+            height: 24,
+            width: 24,
+            alignItems: 'center',
+            justifyContent: 'center',
         },
 
         receiptActionButton: {

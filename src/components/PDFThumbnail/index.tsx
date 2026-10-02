@@ -16,6 +16,13 @@ import PDFThumbnailError from './PDFThumbnailError';
 
 pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([pdfWorkerSource], {type: 'text/javascript'}));
 
+// Use a root-relative URL so the CMap files (needed to render non-Latin fonts) resolve against
+// the server root instead of the current deep route. Shared by every react-pdf <Document> in the app.
+const PDF_DOCUMENT_OPTIONS = {
+    cMapUrl: '/cmaps/',
+    cMapPacked: true,
+};
+
 function PDFThumbnail({previewSourceURL, style, enabled = true, onPassword, onLoadError, onLoadSuccess}: PDFThumbnailProps) {
     const styles = useThemeStyles();
     const [failedToLoad, setFailedToLoad] = useState(false);
@@ -25,12 +32,7 @@ function PDFThumbnail({previewSourceURL, style, enabled = true, onPassword, onLo
             <Document
                 loading={<LoadingIndicator />}
                 file={previewSourceURL}
-                options={{
-                    // Use a root-relative URL so the CMap files (needed to render non-Latin fonts)
-                    // resolve against the server root instead of the current deep route.
-                    cMapUrl: '/cmaps/',
-                    cMapPacked: true,
-                }}
+                options={PDF_DOCUMENT_OPTIONS}
                 externalLinkTarget="_blank"
                 onPassword={onPassword}
                 onLoad={() => {
@@ -83,5 +85,5 @@ export default React.memo(PDFThumbnail);
 
 // Re-exported so other PDF-rendering components reuse this file's worker setup
 // instead of importing pdfjs-dist/react-pdf directly.
-export {Document, Thumbnail};
+export {Document, Thumbnail, PDF_DOCUMENT_OPTIONS};
 export type {PDFDocumentProxy};

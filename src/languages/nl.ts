@@ -1312,7 +1312,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: 'Voeg een bon toe',
             phrase2: 'of sleep ze hier naartoe',
         },
-        pageCount: ({pageCount}: {pageCount: number}) => `Pagina 1 van ${pageCount}`,
+        pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Pagina ${page} van ${pageCount}`,
     },
     quickAction: {
         scanReceipt: 'Bon scannen',

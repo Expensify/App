@@ -1609,6 +1609,14 @@ const CONST = {
         // Remote PDFs are rendered at this multiple of their on-screen size so the magnified
         // view shows real pixels instead of an upscaled low-resolution raster.
         HOVER_ZOOM_SCALE: 2.5,
+
+        // Elements with this data attribute pause the hover zoom while the pointer is over them
+        HOVER_ZOOM_EXCLUDED_ELEMENT: 'receipt-hover-zoom-excluded',
+
+        // react-fast-pdf pads each page by this much. The single-page PDF layer matches it to stay framed the same.
+        PDF_PAGE_BORDER: 9,
+
+        FIRST_PDF_PAGE: 1,
     },
     RECEIPT_PREVIEW_TOP_BOTTOM_MARGIN: 120,
     REPORT: {
@@ -9380,6 +9388,8 @@ const CONST = {
         },
         RECEIPT: {
             IMAGE: 'Receipt-Image',
+            PREVIOUS_PAGE_BUTTON: 'Receipt-PreviousPageButton',
+            NEXT_PAGE_BUTTON: 'Receipt-NextPageButton',
             ENLARGE_BUTTON: 'Receipt-EnlargeButton',
             ADD_ATTACHMENT_BUTTON: 'Receipt-AddAttachmentButton',
         },

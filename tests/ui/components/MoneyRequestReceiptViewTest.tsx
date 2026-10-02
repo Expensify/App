@@ -53,11 +53,36 @@ jest.mock(
         },
 );
 
-const mockReceiptImage = {shouldCompleteLoad: true};
+// The real PDF overlay reports its own load completion on its own timing, independent of the generic image load
+// (onLoad) and of re-renders. Tests drive that timing explicitly via reportPDFLoadSuccess/reportPDFLoadFailure,
+// instead of this mock inferring "loaded" from a prop changing, which can't represent a load still in flight.
+const mockReceiptImage: {shouldCompleteLoad: boolean; lastPDFPage?: number; reportPDFLoadSuccess?: () => void; reportPDFLoadFailure?: () => void} = {
+    shouldCompleteLoad: true,
+};
 
 jest.mock('@components/ReportActionItem/ReportActionItemImage', () => {
     const {useEffect} = jest.requireActual<typeof React>('react');
-    function MockReportActionItemImage({onLoad}: {onLoad?: () => void}) {
+    function MockReportActionItemImage({
+        onLoad,
+        onPDFLoadSuccess,
+        onPDFLoadFailure,
+        pdfPage,
+    }: {
+        onLoad?: () => void;
+        onPDFLoadSuccess?: () => void;
+        onPDFLoadFailure?: () => void;
+        pdfPage?: number;
+    }) {
+        useEffect(() => {
+            mockReceiptImage.lastPDFPage = pdfPage;
+            if (pdfPage === undefined) {
+                mockReceiptImage.reportPDFLoadSuccess = undefined;
+                mockReceiptImage.reportPDFLoadFailure = undefined;
+                return;
+            }
+            mockReceiptImage.reportPDFLoadSuccess = onPDFLoadSuccess;
+            mockReceiptImage.reportPDFLoadFailure = onPDFLoadFailure;
+        }, [pdfPage, onPDFLoadSuccess, onPDFLoadFailure]);
         useEffect(() => {
             if (!mockReceiptImage.shouldCompleteLoad) {
                 return;
@@ -67,6 +92,18 @@ jest.mock('@components/ReportActionItem/ReportActionItemImage', () => {
         return null;
     }
     return MockReportActionItemImage;
+});
+
+const mockDeviceCapabilities = {hasHoverSupport: false};
+
+jest.mock('@libs/DeviceCapabilities', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actual = jest.requireActual('@libs/DeviceCapabilities');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...actual,
+        hasHoverSupport: () => mockDeviceCapabilities.hasHoverSupport,
+    };
 });
 
 jest.mock('@src/languages/IntlStore', () => {
@@ -266,6 +303,10 @@ describe('MoneyRequestReceiptView', () => {
 
     beforeEach(async () => {
         mockReceiptImage.shouldCompleteLoad = true;
+        mockReceiptImage.lastPDFPage = undefined;
+        mockReceiptImage.reportPDFLoadSuccess = undefined;
+        mockReceiptImage.reportPDFLoadFailure = undefined;
+        mockDeviceCapabilities.hasHoverSupport = false;
         jest.clearAllMocks();
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${TEST_PARENT_REPORT_ID}`, {
@@ -327,7 +368,7 @@ describe('MoneyRequestReceiptView', () => {
             );
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.queryByText(translateLocal('receipt.pageCount', {pageCount: 3}))).toBeNull();
+            expect(screen.queryByText(translateLocal('receipt.pageCount', {page: 1, pageCount: 3}))).toBeNull();
         });
 
         it('shows the page count for a multi-page PDF receipt', async () => {
@@ -343,7 +384,7 @@ describe('MoneyRequestReceiptView', () => {
             );
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText(translateLocal('receipt.pageCount', {pageCount: 3}))).toBeTruthy();
+            expect(screen.getByText(translateLocal('receipt.pageCount', {page: 1, pageCount: 3}))).toBeTruthy();
         });
 
         it('does not show the page count for a single page PDF receipt', async () => {
@@ -362,7 +403,7 @@ describe('MoneyRequestReceiptView', () => {
             );
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.queryByText(translateLocal('receipt.pageCount', {pageCount: 1}))).toBeNull();
+            expect(screen.queryByText(translateLocal('receipt.pageCount', {page: 1, pageCount: 1}))).toBeNull();
         });
 
         // An optimistic merge that swaps a PDF for an image can leave the PDF's count behind, so the
@@ -383,7 +424,7 @@ describe('MoneyRequestReceiptView', () => {
             );
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.queryByText(translateLocal('receipt.pageCount', {pageCount: 3}))).toBeNull();
+            expect(screen.queryByText(translateLocal('receipt.pageCount', {page: 1, pageCount: 3}))).toBeNull();
         });
 
         // An image receipt carries no page count at all, which is also what a PDF uploaded before the
@@ -401,7 +442,7 @@ describe('MoneyRequestReceiptView', () => {
             );
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.queryByText(translateLocal('receipt.pageCount', {pageCount: 3}))).toBeNull();
+            expect(screen.queryByText(translateLocal('receipt.pageCount', {page: 1, pageCount: 3}))).toBeNull();
         });
 
         // The regenerated receipt makes the old count stale
@@ -422,7 +463,140 @@ describe('MoneyRequestReceiptView', () => {
             );
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.queryByText(translateLocal('receipt.pageCount', {pageCount: 3}))).toBeNull();
+            expect(screen.queryByText(translateLocal('receipt.pageCount', {page: 1, pageCount: 3}))).toBeNull();
+        });
+    });
+
+    describe('receipt page navigation', () => {
+        const renderMultiPagePDFReceipt = async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithMultiPagePDFReceipt);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+        };
+
+        it('flips pages once the PDF has loaded on a hover-capable device', async () => {
+            // Given a multi-page PDF receipt on a device that supports hover, with its PDF already loaded
+            mockDeviceCapabilities.hasHoverSupport = true;
+            await renderMultiPagePDFReceipt();
+            act(() => mockReceiptImage.reportPDFLoadSuccess?.());
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(translateLocal('receipt.pageCount', {page: 1, pageCount: 3}))).toBeTruthy();
+            expect(mockReceiptImage.lastPDFPage).toBe(1);
+
+            // When the user clicks next
+            fireEvent.press(screen.getByLabelText(translateLocal('common.next')));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the pill's label and the page requested from the PDF overlay both move to page 2
+            expect(screen.getByText(translateLocal('receipt.pageCount', {page: 2, pageCount: 3}))).toBeTruthy();
+            expect(mockReceiptImage.lastPDFPage).toBe(2);
+
+            // When the user clicks previous
+            fireEvent.press(screen.getByLabelText(translateLocal('common.previous')));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it goes back to page 1
+            expect(screen.getByText(translateLocal('receipt.pageCount', {page: 1, pageCount: 3}))).toBeTruthy();
+            expect(mockReceiptImage.lastPDFPage).toBe(1);
+        });
+
+        it('clamps the current page if the page count drops below it', async () => {
+            // Given the user has flipped to the last page of a 3-page receipt
+            mockDeviceCapabilities.hasHoverSupport = true;
+            await renderMultiPagePDFReceipt();
+            act(() => mockReceiptImage.reportPDFLoadSuccess?.());
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(screen.getByLabelText(translateLocal('common.next')));
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(screen.getByLabelText(translateLocal('common.next')));
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.getByText(translateLocal('receipt.pageCount', {page: 3, pageCount: 3}))).toBeTruthy();
+
+            // When the same receipt's reported page count drops to 2 (e.g. a later scan corrected it)
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, {receipt: {pageCount: 2}});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the pill clamps down to the new last page, rather than showing "Page 3 of 2"
+            expect(screen.getByText(translateLocal('receipt.pageCount', {page: 2, pageCount: 2}))).toBeTruthy();
+        });
+
+        it('disables the page buttons again when the receipt is replaced by a same-named file still loading', async () => {
+            // Given the user has flipped to page 2 of a loaded receipt named receipt.pdf
+            mockDeviceCapabilities.hasHoverSupport = true;
+            await renderMultiPagePDFReceipt();
+            act(() => mockReceiptImage.reportPDFLoadSuccess?.());
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(screen.getByLabelText(translateLocal('common.next')));
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.getByText(translateLocal('receipt.pageCount', {page: 2, pageCount: 3}))).toBeTruthy();
+
+            // When that receipt is replaced by a new upload with the same filename (a common case: "receipt.pdf"
+            // uploaded twice) and a different source, before the new file's own load has been reported
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, {
+                    receipt: {...transactionWithMultiPagePDFReceipt.receipt, source: 'https://example.com/receipt-replacement.pdf'},
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the pill resets to page 1 with both buttons disabled, instead of staying on the old page 2 as if
+            // the new file were already loaded
+            expect(screen.getByText(translateLocal('receipt.pageCount', {page: 1, pageCount: 3}))).toBeTruthy();
+            expect(screen.getByLabelText(translateLocal('common.next'))).toBeDisabled();
+            expect(screen.getByLabelText(translateLocal('common.previous'))).toBeDisabled();
+        });
+
+        it('disables the page buttons while the PDF is still loading', async () => {
+            // Given a multi-page PDF receipt on a hover-capable device, whose PDF has not loaded yet
+            mockDeviceCapabilities.hasHoverSupport = true;
+
+            // When the receipt view renders
+            await renderMultiPagePDFReceipt();
+
+            // Then the pill shows right away (so it doesn't change size once it can flip), but both buttons are
+            // disabled, because until the PDF loads only the page 1 thumbnail exists and there is nothing to flip to
+            expect(screen.getByText(translateLocal('receipt.pageCount', {page: 1, pageCount: 3}))).toBeTruthy();
+            expect(screen.getByLabelText(translateLocal('common.next'))).toBeDisabled();
+            expect(screen.getByLabelText(translateLocal('common.previous'))).toBeDisabled();
+        });
+
+        it('falls back to the static badge when the PDF fails to load', async () => {
+            // Given a multi-page PDF receipt on a hover-capable device
+            mockDeviceCapabilities.hasHoverSupport = true;
+            await renderMultiPagePDFReceipt();
+
+            // When its PDF fails to load
+            act(() => mockReceiptImage.reportPDFLoadFailure?.());
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the view falls back to the plain static badge instead of a pill stuck disabled forever, because
+            // only the page 1 thumbnail exists and there is nothing to flip to
+            expect(screen.getByText(translateLocal('receipt.pageCount', {page: 1, pageCount: 3}))).toBeTruthy();
+            expect(screen.queryByLabelText(translateLocal('common.next'))).toBeNull();
+        });
+
+        it('keeps the static badge on devices without hover support', async () => {
+            // Given a multi-page PDF receipt on a device without hover support
+
+            // When the receipt view renders
+            await renderMultiPagePDFReceipt();
+
+            // Then the static badge shows instead of the pill, because without hover support the real PDF is never
+            // drawn over the thumbnail, so there is no page to flip to (and nothing to report as loaded)
+            expect(screen.getByText(translateLocal('receipt.pageCount', {page: 1, pageCount: 3}))).toBeTruthy();
+            expect(screen.queryByLabelText(translateLocal('common.next'))).toBeNull();
+            expect(mockReceiptImage.lastPDFPage).toBeUndefined();
         });
     });
 
