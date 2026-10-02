@@ -162,6 +162,15 @@ function setupLocalTransactions(transactions: Transaction[]) {
     onyxData[ONYXKEYS.COLLECTION.TRANSACTION] = collection;
 }
 
+/** Seeds the local `report_` collection (mirrors the optimistic parent reports written alongside new expenses). */
+function setupLocalReports(reports: Report[]) {
+    const collection: Record<string, Report> = {};
+    for (const report of reports) {
+        collection[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = report;
+    }
+    onyxData[ONYXKEYS.COLLECTION.REPORT] = collection;
+}
+
 function resultTransactionIDs(transactions: RecentlyAddedExpense[]): string[] {
     return transactions.map((t) => t.transactionID);
 }
@@ -297,6 +306,20 @@ describe('useRecentlyAddedData — locally pending (offline-created) expenses', 
         const {result} = renderHook(() => useRecentlyAddedData());
 
         expect(result.current.transactions.at(0)?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    });
+
+    it('excludes a locally-pending expense whose local parent report is owned by another account (e.g. sent money)', () => {
+        // Sending money (Pay someone) optimistically creates the expense on an IOU report owned by the recipient.
+        setupSnapshot([], [makeReport('report_owned', ACCOUNT_ID)]);
+        setupLocalReports([makeReport('report_owned', ACCOUNT_ID), makeReport('report_sent', OTHER_ACCOUNT_ID, {managerID: ACCOUNT_ID})]);
+        setupLocalTransactions([
+            makeTransaction({transactionID: 'mine', reportID: 'report_owned', inserted: '2026-06-02 10:00:00', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}),
+            makeTransaction({transactionID: 'sent', reportID: 'report_sent', inserted: '2026-06-03 10:00:00', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}),
+        ]);
+
+        const {result} = renderHook(() => useRecentlyAddedData());
+
+        expect(resultTransactionIDs(result.current.transactions)).toEqual(['mine']);
     });
 
     it('does not duplicate an expense present in both the snapshot and the local collection', () => {
