@@ -65,6 +65,7 @@ function EmailIssuePage() {
             return;
         }
         showConfirmModal({
+            id: 'emailIssueRetry',
             title: translate('emailIssuePage.errorTitle'),
             prompt: translate('emailIssuePage.errorPrompt'),
             confirmText: translate('common.tryAgain'),
@@ -109,7 +110,7 @@ function EmailIssuePage() {
                     </View>
                 </View>
             </ScrollView>
-            <FixedFooter style={styles.gap2}>
+            <FixedFooter style={styles.gap3}>
                 <Button
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={() => {
