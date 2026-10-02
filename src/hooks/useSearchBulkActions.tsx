@@ -2786,7 +2786,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             filteredViolationsCollection[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] = transactionViolationsForReport.filter(
                                 (violation) =>
                                     violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE ||
-                                    (violation.name === CONST.VIOLATIONS.RTER && violation.data?.pendingPattern && !isBrokenConnectionViolation(violation)) ||
+                                    !!(violation.name === CONST.VIOLATIONS.RTER && violation.data?.pendingPattern && !isBrokenConnectionViolation(violation)) ||
                                     shouldShowViolation(reportForViolations, policyForViolations, violation.name, email ?? '', accountID, true, transaction),
                             );
                         }
