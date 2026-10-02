@@ -287,6 +287,28 @@ describe('getDynamicFieldErrors', () => {
         expect(consentErrors).toEqual({acceptTerms: translateLocal('common.error.fieldRequired')});
     });
 
+    it('checks a list for its size and for the first entry with a problem', () => {
+        // Given a list of at least two directors, whose entries need a first name and may hold a sensitive SSN
+        const directors: DynamicFormField = {
+            key: 'directors',
+            type: 'list',
+            required: true,
+            minItems: 2,
+            itemFields: [
+                {key: 'firstName', type: 'text', required: true},
+                {key: 'ssn', type: 'text', required: true, sensitive: true},
+            ],
+        };
+
+        // When it holds no entry, and when it holds one entry without a first name
+        const emptyErrors = getDynamicFieldErrors([directors], {directors: []}, translateLocal);
+        const shortErrors = getDynamicFieldErrors([directors], {directors: [{id: 'jane', answers: {firstName: ''}}]}, translateLocal);
+
+        // Then the empty list is required, and the short list shows both the size and the entry's missing name, while the SSN kept outside the entry is not checked
+        expect(emptyErrors).toEqual({directors: translateLocal('common.error.fieldRequired')});
+        expect(shortErrors).toEqual({directors: `${translateLocal('dynamicForm.error.tooFewItems', {min: 2})}\n${translateLocal('common.error.fieldRequired')}`});
+    });
+
     it('skips a field whose controlling field is hidden on another page', () => {
         // Given a proof upload revealed by a source of funds, which is only asked for risky industries, each on its own page
         const industry: DynamicFormField = {key: 'industry', type: 'select', required: true, values: [{key: 'SAFE'}, {key: 'RISKY'}]};

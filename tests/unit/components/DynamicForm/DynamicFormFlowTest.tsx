@@ -2,11 +2,15 @@ import {render} from '@testing-library/react-native';
 
 import DynamicFormFlow from '@components/DynamicForm';
 import type {DynamicFormSubPageProps} from '@components/DynamicForm/types';
+import {getListItems, getListItemSensitiveKey} from '@components/DynamicForm/utils/listItems';
+import type {FormValue} from '@components/Form/types';
 
 import useSubPage from '@hooks/useSubPage';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 
-import {clearSensitiveAnswers, saveDraftAnswers, saveSensitiveAnswers} from '@userActions/DynamicForm';
+import Navigation from '@libs/Navigation/Navigation';
+
+import {clearSensitiveAnswers, forgetSensitiveAnswers, saveDraftAnswers, saveSensitiveAnswers, startListItemEdit} from '@userActions/DynamicForm';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -25,11 +29,18 @@ function hasDynamicFormProps(props: SubPageProps | undefined): props is DynamicF
 const mockCurrentPage = jest.fn<null, [SubPageProps]>(() => null);
 const mockPrevPage = jest.fn();
 const mockResetToPage = jest.fn();
+const mockMoveTo = jest.fn();
 let mockOnBackButtonPress: (() => void) | undefined;
 
 jest.mock('@hooks/useSubPage', () => jest.fn());
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
-jest.mock('@userActions/DynamicForm', () => ({saveDraftAnswers: jest.fn(), saveSensitiveAnswers: jest.fn(), clearSensitiveAnswers: jest.fn()}));
+jest.mock('@userActions/DynamicForm', () => ({
+    saveDraftAnswers: jest.fn(),
+    saveSensitiveAnswers: jest.fn(),
+    clearSensitiveAnswers: jest.fn(),
+    forgetSensitiveAnswers: jest.fn(),
+    startListItemEdit: jest.fn(() => Promise.resolve()),
+}));
 jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn(), goBack: jest.fn()}));
 jest.mock('@components/ScreenWrapper', () => jest.fn(({children}: {children: React.ReactNode}) => children));
 jest.mock('@components/FullscreenLoadingIndicator', () => jest.fn(() => null));
@@ -40,7 +51,8 @@ jest.mock('@components/Header/composed/HeaderWithBackButtonAndTitle', () =>
     }),
 );
 
-const FORM_ID = ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM;
+// Any form key works, and this one's draft takes every answer type, list entries included
+const FORM_ID = ONYXKEYS.FORMS.DYNAMIC_FORM_LIST_ITEM_FORM;
 
 const fields: DynamicFormField[] = [
     {key: 'firstName', type: 'text', required: true, group: 'Personal details'},
@@ -53,7 +65,7 @@ const buildRoute = (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_PE
 
 type RenderFlowOptions = {
     flowFields?: DynamicFormField[];
-    draft?: Record<string, string>;
+    draft?: Record<string, FormValue>;
     sensitiveAnswers?: Record<string, string>;
     pageIndex?: number;
     currentPageName?: string;
@@ -71,7 +83,7 @@ async function renderFlow({flowFields = fields, draft = {}, sensitiveAnswers = {
         lastPageIndex: 3,
         nextPage: jest.fn(),
         prevPage: mockPrevPage,
-        moveTo: jest.fn(),
+        moveTo: mockMoveTo,
         resetToPage: mockResetToPage,
         isRedirecting,
     });
@@ -225,6 +237,113 @@ describe('DynamicFormFlow', () => {
         expect(clearSensitiveAnswers).toHaveBeenCalledWith(FORM_ID);
         expect(onBack).toHaveBeenCalled();
         expect(mockPrevPage).not.toHaveBeenCalled();
+    });
+
+    describe('with a list field', () => {
+        const listFields: DynamicFormField[] = [
+            {
+                key: 'directors',
+                type: 'list',
+                required: true,
+                group: 'Directors',
+                itemLabel: 'director',
+                itemFields: [
+                    {key: 'firstName', type: 'text', required: true},
+                    {key: 'ssn', type: 'text', required: false, sensitive: true},
+                ],
+            },
+        ];
+        const jane = {id: 'jane', answers: {firstName: 'Jane'}};
+
+        it('keeps the entry editors out of Next and Back', async () => {
+            // Given a list with one entry
+            // When the flow renders
+            const {subPageOptions} = await renderFlow({flowFields: listFields, draft: {directors: [jane]}, currentPageName: 'directors'});
+
+            // Then the editors of a new and of the existing entry are pages that only Add, Edit or a row can open
+            expect(subPageOptions.skipPages).toEqual(expect.arrayContaining(['directors~new', 'directors~jane']));
+        });
+
+        it('fills the editor with the entry before opening it', async () => {
+            // Given the list page with one entry
+            const {pageProps, subPageOptions} = await renderFlow({flowFields: listFields, draft: {directors: [jane]}, currentPageName: 'directors'});
+
+            // When the user edits the entry
+            pageProps?.onOpenListItemEditor('directors', 'jane');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the editor form gets the entry's answers first, so its inputs open filled in, and then the entry's editor page opens
+            expect(startListItemEdit).toHaveBeenCalledWith({firstName: 'Jane'});
+            expect(mockMoveTo).toHaveBeenCalledWith(
+                subPageOptions.pages.findIndex((page) => page.pageName === 'directors~jane'),
+                false,
+            );
+        });
+
+        it('drafts a new entry, keeps its SSN in memory, and returns to the list page', async () => {
+            // Given the editor of a new director
+            const {pageProps} = await renderFlow({flowFields: listFields, currentPageName: 'directors~new'});
+
+            // When the user saves it
+            pageProps?.onListItemSave('directors', undefined, {firstName: 'John', ssn: '123456789'});
+
+            // Then the entry is added to the draft without its SSN, the SSN is kept in memory under the entry, and the list page opens again
+            const draftedItems = getListItems(jest.mocked(saveDraftAnswers).mock.lastCall?.[1].directors);
+            expect(draftedItems.map((item) => item.answers)).toEqual([{firstName: 'John'}]);
+            expect(jest.mocked(saveSensitiveAnswers).mock.lastCall).toEqual([
+                FORM_ID,
+                Object.fromEntries(draftedItems.map((item) => [getListItemSensitiveKey('directors', item.id, 'ssn'), '123456789'])),
+            ]);
+            expect(Navigation.goBack).toHaveBeenCalledWith(buildRoute('directors'));
+        });
+
+        it('forgets the SSN of a removed entry when the user leaves the list page', async () => {
+            // Given a director whose SSN is kept in memory, removed from the list on its page
+            const {pageProps} = await renderFlow({
+                flowFields: listFields,
+                draft: {directors: [jane]},
+                sensitiveAnswers: {[getListItemSensitiveKey('directors', 'jane', 'ssn')]: '123456789'},
+                currentPageName: 'directors',
+            });
+            const group = pageProps?.groups.at(0);
+            if (!pageProps || !group) {
+                throw new Error('No list page');
+            }
+
+            // When the user leaves the page with Next
+            pageProps.onGroupSubmit(group, {directors: []});
+
+            // Then the removed director's SSN is dropped from memory instead of lasting the whole visit
+            expect(forgetSensitiveAnswers).toHaveBeenCalledWith(FORM_ID, [getListItemSensitiveKey('directors', 'jane', 'ssn')]);
+        });
+
+        it('returns from an entry editor to its list page on back', async () => {
+            // Given the editor of an existing entry
+            const {onBack} = await renderFlow({flowFields: listFields, draft: {directors: [jane]}, currentPageName: 'directors~jane', pageIndex: 2});
+
+            // When the user presses back
+            mockOnBackButtonPress?.();
+
+            // Then the list page opens, rather than the page before the editor or the screen before the flow
+            expect(Navigation.goBack).toHaveBeenCalledWith(buildRoute('directors'));
+            expect(onBack).not.toHaveBeenCalled();
+        });
+
+        it('submits each entry with its sensitive answers', async () => {
+            // Given a director whose SSN is kept in memory
+            const {subPageOptions, onSubmit} = await renderFlow({
+                flowFields: listFields,
+                draft: {directors: [jane]},
+                sensitiveAnswers: {[getListItemSensitiveKey('directors', 'jane', 'ssn')]: '123456789'},
+                currentPageName: 'confirm',
+            });
+
+            // When the user confirms
+            subPageOptions.onFinished();
+
+            // Then the entry is submitted with its SSN back in place
+            expect(onSubmit).toHaveBeenCalledWith({directors: [{id: 'jane', answers: {firstName: 'Jane', ssn: '123456789'}}]});
+        });
     });
 
     it('goes back one page from a later page', async () => {

@@ -6,6 +6,7 @@ import type {DynamicFormFieldOfType} from './types';
 import renderAddress from './renderers/addressRenderer';
 import CHOICE_RENDERERS from './renderers/choiceRenderers';
 import renderFile from './renderers/fileRenderer';
+import renderList from './renderers/listRenderer';
 import TEXT_RENDERERS from './renderers/textRenderers';
 
 const RENDERERS: DynamicFieldRendererMap = {
@@ -13,6 +14,7 @@ const RENDERERS: DynamicFieldRendererMap = {
     ...CHOICE_RENDERERS,
     address: renderAddress,
     file: renderFile,
+    list: renderList,
 };
 
 /** The input for one field, and how the renderer lays it out */

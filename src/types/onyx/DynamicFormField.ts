@@ -1,3 +1,5 @@
+import type {FormValue} from '@components/Form/types';
+
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 
@@ -128,6 +130,27 @@ type DynamicFormBooleanField = DynamicFormFieldBase & {
     presentation?: 'yesNo';
 };
 
+/** Repeated entries, such as a company's owners, each answered with its own fields on an editor page */
+type DynamicFormListField = DynamicFormFieldBase & {
+    type: 'list';
+
+    /** The fields of one entry */
+    itemFields: DynamicFormField[];
+
+    /** The noun for one entry, such as "owner", for the add row and the editor title */
+    itemLabel?: string;
+
+    itemLabelKey?: TranslationPaths;
+
+    /** Hint shown under the add row */
+    addItemDescription?: string;
+
+    addItemDescriptionKey?: TranslationPaths;
+
+    minItems?: number;
+    maxItems?: number;
+};
+
 /** Types that need nothing beyond the common properties */
 type DynamicFormPlainField = DynamicFormFieldBase & {
     type: 'currency' | 'percent';
@@ -145,7 +168,14 @@ type DynamicFormField =
     | DynamicFormAmountField
     | DynamicFormCountryField
     | DynamicFormBooleanField
+    | DynamicFormListField
     | DynamicFormPlainField;
+
+/** One entry of a list field. The `id` is made on the device, to key the entry's row and editor page. */
+type DynamicFormListItem = {
+    id: string;
+    answers: Partial<Record<string, FormValue>>;
+};
 
 /** A field as the schema sends it, which can be of a type this App version does not know */
 type DynamicFormSchemaField = DynamicFormField | (DynamicFormFieldBase & {type: string});
@@ -163,6 +193,8 @@ export type {
     DynamicFormChoiceField,
     DynamicFormCountryField,
     DynamicFormFileField,
+    DynamicFormListField,
+    DynamicFormListItem,
     DynamicFormMultiChoiceField,
     DynamicFormDateField,
     DynamicFormField,

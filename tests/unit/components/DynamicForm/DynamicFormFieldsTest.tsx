@@ -9,6 +9,7 @@ import DatePicker from '@components/DatePicker';
 import CurrencyInlineListAdapter from '@components/DynamicForm/adapters/CurrencyInlineListAdapter';
 import FileUploadAdapter from '@components/DynamicForm/adapters/FileUploadAdapter';
 import InlineSelectionListAdapter from '@components/DynamicForm/adapters/InlineSelectionListAdapter';
+import ListFieldAdapter from '@components/DynamicForm/adapters/ListFieldAdapter';
 import TabsAdapter from '@components/DynamicForm/adapters/TabsAdapter';
 import YesNoAdapter from '@components/DynamicForm/adapters/YesNoAdapter';
 import DynamicFormFields from '@components/DynamicForm/components/DynamicFormFields';
@@ -98,6 +99,7 @@ const EXPECTED_INPUT_BY_TYPE: Record<DynamicFormFieldType, ComponentType<never>>
     file: FileUploadAdapter,
     amount: AmountForm,
     percent: PercentageForm,
+    list: ListFieldAdapter,
 };
 
 const FIELD_TYPES = Object.keys(EXPECTED_INPUT_BY_TYPE).filter((type): type is DynamicFormFieldType => Object.hasOwn(EXPECTED_INPUT_BY_TYPE, type));
@@ -105,7 +107,7 @@ const FIELD_TYPES = Object.keys(EXPECTED_INPUT_BY_TYPE).filter((type): type is D
 describe('DynamicFormFields', () => {
     it.each(FIELD_TYPES)('renders a %s field with its input', (type) => {
         // Given a field of one type with nothing but the required properties, next to another question so it is drawn as a row
-        const field: DynamicFormField = {key: 'answer', type, required: false};
+        const field: DynamicFormField = type === 'list' ? {key: 'answer', type, required: false, itemFields: []} : {key: 'answer', type, required: false};
 
         // When it renders
         const rendered = renderFields([field, otherQuestion]);

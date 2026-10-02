@@ -54,6 +54,11 @@ type DynamicFormSubPageProps = SubPageProps &
         values: DynamicFormValues;
 
         onGroupSubmit: NonNullable<DynamicFormFlowProps['onGroupSubmit']>;
+
+        onOpenListItemEditor: NonNullable<DynamicFormFieldsProps['onOpenListItemEditor']>;
+
+        /** Saves a list entry from its editor page. Without `itemID` it adds a new entry. */
+        onListItemSave: (listKey: string, itemID: string | undefined, answers: DynamicFormValues) => void;
     };
 
 export type {DynamicFormFieldOfType, DynamicFormFlowProps, DynamicFormSubPageProps, DynamicFormValues};

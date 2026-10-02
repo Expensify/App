@@ -15,7 +15,19 @@ import React from 'react';
 import DynamicFormFields from './DynamicFormFields';
 
 /** One page of a dynamic form flow: the group's title, its fields and a Next button */
-function DynamicFormGroupPage({currentPageName, isEditing, onNext, formID, fields, groups, values, currency, onRefreshRequirements, onGroupSubmit}: DynamicFormSubPageProps) {
+function DynamicFormGroupPage({
+    currentPageName,
+    isEditing,
+    onNext,
+    formID,
+    fields,
+    groups,
+    values,
+    currency,
+    onRefreshRequirements,
+    onGroupSubmit,
+    onOpenListItemEditor,
+}: DynamicFormSubPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const group = groups.find((candidate) => candidate.slug === currentPageName);
@@ -48,6 +60,7 @@ function DynamicFormGroupPage({currentPageName, isEditing, onNext, formID, field
                         values={withInputValues(inputValues)}
                         currency={currency}
                         onRefreshRequirements={onRefreshRequirements}
+                        onOpenListItemEditor={onOpenListItemEditor}
                     />
                 </>
             )}

@@ -3919,7 +3919,12 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             tooShort: ({minLength}: {minLength: number}) => `${minLength}文字以上で入力してください`,
             invalidFormat: ({example}: {example?: string}) => (example ? `形式が正しくありません。例：${example}` : '形式が正しくありません'),
             invalidOption: '利用可能な選択肢から選んでください',
+            tooFewItems: ({min}: {min: number}) => `${min}件以上追加してください`,
+            tooManyItems: ({max}: {max: number}) => `${max}件以内で追加してください`,
         },
+        addItem: ({item}: {item: string}) => `${item}を追加`,
+        removeItemTitle: ({name}: {name: string}) => `${name}を削除しますか？`,
+        removeItemPrompt: ({name}: {name: string}) => `本当に${name}を削除しますか？`,
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC は 8 文字または 11 文字で、最初の 6 文字はアルファベット、続く 2 文字または 5 文字はアルファベットまたは数字である必要があります。',

@@ -32,6 +32,9 @@ type DynamicFormFieldsProps = {
 
     /** Called when the user changes a field marked `refreshRequirementsOnChange`, with the draft key that changed, so the screen can fetch the schema again */
     onRefreshRequirements?: (inputID: string, value: FormValue) => void;
+
+    /** Opens the editor page of a list entry, or of a new one without `itemID`. DynamicFormFlow passes it; without it list entries cannot be added or edited. */
+    onOpenListItemEditor?: (listKey: string, itemID?: string) => void;
 };
 
 /** Typed answers change on every keystroke, so they ask for new requirements when the user leaves the input instead */
@@ -40,7 +43,7 @@ function isTypedField(field: DynamicFormField): boolean {
 }
 
 /** The inputs of a schema-driven form. Render it inside a FormProvider and validate with getDynamicFieldErrors. */
-function DynamicFormFields({fields, allFields = fields, values, currency = CONST.CURRENCY.USD, onRefreshRequirements}: DynamicFormFieldsProps) {
+function DynamicFormFields({fields, allFields = fields, values, currency = CONST.CURRENCY.USD, onRefreshRequirements, onOpenListItemEditor}: DynamicFormFieldsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const visibleFields = getVisibleFields(fields.filter(isSupportedField), values, allFields.filter(isSupportedField));
@@ -79,7 +82,7 @@ function DynamicFormFields({fields, allFields = fields, values, currency = CONST
         const shouldRefreshOnChange = !!field.refreshRequirementsOnChange && !isTypedField(field);
         const {input, isMenuRow, labelAbove, showsDescription} = renderDynamicField(
             field,
-            {values, translate, styles, currency, isLoneField: field === loneField},
+            {values, translate, styles, currency, isLoneField: field === loneField, onOpenListItemEditor},
             {
                 inputID: field.key,
                 shouldSaveDraft: !isSensitiveField(field),

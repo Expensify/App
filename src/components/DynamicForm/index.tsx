@@ -8,11 +8,13 @@ import useSubPage from '@hooks/useSubPage';
 
 import Navigation from '@libs/Navigation/Navigation';
 
-import {clearSensitiveAnswers, saveDraftAnswers, saveSensitiveAnswers} from '@userActions/DynamicForm';
+import {clearSensitiveAnswers, forgetSensitiveAnswers, saveDraftAnswers, saveSensitiveAnswers, startListItemEdit} from '@userActions/DynamicForm';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {DynamicFormListField, DynamicFormListItem} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
+import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';
 
 import type {DynamicFormFlowProps, DynamicFormSubPageProps, DynamicFormValues} from './types';
@@ -21,12 +23,14 @@ import type {DynamicFormGroup} from './utils/groupFieldsIntoPages';
 import DynamicFormConfirmationPage from './components/DynamicFormConfirmationPage';
 import DynamicFormFields from './components/DynamicFormFields';
 import DynamicFormGroupPage from './components/DynamicFormGroupPage';
+import DynamicFormListItemPage from './components/DynamicFormListItemPage';
 import getDynamicFieldErrors, {isAnswered} from './utils/getDynamicFieldErrors';
 import getSubmittedAnswers from './utils/getSubmittedAnswers';
 import getVisibleFields from './utils/getVisibleFields';
 import groupFieldsIntoPages, {CONFIRMATION_PAGE_SLUG} from './utils/groupFieldsIntoPages';
 import isSensitiveField from './utils/isSensitiveField';
 import isSupportedField from './utils/isSupportedField';
+import {getListItemPageName, getListItems, getListItemSensitiveKey, getRemovedListItemSensitiveKeys, parseListItemPageName} from './utils/listItems';
 import toDynamicFormValues from './utils/toDynamicFormValues';
 
 /** A whole dynamic form: one page per group, skipping pages with nothing to ask, then a confirmation page */
@@ -55,8 +59,16 @@ function DynamicFormFlow({
 
     const fields = schemaFields.filter(isSupportedField);
     const groups = groupFieldsIntoPages(fields);
-    const pages = [...groups.map((group) => ({pageName: group.slug, component: DynamicFormGroupPage})), {pageName: CONFIRMATION_PAGE_SLUG, component: DynamicFormConfirmationPage}];
-    const skipPages = groups.filter((group) => getVisibleFields(group.fields, values, fields).length === 0).map((group) => group.slug);
+    const listFields = fields.filter((field): field is DynamicFormListField => field.type === 'list');
+
+    // Entry editors come after the confirmation page and are skipped by Next and Back, so only an entry's Add, Edit or row opens them
+    const listItemPageNames = listFields.flatMap((field) => [getListItemPageName(field.key), ...getListItems(values[field.key]).map((item) => getListItemPageName(field.key, item.id))]);
+    const pages = [
+        ...groups.map((group) => ({pageName: group.slug, component: DynamicFormGroupPage})),
+        {pageName: CONFIRMATION_PAGE_SLUG, component: DynamicFormConfirmationPage},
+        ...listItemPageNames.map((pageName) => ({pageName, component: DynamicFormListItemPage})),
+    ];
+    const skipPages = [...groups.filter((group) => getVisibleFields(group.fields, values, fields).length === 0).map((group) => group.slug), ...listItemPageNames];
     const firstShownPageIndex = pages.findIndex((page) => !skipPages.includes(page.pageName));
     const getFirstIncompleteGroupIndex = (answers: DynamicFormValues) => groups.findIndex((group) => Object.keys(getDynamicFieldErrors(group.fields, answers, translate, fields)).length > 0);
 
@@ -89,7 +101,9 @@ function DynamicFormFlow({
         onSubmit(getSubmittedAnswers(fields, values));
     }
 
-    const isOnUnavailablePage = !isDraftLoading && !isRedirecting && (!pages.some((page) => page.pageName === currentPageName) || skipPages.some((pageName) => pageName === currentPageName));
+    const listItemPage = parseListItemPageName(currentPageName);
+    const isOnSkippedGroupPage = !listItemPage && skipPages.some((pageName) => pageName === currentPageName);
+    const isOnUnavailablePage = !isDraftLoading && !isRedirecting && (!pages.some((page) => page.pageName === currentPageName) || isOnSkippedGroupPage);
 
     useEffect(() => {
         if (!isRedirecting) {
@@ -106,16 +120,18 @@ function DynamicFormFlow({
         resetToPage(pages.at(startFrom)?.pageName);
     }, [isOnUnavailablePage, resetToPage, pages, startFrom]);
 
-    /** Typed answers are drafted as FormProvider cleaned them and inputs left untouched are drafted with their defaults, so the draft matches what the page validated */
+    /** Typed answers are drafted as FormProvider cleaned them and inputs left untouched are drafted with their defaults, so the draft matches what the page validated. Lists are drafted as they change, and their submitted entries carry sensitive answers, so they are left out. */
     const handleGroupSubmit = (group: DynamicFormGroup, pageValues: DynamicFormValues) => {
-        const answers = getSubmittedAnswers(group.fields, {...values, ...pageValues}, fields);
+        const currentValues = {...values, ...pageValues};
+        const answers = getSubmittedAnswers(group.fields, currentValues, fields);
         const sensitiveKeys = new Set(group.fields.filter(isSensitiveField).map((field) => field.key));
+        const listKeys = new Set(listFields.map((field) => field.key));
         const draftAnswers: DynamicFormValues = {};
         const sensitiveAnswers: Record<string, string> = {};
         for (const [key, answer] of Object.entries(answers)) {
             if (sensitiveKeys.has(key) && typeof answer === 'string') {
                 sensitiveAnswers[key] = answer;
-            } else {
+            } else if (!listKeys.has(key)) {
                 draftAnswers[key] = answer;
             }
         }
@@ -123,17 +139,67 @@ function DynamicFormFlow({
         if (Object.keys(sensitiveAnswers).length > 0) {
             saveSensitiveAnswers(formID, sensitiveAnswers);
         }
+        const removedSensitiveKeys = listFields.filter((field) => group.fields.includes(field)).flatMap((field) => getRemovedListItemSensitiveKeys(field, currentValues));
+        if (removedSensitiveKeys.length > 0) {
+            forgetSensitiveAnswers(formID, removedSensitiveKeys);
+        }
         onGroupSubmit?.(group, answers);
     };
 
-    const goBack = () => {
-        if (isEditing) {
-            // Replaced routes leave nothing in the stack to go back to
-            if (shouldReplaceRoute) {
-                resetToPage(CONFIRMATION_PAGE_SLUG);
-                return;
+    const returnTo = (pageName: string) => {
+        // Replaced routes leave nothing in the stack to go back to
+        if (shouldReplaceRoute) {
+            resetToPage(pageName);
+            return;
+        }
+        Navigation.goBack(buildRoute(pageName));
+    };
+
+    /** An entry opened from the confirmation page, or from a page edited from it, returns there */
+    const closeListItemEditor = (listKey: string) => {
+        const listGroup = groups.find((group) => group.fields.some((field) => field.key === listKey));
+        returnTo(isEditing || !listGroup ? CONFIRMATION_PAGE_SLUG : listGroup.slug);
+    };
+
+    const openListItemEditor = (listKey: string, itemID?: string) => {
+        const item = getListItems(values[listKey]).find((candidate) => candidate.id === itemID);
+        const editorIndex = pages.findIndex((page) => page.pageName === getListItemPageName(listKey, itemID));
+        const shouldEdit = isEditing || currentPageName === CONFIRMATION_PAGE_SLUG;
+        startListItemEdit(item?.answers ?? {}).then(() => moveTo(editorIndex, shouldEdit));
+    };
+
+    /** The entry is drafted with the form, except its sensitive answers, which are kept in memory under the entry */
+    const saveListItem = (listKey: string, itemID: string | undefined, itemValues: DynamicFormValues) => {
+        const listField = listFields.find((field) => field.key === listKey);
+        if (!listField) {
+            return;
+        }
+        const id = itemID ?? Str.guid();
+        const sensitiveKeys = new Set(listField.itemFields.filter(isSensitiveField).map((field) => field.key));
+        const item: DynamicFormListItem = {id, answers: {}};
+        const sensitiveAnswers: Record<string, string> = {};
+        for (const [key, answer] of Object.entries(getSubmittedAnswers(listField.itemFields, itemValues))) {
+            if (sensitiveKeys.has(key) && typeof answer === 'string') {
+                sensitiveAnswers[getListItemSensitiveKey(listKey, id, key)] = answer;
+            } else {
+                item.answers[key] = answer;
             }
-            Navigation.goBack(buildRoute(CONFIRMATION_PAGE_SLUG));
+        }
+        const items = getListItems(values[listKey]);
+        saveDraftAnswers(formID, {[listKey]: itemID ? items.map((existing) => (existing.id === id ? item : existing)) : [...items, item]});
+        if (Object.keys(sensitiveAnswers).length > 0) {
+            saveSensitiveAnswers(formID, sensitiveAnswers);
+        }
+        closeListItemEditor(listKey);
+    };
+
+    const goBack = () => {
+        if (listItemPage) {
+            closeListItemEditor(listItemPage.listKey);
+            return;
+        }
+        if (isEditing) {
+            returnTo(CONFIRMATION_PAGE_SLUG);
             return;
         }
         if (pageIndex <= firstShownPageIndex) {
@@ -169,6 +235,8 @@ function DynamicFormFlow({
                     currency={currency}
                     onRefreshRequirements={onRefreshRequirements}
                     onGroupSubmit={handleGroupSubmit}
+                    onOpenListItemEditor={openListItemEditor}
+                    onListItemSave={saveListItem}
                     confirmationTitle={confirmationTitle}
                     isSubmitting={isSubmitting}
                     submitError={submitError}

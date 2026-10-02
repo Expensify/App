@@ -20,6 +20,7 @@ import type {
     DynamicFormCountryField,
     DynamicFormField,
     DynamicFormFieldType,
+    DynamicFormListField,
     DynamicFormMultiChoiceField,
     DynamicFormNumberField,
     DynamicFormSchemaField,
@@ -30,7 +31,9 @@ import getAddressInputKeys, {isStateAsked} from './getAddressInputKeys';
 import getFieldOptions from './getFieldOptions';
 import getVisibleFields from './getVisibleFields';
 import isCountryCode from './isCountryCode';
+import isSensitiveField from './isSensitiveField';
 import isSupportedField from './isSupportedField';
+import {getListItems} from './listItems';
 import logSchemaProblem from './logSchemaProblem';
 
 /** Checks a field the user has answered. Unanswered fields only get the required check. */
@@ -105,6 +108,24 @@ function getMultiChoiceErrors(field: DynamicFormFieldOfType<'multiselect' | 'cou
     return field.required && getOfferedChoices(field, values).length === 0 ? [translate('common.error.fieldRequired')] : [];
 }
 
+/** The list shows one error, so the first entry with a problem names it. Sensitive answers live outside the entries, so only drafted answers are checked. */
+function getListErrors(field: DynamicFormListField, values: DynamicFormValues, translate: LocalizedTranslate): string[] {
+    const items = getListItems(values[field.key]);
+    const messages: string[] = [];
+    if (field.minItems !== undefined && items.length < field.minItems) {
+        messages.push(translate('dynamicForm.error.tooFewItems', {min: field.minItems}));
+    }
+    if (field.maxItems !== undefined && items.length > field.maxItems) {
+        messages.push(translate('dynamicForm.error.tooManyItems', {max: field.maxItems}));
+    }
+    const itemFields = field.itemFields.filter((itemField) => !isSensitiveField(itemField));
+    const firstItemError = items.map((item) => Object.values(getDynamicFieldErrors(itemFields, item.answers, translate)).at(0)).find(Boolean);
+    if (firstItemError) {
+        messages.push(firstItemError);
+    }
+    return messages;
+}
+
 /** For inputs that only accept valid answers: UploadFile checks type, size and count, AmountForm and PercentageForm reject invalid typing */
 const noChecks = () => [];
 
@@ -152,6 +173,7 @@ const VALIDATORS: {[TType in DynamicFormFieldType]: FieldValidator<TType>} = {
     file: noChecks,
     amount: noChecks,
     percent: noChecks,
+    list: getListErrors,
 };
 
 /** Each address part has its own input, so its errors go under its own draft key */

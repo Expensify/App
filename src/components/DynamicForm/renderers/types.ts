@@ -10,7 +10,7 @@ import type {DynamicFormFieldType} from '@src/types/onyx';
 
 import type {ReactElement} from 'react';
 
-type DynamicFieldContext = Pick<DynamicFormFieldsProps, 'values'> &
+type DynamicFieldContext = Pick<DynamicFormFieldsProps, 'values' | 'onOpenListItemEditor'> &
     Required<Pick<DynamicFormFieldsProps, 'currency'>> & {
         translate: LocalizedTranslate;
         styles: ThemeStyles;

@@ -1,13 +1,18 @@
 import type {DynamicFormValues} from '@components/DynamicForm/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-import type {SummaryItem} from '@components/SubStepForms/ConfirmationStep';
+import type {SummaryGroup, SummaryGroupRow} from '@components/SubStepForms/ConfirmationStep';
+
+import {getLetterAvatarURLForName} from '@libs/UserAvatarUtils';
 
 import type {DynamicFormGroup} from './groupFieldsIntoPages';
 
 import formatDynamicFieldValue from './formatDynamicFieldValue';
 import {getFieldLabel} from './getLocalizedText';
 import getVisibleFields from './getVisibleFields';
+import {getGroupTitle} from './groupFieldsIntoPages';
 import isSensitiveField from './isSensitiveField';
+import {getListItems} from './listItems';
+import summarizeListItem from './summarizeListItem';
 
 const VISIBLE_SENSITIVE_DIGITS = 4;
 
@@ -16,18 +21,46 @@ function maskSensitiveValue(value: string): string {
     return '•'.repeat(Math.max(value.length - VISIBLE_SENSITIVE_DIGITS, 0)) + value.slice(-VISIBLE_SENSITIVE_DIGITS);
 }
 
-/** One row per visible answer, in page order. Tapping a row opens its page to edit it; readonly rows open nothing. */
-function getConfirmationItems(groups: DynamicFormGroup[], values: DynamicFormValues, translate: LocalizedTranslate, onEditGroup: (groupIndex: number) => void): SummaryItem[] {
+type ConfirmationActions = {
+    onEditGroup: (groupIndex: number) => void;
+    onEditListItem: (listKey: string, itemID: string) => void;
+};
+
+/** One section per page holding its visible answers, with each list entry as an avatar row. Tapping a row opens the page or entry to edit; readonly rows open nothing. */
+function getConfirmationItems(groups: DynamicFormGroup[], values: DynamicFormValues, translate: LocalizedTranslate, {onEditGroup, onEditListItem}: ConfirmationActions): SummaryGroup[] {
     const allFields = groups.flatMap((group) => group.fields);
-    return groups.flatMap((group, groupIndex) =>
-        getVisibleFields(group.fields, values, allFields).map((field) => ({
-            id: field.key,
-            description: getFieldLabel(field, translate),
-            title: isSensitiveField(field) ? maskSensitiveValue(formatDynamicFieldValue(field, values, translate)) : formatDynamicFieldValue(field, values, translate),
-            shouldShowRightIcon: !field.readonly,
-            onPress: field.readonly ? () => {} : () => onEditGroup(groupIndex),
-        })),
-    );
+    return groups
+        .map((group, groupIndex) => ({
+            id: group.slug,
+            name: getGroupTitle(group, translate),
+            rows: getVisibleFields(group.fields, values, allFields).flatMap((field): SummaryGroupRow[] => {
+                if (field.type === 'list') {
+                    return getListItems(values[field.key]).map((item) => {
+                        const {title, description} = summarizeListItem(item, field.itemFields, translate);
+                        return {
+                            kind: 'item',
+                            id: `${field.key}-${item.id}`,
+                            title,
+                            description,
+                            avatarSource: getLetterAvatarURLForName(title),
+                            onPress: () => onEditListItem(field.key, item.id),
+                        };
+                    });
+                }
+                const answer = formatDynamicFieldValue(field, values, translate);
+                return [
+                    {
+                        kind: 'field',
+                        id: field.key,
+                        description: getFieldLabel(field, translate),
+                        title: isSensitiveField(field) ? maskSensitiveValue(answer) : answer,
+                        shouldShowRightIcon: !field.readonly,
+                        onPress: field.readonly ? () => {} : () => onEditGroup(groupIndex),
+                    },
+                ];
+            }),
+        }))
+        .filter((section) => section.rows.length > 0);
 }
 
 export default getConfirmationItems;
