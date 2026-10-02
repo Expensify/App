@@ -10,16 +10,8 @@ import formatDynamicFieldValue from './formatDynamicFieldValue';
 import {getFieldLabel} from './getLocalizedText';
 import getVisibleFields from './getVisibleFields';
 import {getGroupTitle} from './groupFieldsIntoPages';
-import isSensitiveField from './isSensitiveField';
 import {getListItems} from './listItems';
 import summarizeListItem from './summarizeListItem';
-
-const VISIBLE_SENSITIVE_DIGITS = 4;
-
-/** All but the last few characters hidden, as in •••••6789, so the user can tell which number they entered */
-function maskSensitiveValue(value: string): string {
-    return '•'.repeat(Math.max(value.length - VISIBLE_SENSITIVE_DIGITS, 0)) + value.slice(-VISIBLE_SENSITIVE_DIGITS);
-}
 
 type ConfirmationActions = {
     onEditGroup: (groupIndex: number) => void;
@@ -47,13 +39,12 @@ function getConfirmationItems(groups: DynamicFormGroup[], values: DynamicFormVal
                         };
                     });
                 }
-                const answer = formatDynamicFieldValue(field, values, translate);
                 return [
                     {
                         kind: 'field',
                         id: field.key,
                         description: getFieldLabel(field, translate),
-                        title: isSensitiveField(field) ? maskSensitiveValue(answer) : answer,
+                        title: formatDynamicFieldValue(field, values, translate),
                         shouldShowRightIcon: !field.readonly,
                         onPress: field.readonly ? () => {} : () => onEditGroup(groupIndex),
                     },

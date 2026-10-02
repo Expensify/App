@@ -32,15 +32,15 @@ describe('getConfirmationItems', () => {
         expect(onEditGroup).toHaveBeenCalledWith(1);
     });
 
-    it('hides all but the last four characters of a sensitive answer', () => {
+    it('shows a sensitive answer in full, so the user can check it', () => {
         // Given a sensitive SSN
         const fields: DynamicFormField[] = [{key: 'ssn', type: 'text', required: true, sensitive: true}];
 
         // When the confirmation sections are built
         const sections = getConfirmationItems(groupFieldsIntoPages(fields), {ssn: '123456789'}, translateLocal, {onEditGroup: jest.fn(), onEditListItem: jest.fn()});
 
-        // Then the row shows only the last four digits, enough for the user to recognize the number
-        expect(sections.at(0)?.rows.at(0)?.title).toBe('•••••6789');
+        // Then the row shows the whole number, since a typo in any digit fails verification
+        expect(sections.at(0)?.rows.at(0)?.title).toBe('123456789');
     });
 
     it('shows each list entry as its own row that opens the entry', () => {
