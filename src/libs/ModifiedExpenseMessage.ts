@@ -540,7 +540,7 @@ function getForReportAction({
 
     const hasModifiedAttendees = isReportActionOriginalMessageAnObject && 'oldAttendees' in reportActionOriginalMessage && 'newAttendees' in reportActionOriginalMessage;
     if (hasModifiedAttendees) {
-        const [oldAttendees, newAttendees] = getFormattedAttendees(reportActionOriginalMessage.oldAttendees, reportActionOriginalMessage.newAttendees);
+        const [oldAttendees, newAttendees] = getFormattedAttendees(formatPhoneNumber, reportActionOriginalMessage.oldAttendees, reportActionOriginalMessage.newAttendees);
         buildMessageFragmentForValue(translate, newAttendees, oldAttendees, translate('iou.attendees'), false, setFragments, removalFragments, changeFragments);
     }
 

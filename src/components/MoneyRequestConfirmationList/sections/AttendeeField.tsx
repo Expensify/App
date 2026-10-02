@@ -41,7 +41,7 @@ type AttendeeFieldProps = {
 function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, action, iouType, reportID, formError}: AttendeeFieldProps) {
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const personalDetailsList = usePersonalDetails();
     const [loginToAccountIDMap] = useOnyx(ONYXKEYS.DERIVED.LOGIN_TO_ACCOUNT_ID_MAP);
     const shouldDisplayAttendeesError = formError === 'violations.missingAttendees';
@@ -56,7 +56,7 @@ function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, a
         iouAttendees?.length && iouAttendees.length > 1 && formattedAmountPerAttendee
             ? `${translate('iou.attendees')} · ${formattedAmountPerAttendee} ${translate('common.perPerson')}`
             : translate('iou.attendees');
-    const attendeesAccessibilityLabel = `${translate('iou.attendees')}, ${Array.isArray(iouAttendees) ? getAttendeesListDisplayString(iouAttendees) : ''}`;
+    const attendeesAccessibilityLabel = `${translate('iou.attendees')}, ${Array.isArray(iouAttendees) ? getAttendeesListDisplayString(iouAttendees, formatPhoneNumber) : ''}`;
     const attendeePills = Array.isArray(iouAttendees) ? (
         <UserPills
             users={iouAttendees.map((a) => ({
