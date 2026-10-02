@@ -23,7 +23,7 @@ import type {GeneratedRuleType, GeneratedRuleValues} from '@src/types/onyx/Gener
 import type {TextInputKeyPressEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type NewRulePromptFormID = typeof ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM;
@@ -59,17 +59,19 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const formRef = useRef<FormRef>(null);
+    const [generationID, setGenerationID] = useState<string>();
     const [generatedRule] = useOnyx(ONYXKEYS.GENERATED_RULE);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const inputLabel = translate('workspace.rules.newRule.describeRuleInputLabel');
 
     const close = () => {
+        setGenerationID(undefined);
         clearNewRulePrompt();
         onClose();
     };
 
     useEffect(() => {
-        if (!isVisible || !generatedRule) {
+        if (!generationID || generatedRule?.generationID !== generationID) {
             return;
         }
         if (generatedRule.state !== CONST.GENERATED_RULE.STATE.RULE) {
@@ -79,7 +81,7 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
         }
         onRuleGenerated(withPolicyCategory(generatedRule.rule ?? {}, policyCategories));
         close();
-    }, [close, generatedRule, isVisible, onRuleGenerated, policyCategories]);
+    }, [close, generatedRule, generationID, onRuleGenerated, policyCategories]);
 
     const submitFormOnModEnter = (event: TextInputKeyPressEvent | KeyboardEvent) => {
         if (!('key' in event)) {
@@ -100,7 +102,7 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
     };
 
     const submit = (values: FormOnyxValues<NewRulePromptFormID>) => {
-        generateRule(policyID, ruleType, values[INPUT_IDS.PROMPT].trim());
+        setGenerationID(generateRule(policyID, ruleType, values[INPUT_IDS.PROMPT].trim()));
     };
 
     return (

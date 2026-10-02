@@ -412,8 +412,10 @@ const PROMPT_ERROR_BY_STATE: Partial<Record<GeneratedRuleState, TranslationPaths
 /**
  * Asks Concierge to turn a description into values for the given rule form. The response only confirms the job was
  * queued; the answer arrives later under `ONYXKEYS.GENERATED_RULE`, so the form stays loading until it does.
+ * @returns the generationID the answer carries
  */
-function generateRule(policyID: string, ruleType: GeneratedRuleType, prompt: string) {
+function generateRule(policyID: string, ruleType: GeneratedRuleType, prompt: string): string {
+    const generationID = rand64();
     type GenerateRuleKey = typeof ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM | typeof ONYXKEYS.GENERATED_RULE;
 
     const optimisticData: Array<OnyxUpdate<GenerateRuleKey>> = [
@@ -436,9 +438,11 @@ function generateRule(policyID: string, ruleType: GeneratedRuleType, prompt: str
         },
     ];
 
-    const parameters: GenerateRuleParams = {policyID, generationID: rand64(), ruleType, prompt};
+    const parameters: GenerateRuleParams = {policyID, generationID, ruleType, prompt};
 
     API.write(WRITE_COMMANDS.GENERATE_RULE, parameters, {optimisticData, failureData});
+
+    return generationID;
 }
 
 /** Shows on the prompt form why a description did not become a rule */
