@@ -7,16 +7,15 @@ import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {ColumnWidthOverrides} from '@src/types/onyx/TableColumnWidths';
 
 import {useMemo} from 'react';
 
 import type {DynamicColumnConstraints} from './calculateDynamicColumnWidths';
-import type {ColumnWidthOverrides, ResizableColumn} from './columnResize/types';
 import type {TableColumn, TableData} from './types';
 
 import calculateDynamicColumnWidths, {distributeEqualWidths} from './calculateDynamicColumnWidths';
-import applyColumnWidthOverrides from './columnResize/applyColumnWidthOverrides';
-import {getColumnsWidthExpression, getGrowableColumnTrack} from './columnResize/columnWidthExpressions';
+import getResizableColumnLayout from './columnResize/getResizableColumnLayout';
 
 const {MIN_FREE_TEXT_COLUMN_WIDTH, SCROLLED_FREE_TEXT_COLUMN_WIDTH} = CONST.TABLES.DYNAMIC_COLUMNS;
 
@@ -77,32 +76,12 @@ type UseDynamicColumnWidthsResult = {
     /** Row box width while resizable, which is `scrollWidth` minus the outer margin. `undefined` otherwise. */
     rowWidth: string | undefined;
 
-    /** The columns whose right edge the user can drag, in column order. Empty unless the columns are resizable. */
-    resizableColumns: ResizableColumn[];
+    /** Keys of the columns whose right edge the user can drag, in column order. Empty unless the columns are resizable. */
+    resizableColumnKeys: string[];
 
     /** Each column's resolved width, which a drag starts from. */
     resolvedColumnWidths: Record<string, number>;
 };
-
-/**
- * First column of the trailing headless run, like an arrow, menu or icon, which absorbs leftover width to stay pinned right.
- * `undefined` when the last column has a heading, and leftover room then stays empty.
- */
-function getGrowableColumnKey<DataType extends TableData, ColumnKey extends string>(columns: Array<TableColumn<ColumnKey, DataType>>): ColumnKey | undefined {
-    let growableColumnKey: ColumnKey | undefined;
-
-    for (let index = columns.length - 1; index >= 0; index--) {
-        const column = columns.at(index);
-
-        if (!column || column.label) {
-            break;
-        }
-
-        growableColumnKey = column.key;
-    }
-
-    return growableColumnKey;
-}
 
 /**
  * Measures how wide a column's widest cell content renders, or `null` when the platform can't measure text.
@@ -198,7 +177,13 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
     // Compiler sees a plain function instead of a hook and memoizes nothing (both compilers report `no-components`).
     // The measurement below would then re-run on every render, including on every keystroke in the table's search box.
     return useMemo(() => {
-        const noDynamicWidths: UseDynamicColumnWidthsResult = {gridTemplateColumns: undefined, scrollWidth: undefined, rowWidth: undefined, resizableColumns: [], resolvedColumnWidths: {}};
+        const noDynamicWidths: UseDynamicColumnWidthsResult = {
+            gridTemplateColumns: undefined,
+            scrollWidth: undefined,
+            rowWidth: undefined,
+            resizableColumnKeys: [],
+            resolvedColumnWidths: {},
+        };
 
         // Checked before anything else, so native never walks the data to gather text that it can't measure anyway.
         if (!isEnabled || tableWidth <= 0 || !canMeasureText()) {
@@ -317,36 +302,13 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
             return {...noDynamicWidths, gridTemplateColumns, scrollWidth, resolvedColumnWidths};
         }
 
-        const growableColumnKey = getGrowableColumnKey(columns);
-
-        const {
-            columnWidths: overriddenColumnWidths,
-            columnWidthValues,
-            resizableColumns,
-        } = applyColumnWidthOverrides({
-            columns: columns.map((column) => ({
-                key: column.key,
-                label: column.label,
-                hasDeclaredWidth: typeof column.width === 'number',
-            })),
-            baseColumnWidths: resolvedColumnWidths,
+        return getResizableColumnLayout({
+            columns,
+            resolvedColumnWidths,
             columnWidthOverrides,
+            tableWidth,
+            rowChromeWidths: {selectionColumnWidth, totalGapWidth, rowMarginWidth, rowPaddingWidth},
         });
-
-        // Row width sums the widths, not the tracks, so the growable track only grows into real leftover room.
-        const gridTemplateColumns = columnWidthValues.map((widthValue, index) => (columns.at(index)?.key === growableColumnKey ? getGrowableColumnTrack(widthValue) : widthValue));
-
-        const rowWidthValues = hasSelectionColumn ? [`${selectionColumnWidth}px`, ...columnWidthValues] : columnWidthValues;
-
-        // Scroll at the live column sum, so a drag that widens a column past the table's edge starts scrolling mid-drag.
-        return {
-            gridTemplateColumns,
-            scrollWidth: getColumnsWidthExpression(rowWidthValues, totalGapWidth + rowChromeWidth, '100%'),
-            // Without the outer margin. Floored at px because `100%` resolves against the list cell, which includes the margin.
-            rowWidth: getColumnsWidthExpression(rowWidthValues, totalGapWidth + rowPaddingWidth, `${tableWidth - rowMarginWidth}px`),
-            resizableColumns,
-            resolvedColumnWidths: overriddenColumnWidths,
-        };
     }, [
         columns,
         data,

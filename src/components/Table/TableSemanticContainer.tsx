@@ -137,7 +137,7 @@ function TableSemanticContainer({
         // The columns don't fit, so the header and the body scroll horizontally as one and stay aligned. The content
         // container carries the width they need, and the rows fill it, matching how the Search table scrolls.
         renderedChildren.push(
-            // Box-less element above the scroller and rows that holds the column width custom properties.
+            // Wraps the scroller too, so one width write resizes its content along with the header and rows.
             <ColumnResizeScope
                 key={`tableSemanticContainerScope-${renderedChildren.length}`}
                 onScopeElement={columnResize?.setScopeElement}

@@ -1,3 +1,4 @@
+/** The line marking a hovered or dragged column edge, toggled through custom properties so hovering never re-renders the table. */
 import {RESIZE_INDICATOR_HEIGHT_VARIABLE, RESIZE_INDICATOR_OPACITY_VARIABLE, RESIZE_INDICATOR_TOP_VARIABLE, TABLE_ROW_SELECTOR} from '@components/Table/columnResize/columnWidthExpressions';
 
 import type {RefObject} from 'react';
@@ -39,7 +40,6 @@ function drawIndicatorAtHandle(scopeElement: HTMLElement | null, handleElement: 
     handleElement.style.setProperty(RESIZE_INDICATOR_OPACITY_VARIABLE, INDICATOR_OPACITY.VISIBLE);
 }
 
-/** The column edge line, toggled through custom properties so hovering never re-renders the table. */
 function useResizeIndicator(scopeElementRef: RefObject<HTMLElement | null>, dragRef: RefObject<unknown>): ResizeIndicator {
     // The handle whose line is showing, so a drag ending away from it can still hide it.
     const activeHandleElementRef = useRef<HTMLElement | null>(null);

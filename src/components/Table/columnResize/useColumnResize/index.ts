@@ -1,5 +1,8 @@
+/**
+ * Web column resizing: dragging a column's right edge sets its width. Widths live in CSS custom properties so React
+ * doesn't render mid-drag. Only the dragged column's final width is stored in Onyx.
+ */
 import {getDraggedColumnWidth} from '@components/Table/columnResize/columnResizeGestures';
-import type {ResizableColumn} from '@components/Table/columnResize/types';
 
 import {setTableColumnWidth} from '@libs/actions/TableColumnWidths';
 
@@ -14,10 +17,10 @@ import type {ColumnResizeController, ColumnResizeHandleDOMProps, UseColumnResize
 import useLiveColumnWidths from './useLiveColumnWidths';
 import useResizeIndicator from './useResizeIndicator';
 
-const {HANDLE_HIT_WIDTH} = CONST.TABLES.COLUMN_RESIZE;
+const {HANDLE_HIT_WIDTH, CURSOR} = CONST.TABLES.COLUMN_RESIZE;
 
 type Drag = {
-    column: ResizableColumn;
+    columnKey: string;
 
     /** Where the pointer went down. */
     startClientX: number;
@@ -26,46 +29,32 @@ type Drag = {
     startWidth: number;
 };
 
-/**
- * Web column resizing: dragging a column's right edge sets its width. Widths live in CSS custom properties so React
- * doesn't render mid-drag. Only the dragged column's final width is stored in Onyx.
- */
-function useColumnResize({columnResizingID, columns, resolvedColumnWidths, columnWidthOverrides, columnGap}: UseColumnResizeParams): ColumnResizeController | undefined {
+function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnWidths, columnGap}: UseColumnResizeParams): ColumnResizeController | undefined {
     const dragRef = useRef<Drag | null>(null);
-    const {scopeElementRef, setScopeElement, writeColumnWidth, readColumnWidth, clearLiveWidths} = useLiveColumnWidths({resolvedColumnWidths, columnWidthOverrides, dragRef});
+    const {scopeElementRef, setScopeElement, writeColumnWidth, readColumnWidth, clearLiveWidths} = useLiveColumnWidths({resolvedColumnWidths, dragRef});
     const {revealIndicator, hideIndicator} = useResizeIndicator(scopeElementRef, dragRef);
 
-    /** Forgets the drag and restores the cursor, without committing. */
     const resetDrag = () => {
         dragRef.current = null;
         document.body.style.cursor = '';
     };
 
-    /** Stores the width. Clears live widths right away when nothing is stored, since no render follows to clear them. */
-    const commitColumnWidth = (columnKey: string, width: number) => {
-        if (!columnResizingID || columnWidthOverrides?.[columnKey] === width) {
-            clearLiveWidths();
-            return;
-        }
-
-        setTableColumnWidth(columnResizingID, columnKey, width);
-    };
-
-    /** Ends the drag and stores its width. Shared by pointerup, lost capture and cancel. */
+    // Shared by pointerup, lost capture and cancel, so every way a drag can end keeps the width the user sees.
     const endDrag = (drag: Drag) => {
         resetDrag();
 
-        const width = readColumnWidth(drag.column.columnKey) ?? drag.startWidth;
+        const width = readColumnWidth(drag.columnKey) ?? drag.startWidth;
 
-        if (width === drag.startWidth) {
+        // Nothing gets stored, so no render follows to clear the live widths.
+        if (!columnResizingID || width === drag.startWidth) {
             clearLiveWidths();
             return;
         }
 
-        commitColumnWidth(drag.column.columnKey, width);
+        setTableColumnWidth(columnResizingID, drag.columnKey, width);
     };
 
-    const handlePointerDown = (column: ResizableColumn, event: React.PointerEvent<HTMLDivElement>) => {
+    const handlePointerDown = (columnKey: string, event: React.PointerEvent<HTMLDivElement>) => {
         // Secondary buttons open context menus rather than dragging.
         if (event.button !== 0) {
             return;
@@ -81,11 +70,11 @@ function useColumnResize({columnResizingID, columns, resolvedColumnWidths, colum
         revealIndicator(event.currentTarget);
 
         dragRef.current = {
-            column,
+            columnKey,
             startClientX: event.clientX,
-            startWidth: readColumnWidth(column.columnKey) ?? 0,
+            startWidth: readColumnWidth(columnKey) ?? 0,
         };
-        document.body.style.cursor = 'col-resize';
+        document.body.style.cursor = CURSOR;
     };
 
     const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -96,7 +85,7 @@ function useColumnResize({columnResizingID, columns, resolvedColumnWidths, colum
         }
 
         // The line rides the handle, so it follows the clamped width, not the pointer.
-        writeColumnWidth(drag.column.columnKey, getDraggedColumnWidth(drag.startWidth, drag.startClientX, event.clientX));
+        writeColumnWidth(drag.columnKey, getDraggedColumnWidth(drag.startWidth, drag.startClientX, event.clientX));
     };
 
     const handlePointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -136,32 +125,38 @@ function useColumnResize({columnResizingID, columns, resolvedColumnWidths, colum
     // Unmounting mid-drag would otherwise leave the resize cursor on the document and a dangling drag.
     useEffect(() => resetDrag, []);
 
-    if (!columnResizingID || columns.length === 0) {
+    if (!columnResizingID || resizableColumnKeys.length === 0) {
         return undefined;
     }
 
-    const getHandleProps = (column: ResizableColumn): ColumnResizeHandleDOMProps => ({
-        style: {
-            position: 'absolute',
-            top: 0,
-            bottom: 0,
-            // Centred in the gap after the column. There's always a next column since the last one is headless.
-            right: -(columnGap / 2 + HANDLE_HIT_WIDTH / 2),
-            width: HANDLE_HIT_WIDTH,
-            cursor: 'col-resize',
-            // Otherwise a touch drag on the handle is taken over by the table's own horizontal scrolling.
-            touchAction: 'none',
-        },
-        onPointerDown: (event) => handlePointerDown(column, event),
-        onPointerMove: handlePointerMove,
-        onPointerUp: handlePointerUp,
-        onPointerCancel: handleLostPointerCapture,
-        onLostPointerCapture: handleLostPointerCapture,
-        onPointerEnter: (event) => revealIndicator(event.currentTarget),
-        onPointerLeave: hideIndicator,
-    });
+    const getHandleProps = (columnKey: string): ColumnResizeHandleDOMProps | undefined => {
+        if (!resizableColumnKeys.includes(columnKey)) {
+            return undefined;
+        }
 
-    return {setScopeElement, columns, getHandleProps};
+        return {
+            style: {
+                position: 'absolute',
+                top: 0,
+                bottom: 0,
+                // Centred in the gap after the column. There's always a next column since the last one is headless.
+                right: -(columnGap / 2 + HANDLE_HIT_WIDTH / 2),
+                width: HANDLE_HIT_WIDTH,
+                cursor: CURSOR,
+                // Otherwise a touch drag on the handle is taken over by the table's own horizontal scrolling.
+                touchAction: 'none',
+            },
+            onPointerDown: (event) => handlePointerDown(columnKey, event),
+            onPointerMove: handlePointerMove,
+            onPointerUp: handlePointerUp,
+            onPointerCancel: handleLostPointerCapture,
+            onLostPointerCapture: handleLostPointerCapture,
+            onPointerEnter: (event) => revealIndicator(event.currentTarget),
+            onPointerLeave: hideIndicator,
+        };
+    };
+
+    return {setScopeElement, getHandleProps};
 }
 
 export default useColumnResize;

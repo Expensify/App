@@ -1,3 +1,4 @@
+/** Turns pointer travel into a column width, kept within the drag bounds. */
 import CONST from '@src/CONST';
 
 const {MIN_WIDTH, MAX_WIDTH} = CONST.TABLES.COLUMN_RESIZE;

@@ -59,9 +59,9 @@ describe('applyColumnWidthOverrides', () => {
         const baseColumnWidths = {name: 200, status: 80, email: 200, arrow: 40};
 
         // When the resizable columns are worked out
-        const {resizableColumns} = applyColumnWidthOverrides({columns, baseColumnWidths, columnWidthOverrides: undefined});
+        const {resizableColumnKeys} = applyColumnWidthOverrides({columns, baseColumnWidths, columnWidthOverrides: undefined});
 
         // Then only the content-sized ones get an edge, since fixed and headless columns hold fixed-size content
-        expect(resizableColumns).toEqual([{columnKey: 'name'}, {columnKey: 'email'}]);
+        expect(resizableColumnKeys).toEqual(['name', 'email']);
     });
 });

@@ -2,15 +2,6 @@ import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 import type {ColumnResizeController} from './useColumnResize/types';
 
-/** User-dragged widths by column key. Absent columns are sized from content, so only touched columns get stored. */
-type ColumnWidthOverrides = Record<string, number>;
-
-/** A column whose right edge the user can drag. */
-type ResizableColumn = {
-    /** The column's key, which also names the custom property its width is read from. */
-    columnKey: string;
-};
-
 type ColumnResizeHandleProps = {
     /** The controller the handle reads from. `undefined` when the table isn't resizable, and then nothing renders. */
     columnResize: ColumnResizeController | undefined;
@@ -24,4 +15,4 @@ type ColumnResizeScopeProps = ChildrenProps & {
     onScopeElement?: (element: HTMLElement | null) => void;
 };
 
-export type {ColumnResizeHandleProps, ColumnResizeScopeProps, ColumnWidthOverrides, ResizableColumn};
+export type {ColumnResizeHandleProps, ColumnResizeScopeProps};

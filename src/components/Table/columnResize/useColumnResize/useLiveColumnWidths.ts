@@ -1,16 +1,13 @@
+/** Widths painted mid-drag straight onto the DOM, ahead of React, and handed back once React renders them. */
 import {getColumnWidthVariableName} from '@components/Table/columnResize/columnWidthExpressions';
-import type {ColumnWidthOverrides} from '@components/Table/columnResize/types';
 
 import type {RefObject} from 'react';
 
 import {useLayoutEffect, useRef} from 'react';
 
 type UseLiveColumnWidthsParams = {
-    /** What a column paints while it has no live width. */
+    /** What a column paints while it has no live width. A new object means React rendered new widths, so live widths are cleared. */
     resolvedColumnWidths: Record<string, number>;
-
-    /** Stored widths. A change means React rendered them, so live widths are cleared. */
-    columnWidthOverrides: ColumnWidthOverrides | undefined;
 
     /** Active drag. Live widths survive it so a width stored elsewhere can't yank the column. */
     dragRef: RefObject<unknown>;
@@ -32,7 +29,7 @@ type LiveColumnWidths = {
 };
 
 /** Widths written mid-gesture as CSS custom properties. None at rest, so they never need syncing with resolved widths. */
-function useLiveColumnWidths({resolvedColumnWidths, columnWidthOverrides, dragRef}: UseLiveColumnWidthsParams): LiveColumnWidths {
+function useLiveColumnWidths({resolvedColumnWidths, dragRef}: UseLiveColumnWidthsParams): LiveColumnWidths {
     const scopeElementRef = useRef<HTMLElement | null>(null);
     const liveWidthsRef = useRef<Record<string, number>>({});
 
@@ -66,7 +63,7 @@ function useLiveColumnWidths({resolvedColumnWidths, columnWidthOverrides, dragRe
         }
 
         clearLiveWidths();
-    }, [columnWidthOverrides, dragRef]);
+    }, [resolvedColumnWidths, dragRef]);
 
     return {scopeElementRef, setScopeElement, writeColumnWidth, readColumnWidth, clearLiveWidths};
 }

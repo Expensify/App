@@ -7,5 +7,5 @@ function setTableColumnWidth(columnResizingID: string, columnKey: string, width:
     Onyx.merge(ONYXKEYS.TABLE_COLUMN_WIDTHS, {[columnResizingID]: {[columnKey]: width}});
 }
 
-// eslint-disable-next-line import/prefer-default-export
+// eslint-disable-next-line import/prefer-default-export -- additional actions may be added here
 export {setTableColumnWidth};

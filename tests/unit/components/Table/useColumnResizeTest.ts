@@ -1,7 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 
 import {getColumnWidthVariableName} from '@components/Table/columnResize/columnWidthExpressions';
-import type {ColumnWidthOverrides, ResizableColumn} from '@components/Table/columnResize/types';
 import type UseColumnResize from '@components/Table/columnResize/useColumnResize';
 import type {UseColumnResizeParams} from '@components/Table/columnResize/useColumnResize/types';
 
@@ -18,7 +17,7 @@ jest.mock('@libs/actions/TableColumnWidths', () => ({
 
 const COLUMN_RESIZING_ID = 'testTable';
 
-const nameColumn: ResizableColumn = {columnKey: 'name'};
+const NAME_COLUMN_KEY = 'name';
 
 const resolvedColumnWidths = {name: 200, email: 200, role: 200};
 
@@ -33,7 +32,7 @@ function createPointerEvent(handleElement: HTMLDivElement, {clientX, button = 0}
 }
 
 /** Renders the hook with a scope element and one handle inside it, the way the table mounts them. */
-function renderColumnResize(columnWidthOverrides?: ColumnWidthOverrides) {
+function renderColumnResize() {
     const scopeElement = document.createElement('div');
     const handleElement = document.createElement('div');
 
@@ -47,9 +46,8 @@ function renderColumnResize(columnWidthOverrides?: ColumnWidthOverrides) {
 
     const initialProps: UseColumnResizeParams = {
         columnResizingID: COLUMN_RESIZING_ID,
-        columns: [nameColumn],
+        resizableColumnKeys: [NAME_COLUMN_KEY],
         resolvedColumnWidths,
-        columnWidthOverrides,
         columnGap: 12,
     };
     const hook = renderHook((props: UseColumnResizeParams) => useColumnResize(props), {initialProps});
@@ -63,7 +61,13 @@ function renderColumnResize(columnWidthOverrides?: ColumnWidthOverrides) {
             throw new Error('Expected the hook to return a controller');
         }
 
-        return controller.getHandleProps(nameColumn);
+        const handleProps = controller.getHandleProps(NAME_COLUMN_KEY);
+
+        if (!handleProps) {
+            throw new Error('Expected the column to be resizable');
+        }
+
+        return handleProps;
     };
 
     const readWidth = (columnKey: string) => scopeElement.style.getPropertyValue(getColumnWidthVariableName(columnKey));
@@ -79,7 +83,7 @@ describe('useColumnResize', () => {
 
     it('returns no controller when resizing is off', () => {
         // Given a table with no resizing ID, which is how native, narrow layouts and tables that didn't opt in render it
-        const params: UseColumnResizeParams = {columnResizingID: undefined, columns: [nameColumn], resolvedColumnWidths, columnWidthOverrides: undefined, columnGap: 12};
+        const params: UseColumnResizeParams = {columnResizingID: undefined, resizableColumnKeys: [NAME_COLUMN_KEY], resolvedColumnWidths, columnGap: 12};
 
         // When the hook runs
         const {result} = renderHook(() => useColumnResize(params));
@@ -199,8 +203,8 @@ describe('useColumnResize', () => {
 
         expect(readWidth('name')).toBe('260px');
 
-        // When the stored width comes back from Onyx and the table renders it
-        rerender({...initialProps, columnWidthOverrides: {name: 260}});
+        // When the stored width comes back from Onyx and the table resolves it
+        rerender({...initialProps, resolvedColumnWidths: {...resolvedColumnWidths, name: 260}});
 
         // Then the painted width steps aside, so the column paints the fallback React rendered and later resolved widths aren't masked
         expect(readWidth('name')).toBe('');

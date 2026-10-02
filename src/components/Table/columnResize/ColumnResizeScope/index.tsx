@@ -2,7 +2,10 @@ import type {ColumnResizeScopeProps} from '@components/Table/columnResize/types'
 
 import React from 'react';
 
-/** Element the column widths are written on. A `display: contents` `div`, so it adds no box. */
+// Adds no box, so the scroller and rows lay out as if the scope weren't there.
+const SCOPE_STYLE: React.CSSProperties = {display: 'contents'};
+
+/** Element the column widths are written on, so the header and rows below it inherit them. */
 function ColumnResizeScope({onScopeElement, children}: ColumnResizeScopeProps) {
     if (!onScopeElement) {
         return children;
@@ -11,7 +14,7 @@ function ColumnResizeScope({onScopeElement, children}: ColumnResizeScopeProps) {
     return (
         <div
             ref={onScopeElement}
-            style={{display: 'contents'}}
+            style={SCOPE_STYLE}
         >
             {children}
         </div>

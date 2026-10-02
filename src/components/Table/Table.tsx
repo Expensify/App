@@ -387,8 +387,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
 
     // Dragged widths are applied by the dynamic sizing resolver, so resizing requires it.
     const isColumnResizingEnabled = isDynamicSizingEnabled && !!columnResizingID;
-    const columnWidthsSelector = useMemo(() => tableColumnWidthsSelector(columnResizingID), [columnResizingID]);
-    const [columnWidthOverrides] = useOnyx(ONYXKEYS.TABLE_COLUMN_WIDTHS, {selector: columnWidthsSelector});
+    const [columnWidthOverrides] = useOnyx(ONYXKEYS.TABLE_COLUMN_WIDTHS, {selector: tableColumnWidthsSelector(columnResizingID)});
 
     // Columns are sized from the full data set rather than the processed one, so the widths stay put while the user
     // searches or filters instead of reflowing on every keystroke.
@@ -396,7 +395,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         gridTemplateColumns: dynamicGridTemplateColumns,
         scrollWidth: dynamicScrollWidth,
         rowWidth: dynamicRowWidth,
-        resizableColumns,
+        resizableColumnKeys,
         resolvedColumnWidths,
     } = useDynamicColumnWidths<DataType, ColumnKey>({
         columns,
@@ -411,9 +410,8 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
 
     const columnResize = useColumnResize({
         columnResizingID: isColumnResizingEnabled ? columnResizingID : undefined,
-        columns: resizableColumns,
+        resizableColumnKeys,
         resolvedColumnWidths,
-        columnWidthOverrides,
         columnGap: styles.gap3.gap,
     });
 

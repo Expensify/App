@@ -1,4 +1,5 @@
-import type {ColumnWidthOverrides, ResizableColumn} from './types';
+/** Merges stored drag widths into a table's resolved column widths, and decides which column edges can be dragged. */
+import type {ColumnWidthOverrides} from '@src/types/onyx/TableColumnWidths';
 
 import {getColumnWidthValue} from './columnWidthExpressions';
 
@@ -31,8 +32,8 @@ type AppliedColumnWidthOverrides = {
     /** Each column's custom property CSS value with `columnWidths` as the fallback, in render order. */
     columnWidthValues: string[];
 
-    /** The columns whose right edge the user can drag, in render order. */
-    resizableColumns: ResizableColumn[];
+    /** Keys of the columns whose right edge the user can drag, in render order. */
+    resizableColumnKeys: string[];
 };
 
 /** Whole px, deliberately not clamped: stored widths may legitimately fall outside drag bounds. */
@@ -40,10 +41,10 @@ function getStoredColumnWidth(width: number): number {
     return Math.max(Math.round(width), 0);
 }
 
-/** Applies stored widths and works out which edges drag. Layout-agnostic: grid tracks or flex basis. */
+/** Layout-agnostic, so it serves grid tracks and flex basis alike. */
 function applyColumnWidthOverrides({columns, baseColumnWidths, columnWidthOverrides}: ApplyColumnWidthOverridesParams): AppliedColumnWidthOverrides {
     const columnWidths = {...baseColumnWidths};
-    const resizableColumns: ResizableColumn[] = [];
+    const resizableColumnKeys: string[] = [];
 
     for (const column of columns) {
         // Only headed, content-sized columns drag. Columns with a declared width, like a switch, status or count, hold fixed-size content.
@@ -57,12 +58,12 @@ function applyColumnWidthOverrides({columns, baseColumnWidths, columnWidthOverri
             columnWidths[column.key] = getStoredColumnWidth(overriddenWidth);
         }
 
-        resizableColumns.push({columnKey: column.key});
+        resizableColumnKeys.push(column.key);
     }
 
     const columnWidthValues = columns.map((column) => getColumnWidthValue(column.key, columnWidths[column.key] ?? 0));
 
-    return {columnWidths, columnWidthValues, resizableColumns};
+    return {columnWidths, columnWidthValues, resizableColumnKeys};
 }
 
 export default applyColumnWidthOverrides;

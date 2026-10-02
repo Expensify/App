@@ -19,7 +19,7 @@ const TABLE_ROW_DATA_SET = {tableRow: true};
 
 const TABLE_ROW_SELECTOR = '[data-table-row]';
 
-/** Custom property name for a column's width. Invalid CSS name characters in the key are replaced. */
+/** Column keys may hold characters a CSS custom property name can't, so those are replaced. */
 function getColumnWidthVariableName(columnKey: string): string {
     return `${COLUMN_WIDTH_VARIABLE_PREFIX}${columnKey.replaceAll(/[^\w-]/g, '_')}`;
 }
@@ -43,16 +43,18 @@ function getColumnsWidthExpression(columnWidthValues: string[], chromeWidth: num
     return `max(${floor}, calc(${columnWidthValues.join(' + ')} + ${chromeWidth}px))`;
 }
 
-/** Casts a px number or `calc()` string to a width style, because `DimensionValue` can't type arbitrary CSS expressions. */
-function getColumnsWidthStyle(width: number | string): ViewStyle {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- see above
-    return {width: width as DimensionValue};
+function toDimensionValue(value: number | string): DimensionValue {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- `DimensionValue` can't type arbitrary CSS expressions like `calc()`
+    return value as DimensionValue;
 }
 
-/** `minWidth` counterpart of `getColumnsWidthStyle`, for holding a scroller's content open at the columns' width. */
+function getColumnsWidthStyle(width: number | string): ViewStyle {
+    return {width: toDimensionValue(width)};
+}
+
+/** Holds a scroller's content open at the columns' width. */
 function getColumnsMinWidthStyle(minWidth: number | string): ViewStyle {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- see `getColumnsWidthStyle`
-    return {minWidth: minWidth as DimensionValue};
+    return {minWidth: toDimensionValue(minWidth)};
 }
 
 export {
