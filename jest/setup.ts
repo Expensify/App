@@ -153,9 +153,7 @@ jest.mock('react-native-reanimated', () => ({
     // (src/libs/ComponentUtils) dispatches it from a UI-thread worklet, so any test exercising that path needs it mocked.
     dispatchCommand: jest.fn(),
     // react-native-reanimated/mock also leaves out useComposedEventHandler, useHandler and isSharedValue, which Gesture Handler 3
-    // calls from its detectors (including the ones behind its ScrollView / FlatList wrappers). These are hand-written stand-ins:
-    // useComposedEventHandler returns a no-op like the mocked useEvent, useHandler returns the same shape as the real hook, and
-    // isSharedValue recognizes the shared values created by the mocked useSharedValue (the real check relies on a flag they lack).
+    // calls from its detectors (including the ones behind its ScrollView / FlatList wrappers).
     useComposedEventHandler: jest.fn(() => () => {}),
     useHandler: jest.fn(() => ({context: {}, doDependenciesDiffer: false})),
     isSharedValue: jest.fn((value: unknown) => typeof value === 'object' && value !== null && 'value' in value && 'get' in value && typeof value.get === 'function'),
