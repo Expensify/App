@@ -1081,18 +1081,39 @@ describe('actions/User', () => {
             expect(reconnectAppMock).toHaveBeenCalledWith(lastUpdateID);
         });
 
-        it('calls reconnectApp without updateIDFrom for authenticated users', async () => {
+        it('passes lastUpdateIDAppliedToClient when reconnecting as an authenticated user', async () => {
+            // Given a signed-in device that has already applied updates up to a known ID
+            const lastUpdateID = 42;
             await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: undefined, accountID: 1, authToken: 'token'});
-            await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 42);
+            await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, lastUpdateID);
             await waitForBatchedUpdates();
 
             UserActions.subscribeToUserEvents(1, 'test@test.com', () => {}, formatPhoneNumber, undefined);
             await waitForBatchedUpdates();
 
+            // When the account-wide RECONNECT_APP event arrives (for example, because another device signed in)
             await PusherUtils.triggerMultiEventHandler(Pusher.TYPE.MULTIPLE_EVENT_TYPE.RECONNECT_APP, []);
             await waitForBatchedUpdates();
 
-            expect(reconnectAppMock).toHaveBeenCalledWith();
+            // Then the reconnect is incremental, so a full ReconnectApp doesn't wipe report actions this device already has
+            expect(reconnectAppMock).toHaveBeenCalledWith(lastUpdateID);
+        });
+
+        it('falls back to a full reconnect when the client has no lastUpdateIDAppliedToClient', async () => {
+            // Given a signed-in device that has not applied any updates yet
+            await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: undefined, accountID: 1, authToken: 'token'});
+            await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, null);
+            await waitForBatchedUpdates();
+
+            UserActions.subscribeToUserEvents(1, 'test@test.com', () => {}, formatPhoneNumber, undefined);
+            await waitForBatchedUpdates();
+
+            // When the RECONNECT_APP event arrives
+            await PusherUtils.triggerMultiEventHandler(Pusher.TYPE.MULTIPLE_EVENT_TYPE.RECONNECT_APP, []);
+            await waitForBatchedUpdates();
+
+            // Then no updateIDFrom is passed, so reconnectApp still does a full reconnect to recover
+            expect(reconnectAppMock).toHaveBeenCalledWith(undefined);
         });
     });
 });
