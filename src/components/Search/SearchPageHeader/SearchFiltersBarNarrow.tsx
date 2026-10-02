@@ -7,13 +7,12 @@ import type {SearchFilter} from '@libs/SearchUIUtils';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 
 import React, {useRef} from 'react';
-import {FlatList, View} from 'react-native';
+import {FlatList} from 'react-native';
 
 import type {FilterItem} from './useSearchFiltersBar';
 
 import SearchFilterBar from './SearchFilterBar';
-import SearchFiltersResetButton from './SearchFiltersResetButton';
-import SearchFiltersSaveButton from './SearchFiltersSaveButton';
+import SearchFiltersActionButtons from './SearchFiltersActionButtons';
 import useSearchFiltersBar from './useSearchFiltersBar';
 
 type SearchFiltersBarNarrowProps = {
@@ -61,12 +60,11 @@ function SearchFiltersBarNarrow({queryJSON}: SearchFiltersBarNarrowProps) {
             onEndReached={adjustScroll}
             onEndReachedThreshold={0.75}
             ListFooterComponent={
-                hasFiltersOrKeywordChanged ? (
-                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                        {hasFiltersChanged && <SearchFiltersResetButton onPress={resetFilters} />}
-                        <SearchFiltersSaveButton />
-                    </View>
-                ) : undefined
+                <SearchFiltersActionButtons
+                    hasFiltersChanged={hasFiltersChanged}
+                    hasFiltersOrKeywordChanged={hasFiltersOrKeywordChanged}
+                    resetFilters={resetFilters}
+                />
             }
         />
     );
