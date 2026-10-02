@@ -93,6 +93,7 @@ const mockDropdownButton = jest.mocked(DropdownButton);
 function createCardFilter(value: string | string[]): SearchFilter & FilterItem {
     return {
         key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
+        formKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
         label: 'Cards',
         value,
         PopoverComponent: () => null,
@@ -104,6 +105,7 @@ function createCardFilter(value: string | string[]): SearchFilter & FilterItem {
 function createFeedFilter(value: string | string[]): SearchFilter & FilterItem {
     return {
         key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED,
+        formKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED,
         label: 'Feeds',
         value,
         PopoverComponent: () => null,
@@ -115,6 +117,7 @@ function createFeedFilter(value: string | string[]): SearchFilter & FilterItem {
 function createTaxRateFilter(value: string | string[]): SearchFilter & FilterItem {
     return {
         key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
+        formKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
         label: 'Tax rates',
         value,
         PopoverComponent: () => null,
