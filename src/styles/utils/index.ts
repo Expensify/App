@@ -550,14 +550,20 @@ function getBackgroundColorStyle(backgroundColor: ColorValue): ViewStyle {
     };
 }
 
-function getCameraViewfinderStyle(aspectRatio: number | undefined, isInLandscapeMode: boolean): ViewStyle {
+/**
+ * Sizes the camera viewfinder.
+ *
+ * When `shouldFillPortraitViewport` is true (the default), a portrait viewfinder with a known aspect ratio overflows the
+ * container so the preview fills the screen and is cropped. Pass false to keep the preview fully visible instead.
+ */
+function getCameraViewfinderStyle(aspectRatio: number | undefined, isInLandscapeMode: boolean, shouldFillPortraitViewport = true): ViewStyle {
     if (isInLandscapeMode && aspectRatio) {
         return {aspectRatio, height: '100%', maxWidth: '100%'};
     }
-    if (aspectRatio) {
+    if (aspectRatio && shouldFillPortraitViewport) {
         return {aspectRatio, minWidth: '100%', minHeight: '100%'};
     }
-    return {flex: 1};
+    return {flex: 1, alignSelf: 'stretch'};
 }
 
 /**
@@ -1975,7 +1981,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         borderColor: isSelected ? theme.buttonHoveredBG : theme.border,
     }),
 
-    getSearchTableHighlightBorderRadius: (isLargeScreenWidth: boolean): number => (isLargeScreenWidth ? 0 : variables.componentBorderRadius),
+    getSearchRowBackgroundStyle: (isSelected?: boolean): ViewStyle => ({
+        backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG,
+    }),
 
     getReportTableColumnStyles: (columnName: string, options: GetReportTableColumnStylesParams = {}): ViewStyle => {
         const {

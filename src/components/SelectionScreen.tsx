@@ -17,7 +17,7 @@ import isEmpty from 'lodash/isEmpty';
 import React from 'react';
 
 import type SingleSelectWithAvatarListItem from './SelectionList/ListItem/SingleSelectWithAvatarListItem';
-import type {ListItem} from './SelectionList/types';
+import type {ConfirmButtonOptions, ListItem} from './SelectionList/types';
 
 import ErrorMessageRow from './ErrorMessageRow';
 import HeaderWithBackButton from './HeaderWithBackButton';
@@ -39,6 +39,9 @@ type SelectionScreenProps<T = string> = {
     title?: TranslationPaths;
     headerContent?: React.ReactNode;
     listEmptyContent?: React.JSX.Element | null;
+
+    /** Skip listEmptyContent when the list is empty because of search, not a missing dataset. */
+    shouldShowListEmptyContent?: boolean;
     listFooterContent?: React.JSX.Element | null;
 
     /** Sections for the section list */
@@ -99,7 +102,13 @@ type SelectionScreenProps<T = string> = {
 
         /** Callback to fire when the text input changes */
         onChangeText?: (text: string) => void;
+
+        /** Message shown above the list, e.g. when a search matches nothing */
+        headerMessage?: string;
     };
+
+    /** Footer save button. When omitted, tapping a row still commits immediately. */
+    confirmButtonOptions?: ConfirmButtonOptions<SelectorType<T>>;
 };
 
 function SelectionScreen<T = string>({
@@ -107,6 +116,7 @@ function SelectionScreen<T = string>({
     title,
     headerContent,
     listEmptyContent,
+    shouldShowListEmptyContent,
     listFooterContent,
     data,
     ListItem = SingleSelectListItem,
@@ -129,6 +139,7 @@ function SelectionScreen<T = string>({
     textInputOptions,
     shouldUpdateFocusedIndex = false,
     isRowMultilineSupported = false,
+    confirmButtonOptions,
 }: SelectionScreenProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -167,6 +178,7 @@ function SelectionScreen<T = string>({
                         initiallyFocusedItemKey={initiallyFocusedOptionKey}
                         textInputOptions={textInputOptions}
                         listEmptyContent={listEmptyContent}
+                        shouldShowListEmptyContent={shouldShowListEmptyContent}
                         shouldShowTextInput={shouldShowTextInput}
                         listFooterContent={listFooterContent}
                         style={{listItemWrapperStyle}}
@@ -175,6 +187,7 @@ function SelectionScreen<T = string>({
                         alternateNumberOfSupportedLines={2}
                         isRowMultilineSupported={isRowMultilineSupported}
                         addBottomSafeAreaPadding
+                        confirmButtonOptions={confirmButtonOptions}
                     >
                         <ErrorMessageRow
                             errors={errors}

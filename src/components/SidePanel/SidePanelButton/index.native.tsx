@@ -32,7 +32,6 @@ function SidePanelButton({style}: SidePanelButtonProps) {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
 
     if (shouldHideHelpButton) {
         return null;
@@ -43,6 +42,7 @@ function SidePanelButton({style}: SidePanelButtonProps) {
             <PressableWithoutFeedback
                 sentryLabel={CONST.SENTRY_LABEL.SIDE_PANEL.HELP}
                 accessibilityLabel={translate('common.help')}
+                role={CONST.ROLE.BUTTON}
                 style={[styles.flexRow, styles.touchableButtonImage, style]}
                 onPress={() => {
                     // Capture the report the user is viewing (still topmost at press time) so Concierge can act on it
@@ -54,7 +54,6 @@ function SidePanelButton({style}: SidePanelButtonProps) {
                         introSelected,
                         currentUserAccountID,
                         isSelfTourViewed,
-                        betas,
                         sourceReportID: sourceReportID && sourceReportID !== conciergeReportID ? sourceReportID : undefined,
                     });
                 }}
