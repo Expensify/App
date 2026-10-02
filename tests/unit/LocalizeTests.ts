@@ -5,6 +5,7 @@ import Onyx from 'react-native-onyx';
 import CONST from '../../src/CONST';
 import * as Localize from '../../src/libs/Localize';
 import ONYXKEYS from '../../src/ONYXKEYS';
+import createRandomReportAction from '../utils/collections/reportActions';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type EnvironmentConfig = {
@@ -147,5 +148,23 @@ describe('localize', () => {
         ])('%s', async (description, environmentConfig, sessionEmail, expectedResult) => {
             await testMissingTranslationBehavior(environmentConfig, sessionEmail, expectedResult);
         });
+    });
+
+    it('adds the unreported-expenses warning only when confirming report deletion', async () => {
+        // Given report, expense, and comment actions
+        await IntlStore.load(CONST.LOCALES.EN);
+        const reportAction = {...createRandomReportAction(1), actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW};
+        const expenseAction = {...createRandomReportAction(2), actionName: CONST.REPORT.ACTIONS.TYPE.IOU};
+        const commentAction = {...createRandomReportAction(3), actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT};
+
+        // When translating each deletion confirmation
+        const reportConfirmation = Localize.translate(CONST.LOCALES.EN, 'reportActionContextMenu.deleteConfirmation', reportAction);
+        const expenseConfirmation = Localize.translate(CONST.LOCALES.EN, 'reportActionContextMenu.deleteConfirmation', expenseAction);
+        const commentConfirmation = Localize.translate(CONST.LOCALES.EN, 'reportActionContextMenu.deleteConfirmation', commentAction);
+
+        // Then only the report confirmation explains that its expenses become unreported
+        expect(reportConfirmation).toContain('All expenses in this report will become unreported.');
+        expect(expenseConfirmation).not.toContain('All expenses in this report will become unreported.');
+        expect(commentConfirmation).not.toContain('All expenses in this report will become unreported.');
     });
 });

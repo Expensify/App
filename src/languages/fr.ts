@@ -849,7 +849,7 @@ const translations: TranslationDeepObject<typeof en> = {
             } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                 type = 'report';
             }
-            return `Voulez-vous vraiment supprimer ce ${type} ?`;
+            return `Voulez-vous vraiment supprimer ce ${type} ?${action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW ? ' Toutes les dépenses de ce rapport seront considérées comme non déclarées.' : ''}`;
         },
         onlyVisible: 'Visible uniquement par',
         explain: 'Expliquer',
