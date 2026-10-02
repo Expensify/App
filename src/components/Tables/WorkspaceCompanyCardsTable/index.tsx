@@ -26,6 +26,7 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 
 import {getCardExportAccountTitle, getExportAccountColumn, getPolicyCardExportSettings} from '@pages/workspace/companyCards/utils';
 import WorkspaceCompanyCardPageEmptyState from '@pages/workspace/companyCards/WorkspaceCompanyCardPageEmptyState';
+import WorkspaceCompanyCardsBalanceLabels from '@pages/workspace/companyCards/WorkspaceCompanyCardsBalanceLabels';
 import WorkspaceCompanyCardsFeedPendingPage from '@pages/workspace/companyCards/WorkspaceCompanyCardsFeedPendingPage';
 
 import {fontScale} from '@styles/typography';
@@ -468,6 +469,12 @@ function WorkspaceCompanyCardsTable({
             isSelectionModeEnabled={isSelectionModeEnabled}
         />
     ) : undefined;
+    const balanceLabelsComponent = showCards ? (
+        <WorkspaceCompanyCardsBalanceLabels
+            selectedFeed={selectedFeed}
+            feedName={feedName}
+        />
+    ) : undefined;
     const shouldShowPendingUnassignmentLoading = showCards && hasPendingUnassignment && cardsData.length === 0;
 
     return (
@@ -489,7 +496,7 @@ function WorkspaceCompanyCardsTable({
             title={translate('workspace.common.companyCards')}
             ListEmptyComponent={shouldShowPendingUnassignmentLoading ? <Table.LoadingState /> : undefined}
         >
-            <Table.ListHeader>{showCards ? composeTableListHeader(headerButtonsComponent, tableControlsComponent) : undefined}</Table.ListHeader>
+            <Table.ListHeader>{showCards ? composeTableListHeader(headerButtonsComponent, balanceLabelsComponent, tableControlsComponent) : undefined}</Table.ListHeader>
             {!showCards && headerButtonsComponent}
 
             {isLoading && <Table.LoadingState />}
