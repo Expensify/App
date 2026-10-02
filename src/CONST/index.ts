@@ -422,6 +422,9 @@ const CONST = {
     RECEIPT_CAMERA: {
         PHOTO_WIDTH: 2880,
         PHOTO_HEIGHT: 2160,
+        // iPhones offer no 4:3 photo size between 3 MP and 12 MP, so the 6 MP target above selects 2016x1512
+        IOS_STILL_WIDTH: 4032,
+        IOS_STILL_HEIGHT: 3024,
         PHOTO_ASPECT_RATIO: 4 / 3,
     },
 
@@ -2407,6 +2410,7 @@ const CONST = {
         SPAN_SHUTTER_TO_CONFIRMATION: 'ManualShutterToConfirmation',
         SPAN_RECEIPT_CAPTURE: 'ManualReceiptCapture',
         SPAN_RECEIPT_PREPARE: 'ManualReceiptPrepare',
+        SPAN_RECEIPT_UPGRADE: 'ManualReceiptUpgrade',
         SPAN_SCAN_PROCESS_AND_NAVIGATE: 'ManualScanProcessAndNavigate',
         SPAN_CONFIRMATION_MOUNT: 'ManualConfirmationMount',
         SPAN_CONFIRMATION_LIST_READY: 'ManualConfirmationListReady',
@@ -2516,6 +2520,8 @@ const CONST = {
         ATTRIBUTE_IS_MULTI_SCAN: 'is_multi_scan',
         ATTRIBUTE_CAPTURE_METHOD: 'capture_method',
         ATTRIBUTE_FLASH_USED: 'flash_used',
+        ATTRIBUTE_UPGRADE_ATTEMPTED: 'upgrade_attempted',
+        ATTRIBUTE_UPGRADE_OUTCOME: 'upgrade_outcome',
         ATTRIBUTE_PHOTO_WIDTH: 'photo_width',
         ATTRIBUTE_PHOTO_HEIGHT: 'photo_height',
         ATTRIBUTE_SOURCE: 'source',
@@ -2530,6 +2536,15 @@ const CONST = {
         CAPTURE_METHOD: {
             PHOTO: 'photo',
             SNAPSHOT: 'snapshot',
+        },
+        UPGRADE_OUTCOME: {
+            UPGRADED: 'upgraded',
+            CAPTURE_FAILED: 'capture_failed',
+            CAPTURE_TIMED_OUT: 'capture_timed_out',
+            ROTATE_TIMED_OUT: 'rotate_timed_out',
+            CLAIMED_FOR_UPLOAD: 'claimed_for_upload',
+            SWAP_FAILED: 'swap_failed',
+            STACKED_CAPTURE_SKIPPED: 'stacked_capture_skipped',
         },
         SPAN_PLATFORM: {
             NATIVE: 'native',

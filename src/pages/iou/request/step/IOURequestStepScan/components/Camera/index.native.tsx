@@ -22,6 +22,7 @@ import ReceiptPreviews from '@pages/iou/request/step/IOURequestStepScan/componen
 import ScannerControlsBar from '@pages/iou/request/step/IOURequestStepScan/components/ScannerControlsBar';
 import getCameraAspectRatio from '@pages/iou/request/step/IOURequestStepScan/getCameraAspectRatio';
 import useCameraInitTelemetry from '@pages/iou/request/step/IOURequestStepScan/hooks/useCameraInitTelemetry';
+import usePhotoUpgrade from '@pages/iou/request/step/IOURequestStepScan/hooks/usePhotoUpgrade';
 import startReceiptPrepareSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startReceiptPrepareSpan';
 
 import CONST from '@src/CONST';
@@ -44,7 +45,7 @@ const BLINK_DURATION_MS = 80;
  * Renders a react-native-vision-camera viewfinder with shutter, flash toggle, gallery picker, and focus gesture.
  * Calls `onCapture(file, source)` for each photo taken or file picked from the gallery.
  */
-function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayout, onAttachmentPickerStatusChange, onMultiScanSubmit}: CameraProps) {
+function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayout, onAttachmentPickerStatusChange, onMultiScanSubmit, canUpgradeReceiptQuality = true}: CameraProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -83,16 +84,18 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         cameraFocusIndicatorAnimatedStyle,
     } = useNativeCamera({onFocusStart, onFocusCleanup});
 
-    // Prioritize photoResolution so the format selector picks the configured PHOTO_WIDTH/PHOTO_HEIGHT
-    // format. videoResolution is platform-specific:
-    //  - iOS: match the photo target — `takeSnapshot` reads from the video pipeline, so a smaller
+    // Prioritize photoResolution so the format selector picks the configured still size. iOS asks for 12 MP,
+    // because the upgraded still is what gets compared with the native Camera app. videoResolution is platform-specific:
+    //  - iOS: keep the 6 MP target — `takeSnapshot` reads from the video pipeline, so a smaller
     //    video resolution would degrade the snapshot capture quality.
     //  - Android: keep screen dimensions — `takeSnapshot` is a GPU screenshot of the preview surface
     //    and doesn't depend on video resolution; constraining to screen size avoids burning GPU on a
     //    higher-than-needed preview.
     const format = useCameraFormat(device, [
         {photoAspectRatio: CONST.RECEIPT_CAMERA.PHOTO_ASPECT_RATIO},
-        {photoResolution: {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT}},
+        Platform.OS === 'ios'
+            ? {photoResolution: {width: CONST.RECEIPT_CAMERA.IOS_STILL_WIDTH, height: CONST.RECEIPT_CAMERA.IOS_STILL_HEIGHT}}
+            : {photoResolution: {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT}},
         Platform.OS === 'ios'
             ? {videoResolution: {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT}}
             : {videoResolution: {width: windowHeight, height: windowWidth}},
@@ -112,6 +115,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
     };
 
     const {handleCameraInitialized} = useCameraInitTelemetry({cameraPermissionStatus, device, format});
+    const {hasPendingPhotoCapture, startPhotoCapture, upgradeReceiptWithPhoto, discardPendingPhoto} = usePhotoUpgrade();
 
     const maybeCancelShutterSpan = () => {
         if (isMultiScanEnabled) {
@@ -171,7 +175,18 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
 
         const path = getReceiptsUploadFolderPath();
 
-        captureReceipt(camera.current, {flash, hasFlash, isPlatformMuted, path, isInLandscapeMode})
+        const shouldUpgradeToPhoto = canUpgradeReceiptQuality && !isMultiScanEnabled && !shouldTakePhoto({flash, hasFlash, isInLandscapeMode});
+        // TEMP-UPGRADE-GATE
+        // eslint-disable-next-line no-console
+        console.log(
+            `[UPGRADE-GATE] upgrade=${shouldUpgradeToPhoto} canUpgrade=${canUpgradeReceiptQuality} multiScan=${isMultiScanEnabled} flash=${flash} hasFlash=${hasFlash} landscape=${isInLandscapeMode}`,
+        );
+
+        // The snapshot goes first so its request reaches the native queue ahead of the still. On iOS it
+        // reads the most recent video frame, which a photo capture can interrupt.
+        const receiptCapture = captureReceipt(camera.current, {flash, hasFlash, isPlatformMuted, path, isInLandscapeMode});
+
+        receiptCapture
             .then((photo: PhotoFile) => {
                 endSpanWithAttributes(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE, {
                     [CONST.TELEMETRY.ATTRIBUTE_PHOTO_WIDTH]: photo.width,
@@ -196,6 +211,10 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                     type: 'image/jpeg',
                 };
 
+                if (shouldUpgradeToPhoto) {
+                    upgradeReceiptWithPhoto(durableName);
+                }
+
                 onCapture(cameraFile, source);
             })
             .catch((error: string) => {
@@ -203,7 +222,12 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                 maybeCancelShutterSpan();
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
+                discardPendingPhoto();
             });
+
+        if (shouldUpgradeToPhoto) {
+            startPhotoCapture(camera.current);
+        }
     };
 
     // Wait for camera permission status to render
@@ -246,12 +270,16 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                             blinkStyle={blinkStyle}
                             isAttachmentPickerActive={isAttachmentPickerActive}
                             didCapturePhoto={didCapturePhoto}
+                            hasPendingPhotoCapture={hasPendingPhotoCapture}
                             onInitialized={handleCameraInitialized}
                             shouldShowFlashButton={canUseMultiScan}
                             cameraPermissionStatus={cameraPermissionStatus}
                             flash={flash}
                             hasFlash={hasFlash}
                             setFlash={setFlash}
+                            // With "device", a phone held flat over a receipt keeps its last landscape reading, and the
+                            // still is saved rotated, so photos follow the screen orientation instead.
+                            outputOrientation="preview"
                         />
                     )}
                 </View>
