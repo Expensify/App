@@ -30,8 +30,8 @@ import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {clearErrors, openPolicyInitialPage, removeWorkspace} from '@libs/actions/Policy/Policy';
-import {dismissProductTraining} from '@libs/actions/Welcome';
 import {getRules} from '@libs/actions/Policy/Rules';
+import {dismissProductTraining} from '@libs/actions/Welcome';
 import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFromWorkspaceSettingPages';
 import WorkspaceCreationReveal from '@libs/Navigation/helpers/WorkspaceCreationReveal';
 import Navigation from '@libs/Navigation/Navigation';
