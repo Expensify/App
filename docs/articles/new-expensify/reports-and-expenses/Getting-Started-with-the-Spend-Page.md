@@ -57,19 +57,20 @@ Each row represents an expense and includes:
   - **Hold:** Use this when you need to temporarily pause the approval of an expense until all required information is provided.
   - **Delete:** To remove expenses from the expense report.
 
-**Note:** The bulk action menu appears after selecting at least one expense.
+**Note:** The selection bar appears after selecting at least one expense.
 
 ## How to move expenses between reports
 
 **From the report table**
 
 1. Select the expense(s) using checkboxes.
-2. Click **Move to report** from the bulk action menu.
-3. In the right-hand panel, select from the following options:
+2. On the selection bar, choose **More**.
+3. Select **Move to report**.
+4. In the right-hand panel, select from the following options:
    - Create report
    - An existing draft or submitted report
    - Remove from report 
-4. The expenses are moved. A system message records the move when you move an expense into a submitted report or select **Remove from report**. Moving an expense into a draft report does not add a system message.
+5. The expenses are moved. A system message records the move when you move an expense into a submitted report or select **Remove from report**. Moving an expense into a draft report does not add a system message.
 
 **From the expense details**
 
