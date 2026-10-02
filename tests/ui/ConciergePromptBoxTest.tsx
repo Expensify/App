@@ -1,5 +1,9 @@
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
+import type {Emoji} from '@assets/emojis/types';
+
+import type Mention from '@components/MentionSuggestions/types';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useAskConcierge from '@components/Search/SearchRouter/useAskConcierge';
 
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -8,17 +12,22 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import type * as BrowserModule from '@libs/Browser';
 import {isSafari} from '@libs/Browser';
 
-import ConciergePromptBox from '@pages/home/ForYouSection/ConciergePromptBox';
+import ConciergePromptBox, {PLACEHOLDER_SKELETON_TEST_ID} from '@pages/home/ForYouSection/ConciergePromptBox';
 
 import {close} from '@userActions/Modal';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {PersonalDetailsList} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 
+import type * as NavigationCore from '@react-navigation/core';
 import type {ViewProps} from 'react-native';
 
+import {useIsFocused} from '@react-navigation/core';
 import React, {useState} from 'react';
+import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -26,8 +35,14 @@ const CONCIERGE_REPORT_ID = '100';
 const LONG_PLACEHOLDER = 'homePage.conciergePrompt.inputPlaceholder';
 const SHORT_PLACEHOLDER = 'homePage.conciergePrompt.inputPlaceholderMobile';
 const ADD_ATTACHMENT = 'reportActionCompose.addAttachment';
+// `translate` resolves to the key in tests, so the greeting matches whichever time-of-day key the clock lands on.
+const GREETING = /^homePage\.conciergePrompt\.good/;
 const PLUS_BUTTON = 'accessibilityHints.openActionsMenu';
 const SEND_BUTTON = 'common.send';
+const TEAMMATE = {accountID: 2, login: 'alex@expensify.com', displayName: 'Alex Adams'};
+const OTHER_TEAMMATE = {accountID: 3, login: 'blake@expensify.com', displayName: 'Blake Brown'};
+
+const SCROLL_LAYOUT_TRIGGER_RESET_TIME = 500;
 
 const mockAskConcierge = jest.fn();
 const mockAskConciergeWithAttachment = jest.fn();
@@ -36,7 +51,52 @@ const mockOpenPicker = jest.fn();
 
 const pickerHandler: {onConfirm?: (files: FileObject | FileObject[]) => void} = {};
 
+type MentionSuggestionsProps = {
+    mentions: Mention[];
+    prefix: string;
+    onSelect: (index: number) => void;
+};
+
+type EmojiSuggestionsProps = {
+    emojis: Emoji[];
+    prefix: string;
+    onSelect: (index: number) => void;
+};
+
+const mockMentionSuggestionsSpy = jest.fn<void, [MentionSuggestionsProps]>();
+const mockEmojiSuggestionsSpy = jest.fn<void, [EmojiSuggestionsProps]>();
+
+let mockPersonalDetails: PersonalDetailsList = {};
+
 jest.mock('@components/Search/SearchRouter/useAskConcierge', () => jest.fn());
+
+jest.mock('@components/MentionSuggestions', () => {
+    const ReactLib = jest.requireActual<typeof React>('react');
+    const module = {
+        default: (props: MentionSuggestionsProps) => {
+            mockMentionSuggestionsSpy(props);
+            return ReactLib.createElement('mock-mention-suggestions', {...props, testID: 'mention-suggestions'});
+        },
+    };
+    Object.defineProperty(module, '__esModule', {value: true});
+    return module;
+});
+
+jest.mock('@components/EmojiSuggestions', () => {
+    const ReactLib = jest.requireActual<typeof React>('react');
+    const module = {
+        default: (props: EmojiSuggestionsProps) => {
+            mockEmojiSuggestionsSpy(props);
+            return ReactLib.createElement('mock-emoji-suggestions', {...props, testID: 'emoji-suggestions'});
+        },
+    };
+    Object.defineProperty(module, '__esModule', {value: true});
+    return module;
+});
+
+jest.mock('@components/OnyxListItemProvider', () => ({
+    usePersonalDetails: jest.fn(),
+}));
 
 jest.mock('@pages/home/ForYouSection/useConciergeAttachmentPicker', () => ({
     __esModule: true,
@@ -77,8 +137,15 @@ jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: (key: string) => key,
         getLocalDateFromDatetime: () => new Date('2026-08-24T09:00:00'),
+        formatPhoneNumber: (value: string) => value,
+        localeCompare: (first: string, second: string) => first.localeCompare(second),
     })),
 );
+
+jest.mock('@react-navigation/core', () => ({
+    ...jest.requireActual<typeof NavigationCore>('@react-navigation/core'),
+    useIsFocused: jest.fn(() => true),
+}));
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 
@@ -100,7 +167,9 @@ jest.mock('@userActions/Session', () => ({
     signOutAndRedirectToSignIn: jest.fn(),
 }));
 
+const mockUsePersonalDetails = jest.mocked(usePersonalDetails);
 const mockUseAskConcierge = jest.mocked(useAskConcierge);
+const mockUseIsFocused = jest.mocked(useIsFocused);
 const mockUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 const mockUseKeyboardState = jest.mocked(useKeyboardState);
 const mockIsSafari = jest.mocked(isSafari);
@@ -108,12 +177,13 @@ const mockClose = jest.mocked(close);
 const mockIsAnonymousUser = jest.mocked(isAnonymousUser);
 const mockSignOutAndRedirectToSignIn = jest.mocked(signOutAndRedirectToSignIn);
 
-function ConciergePromptBoxWrapper() {
+function ConciergePromptBoxWrapper({isCopyLoading = false}: {isCopyLoading?: boolean} = {}) {
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     return (
         <ConciergePromptBox
             isMenuVisible={isMenuVisible}
             setIsMenuVisible={setIsMenuVisible}
+            isCopyLoading={isCopyLoading}
         />
     );
 }
@@ -168,19 +238,75 @@ function pasteImage() {
     fireEvent(getInput(), 'paste', {nativeEvent: {items: [{type: 'image/png', data: 'file:///image.png'}]}});
 }
 
+function typeText(text: string) {
+    fireEvent(getInput(), 'focus');
+    fireEvent.changeText(getInput(), text);
+    fireEvent(getInput(), 'selectionChange', {nativeEvent: {selection: {start: text.length, end: text.length}}});
+
+    act(() => jest.advanceTimersByTime(CONST.TIMING.SUGGESTION_DEBOUNCE_TIME));
+}
+
+function scrollInput(offsetY = 40) {
+    fireEvent(getInput(), 'scroll', {nativeEvent: {contentOffset: {y: offsetY}}});
+}
+
+function settleLayoutTriggeredScroll() {
+    act(() => jest.advanceTimersByTime(SCROLL_LAYOUT_TRIGGER_RESET_TIME));
+}
+
+/**
+ * On web the composer's key event carries `key`/`shiftKey` both at the top level (where the suggestion layer reads them)
+ * and on `nativeEvent` (where the submit handler reads them), so tests that involve suggestions must set both.
+ */
+function pressKeyWithSuggestions(key: string, options?: {shiftKey?: boolean}) {
+    const shiftKey = options?.shiftKey ?? false;
+    fireEvent(getInput(), 'keyPress', {
+        key,
+        shiftKey,
+        preventDefault: jest.fn(),
+        nativeEvent: {key, shiftKey},
+    });
+}
+
+function getLastMentionSuggestionsProps(): MentionSuggestionsProps {
+    const props = mockMentionSuggestionsSpy.mock.calls.at(-1)?.[0];
+    if (!props) {
+        throw new Error('Expected mention suggestions to have rendered');
+    }
+    return props;
+}
+
+function getLastEmojiSuggestionsProps(): EmojiSuggestionsProps {
+    const props = mockEmojiSuggestionsSpy.mock.calls.at(-1)?.[0];
+    if (!props) {
+        throw new Error('Expected emoji suggestions to have rendered');
+    }
+    return props;
+}
+
 function measureLongPlaceholder(height: number) {
     fireEvent(screen.getByText(LONG_PLACEHOLDER), 'layout', {nativeEvent: {layout: {height}}});
 }
 
 describe('ConciergePromptBox', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
         jest.clearAllMocks();
+        // The typing tests persist a draft, and it would otherwise be restored into the next test's input.
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.CONCIERGE_PROMPT_DRAFT, null);
+        });
         pickerHandler.onConfirm = undefined;
+        mockPersonalDetails = {
+            [TEAMMATE.accountID]: TEAMMATE,
+            [OTHER_TEAMMATE.accountID]: OTHER_TEAMMATE,
+        };
+        mockUsePersonalDetails.mockImplementation(() => mockPersonalDetails);
         setAskConcierge();
         setResponsiveLayout(false);
         setKeyboardShown(false);
         mockIsSafari.mockReturnValue(false);
         mockIsAnonymousUser.mockReturnValue(false);
+        mockUseIsFocused.mockReturnValue(true);
     });
 
     describe('sending a message', () => {
@@ -221,6 +347,227 @@ describe('ConciergePromptBox', () => {
             // Then neither the send nor the "+" button can be used
             expect(screen.getByLabelText(SEND_BUTTON)).toBeDisabled();
             expect(screen.getByLabelText(PLUS_BUTTON)).toBeDisabled();
+        });
+    });
+
+    describe('mentions', () => {
+        beforeEach(() => jest.useFakeTimers());
+        afterEach(() => jest.useRealTimers());
+
+        it('suggests users matching what was typed after the @', () => {
+            // Given a rendered prompt box
+            render(<ConciergePromptBoxWrapper />);
+
+            // When a mention prefix is typed
+            typeText('Show me @ale');
+
+            // Then only the matching user is offered
+            const {mentions, prefix} = getLastMentionSuggestionsProps();
+            expect(prefix).toBe('ale');
+            expect(mentions.map((mention) => mention.handle)).toEqual(['alex@expensify.com']);
+        });
+
+        it('does not suggest anything without an @', () => {
+            // Given a rendered prompt box
+            render(<ConciergePromptBoxWrapper />);
+
+            // When plain text is typed
+            typeText('Show me my expenses');
+
+            // Then no picker is rendered
+            expect(screen.queryByTestId('mention-suggestions')).not.toBeOnTheScreen();
+        });
+
+        it('inserts the selected mention into the prompt', () => {
+            // Given a visible suggestion list
+            render(<ConciergePromptBoxWrapper />);
+            typeText('Show me @ale');
+
+            // When the suggestion is selected
+            act(() => getLastMentionSuggestionsProps().onSelect(0));
+
+            // Then the typed prefix is replaced by the full mention and the list closes
+            expect(getInput()).toHaveDisplayValue('Show me @alex@expensify.com ');
+            expect(screen.queryByTestId('mention-suggestions')).not.toBeOnTheScreen();
+        });
+
+        it('selects the mention on Enter instead of sending the prompt', () => {
+            // Given a visible suggestion list
+            render(<ConciergePromptBoxWrapper />);
+            typeText('Show me @ale');
+
+            // When Enter is pressed
+            pressKeyWithSuggestions(CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey);
+
+            // Then the mention is inserted and the half-typed prompt is not sent
+            expect(getInput()).toHaveDisplayValue('Show me @alex@expensify.com ');
+            expect(mockAskConcierge).not.toHaveBeenCalled();
+        });
+
+        it('still sends on Enter once no suggestions are showing', () => {
+            // Given a prompt with no open suggestion list
+            render(<ConciergePromptBoxWrapper />);
+            typeText('Show me my expenses');
+
+            // When Enter is pressed
+            pressKeyWithSuggestions(CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey);
+
+            // Then the prompt is sent as usual
+            expect(mockAskConcierge).toHaveBeenCalledWith('Show me my expenses');
+        });
+
+        it('dismisses the suggestions on Escape', () => {
+            // Given a visible suggestion list
+            render(<ConciergePromptBoxWrapper />);
+            typeText('Show me @ale');
+
+            // When Escape is pressed
+            pressKeyWithSuggestions(CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey);
+
+            // Then the list closes and the typed text is left alone
+            expect(screen.queryByTestId('mention-suggestions')).not.toBeOnTheScreen();
+            expect(getInput()).toHaveDisplayValue('Show me @ale');
+        });
+
+        it('hides the suggestions when the input loses focus', () => {
+            // Given a visible suggestion list
+            render(<ConciergePromptBoxWrapper />);
+            typeText('Show me @ale');
+            expect(screen.getByTestId('mention-suggestions')).toBeOnTheScreen();
+
+            // When the input is blurred
+            fireEvent(getInput(), 'blur');
+
+            // Then the list closes
+            expect(screen.queryByTestId('mention-suggestions')).not.toBeOnTheScreen();
+        });
+
+        it('hides the suggestions when the screen loses focus', () => {
+            // Given a visible suggestion list
+            render(<ConciergePromptBoxWrapper />);
+            typeText('Show me @ale');
+            expect(screen.getByTestId('mention-suggestions')).toBeOnTheScreen();
+
+            // When the screen is navigated away from
+            mockUseIsFocused.mockReturnValue(false);
+            screen.rerender(<ConciergePromptBoxWrapper />);
+
+            // Then the list closes
+            expect(screen.queryByTestId('mention-suggestions')).not.toBeOnTheScreen();
+        });
+    });
+
+    describe('emojis', () => {
+        beforeEach(() => jest.useFakeTimers());
+        afterEach(() => jest.useRealTimers());
+
+        it('suggests emojis matching what was typed after the colon', () => {
+            // Given a rendered prompt box
+            render(<ConciergePromptBoxWrapper />);
+
+            // When an emoji code is typed
+            typeText('Nice work :smile');
+
+            // Then the matching emojis are offered
+            const {emojis, prefix} = getLastEmojiSuggestionsProps();
+            expect(prefix).toBe('smile');
+            expect(emojis.map((emoji) => emoji.name)).toContain('smile');
+        });
+
+        it('does not suggest anything without a colon', () => {
+            // Given a rendered prompt box
+            render(<ConciergePromptBoxWrapper />);
+
+            // When plain text is typed
+            typeText('Nice work');
+
+            // Then no picker is rendered
+            expect(screen.queryByTestId('emoji-suggestions')).not.toBeOnTheScreen();
+        });
+
+        it('inserts the selected emoji into the prompt', () => {
+            // Given a visible suggestion list
+            render(<ConciergePromptBoxWrapper />);
+            typeText('Nice work :smile');
+            const {emojis} = getLastEmojiSuggestionsProps();
+
+            // When the first suggestion is selected
+            act(() => getLastEmojiSuggestionsProps().onSelect(0));
+
+            // Then the typed code is replaced by the emoji itself and the list closes
+            expect(getInput()).toHaveDisplayValue(`Nice work ${emojis.at(0)?.code} `);
+            expect(screen.queryByTestId('emoji-suggestions')).not.toBeOnTheScreen();
+        });
+
+        it('selects the emoji on Enter instead of sending the prompt', () => {
+            // Given a visible suggestion list
+            render(<ConciergePromptBoxWrapper />);
+            typeText('Nice work :smile');
+            const {emojis} = getLastEmojiSuggestionsProps();
+
+            // When Enter is pressed
+            pressKeyWithSuggestions(CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey);
+
+            // Then the emoji is inserted and the half-typed prompt is not sent
+            expect(getInput()).toHaveDisplayValue(`Nice work ${emojis.at(0)?.code} `);
+            expect(mockAskConcierge).not.toHaveBeenCalled();
+        });
+
+        it('dismisses the suggestions on Escape', () => {
+            // Given a visible suggestion list
+            render(<ConciergePromptBoxWrapper />);
+            typeText('Nice work :smile');
+
+            // When Escape is pressed
+            pressKeyWithSuggestions(CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey);
+
+            // Then the list closes and the typed text is left alone
+            expect(screen.queryByTestId('emoji-suggestions')).not.toBeOnTheScreen();
+            expect(getInput()).toHaveDisplayValue('Nice work :smile');
+        });
+
+        it('hides the suggestions when the input loses focus', () => {
+            // Given a visible suggestion list
+            render(<ConciergePromptBoxWrapper />);
+            typeText('Nice work :smile');
+            expect(screen.getByTestId('emoji-suggestions')).toBeOnTheScreen();
+
+            // When the input is blurred
+            fireEvent(getInput(), 'blur');
+
+            // Then the list closes
+            expect(screen.queryByTestId('emoji-suggestions')).not.toBeOnTheScreen();
+        });
+    });
+
+    describe('scrolling the input', () => {
+        beforeEach(() => jest.useFakeTimers());
+        afterEach(() => jest.useRealTimers());
+
+        it('hides the suggestions when the input is scrolled', () => {
+            // Given a visible suggestion list that is no longer settling after the text change
+            render(<ConciergePromptBoxWrapper />);
+            typeText('Show me @ale');
+            settleLayoutTriggeredScroll();
+            expect(screen.getByTestId('mention-suggestions')).toBeOnTheScreen();
+
+            // When the input is scrolled
+            scrollInput();
+
+            // Then the list closes, so it never floats away from the text it belongs to
+            expect(screen.queryByTestId('mention-suggestions')).not.toBeOnTheScreen();
+        });
+
+        it('keeps the suggestions open when the text change itself moved the input', () => {
+            // Given a visible suggestion list right after typing, where the input reflows and fires onScroll on its own
+            render(<ConciergePromptBoxWrapper />);
+            typeText('Show me @ale');
+
+            // When that layout-triggered scroll arrives
+            scrollInput();
+
+            // Then the list stays open, since the user never scrolled
+            expect(screen.getByTestId('mention-suggestions')).toBeOnTheScreen();
         });
     });
 
@@ -467,6 +814,66 @@ describe('ConciergePromptBox', () => {
 
             // Then the short copy stays
             expect(screen.getByLabelText(SHORT_PLACEHOLDER)).toBeOnTheScreen();
+        });
+
+        it('shows no placeholder copy until the probe has measured on the wide layout', () => {
+            // Given a wide layout whose probe has not measured yet
+            render(<ConciergePromptBoxWrapper />);
+
+            // Then no copy is shown
+            expect(getInput()).toHaveProp('placeholder', '');
+
+            // When the measurement lands
+            measureLongPlaceholder(20);
+
+            // Then the settled copy appears
+            expect(getInput()).toHaveProp('placeholder', LONG_PLACEHOLDER);
+        });
+
+        it('withholds the copy without a bar when the probe has not measured and the copy is loaded', () => {
+            // Given a wide layout whose probe has not measured yet, on a loaded app
+            render(<ConciergePromptBoxWrapper />);
+
+            // Then no copy is shown and no bar stands in for it
+            expect(getInput()).toHaveProp('placeholder', '');
+            expect(screen.queryByTestId(PLACEHOLDER_SKELETON_TEST_ID)).not.toBeOnTheScreen();
+        });
+
+        it('shows the short copy immediately on the narrow layout, which never waits on the probe', () => {
+            // Given a narrow layout
+            setResponsiveLayout(true);
+
+            // When it renders without any measurement
+            render(<ConciergePromptBoxWrapper />);
+
+            // Then the short copy is shown right away
+            expect(getInput()).toHaveProp('placeholder', SHORT_PLACEHOLDER);
+        });
+    });
+
+    describe('app load', () => {
+        it('stands bars in for the date, greeting and placeholder while loading', () => {
+            // Given the app is still loading
+            render(<ConciergePromptBoxWrapper isCopyLoading />);
+
+            // Then neither the date nor the greeting is painted
+            expect(screen.queryByText(GREETING)).not.toBeOnTheScreen();
+
+            // And a bar stands in for the placeholder copy, which is withheld even once the probe has measured
+            expect(screen.getByTestId(PLACEHOLDER_SKELETON_TEST_ID)).toBeOnTheScreen();
+            measureLongPlaceholder(20);
+            expect(getInput()).toHaveProp('placeholder', '');
+        });
+
+        it('paints the greeting and placeholder once loaded', () => {
+            // Given the app has loaded
+            render(<ConciergePromptBoxWrapper />);
+            measureLongPlaceholder(20);
+
+            // Then the greeting and the settled placeholder are shown, with no bar left over
+            expect(screen.getByText(GREETING)).toBeOnTheScreen();
+            expect(getInput()).toHaveProp('placeholder', LONG_PLACEHOLDER);
+            expect(screen.queryByTestId(PLACEHOLDER_SKELETON_TEST_ID)).not.toBeOnTheScreen();
         });
     });
 });

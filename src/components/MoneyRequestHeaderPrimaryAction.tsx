@@ -4,6 +4,7 @@ import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactio
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -30,11 +31,11 @@ import type SCREENS from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
+import {loginSelector} from '@selectors/PersonalDetails';
 import React from 'react';
 import {View} from 'react-native';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from './DelegateNoAccessModalProvider';
 import {useWideRHPState} from './WideRHPContextProvider';
 
@@ -67,7 +68,7 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
     // Per-key Onyx subscriptions
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
-    const [parentOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
+    const [parentOwnerLogin] = usePersonalDetail(parentReport?.ownerAccountID, loginSelector);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`);
     const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
@@ -82,6 +83,7 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
     const [rawTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`);
     const {duplicateTransactions} = useDuplicateTransactionsAndViolations(transaction?.transactionID ? [transaction.transactionID] : []);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const primaryAction =
         report && parentReport && transaction
@@ -107,6 +109,7 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
                             rawTransactionViolations,
                             isTrackIntentUser,
                             delegateAccountID,
+                            rules,
                         );
                     }}
                 >

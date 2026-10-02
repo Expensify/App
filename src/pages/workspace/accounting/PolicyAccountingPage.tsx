@@ -1,5 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import CollapsibleSection from '@components/CollapsibleSection';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -35,9 +36,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
+import {getQBORefreshTokenExpiryDate, getQBORefreshTokenExpiryStatus} from '@libs/AccountingUtils';
 import {isAuthenticationError, isConnectionInProgress, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
+import DateUtils from '@libs/DateUtils';
 import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
 import getPlatform from '@libs/getPlatform';
 import {
@@ -70,7 +73,7 @@ import type {ConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useFocusEffect, useRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {MenuItemData, PolicyAccountingPageProps} from './types';
@@ -98,7 +101,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate, datetimeToRelative: getDatetimeToRelative, getLocalDateFromDatetime} = useLocalize();
+    const {translate, datetimeToRelative: getDatetimeToRelative, getLocalDateFromDatetime, dateFnsLocale} = useLocalize();
     const {environment} = useEnvironment();
     const oldDotEnvironmentURL = getOldDotURLFromEnvironment(environment);
     const {isOffline} = useNetwork();
@@ -132,25 +135,26 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'BusinessCentralSquare',
     ]);
     const [cardFeeds] = useCardFeeds(policyID);
     const [cardLists] = useCardsLists();
     const connectionSyncStage = connectionSyncProgress?.stageInProgress;
 
-    const canUseDualEntryIntegration = isBetaEnabled(CONST.BETAS.DUALENTRY) || !!policy?.connections?.dualEntry;
     const canUseCampfireIntegration = isBetaEnabled(CONST.BETAS.CAMPFIRE) || !!policy?.connections?.campfire;
+    const canUseBusinessCentralIntegration = isBetaEnabled(CONST.BETAS.BUSINESS_CENTRAL) || !!policy?.connections?.businessCentral;
     const accountingIntegrations = useMemo(
         () =>
             CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => {
-                if (name === CONST.POLICY.CONNECTIONS.NAME.DUALENTRY) {
-                    return canUseDualEntryIntegration;
-                }
                 if (name === CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE) {
                     return canUseCampfireIntegration;
                 }
+                if (name === CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL) {
+                    return canUseBusinessCentralIntegration;
+                }
                 return true;
             }),
-        [canUseDualEntryIntegration, canUseCampfireIntegration],
+        [canUseCampfireIntegration, canUseBusinessCentralIntegration],
     );
     const accountingIntegrationOptions = useMemo(
         () =>
@@ -172,7 +176,12 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
     const isSageIntacct = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT;
     const hasAuthError = !!connectedIntegration && !!synchronizationError && isAuthenticationError(policy, connectedIntegration);
-    const shouldShowEnterCredentials = !!connectedIntegration && (hasAuthError || isSageIntacct);
+    // A QBO refresh token that is about to expire (or already has, without a sync failing yet) is warned about while the connection still looks healthy
+    const qboTokenExpiryStatus =
+        connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.QBO && !synchronizationError && !isSyncInProgress ? getQBORefreshTokenExpiryStatus(policy) : undefined;
+    const isQBOTokenExpiringSoon = !!qboTokenExpiryStatus;
+    const qboTokenExpiryDate = isQBOTokenExpiringSoon ? getQBORefreshTokenExpiryDate(policy) : undefined;
+    const shouldShowEnterCredentials = !!connectedIntegration && (hasAuthError || isSageIntacct || isQBOTokenExpiringSoon);
 
     // Get the last successful date of the integration. Then, if `connectionSyncProgress` is the same integration displayed and the state is 'jobDone', get the more recent update time of the two.
     const successfulDate = getIntegrationLastSuccessfulDate(
@@ -191,7 +200,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const shouldShowCardReconciliationOption = Object.values(allCardSettings ?? {})?.some((cardSetting) => isExpensifyCardFullySetUp(policy, cardSetting));
     const shouldShowReconnect = hasAuthError && connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.CERTINIA;
     let credentialsMenuTextKey: Parameters<typeof translate>[0] = 'workspace.accounting.enterCredentials';
-    if (shouldShowReconnect) {
+    if (shouldShowReconnect || isQBOTokenExpiringSoon) {
         credentialsMenuTextKey = 'workspace.accounting.reconnect';
     } else if (isSageIntacct && !hasAuthError) {
         credentialsMenuTextKey = 'workspace.accounting.updateCredentials';
@@ -221,7 +230,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                   Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS.getRoute(policyID));
                                   return;
                               }
-                              startIntegrationFlow({name: connectedIntegration});
+                              startIntegrationFlow({name: connectedIntegration, isIntuitEnterpriseSuite: isConnectedToIntuitEnterpriseSuite});
                           },
                           shouldCallAfterModalHide: true,
                           disabled: isOffline,
@@ -272,6 +281,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             policy,
             connectedIntegration,
             connectedIntegrationDisplayName,
+            isConnectedToIntuitEnterpriseSuite,
             startIntegrationFlow,
             isSageIntacct,
             hasAuthError,
@@ -281,11 +291,26 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         ],
     );
 
+    // `startIntegrationFlow` changes identity whenever `policy` does, which re-runs this effect. The
+    // Navigation.setParams below clears newConnectionName through a navigation state update that lands in a later
+    // render, so that re-run can still see the param set. Key the guard on the value to start the flow only once.
+    const startedIntegrationFlowForRef = useRef<ConnectionName | undefined>(undefined);
+
     useFocusEffect(
         useCallback(() => {
             if (!newConnectionName || !isControlPolicy(policy) || !canWriteAccounting) {
+                // Re-arm the guard once the param is gone, so a later round-trip that asks for the same integration
+                // again is not mistaken for the re-run this guard exists to swallow.
+                if (!newConnectionName) {
+                    startedIntegrationFlowForRef.current = undefined;
+                }
                 return;
             }
+
+            if (startedIntegrationFlowForRef.current === newConnectionName) {
+                return;
+            }
+            startedIntegrationFlowForRef.current = newConnectionName;
 
             startIntegrationFlow({
                 name: newConnectionName,
@@ -323,6 +348,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         const rilletSubsidiaryList = policy?.connections?.rillet?.data?.subsidiaries;
         const dualEntryCompanyList = policy?.connections?.dualEntry?.data?.companies;
         const campfireSubsidiaryList = policy?.connections?.campfire?.data?.subsidiaries;
+        const businessCentralCompanyList = policy?.connections?.businessCentral?.data?.companies;
         const certiniaConfig = policy?.connections?.financialforce?.config;
         const certiniaCompanies = policy?.connections?.financialforce?.data?.companies ?? [];
         const certiniaCompanyID = getCertiniaSelectedCompanyID(certiniaConfig);
@@ -481,6 +507,25 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                   ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_SUBSIDIARY_SELECTOR.getRoute(policyID))
                                   : undefined,
                       };
+            case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
+                return !businessCentralCompanyList?.length
+                    ? {}
+                    : {
+                          description: translate('workspace.businessCentral.subsidiary'),
+                          iconRight: icons.ArrowRight,
+                          title: businessCentralCompanyList.find((company) => company.id === policy?.connections?.businessCentral?.config?.companyID)?.displayName ?? '',
+                          wrapperStyle: [styles.sectionMenuItemTopDescription],
+                          titleStyle: styles.fontWeightNormal,
+                          shouldShowRightIcon: canWriteAccounting && businessCentralCompanyList.length > 1,
+                          shouldShowDescriptionOnTop: true,
+                          interactive: canWriteAccounting,
+                          pendingAction: policy?.connections?.businessCentral?.config.pendingFields?.companyID,
+                          brickRoadIndicator: policy?.connections?.businessCentral?.config.errorFields?.companyID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                          onPress:
+                              policyID && canWriteAccounting && businessCentralCompanyList.length > 1
+                                  ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_COMPANY_SELECTOR.getRoute(policyID))
+                                  : undefined,
+                      };
 
             default:
                 return undefined;
@@ -558,7 +603,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         isBadgeSuccess: isXero,
                         shouldShowBadgeBelow: shouldUseNarrowLayout,
                         rightComponent: (
-                            <Button
+                            <ButtonDisabledWhenOffline
                                 onPress={() => {
                                     if (!canWriteAccounting) {
                                         showReadOnlyModal();
@@ -570,7 +615,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                 innerStyles={!canWriteAccounting ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
                                 hoverStyles={!canWriteAccounting ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
                                 size={CONST.BUTTON_SIZE.SMALL}
-                                isDisabled={isOffline}
                                 ref={(ref) => {
                                     if (!popoverAnchorRefs?.current) {
                                         return;
@@ -581,7 +625,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SETUP_BUTTON}
                             >
                                 <Button.Text>{translate('workspace.accounting.setup')}</Button.Text>
-                            </Button>
+                            </ButtonDisabledWhenOffline>
                         ),
                     };
                 })
@@ -699,6 +743,24 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             );
         }
 
+        let qboTokenExpiryHint;
+        if (qboTokenExpiryDate && canWriteAccounting) {
+            const formattedExpiryDate = DateUtils.formatWithUTCTimeZone(qboTokenExpiryDate.toISOString(), CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale);
+            qboTokenExpiryHint = (
+                <>
+                    {translate(
+                        qboTokenExpiryStatus === CONST.POLICY.CONNECTIONS.QBO_REFRESH_TOKEN_EXPIRY_STATUS.EXPIRED
+                            ? 'workspace.accounting.qboConnectionExpired'
+                            : 'workspace.accounting.qboConnectionExpiring',
+                        {date: formattedExpiryDate},
+                    )}{' '}
+                    <TextLink onPress={() => startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.QBO, isIntuitEnterpriseSuite: isConnectedToIntuitEnterpriseSuite})}>
+                        {translate('workspace.accounting.reconnect')}
+                    </TextLink>
+                </>
+            );
+        }
+
         return [
             {
                 ...iconProps,
@@ -710,6 +772,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 errorTextStyle: [styles.mt5],
                 shouldShowRedDotIndicator: true,
                 description: connectionMessage,
+                hintText: qboTokenExpiryHint,
                 rightComponent,
             },
             ...(isEmptyObject(integrationSpecificMenuItems) || shouldShowSynchronizationError || !hasAccountingConnection ? [] : [integrationSpecificMenuItems]),
@@ -748,10 +811,12 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         accountingIntegrationOptions,
         isConnectedToIntuitEnterpriseSuite,
         shouldUseNarrowLayout,
-        isOffline,
         startIntegrationFlow,
         popoverAnchorRefs,
         datetimeToRelative,
+        qboTokenExpiryDate,
+        qboTokenExpiryStatus,
+        dateFnsLocale,
         hasReusablePoliciesConnectedToSageIntacct,
         hasReusablePoliciesConnectedToCertinia,
         hasReusablePoliciesConnectedToRillet,
@@ -803,7 +868,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     ...iconProps,
                     title: integrationData?.title,
                     rightComponent: (
-                        <Button
+                        <ButtonDisabledWhenOffline
                             onPress={() => {
                                 if (!canWriteAccounting) {
                                     showReadOnlyModal();
@@ -820,7 +885,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                             innerStyles={!canWriteAccounting ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
                             hoverStyles={!canWriteAccounting ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
                             size={CONST.BUTTON_SIZE.SMALL}
-                            isDisabled={isOffline}
                             ref={(r) => {
                                 if (!popoverAnchorRefs?.current) {
                                     return;
@@ -831,7 +895,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SETUP_BUTTON}
                         >
                             <Button.Text>{translate('workspace.accounting.setup')}</Button.Text>
-                        </Button>
+                        </ButtonDisabledWhenOffline>
                     ),
                     interactive: false,
                     // On native iOS, `accessible={true}` collapses the row and all its descendants into a single accessibility element,
@@ -861,7 +925,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         styles.buttonOpacityDisabled,
         styles.buttonDisabled,
         styles.sectionMenuItemTopDescription,
-        isOffline,
         startIntegrationFlow,
         popoverAnchorRefs,
         accountingIcons,

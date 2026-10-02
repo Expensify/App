@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import DecisionModal from '@components/DecisionModal';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
@@ -11,6 +11,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -32,18 +33,18 @@ import BaseDomainMemberDetailsComponent from '@pages/domain/BaseDomainMemberDeta
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import {clearVacationDelegateError} from '@userActions/Domain';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Domain, PersonalDetailsList} from '@src/types/onyx';
+import type {Domain} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {requiresTwoFactorAuthSelector} from '@selectors/Account';
 import {accountLockSelector, domainMemberSettingsSelector, domainNameSelector, selectSecurityGroupForAccount, vacationDelegateSelector} from '@selectors/Domain';
-import {personalDetailsSelector} from '@selectors/PersonalDetails';
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 
@@ -66,10 +67,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
         selector: securityGroupSelector,
     });
 
-    const memberPersonalDetailsSelector = useCallback((personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsSelector(accountID)(personalDetailsList), [accountID]);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: memberPersonalDetailsSelector,
-    });
+    const [personalDetails] = usePersonalDetail(accountID);
 
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
 
@@ -111,7 +109,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
             setShouldForceCloseAccount(undefined);
             return;
         }
-        closeUserAccount(domainAccountID, domainName ?? '', memberLogin, userSecurityGroup, shouldForceCloseAccount);
+        closeUserAccount(domainAccountID, domainName ?? '', memberLogin, accountID, userSecurityGroup, shouldForceCloseAccount);
         setShouldForceCloseAccount(undefined);
         Navigation.dismissModal();
     };
@@ -215,14 +213,30 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                         onPress={showUnlockAccountModal}
                     />
                 ) : (
-                    <MenuItem
+                    <MenuItem.Root
                         key="ReportSuspiciousActivity"
-                        title={translate('lockAccountPage.reportSuspiciousActivity')}
-                        icon={icons.Flag}
-                        onPress={() => Navigation.navigate(ROUTES.DOMAIN_LOCK_ACCOUNT.getRoute(domainAccountID, accountID))}
-                        brickRoadIndicator={lockDomainErrorMessage ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        errorText={lockDomainErrorMessage}
-                    />
+                        onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.DOMAIN_LOCK_ACCOUNT.getRoute(domainAccountID, accountID)))}
+                    >
+                        <MenuItem.Row>
+                            <MenuItem.Leading>
+                                <MenuItem.Icon src={icons.Flag} />
+                            </MenuItem.Leading>
+                            <MenuItem.Content>
+                                <MenuItem.Title>{translate('lockAccountPage.reportSuspiciousActivity')}</MenuItem.Title>
+                            </MenuItem.Content>
+                            {!!lockDomainErrorMessage && (
+                                <MenuItem.Trailing>
+                                    <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                                </MenuItem.Trailing>
+                            )}
+                        </MenuItem.Row>
+                        {!!lockDomainErrorMessage && (
+                            <MenuItem.HelpText
+                                isError
+                                message={lockDomainErrorMessage}
+                            />
+                        )}
+                    </MenuItem.Root>
                 )}
             </BaseDomainMemberDetailsComponent>
             <DecisionModal

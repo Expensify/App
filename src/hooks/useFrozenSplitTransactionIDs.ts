@@ -1,8 +1,9 @@
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {isSplitExpenseFrozen} from '@libs/SplitExpenseUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, Transaction} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Report, Rule, Transaction} from '@src/types/onyx';
 import type {SplitExpense} from '@src/types/onyx/IOU';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 
@@ -22,6 +23,8 @@ function useFrozenSplitTransactionIDs(
     originalTransaction: OnyxEntry<Transaction>,
     currentUserLogin: string,
     currentUserAccountID: number,
+    rules: OnyxCollection<Rule>,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
     allPolicies: OnyxCollection<Policy>,
     parentReport: OnyxEntry<Report>,
 ): Set<string> {
@@ -34,7 +37,19 @@ function useFrozenSplitTransactionIDs(
         const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${liveReportID}` as const;
         const itemReport = allReports?.[reportKey] ?? searchResultsData?.[reportKey] ?? fallbackReport;
         const itemPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${itemReport?.policyID}`];
-        const isEditable = !itemTransaction || isSplitAction(itemReport, [itemTransaction], originalTransaction, currentUserLogin, currentUserAccountID, itemPolicy, parentReport);
+        const isEditable =
+            !itemTransaction ||
+            isSplitAction(
+                itemReport,
+                [itemTransaction],
+                originalTransaction,
+                currentUserLogin,
+                currentUserAccountID,
+                rules,
+                getLoginByAccountID(itemReport?.ownerAccountID, personalDetails),
+                itemPolicy,
+                parentReport,
+            );
         if (isSplitExpenseFrozen(itemReport) || !isEditable) {
             frozenIDs.add(item.transactionID);
         }

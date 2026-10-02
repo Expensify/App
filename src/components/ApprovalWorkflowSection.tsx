@@ -5,7 +5,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {sortAlphabetically} from '@libs/OptionsListUtils';
+import sortAlphabetically from '@libs/sortAlphabetically';
 import {getApprovalLimitDescription} from '@libs/WorkflowUtils';
 
 import CONST from '@src/CONST';
@@ -15,7 +15,7 @@ import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 import Icon from './Icon';
 import MenuItem from './MenuItem';
 import OfflineWithFeedback from './OfflineWithFeedback';
@@ -39,11 +39,14 @@ type ApprovalWorkflowSectionProps = {
     /** Whether the workflow should be shown as read-only */
     isDisabled?: boolean;
 
-    /** HR provider display name, used in advanced (manager) mode to show "Manager (from {provider})" */
-    hrProviderName?: string;
+    /** Display name of the integration the workflow comes from, used to name that integration in the approver labels, e.g. "Manager (from {provider})" */
+    providerName?: string;
 
     /** When true, uses HR advanced (manager) mode labels: "Manager (from {provider})" then "Final approver" */
     isHRAdvancedMode?: boolean;
+
+    /** When true, uses recruiting (ATS) advanced mode labels: the usual approver labels, with "(from {provider})" appended to the first approver */
+    isRecruitingAdvancedMode?: boolean;
 
     /** Email of the configured final approver in HR advanced (manager) mode, used to correctly label a sole approver who is the final approver */
     hrFinalApproverEmail?: string;
@@ -55,8 +58,9 @@ function ApprovalWorkflowSection({
     onShowAllMembersPress,
     currency = CONST.CURRENCY.USD,
     isDisabled = false,
-    hrProviderName,
+    providerName,
     isHRAdvancedMode = false,
+    isRecruitingAdvancedMode = false,
     hrFinalApproverEmail,
 }: ApprovalWorkflowSectionProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Lightbulb', 'Pencil', 'Users', 'UserCheck']);
@@ -65,6 +69,7 @@ function ApprovalWorkflowSection({
     const {translate, toLocaleOrdinalWithWords, localeCompare, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const fromProviderSuffix = providerName ? ` (${translate('workflowsPage.approverFromProvider', {provider: providerName})})` : '';
     const approverTitle = (index: number) => {
         if (isHRAdvancedMode) {
             const isLast = index === approvalWorkflow.approvers.length - 1;
@@ -76,10 +81,18 @@ function ApprovalWorkflowSection({
             if (approvalWorkflow.approvers.length <= 1) {
                 return translate('workflowsPage.approver');
             }
-            const fromProviderSuffix = hrProviderName ? ` (${translate('workflowsPage.approverFromProvider', {provider: hrProviderName})})` : '';
             return `${translate('workflowsPage.manager')}${fromProviderSuffix}`;
         }
-        return approvalWorkflow.approvers.length > 1 ? `${toLocaleOrdinalWithWords(index + 1)} ${translate('workflowsPage.approver').toLowerCase()}` : translate('workflowsPage.approver');
+
+        if (approvalWorkflow.approvers.length <= 1) {
+            return translate('workflowsPage.approver');
+        }
+
+        const title = `${toLocaleOrdinalWithWords(index + 1)} ${translate('workflowsPage.approver').toLowerCase()}`;
+        if (isRecruitingAdvancedMode && index === 0) {
+            return `${title}${fromProviderSuffix}`;
+        }
+        return title;
     };
 
     const sortedMembers = approvalWorkflow.isDefault ? [] : sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare);

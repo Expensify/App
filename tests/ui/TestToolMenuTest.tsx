@@ -8,7 +8,7 @@ import type * as MultifactorAuthenticationSharedValues from '@libs/MultifactorAu
 import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/VALUES';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import React from 'react';
 
@@ -82,7 +82,14 @@ jest.mock('@libs/actions/MultifactorAuthentication', () => ({
 }));
 
 const mockProductionServer = CONST.SERVER.PRODUCTION;
+
+jest.mock('@hooks/useActiveServer', () => ({
+    __esModule: true,
+    default: () => ({activeServer: mockProductionServer, isPinnedByEnvironment: false, isStagingIgnored: false, isQASelectable: false}),
+}));
+
 jest.mock('@libs/ApiUtils', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/ApiUtils'),
     isQAServerActive: () => false,
     getActiveServer: () => mockProductionServer,
     getCommandURL: () => 'https://test-api.expensify.com/api/Ping?',
@@ -143,16 +150,6 @@ jest.mock('@src/CONFIG', () => ({
         DEFAULT_API_ROOT: 'https://www.expensify.com.dev/',
     },
 }));
-
-jest.mock('@components/Button', () => {
-    const RN = require('react-native');
-    const ReactModule = require('react');
-    function MockButton({text, onPress}: {text: string; onPress?: () => void}) {
-        return ReactModule.createElement(RN.TouchableOpacity, {onPress}, ReactModule.createElement(RN.Text, null, text));
-    }
-    MockButton.displayName = 'Button';
-    return MockButton;
-});
 
 jest.mock('@components/Switch', () => {
     function MockSwitch() {
@@ -218,7 +215,7 @@ describe('TestToolMenu biometrics', () => {
     it('renders biometrics title with "Never registered" status', () => {
         setBiometricStatus({registrationStatus: REGISTRATION_STATUS.NEVER_REGISTERED});
 
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         screen.getByText(/troubleshootBiometricsStatus.*statusNeverRegistered/);
     });
@@ -230,7 +227,7 @@ describe('TestToolMenu biometrics', () => {
             registrationStatus: REGISTRATION_STATUS.REGISTERED_THIS_DEVICE,
         });
 
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         screen.getByText(/troubleshootBiometricsStatus.*statusRegisteredThisDevice/);
     });
@@ -241,7 +238,7 @@ describe('TestToolMenu biometrics', () => {
             registrationStatus: REGISTRATION_STATUS.REGISTERED_OTHER_DEVICE,
         });
 
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         screen.getByText(/troubleshootBiometricsStatus.*statusRegisteredOtherDevice/);
     });
@@ -249,7 +246,7 @@ describe('TestToolMenu biometrics', () => {
     it('renders biometrics title with "Not registered" status', () => {
         setBiometricStatus({registrationStatus: REGISTRATION_STATUS.NOT_REGISTERED});
 
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         screen.getByText(/troubleshootBiometricsStatus.*statusNotRegistered/);
     });
@@ -257,7 +254,7 @@ describe('TestToolMenu biometrics', () => {
     it('does not show the Revoke button when device is not registered', () => {
         setBiometricStatus({isCurrentDeviceRegistered: false});
 
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         expect(screen.queryByText('multifactorAuthentication.revoke.revoke')).toBeNull();
     });
@@ -269,7 +266,7 @@ describe('TestToolMenu biometrics', () => {
             registrationStatus: REGISTRATION_STATUS.REGISTERED_THIS_DEVICE,
         });
 
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         screen.getByText('multifactorAuthentication.revoke.revoke');
     });
@@ -281,7 +278,7 @@ describe('TestToolMenu biometrics', () => {
             registrationStatus: REGISTRATION_STATUS.REGISTERED_THIS_DEVICE,
         });
 
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         const revokeButton = screen.getByText('multifactorAuthentication.revoke.revoke');
         fireEvent.press(revokeButton);
@@ -292,7 +289,7 @@ describe('TestToolMenu biometrics', () => {
     it('always shows the Test button and invokes executeScenario with BIOMETRICS_TEST when pressed', () => {
         setBiometricStatus({registrationStatus: REGISTRATION_STATUS.NEVER_REGISTERED});
 
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         const testButton = screen.getByText('multifactorAuthentication.biometricsTest.test');
         fireEvent.press(testButton);
@@ -304,7 +301,7 @@ describe('TestToolMenu biometrics', () => {
         setBiometricStatus({registrationStatus: REGISTRATION_STATUS.NEVER_REGISTERED});
         mockGetActiveRoute.mockReturnValue(ROUTES.TEST_TOOLS_MODAL.route);
 
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         fireEvent.press(screen.getByText('multifactorAuthentication.biometricsTest.test'));
 
@@ -316,7 +313,7 @@ describe('TestToolMenu biometrics', () => {
         setBiometricStatus({registrationStatus: REGISTRATION_STATUS.NEVER_REGISTERED});
         mockGetActiveRoute.mockReturnValue(ROUTES.SETTINGS_TROUBLESHOOT);
 
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         fireEvent.press(screen.getByText('multifactorAuthentication.biometricsTest.test'));
 
@@ -328,7 +325,7 @@ describe('TestToolMenu biometrics', () => {
         mockIsAgentAccount = true;
         setBiometricStatus({registrationStatus: REGISTRATION_STATUS.NEVER_REGISTERED});
 
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         expect(screen.queryByText(/troubleshootBiometricsStatus/)).toBeNull();
         expect(screen.queryByText('multifactorAuthentication.biometricsTest.test')).toBeNull();
@@ -348,7 +345,7 @@ describe('TestToolMenu beta overrides', () => {
     it('renders the beta overrides row outside production', () => {
         // Given a build that is not production
         // When the menu is rendered
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         // Then the beta overrides row is offered
         screen.getByText('initialSettingsPage.troubleshoot.betaOverrides');
@@ -359,7 +356,7 @@ describe('TestToolMenu beta overrides', () => {
         mockIsProduction = true;
 
         // When the menu is rendered
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         // Then the beta overrides row is not offered
         expect(screen.queryByText('initialSettingsPage.troubleshoot.betaOverrides')).toBeNull();
@@ -368,26 +365,26 @@ describe('TestToolMenu beta overrides', () => {
     it('dismisses the Test Tools modal before opening the overrides page', () => {
         // Given The menu rendered inside the Test Tools modal
         mockGetActiveRoute.mockReturnValue(ROUTES.TEST_TOOLS_MODAL.route);
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         // When The row is pressed
         fireEvent.press(screen.getByText('common.view'));
 
-        // Then The modal is dismissed first, because it and the overrides page cannot both be open
+        // Then The modal is dismissed first, because it and the overrides page cannot both be open, and the page opens over the modal's backTo screen
         expect(mockDismissModal).toHaveBeenCalledTimes(1);
-        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_TROUBLESHOOT_BETA_OVERRIDES);
+        expect(mockNavigate).toHaveBeenCalledWith(`${ROUTES.HOME}/${DYNAMIC_ROUTES.BETA_OVERRIDES.path}`);
     });
 
     it('does not dismiss any modal when opened inline on the Troubleshoot page', () => {
         // Given The menu rendered inline on the Troubleshoot page
         mockGetActiveRoute.mockReturnValue(ROUTES.SETTINGS_TROUBLESHOOT);
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         // When The row is pressed
         fireEvent.press(screen.getByText('common.view'));
 
-        // Then Nothing is dismissed, because there is no modal open in this context
+        // Then Nothing is dismissed, because there is no modal open in this context, and the page opens over Troubleshoot
         expect(mockDismissModal).not.toHaveBeenCalled();
-        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_TROUBLESHOOT_BETA_OVERRIDES);
+        expect(mockNavigate).toHaveBeenCalledWith(`${ROUTES.SETTINGS_TROUBLESHOOT}/${DYNAMIC_ROUTES.BETA_OVERRIDES.path}`);
     });
 });

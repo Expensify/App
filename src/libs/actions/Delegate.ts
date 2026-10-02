@@ -379,6 +379,7 @@ function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegatePa
                         ? delegate
                         : {
                               ...delegate,
+                              role,
                               isLoading: true,
                               pendingFields: {
                                   email: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -431,6 +432,7 @@ function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegatePa
                         ? delegate
                         : {
                               ...delegate,
+                              role,
                               isLoading: false,
                               pendingAction: null,
                               pendingFields: {email: null, role: null},
@@ -479,6 +481,7 @@ function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegatePa
                         ? delegate
                         : {
                               ...delegate,
+                              role,
                               isLoading: false,
                           },
                 ) ?? []
@@ -883,6 +886,7 @@ function openSecuritySettingsPage() {
 }
 
 export {
+    KEYS_TO_PRESERVE_DELEGATE_ACCESS,
     connect,
     disconnect,
     clearDelegatorErrors,

@@ -1,5 +1,6 @@
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -11,7 +12,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -75,8 +75,6 @@ function FlagForReviewRulePageBase({
     const {policy} = policyData;
     const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
-    const {isBetaEnabled} = usePermissions();
-    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const icons = useMemoizedLazyExpensifyIcons(['Folder', 'CoinsButton']);
     const isEditing = !!categoryName;
     const isCategoryLocked = isCategoryLockedProp ?? !!initialCategoryName;
@@ -154,7 +152,7 @@ function FlagForReviewRulePageBase({
 
         // initialCategoryName is also set when the create screen is editing a category's existing rule, and in that
         // case going back one step would land on the New rule hub instead of the category we came from.
-        if ((!isEditing || !!initialCategoryName) && isRulesRevampEnabled) {
+        if (!isEditing || !!initialCategoryName) {
             const savedCategoryName = form[INPUT_IDS.CATEGORY] ?? initialCategoryName;
             if (initialCategoryName && savedCategoryName) {
                 Navigation.goBack(categorySettingsBackPath ?? getWorkspaceCategorySettingsRoute(policyID, savedCategoryName));
@@ -185,7 +183,7 @@ function FlagForReviewRulePageBase({
     // The rule IS the category's flag amount, so there is only something to delete once one is set, and the category's
     // own pending state is the rule's: while a delete is in flight, deleting again would fire the same write twice.
     const isRuleBeingDeleted = category?.pendingFields?.maxExpenseAmount === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const {deleteHeaderProps} = useRuleDeleteHeaderProps({
+    const {deleteIconButtonProps} = useRuleDeleteHeaderProps({
         canDelete: canWriteRules && isEditing && hasExplicitFlagAmount(category?.maxExpenseAmount) && !isRuleBeingDeleted,
         onDelete: () => {
             deleteFlagForReviewRule(policyID, categoryName ?? '', policyData.categories);
@@ -212,6 +210,7 @@ function FlagForReviewRulePageBase({
             isAlertVisible={shouldShowError && !!errorMessage}
             message={errorMessage}
             onSubmit={handleSubmit}
+            shouldShowLoadingImmediatelyOnPress={false}
             enabledWhenOffline
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_FOR_REVIEW_RULE_SAVE}
         />
@@ -223,17 +222,15 @@ function FlagForReviewRulePageBase({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
-            shouldBeBlocked={!isRulesRevampEnabled}
         >
             <ScreenWrapper
                 testID={testID}
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.rules.flagForReviewRule.title')}
-                    {...deleteHeaderProps}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.rules.flagForReviewRule.title')}>
+                    {!!deleteIconButtonProps && <Header.IconButton {...deleteIconButtonProps} />}
+                </HeaderWithBackButtonAndTitle>
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     <View style={[styles.ph5, styles.pv3, styles.gap6]}>
                         <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.rules.flagForReviewRule.subtitle')}</Text>

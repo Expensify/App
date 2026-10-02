@@ -18,6 +18,7 @@ import useLifecycleActions from '@hooks/useLifecycleActions';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import useSelectionModePayment from '@hooks/useSelectionModePayment';
@@ -25,7 +26,7 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 import useTransactionThreadReport from '@hooks/useTransactionThreadReport';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
+import {getTotalAmountForIOUReportPreviewButton, isEveryReportTransactionSelected} from '@libs/MoneyRequestReportUtils';
 import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {hasUpdatedTotal, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
@@ -37,7 +38,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
+import {loginSelector} from '@src/selectors/PersonalDetails';
 import {createMoveExpenseReportNVPSelector} from '@src/selectors/Report';
 
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -72,10 +73,11 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
-    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID)});
+    const [submitterLogin] = usePersonalDetail(moneyRequestReport?.ownerAccountID, loginSelector);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(moneyRequestReport?.reportID)}`);
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
@@ -169,6 +171,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
               outstandingReportsByPolicyID,
               isChatReportArchived,
               isOffline,
+              rules,
           })
         : [];
 
@@ -177,13 +180,25 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const hasPayAction = primaryAction === CONST.REPORT.PRIMARY_ACTIONS.PAY || computedSecondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.PAY);
 
     const canAllowSettlement = hasUpdatedTotal(moneyRequestReport, policy);
-    const canIOUBePaid = canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', accountID, undefined, false, undefined, invoiceReceiverPolicy);
+    const canIOUBePaid = canIOUBePaidAction(
+        moneyRequestReport,
+        chatReport,
+        policy,
+        bankAccountList,
+        currentUserLogin ?? '',
+        accountID,
+        undefined,
+        false,
+        isChatReportArchived,
+        invoiceReceiverPolicy,
+    );
     const onlyShowPayElsewhere =
-        !canIOUBePaid && canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', accountID, undefined, true, undefined, invoiceReceiverPolicy);
+        !canIOUBePaid &&
+        canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', accountID, undefined, true, isChatReportArchived, invoiceReceiverPolicy);
     const isPayable = hasPayAction && canIOUBePaid;
 
     const totalAmount = getTotalAmountForIOUReportPreviewButton(moneyRequestReport, policy, CONST.REPORT.PRIMARY_ACTIONS.PAY, nonPendingDeleteTransactions, convertToDisplayString);
-    const allExpensesSelected = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === nonPendingDeleteTransactions.length;
+    const allExpensesSelected = isEveryReportTransactionSelected(nonPendingDeleteTransactions, selectedTransactionIDs);
 
     // Shared payment hook
     const {handleWorkspaceSelected, onSelectionModePaymentSelect, selectionModeKYCSuccess, paymentSubMenuItems, hasPayInSelectionMode, kycWallRef} = useSelectionModePayment({
@@ -242,11 +257,12 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
         policy,
         report: moneyRequestReport,
         isTrackIntentUser,
+        rules,
     });
     const submitButtonText = shouldShowMarkAsDoneCopy ? translate('common.markAsDone') : translate('common.submit');
     const approveButtonText = shouldShowMarkAsDoneCopy ? translate('common.markAsDone') : translate('iou.approve');
 
-    const selectionModeReportLevelActions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'subMenuHeaderText'>> = [
+    const selectionModeReportLevelActions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'rightIcon'>> = [
         ...(hasSubmitAction && !shouldBlockSubmit
             ? [
                   {

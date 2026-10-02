@@ -56,6 +56,8 @@ function renderFrozenIDs(
             undefined,
             CURRENT_USER_LOGIN,
             CURRENT_USER_ACCOUNT_ID,
+            {},
+            undefined,
             allPolicies,
             undefined,
         ),

@@ -2,7 +2,6 @@ import type {GuidedSetupTask} from '@libs/actions/Report';
 import * as APIModule from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import GoogleTagManager from '@libs/GoogleTagManager';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {isPolicyPayer} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 
@@ -14,6 +13,7 @@ import * as Policy from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Onboarding, PolicyJoinMember, PolicyReportField, Policy as PolicyType, Report, ReportAction, ReportActions, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {Participant, ReportNextStep} from '@src/types/onyx/Report';
+import type Rule from '@src/types/onyx/Rule';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -46,9 +46,7 @@ const WORKSPACE_NAME = "Esh's Workspace";
 const EMPLOYEE_EMAIL = 'employee@example.com';
 const TEST_EMAIL = 'esh@gmail.com';
 const TEST_EMAIL_2 = 'eshofficial@gmail.com';
-const TEST_ACCOUNT_ID = 1;
 const TEST_DISPLAY_NAME = 'Esh Gupta';
-const TEST_PHONE_NUMBER = '1234567890';
 const TEST_NON_PUBLIC_DOMAIN_EMAIL = 'esh@example.com';
 const TEST_SMS_DOMAIN_EMAIL = 'esh@expensify.sms';
 
@@ -62,6 +60,22 @@ function requireCallArgument(call: unknown, index: number): unknown {
 jest.mock('@libs/GoogleTagManager');
 
 OnyxUpdateManager();
+/** Build the index-keyed object shape the rules API uses for lists */
+function indexMap<T>(...values: T[]): Record<string, T> {
+    return Object.fromEntries(values.map((value, index) => [String(index + 1), value]));
+}
+
+async function getRulesCollection(): Promise<OnyxCollection<Rule>> {
+    let collection: OnyxCollection<Rule> = {};
+    await TestHelper.getOnyxData({
+        key: ONYXKEYS.COLLECTION.RULE,
+        callback: (value) => {
+            collection = value ?? {};
+        },
+    });
+    return collection;
+}
+
 describe('actions/Policy', () => {
     beforeAll(() => {
         Onyx.init({
@@ -100,10 +114,10 @@ describe('actions/Policy', () => {
                 userReportedIntegration: 'other',
                 userReportedIntegrationName: 'Acme Books',
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -133,10 +147,10 @@ describe('actions/Policy', () => {
                 currency: CONST.CURRENCY.USD,
                 userReportedIntegration: 'other',
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -173,10 +187,10 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: CONST.CURRENCY.USD,
                 isSelfTourViewed: false,
-                betas: [CONST.BETAS.SUGGESTED_FOLLOWUPS],
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -628,8 +642,17 @@ describe('actions/Policy', () => {
                 address: {addressStreet: '1 Main Street', city: 'Paris', country: 'FR', state: '', zipCode: '75001'},
                 isTravelEnabled: true,
                 tax: {trackingEnabled: true},
-                rules: {codingRules: {rule1: {filters: {left: 'merchant', operator: 'eq', right: 'Acme'}, category: 'Travel'}}},
             };
+            const sourceRule: Rule = {
+                scope: CONST.RULES.SCOPE.POLICY,
+                scopeID: fakePolicy.id,
+                triggers: indexMap(CONST.RULES.TRIGGERS.CREATE_TRANSACTION),
+                filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Acme'},
+                actions: indexMap({name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, value: 'Travel'}),
+            };
+            // The copies are optimistic only - they are dropped once the server responds with its own rule IDs,
+            // so the request stays paused while they are asserted.
+            mockFetch?.pause?.();
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await waitForBatchedUpdates();
 
@@ -660,6 +683,7 @@ describe('actions/Policy', () => {
                     codingRules: true,
                 },
                 localCurrency: 'USD',
+                rules: {[`${ONYXKEYS.COLLECTION.RULE}sourceRule`]: sourceRule},
             };
 
             Policy.duplicateWorkspace(fakePolicy, options);
@@ -679,7 +703,22 @@ describe('actions/Policy', () => {
             expect(policy?.address).toEqual(fakePolicy.address);
             expect(policy?.isTravelEnabled).toBe(true);
             expect(policy?.tax).toEqual(fakePolicy.tax);
-            expect(policy?.rules).toEqual({codingRules: fakePolicy.rules?.codingRules});
+
+            // Merchant rules are copied into the rules collection as new rules scoped to the duplicate,
+            // rather than onto the duplicated policy object.
+            const duplicatedRules = Object.values((await getRulesCollection()) ?? {}).filter((rule) => rule?.scopeID === policyID);
+            expect(duplicatedRules).toHaveLength(1);
+            expect(duplicatedRules.at(0)).toMatchObject({
+                scope: CONST.RULES.SCOPE.POLICY,
+                scopeID: policyID,
+                triggers: sourceRule.triggers,
+                filters: sourceRule.filters,
+                actions: sourceRule.actions,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
+
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
         });
 
         it('duplicate workspace with 3+ members creates optimistic announce chat using currentUserAccountID', async () => {
@@ -983,10 +1022,10 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1001,42 +1040,6 @@ describe('actions/Policy', () => {
             });
 
             // Then the policy should have approval mode set to BASIC
-            expect(policy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.BASIC);
-        });
-
-        it('creates a new workspace when betas are explicitly passed', async () => {
-            const policyID = Policy.generatePolicyID();
-            Policy.createWorkspace({
-                conciergeChat: undefined,
-                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
-                makeMeAdmin: true,
-                policyName: WORKSPACE_NAME,
-                policyID,
-                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
-                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
-                currentUserAccountIDParam: ESH_ACCOUNT_ID,
-                currentUserEmailParam: ESH_EMAIL,
-                currency: undefined,
-                isSelfTourViewed: false,
-                hasActiveAdminPolicies: false,
-                hasOwnedPaidPolicy: false,
-                activePolicy: undefined,
-                betas: [CONST.BETAS.SUGGESTED_FOLLOWUPS],
-            });
-            await waitForBatchedUpdates();
-
-            const policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (workspace) => {
-                        Onyx.disconnect(connection);
-                        resolve(workspace);
-                    },
-                });
-            });
-
-            expect(policy?.id).toBe(policyID);
-            expect(policy?.name).toBe(WORKSPACE_NAME);
             expect(policy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.BASIC);
         });
 
@@ -1055,10 +1058,10 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: CONST.CURRENCY.EUR,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1097,10 +1100,10 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: true,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1127,10 +1130,10 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1162,10 +1165,10 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1194,10 +1197,10 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1227,10 +1230,10 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1258,10 +1261,10 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1289,10 +1292,10 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1320,10 +1323,10 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1351,10 +1354,10 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1380,10 +1383,10 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
                 type: CONST.POLICY.TYPE.SUBMIT,
                 currency: 'USD',
             });
@@ -1432,10 +1435,10 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1471,10 +1474,10 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: true,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1510,10 +1513,10 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1555,10 +1558,10 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: true,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1605,10 +1608,10 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1654,10 +1657,10 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1691,10 +1694,10 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
                 adminParticipant: {participant: {login: adminEmail, accountID: adminAccountID}, doesPersonalDetailExist: true},
             });
             await waitForBatchedUpdates();
@@ -1734,10 +1737,10 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1791,10 +1794,10 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1828,10 +1831,10 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1865,10 +1868,10 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1905,10 +1908,10 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1937,10 +1940,10 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
 
             expect(GoogleTagManager.publishEvent).toHaveBeenCalledTimes(1);
@@ -1960,10 +1963,10 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: true,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
 
             expect(GoogleTagManager.publishEvent).not.toHaveBeenCalled();
@@ -1987,10 +1990,10 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2022,11 +2025,11 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 adminParticipant: {participant: {login: adminEmail, accountID: adminAccountID}, doesPersonalDetailExist: true},
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2066,11 +2069,11 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 adminParticipant: {participant: {login: adminEmail, accountID: adminAccountID}, doesPersonalDetailExist: true},
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2084,11 +2087,11 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 adminParticipant: {participant: {login: adminEmail, accountID: adminAccountID}, doesPersonalDetailExist: true},
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2127,10 +2130,10 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3348,7 +3351,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.enablePolicyRules(fakePolicy, true);
+            Policy.enablePolicyRules(fakePolicy, true, false);
             await waitForBatchedUpdates();
 
             const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
@@ -3371,7 +3374,7 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             // Disable the rule feature
-            Policy.enablePolicyRules(fakePolicy, false);
+            Policy.enablePolicyRules(fakePolicy, false, false);
             await waitForBatchedUpdates();
 
             let policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
@@ -3408,6 +3411,58 @@ describe('actions/Policy', () => {
     });
 
     describe('setWorkspaceApprovalMode', () => {
+        it('should delete the policy approval workflow rules but keep its expense default rules when disabling approvals', async () => {
+            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+
+            const policyID = Policy.generatePolicyID();
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                approver: ESH_EMAIL,
+                owner: ESH_EMAIL,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            const approvalRuleKey = `${ONYXKEYS.COLLECTION.RULE}approval1` as const;
+            const expenseDefaultRuleKey = `${ONYXKEYS.COLLECTION.RULE}merchant1` as const;
+            const rules: OnyxCollection<Rule> = {
+                [approvalRuleKey]: {
+                    scope: CONST.RULES.SCOPE.POLICY,
+                    scopeID: policyID,
+                    triggers: indexMap(CONST.RULES.TRIGGERS.REPORT_SUBMIT),
+                    filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: [EMPLOYEE_EMAIL]},
+                    actions: indexMap({name: CONST.RULES.ACTIONS.FORWARD_TO, approver: ESH_EMAIL}),
+                },
+                [expenseDefaultRuleKey]: {
+                    scope: CONST.RULES.SCOPE.POLICY,
+                    scopeID: policyID,
+                    triggers: indexMap(CONST.RULES.TRIGGERS.CREATE_TRANSACTION),
+                    filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS, left: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, right: 'Starbucks'},
+                    actions: indexMap({name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, value: 'Coffee'}),
+                },
+            };
+
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false, rules);
+            await waitForBatchedUpdates();
+
+            // The approval rule is removed with the workflow, the merchant rule on the same policy is left alone.
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.DISABLE_POLICY_APPROVALS,
+                expect.anything(),
+                expect.objectContaining({optimisticData: expect.arrayContaining([expect.objectContaining({key: approvalRuleKey, value: null})])}),
+            );
+            expect(apiWriteSpy).not.toHaveBeenCalledWith(
+                WRITE_COMMANDS.DISABLE_POLICY_APPROVALS,
+                expect.anything(),
+                expect.objectContaining({optimisticData: expect.arrayContaining([expect.objectContaining({key: expenseDefaultRuleKey})])}),
+            );
+
+            apiWriteSpy.mockRestore();
+        });
+
         it('should not change employee list when disabling approval', async () => {
             mockFetch?.pause?.();
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
@@ -3437,7 +3492,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false, undefined);
             await waitForBatchedUpdates();
 
             let policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
@@ -3504,9 +3559,9 @@ describe('actions/Policy', () => {
             const reportKey1 = `${ONYXKEYS.COLLECTION.REPORT}${submittedExpenseReport1.reportID}` as const;
             const reportKey2 = `${ONYXKEYS.COLLECTION.REPORT}${submittedExpenseReport2.reportID}` as const;
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false, {
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false, undefined, {
                 transactionViolations: {},
-                betas: [],
+                isASAPSubmitBetaEnabled: false,
                 personalDetailsList: {},
             });
             await waitForBatchedUpdates();
@@ -3531,6 +3586,52 @@ describe('actions/Policy', () => {
             );
 
             expect(buildNextStepNewSpy).toHaveBeenCalledTimes(2);
+
+            apiWriteSpy.mockRestore();
+            buildNextStepNewSpy.mockRestore();
+            getAllPolicyReportsSpy.mockRestore();
+            isExpenseReportSpy.mockRestore();
+            hasViolationsSpy.mockRestore();
+        });
+
+        it('should skip refreshing next steps while the account betas have not loaded yet', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+            const optimisticNextStep = createMock<ReportNextStep>({messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION, icon: CONST.NEXT_STEP.ICONS.CHECKMARK});
+            const buildNextStepNewSpy = jest.spyOn(require('@libs/NextStepUtils'), 'buildOptimisticNextStep').mockReturnValue(optimisticNextStep);
+
+            const getAllPolicyReportsSpy = jest.spyOn(ReportUtils, 'getAllPolicyReports');
+            const isExpenseReportSpy = jest.spyOn(ReportUtils, 'isExpenseReport');
+            const hasViolationsSpy = jest.spyOn(ReportUtils, 'hasViolations');
+
+            const policyID = Policy.generatePolicyID();
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                approver: ESH_EMAIL,
+                owner: ESH_EMAIL,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            const submittedExpenseReport = createMock<Report>({reportID: '100', policyID, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED});
+            getAllPolicyReportsSpy.mockReturnValue([submittedExpenseReport]);
+            isExpenseReportSpy.mockReturnValue(true);
+            hasViolationsSpy.mockReturnValue(false);
+
+            // Given the caller cannot resolve the beta yet, it passes undefined rather than guessing
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false, undefined, {
+                transactionViolations: {},
+                isASAPSubmitBetaEnabled: undefined,
+                personalDetailsList: {},
+            });
+            await waitForBatchedUpdates();
+
+            // Then no next step is built, because resolving the beta to off would write the wrong one
+            expect(buildNextStepNewSpy).not.toHaveBeenCalled();
 
             apiWriteSpy.mockRestore();
             buildNextStepNewSpy.mockRestore();
@@ -3569,9 +3670,9 @@ describe('actions/Policy', () => {
             const customAccountID = 999;
             const customEmail = 'custom@example.com';
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, customAccountID, customEmail, false, {
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, customAccountID, customEmail, false, undefined, {
                 transactionViolations: {},
-                betas: [],
+                isASAPSubmitBetaEnabled: false,
                 personalDetailsList: {},
             });
             await waitForBatchedUpdates();
@@ -3623,7 +3724,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false, undefined);
             await waitForBatchedUpdates();
 
             expect(getAllPolicyReportsSpy).not.toHaveBeenCalled();
@@ -3672,7 +3773,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false, undefined);
             await waitForBatchedUpdates();
 
             const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
@@ -3719,7 +3820,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false, undefined);
             await waitForBatchedUpdates();
 
             expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.DISABLE_POLICY_APPROVALS, expect.objectContaining({policyID}), expect.anything());
@@ -3744,7 +3845,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, ESH_ACCOUNT_ID, ESH_EMAIL, false);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, ESH_ACCOUNT_ID, ESH_EMAIL, false, undefined);
             await waitForBatchedUpdates();
 
             expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE, expect.objectContaining({policyID}), expect.anything());
@@ -3786,7 +3887,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, ESH_ACCOUNT_ID, ESH_EMAIL, false);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, ESH_ACCOUNT_ID, ESH_EMAIL, false, undefined);
             await waitForBatchedUpdates();
 
             // optimisticMembersState should be empty for non-OPTIONAL mode
@@ -3833,7 +3934,7 @@ describe('actions/Policy', () => {
             // Simulate API failure
             mockFetch?.fail?.();
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false, undefined);
             await waitForBatchedUpdates();
 
             const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
@@ -3890,7 +3991,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false, undefined);
             await waitForBatchedUpdates();
 
             const writeOptions = requireRecord(requireCallArgument(apiWriteSpy.mock.calls.at(0), 2));
@@ -3939,7 +4040,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false, undefined);
             await waitForBatchedUpdates();
 
             const writeOptions = requireRecord(requireCallArgument(apiWriteSpy.mock.calls.at(0), 2));
@@ -3975,7 +4076,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, ESH_ACCOUNT_ID, ESH_EMAIL, false);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, ESH_ACCOUNT_ID, ESH_EMAIL, false, undefined);
             await waitForBatchedUpdates();
 
             let policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
@@ -4031,7 +4132,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false, undefined);
             await waitForBatchedUpdates();
 
             let policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
@@ -4084,7 +4185,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false, undefined);
             await waitForBatchedUpdates();
 
             let policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
@@ -4141,7 +4242,7 @@ describe('actions/Policy', () => {
 
             mockFetch?.fail?.();
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false, undefined);
             await waitForBatchedUpdates();
 
             const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
@@ -4752,26 +4853,14 @@ describe('actions/Policy', () => {
             const domain = 'example.com';
             const displayNameForWorkspace = Str.UCFirst(domain.split('.').at(0) ?? '');
 
-            jest.spyOn(PersonalDetailsUtils, 'getPersonalDetailByEmail').mockReturnValue({
-                displayName: TEST_DISPLAY_NAME,
-                phoneNumber: TEST_PHONE_NUMBER,
-                accountID: TEST_ACCOUNT_ID,
-            });
-
-            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_NON_PUBLIC_DOMAIN_EMAIL, undefined, TestHelper.translateLocal);
+            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_NON_PUBLIC_DOMAIN_EMAIL, TEST_DISPLAY_NAME, undefined, TestHelper.translateLocal);
             expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', displayNameForWorkspace));
         });
 
         it('should generate a workspace name based on the display name when the domain is public and display name is available', () => {
             const displayNameForWorkspace = Str.UCFirst(TEST_DISPLAY_NAME);
 
-            jest.spyOn(PersonalDetailsUtils, 'getPersonalDetailByEmail').mockReturnValue({
-                displayName: TEST_DISPLAY_NAME,
-                phoneNumber: TEST_PHONE_NUMBER,
-                accountID: TEST_ACCOUNT_ID,
-            });
-
-            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL, undefined, TestHelper.translateLocal);
+            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL, TEST_DISPLAY_NAME, undefined, TestHelper.translateLocal);
             expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', displayNameForWorkspace));
         });
 
@@ -4780,13 +4869,7 @@ describe('actions/Policy', () => {
             const username = emailParts.at(0) ?? '';
             const displayNameForWorkspace = Str.UCFirst(username);
 
-            jest.spyOn(PersonalDetailsUtils, 'getPersonalDetailByEmail').mockReturnValue({
-                displayName: '',
-                phoneNumber: TEST_PHONE_NUMBER,
-                accountID: TEST_ACCOUNT_ID,
-            });
-
-            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL_2, undefined, TestHelper.translateLocal);
+            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL_2, '', undefined, TestHelper.translateLocal);
             expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', displayNameForWorkspace));
         });
 
@@ -4796,26 +4879,14 @@ describe('actions/Policy', () => {
                 ...createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL, `${TEST_DISPLAY_NAME}'s Workspace 1`),
             };
 
-            jest.spyOn(PersonalDetailsUtils, 'getPersonalDetailByEmail').mockReturnValue({
-                displayName: TEST_DISPLAY_NAME,
-                phoneNumber: TEST_PHONE_NUMBER,
-                accountID: TEST_ACCOUNT_ID,
-            });
-
             await Onyx.set(ONYXKEYS.COLLECTION.POLICY, existingPolicies);
 
-            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL, 1, TestHelper.translateLocal);
+            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL, TEST_DISPLAY_NAME, 1, TestHelper.translateLocal);
             expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', TEST_DISPLAY_NAME, 2));
         });
 
         it('should return "My Group Workspace" when the domain is SMS', () => {
-            jest.spyOn(PersonalDetailsUtils, 'getPersonalDetailByEmail').mockReturnValue({
-                displayName: TEST_DISPLAY_NAME,
-                phoneNumber: TEST_PHONE_NUMBER,
-                accountID: TEST_ACCOUNT_ID,
-            });
-
-            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_SMS_DOMAIN_EMAIL, undefined, TestHelper.translateLocal);
+            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_SMS_DOMAIN_EMAIL, TEST_DISPLAY_NAME, undefined, TestHelper.translateLocal);
             expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.myGroupWorkspace', {}));
         });
 
@@ -4827,17 +4898,11 @@ describe('actions/Policy', () => {
                 ...createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL, `${TEST_DISPLAY_NAME}'s Workspace 1`),
             };
 
-            jest.spyOn(PersonalDetailsUtils, 'getPersonalDetailByEmail').mockReturnValue({
-                displayName: TEST_DISPLAY_NAME,
-                phoneNumber: TEST_PHONE_NUMBER,
-                accountID: TEST_ACCOUNT_ID,
-            });
-
             jest.spyOn(Str, 'UCFirst').mockReturnValue(TEST_DISPLAY_NAME);
 
             await Onyx.set(ONYXKEYS.COLLECTION.POLICY, existingPolicies);
 
-            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL, 1, TestHelper.translateLocal);
+            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL, TEST_DISPLAY_NAME, 1, TestHelper.translateLocal);
             expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', TEST_DISPLAY_NAME, 2));
         });
     });
@@ -5372,7 +5437,7 @@ describe('actions/Policy', () => {
 
             // When enablePolicyTaxes is called to enable taxes
             mockFetch.pause();
-            Policy.enablePolicyTaxes(policyID, true, undefined);
+            Policy.enablePolicyTaxes(policyID, true, false, undefined);
             await waitForBatchedUpdates();
 
             // Then the policy tax tracking should be updated optimistically
@@ -5408,7 +5473,7 @@ describe('actions/Policy', () => {
 
             // When enablePolicyTaxes is called and fails
             mockFetch.fail();
-            Policy.enablePolicyTaxes(policyID, true, undefined);
+            Policy.enablePolicyTaxes(policyID, true, false, undefined);
             await waitForBatchedUpdates();
 
             // Then the policy tax tracking should be reverted
@@ -6515,7 +6580,7 @@ describe('actions/Policy', () => {
         });
     });
 
-    describe('setPolicyProhibitedExpense', () => {
+    describe('setPolicyProhibitedExpenses', () => {
         it('should enable prohibited expense optimistically and succeed', async () => {
             // Given a policy with prohibited expenses
             const policyID = '1';
@@ -6530,9 +6595,9 @@ describe('actions/Policy', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            // When setPolicyProhibitedExpense is called to enable alcohol
+            // When setPolicyProhibitedExpenses is called to enable alcohol
             mockFetch.pause();
-            Policy.setPolicyProhibitedExpense(policyID, 'alcohol', currentProhibitedExpenses);
+            Policy.setPolicyProhibitedExpenses(policyID, {...currentProhibitedExpenses, alcohol: true}, currentProhibitedExpenses);
             await waitForBatchedUpdates();
 
             // Then the prohibited expense should be updated optimistically
@@ -6564,9 +6629,9 @@ describe('actions/Policy', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            // When setPolicyProhibitedExpense is called and fails
+            // When setPolicyProhibitedExpenses is called and fails
             mockFetch.fail();
-            Policy.setPolicyProhibitedExpense(policyID, 'alcohol', currentProhibitedExpenses);
+            Policy.setPolicyProhibitedExpenses(policyID, {...currentProhibitedExpenses, alcohol: true}, currentProhibitedExpenses);
             await waitForBatchedUpdates();
 
             // Then the prohibited expense should be reverted
@@ -7540,6 +7605,7 @@ describe('actions/Policy', () => {
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                reportTransactions: [],
                 hasOwnedPaidPolicy: false,
             });
             await waitForBatchedUpdates();
@@ -7597,6 +7663,7 @@ describe('actions/Policy', () => {
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                reportTransactions: [],
                 hasOwnedPaidPolicy,
                 currentUserDisplayName: undefined,
             });
@@ -7633,6 +7700,7 @@ describe('actions/Policy', () => {
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                reportTransactions: [],
                 hasOwnedPaidPolicy: false,
             });
             expect(result).toBeUndefined();
@@ -7693,6 +7761,7 @@ describe('actions/Policy', () => {
                 reportActionsList,
                 doesEmployeePersonalDetailExist: true,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                reportTransactions: [],
                 hasOwnedPaidPolicy: false,
             });
 
@@ -7749,6 +7818,7 @@ describe('actions/Policy', () => {
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                reportTransactions: [],
                 hasOwnedPaidPolicy: false,
             });
             await waitForBatchedUpdates();
@@ -7793,6 +7863,11 @@ describe('actions/Policy', () => {
                 policyID: 'oldPolicyID',
                 currency: CONST.CURRENCY.USD,
                 total: 5000,
+                reimbursableTotal: 5000,
+                nonReimbursableTotal: 0,
+                unheldTotal: 5000,
+                unheldReimbursableTotal: 5000,
+                unheldNonReimbursableTotal: 0,
             };
 
             const transaction: Transaction = {
@@ -7821,6 +7896,7 @@ describe('actions/Policy', () => {
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                reportTransactions: [transaction],
                 hasOwnedPaidPolicy: false,
             });
             await waitForBatchedUpdates();
@@ -7838,6 +7914,31 @@ describe('actions/Policy', () => {
 
             expect(optimisticTransaction?.amount).toBe(-5000);
             expect(optimisticTransaction?.convertedAmount).toBe(-6000);
+
+            // The optimistic report merge has to flip every total column too, not just `total`, because the Total on
+            // screen is read from `reimbursableTotal` in preference to `total`.
+            const optimisticReport: OnyxEntry<Report> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+            expect(optimisticReport?.type).toBe(CONST.REPORT.TYPE.EXPENSE);
+            expect(optimisticReport?.total).toBe(-5000);
+            expect(optimisticReport?.reimbursableTotal).toBe(-5000);
+            expect(optimisticReport?.unheldTotal).toBe(-5000);
+            expect(optimisticReport?.unheldReimbursableTotal).toBe(-5000);
+
+            // `toBe` is `Object.is`, so the already-zero columns have to be matched as -0.
+            expect(optimisticReport?.nonReimbursableTotal).toBe(-0);
+            expect(optimisticReport?.unheldNonReimbursableTotal).toBe(-0);
+
+            // And the Total rendered for the converted report is positive rather than -$50.00
+            expect(ReportUtils.getMoneyRequestSpendBreakdown(optimisticReport).totalDisplaySpend).toBe(5000);
         });
     });
 });

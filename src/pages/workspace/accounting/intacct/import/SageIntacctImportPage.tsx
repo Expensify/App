@@ -1,5 +1,6 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useLocalize from '@hooks/useLocalize';
@@ -108,46 +109,46 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
                     key={section.description}
                     pendingAction={settingsPendingAction(section.subscribedSettings, sageIntacctConfig?.pendingFields)}
                 >
-                    <MenuItemWithTopDescription
-                        title={section.title}
-                        description={section.description}
-                        shouldShowRightIcon
+                    <MenuItemField
+                        name={section.description}
                         onPress={section.action}
-                        brickRoadIndicator={areSettingsInErrorFields(section.subscribedSettings, sageIntacctConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    />
+                        value={section.title}
+                    >
+                        {areSettingsInErrorFields(section.subscribedSettings, sageIntacctConfig?.errorFields) && (
+                            <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                        )}
+                    </MenuItemField>
                 </OfflineWithFeedback>
             ))}
 
             {!!sageIntacctData?.taxSolutionIDs && sageIntacctData?.taxSolutionIDs?.length > 0 && (
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.TAX, CONST.SAGE_INTACCT_CONFIG.TAX_SOLUTION_ID], sageIntacctConfig?.pendingFields)}>
-                    <MenuItemWithTopDescription
-                        title={
+                    <MenuItemField
+                        name={translate('common.tax')}
+                        onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT_TAX.getRoute(policyID))}
+                        value={
                             sageIntacctConfig?.tax?.syncTax ? sageIntacctConfig?.tax?.taxSolutionID || sageIntacctData?.taxSolutionIDs?.at(0) : translate('workspace.accounting.notImported')
                         }
-                        description={translate('common.tax')}
-                        shouldShowRightIcon
-                        onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT_TAX.getRoute(policyID))}
-                        brickRoadIndicator={
-                            areSettingsInErrorFields([CONST.SAGE_INTACCT_CONFIG.TAX, CONST.SAGE_INTACCT_CONFIG.TAX_SOLUTION_ID], sageIntacctConfig?.errorFields)
-                                ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                : undefined
-                        }
-                    />
+                    >
+                        {areSettingsInErrorFields([CONST.SAGE_INTACCT_CONFIG.TAX, CONST.SAGE_INTACCT_CONFIG.TAX_SOLUTION_ID], sageIntacctConfig?.errorFields) && (
+                            <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                        )}
+                    </MenuItemField>
                 </OfflineWithFeedback>
             )}
 
             <OfflineWithFeedback pendingAction={checkForUserDimensionWithPendingAction(sageIntacctConfig) ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined}>
-                <MenuItemWithTopDescription
-                    title={
+                <MenuItemField
+                    name={translate('workspace.intacct.userDefinedDimensions')}
+                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_USER_DIMENSIONS.getRoute(policyID))}
+                    value={
                         sageIntacctConfig?.mappings?.dimensions && sageIntacctConfig?.mappings?.dimensions?.length > 0
                             ? translate('workspace.intacct.userDimensionsAdded', {count: sageIntacctConfig?.mappings?.dimensions?.length})
                             : undefined
                     }
-                    description={translate('workspace.intacct.userDefinedDimensions')}
-                    shouldShowRightIcon
-                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_USER_DIMENSIONS.getRoute(policyID))}
-                    brickRoadIndicator={checkForUserDimensionWithError(sageIntacctConfig) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                />
+                >
+                    {!!checkForUserDimensionWithError(sageIntacctConfig) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                </MenuItemField>
             </OfflineWithFeedback>
         </ConnectionLayout>
     );

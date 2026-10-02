@@ -26,6 +26,7 @@ import type {MockFetch} from '../../utils/TestHelper';
 
 import createRandomPolicy from '../../utils/collections/policies';
 import createMock from '../../utils/createMock';
+import getOnyxValue from '../../utils/getOnyxValue';
 import {createGlobalFetchMock, getCurrencyDecimalsLocal} from '../../utils/TestHelper';
 import {hasDefinedProperty, isObject} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -49,15 +50,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@react-navigation/native');
-
-jest.mock('@src/libs/actions/Report', () => {
-    const originalModule = jest.requireActual('@src/libs/actions/Report');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...originalModule,
-        notifyNewAction: jest.fn(),
-    };
-});
 
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 
@@ -135,7 +127,19 @@ describe('actions/IOU/Hold', () => {
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
                     // When an expense is put on hold
-                    putOnHold(transaction.transactionID, comment, transactionThread.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined);
+                    putOnHold({
+                        transactionID: transaction.transactionID,
+                        transaction,
+                        comment,
+                        initialReportID: transactionThread.reportID,
+                        isOffline: false,
+                        currentUserLogin: RORY_EMAIL,
+                        currentUserAccountID: RORY_ACCOUNT_ID,
+                        transactionViolations: undefined,
+                        isTrackIntentUser: false,
+                        delegateAccountID: undefined,
+                        rules: undefined,
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -197,7 +201,19 @@ describe('actions/IOU/Hold', () => {
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
                     // When an expense is put on hold without existing transaction thread (undefined initialReportID)
-                    putOnHold(transaction.transactionID, comment, undefined, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined);
+                    putOnHold({
+                        transactionID: transaction.transactionID,
+                        transaction,
+                        comment,
+                        initialReportID: undefined,
+                        isOffline: false,
+                        currentUserLogin: RORY_EMAIL,
+                        currentUserAccountID: RORY_ACCOUNT_ID,
+                        transactionViolations: undefined,
+                        isTrackIntentUser: false,
+                        delegateAccountID: undefined,
+                        rules: undefined,
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -277,17 +293,19 @@ describe('actions/IOU/Hold', () => {
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
                     // When multiple transactions are put on hold
-                    putTransactionsOnHold(
-                        [transaction1.transactionID, transaction2.transactionID],
+                    putTransactionsOnHold({
+                        transactionsID: [transaction1.transactionID, transaction2.transactionID],
                         comment,
-                        iouReport.reportID,
-                        false,
-                        RORY_EMAIL,
-                        RORY_ACCOUNT_ID,
-                        undefined,
-                        false,
-                        undefined,
-                    );
+                        reportID: iouReport.reportID,
+                        isOffline: false,
+                        currentUserLogin: RORY_EMAIL,
+                        currentUserAccountID: RORY_ACCOUNT_ID,
+                        allTransactionViolations: undefined,
+                        transactions: [transaction1, transaction2],
+                        isTrackIntentUser: false,
+                        delegateAccountID: undefined,
+                        rules: undefined,
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -381,22 +399,115 @@ describe('actions/IOU/Hold', () => {
                 .then(() => {
                     jest.mocked(Navigation.setNavigationActionToMicrotaskQueue).mockClear();
                     // When transactions are put on hold while offline (isOffline: true)
-                    putTransactionsOnHold(
-                        [transaction1.transactionID, transaction2.transactionID],
+                    putTransactionsOnHold({
+                        transactionsID: [transaction1.transactionID, transaction2.transactionID],
                         comment,
-                        iouReport.reportID,
-                        true,
-                        RORY_EMAIL,
-                        RORY_ACCOUNT_ID,
-                        undefined,
-                        false,
-                        undefined,
-                    );
+                        reportID: iouReport.reportID,
+                        isOffline: true,
+                        currentUserLogin: RORY_EMAIL,
+                        currentUserAccountID: RORY_ACCOUNT_ID,
+                        allTransactionViolations: undefined,
+                        transactions: [transaction1, transaction2],
+                        isTrackIntentUser: false,
+                        delegateAccountID: undefined,
+                        rules: undefined,
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
                     // Navigation should be called once for each transaction (putOnHold called for each)
                     expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledTimes(2);
+                    return mockFetch.resume();
+                });
+        });
+
+        test('should still hold a transaction missing from the transactions list, without touching report totals for it', () => {
+            const iouReport = buildOptimisticIOUReport(1, 2, 300, '1', 'USD', getCurrencyDecimalsLocal);
+            const transaction1 = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: iouReport.reportID,
+                },
+            });
+            const transaction2 = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 200,
+                    currency: 'USD',
+                    reportID: iouReport.reportID,
+                },
+            });
+
+            const iouAction1: ReportAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: transaction1.amount,
+                currency: transaction1.currency,
+                comment: '',
+                participants: [],
+                transactionID: transaction1.transactionID,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+            const iouAction2: ReportAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: transaction2.amount,
+                currency: transaction2.currency,
+                comment: '',
+                participants: [],
+                transactionID: transaction2.transactionID,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+            const transactionThread1 = buildTransactionThread(iouAction1, iouReport, RORY_ACCOUNT_ID);
+            const transactionThread2 = buildTransactionThread(iouAction2, iouReport, RORY_ACCOUNT_ID);
+
+            const transactionCollectionDataSet: TransactionCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+            };
+            const reportCollectionDataSet: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${transactionThread1.reportID}`]: transactionThread1,
+                [`${ONYXKEYS.COLLECTION.REPORT}${transactionThread2.reportID}`]: transactionThread2,
+            };
+            const actionCollectionDataSet: ReportActionsCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: {
+                    [iouAction1.reportActionID]: iouAction1,
+                    [iouAction2.reportActionID]: iouAction2,
+                },
+            };
+            const comment = 'bulk hold reason';
+
+            return waitForBatchedUpdates()
+                .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
+                .then(() => {
+                    // When one of the two transaction IDs has no matching entry in the transactions list
+                    putTransactionsOnHold({
+                        transactionsID: [transaction1.transactionID, transaction2.transactionID],
+                        comment,
+                        reportID: iouReport.reportID,
+                        isOffline: false,
+                        currentUserLogin: RORY_EMAIL,
+                        currentUserAccountID: RORY_ACCOUNT_ID,
+                        allTransactionViolations: undefined,
+                        transactions: [transaction1],
+                        isTrackIntentUser: false,
+                        delegateAccountID: undefined,
+                        rules: undefined,
+                    });
+                    return waitForBatchedUpdates();
+                })
+                .then(async () => {
+                    const updatedTransaction2 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`);
+                    const transaction2Violations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction2.transactionID}`);
+                    const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
+
+                    // Then the transaction that was missing from the list still gets the hold action and violation
+                    expect(updatedTransaction2?.comment?.hold).toBeDefined();
+                    expect(transaction2Violations).toEqual(expect.arrayContaining([expect.objectContaining({name: CONST.VIOLATIONS.HOLD})]));
+
+                    // And the report totals only account for the transaction that was present, so the missing
+                    // transaction's amount is never deducted
+                    expect(updatedReport?.unheldTotal).toBe(200);
+
                     return mockFetch.resume();
                 });
         });
@@ -437,7 +548,19 @@ describe('actions/IOU/Hold', () => {
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
                     jest.mocked(Navigation.setNavigationActionToMicrotaskQueue).mockClear();
-                    putOnHold(transaction.transactionID, comment, transactionThread.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined);
+                    putOnHold({
+                        transactionID: transaction.transactionID,
+                        transaction,
+                        comment,
+                        initialReportID: transactionThread.reportID,
+                        isOffline: false,
+                        currentUserLogin: RORY_EMAIL,
+                        currentUserAccountID: RORY_ACCOUNT_ID,
+                        transactionViolations: undefined,
+                        isTrackIntentUser: false,
+                        delegateAccountID: undefined,
+                        rules: undefined,
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -445,7 +568,19 @@ describe('actions/IOU/Hold', () => {
                     expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledTimes(1);
 
                     jest.mocked(Navigation.setNavigationActionToMicrotaskQueue).mockClear();
-                    putOnHold(transaction.transactionID, comment, transactionThread.reportID, true, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined);
+                    putOnHold({
+                        transactionID: transaction.transactionID,
+                        transaction,
+                        comment,
+                        initialReportID: transactionThread.reportID,
+                        isOffline: true,
+                        currentUserLogin: RORY_EMAIL,
+                        currentUserAccountID: RORY_ACCOUNT_ID,
+                        transactionViolations: undefined,
+                        isTrackIntentUser: false,
+                        delegateAccountID: undefined,
+                        rules: undefined,
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -498,7 +633,19 @@ describe('actions/IOU/Hold', () => {
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
-                    putOnHold(transaction.transactionID, comment, transactionThread.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined);
+                    putOnHold({
+                        transactionID: transaction.transactionID,
+                        transaction,
+                        comment,
+                        initialReportID: transactionThread.reportID,
+                        isOffline: false,
+                        currentUserLogin: RORY_EMAIL,
+                        currentUserAccountID: RORY_ACCOUNT_ID,
+                        transactionViolations: undefined,
+                        isTrackIntentUser: false,
+                        delegateAccountID: undefined,
+                        rules: undefined,
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -512,6 +659,7 @@ describe('actions/IOU/Hold', () => {
                         RORY_ACCOUNT_ID,
                         [{name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}],
                         false,
+                        undefined,
                         undefined,
                     );
                     return waitForBatchedUpdates();
@@ -582,7 +730,19 @@ describe('actions/IOU/Hold', () => {
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
-                    putOnHold(transaction.transactionID, comment, transactionThread.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined);
+                    putOnHold({
+                        transactionID: transaction.transactionID,
+                        transaction,
+                        comment,
+                        initialReportID: transactionThread.reportID,
+                        isOffline: false,
+                        currentUserLogin: RORY_EMAIL,
+                        currentUserAccountID: RORY_ACCOUNT_ID,
+                        transactionViolations: undefined,
+                        isTrackIntentUser: false,
+                        delegateAccountID: undefined,
+                        rules: undefined,
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -597,6 +757,7 @@ describe('actions/IOU/Hold', () => {
                         RORY_ACCOUNT_ID,
                         [{name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}],
                         false,
+                        undefined,
                         undefined,
                     );
                     return waitForBatchedUpdates();
@@ -705,8 +866,9 @@ describe('actions/IOU/Hold', () => {
                         recipient: {accountID: 1},
                         policy: undefined,
                         delegateAccountID: undefined,
-                        betas: [],
+                        isASAPSubmitBetaEnabled: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
+                        rules: undefined,
                     });
                     const totalsUpdate = result.optimisticData.find((entry) => entry.onyxMethod === Onyx.METHOD.MERGE && entry.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
                     expect(totalsUpdate).toBeDefined();
@@ -732,8 +894,9 @@ describe('actions/IOU/Hold', () => {
                         recipient: {accountID: 1},
                         policy: undefined,
                         delegateAccountID: undefined,
-                        betas: [],
+                        isASAPSubmitBetaEnabled: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
+                        rules: undefined,
                     });
                     const restorationEntries = result.failureData.filter(
                         (entry) => entry.onyxMethod === Onyx.METHOD.MERGE && entry.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
@@ -777,9 +940,10 @@ describe('actions/IOU/Hold', () => {
                         iouReport,
                         recipient: {accountID: 1},
                         policy: undefined,
+                        isASAPSubmitBetaEnabled: false,
                         delegateAccountID: undefined,
-                        betas: [],
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
+                        rules: undefined,
                     });
                     const move = result.optimisticData.find((entry) => entry.onyxMethod === Onyx.METHOD.MERGE_COLLECTION && entry.key === ONYXKEYS.COLLECTION.REPORT);
                     const rollback = result.failureData.find((entry) => entry.onyxMethod === Onyx.METHOD.MERGE_COLLECTION && entry.key === ONYXKEYS.COLLECTION.REPORT);
@@ -817,8 +981,9 @@ describe('actions/IOU/Hold', () => {
                         recipient: {accountID: 1},
                         policy: undefined,
                         delegateAccountID: undefined,
-                        betas: [],
+                        isASAPSubmitBetaEnabled: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
+                        rules: undefined,
                     });
                     const totalsUpdates = result.optimisticData.filter((entry) => {
                         const value = entry.value;
@@ -850,8 +1015,9 @@ describe('actions/IOU/Hold', () => {
                         recipient: {accountID: 1},
                         policy: undefined,
                         delegateAccountID: undefined,
-                        betas: [],
+                        isASAPSubmitBetaEnabled: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
+                        rules: undefined,
                     });
                     const totalsUpdates = result.optimisticData.filter((entry) => {
                         const value = entry.value;
@@ -954,11 +1120,12 @@ describe('actions/IOU/Hold', () => {
                         iouReport,
                         recipient: {accountID: 1},
                         policy: undefined,
-                        betas: [],
+                        isASAPSubmitBetaEnabled: false,
                         delegateAccountID: undefined,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                         shouldMoveHeldTransactions: false,
                         shouldMoveScanFailedTransactions: true,
+                        rules: undefined,
                     });
 
                     const transactionUpdate = result.optimisticData.find((entry) => entry.onyxMethod === Onyx.METHOD.MERGE_COLLECTION && entry.key === ONYXKEYS.COLLECTION.TRANSACTION);
@@ -996,11 +1163,12 @@ describe('actions/IOU/Hold', () => {
                         iouReport,
                         recipient: {accountID: 1},
                         policy: undefined,
-                        betas: [],
+                        isASAPSubmitBetaEnabled: false,
                         delegateAccountID: undefined,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                         shouldMoveHeldTransactions: false,
                         shouldMoveScanFailedTransactions: true,
+                        rules: undefined,
                     });
 
                     // The backend answers with a report of its own, so the optimistic one still has to go — but only once
@@ -1025,9 +1193,10 @@ describe('actions/IOU/Hold', () => {
                         iouReport,
                         recipient: {accountID: 1},
                         policy: undefined,
-                        betas: [],
+                        isASAPSubmitBetaEnabled: false,
                         delegateAccountID: undefined,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
+                        rules: undefined,
                     });
 
                     expect(result.successData).not.toEqual(
@@ -1047,9 +1216,10 @@ describe('actions/IOU/Hold', () => {
                         iouReport,
                         recipient: {accountID: 1},
                         policy: undefined,
-                        betas: [],
+                        isASAPSubmitBetaEnabled: false,
                         delegateAccountID: undefined,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
+                        rules: undefined,
                     });
 
                     const transactionUpdate = result.optimisticData.find((entry) => entry.onyxMethod === Onyx.METHOD.MERGE_COLLECTION && entry.key === ONYXKEYS.COLLECTION.TRANSACTION);
@@ -1068,11 +1238,12 @@ describe('actions/IOU/Hold', () => {
                         iouReport,
                         recipient: {accountID: 1},
                         policy: undefined,
-                        betas: [],
+                        isASAPSubmitBetaEnabled: false,
                         delegateAccountID: undefined,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                         shouldMoveHeldTransactions: false,
                         shouldMoveScanFailedTransactions: true,
+                        rules: undefined,
                     });
 
                     const transactionUpdate = result.optimisticData.find((entry) => entry.onyxMethod === Onyx.METHOD.MERGE_COLLECTION && entry.key === ONYXKEYS.COLLECTION.TRANSACTION);
