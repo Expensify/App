@@ -72,7 +72,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.ROOM_MEMBERS.path);
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'RemoveMembers']);
     const reportAction = useMemo(() => getReportAction(report?.parentReportID, report?.parentReportActionID), [report?.parentReportID, report?.parentReportActionID]);
-    const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
+    const shouldParserToHTML = !!reportAction && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
     const styles = useThemeStyles();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`);
