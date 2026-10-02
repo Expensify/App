@@ -2493,6 +2493,10 @@ const ROUTES = {
         route: 'settings/wallet/:bankAccountID/share-bank-account',
         getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/share-bank-account` as const,
     },
+    SETTINGS_WALLET_EDIT_BANK_ACCOUNT_NICKNAME: {
+        route: 'settings/wallet/:bankAccountID/edit-nickname',
+        getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/edit-nickname` as const,
+    },
     SETTINGS_WALLET_PERSONAL_CARD_ADD_NEW: 'settings/wallet/add-personal-card',
     SETTINGS_WALLET_PERSONAL_CARD_FIX_CONNECTION: {
         route: 'settings/wallet/personal-card/:cardID/fix-connection',

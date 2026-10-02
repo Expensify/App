@@ -2693,6 +2693,9 @@ const translations: TranslationDeepObject<typeof en> = {
         setDefaultSuccess: 'Método de pagamento padrão definido!',
         deleteAccount: 'Excluir conta',
         deleteConfirmation: 'Tem certeza de que deseja excluir esta conta?',
+        editNickname: 'Editar apelido',
+        nickname: 'Apelido',
+        editNicknameInstruction: 'Dê um apelido para a conta bancária que a diferencie das outras.',
         deleteCard: 'Excluir cartão',
         deleteCardConfirmation:
             'Todas as transações de cartão não enviadas, incluindo as de relatórios em aberto, serão removidas. Tem certeza de que deseja excluir este cartão? Essa ação não pode ser desfeita.',

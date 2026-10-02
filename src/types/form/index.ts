@@ -14,6 +14,7 @@ export type {AddNewCardFeedForm} from './AddNewCardFeedForm';
 export type {CompanyCardLayoutNameForm} from './CompanyCardLayoutNameForm';
 export type {EditExpensifyCardNameForm} from './EditExpensifyCardNameForm';
 export type {EditPersonalCardNameForm} from './EditPersonalCardNameForm';
+export type {EditBankAccountNicknameForm} from './EditBankAccountNicknameForm';
 export type {MoneyRequestDateForm} from './MoneyRequestDateForm';
 export type {MoneyRequestDescriptionForm} from './MoneyRequestDescriptionForm';
 export type {MoneyRequestMerchantForm} from './MoneyRequestMerchantForm';

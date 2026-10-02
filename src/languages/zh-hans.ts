@@ -2612,6 +2612,9 @@ const translations: TranslationDeepObject<typeof en> = {
         setDefaultSuccess: '已设置默认付款方式！',
         deleteAccount: '删除账户',
         deleteConfirmation: '确定要删除此账户吗？',
+        editNickname: '编辑昵称',
+        nickname: '昵称',
+        editNicknameInstruction: '为此银行账户起一个昵称，以便与其他账户区分开来。',
         deleteCard: '删除卡片',
         deleteCardConfirmation: '所有未提交的银行卡交易（包括在未关闭报表中的交易）都将被移除。确定要删除此银行卡吗？此操作无法撤销。',
         error: {
