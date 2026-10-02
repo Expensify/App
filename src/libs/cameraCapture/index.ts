@@ -12,7 +12,7 @@ function isSideways(orientation: CameraOrientation) {
     return orientation === 'left' || orientation === 'right';
 }
 
-// `Photo` reports the sensor buffer's size; the saved JPEG carries the rotation in EXIF.
+// `Photo` reports the sensor buffer's size; the saved JPEG carries the rotation in its metadata.
 function getDisplaySize(photo: Photo) {
     return isSideways(photo.orientation) ? {width: photo.height, height: photo.width} : {width: photo.width, height: photo.height};
 }
