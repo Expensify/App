@@ -54,7 +54,9 @@ function useReconciliationCardFeeds(policyID: string | undefined): {candidates: 
     const findCandidate = (fundID: number) => candidates.find((entry) => entry.fundID === fundID);
     const resolvedFundID = findCandidate(workspaceAccountID) ?? findCandidate(defaultFundID) ?? candidates.at(0);
 
-    return {candidates, defaultFundID: resolvedFundID?.fundID ?? CONST.DEFAULT_NUMBER_ID};
+    // With no candidates, fall back to this workspace's own account. The candidates miss feeds that are still loading and legacy feeds configured outside the US/GB program
+    // blocks, and either way the workspace account is the feed the page configures.
+    return {candidates, defaultFundID: resolvedFundID?.fundID ?? workspaceAccountID};
 }
 
 export default useReconciliationCardFeeds;

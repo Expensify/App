@@ -289,7 +289,7 @@ describe('useReconciliationCardFeeds', () => {
             expect(defaultFundID()).toBe(domainFundID);
         });
 
-        it('falls back to a fund with no feed at all when nothing is claimable', () => {
+        it("falls back to this workspace's own account when nothing is claimable", () => {
             mockDefaultFundIDFromCardPages = otherWorkspaceAccountID;
             mockCollections({
                 cardSettings: {[cardSettingsKey(otherWorkspaceAccountID)]: configuredCardSettings()},
@@ -297,7 +297,7 @@ describe('useReconciliationCardFeeds', () => {
             });
 
             expect(candidateFundIDs()).toEqual([]);
-            expect(defaultFundID()).toBe(CONST.DEFAULT_NUMBER_ID);
+            expect(defaultFundID()).toBe(workspaceAccountID);
         });
 
         it('falls back to the card pages default when the own feed is pending delete', () => {

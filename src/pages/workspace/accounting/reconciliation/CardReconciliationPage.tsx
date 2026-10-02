@@ -71,7 +71,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     // nothing they do not already know. Any other case shows it, including a single feed owned by a domain or another
     // workspace: the selector names the feed the toggle applies to, so that ambiguity needs no separate message.
     const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const shouldShowFeedSelector = candidates.length > 1 || candidates.at(0)?.fundID !== workspaceAccountID;
+    const shouldShowFeedSelector = candidates.length > 1 || (candidates.length === 1 && candidates.at(0)?.fundID !== workspaceAccountID);
 
     const [continuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${effectiveDomainID}`, {
         selector: isExpensifyCardContinuousReconciliationEnabledSelector,
