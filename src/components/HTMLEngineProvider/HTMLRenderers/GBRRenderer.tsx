@@ -2,19 +2,19 @@ import Text from '@components/Text';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {TextStyle} from 'react-native';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 
 import React from 'react';
-import {StyleSheet} from 'react-native';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 
-function RBRRenderer({tnode, style}: CustomRendererProps<TText | TPhrasing>) {
+/**
+ * Renders the `<gbr>` (green brick road) tag, the success-tone counterpart to `<rbr>`.
+ */
+function GBRRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) {
     const styles = useThemeStyles();
     const htmlAttribs = tnode.attributes;
     const isSmall = htmlAttribs?.issmall !== undefined;
     const shouldShowEllipsis = htmlAttribs?.shouldshowellipsis !== undefined;
-    const flattenStyle = StyleSheet.flatten(style as TextStyle);
 
     return (
         <TNodeChildrenRenderer
@@ -25,7 +25,7 @@ function RBRRenderer({tnode, style}: CustomRendererProps<TText | TPhrasing>) {
                         numberOfLines={shouldShowEllipsis ? 1 : 0}
                         ellipsizeMode="tail"
                         key={props.key}
-                        style={[styles.textLabelError, styles.badgeDangerText, flattenStyle, isSmall ? styles.textMicro : {}]}
+                        style={[styles.textLabelError, styles.lineHeightNormal, styles.mb0, styles.badgeSuccessText, isSmall ? styles.textMicro : {}]}
                     >
                         {props.childElement}
                     </Text>
@@ -35,4 +35,4 @@ function RBRRenderer({tnode, style}: CustomRendererProps<TText | TPhrasing>) {
     );
 }
 
-export default RBRRenderer;
+export default GBRRenderer;

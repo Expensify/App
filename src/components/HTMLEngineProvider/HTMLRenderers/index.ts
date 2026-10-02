@@ -9,6 +9,7 @@ import CopyTextRenderer from './CopyTextRenderer';
 import DeletedActionRenderer from './DeletedActionRenderer';
 import EditedRenderer from './EditedRenderer';
 import EmojiRenderer from './EmojiRenderer';
+import GBRRenderer from './GBRRenderer';
 import ImageRenderer from './ImageRenderer';
 import MentionHereRenderer from './MentionHereRenderer';
 import MentionReportRenderer from './MentionReportRenderer';
@@ -55,6 +56,7 @@ const HTMLEngineProviderComponentList: CustomTagRendererRecord = {
     'bullet-item': BulletItemRenderer,
     'task-title': TaskTitleRenderer,
     rbr: RBRRenderer,
+    gbr: GBRRenderer,
     'mention-user': MentionUserRenderer,
     'mention-report': MentionReportRenderer,
     'mention-here': MentionHereRenderer,
