@@ -221,7 +221,9 @@ describe('AddPersonalBankAccountPage', () => {
 
         fireEvent.press(screen.getByTestId('confirmation-primary-button'));
 
-        expect(goBackSpy).toHaveBeenCalledWith(ROUTES.SETTINGS_WALLET, {afterTransition: expect.any(Function)});
+        expect(goBackSpy).toHaveBeenCalledTimes(1);
+        expect(goBackSpy.mock.calls.at(0)?.at(0)).toBe(ROUTES.SETTINGS_WALLET);
+        expect(goBackSpy.mock.calls.at(0)?.at(1)?.afterTransition).toBeInstanceOf(Function);
         expect(closeRHPFlowSpy).not.toHaveBeenCalled();
     });
 
