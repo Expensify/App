@@ -591,6 +591,20 @@ function getFallbackDatePlaceholder(locale: Locale): string {
     return FALLBACK_DATE_PLACEHOLDER_BY_LOCALE[locale] ?? FALLBACK_DATE_PLACEHOLDER_BY_LOCALE[CONST.LOCALES.DEFAULT];
 }
 
+/** The letters these languages' translators wrote in their date placeholders. The others wrote Y and D, and all of them M. */
+const DATE_PLACEHOLDER_LETTERS_BY_LOCALE: Partial<Record<Locale, Readonly<{year: string; day: string}>>> = {
+    [CONST.LOCALES.ES]: {year: 'AAAA', day: 'DD'},
+    [CONST.LOCALES.FR]: {year: 'AAAA', day: 'JJ'},
+    [CONST.LOCALES.IT]: {year: 'AAAA', day: 'GG'},
+    [CONST.LOCALES.NL]: {year: 'JJJJ', day: 'DD'},
+    [CONST.LOCALES.PL]: {year: 'RRRR', day: 'DD'},
+};
+
+function toLocalizedPlaceholderLetters(placeholder: string, locale: Locale): string {
+    const letters = DATE_PLACEHOLDER_LETTERS_BY_LOCALE[locale];
+    return letters ? placeholder.replace('YYYY', letters.year).replace('DD', letters.day) : placeholder;
+}
+
 /**
  * The parts of one formatted sample date, or null when this engine cannot report where each field sits: some lack
  * `formatToParts`, others return a single literal. Callers render with no error boundary, so this never throws.
@@ -616,23 +630,23 @@ function getDateFieldParts(locale: Locale, formatKey: IntlFormatKey, fields: rea
 const getLocalizedDatePlaceholder = memoize(
     (locale: Locale): string => {
         const parts = getDateFieldParts(locale, 'SHORT_DATE', ['year', 'month', 'day']);
-        if (!parts) {
-            return getFallbackDatePlaceholder(locale);
-        }
-        return parts
-            .map((part) => {
-                switch (part.type) {
-                    case 'year':
-                        return 'YYYY';
-                    case 'month':
-                        return 'MM';
-                    case 'day':
-                        return 'DD';
-                    default:
-                        return part.value;
-                }
-            })
-            .join('');
+        const placeholder = parts
+            ? parts
+                  .map((part) => {
+                      switch (part.type) {
+                          case 'year':
+                              return 'YYYY';
+                          case 'month':
+                              return 'MM';
+                          case 'day':
+                              return 'DD';
+                          default:
+                              return part.value;
+                      }
+                  })
+                  .join('')
+            : getFallbackDatePlaceholder(locale);
+        return toLocalizedPlaceholderLetters(placeholder, locale);
     },
     {maxSize: 16, equality: 'shallow'},
 );

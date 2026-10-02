@@ -87,6 +87,14 @@ describe('CSVDateUtils', () => {
             expect(parseCSVDate('Nov 2, 2025 pending', CONST.LOCALES.EN)).toBe('2025-11-02');
         });
 
+        it('reads a numeric date with text stuck to it', () => {
+            // Given a day-first date with a marker and no space after it, which no engine reads whole
+            // When it is parsed
+            // Then the date's own digits and separators are read, as the fixed ten-character cut on main did
+            expect(parseCSVDate('15/01/2025*', CONST.LOCALES.EN)).toBe('2025-01-15');
+            expect(parseCSVDate('15.01.2025x', CONST.LOCALES.EN)).toBe('2025-01-15');
+        });
+
         it('does not read a fragment left by a cut as a date', () => {
             // Given a cell that is not a date but starts with a number
             // When it is parsed

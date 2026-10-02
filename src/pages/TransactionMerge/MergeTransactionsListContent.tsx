@@ -18,6 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getTransactionsForMerging, setupMergeTransactionData, setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {fillMissingReceiptSource} from '@libs/MergeTransactionUtils';
+import {getDisplayMerchant} from '@libs/PerDiemMerchantUtils';
 import {getReportOrDraftReport, getTransactionReportName, isIOUReport} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import {getAmount, getCreated, getCurrency, getDescription, getMerchant, isExpenseUnreported} from '@libs/TransactionUtils';
@@ -115,7 +116,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             ? data
             : tokenizedSearch(data, debouncedSearchValue, (transaction) => {
                   const searchableFields: string[] = [];
-                  const merchant = getMerchant(transaction);
+                  const merchant = getDisplayMerchant(transaction, getMerchant(transaction), preferredLocale);
                   if (merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && merchant !== CONST.TRANSACTION.DEFAULT_MERCHANT) {
                       searchableFields.push(merchant);
                   }

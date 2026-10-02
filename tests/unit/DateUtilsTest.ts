@@ -872,7 +872,22 @@ describe('DateUtils', () => {
             const placeholder = DateUtils.getLocalizedDatePlaceholder(locale);
 
             // Then it is a day, month and year in some order with one consistent separator, so the hint matches how that language writes dates
-            expect(placeholder).toMatch(/^(MM|DD|YYYY)([./-])(MM|DD|YYYY)\2(MM|DD|YYYY)$/);
+            expect(placeholder).toMatch(/^([A-Z])\1+([./-])([A-Z])\3+\2([A-Z])\4+$/);
+        });
+
+        it.each([
+            [CONST.LOCALES.ES, 'DD/MM/AAAA'],
+            [CONST.LOCALES.FR, 'JJ/MM/AAAA'],
+            [CONST.LOCALES.IT, 'GG/MM/AAAA'],
+            [CONST.LOCALES.NL, 'DD-MM-JJJJ'],
+            [CONST.LOCALES.PL, 'DD.MM.RRRR'],
+        ] as const)('%s placeholder keeps the letters its translators wrote', (locale, expected) => {
+            // Given a reader whose language writes a date mask with its own letters, as the translated placeholders did before
+            // When the field's placeholder is built
+            const placeholder = DateUtils.getLocalizedDatePlaceholder(locale);
+
+            // Then it has the language's field order and its own letters, so fixing the order did not turn the hint English
+            expect(placeholder).toBe(expected);
         });
 
         it('en placeholder is MM/DD/YYYY', () => {
@@ -949,7 +964,12 @@ describe('DateUtils', () => {
 
             // Then the value is the hint with its fields filled in, because a field order or separator that differed
             // between the two would pair an "MM/DD/YYYY" hint with a "05.01.2026" value
-            expect(value).toBe(placeholder.replace('YYYY', '2026').replace('MM', '01').replace('DD', '05'));
+            expect(value).toBe(
+                placeholder
+                    .replace(/([A-Z])\1{3}/, '2026')
+                    .replace('MM', '01')
+                    .replace(/([A-Z])\1/, '05'),
+            );
         });
     });
 
@@ -1703,14 +1723,16 @@ describe('DateUtils', () => {
             Object.defineProperty(Intl, 'DateTimeFormat', {value: LiteralOnlyDTF, configurable: true, writable: true});
             try {
                 jest.isolateModules(() => {
-                    // When a Spanish range and a German placeholder are built there
+                    // When a Spanish range and a German and a Spanish placeholder are built there
                     const fresh = jest.requireActual<{default: typeof DateUtils}>('@libs/DateUtils').default;
                     const spanishRange = fresh.getFormattedDateRange(translateLocal, new Date(2025, 2, 17), new Date(2025, 2, 20), CONST.LOCALES.ES);
                     const germanPlaceholder = fresh.getLocalizedDatePlaceholder(CONST.LOCALES.DE);
+                    const spanishPlaceholder = fresh.getLocalizedDatePlaceholder(CONST.LOCALES.ES);
 
-                    // Then both keep their language's day-first order, because the fallback must not silently revert to English order
+                    // Then all keep their language's day-first order, and the Spanish placeholder its own letters, because the fallback must not silently revert to English
                     expect(spanishRange).toBe('17-20 mar');
                     expect(germanPlaceholder).toBe('DD.MM.YYYY');
+                    expect(spanishPlaceholder).toBe('DD/MM/AAAA');
                 });
             } finally {
                 Object.defineProperty(Intl, 'DateTimeFormat', {value: originalDTF, configurable: true, writable: true});

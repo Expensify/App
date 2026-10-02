@@ -4,6 +4,7 @@ import Table from '@components/Table';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 
+import {getDisplayMerchant} from '@libs/PerDiemMerchantUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import {getAmount, getCreated, getCurrency, getDescription, getMerchant, isUnreportedTransaction} from '@libs/TransactionUtils';
 
@@ -28,7 +29,7 @@ type AddExistingExpenseTableProps = Pick<
 };
 
 function AddExistingExpenseTable({data, selectedKeys, onRowSelectionChange, onEndReached, onEndReachedThreshold, ListFooterComponent}: AddExistingExpenseTableProps) {
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, preferredLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
 
     const columns: Array<TableColumn<ExpenseTableColumnKey>> = [
@@ -66,7 +67,7 @@ function AddExistingExpenseTable({data, selectedKeys, onRowSelectionChange, onEn
         const results = tokenizedSearch([item], searchValue, (transaction) => {
             const searchableFields: string[] = [];
 
-            const merchant = getMerchant(transaction);
+            const merchant = getDisplayMerchant(transaction, getMerchant(transaction), preferredLocale);
             if (merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && merchant !== CONST.TRANSACTION.DEFAULT_MERCHANT) {
                 searchableFields.push(merchant);
             }

@@ -38,6 +38,8 @@ const CSV_DATE_FORMATS = [
 /** A date followed by a clock time, so a timestamp can be cut back to its date without guessing where the date ends. */
 const TRAILING_TIME_PATTERN = /[T\s]\d{1,2}:\d{2}/;
 
+const LEADING_NUMERIC_DATE_PATTERN = /^[\d./-]+/;
+
 /**
  * Bounded by letters on both sides, else a name that begins another language's name is spliced into it: `sept` (es) sits
  * inside `September`, and rewriting that leaves a cell no format matches, so the row is dropped. The point after an
@@ -109,7 +111,10 @@ function parseKnownFormat(value: string): string | null {
     return null;
 }
 
-/** What precedes the trailing text a statement writes after the date: the clock time, then one word at a time from the end. */
+/**
+ * What precedes the trailing text a statement writes after the date: the clock time, then one word at a time from the
+ * end, then the digits and separators of a numeric date with text stuck to it, as in `15/01/2025*`.
+ */
 function getTrailingCuts(value: string): string[] {
     const cuts: string[] = [];
     const trailingTime = TRAILING_TIME_PATTERN.exec(value);
@@ -118,6 +123,10 @@ function getTrailingCuts(value: string): string[] {
     }
     for (let space = value.lastIndexOf(' '); space > 0; space = value.lastIndexOf(' ', space - 1)) {
         cuts.push(value.slice(0, space));
+    }
+    const numericDate = LEADING_NUMERIC_DATE_PATTERN.exec(value)?.[0];
+    if (numericDate && numericDate !== value) {
+        cuts.push(numericDate);
     }
     return cuts;
 }

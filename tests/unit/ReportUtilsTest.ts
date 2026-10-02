@@ -593,11 +593,16 @@ describe('ReportUtils', () => {
     describe('getIOUReportActionDisplayMessage', () => {
         const iouReportID = '1234567890';
         const policyID = 332;
+        const reimburserEmail = 'reimburser@example.com';
+        const reimburserAccountID = 332001;
 
+        // The workspace account is only a valid fallback for a payment made by the designated payer, so the pay action
+        // has to come from the reimburser for these messages to name it.
         const reportAction = {
             ...createRandomReportAction(44),
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             reportID: iouReportID,
+            actorAccountID: reimburserAccountID,
             originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, paymentType: CONST.IOU.PAYMENT_TYPE.VBBA},
         };
 
@@ -611,9 +616,17 @@ describe('ReportUtils', () => {
                 routingNumber: '011401533',
                 addressName: 'Bank Workspace',
                 bankName: 'Test Bank',
-                reimburser: 'reimburser@example.com',
+                reimburser: reimburserEmail,
             },
         };
+
+        beforeAll(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[reimburserAccountID]: {accountID: reimburserAccountID, login: reimburserEmail}});
+        });
+
+        afterAll(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[reimburserAccountID]: null});
+        });
 
         it('should return the right message when payment type is ACH', async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithBank);
@@ -623,20 +636,16 @@ describe('ReportUtils', () => {
             const last4Digits = policyWithBank.achAccount?.accountNumber.slice(-4);
             const paidSystemMessage = translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', last4Digits);
 
-            expect(getIOUReportActionDisplayMessage(translateLocal, CONST.LOCALES.EN, reportAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe(
-                paidSystemMessage,
-            );
+            expect(getIOUReportActionDisplayMessage(translateLocal, CONST.LOCALES.EN, reportAction, convertToDisplayString, policyWithBank, undefined)).toBe(paidSystemMessage);
         });
 
-        it('should use the passed ACH account number (not module-level allPolicies) for the bank account last 4 digits', () => {
-            // Given an ACH account number passed explicitly, with no matching policy read from Onyx
+        it('should use the passed policy (not module-level allPolicies) for the bank account last 4 digits', () => {
+            // Given a policy passed explicitly, with no matching policy read from Onyx
             const last4Digits = policyWithBank.achAccount?.accountNumber.slice(-4);
             const paidSystemMessage = translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', last4Digits);
 
-            // Then the ACH last 4 digits are resolved from the passed account number alone
-            expect(getIOUReportActionDisplayMessage(translateLocal, CONST.LOCALES.EN, reportAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe(
-                paidSystemMessage,
-            );
+            // Then the ACH last 4 digits are resolved from the passed policy alone
+            expect(getIOUReportActionDisplayMessage(translateLocal, CONST.LOCALES.EN, reportAction, convertToDisplayString, policyWithBank, undefined)).toBe(paidSystemMessage);
         });
 
         it('should show the bank account from the action accountNumber instead of the policy default', async () => {
@@ -652,9 +661,7 @@ describe('ReportUtils', () => {
             const paidSystemMessage = translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '4321');
 
             // Then the message shows the last 4 digits of that account, not the policy default
-            expect(
-                getIOUReportActionDisplayMessage(translateLocal, CONST.LOCALES.EN, actionWithAccountNumber, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined),
-            ).toBe(paidSystemMessage);
+            expect(getIOUReportActionDisplayMessage(translateLocal, CONST.LOCALES.EN, actionWithAccountNumber, convertToDisplayString, policyWithBank, undefined)).toBe(paidSystemMessage);
         });
 
         it('should show the cross-border FX message with the credited amount and both account last-4s', async () => {
@@ -678,9 +685,7 @@ describe('ReportUtils', () => {
                 debitBankAccount: '6789',
                 creditBankAccount: '3335',
             });
-            expect(getIOUReportActionDisplayMessage(translateLocal, CONST.LOCALES.EN, crossBorderAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe(
-                expectedMessage,
-            );
+            expect(getIOUReportActionDisplayMessage(translateLocal, CONST.LOCALES.EN, crossBorderAction, convertToDisplayString, policyWithBank, undefined)).toBe(expectedMessage);
         });
 
         it('should return received payment when submitter marked payment received', () => {
@@ -695,9 +700,9 @@ describe('ReportUtils', () => {
                 },
             };
 
-            expect(
-                getIOUReportActionDisplayMessage(translateLocal, CONST.LOCALES.EN, paymentReceivedReportAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined),
-            ).toBe(translateLocal('iou.receivedPaymentReportAction'));
+            expect(getIOUReportActionDisplayMessage(translateLocal, CONST.LOCALES.EN, paymentReceivedReportAction, convertToDisplayString, policyWithBank, undefined)).toBe(
+                translateLocal('iou.receivedPaymentReportAction'),
+            );
         });
 
         it('should return marked as paid for elsewhere payment without submitter flag', () => {
@@ -711,9 +716,9 @@ describe('ReportUtils', () => {
                 },
             };
 
-            expect(
-                getIOUReportActionDisplayMessage(translateLocal, CONST.LOCALES.EN, paidElsewhereReportAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined),
-            ).toBe(translateLocal('iou.paidElsewhere'));
+            expect(getIOUReportActionDisplayMessage(translateLocal, CONST.LOCALES.EN, paidElsewhereReportAction, convertToDisplayString, policyWithBank, undefined)).toBe(
+                translateLocal('iou.paidElsewhere'),
+            );
         });
 
         it('should return an empty string for a non-money-request action', () => {
@@ -722,10 +727,10 @@ describe('ReportUtils', () => {
                 actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
             };
 
-            expect(getIOUReportActionDisplayMessage(translateLocal, CONST.LOCALES.EN, createdAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe('');
+            expect(getIOUReportActionDisplayMessage(translateLocal, CONST.LOCALES.EN, createdAction, convertToDisplayString, policyWithBank, undefined)).toBe('');
         });
 
-        it('should use the passed ACH account number for the last 4 digits of an automatic VBBA payment', () => {
+        it('should use the passed policy for the last 4 digits of an automatic VBBA payment', () => {
             // Given an automatically-paid VBBA action with no accountNumber on the action itself
             const automaticVBBAAction = {
                 ...reportAction,
@@ -734,10 +739,8 @@ describe('ReportUtils', () => {
             const last4Digits = policyWithBank.achAccount?.accountNumber.slice(-4);
             const expected = translate(CONST.LOCALES.EN, 'iou.automaticallyPaidWithBusinessBankAccount', '', last4Digits);
 
-            // Then the workspace-rules message resolves the last 4 digits from the passed account number
-            expect(getIOUReportActionDisplayMessage(translateLocal, CONST.LOCALES.EN, automaticVBBAAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe(
-                expected,
-            );
+            // Then the workspace-rules message resolves the last 4 digits from the passed policy
+            expect(getIOUReportActionDisplayMessage(translateLocal, CONST.LOCALES.EN, automaticVBBAAction, convertToDisplayString, policyWithBank, undefined)).toBe(expected);
         });
 
         it('should return the workspace-rules message for an automatic Expensify payment', () => {
@@ -746,9 +749,30 @@ describe('ReportUtils', () => {
                 originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY, automaticAction: true},
             };
 
-            expect(
-                getIOUReportActionDisplayMessage(translateLocal, CONST.LOCALES.EN, automaticExpensifyAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined),
-            ).toBe(translate(CONST.LOCALES.EN, 'iou.automaticallyPaidWithExpensify', ''));
+            expect(getIOUReportActionDisplayMessage(translateLocal, CONST.LOCALES.EN, automaticExpensifyAction, convertToDisplayString, policyWithBank, undefined)).toBe(
+                translate(CONST.LOCALES.EN, 'iou.automaticallyPaidWithExpensify', ''),
+            );
+        });
+
+        it('should not attribute a non-payer admin VBBA payment to the workspace bank account', () => {
+            // Given a VBBA pay action with no account on it, made by an admin who is not the designated payer
+            const nonPayerAdminAction = {...reportAction, actorAccountID: reimburserAccountID + 1};
+
+            // Then the message does not guess the workspace account, since the admin paid from an account of their own
+            expect(getIOUReportActionDisplayMessage(translateLocal, CONST.LOCALES.EN, nonPayerAdminAction, convertToDisplayString, policyWithBank, undefined)).toBe(
+                translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', ''),
+            );
+        });
+
+        it('should keep the workspace bank account when the reimburser is not in personal details', () => {
+            // Given a policy whose reimburser this viewer has never interacted with (no personal details loaded)
+            const policyWithUnknownReimburser: Policy = {...policyWithBank, reimburser: 'unknown-reimburser@example.com'};
+            const last4Digits = policyWithBank.achAccount?.accountNumber.slice(-4);
+
+            // Then the payer can't be ruled out, so the message keeps the workspace account instead of blanking the digits
+            expect(getIOUReportActionDisplayMessage(translateLocal, CONST.LOCALES.EN, reportAction, convertToDisplayString, policyWithUnknownReimburser, undefined)).toBe(
+                translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', last4Digits),
+            );
         });
 
         it('should return the approved amount when the IOU report is approved', async () => {
@@ -5889,7 +5913,17 @@ describe('ReportUtils', () => {
                 canUnholdRequest: false,
             });
 
-            putOnHold(expenseTransaction.transactionID, 'hold', transactionThreadReport.reportID, false, currentUserEmail, currentUserAccountID, undefined, false, undefined, {
+            putOnHold({
+                transactionID: expenseTransaction.transactionID,
+                transaction: expenseTransaction,
+                comment: 'hold',
+                initialReportID: transactionThreadReport.reportID,
+                isOffline: false,
+                currentUserLogin: currentUserEmail,
+                currentUserAccountID,
+                transactionViolations: undefined,
+                isTrackIntentUser: false,
+                delegateAccountID: undefined,
                 rules: undefined,
                 ancestors: [],
             });
@@ -19909,6 +19943,8 @@ describe('ReportUtils', () => {
 
         describe('settled report paid with a business bank account', () => {
             const settledPolicyID = '445';
+            const reimburserEmail = 'reimburser@example.com';
+            const reimburserAccountID = 445001;
             const settledPolicy: Policy = {
                 ...createRandomPolicy(Number(settledPolicyID), CONST.POLICY.TYPE.TEAM),
                 id: settledPolicyID,
@@ -19918,7 +19954,7 @@ describe('ReportUtils', () => {
                     routingNumber: '011401533',
                     addressName: 'Settled Workspace',
                     bankName: 'Test Bank',
-                    reimburser: 'reimburser@example.com',
+                    reimburser: reimburserEmail,
                 },
             };
             const settledReport: Report = {
@@ -19935,15 +19971,23 @@ describe('ReportUtils', () => {
                 amount: 10000,
                 currency: CONST.CURRENCY.USD,
             };
+            // The workspace account is only a valid fallback for a payment made by the designated payer, so the
+            // action has to come from the reimburser for these previews to name it.
             const payReportAction: ReportAction = {
-                ...LHNTestUtils.getFakeReportAction(),
+                ...LHNTestUtils.getFakeReportAction(reimburserEmail),
+                actorAccountID: reimburserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: payOriginalMessage,
             };
 
             beforeEach(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[reimburserAccountID]: {accountID: reimburserAccountID, login: reimburserEmail}});
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${settledPolicyID}`, settledPolicy);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${settledReport.reportID}`, settledReport);
+            });
+
+            afterEach(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[reimburserAccountID]: null});
             });
 
             it('shows the bank account from the action accountNumber instead of the policy default', () => {
@@ -19969,6 +20013,53 @@ describe('ReportUtils', () => {
                 );
 
                 expect(result).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '0000'));
+            });
+
+            describe('when the payment names the bank account it came from', () => {
+                // A paying admin picks the account to pay from, so a workspace payment now carries a bankAccountID the
+                // same way an invoice payment does. That must not turn the preview into the invoice wording
+                // ("paid $100.00 with personal account 6281"). It is a workspace payment and reads "paid with bank
+                // account 6281", which is also what PaymentContent renders on the action itself.
+                const actionNamingAccount: ReportAction = {
+                    ...payReportAction,
+                    originalMessage: {...payOriginalMessage, bankAccountID: 6281001, accountNumber: 'XXXXXX6281'},
+                };
+
+                it('keeps the bank account wording in the localized preview', () => {
+                    const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
+
+                    const result = getReportPreviewMessage(englishTranslate, CONST.LOCALES.EN, convertToDisplayString, {
+                        reportOrID: settledReport,
+                        iouReportAction: actionNamingAccount,
+                        originalReportAction: actionNamingAccount,
+                        policy: settledPolicy,
+                    });
+
+                    expect(result).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '6281'));
+                });
+
+                it('keeps the bank account wording in the stored report action message', () => {
+                    const result = getReportPreviewReportActionMessage(
+                        {reportOrID: settledReport, iouReportAction: actionNamingAccount, originalReportAction: actionNamingAccount, policy: settledPolicy},
+                        getCurrencyDecimalsLocal,
+                    );
+
+                    expect(result).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '6281'));
+                });
+
+                it('resolves the account through bankAccountList when the action only carries its ID', () => {
+                    // Given the payer paid from an account other than the workspace one, and the action recorded only its ID
+                    const actionNamingAccountID: ReportAction = {...payReportAction, originalMessage: {...payOriginalMessage, bankAccountID: 5678001}};
+                    const bankAccountList = createMock<BankAccountList>({5678001: {accountData: {accountNumber: 'XXXXXX5678'}}});
+                    const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
+                    const params = {reportOrID: settledReport, iouReportAction: actionNamingAccountID, originalReportAction: actionNamingAccountID, policy: settledPolicy, bankAccountList};
+
+                    // Then both previews name that account, matching PaymentContent, rather than the workspace default
+                    expect(getReportPreviewMessage(englishTranslate, CONST.LOCALES.EN, convertToDisplayString, params)).toBe(
+                        translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '5678'),
+                    );
+                    expect(getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal)).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '5678'));
+                });
             });
 
             it('matches the localized getReportPreviewMessage output when translated to English', () => {

@@ -3595,7 +3595,7 @@ describe('getViolationsOnyxData', () => {
                 // Integration-Server hasn't populated suppliers for the workspace yet. We don't
                 // know the supplier list, so we must not flag the existing transaction vendor as
                 // missing. Otherwise every matched transaction would falsely flag inactive between
-                // the beta flip and the first supplier sync.
+                // the Xero connection and the first supplier sync.
                 policy = policyWithXeroVendorFeature(XERO_CONTACTS_UNSYNCED);
                 transaction.comment = {...transaction.comment, vendor: {externalID: 'xcAnything', wasManuallySet: true}};
                 const result = ViolationsUtils.getViolationsOnyxData({
@@ -3632,10 +3632,13 @@ describe('getViolationsOnyxData', () => {
                 expect(result.value).toEqual(expect.arrayContaining([inactiveVendorViolation]));
             });
 
-            it('does not add the violation when the vendorMatching beta is disabled, even with Xero connected', () => {
+            it('adds the violation when the vendorMatching beta is disabled but Xero is configured, because Xero (R3) is generally available', () => {
+                // Given a configured Xero workspace and a transaction whose supplier is missing from the synced contacts
                 isBetaEnabledSpy.mockImplementation(() => false);
                 policy = policyWithXeroVendorFeature();
                 transaction.comment = {...transaction.comment, vendor: {externalID: 'xcMissing', wasManuallySet: true}};
+
+                // When violations are recomputed without the vendorMatching beta
                 const result = ViolationsUtils.getViolationsOnyxData({
                     isVendorMatchingBetaEnabled: false,
                     ownerLogin: undefined,
@@ -3647,7 +3650,41 @@ describe('getViolationsOnyxData', () => {
                     hasDependentTags: false,
                     isInvoiceTransaction: false,
                 });
-                expect(result.value).not.toContainEqual(inactiveVendorViolation);
+
+                // Then the violation is added with the supplier wording because Xero does not depend on the beta
+                expect(result.value).toEqual(expect.arrayContaining([inactiveSupplierViolation]));
+            });
+
+            it('removes an existing violation when the Xero connection is not configured with the beta disabled', () => {
+                // Given a Xero connection in the middle of a tenant switch and a transaction that already carries the violation
+                isBetaEnabledSpy.mockImplementation(() => false);
+                policy = createMock<Policy>({
+                    requiresTag: false,
+                    requiresCategory: false,
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
+                            config: {isConfigured: false},
+                            data: {contacts: {xcActive: {id: 'xcActive', name: 'Acme Xero', email: 'acme@example.com'}}},
+                        },
+                    },
+                });
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'xcMissing', wasManuallySet: true}};
+
+                // When violations are recomputed without the vendorMatching beta
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    isVendorMatchingBetaEnabled: false,
+                    ownerLogin: undefined,
+                    updatedTransaction: transaction,
+                    transactionViolations: [inactiveSupplierViolation],
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
+
+                // Then the violation is cleared because general availability did not widen the configuration gate
+                expect(result.value).not.toEqual(expect.arrayContaining([expect.objectContaining({name: CONST.VIOLATIONS.INACTIVE_VENDOR})]));
             });
 
             it('still fires for a missing QBO vendor when both QBO and Xero are connected but Xero contacts are unsynced (regression — dual-connection state)', () => {
@@ -3687,32 +3724,32 @@ describe('getViolationsOnyxData', () => {
         });
     });
 
-    // ViolationsUtils no longer resolves betas itself — the caller passes the resolved boolean in.
-    // These still go through the real Permissions.isBetaEnabled so the override precedence that
-    // produces that boolean stays covered. Xero is used because it is still gated behind the beta,
-    // unlike QBO which is generally available.
+    // ViolationsUtils takes the resolved beta as a boolean from its caller. These tests go through
+    // the real Permissions.isBetaEnabled so the override precedence that produces that boolean stays
+    // covered. Business Central is used because it is still gated behind the beta, unlike QBO which
+    // is generally available.
     describe('vendorMatching beta overrides', () => {
-        const policyWithXeroVendorFeature = () =>
+        const policyWithBusinessCentralVendorFeature = () =>
             createMock<Policy>({
                 requiresTag: false,
                 requiresCategory: false,
                 connections: {
-                    [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
+                    [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
                         config: {isConfigured: true},
-                        data: {contacts: {xcActive: {id: 'xcActive', name: 'Acme Xero', email: 'acme@example.com'}}},
+                        data: {vendors: [{id: 'bcActive', name: 'Contoso Supplies'}]},
                     },
                 },
             });
 
         const resolveVendorMatchingBeta = (betas: Beta[], betaOverrides: BetaOverrides) => Permissions.isBetaEnabled(CONST.BETAS.VENDOR_MATCHING, betas, undefined, betaOverrides);
 
-        const getViolationsForMissingSupplier = (isVendorMatchingBetaEnabled: boolean | undefined) =>
+        const getViolationsForMissingVendor = (isVendorMatchingBetaEnabled: boolean | undefined) =>
             ViolationsUtils.getViolationsOnyxData({
                 isVendorMatchingBetaEnabled,
                 ownerLogin: undefined,
-                updatedTransaction: {...transaction, comment: {...transaction.comment, vendor: {externalID: 'xcMissing', wasManuallySet: true}}},
+                updatedTransaction: {...transaction, comment: {...transaction.comment, vendor: {externalID: 'bcMissing', wasManuallySet: true}}},
                 transactionViolations,
-                policy: policyWithXeroVendorFeature(),
+                policy: policyWithBusinessCentralVendorFeature(),
                 policyTagList: policyTags,
                 policyCategories,
                 hasDependentTags: false,
@@ -3723,9 +3760,9 @@ describe('getViolationsOnyxData', () => {
             ViolationsUtils.getViolationsOnyxData({
                 isVendorMatchingBetaEnabled,
                 ownerLogin: undefined,
-                updatedTransaction: {...transaction, comment: {...transaction.comment, vendor: {externalID: 'xcMissing', wasManuallySet: true}}},
+                updatedTransaction: {...transaction, comment: {...transaction.comment, vendor: {externalID: 'bcMissing', wasManuallySet: true}}},
                 transactionViolations: [inactiveVendorViolation],
-                policy: policyWithXeroVendorFeature(),
+                policy: policyWithBusinessCentralVendorFeature(),
                 policyTagList: policyTags,
                 policyCategories,
                 hasDependentTags: false,
@@ -3743,11 +3780,11 @@ describe('getViolationsOnyxData', () => {
             await Onyx.set(ONYXKEYS.BETA_OVERRIDES, {[CONST.BETAS.VENDOR_MATCHING]: true});
             await waitForBatchedUpdates();
 
-            // When violations are recomputed for a transaction whose supplier is missing
-            const result = getViolationsForMissingSupplier(resolveVendorMatchingBeta([], {[CONST.BETAS.VENDOR_MATCHING]: true}));
+            // When violations are recomputed for a transaction whose vendor is missing
+            const result = getViolationsForMissingVendor(resolveVendorMatchingBeta([], {[CONST.BETAS.VENDOR_MATCHING]: true}));
 
             // Then the override wins and the violation is added
-            expect(result.value).toEqual(expect.arrayContaining([inactiveSupplierViolation]));
+            expect(result.value).toEqual(expect.arrayContaining([inactiveVendorViolation]));
         });
 
         it('skips the violation when the beta is on for the account but pinned off locally', async () => {
@@ -3756,11 +3793,11 @@ describe('getViolationsOnyxData', () => {
             await Onyx.set(ONYXKEYS.BETA_OVERRIDES, {[CONST.BETAS.VENDOR_MATCHING]: false});
             await waitForBatchedUpdates();
 
-            // When violations are recomputed for a transaction whose supplier is missing
-            const result = getViolationsForMissingSupplier(resolveVendorMatchingBeta([CONST.BETAS.VENDOR_MATCHING], {[CONST.BETAS.VENDOR_MATCHING]: false}));
+            // When violations are recomputed for a transaction whose vendor is missing
+            const result = getViolationsForMissingVendor(resolveVendorMatchingBeta([CONST.BETAS.VENDOR_MATCHING], {[CONST.BETAS.VENDOR_MATCHING]: false}));
 
             // Then the override wins and the violation is left out
-            expect(result.value).not.toEqual(expect.arrayContaining([inactiveSupplierViolation]));
+            expect(result.value).not.toEqual(expect.arrayContaining([expect.objectContaining({name: CONST.VIOLATIONS.INACTIVE_VENDOR})]));
         });
 
         it('leaves an existing violation alone while the account betas have not loaded yet, and clears it once they load with the beta off', () => {
@@ -4402,7 +4439,7 @@ describe('hasVisibleViolationsForUser', () => {
         };
 
         // Mock shouldShowViolation to return true for missing category
-        jest.spyOn(require('@src/libs/TransactionUtils'), 'shouldShowViolation').mockReturnValue(true);
+        jest.spyOn(require('@src/libs/TransactionUtils/violations'), 'shouldShowViolation').mockReturnValue(true);
 
         const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', CONST.DEFAULT_NUMBER_ID, mockPolicy, [mockTransaction]);
         expect(result).toBe(true);
@@ -4419,7 +4456,7 @@ describe('hasVisibleViolationsForUser', () => {
         };
 
         // Mock shouldShowViolation to return false for RECEIPT_NOT_SMART_SCANNED (hidden from submitter)
-        jest.spyOn(require('@src/libs/TransactionUtils'), 'shouldShowViolation').mockImplementation((report, policy, violationName) => {
+        jest.spyOn(require('@src/libs/TransactionUtils/violations'), 'shouldShowViolation').mockImplementation((report, policy, violationName) => {
             if (violationName === CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED) {
                 return false; // Hidden from submitter
             }
@@ -4441,7 +4478,7 @@ describe('hasVisibleViolationsForUser', () => {
             ],
         };
 
-        jest.spyOn(require('@src/libs/TransactionUtils'), 'shouldShowViolation').mockImplementation((report, policy, violationName) => {
+        jest.spyOn(require('@src/libs/TransactionUtils/violations'), 'shouldShowViolation').mockImplementation((report, policy, violationName) => {
             if (violationName === CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED) {
                 return false;
             }
@@ -4476,7 +4513,7 @@ describe('hasVisibleViolationsForUser', () => {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${secondTransactionID}`]: [missingCategoryViolation],
         };
 
-        jest.spyOn(require('@src/libs/TransactionUtils'), 'shouldShowViolation').mockImplementation((report, policy, violationName) => {
+        jest.spyOn(require('@src/libs/TransactionUtils/violations'), 'shouldShowViolation').mockImplementation((report, policy, violationName) => {
             if (violationName === CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED) {
                 return false;
             }
