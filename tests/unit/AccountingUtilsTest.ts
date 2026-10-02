@@ -1,10 +1,12 @@
 import {
     getAccountingIntegrationDisplayName,
+    getDualEntryExpensifyCardAccountID,
     getExportLabelForConnection,
     getExportLabelsForConnection,
     getQBORefreshTokenExpiryDate,
     getQBORefreshTokenExpiryStatus,
     getQuickbooksOnlineIntegrationName,
+    getRilletExpensifyCardAccountCode,
     isIntuitEnterpriseSuiteConnection,
     isQBORefreshTokenExpiringSoon,
 } from '@libs/AccountingUtils';
@@ -59,6 +61,72 @@ describe('AccountingUtils', () => {
     beforeAll(() => {
         IntlStore.load(CONST.LOCALES.DEFAULT);
         return waitForBatchedUpdates();
+    });
+
+    describe('Expensify Card default accounts', () => {
+        it.each([
+            {programAccount: '2200', legacyAccount: 'legacy', expected: '2200'},
+            {programAccount: '2200', legacyAccount: undefined, expected: '2200'},
+            {programAccount: undefined, legacyAccount: 'legacy', expected: '2300'},
+            {programAccount: '', legacyAccount: 'legacy', expected: '2300'},
+            {programAccount: ' ', legacyAccount: 'legacy', expected: '2300'},
+            {programAccount: 'default', legacyAccount: 'legacy', expected: '2300'},
+            {programAccount: undefined, legacyAccount: undefined, expected: '2100'},
+            {programAccount: 'default', legacyAccount: '', expected: '2100'},
+            {programAccount: undefined, legacyAccount: ' ', expected: '2100'},
+            {programAccount: undefined, legacyAccount: 'missing', expected: undefined},
+            {programAccount: undefined, legacyAccount: 'default', expected: undefined},
+        ])('resolves Rillet program $programAccount and legacy $legacyAccount to $expected', ({programAccount, legacyAccount, expected}) => {
+            // Given separate workspace, current Expensify Card, and legacy accounts
+            const policy = createMock<Policy>({
+                connections: {
+                    rillet: {
+                        config: {
+                            export: {
+                                creditCardAccountCode: '2100',
+                                cardProgramAccounts: programAccount === undefined ? undefined : {[CONST.EXPENSIFY_CARD.BANK]: programAccount},
+                                expensifyCardAccount: legacyAccount,
+                            },
+                        },
+                        data: {accounts: [{id: 'legacy', code: '2300'}]},
+                    },
+                },
+            });
+
+            // When the settings page resolves the applicable Expensify Card default
+            const accountCode = getRilletExpensifyCardAccountCode(policy);
+
+            // Then the displayed account follows export precedence without masking an invalid legacy selection
+            expect(accountCode).toBe(expected);
+        });
+
+        it.each([
+            {programAccount: 'card-account', expected: 'card-account'},
+            {programAccount: undefined, expected: 'workspace-account'},
+            {programAccount: '', expected: 'workspace-account'},
+            {programAccount: ' ', expected: 'workspace-account'},
+            {programAccount: 'default', expected: 'workspace-account'},
+        ])('resolves DualEntry program $programAccount to $expected', ({programAccount, expected}) => {
+            // Given a separate Expensify Card default or an unset program mapping
+            const policy = createMock<Policy>({
+                connections: {
+                    dualEntry: {
+                        config: {
+                            export: {
+                                creditCardAccountID: 'workspace-account',
+                                cardProgramAccounts: programAccount === undefined ? undefined : {[CONST.EXPENSIFY_CARD.BANK]: programAccount},
+                            },
+                        },
+                    },
+                },
+            });
+
+            // When the settings page resolves the applicable Expensify Card default
+            const accountID = getDualEntryExpensifyCardAccountID(policy);
+
+            // Then only a saved non-default mapping takes precedence over the workspace account
+            expect(accountID).toBe(expected);
+        });
     });
 
     describe('getQBORefreshTokenExpiryDate', () => {
