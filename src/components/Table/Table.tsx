@@ -584,7 +584,6 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
                 // Only tables without a page header scroll here. With one, an ancestor scroller would drag the
                 // in-list filter bar sideways, so their list scrolls horizontally itself (see `TableBody`).
                 scrollWidth={hasPageHeader ? undefined : dynamicScrollWidth}
-                columnResize={columnResize}
                 onLayout={isDynamicSizingEnabled ? handleTableLayout : undefined}
             >
                 {renderedChildren}
