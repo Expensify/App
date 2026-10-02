@@ -1611,6 +1611,11 @@ function respondToProactiveAppReview(
         },
     });
 
+    // Record locally that this client prompted and got an answer. This is not optimistic data: the prompt
+    // happened regardless of what the request returns, and nvp_appReview is server-owned, so the timestamp
+    // we merge into it can be dropped by any authoritative push of that key.
+    Onyx.set(ONYXKEYS.APP_REVIEW_LAST_PROMPT, {accountID: userAccountID, lastPrompt: DateUtils.getDBTime()});
+
     API.write(WRITE_COMMANDS.RESPOND_TO_PROACTIVE_APP_REVIEW, params, {optimisticData, successData, failureData});
 }
 
