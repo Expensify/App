@@ -206,6 +206,14 @@ const restrictedPaidGroupPolicyImportPatterns = [
     },
 ];
 
+// `HeaderWithBackButton` is being migrated to the composed `Header` (`@components/Header`).
+const restrictedHeaderImportPatterns = [
+    {
+        group: ['**/HeaderWithBackButton'],
+        message: 'HeaderWithBackButton is being migrated to the composed Header. Please use `@components/Header` instead for new usages.',
+    },
+];
+
 // Headless email chart CLI cannot use useTheme; charts always render with the light theme.
 const victoryChartRendererRestrictedImportPaths = restrictedImportPaths.filter((restriction) => restriction.name !== '@styles/theme');
 const victoryChartRendererRestrictedImportPatterns = [
@@ -705,7 +713,7 @@ const config = defineConfig([
                 'error',
                 {
                     paths: restrictedImportPaths,
-                    patterns: [...restrictedImportPatterns, ...restrictedReportNameImportPatterns, ...restrictedPaidGroupPolicyImportPatterns],
+                    patterns: [...restrictedImportPatterns, ...restrictedReportNameImportPatterns, ...restrictedPaidGroupPolicyImportPatterns, ...restrictedHeaderImportPatterns],
                 },
             ],
         },

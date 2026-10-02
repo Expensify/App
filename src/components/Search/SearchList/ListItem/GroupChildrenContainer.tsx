@@ -1,6 +1,6 @@
 import useExpandCollapseAnimation from '@hooks/useExpandCollapseAnimation';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
-import useRowHighlightAnimation from '@hooks/useRowHighlightAnimation';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import React from 'react';
@@ -35,6 +35,7 @@ function GroupChildrenContainer({
 }: GroupChildrenContainerProps) {
     const styles = useThemeStyles();
     const {pageGutterMargin} = useLayoutSpacing();
+    const StyleUtils = useStyleUtils();
     const hasBorder = !isFirstItem;
     const {isRendered, animatedStyle, onLayout} = useExpandCollapseAnimation(isExpanded, isExpanded && hasBorder, item.keyForList);
     const isContentVisible = isExpanded || isRendered;
@@ -43,19 +44,15 @@ function GroupChildrenContainer({
     // Only the rows this container holds decide its background, so a group still waiting for its first page is not painted as selected.
     const isSelected = !!item.isSelected || (item.transactions.length > 0 && isSelectAllChecked);
 
-    const animatedHighlightStyle = useRowHighlightAnimation({
-        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
-        isSelected,
-        shouldApplyOtherStyles: false,
-    });
-
     // Rendering null in FlashList can cause heavy first-render work; use an empty placeholder instead (LHN pattern).
     if (!isExpanded && !isRendered) {
         return <View />;
     }
 
     return (
-        <Animated.View style={[pageGutterMargin, animatedHighlightStyle, isLastItem && [styles.tableBottomRadius, styles.overflowHidden], hasBorder && styles.tableBorder]}>
+        <View
+            style={[pageGutterMargin, StyleUtils.getSearchRowBackgroundStyle(isSelected), isLastItem && [styles.tableBottomRadius, styles.overflowHidden], hasBorder && styles.tableBorder]}
+        >
             <Animated.View style={animatedStyle}>
                 {isContentVisible ? (
                     <Animated.View
@@ -79,7 +76,7 @@ function GroupChildrenContainer({
                     </Animated.View>
                 ) : null}
             </Animated.View>
-        </Animated.View>
+        </View>
     );
 }
 
