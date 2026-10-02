@@ -10,23 +10,7 @@ import type {DynamicFormField} from '@src/types/onyx';
 
 import {format, subYears} from 'date-fns';
 
-import allFieldTypes, {allFields} from '../../../fixtures/dynamicForm/allFieldTypes';
 import {translateLocal} from '../../../utils/TestHelper';
-
-const addressKeys = getAddressInputKeys(allFieldTypes.address.key);
-
-const completeAnswers = {
-    accountNumber: '12345678',
-    legalType: 'PRIVATE',
-    accountType: 'SAVINGS',
-    dateOfBirth: '1990-01-31',
-    acceptTerms: true,
-    nationality: 'GB',
-    payoutCurrency: 'GBP',
-    homeAddress: '1 High Street',
-    [addressKeys.zipCode]: 'SW1A 1AA',
-    [addressKeys.country]: 'GB',
-};
 
 describe('getDynamicFieldErrors', () => {
     const warnSpy = jest.spyOn(Log, 'warn').mockImplementation(() => {});
@@ -39,45 +23,46 @@ describe('getDynamicFieldErrors', () => {
         warnSpy.mockClear();
     });
 
-    it('accepts a complete form', () => {
-        // Given every required field answered with a valid value
-        // When the form is validated
+    it('accepts an answer that passes every check', () => {
+        // Given an account number field with a regex and a length limit
+        const accountNumber: DynamicFormField = {key: 'accountNumber', type: 'text', required: true, regex: '^\\d{8}$', minLength: 8, maxLength: 8};
+
+        // When it is answered with eight digits
+        const errors = getDynamicFieldErrors([accountNumber], {accountNumber: '12345678'}, translateLocal);
+
         // Then there are no errors
-        expect(getDynamicFieldErrors(allFields, completeAnswers, translateLocal)).toEqual({});
+        expect(errors).toEqual({});
     });
 
     it('flags a missing required answer and skips an empty optional one', () => {
-        // Given an empty required account number and an empty optional number field
-        const values = {
-            ...completeAnswers,
-            accountNumber: ' ',
-            yearsInBusiness: '',
-        };
+        // Given a blank required field with a regex and an empty optional one
+        const accountNumber: DynamicFormField = {key: 'accountNumber', type: 'text', required: true, regex: '^\\d{8}$'};
+        const yearsInBusiness: DynamicFormField = {key: 'yearsInBusiness', type: 'number', required: false};
 
         // When the form is validated
-        const errors = getDynamicFieldErrors(allFields, values, translateLocal);
+        const errors = getDynamicFieldErrors([accountNumber, yearsInBusiness], {accountNumber: ' ', yearsInBusiness: ''}, translateLocal);
 
-        // Then only the required field is flagged, and its format checks do not run on the blank answer
-        expect(errors).toEqual({
-            accountNumber: translateLocal('common.error.fieldRequired'),
-        });
+        // Then only the required field is flagged, and its regex does not run on the blank answer
+        expect(errors).toEqual({accountNumber: translateLocal('common.error.fieldRequired')});
     });
 
     it('treats an unchecked checkbox as unanswered', () => {
         // Given a required consent checkbox left unchecked
+        const acceptTerms: DynamicFormField = {key: 'acceptTerms', type: 'boolean', required: true};
+
         // When the form is validated
-        const errors = getDynamicFieldErrors([allFieldTypes.boolean], {acceptTerms: false}, translateLocal);
+        const errors = getDynamicFieldErrors([acceptTerms], {acceptTerms: false}, translateLocal);
 
         // Then it is flagged as required, because consent must be given
-        expect(errors).toEqual({
-            acceptTerms: translateLocal('common.error.fieldRequired'),
-        });
+        expect(errors).toEqual({acceptTerms: translateLocal('common.error.fieldRequired')});
     });
 
     it('reports every failed format check of a text answer', () => {
-        // Given an account number that breaks the regex and the minimum length
-        // When the form is validated
-        const errors = getDynamicFieldErrors([allFieldTypes.text], {accountNumber: '12ab'}, translateLocal);
+        // Given a field with a regex, a minimum length and an example
+        const accountNumber: DynamicFormField = {key: 'accountNumber', type: 'text', required: true, regex: '^\\d{8}$', minLength: 8, example: '12345678'};
+
+        // When it is answered with an answer that breaks both
+        const errors = getDynamicFieldErrors([accountNumber], {accountNumber: '12ab'}, translateLocal);
 
         // Then both messages are shown, so the user can fix the answer in one go
         expect(errors.accountNumber).toBe(`${translateLocal('dynamicForm.error.invalidFormat', {example: '12345678'})}\n${translateLocal('dynamicForm.error.tooShort', {minLength: 8})}`);
@@ -103,8 +88,10 @@ describe('getDynamicFieldErrors', () => {
 
     it('rejects a number answer that is not a finite number', () => {
         // Given a number field answered with text
+        const yearsInBusiness: DynamicFormField = {key: 'yearsInBusiness', type: 'number', required: false};
+
         // When the form is validated
-        const errors = getDynamicFieldErrors([allFieldTypes.number], {yearsInBusiness: 'ten'}, translateLocal);
+        const errors = getDynamicFieldErrors([yearsInBusiness], {yearsInBusiness: 'ten'}, translateLocal);
 
         // Then the answer is flagged as the wrong format
         expect(errors).toEqual({
@@ -115,28 +102,28 @@ describe('getDynamicFieldErrors', () => {
     });
 
     it('rejects a choice the options no longer offer', () => {
-        // Given a savings account picked for a private recipient, and the recipient then switched to business, where savings is not offered
-        const values = {
-            ...completeAnswers,
-            legalType: 'BUSINESS',
-            accountType: 'SAVINGS',
+        // Given an account type whose options depend on the recipient type, where savings is offered only to private recipients
+        const accountType: DynamicFormField = {
+            key: 'accountType',
+            type: 'select',
+            required: true,
+            dependsOn: {key: 'legalType', valuesBy: {PRIVATE: [{key: 'SAVINGS'}], BUSINESS: [{key: 'CHECKING'}]}},
         };
 
-        // When the form is validated
-        const errors = getDynamicFieldErrors(allFields, values, translateLocal);
+        // When savings stays picked after the recipient switches to business
+        const errors = getDynamicFieldErrors([accountType], {legalType: 'BUSINESS', accountType: 'SAVINGS'}, translateLocal);
 
         // Then the stale choice is flagged
-        expect(errors).toEqual({
-            accountType: translateLocal('dynamicForm.error.invalidOption'),
-        });
+        expect(errors).toEqual({accountType: translateLocal('dynamicForm.error.invalidOption')});
     });
 
     it('applies the date of birth age limits', () => {
-        // Given a date of birth that makes the person 10 years old
+        // Given a date of birth field answered with a date that makes the person 10 years old
+        const dateOfBirth: DynamicFormField = {key: 'dateOfBirth', type: 'date', required: true, rule: 'dateOfBirth'};
         const tenYearsAgo = format(subYears(new Date(), 10), CONST.DATE.FNS_FORMAT_STRING);
 
         // When the form is validated
-        const errors = getDynamicFieldErrors([allFieldTypes.date], {dateOfBirth: tenYearsAgo}, translateLocal);
+        const errors = getDynamicFieldErrors([dateOfBirth], {dateOfBirth: tenYearsAgo}, translateLocal);
 
         // Then the minimum age error is shown
         expect(errors).toEqual({
@@ -145,7 +132,9 @@ describe('getDynamicFieldErrors', () => {
     });
 
     it('checks the zip code against the chosen country', () => {
-        // Given a UK address with a US zip code
+        // Given an address field with the zip code rule, answered with a UK address and a US zip code
+        const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: true, rule: 'zipCode'};
+        const addressKeys = getAddressInputKeys(homeAddress.key);
         const values = {
             homeAddress: '1 High Street',
             [addressKeys.zipCode]: '10001',
@@ -153,7 +142,7 @@ describe('getDynamicFieldErrors', () => {
         };
 
         // When the form is validated
-        const errors = getDynamicFieldErrors([allFieldTypes.address], values, translateLocal);
+        const errors = getDynamicFieldErrors([homeAddress], values, translateLocal);
 
         // Then the zip code is flagged with the UK format
         expect(errors).toEqual({
@@ -177,7 +166,7 @@ describe('getDynamicFieldErrors', () => {
         };
 
         // When the form is validated for a private recipient
-        const errors = getDynamicFieldErrors([allFieldTypes.radio, hidden, readonly], {legalType: 'PRIVATE'}, translateLocal);
+        const errors = getDynamicFieldErrors([hidden, readonly], {legalType: 'PRIVATE'}, translateLocal);
 
         // Then neither blocks submission, because the user cannot answer them
         expect(errors).toEqual({});

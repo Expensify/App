@@ -19,8 +19,6 @@ import type {ComponentType} from 'react';
 
 import React from 'react';
 
-import allFieldTypes, {allFields} from '../../../fixtures/dynamicForm/allFieldTypes';
-
 type CapturedInputProps = {
     InputComponent: ComponentType;
     inputID: string;
@@ -71,19 +69,21 @@ const EXPECTED_INPUT_BY_TYPE: Record<DynamicFormFieldType, ComponentType | ((...
 };
 
 describe('DynamicFormFields', () => {
-    it('renders every field type with its input', () => {
-        // Given the fixture with one field per type, and a recipient type that offers account types
-        // When the fields render
-        const rendered = renderFields(allFields, {legalType: 'PRIVATE'});
+    it.each(Object.entries(EXPECTED_INPUT_BY_TYPE))('renders a %s field with its input', (type, ExpectedInput) => {
+        // Given a field of one type with nothing but the required properties
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the keys of EXPECTED_INPUT_BY_TYPE are field types, Object.entries types them as strings
+        const field = {key: 'answer', type, required: false} as DynamicFormField;
 
-        // Then each field is drawn by the input its type maps to
-        for (const field of allFields) {
-            expect(rendered.get(field.key)?.InputComponent).toBe(EXPECTED_INPUT_BY_TYPE[field.type]);
-        }
+        // When it renders
+        const rendered = renderFields([field]);
+
+        // Then it is drawn by the input its type maps to
+        expect(rendered.get('answer')?.InputComponent).toBe(ExpectedInput);
     });
 
     it('keeps sensitive answers out of the draft', () => {
         // Given a sensitive field next to a regular one
+        const nationality: DynamicFormField = {key: 'nationality', type: 'country', required: true};
         const ssn: DynamicFormField = {
             key: 'ssn',
             type: 'text',
@@ -92,7 +92,7 @@ describe('DynamicFormFields', () => {
         };
 
         // When the fields render
-        const rendered = renderFields([ssn, allFieldTypes.country]);
+        const rendered = renderFields([ssn, nationality]);
 
         // Then only the regular field saves its draft
         expect(rendered.get('ssn')?.shouldSaveDraft).toBe(false);
@@ -100,17 +100,19 @@ describe('DynamicFormFields', () => {
     });
 
     it('offers the options picked by the answer a select depends on', () => {
-        // Given a business recipient
-        // When the fields render
-        const rendered = renderFields([allFieldTypes.radio, allFieldTypes.select], {
-            legalType: 'BUSINESS',
-        });
+        // Given an account type whose options depend on the recipient type
+        const accountType: DynamicFormField = {
+            key: 'accountType',
+            type: 'select',
+            required: true,
+            dependsOn: {key: 'legalType', valuesBy: {PRIVATE: [{key: 'SAVINGS', label: 'Savings'}], BUSINESS: [{key: 'CHECKING', label: 'Checking'}]}},
+        };
+
+        // When the fields render for a business recipient
+        const rendered = renderFields([accountType], {legalType: 'BUSINESS'});
 
         // Then the account type offers the business options
-        expect(rendered.get('accountType')?.items).toEqual([
-            {value: 'CHECKING', label: 'Checking'},
-            {value: 'BUSINESS_CHECKING', label: 'Business checking'},
-        ]);
+        expect(rendered.get('accountType')?.items).toEqual([{value: 'CHECKING', label: 'Checking'}]);
     });
 
     it('opens a searchable list for a select with more options than fit in a picker', () => {
@@ -133,9 +135,11 @@ describe('DynamicFormFields', () => {
     });
 
     it('hints a text field with its example when it has no description', () => {
-        // Given the account number field, which has an example and no description
+        // Given a text field with an example and no description
+        const accountNumber: DynamicFormField = {key: 'accountNumber', type: 'text', required: true, example: '12345678'};
+
         // When the fields render
-        const rendered = renderFields([allFieldTypes.text]);
+        const rendered = renderFields([accountNumber]);
 
         // Then the example is the hint
         expect(rendered.get('accountNumber')?.hint).toBe('dynamicForm.exampleHint:12345678');
@@ -143,8 +147,10 @@ describe('DynamicFormFields', () => {
 
     it('stores address parts under the field key and drops the parts the form has no use for', () => {
         // Given an address field
+        const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: true};
+
         // When the fields render
-        const rendered = renderFields([allFieldTypes.address]);
+        const rendered = renderFields([homeAddress]);
 
         // Then the street is the field's own value, the other parts are keyed under it, and coordinates are dropped
         expect(rendered.get('homeAddress')?.renamedInputKeys).toMatchObject({
@@ -158,7 +164,8 @@ describe('DynamicFormFields', () => {
     });
 
     it('renders neither hidden fields nor fields of an unknown type', () => {
-        // Given a field hidden for private recipients and a field of a type this App version does not know
+        // Given a regular field, a field hidden for private recipients and a field of a type this App version does not know
+        const email: DynamicFormField = {key: 'email', type: 'text', required: true};
         const companyName: DynamicFormField = {
             key: 'companyName',
             type: 'text',
@@ -173,18 +180,15 @@ describe('DynamicFormFields', () => {
         } as unknown as DynamicFormField;
 
         // When the fields render for a private recipient
-        const rendered = renderFields([allFieldTypes.radio, companyName, signature], {legalType: 'PRIVATE'});
+        const rendered = renderFields([email, companyName, signature], {legalType: 'PRIVATE'});
 
-        // Then only the recipient type is drawn
-        expect([...rendered.keys()]).toEqual(['legalType']);
+        // Then only the regular field is drawn
+        expect([...rendered.keys()]).toEqual(['email']);
     });
 
     it('shows a readonly field as its value instead of an input', () => {
         // Given a readonly country field with a prefilled answer
-        const readonlyCountry: DynamicFormField = {
-            ...allFieldTypes.country,
-            readonly: true,
-        };
+        const readonlyCountry: DynamicFormField = {key: 'nationality', type: 'country', required: true, readonly: true};
 
         // When the fields render
         const rendered = renderFields([readonlyCountry], {nationality: 'GB'});
