@@ -88,13 +88,36 @@ describe('YearPickerModal', () => {
         expect(values).toEqual([2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2019, 2018, 2017, 2016, 2015, 2014]);
     });
 
-    it('keeps the current year pinned at the top of the search results', () => {
-        // Given a year list long enough for the pin to apply, with 2020 selected
+    it.each([
+        // The newest year is selected, so there are no upcoming years and only past years follow, nearest first
+        [2027, [2027, 2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015, 2014]],
+        // The oldest year is selected, so there are no past years and only upcoming years follow, ascending
+        [2014, [2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027]],
+    ])('orders correctly when %i is at the edge of the list', (currentYear, expected) => {
+        // Given a year list long enough for the pin to apply, with a year at one end of the list selected
         render(
             <YearPickerModal
                 isVisible
                 years={buildYears(2014, 14)}
-                currentYear={2020}
+                currentYear={currentYear}
+                onClose={jest.fn()}
+            />,
+        );
+
+        // When the picker opens
+        const values = getSelectionListProps()?.data.map((year) => year.value);
+
+        // Then the selected year leads and the rest of the list is ordered from the only side that has years
+        expect(values).toEqual(expected);
+    });
+
+    it('keeps the current year pinned at the top of the search results', () => {
+        // Given a year list long enough for the pin to apply, with 2024 selected so "202" matches years on both sides of it
+        render(
+            <YearPickerModal
+                isVisible
+                years={buildYears(2014, 14)}
+                currentYear={2024}
                 onClose={jest.fn()}
             />,
         );
@@ -104,8 +127,8 @@ describe('YearPickerModal', () => {
             getSelectionListProps()?.textInputOptions?.onChangeText?.('202');
         });
 
-        // Then 2020 stays first and the upcoming years follow in ascending order
-        expect(getSelectionListProps()?.data.map((year) => year.value)).toEqual([2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027]);
+        // Then 2024 stays first, the upcoming years follow in ascending order, and the past years come last, nearest first
+        expect(getSelectionListProps()?.data.map((year) => year.value)).toEqual([2024, 2025, 2026, 2027, 2023, 2022, 2021, 2020]);
     });
 
     it('does not reorder when the year list is under the item-limit threshold', () => {
