@@ -5,14 +5,16 @@ import Text from '@components/Text';
 
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsLists from '@hooks/useCardsLists';
+import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useSelectionListSearch from '@hooks/useSelectionListSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getDualEntryExpensifyCardAccountID} from '@libs/AccountingUtils';
 import {clearDualEntryErrorField, updateDualEntryCardProgramAccount} from '@libs/actions/connections/DualEntry';
 import {findMatchingCards} from '@libs/CardFeedUtils';
-import {getCustomOrFormattedFeedName} from '@libs/CardUtils';
+import {getCustomOrFormattedFeedName, isExpensifyCardFullySetUp, splitCardFeedWithDomainID} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {sortDefaultToTop} from '@libs/ListUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -53,15 +55,18 @@ function DualEntryCardProgramAccountSelectorPage({
     const [cardFeeds] = useCardFeeds(policyID);
     const cardFeed = cardFeeds?.[feedWithDomainID];
     const [cardLists] = useCardsLists();
-    const feedKey = cardFeed?.feed;
+    const isExpensifyCard = splitCardFeedWithDomainID(feedWithDomainID)?.feedName === CONST.EXPENSIFY_CARD.BANK;
+    const feedKey = isExpensifyCard ? CONST.EXPENSIFY_CARD.BANK : cardFeed?.feed;
+    const expensifyCardFeeds = useExpensifyCardFeeds(policyID);
+    const isExpensifyCardsEnabled = Object.values(expensifyCardFeeds ?? {}).some((cardSettings) => isExpensifyCardFullySetUp(policy, cardSettings));
     const dualentryConfig = policy?.connections?.dualEntry?.config;
     const dualentryData = policy?.connections?.dualEntry?.data;
     const creditCardAccountID = dualentryConfig?.export?.creditCardAccountID;
     const cardProgramsUsingCustomAccounts = dualentryConfig?.export?.cardProgramAccounts;
-    const cardProgramAccountID = (feedKey ? cardProgramsUsingCustomAccounts?.[feedKey] : undefined) ?? creditCardAccountID;
-    const hasActiveCards = feedKey && findMatchingCards(cardFeeds ?? {}, cardLists, feedKey).length > 0;
+    const cardProgramAccountID = isExpensifyCard ? getDualEntryExpensifyCardAccountID(policy) : ((feedKey ? cardProgramsUsingCustomAccounts?.[feedKey] : undefined) ?? creditCardAccountID);
+    const hasActiveCards = isExpensifyCard ? isExpensifyCardsEnabled : feedKey && findMatchingCards(cardFeeds ?? {}, cardLists, feedKey).length > 0;
     const title = getCustomOrFormattedFeedName(translate, feedKey, cardFeed?.customFeedName, false);
-    const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_DUALENTRY_CARD_PROGRAM_ACCOUNT.getRoute(policyID) : undefined;
+    const backPath = policyID ? (isExpensifyCard ? ROUTES.POLICY_ACCOUNTING_DUALENTRY_EXPORT : ROUTES.POLICY_ACCOUNTING_DUALENTRY_CARD_PROGRAM_ACCOUNT).getRoute(policyID) : undefined;
 
     const data: AccountListItem[] =
         dualentryData?.accounts
@@ -99,7 +104,7 @@ function DualEntryCardProgramAccountSelectorPage({
         if (item.value !== cardProgramAccountID && policyID && feedKey) {
             // Choosing the default account clears the custom account
             const value = item.value === creditCardAccountID ? '' : item.value;
-            const oldValue = cardProgramAccountID === creditCardAccountID ? undefined : cardProgramAccountID;
+            const oldValue = cardProgramsUsingCustomAccounts?.[feedKey];
             updateDualEntryCardProgramAccount(policyID, feedKey, value, oldValue);
         }
         Navigation.goBack(backPath);
