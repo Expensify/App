@@ -521,9 +521,9 @@ function getReimbursedMessage(
     submitterLoginParam: string | undefined,
     actorLoginParam: string | undefined,
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
-    currentUserAccountID?: number,
+    currentUserAccountID: number,
 ): string {
-    const effectiveCurrentUserAccountID = currentUserAccountID ?? deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const effectiveCurrentUserAccountID = currentUserAccountID;
     const submitterLogin = submitterLoginParam ?? '';
     const actorLogin = actorLoginParam ?? '';
     const originalMessage = getOriginalMessage(reportAction) as OriginalMessageReimbursed | undefined;
