@@ -165,6 +165,7 @@ import {
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyAuditor,
     isPolicyOwner,
+    isRoomMemberProtectedByPolicyRole,
     isSubmitAndClose,
     isSubmitterApproveBlockedOnSubmitWorkspace,
     resolveCurrentTaxCode,
@@ -2829,6 +2830,21 @@ function isMoneyRequest(reportOrID: OnyxEntry<Report> | string): boolean {
 function isMoneyRequestReport(reportOrID: OnyxInputOrEntry<Report> | string, reports?: Report[] | OnyxCollection<Report>): boolean {
     const report = typeof reportOrID === 'string' ? (getReport(reportOrID, reports ?? deprecatedAllReports) ?? null) : reportOrID;
     return isIOUReport(report) || isExpenseReport(report);
+}
+
+/**
+ * Checks if a thread member keeps access through the thread's parent money request or invoice report, so removing them from the thread doesn't stick.
+ * That covers the parent report's submitter and current manager. On a workspace expense report it also covers workspace admins and approvers,
+ * because `managerID` only points at the current approver, and approvers who already approved earlier in the chain keep access too.
+ */
+function isThreadMemberProtectedByParentReport(parentReport: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>, login: string | undefined, accountID: number | undefined): boolean {
+    if (!parentReport || accountID === undefined || (!isMoneyRequestReport(parentReport) && !isInvoiceReport(parentReport))) {
+        return false;
+    }
+    if (accountID === parentReport.ownerAccountID || accountID === parentReport.managerID) {
+        return true;
+    }
+    return isExpenseReport(parentReport) && isRoomMemberProtectedByPolicyRole(policy, login, accountID);
 }
 
 /**
@@ -14854,6 +14870,7 @@ export {
     isSystemChat,
     isTaskReport,
     isThread,
+    isThreadMemberProtectedByParentReport,
     isTrackExpenseReport,
     isUnread,
     isUnreadWithMention,
