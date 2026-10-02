@@ -86,6 +86,12 @@ function getTextHint(field: DynamicFormTextField | DynamicFormNumberField, trans
     return translate('dynamicForm.exampleHint', {example: field.example});
 }
 
+/** Sensitive answers are not drafted, so a page the user comes back to is refilled from the answers kept in memory */
+function getSensitiveDefaultValue(field: DynamicFormTextField | DynamicFormNumberField, values: DynamicFormValues): string | undefined {
+    const value = values[field.key];
+    return field.sensitive && typeof value === 'string' ? value : undefined;
+}
+
 /** A lone choice field is the page itself: its options are listed inline under the question */
 function renderInlineChoice(label: string, choices: Choice[], inputProps: DynamicFieldInputProps, canSelectMultiple: boolean, isSearchable: boolean): DynamicFieldInput {
     return {
@@ -143,13 +149,14 @@ const renderMultiChoice: DynamicFieldRenderer<'multiselect' | 'countryMultiselec
 };
 
 const RENDERERS: {[TType in DynamicFormFieldType]: DynamicFieldRenderer<TType>} = {
-    text: (field, {translate}, inputProps) => ({
+    text: (field, {values, translate}, inputProps) => ({
         isMenuRow: false,
         showsDescription: true,
         input: (
             <InputWrapper
                 InputComponent={TextInput}
                 {...inputProps}
+                defaultValue={getSensitiveDefaultValue(field, values)}
                 label={getFieldLabel(field, translate)}
                 hint={getTextHint(field, translate)}
                 maxLength={field.maxLength}
@@ -160,13 +167,14 @@ const RENDERERS: {[TType in DynamicFormFieldType]: DynamicFieldRenderer<TType>} 
             />
         ),
     }),
-    number: (field, {translate}, inputProps) => ({
+    number: (field, {values, translate}, inputProps) => ({
         isMenuRow: false,
         showsDescription: true,
         input: (
             <InputWrapper
                 InputComponent={TextInput}
                 {...inputProps}
+                defaultValue={getSensitiveDefaultValue(field, values)}
                 label={getFieldLabel(field, translate)}
                 hint={getTextHint(field, translate)}
                 maxLength={field.maxLength}

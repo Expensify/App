@@ -28,6 +28,11 @@ type DynamicFormFieldBase = {
 
     descriptionKey?: TranslationPaths;
 
+    /** The page the field is asked on. Wise's requirement key, so fields sharing it are saved together. */
+    group?: string;
+
+    groupLabelKey?: TranslationPaths;
+
     /** Consecutive fields sharing a section render under one title */
     section?: string;
 
@@ -139,6 +144,9 @@ type DynamicFormField =
     | DynamicFormCountryField
     | DynamicFormPlainField;
 
+/** Answers to sensitive fields, keyed by form ID, then by field key. Kept in memory only, never in a draft. */
+type DynamicFormSensitiveAnswers = Record<string, Record<string, string>>;
+
 /** Every type the renderer and validator handle */
 type DynamicFormFieldType = DynamicFormField['type'];
 
@@ -155,5 +163,6 @@ export type {
     DynamicFormFieldType,
     DynamicFormNumberField,
     DynamicFormPlainField,
+    DynamicFormSensitiveAnswers,
     DynamicFormTextField,
 };

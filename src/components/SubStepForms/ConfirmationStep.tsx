@@ -113,3 +113,4 @@ function ConfirmationStep({
 }
 
 export default ConfirmationStep;
+export type {SummaryItem};
