@@ -27,7 +27,7 @@ import {useEffect, useRef, useState} from 'react';
 import useUpdateGpsNotification from './useUpdateGpsNotification';
 import useUpdateGpsTripOnReconnect from './useUpdateGpsTripOnReconnect';
 
-// Replaces Onyx migration removed in PR #95505 - now we just clear the data if it's in the old format
+// Replaces Onyx migration removed in PR #95505, now we just clear the data if it's in the old format
 function isGpsDraftDetailsInOldFormat(gpsDraftDetails: GpsDraftDetails | undefined): boolean {
     const gpsPoints = gpsDraftDetails?.gpsPoints;
     if (gpsPoints && getArrayDepth(gpsPoints) === 1) {
