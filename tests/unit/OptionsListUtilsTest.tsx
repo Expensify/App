@@ -44,6 +44,7 @@ import {
     recentReportComparator,
 } from '@libs/OptionsListUtils';
 import {getCurrentUserSearchTerms, getPersonalDetailSearchTerms} from '@libs/OptionsListUtils/searchMatchUtils';
+import type {SectionForSearchTerm} from '@libs/OptionsListUtils/types';
 import {canCreateTaskInReport, canUserPerformWriteAction, isCanceledTaskReport, isExpensifyOnlyParticipantInReport} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -67,6 +68,7 @@ import Onyx from 'react-native-onyx';
 
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport, createRegularChat} from '../utils/collections/reports';
+import createMock from '../utils/createMock';
 import {getFakeAdvancedReportAction} from '../utils/LHNTestUtils';
 import {convertToDisplayString, convertToDisplayStringWithoutCurrency, formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -9709,7 +9711,7 @@ describe('OptionsListUtils', () => {
             id: formatTestPolicyID,
             name: 'Format Test Workspace',
             type: CONST.POLICY.TYPE.TEAM,
-            owner: 'formatowner@test.com',
+            owner: 'owner@test.com',
             role: 'admin',
             outputCurrency: 'USD',
         };
@@ -9718,18 +9720,237 @@ describe('OptionsListUtils', () => {
             [formatOwnerAccountID]: {
                 accountID: formatOwnerAccountID,
                 displayName: 'Format Owner',
-                login: 'formatowner@test.com',
+                login: 'owner@test.com',
             },
             [formatMemberAccountID]: {
                 accountID: formatMemberAccountID,
                 displayName: 'Format Member',
-                login: 'formatmember@test.com',
+                login: 'member@test.com',
             },
         };
 
         // Stands in for the resolver a caller builds from its own reports subscription (see useFilteredOptions).
         const formatReportsByID: Record<string, Report> = {};
         const getFormatReportByID = (reportID: string | undefined) => (reportID ? formatReportsByID[reportID] : undefined);
+
+        // These calls stay outside runtime because they check the public hydration contract.
+        function proveFormatterHydrationTypes(shouldHydrate: boolean) {
+            const selected: Participant[] = [{accountID: formatOwnerAccountID, login: 'owner@test.com'}];
+            const keyed: SearchOptionData[] = [createMock<SearchOptionData>({accountID: formatOwnerAccountID, keyForList: '3001'})];
+            const hydrated: SectionForSearchTerm = formatSectionsFromSearchTerm(
+                '',
+                selected,
+                [],
+                [],
+                {},
+                CURRENT_USER_ACCOUNT_ID,
+                undefined,
+                translateLocal,
+                convertToDisplayString,
+                undefined,
+                getFormatReportByID,
+                undefined,
+                formatPersonalDetails,
+                true,
+            );
+            const omitted: SectionForSearchTerm = formatSectionsFromSearchTerm(
+                '',
+                keyed,
+                [],
+                [],
+                {},
+                CURRENT_USER_ACCOUNT_ID,
+                undefined,
+                translateLocal,
+                convertToDisplayString,
+                undefined,
+                getFormatReportByID,
+                undefined,
+            );
+            const disabled: SectionForSearchTerm = formatSectionsFromSearchTerm(
+                '',
+                keyed,
+                [],
+                [],
+                {},
+                CURRENT_USER_ACCOUNT_ID,
+                undefined,
+                translateLocal,
+                convertToDisplayString,
+                undefined,
+                getFormatReportByID,
+                undefined,
+                formatPersonalDetails,
+                false,
+            );
+            const dynamic: SectionForSearchTerm = formatSectionsFromSearchTerm(
+                '',
+                keyed,
+                [],
+                [],
+                {},
+                CURRENT_USER_ACCOUNT_ID,
+                undefined,
+                translateLocal,
+                convertToDisplayString,
+                undefined,
+                getFormatReportByID,
+                undefined,
+                formatPersonalDetails,
+                shouldHydrate,
+            );
+            const keyedResults: Array<SectionForSearchTerm['section']['data']> = [hydrated.section.data, omitted.section.data, disabled.section.data, dynamic.section.data];
+            // @ts-expect-error A participant without a list key requires literal true hydration.
+            formatSectionsFromSearchTerm('', selected, [], [], {}, CURRENT_USER_ACCOUNT_ID, undefined, translateLocal, convertToDisplayString, undefined, getFormatReportByID, undefined);
+            formatSectionsFromSearchTerm(
+                '',
+                // @ts-expect-error Disabled hydration cannot supply the missing participant list key.
+                selected,
+                [],
+                [],
+                {},
+                CURRENT_USER_ACCOUNT_ID,
+                undefined,
+                translateLocal,
+                convertToDisplayString,
+                undefined,
+                getFormatReportByID,
+                undefined,
+                formatPersonalDetails,
+                false,
+            );
+            formatSectionsFromSearchTerm(
+                '',
+                // @ts-expect-error A dynamic boolean cannot guarantee hydration supplies the participant list key.
+                selected,
+                [],
+                [],
+                {},
+                CURRENT_USER_ACCOUNT_ID,
+                undefined,
+                translateLocal,
+                convertToDisplayString,
+                undefined,
+                getFormatReportByID,
+                undefined,
+                formatPersonalDetails,
+                shouldHydrate,
+            );
+            return keyedResults;
+        }
+
+        it('hydrates report-less participants and preserves keyed inputs when hydration is disabled', () => {
+            // Given the participant writer omits report IDs and keys for contacts.
+            expect(proveFormatterHydrationTypes).toBeDefined();
+            const selected: Participant[] = [{accountID: 3001, login: 'owner@test.com', selected: true, reportID: undefined}];
+            const keyed = createMock<SearchOptionData>({accountID: 3001, login: 'owner@test.com', keyForList: '3001', reportID: ''});
+            // When real hydration resolves personal details and disabled hydration receives a keyed production option.
+            const hydrated = formatSectionsFromSearchTerm(
+                '',
+                selected,
+                [],
+                [],
+                {},
+                CURRENT_USER_ACCOUNT_ID,
+                undefined,
+                translateLocal,
+                convertToDisplayString,
+                undefined,
+                getFormatReportByID,
+                undefined,
+                formatPersonalDetails,
+                true,
+            );
+            const withoutHydration = formatSectionsFromSearchTerm(
+                '',
+                [keyed],
+                [],
+                [],
+                {},
+                CURRENT_USER_ACCOUNT_ID,
+                undefined,
+                translateLocal,
+                convertToDisplayString,
+                undefined,
+                getFormatReportByID,
+                undefined,
+            );
+            // Then hydration supplies the key without inventing a report, and disabled hydration retains input identity.
+            expect(hydrated.section.data).toHaveLength(1);
+            expect(hydrated.section.data.at(0)).toMatchObject({keyForList: '3001', accountID: 3001, login: 'owner@test.com'});
+            expect(hydrated.section.data.at(0)?.reportID).toBeUndefined();
+            expect(withoutHydration.section.data.at(0)).toBe(keyed);
+        });
+
+        it('filters hydrated report-less selections by search and deduplicates contacts already returned', () => {
+            // Given two participants produced by the selected-participant writer, only one matches this search.
+            const selected: Participant[] = [
+                {accountID: 3001, login: 'owner@test.com'},
+                {accountID: 3002, login: 'member@test.com'},
+            ];
+            // When the real formatter searches selected users absent from the contact list.
+            const result = formatSectionsFromSearchTerm(
+                'owner',
+                selected,
+                [],
+                [],
+                {},
+                CURRENT_USER_ACCOUNT_ID,
+                undefined,
+                translateLocal,
+                convertToDisplayString,
+                undefined,
+                getFormatReportByID,
+                undefined,
+                formatPersonalDetails,
+                true,
+            );
+            const deduplicated = formatSectionsFromSearchTerm(
+                'owner',
+                selected,
+                [],
+                [createMock<SearchOptionData>({accountID: 3001, keyForList: '3001'})],
+                {},
+                CURRENT_USER_ACCOUNT_ID,
+                undefined,
+                translateLocal,
+                convertToDisplayString,
+                undefined,
+                getFormatReportByID,
+                undefined,
+                formatPersonalDetails,
+                true,
+            );
+            // Then the matching user receives a list key exactly once, and a supplied contact is excluded.
+            expect(result.section.data).toHaveLength(1);
+            expect(result.section.data.at(0)).toMatchObject({keyForList: '3001', login: 'owner@test.com'});
+            expect(deduplicated.section.data).toEqual([]);
+        });
+
+        it('hydrates a policy participant without a list key using the existing expense-report producer', () => {
+            // Given a selected policy participant stores its report identifier but has no display-list key.
+            const selected: Participant[] = [{reportID: formatReportID1, isPolicyExpenseChat: true, selected: true}];
+            // When the real formatter resolves the report and runs policy-expense hydration.
+            const result = formatSectionsFromSearchTerm(
+                '',
+                selected,
+                [],
+                [],
+                {},
+                CURRENT_USER_ACCOUNT_ID,
+                {[`${ONYXKEYS.COLLECTION.POLICY}${formatTestPolicyID}`]: formatPolicy},
+                translateLocal,
+                convertToDisplayString,
+                undefined,
+                getFormatReportByID,
+                undefined,
+                formatPersonalDetails,
+                true,
+            );
+            // Then hydration supplies the real report key and selection without inventing a participant report.
+            expect(result.section.data).toHaveLength(1);
+            expect(result.section.data.at(0)).toMatchObject({keyForList: formatReportID1, reportID: formatReportID1, isSelected: true});
+        });
 
         beforeEach(async () => {
             const report1: Report = {
@@ -9960,7 +10181,7 @@ describe('OptionsListUtils', () => {
                     text: 'Format Test Workspace',
                     alternateText: '',
                     isSelected: true,
-                    login: 'formatowner@test.com',
+                    login: 'owner@test.com',
                     displayName: 'Format Owner',
                     keyForList: formatReportID1,
                 },
@@ -10004,7 +10225,7 @@ describe('OptionsListUtils', () => {
                     text: 'Format Owner',
                     alternateText: '',
                     isSelected: true,
-                    login: 'formatowner@test.com',
+                    login: 'owner@test.com',
                     displayName: 'Format Owner',
                     keyForList: formatReportID1,
                 },

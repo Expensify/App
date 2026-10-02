@@ -1,5 +1,8 @@
 import useContactImport from '@hooks/useContactImport';
 
+import type {Option} from '@libs/OptionsListUtils';
+import type {OptionData} from '@libs/ReportUtils';
+
 import {useMemo} from 'react';
 import {RESULTS} from 'react-native-permissions';
 
@@ -15,7 +18,7 @@ import useSearchSelectorBase from './base';
  * @param config - Configuration object for the hook
  * @returns Object with search and selection utilities
  */
-function useSearchSelector(config: UseSearchSelectorConfig): UseSearchSelectorReturn {
+function useSearchSelector<TSelected extends Option = OptionData>(config: UseSearchSelectorConfig<TSelected>): UseSearchSelectorReturn<TSelected> {
     const {enablePhoneContacts = false} = config;
 
     // Phone contacts logic

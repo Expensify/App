@@ -607,32 +607,31 @@ function MenuItem({
     // eslint-disable-next-line no-nested-ternary -- Selects ml2/ml3/empty based on icon presence and avatar size
     const iconLeftPadding = shouldPutLeftPaddingWhenNoIcon || hasIcon ? (avatarSize === CONST.AVATAR_SIZE.SMALL ? styles.ml2 : styles.ml3) : {};
 
-    const combinedTitleTextStyle = StyleUtils.combineStyles<TextStyle>(
-        [
-            styles.flexShrink1,
-            styles.popoverMenuText,
-            iconLeftPadding,
-            shouldShowBasicTitle ? {} : styles.textStrong,
-            numberOfLinesTitle !== 1 ? styles.preWrap : styles.pre,
-            interactive && disabled ? {...styles.userSelectNone} : {},
-            styles.ltr,
-            isDeleted ? styles.offlineFeedbackDeleted : {},
-            shouldBreakWord ? styles.breakWord : {},
-            styles.mw100,
-        ],
-        (titleStyle ?? {}) as TextStyle,
-    );
+    const titleTextStyles: Array<StyleProp<TextStyle>> = [
+        styles.flexShrink1,
+        styles.popoverMenuText,
+        iconLeftPadding,
+        shouldShowBasicTitle ? {} : styles.textStrong,
+        numberOfLinesTitle !== 1 ? styles.preWrap : styles.pre,
+        interactive && disabled ? {...styles.userSelectNone} : {},
+        styles.ltr,
+        isDeleted ? styles.offlineFeedbackDeleted : {},
+        shouldBreakWord ? styles.breakWord : {},
+        styles.mw100,
+    ];
+    const combinedTitleTextStyle = titleTextStyles.concat(titleStyle ?? {});
 
-    const descriptionTextStyles = StyleUtils.combineStyles<TextStyle>([
+    const descriptionTextStyles: StyleProp<TextStyle> = [
         styles.textLabelSupporting,
         styles.flex1,
         title ? {} : StyleUtils.getFontSizeStyle(fontScale.text),
         title ? styles.textLineHeightNormal : StyleUtils.getLineHeightStyle(lineHeightScale.text),
         !descriptionAddon && hasIcon ? styles.ml3 : {},
         descriptionAddon ? styles.ml2 : {},
-        (descriptionTextStyle as TextStyle) || styles.breakWord,
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- false requests the fallback, while an empty style array must remain unchanged
+        descriptionTextStyle || styles.breakWord,
         isDeleted ? styles.offlineFeedbackDeleted : {},
-    ]);
+    ];
 
     const descriptionContainerStyle = StyleUtils.combineStyles<ViewStyle>([
         styles.flexRow,
@@ -743,7 +742,10 @@ function MenuItem({
         }
 
         if (event?.type === 'click') {
-            (event.currentTarget as HTMLElement).blur();
+            const target = event.currentTarget;
+            if (target && typeof target === 'object' && 'blur' in target && typeof target.blur === 'function') {
+                target.blur();
+            }
         }
 
         if (onPress && event) {

@@ -3,6 +3,8 @@ import {act, renderHook} from '@testing-library/react-native';
 import type * as OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import useSearchSelectorBase from '@hooks/useSearchSelector/base';
+import type useSearchSelectorWeb from '@hooks/useSearchSelector/index';
+import type useSearchSelectorNative from '@hooks/useSearchSelector/index.native';
 
 import type {SearchOption} from '@libs/OptionsListUtils';
 import {getSearchOptions, getValidOptions} from '@libs/OptionsListUtils';
@@ -12,6 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, ReportAction} from '@src/types/onyx';
 import type {SortedReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
+import type {Participant} from '@src/types/onyx/IOU';
 
 import type {OnyxMultiSetInput} from 'react-native-onyx';
 
@@ -269,6 +272,130 @@ const NON_EXISTING_USER_TO_INVITE = createMock<OptionData>({
     keyForList: 'newuser@gmail.com',
 });
 
+type UnselectedParticipant = Participant & {isSelected: false; reportID?: undefined; login: 'unselected@example.com'; selected: true};
+
+/** These normal calls keep all three selector contracts honest when multi-select changes a literal false flag. */
+function checkUnselectedParticipantContracts(
+    base: ReturnType<typeof useSearchSelectorBase<UnselectedParticipant>>,
+    web: ReturnType<typeof useSearchSelectorWeb<UnselectedParticipant>>,
+    native: ReturnType<typeof useSearchSelectorNative<UnselectedParticipant>>,
+) {
+    const participant: UnselectedParticipant = {login: 'unselected@example.com', isSelected: false, selected: true};
+    const newlySelected = {...participant, isSelected: true} satisfies Omit<UnselectedParticipant, 'isSelected'> & {isSelected: true};
+    const baseConfig: Parameters<typeof useSearchSelectorBase<UnselectedParticipant>>[0] = {
+        selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+        initialSelected: [participant],
+        onSelectionChange: (options) => {
+            for (const option of options) {
+                if (option.reportID !== undefined) {
+                    continue;
+                }
+                const login: 'unselected@example.com' = option.login;
+                const selected: true = option.selected;
+                const flag: boolean = option.isSelected;
+                // @ts-expect-error Multi-select may have replaced the caller's false flag with true.
+                const unchangedFlag: false = option.isSelected;
+                expect([login, selected, flag, unchangedFlag]).toBeDefined();
+            }
+        },
+        onSingleSelect: (option) => {
+            if (option.reportID !== undefined) {
+                return;
+            }
+            // @ts-expect-error The callback admits previously rewritten selections as well as unchanged inputs.
+            const unchangedFlag: false = option.isSelected;
+            expect(unchangedFlag).toBeDefined();
+        },
+    };
+    const webConfig: Parameters<typeof useSearchSelectorWeb<UnselectedParticipant>>[0] = {
+        ...baseConfig,
+        onSelectionChange: (options) => {
+            for (const option of options) {
+                if (option.reportID === undefined) {
+                    // @ts-expect-error The web callback must include the true overwrite category.
+                    const unchangedFlag: false = option.isSelected;
+                    expect(unchangedFlag).toBeDefined();
+                }
+            }
+        },
+    };
+    const nativeConfig: Parameters<typeof useSearchSelectorNative<UnselectedParticipant>>[0] = {
+        ...baseConfig,
+        onSelectionChange: (options) => {
+            for (const option of options) {
+                if (option.reportID === undefined) {
+                    // @ts-expect-error The native callback must include the true overwrite category.
+                    const unchangedFlag: false = option.isSelected;
+                    expect(unchangedFlag).toBeDefined();
+                }
+            }
+        },
+    };
+    baseConfig.onSelectionChange?.([participant, newlySelected]);
+    webConfig.onSelectionChange?.([participant, newlySelected]);
+    nativeConfig.onSelectionChange?.([participant, newlySelected]);
+    baseConfig.onSingleSelect?.(newlySelected);
+    webConfig.onSingleSelect?.(newlySelected);
+    nativeConfig.onSingleSelect?.(newlySelected);
+    base.toggleSelection(participant);
+    base.toggleSelection(newlySelected);
+    base.setSelectedOptions([participant, newlySelected]);
+    web.toggleSelection(participant);
+    web.toggleSelection(newlySelected);
+    web.setSelectedOptions([participant, newlySelected]);
+    native.toggleSelection(participant);
+    native.toggleSelection(newlySelected);
+    native.setSelectedOptions([participant, newlySelected]);
+    for (const option of base.selectedOptions) {
+        if (option.reportID === undefined) {
+            const login: 'unselected@example.com' = option.login;
+            const selected: true = option.selected;
+            const flag: boolean = option.isSelected;
+            // @ts-expect-error Report absence cannot restore the false-only promise after addition.
+            const unchangedFlag: false = option.isSelected;
+            expect([login, selected, flag, unchangedFlag]).toBeDefined();
+        }
+    }
+    for (const option of web.selectedOptionsForDisplay) {
+        if (option.reportID === undefined) {
+            // @ts-expect-error Displayed web selections include the true overwrite category.
+            const unchangedFlag: false = option.isSelected;
+            expect(unchangedFlag).toBeDefined();
+        }
+    }
+    for (const option of native.selectedNonExistingOptions ?? []) {
+        if (option.reportID === undefined) {
+            // @ts-expect-error Separated native selections include the true overwrite category.
+            const unchangedFlag: false = option.isSelected;
+            expect(unchangedFlag).toBeDefined();
+        }
+    }
+}
+
+type UnselectedParticipantUnion =
+    | (Participant & {isSelected: false; reportID?: undefined; login: 'first@example.com'; text: 'First participant'})
+    | (Participant & {isSelected: false; reportID?: undefined; login: 'second@example.com'; accountID: 321});
+
+/** The one-field overwrite must preserve correlations within each participant union member. */
+function checkParticipantUnionContracts(
+    base: ReturnType<typeof useSearchSelectorBase<UnselectedParticipantUnion>>,
+    web: ReturnType<typeof useSearchSelectorWeb<UnselectedParticipantUnion>>,
+    native: ReturnType<typeof useSearchSelectorNative<UnselectedParticipantUnion>>,
+) {
+    for (const option of [...base.selectedOptions, ...web.selectedOptionsForDisplay, ...(native.selectedNonExistingOptions ?? [])]) {
+        if (option.reportID !== undefined) {
+            continue;
+        }
+        if (option.login === 'first@example.com') {
+            const text: 'First participant' = option.text;
+            expect(text).toBeDefined();
+        } else {
+            const accountID: 321 = option.accountID;
+            expect(accountID).toBeDefined();
+        }
+    }
+}
+
 describe('useSearchSelector selection and non-existing options', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -297,6 +424,174 @@ describe('useSearchSelector selection and non-existing options', () => {
         await act(async () => {
             await Onyx.clear();
         });
+    });
+
+    it('preserves initial participants and truthfully emits the added true selection flag', async () => {
+        // Given the caller narrows the real Participant model without adding a report or list key.
+        const participant: UnselectedParticipant = {login: 'unselected@example.com', isSelected: false, selected: true};
+        const initialSelected = [participant];
+        const onSelectionChange = jest.fn<
+            ReturnType<NonNullable<Parameters<typeof useSearchSelectorBase<UnselectedParticipant>>[0]['onSelectionChange']>>,
+            Parameters<NonNullable<Parameters<typeof useSearchSelectorBase<UnselectedParticipant>>[0]['onSelectionChange']>>
+        >();
+        mockGetValidOptions.mockReturnValue({options: EMPTY_OPTIONS, hasMore: false});
+        const {result} = renderHook(() =>
+            useSearchSelectorBase<UnselectedParticipant>({
+                selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+                initialSelected,
+                shouldSeparateNonExistingSelectedOptions: true,
+                onSelectionChange,
+            }),
+        );
+        await waitForBatchedUpdatesWithAct();
+        expect(result.current.selectedOptions).toBe(initialSelected);
+        expect(result.current.selectedOptions.at(0)).toBe(participant);
+        expect(result.current.selectedOptions.at(0)?.isSelected).toBe(false);
+        expect(result.current.selectedOptionsForDisplay.at(0)).toBe(participant);
+        expect(result.current.selectedNonExistingOptions?.[0]).toBe(participant);
+
+        // When removing the initial selection and adding the same false input exercises the real spread overwrite.
+        act(() => result.current.toggleSelection(participant));
+        expect(result.current.selectedOptions).toEqual([]);
+        expect(onSelectionChange).toHaveBeenLastCalledWith([]);
+        act(() => result.current.toggleSelection(participant));
+
+        // Then state, callback and displayed categories contain the rewritten value with every other field intact.
+        const option = result.current.selectedOptions.at(0);
+        const callback = onSelectionChange.mock.calls.at(-1);
+        expect(option).toBeDefined();
+        expect(callback).toBeDefined();
+        if (!option || !callback || option.reportID !== undefined) {
+            throw new Error('The real addition must produce a participant without a report and a selection callback');
+        }
+        const flag: boolean = option.isSelected;
+        expect(flag).toBe(true);
+        expect(option).toEqual({...participant, isSelected: true});
+        expect(option).not.toBe(participant);
+        expect(option).not.toHaveProperty('reportID');
+        expect(option).not.toHaveProperty('keyForList');
+        expect(callback[0]).toBe(result.current.selectedOptions);
+        expect(callback[0].at(0)).toBe(option);
+        expect(result.current.selectedOptionsForDisplay.at(0)).toBe(option);
+        expect(result.current.selectedNonExistingOptions?.[0]).toBe(option);
+        expect(participant).toEqual({login: 'unselected@example.com', isSelected: false, selected: true});
+        expect(initialSelected).toEqual([participant]);
+
+        // When toggling the rewritten output, unchanged login identity removes it again.
+        act(() => result.current.toggleSelection(option));
+        // Then all selected categories and the emitted selection are empty without mutating the input.
+        expect(result.current.selectedOptions).toEqual([]);
+        expect(result.current.selectedOptionsForDisplay).toEqual([]);
+        expect(result.current.selectedNonExistingOptions).toEqual([]);
+        expect(onSelectionChange).toHaveBeenLastCalledWith([]);
+        expect(participant.isSelected).toBe(false);
+    });
+
+    it('forwards the original false participant in single-select mode', async () => {
+        // Given single selection forwards caller data and does not create a multi-select state entry.
+        const participant: UnselectedParticipant = {login: 'unselected@example.com', isSelected: false, selected: true};
+        const onSingleSelect = jest.fn<
+            ReturnType<NonNullable<Parameters<typeof useSearchSelectorBase<UnselectedParticipant>>[0]['onSingleSelect']>>,
+            Parameters<NonNullable<Parameters<typeof useSearchSelectorBase<UnselectedParticipant>>[0]['onSingleSelect']>>
+        >();
+        const {result} = renderHook(() => useSearchSelectorBase<UnselectedParticipant>({selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE, onSingleSelect}));
+        await waitForBatchedUpdatesWithAct();
+        // When the false participant is selected through the production handler.
+        act(() => result.current.toggleSelection(participant));
+        // Then the callback receives that exact object with its original false flag and no fabricated fields.
+        expect(onSingleSelect).toHaveBeenCalledTimes(1);
+        expect(onSingleSelect.mock.calls.at(0)?.[0]).toBe(participant);
+        expect(participant).toEqual({login: 'unselected@example.com', isSelected: false, selected: true});
+        expect(result.current.selectedOptions).toEqual([]);
+    });
+
+    it('retains report-less initial participants and toggles by account and login identity', async () => {
+        // Given the sanitized participant shape written by ParticipantSearchResults, with no report or list key.
+        const participant: Participant = {accountID: EXISTING_CONTACT.accountID, login: EXISTING_CONTACT.login, selected: true, reportID: undefined};
+        const onSelectionChange = jest.fn<void, [Array<Participant | OptionData>]>();
+        mockGetValidOptions.mockReturnValue({options: {recentReports: [], personalDetails: [EXISTING_CONTACT, SECOND_CONTACT], userToInvite: null, currentUserOption: null}});
+        const {result} = renderHook(() =>
+            useSearchSelectorBase<Participant>({
+                selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+                initialSelected: [participant],
+                onSelectionChange,
+            }),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // When the hook displays initial state and removes a hydrated option matching that participant.
+        expect(result.current.selectedOptions).toEqual([participant]);
+        expect(result.current.selectedOptions.at(0)).toBe(participant);
+        const webSelected: ReturnType<typeof useSearchSelectorWeb<Participant>>['selectedOptions'] = result.current.selectedOptions;
+        const nativeSelected: ReturnType<typeof useSearchSelectorNative<Participant>>['selectedOptions'] = result.current.selectedOptions;
+        expect(webSelected).toBe(result.current.selectedOptions);
+        expect(nativeSelected).toBe(result.current.selectedOptions);
+        expect(result.current.searchOptions.personalDetails.at(0)?.isSelected).toBe(true);
+        expect(result.current.availableOptions.personalDetails).toEqual([expect.objectContaining({accountID: SECOND_CONTACT.accountID})]);
+        act(() => result.current.toggleSelection(EXISTING_CONTACT));
+
+        // Then removal preserves callbacks and adding a new option preserves its full production shape.
+        expect(onSelectionChange).toHaveBeenLastCalledWith([]);
+        act(() => result.current.toggleSelection(SECOND_CONTACT));
+        expect(onSelectionChange).toHaveBeenLastCalledWith([{...SECOND_CONTACT, isSelected: true}]);
+        expect(result.current.selectedOptions).toEqual([{...SECOND_CONTACT, isSelected: true}]);
+
+        // When a report-less selection with a different account has the same login.
+        act(() => result.current.toggleSelection({login: SECOND_CONTACT.login, accountID: 999}));
+        // Then login identity still removes the selected option without fabricating a report ID.
+        expect(result.current.selectedOptions).toEqual([]);
+        expect(onSelectionChange).toHaveBeenLastCalledWith([]);
+    });
+
+    it.each<{initial: Participant; toggled: Participant; matches: boolean}>([
+        {initial: {}, toggled: {}, matches: false},
+        {initial: {accountID: 0, reportID: '', login: ''}, toggled: {accountID: 0, reportID: '', login: ''}, matches: false},
+        {initial: {accountID: 0, reportID: '123'}, toggled: {accountID: 0, reportID: '123'}, matches: true},
+        {initial: {reportID: '', login: 'alice@example.com'}, toggled: {reportID: '', login: 'alice@example.com'}, matches: true},
+        {initial: {accountID: 1, reportID: '123'}, toggled: {accountID: 2, reportID: '123'}, matches: true},
+        {initial: {accountID: 1, reportID: '123', login: 'alice@example.com'}, toggled: {accountID: 2, reportID: '456', login: 'alice@example.com'}, matches: true},
+        {initial: {reportID: '-1'}, toggled: {reportID: '-1'}, matches: false},
+        {initial: {reportID: '-1', login: 'alice@example.com'}, toggled: {reportID: '-1', login: 'alice@example.com'}, matches: true},
+    ])('preserves falsy identity fallthrough for %o', async ({initial, toggled, matches}) => {
+        // Given selected-participant writers allow absent and empty identifiers and placeholder report IDs.
+        const {result} = renderHook(() =>
+            useSearchSelectorBase<Participant>({
+                selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+                initialSelected: [initial],
+            }),
+        );
+        await waitForBatchedUpdatesWithAct();
+        expect(result.current.selectedOptions.at(0)).toBe(initial);
+        // When the real selector tests account, report and login identities in their existing order.
+        act(() => result.current.toggleSelection(toggled));
+        // Then a later identity can remove selection while empty identities never match each other.
+        expect(result.current.selectedOptions).toHaveLength(matches ? 0 : 2);
+        if (!matches) {
+            expect(result.current.selectedOptions.at(0)).toBe(initial);
+            expect(result.current.selectedOptions.at(1)).toEqual({...toggled, isSelected: true});
+        }
+    });
+
+    it('keeps the default selector selected values typed as complete OptionData', async () => {
+        // Given a default consumer such as NewChatPage, whose group draft later supplies a production option.
+        expect(checkUnselectedParticipantContracts).toBeDefined();
+        expect(checkParticipantUnionContracts).toBeDefined();
+        const {result} = renderHook(() => useSearchSelectorBase({selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI}));
+        await waitForBatchedUpdatesWithAct();
+        // When the group-draft setter supplies options and the result reaches the complete-option consumer contract.
+        act(() => result.current.setSelectedOptions([EXISTING_CONTACT]));
+        const selected: OptionData[] = result.current.selectedOptions;
+        const displayed: OptionData[] = result.current.selectedOptionsForDisplay;
+        const webSelected: ReturnType<typeof useSearchSelectorWeb>['selectedOptions'] = selected;
+        const nativeSelected: ReturnType<typeof useSearchSelectorNative>['selectedOptions'] = selected;
+        // Then the key and report guarantees remain available without an assertion.
+        expect(selected).toEqual([EXISTING_CONTACT]);
+        expect(displayed).toEqual([EXISTING_CONTACT]);
+        expect(webSelected).toBe(selected);
+        expect(nativeSelected).toBe(selected);
+        expect(selected.at(0)?.keyForList).toBe(EXISTING_CONTACT.keyForList);
     });
 
     it('keeps selected contacts in availableOptions.personalDetails when shouldKeepSelectedInAvailableOptions is true', async () => {

@@ -810,7 +810,7 @@ function combineStyles<T extends AllStyles>(...allStyles: Array<T | T[]>): T[] {
 /**
  * Get variable padding-left as style
  */
-function getPaddingLeft(paddingLeft: number): ViewStyle {
+function getPaddingLeft(paddingLeft: number): Pick<ViewStyle, 'paddingLeft'> {
     return {
         paddingLeft,
     };

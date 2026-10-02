@@ -197,7 +197,7 @@ function ParticipantSearchResults({
     const activeAdminWorkspaces = getActiveAdminWorkspaces(allPolicies, currentUserLogin);
 
     const getValidOptionsConfig = {
-        selectedOptions: participants as Participant[],
+        selectedOptions: [...participants],
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK,
         excludeNonAdminWorkspaces: action === CONST.IOU.ACTION.SHARE,
@@ -244,7 +244,7 @@ function ParticipantSearchResults({
 
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
-    const handleSelectionChange = (options: OptionData[]) => {
+    const updateSelectedParticipants = (options: Array<Participant | OptionData>) => {
         if (!isIOUSplit) {
             return;
         }
@@ -252,26 +252,27 @@ function ParticipantSearchResults({
         onParticipantsAdded(sanitizedParticipants);
     };
 
-    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, onListEndReached, contactState} = useSearchSelector({
-        selectionMode: isIOUSplit ? CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI : CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
-        searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
-        includeUserToInvite: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest && !isTransactionFromCreditCardImport && !shouldExcludeP2P,
-        excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-        includeRecentReports: true,
-        maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-        getValidOptionsConfig,
-        shouldInitialize: didScreenTransitionEnd,
-        enablePhoneContacts: isNative,
-        contactOptions: contacts,
-        initialSelected: participants as OptionData[],
-        onSelectionChange: handleSelectionChange,
-        onSingleSelect: (option: OptionData) => {
-            if (isIOUSplit) {
-                return;
-            }
-            addSingleParticipant(option);
-        },
-    });
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, onListEndReached, contactState} =
+        useSearchSelector<Participant>({
+            selectionMode: isIOUSplit ? CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI : CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
+            searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+            includeUserToInvite: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest && !isTransactionFromCreditCardImport && !shouldExcludeP2P,
+            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+            includeRecentReports: true,
+            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+            getValidOptionsConfig,
+            shouldInitialize: didScreenTransitionEnd,
+            enablePhoneContacts: isNative,
+            contactOptions: contacts,
+            initialSelected: [...participants],
+            onSelectionChange: updateSelectedParticipants,
+            onSingleSelect: (option: Participant | OptionData) => {
+                if (isIOUSplit) {
+                    return;
+                }
+                addSingleParticipant(option);
+            },
+        });
 
     const cleanSearchTerm = debouncedSearchTerm.trim().toLowerCase();
 
@@ -309,7 +310,7 @@ function ParticipantSearchResults({
         const selectedParticipantKeys = new Set(participants.map((participant) => getParticipantOptionKey(participant)).filter(Boolean));
         const formatResults = formatSectionsFromSearchTerm(
             searchTerm,
-            participants.map((participant) => ({...participant, reportID: participant.reportID})) as OptionData[],
+            [...participants],
             [],
             [],
             privateIsArchivedMap,
@@ -438,7 +439,7 @@ function ParticipantSearchResults({
      * @param option
      */
     const addParticipantToSelection = (option: Participant) => {
-        toggleSelection(option as OptionData);
+        toggleSelection(option);
     };
 
     // Right now you can't split a request with a workspace and other additional participants
