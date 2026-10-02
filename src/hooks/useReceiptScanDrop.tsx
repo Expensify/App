@@ -2,7 +2,7 @@ import {setTransactionReport} from '@libs/actions/Transaction';
 import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isGroupPolicy} from '@libs/PolicyUtils';
-import {generateReportID, getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
+import {generateReportID, isSelfDM} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
@@ -16,6 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {FileObject} from '@src/types/utils/Attachment';
 
+import {policyExpenseChatSelector} from '@selectors/Report';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import {useMemo} from 'react';
 
@@ -49,7 +50,7 @@ function useReceiptScanDrop() {
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: validTransactionDraftIDsSelector,
     });
-
+    const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyExpenseChatSelector(currentUserPersonalDetails.accountID, activePolicy?.id)});
     // Memoize the new report ID to avoid re-generating it on every render and cause the hook to change, which leads to performance issues.
     const newReportID = useMemo(() => generateReportID(), []);
 
@@ -100,7 +101,7 @@ function useReceiptScanDrop() {
             !shouldRestrictUserBillableActions(activePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID)
         ) {
             const shouldAutoReport = !!activePolicy?.autoReporting || !!personalPolicy?.autoReporting;
-            const report = shouldAutoReport ? getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id) : selfDMReport;
+            const report = shouldAutoReport ? activePolicyExpenseChat : selfDMReport;
             const transactionReportID = isSelfDM(report) ? CONST.REPORT.UNREPORTED_REPORT_ID : report?.reportID;
             const iouTypeTrackOrSubmit = transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
             const setParticipantsPromises = newReceiptFiles.map((receiptFile) => {

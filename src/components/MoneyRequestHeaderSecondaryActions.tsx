@@ -52,7 +52,6 @@ import {getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionU
 import {
     changeMoneyRequestHoldStatus,
     generateReportID,
-    getPolicyExpenseChat,
     isCurrentUserSubmitter,
     isDM,
     isExpenseReport,
@@ -80,6 +79,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {policyExpenseChatSelector} from '@src/selectors/Report';
 import type {Transaction} from '@src/types/onyx';
 
 import type {ValueOf} from 'type-fest';
@@ -236,7 +236,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         transaction &&
         getTransactionThreadPrimaryAction(currentUserLogin ?? '', accountID, report, parentReport, parentOwnerLogin, transaction, transactionViolations, policy, false)
     );
-    const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
+    const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyExpenseChatSelector(accountID, defaultExpensePolicy?.id)});
     const isPerDiemRequestOnNonDefaultWorkspace = isPerDiemRequest(transaction) && defaultExpensePolicy?.id !== policy?.id;
     const hasCustomUnitOutOfPolicyViolation = hasCustomUnitOutOfPolicyViolationTransactionUtils(transactionViolations);
     const isParentChatReportDM = isDM(chatIOUReport);
