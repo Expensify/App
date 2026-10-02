@@ -54,6 +54,7 @@ import {
     getTagApproverRule,
     findPolicyTagAtLevel,
     getTagGLCode,
+    hasAnyTagGLCode,
     isTagInPolicy,
     matchesParentTagPath,
     getGLCodeFromPolicyTag,
@@ -1706,6 +1707,52 @@ describe('PolicyUtils', () => {
         ])('%s', (_description, orderWeight, expected) => {
             const tagList = getTagListByOrderWeight(policyTags, orderWeight);
             expect(tagList.name).toEqual(expected);
+        });
+    });
+    describe('hasAnyTagGLCode', () => {
+        it('returns false when the workspace has no tags', () => {
+            // Given no tag lists, there is no GL code to pick, so the Tag GL code cell must stay read-only
+            // When / Then
+            expect(hasAnyTagGLCode(undefined)).toBe(false);
+            expect(hasAnyTagGLCode({})).toBe(false);
+        });
+
+        it('returns false when every GL code is missing or blank', () => {
+            // Given tags whose GL codes are missing, empty, whitespace or only quotes
+            const policyTagLists: PolicyTagLists = {
+                Department: {
+                    name: 'Department',
+                    orderWeight: 0,
+                    required: false,
+                    tags: {
+                        Engineering: {name: 'Engineering', enabled: true},
+                        Marketing: {name: 'Marketing', enabled: true, 'GL Code': ''},
+                        Sales: {name: 'Sales', enabled: true, 'GL Code': '   '},
+                        Support: {name: 'Support', enabled: true, 'GL Code': '""'},
+                    },
+                },
+            };
+
+            // When / Then a blank code does not count as a GL code
+            expect(hasAnyTagGLCode(policyTagLists)).toBe(false);
+        });
+
+        it('returns true when at least one tag has a GL code', () => {
+            // Given a mix of tags with and without a GL code
+            const policyTagLists: PolicyTagLists = {
+                Department: {
+                    name: 'Department',
+                    orderWeight: 0,
+                    required: false,
+                    tags: {
+                        Engineering: {name: 'Engineering', enabled: true, 'GL Code': '1234'},
+                        Marketing: {name: 'Marketing', enabled: true},
+                    },
+                },
+            };
+
+            // When / Then one code is enough to keep the cell editable
+            expect(hasAnyTagGLCode(policyTagLists)).toBe(true);
         });
     });
     describe('getTagGLCode', () => {

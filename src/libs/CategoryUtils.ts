@@ -134,6 +134,13 @@ function getCategoryGLCode(policyCategories: PolicyCategories | undefined, categ
     return glCode != null ? String(glCode).replaceAll('"', '') : '';
 }
 
+/**
+ * Whether at least one category on the workspace has a non-blank GL code.
+ */
+function hasAnyCategoryGLCode(policyCategories: PolicyCategories | undefined): boolean {
+    return Object.keys(policyCategories ?? {}).some((categoryName) => !!getCategoryGLCode(policyCategories, categoryName).trim());
+}
+
 function getDecodedCategoryName(categoryName: string) {
     return Str.htmlDecode(categoryName);
 }
@@ -233,6 +240,7 @@ export {
     isCategoryMissing,
     isCategoryDescriptionRequired,
     getCategoryGLCode,
+    hasAnyCategoryGLCode,
     getDecodedCategoryName,
     getDecodedLeafCategoryName,
     getDecodedFullCategoryName,

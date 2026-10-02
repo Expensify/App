@@ -6,7 +6,7 @@ import {EditableCell, usePopoverEditState} from '@components/TransactionItemRow/
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getTagGLCode, hasDependentTags} from '@libs/PolicyUtils';
+import {getTagGLCode, hasAnyTagGLCode, hasDependentTags} from '@libs/PolicyUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyTagLists} from '@src/types/onyx';
@@ -26,10 +26,12 @@ type TagGLCodeCellProps = TransactionDataCellProps &
  * Same shape as `CategoryGLCodeCell`: the code lives on the workspace tag, so editing picks the tag that owns the
  * code rather than rewriting the code. Multi-level tags produce one code per level joined into a single string, so
  * there is no single value to pick — `canEditTag` already refuses them and the cell stays read-only there. Like the
- * category cell, the picker always shows each tag's GL code, regardless of the workspace's tag GL code setting.
+ * category cell, the picker always shows each tag's GL code, regardless of the workspace's tag GL code setting, and
+ * the cell stays read-only when no tag on the workspace has a GL code.
  */
-function TagGLCodeCell({canEdit, onSave, shouldShowTooltip, transactionItem, policyID, policy: policyProp, policyTagLists}: TagGLCodeCellProps) {
+function TagGLCodeCell({canEdit: canEditTag, onSave, shouldShowTooltip, transactionItem, policyID, policy: policyProp, policyTagLists}: TagGLCodeCellProps) {
     const styles = useThemeStyles();
+    const canEdit = !!canEditTag && hasAnyTagGLCode(policyTagLists);
 
     const [livePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);

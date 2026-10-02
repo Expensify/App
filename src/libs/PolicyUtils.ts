@@ -1389,6 +1389,13 @@ function getGLCodeFromPolicyTag(tag: {['GL Code']?: string | number} | undefined
 }
 
 /**
+ * Whether at least one tag on the workspace, in any tag list, has a non-blank GL code.
+ */
+function hasAnyTagGLCode(policyTagLists: OnyxEntry<PolicyTagLists>): boolean {
+    return getTagLists(policyTagLists).some((tagList) => Object.values(tagList.tags ?? {}).some((tag) => !!getGLCodeFromPolicyTag(tag).trim()));
+}
+
+/**
  * Escape colon from tag name
  */
 function escapeTagName(tag: string) {
@@ -3718,6 +3725,7 @@ export {
     getLengthOfTag,
     getTagGLCode,
     getGLCodeFromPolicyTag,
+    hasAnyTagGLCode,
     isPolicyMemberWithoutPendingDelete,
     hasDynamicExternalWorkflow,
     shouldHideDynamicExternalWorkflowPeople,

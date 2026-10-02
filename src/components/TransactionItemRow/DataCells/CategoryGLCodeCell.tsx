@@ -6,7 +6,7 @@ import type {EditableProps} from '@components/TransactionItemRow/EditableCell';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getCategoryGLCode, isCategoryMissing} from '@libs/CategoryUtils';
+import {getCategoryGLCode, hasAnyCategoryGLCode, isCategoryMissing} from '@libs/CategoryUtils';
 
 import type {PolicyCategories} from '@src/types/onyx';
 
@@ -25,10 +25,12 @@ type CategoryGLCodeCellProps = TransactionDataCellProps &
  * Editing the cell therefore reassigns the expense to the category that owns the picked GL code, which is what makes
  * the category name update alongside it. The picker always lists each category with its GL code underneath, even when
  * the workspace hides GL codes in the regular category picker, because the code is what the user is picking here.
- * Codes shared by several categories stay distinguishable by name.
+ * Codes shared by several categories stay distinguishable by name. When no category on the workspace has a GL code
+ * there is nothing to pick, so the cell stays read-only.
  */
-function CategoryGLCodeCell({shouldShowTooltip, transactionItem, canEdit, onSave, policyID, policyCategories}: CategoryGLCodeCellProps) {
+function CategoryGLCodeCell({shouldShowTooltip, transactionItem, canEdit: canEditCategory, onSave, policyID, policyCategories}: CategoryGLCodeCellProps) {
     const styles = useThemeStyles();
+    const canEdit = !!canEditCategory && hasAnyCategoryGLCode(policyCategories);
 
     const categoryForComparison = isCategoryMissing(transactionItem?.category) ? '' : (transactionItem?.category ?? '');
 
