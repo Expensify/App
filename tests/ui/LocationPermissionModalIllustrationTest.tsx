@@ -1,5 +1,6 @@
 import {act, render, waitFor} from '@testing-library/react-native';
 
+import PlaceholderIcon from '@components/Icon/PlaceholderIcon';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import LocationPermissionModalAndroid from '@components/LocationPermissionModal/index.android';
 
@@ -17,11 +18,12 @@ const mockIllustration = function loadedIllustration() {
     return null;
 };
 
+let mockLoadedAsset: unknown = mockIllustration;
 let mockIsIllustrationLoading = true;
 let rerenderModal: (() => void) | undefined;
 
 jest.mock('@hooks/useLazyAsset', () => ({
-    useMemoizedLazyAsset: () => ({asset: mockIllustration, isLoading: mockIsIllustrationLoading}),
+    useMemoizedLazyAsset: () => ({asset: mockLoadedAsset, isLoading: mockIsIllustrationLoading}),
 }));
 
 jest.mock('@hooks/useConfirmModal', () => {
@@ -82,8 +84,9 @@ function renderModal({modal, onInitialGetLocationCompleted = jest.fn()}: {modal:
         );
 }
 
-async function finishIllustrationLoading() {
+async function finishIllustrationLoading({asset = mockIllustration}: {asset?: unknown} = {}) {
     await act(async () => {
+        mockLoadedAsset = asset;
         mockIsIllustrationLoading = false;
     });
     rerenderModal?.();
@@ -97,7 +100,7 @@ describe('the location prompt illustration', () => {
         mockGetLocationPermission.mockResolvedValue('denied');
     });
 
-    it('opens the prompt on the screen and tab variants only once the illustration is there', async () => {
+    it('opens the prompt on the web and iOS variant only once the illustration is there', async () => {
         renderModal({modal: LocationPermissionModal});
 
         // Given a scan screen that opened before the illustration finished loading
@@ -122,11 +125,27 @@ describe('the location prompt illustration', () => {
             await Promise.resolve();
         });
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        expect(mockGetLocationPermission).not.toHaveBeenCalled();
 
         await finishIllustrationLoading();
 
         await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(1));
         expect(getShowConfirmModalOption('iconSource')).toBe(mockIllustration);
+    });
+
+    it('opens the prompt with the placeholder when the illustration fails to load', async () => {
+        renderModal({modal: LocationPermissionModal});
+
+        await act(async () => {
+            await Promise.resolve();
+        });
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+
+        // A failed load settles the hook on the placeholder, so the prompt still opens instead of hanging
+        await finishIllustrationLoading({asset: PlaceholderIcon});
+
+        await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(1));
+        expect(getShowConfirmModalOption('iconSource')).toBe(PlaceholderIcon);
     });
 
     it('holds the caller spinner until the permission check has run', async () => {
