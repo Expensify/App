@@ -2,21 +2,22 @@ import AmountForm from '@components/AmountForm';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
-import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
+import Header from '@components/Header';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import RenderHTML from '@components/RenderHTML';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import UserPill from '@components/UserPill';
 
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePersonalDetailsByEmail from '@hooks/usePersonalDetailsByEmail';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -25,23 +26,22 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {canMemberWrite, goBackFromInvalidPolicy, isPendingDeletePolicy, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
-import {isApprovalWorkflowLockedByIntegration} from '@libs/WorkflowUtils';
+import {getApprovalLimitGroups, getApprovalLimitLoopApprover, getApprovalLimitShortName, isApprovalWorkflowLockedByIntegration} from '@libs/WorkflowUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 
-import {clearApprovalWorkflowApprover, setApprovalWorkflowApprover, setApprovalWorkflowIsInitialFlow} from '@userActions/Workflow';
+import {setApprovalLimit, updateApprovalLimit} from '@userActions/Workflow';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import {Str} from 'expensify-common';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 type WorkspaceWorkflowsApprovalsApprovalLimitPageProps = WithPolicyAndFullscreenLoadingProps &
@@ -49,148 +49,149 @@ type WorkspaceWorkflowsApprovalsApprovalLimitPageProps = WithPolicyAndFullscreen
 
 function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsApprovalLimitPageProps) {
     const styles = useThemeStyles();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
-    const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
+    const [approvalLimitDraft, approvalLimitDraftMetadata] = useOnyx(ONYXKEYS.APPROVAL_LIMIT);
+    const isApprovalLimitDraftLoading = isLoadingOnyxValue(approvalLimitDraftMetadata);
     const personalDetailsByEmail = usePersonalDetailsByEmail();
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
+    const {isBetaEnabled} = usePermissions();
+    const {showConfirmModal} = useConfirmModal();
 
     const policyID = route.params.policyID;
-    const approverIndex = Number(route.params.approverIndex) || 0;
-    const isEditFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT;
-    const currentApprover = approvalWorkflow?.approvers?.[approverIndex];
+    const approverEmail = route.params.approverEmail;
+    const isEditFlow = !!approverEmail;
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
+    const employees = policy?.employeeList ?? {};
 
-    const selectedApproverEmail = currentApprover?.overLimitForwardsTo ?? '';
-
-    const defaultApprovalLimit = currentApprover?.approvalLimit ? convertToFrontendAmountAsString(currentApprover.approvalLimit, getCurrencyDecimals(currency)) : '';
-
-    const [editedApprovalLimit, setEditedApprovalLimit] = useState<{approverEmail: string; value: string} | null>(null);
+    const [editedApprovalLimit, setEditedApprovalLimit] = useState<string>();
     const [hasSubmitted, setHasSubmitted] = useState(false);
 
-    const approverEmail = currentApprover?.email ?? '';
-    const approvalLimit = editedApprovalLimit?.approverEmail === approverEmail ? editedApprovalLimit.value : defaultApprovalLimit;
+    const approvalLimitGroup = isEditFlow
+        ? getApprovalLimitGroups({employees, personalDetailsByEmail: personalDetailsByEmail ?? {}, localeCompare}).find((group) => group.approvers.includes(approverEmail))
+        : undefined;
 
-    const selectedApproverPersonalDetails = selectedApproverEmail ? personalDetailsByEmail?.[selectedApproverEmail] : undefined;
-    const selectedApproverName = selectedApproverPersonalDetails?.displayName ?? selectedApproverEmail;
-    const formattedApproverName = Str.isSMSLogin(selectedApproverName) ? formatPhoneNumber(selectedApproverName) : selectedApproverName;
-    const selectedApproverDisplayName = selectedApproverEmail ? formattedApproverName : '';
     const canWriteApprovals = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS);
-
     const shouldShowNotFoundView =
         (isEmptyObject(policy) && !isLoadingReportData) ||
         !canWriteApprovals ||
         isPendingDeletePolicy(policy) ||
+        (isEditFlow && !approvalLimitGroup && !approvalLimitDraft?.originalApprovers.includes(approverEmail)) ||
         isApprovalWorkflowLockedByIntegration(policy) ||
-        shouldHideDynamicExternalWorkflowPeople(policy);
+        shouldHideDynamicExternalWorkflowPeople(policy) ||
+        isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
 
-    const approverDisplayName = Str.isSMSLogin(currentApprover?.displayName ?? '') ? formatPhoneNumber(currentApprover?.displayName ?? '') : (currentApprover?.displayName ?? '');
-    const isApproverSelected = isEditFlow ? approverDisplayName.length > 0 : true;
-    const areLimitFieldsDisabled = isEditFlow && !isApproverSelected;
+    // Seed the draft when the page is opened. Sub-pages write into it, so keep it when returning from one of them.
+    useEffect(() => {
+        if (isApprovalLimitDraftLoading) {
+            return;
+        }
 
+        const isResumingDraft = isEditFlow ? !!approvalLimitDraft?.originalApprovers.includes(approverEmail) : !!approvalLimitDraft && approvalLimitDraft.originalApprovers.length === 0;
+        if (isResumingDraft) {
+            return;
+        }
+
+        if (isEditFlow && !approvalLimitGroup) {
+            return;
+        }
+
+        setApprovalLimit({
+            approvers: approvalLimitGroup?.approvers ?? [],
+            approvalLimit: approvalLimitGroup ? convertToFrontendAmountAsString(approvalLimitGroup.approvalLimit, getCurrencyDecimals(currency)) : '',
+            overLimitForwardsTo: approvalLimitGroup?.overLimitForwardsTo ?? '',
+            originalApprovers: approvalLimitGroup?.approvers ?? [],
+        });
+    }, [isApprovalLimitDraftLoading, approvalLimitDraft, isEditFlow, approverEmail, approvalLimitGroup, currency, getCurrencyDecimals]);
+
+    const approvers = approvalLimitDraft?.approvers ?? [];
+    const originalApprovers = approvalLimitDraft?.originalApprovers ?? [];
+    const overLimitForwardsTo = approvalLimitDraft?.overLimitForwardsTo ?? '';
+    const approvalLimit = editedApprovalLimit ?? approvalLimitDraft?.approvalLimit ?? '';
+
+    const hasApprovers = approvers.length > 0;
     const hasAmount = approvalLimit.length > 0 && Number(approvalLimit) > 0;
-    const hasApprover = selectedApproverEmail.length > 0;
-    const bothEmpty = !hasAmount && !hasApprover;
-    const onlyAmountEmpty = !hasAmount && hasApprover;
-    const onlyApproverEmpty = hasAmount && !hasApprover;
+    const hasOverLimitApprover = overLimitForwardsTo.length > 0;
+    const loopApproverEmail = hasApprovers && hasOverLimitApprover ? getApprovalLimitLoopApprover({employees, approvers, overLimitForwardsTo, originalApprovers}) : undefined;
 
-    const amountError = hasSubmitted && onlyAmountEmpty ? translate('workflowsApprovalLimitPage.enterAmountError') : undefined;
-    const approverErrorText = hasSubmitted && onlyApproverEmpty ? translate('workflowsApprovalLimitPage.enterApproverError') : undefined;
+    const getDisplayName = (email: string) => formatPhoneNumber(personalDetailsByEmail?.[email]?.displayName ?? email);
 
-    const firstApprover = approvalWorkflow?.originalApprovers?.at(0)?.email ?? '';
-
-    const navigateAfterCompletion = () => {
-        if (isEditFlow) {
-            // In edit mode, always go directly to the Edit page when saving.
-            // Don't compare params: when the workflow was opened from "Add agent", the mounted edit
-            // screen carries extra seed params, so a strict param match misses it and REPLACE mounts
-            // a fresh edit screen that re-derives the workflow from the policy — wiping the unsaved
-            // draft (the seeded agent and any in-progress edits). POP_TO returns to the live screen.
-            Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, firstApprover, approvalWorkflow?.memberEmail), {compareParams: false});
-            return;
+    const approverErrorText = hasSubmitted && !hasApprovers ? translate('common.error.fieldRequired') : undefined;
+    const amountErrorText = hasSubmitted && !hasAmount ? translate('workflowsApprovalLimitPage.enterAmountError') : undefined;
+    const getOverLimitApproverErrorText = () => {
+        if (!hasSubmitted) {
+            return undefined;
         }
-        // Mark that we've completed the initial wizard flow before navigating to the summary page
-        setApprovalWorkflowIsInitialFlow(false);
-        // Use forceReplace to replace the ApprovalLimit page in the navigation stack
-        // so that when the user presses back from the Create page, they go to the Approver page
-        // (not back to ApprovalLimit, especially when skipping)
-        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID), {forceReplace: true});
+        if (!hasOverLimitApprover) {
+            return translate('common.error.fieldRequired');
+        }
+        if (loopApproverEmail) {
+            return translate('workflowsApprovalLimitPage.loopError', {
+                overLimitApproverName: getDisplayName(overLimitForwardsTo),
+                approverName: getDisplayName(loopApproverEmail),
+            });
+        }
+        return undefined;
     };
+    const overLimitApproverErrorText = getOverLimitApproverErrorText();
 
-    const updateCurrentApprover = (update: Partial<Approver>) => {
-        if (!approvalWorkflow || !currentApprover) {
-            return;
-        }
+    const summaryText =
+        hasApprovers && hasAmount && hasOverLimitApprover
+            ? translate('workflowsApprovalLimitPage.summary', {
+                  approverNames: approvers.map((email) => getApprovalLimitShortName(email, personalDetailsByEmail ?? {}, formatPhoneNumber)).join(` ${translate('common.or')} `),
+                  approvalLimit: convertToDisplayString(convertToBackendAmount(Number.parseFloat(approvalLimit)), currency),
+                  overLimitApproverName: getApprovalLimitShortName(overLimitForwardsTo, personalDetailsByEmail ?? {}, formatPhoneNumber),
+              })
+            : undefined;
 
-        setApprovalWorkflowApprover({
-            approver: {
-                ...currentApprover,
-                ...update,
-            },
-            approverIndex,
-            currentApprovalWorkflow: approvalWorkflow,
-            policy,
-            personalDetailsByEmail,
-        });
-    };
-
-    const resetApprovalLimit = () => {
-        updateCurrentApprover({
-            approvalLimit: null,
-            overLimitForwardsTo: '',
-        });
-    };
-
-    const handleSkip = () => {
-        resetApprovalLimit();
-        navigateAfterCompletion();
-    };
-
-    const handleSubmit = () => {
-        if (!approvalWorkflow) {
-            return;
-        }
-
-        if (!currentApprover) {
-            clearApprovalWorkflowApprover({approverIndex, currentApprovalWorkflow: approvalWorkflow});
-            navigateAfterCompletion();
-            return;
-        }
-
-        if (bothEmpty) {
-            resetApprovalLimit();
-            navigateAfterCompletion();
-            return;
-        }
-
-        if (onlyAmountEmpty || onlyApproverEmpty) {
+    const saveApprovalLimit = () => {
+        if (!hasApprovers || !hasAmount || !hasOverLimitApprover || loopApproverEmail) {
             setHasSubmitted(true);
             return;
         }
 
         const limitInCents = convertToBackendAmount(Number.parseFloat(approvalLimit));
-        updateCurrentApprover({
-            approvalLimit: limitInCents,
-            overLimitForwardsTo: selectedApproverEmail,
+        Navigation.goBack(undefined, {
+            afterTransition: () => {
+                updateApprovalLimit({policy, approvers, originalApprovers, approvalLimit: limitInCents, overLimitForwardsTo});
+            },
         });
-        navigateAfterCompletion();
     };
 
-    const handleAmountChange = (value: string) => {
-        setEditedApprovalLimit({approverEmail, value});
-        setHasSubmitted(false);
+    const deleteApprovalLimit = () => {
+        showConfirmModal({
+            title: translate('workflowsApprovalLimitPage.deleteTitle'),
+            prompt: translate('workflowsApprovalLimitPage.deletePrompt'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+
+            Navigation.goBack(undefined, {
+                afterTransition: () => {
+                    updateApprovalLimit({policy, approvers: [], originalApprovers, approvalLimit: null, overLimitForwardsTo: ''});
+                },
+            });
+        });
     };
 
-    const navigateToApproverSelector = () => {
-        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER.getRoute(policyID, approverIndex));
-    };
+    const renderUserPill = (email: string) => (
+        <View style={styles.pr3}>
+            <UserPill
+                avatar={personalDetailsByEmail?.[email]?.avatar}
+                displayName={personalDetailsByEmail?.[email]?.displayName ?? email}
+                email={email}
+                style={styles.userPillStandalone}
+            />
+        </View>
+    );
 
-    const navigateToApproverChange = () => {
-        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER_CHANGE.getRoute(policyID, approverIndex));
-    };
-
-    const shouldShowRemoveLimitRow = isEditFlow && (hasAmount || hasApprover);
+    // An empty "Additional approver" row follows the picked approvers, so another approver can share the limit.
+    const approverRows = hasApprovers ? [...approvers, undefined] : [undefined];
 
     return (
         <AccessOrNotFoundWrapper
@@ -210,123 +211,90 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                     onLinkPress={goBackFromInvalidPolicy}
                     addBottomSafeAreaPadding
                 >
-                    <HeaderWithBackButton
-                        title={isEditFlow ? translate('workflowsPage.approver') : translate('workflowsApprovalLimitPage.title')}
-                        onBackButtonPress={() => Navigation.goBack()}
-                    />
+                    <HeaderWithBackButtonAndTitle title={translate('workflowsApprovalLimitPage.title')}>
+                        {isEditFlow && (
+                            <Header.IconButton
+                                tooltipText={translate('common.delete')}
+                                onPress={deleteApprovalLimit}
+                                iconSrc={icons.Trashcan}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_LIMIT_DELETE}
+                            />
+                        )}
+                    </HeaderWithBackButtonAndTitle>
                     <ScrollView
                         style={styles.flex1}
                         contentContainerStyle={styles.flexGrow1}
                     >
                         <View style={[styles.mh5, styles.flex1]}>
-                            {isEditFlow ? (
-                                <>
+                            <Text style={[styles.textSupporting, styles.mb5]}>{translate('workflowsApprovalLimitPage.description')}</Text>
+
+                            <Text style={[styles.textStrong, styles.mb3]}>{translate('workflowsApprovalLimitPage.approversWithLimits')}</Text>
+                            {approverRows.map((email, approverIndex) => {
+                                const description = approverIndex === 0 ? translate('workflowsPage.approver') : translate('workflowsApprovalLimitPage.additionalApproverLabel');
+                                const isLastRow = approverIndex === approverRows.length - 1;
+
+                                return (
                                     <MenuItemWithTopDescription
-                                        accessibilityLabel={approverDisplayName}
+                                        // eslint-disable-next-line react/no-array-index-key
+                                        key={`approver-${email}-${approverIndex}`}
+                                        accessibilityLabel={email ? getDisplayName(email) : description}
                                         titleStyle={styles.textNormalThemeText}
-                                        description={translate('workflowsPage.approver')}
-                                        descriptionTextStyle={approverDisplayName ? styles.textLabelSupportingNormal : undefined}
-                                        titleComponent={
-                                            currentApprover ? (
-                                                <View style={styles.pr3}>
-                                                    <UserPill
-                                                        avatar={currentApprover.avatar}
-                                                        displayName={currentApprover.displayName}
-                                                        email={currentApprover.email}
-                                                        style={styles.userPillStandalone}
-                                                    />
-                                                </View>
-                                            ) : undefined
-                                        }
-                                        onPress={navigateToApproverChange}
+                                        description={description}
+                                        descriptionTextStyle={email ? styles.textLabelSupportingNormal : undefined}
+                                        titleComponent={email ? renderUserPill(email) : undefined}
+                                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT_APPROVER.getRoute(policyID, approverIndex))}
                                         shouldShowRightIcon
                                         wrapperStyle={styles.sectionMenuItemTopDescription}
+                                        brickRoadIndicator={isLastRow && approverErrorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                        errorText={isLastRow ? approverErrorText : undefined}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_LIMIT_APPROVER}
                                     />
-                                    <View style={[styles.mt3, styles.mb5, styles.renderHTML]}>
-                                        <RenderHTML html={translate('workflowsApprovalLimitPage.description', {approverName: approverDisplayName})} />
-                                    </View>
-                                </>
-                            ) : (
-                                <>
-                                    <Text style={[styles.textHeadlineH1, styles.mv3]}>{translate('workflowsApprovalLimitPage.header')}</Text>
-                                    <View style={[styles.mb5, styles.renderHTML]}>
-                                        <RenderHTML html={translate('workflowsApprovalLimitPage.description', {approverName: approverDisplayName})} />
-                                    </View>
-                                </>
-                            )}
+                                );
+                            })}
 
+                            <Text style={[styles.textStrong, styles.mt5, styles.mb3]}>{translate('workflowsApprovalLimitPage.limit')}</Text>
                             <View style={styles.mb4}>
                                 <AmountForm
-                                    key={approverEmail}
                                     label={translate('workflowsApprovalLimitPage.reportAmountLabel')}
                                     currency={currency}
                                     value={approvalLimit}
-                                    onInputChange={handleAmountChange}
+                                    onInputChange={(value: string) => {
+                                        setEditedApprovalLimit(value);
+                                        setHasSubmitted(false);
+                                    }}
                                     isCurrencyPressable={false}
                                     displayAsTextInput
-                                    disabled={areLimitFieldsDisabled}
-                                    errorText={amountError}
-                                    onSubmitEditing={handleSubmit}
+                                    errorText={amountErrorText}
+                                    onSubmitEditing={saveApprovalLimit}
                                 />
                             </View>
 
+                            <Text style={[styles.textStrong, styles.mt1, styles.mb3]}>{translate('workflowsApprovalLimitPage.forwardTo')}</Text>
                             <MenuItemWithTopDescription
-                                accessibilityLabel={selectedApproverDisplayName}
+                                accessibilityLabel={hasOverLimitApprover ? getDisplayName(overLimitForwardsTo) : translate('workflowsApprovalLimitPage.newApprover')}
                                 titleStyle={styles.textNormalThemeText}
-                                description={translate('workflowsApprovalLimitPage.additionalApproverLabel')}
-                                descriptionTextStyle={selectedApproverDisplayName ? styles.textLabelSupportingNormal : undefined}
-                                titleComponent={
-                                    selectedApproverEmail ? (
-                                        <View style={styles.pr3}>
-                                            <UserPill
-                                                avatar={selectedApproverPersonalDetails?.avatar}
-                                                displayName={selectedApproverPersonalDetails?.displayName ?? selectedApproverEmail}
-                                                email={selectedApproverEmail}
-                                                style={styles.userPillStandalone}
-                                            />
-                                        </View>
-                                    ) : undefined
-                                }
-                                onPress={navigateToApproverSelector}
+                                description={translate('workflowsApprovalLimitPage.newApprover')}
+                                descriptionTextStyle={hasOverLimitApprover ? styles.textLabelSupportingNormal : undefined}
+                                titleComponent={hasOverLimitApprover ? renderUserPill(overLimitForwardsTo) : undefined}
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER.getRoute(policyID))}
                                 shouldShowRightIcon
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
-                                brickRoadIndicator={approverErrorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                errorText={approverErrorText}
-                                disabled={areLimitFieldsDisabled}
-                                shouldGreyOutWhenDisabled
+                                brickRoadIndicator={overLimitApproverErrorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                errorText={overLimitApproverErrorText}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_LIMIT_NEW_APPROVER}
                             />
-
-                            {shouldShowRemoveLimitRow && (
-                                <MenuItemSectionRoot onPress={handleSkip}>
-                                    <MenuItem.Row>
-                                        <MenuItem.Leading>
-                                            <MenuItem.Icon src={icons.Trashcan} />
-                                        </MenuItem.Leading>
-                                        <MenuItem.Content>
-                                            <MenuItem.Title>{translate('workflowsApprovalLimitPage.removeLimit')}</MenuItem.Title>
-                                        </MenuItem.Content>
-                                    </MenuItem.Row>
-                                </MenuItemSectionRoot>
-                            )}
                         </View>
                     </ScrollView>
 
                     <FixedFooter addBottomSafeAreaPadding>
-                        {!isEditFlow && (
-                            <Button
-                                size={CONST.BUTTON_SIZE.LARGE}
-                                onPress={handleSkip}
-                                style={styles.mb3}
-                            >
-                                <Button.Text>{translate('workflowsApprovalLimitPage.skip')}</Button.Text>
-                            </Button>
-                        )}
+                        {!!summaryText && <Text style={[styles.textLabelSupporting, styles.textAlignCenter, styles.mb3]}>{summaryText}</Text>}
                         <Button
                             size={CONST.BUTTON_SIZE.LARGE}
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
-                            onPress={handleSubmit}
+                            onPress={saveApprovalLimit}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_LIMIT_SAVE}
                         >
-                            <Button.Text>{isEditFlow ? translate('common.save') : translate('workflowsApprovalLimitPage.next')}</Button.Text>
+                            <Button.Text>{translate('common.save')}</Button.Text>
                         </Button>
                     </FixedFooter>
                 </FullPageNotFoundView>

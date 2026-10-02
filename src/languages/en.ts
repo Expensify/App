@@ -3041,6 +3041,11 @@ const translations = {
         addApprovalsTitle: 'Approvals',
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `expenses from ${members}, and the approver is ${approvers}`,
         addApprovalButton: 'Add approval workflow',
+        approverLimitsTitle: 'Approver limits',
+        approverLimitsDescription: 'Set limit to another approver to re-route reports',
+        addApprovalLimit: 'Add approval limit',
+        approvalLimitDescription: ({approverNames, approvalLimit, overLimitApproverName}: {approverNames: string; approvalLimit: string; overLimitApproverName: string}) =>
+            `${approverNames} (${approvalLimit} limit) forwards to ${overLimitApproverName}`,
         loadMoreWorkflows: ({count}: {count: number}) => `Load ${count} more`,
         editWorkflowAction: 'Edit',
         findWorkflow: 'Find workflow',
@@ -3137,21 +3142,24 @@ const translations = {
         description: 'This person will approve the expenses.',
     },
     workflowsApprovalLimitPage: {
-        title: 'Approver',
-        header: '(Optional) Want to add an approval limit?',
-        description: ({approverName}: {approverName: string}) =>
-            approverName
-                ? `Add another approver when <strong>${approverName}</strong> is approver and report exceeds the amount below:`
-                : 'Add another approver when a report exceeds the amount below:',
-        reportAmountLabel: 'Report amount',
+        title: 'Approval limit',
+        description: 'Automatically forward reports to another approver when the amount exceeds the limit set below.',
+        approversWithLimits: 'Approvers with limits',
         additionalApproverLabel: 'Additional approver',
-        skip: 'Skip',
-        next: 'Next',
-        removeLimit: 'Remove limit',
+        limit: 'Limit',
+        reportAmountLabel: 'Report amount',
+        forwardTo: 'Forward to',
+        newApprover: 'New approver',
         enterAmountError: 'Please enter a valid amount',
         enterApproverError: 'Approver is required when you set a report limit',
-        enterBothError: 'Enter a report amount and additional approver',
-        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) => `Reports above ${approvalLimit} forward to ${approverName}`,
+        summary: ({approverNames, approvalLimit, overLimitApproverName}: {approverNames: string; approvalLimit: string; overLimitApproverName: string}) =>
+            `Any report that goes to ${approverNames} and report amount exceeds ${approvalLimit} gets forwarded to ${overLimitApproverName}.`,
+        loopError: ({overLimitApproverName, approverName}: {overLimitApproverName: string; approverName: string}) =>
+            `${overLimitApproverName} already forwards reports back to ${approverName}, which would create a loop. Choose a different approver.`,
+        deleteTitle: 'Delete approval limit',
+        deletePrompt: 'Reports over this limit will no longer be forwarded.',
+        approvesUpToDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) =>
+            `Approves up to ${approvalLimit}. Over that, reports forward to ${approverName}.`,
     },
     workflowsPayerPage: {
         title: 'Authorized payer',

@@ -9874,6 +9874,13 @@ const CONST = {
                 APPROVAL_SECTION_EXPENSES_FROM: 'WorkspaceWorkflows-ApprovalSectionExpensesFrom',
                 APPROVAL_SECTION_APPROVER: 'WorkspaceWorkflows-ApprovalSectionApprover',
                 APPROVAL_SECTION_SHOW_ALL_MEMBERS: 'WorkspaceWorkflows-ApprovalSectionShowAllMembers',
+                APPROVAL_SECTION_APPROVAL_LIMIT_INFO: 'WorkspaceWorkflows-ApprovalSectionApprovalLimitInfo',
+                ADD_APPROVAL_LIMIT: 'WorkspaceWorkflows-AddApprovalLimit',
+                APPROVAL_LIMIT: 'WorkspaceWorkflows-ApprovalLimit',
+                APPROVAL_LIMIT_APPROVER: 'WorkspaceWorkflows-ApprovalLimitApprover',
+                APPROVAL_LIMIT_NEW_APPROVER: 'WorkspaceWorkflows-ApprovalLimitNewApprover',
+                APPROVAL_LIMIT_DELETE: 'WorkspaceWorkflows-ApprovalLimitDelete',
+                APPROVAL_LIMIT_SAVE: 'WorkspaceWorkflows-ApprovalLimitSave',
             },
             ACCOUNTING: {
                 SETUP_BUTTON: 'WorkspaceAccounting-SetupButton',

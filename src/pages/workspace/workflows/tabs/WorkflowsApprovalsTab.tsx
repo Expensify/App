@@ -58,6 +58,7 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 
+import WorkflowsApproverLimitsSection from './WorkflowsApproverLimitsSection';
 import WorkflowsSectionCard from './WorkflowsSectionCard';
 
 type WorkflowsApprovalsTabProps = {
@@ -315,6 +316,16 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
     const approvalOptionSubtitle = isWorkflowFromIntegration || !isSmartLimitEnabled ? approvalSubtitle : translate('workspace.moreFeatures.workflows.disableApprovalPrompt');
     const hasApprovalError = !!policy?.errorFields?.approvalMode;
 
+    // Submit2026 workspaces have approval mode set to Advanced, but we want to show it here as off because configuring the advanced approvals is a paid feature.
+    const isApprovalsActive =
+        !isSubmitPolicyWorkspace &&
+        (isWorkflowFromIntegration ||
+            isDEWEnabled ||
+            (([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED].some((approvalMode) => approvalMode === policy?.approvalMode) && !hasApprovalError) ?? false));
+
+    // With the beta, limits are stored on each workflow's own rules instead of on the approver, so the card can't manage them.
+    const shouldShowApproverLimits = isApprovalsActive && !isDEWEnabled && !shouldHideApprovalWorkflows && !isMultipleApproversBetaEnabled;
+
     const getAddApprovalsToggleDisabledAction = () => {
         if (isWorkflowFromIntegration) {
             return promptConfigureApprovalsInIntegration;
@@ -323,172 +334,174 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
     };
 
     return (
-        <WorkflowsSectionCard
-            title={translate('workflowsPage.addApprovalsTitle')}
-            subtitle={approvalOptionSubtitle}
-            switchAccessibilityLabel={isSmartLimitEnabled ? translate('workspace.moreFeatures.workflows.disableApprovalPrompt') : translate('workflowsPage.addApprovalsDescription')}
-            onToggle={(isEnabled: boolean) => {
-                if (!canWriteApprovals) {
-                    showReadOnlyModal();
-                    return;
-                }
-                if (isEnabled && isSubmitPolicyWorkspace) {
-                    navigateToSubmitWorkspaceApprovalsUpgrade();
-                    return;
-                }
-                if (isWorkflowFromIntegration) {
-                    return;
-                }
-                if (!isEnabled) {
-                    showConfirmModal({
-                        title: translate('workspace.bankAccount.areYouSure'),
-                        prompt: translate('workflowsPage.disableApprovalPromptDescription'),
-                        confirmText: translate('common.disable'),
-                        cancelText: translate('common.cancel'),
-                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-                    }).then((result) => {
-                        if (result.action !== ModalActions.CONFIRM) {
-                            return;
-                        }
-                        confirmDisableApprovals();
-                    });
-                    return;
-                }
-                setWorkspaceApprovalMode(
-                    policy,
-                    policy?.owner ?? '',
-                    isEnabled ? updateApprovalMode : CONST.POLICY.APPROVAL_MODE.OPTIONAL,
-                    currentUserAccountID,
-                    currentUserEmail,
-                    isTrackIntentUser,
-                    rulesCollection,
-                    {
-                        transactionViolations,
-                        isASAPSubmitBetaEnabled: isBetaEnabledOrUnknown(CONST.BETAS.ASAP_SUBMIT),
-                        personalDetailsList: personalDetails,
-                    },
-                );
-            }}
-            subMenuItems={
-                <>
-                    {isDEWEnabled && (
-                        <View style={[styles.border, shouldUseNarrowLayout ? styles.p3 : styles.p4, styles.mt6, styles.mbn3, styles.flexRow, styles.alignItemsCenter]}>
-                            <Icon
-                                src={expensifyIcons.Info}
-                                fill={theme.textSupporting}
-                                additionalStyles={styles.popoverMenuIcon}
-                            />
-                            <View style={[styles.flex1, styles.ml3]}>
-                                <RenderHTML
-                                    html={
-                                        accountManagerReportID
-                                            ? translate('workflowsPage.customApprovalWorkflowEnabled')
-                                            : translate('workflowsPage.customApprovalWorkflowEnabledConciergeOnly')
-                                    }
+        <>
+            <WorkflowsSectionCard
+                title={translate('workflowsPage.addApprovalsTitle')}
+                subtitle={approvalOptionSubtitle}
+                switchAccessibilityLabel={isSmartLimitEnabled ? translate('workspace.moreFeatures.workflows.disableApprovalPrompt') : translate('workflowsPage.addApprovalsDescription')}
+                onToggle={(isEnabled: boolean) => {
+                    if (!canWriteApprovals) {
+                        showReadOnlyModal();
+                        return;
+                    }
+                    if (isEnabled && isSubmitPolicyWorkspace) {
+                        navigateToSubmitWorkspaceApprovalsUpgrade();
+                        return;
+                    }
+                    if (isWorkflowFromIntegration) {
+                        return;
+                    }
+                    if (!isEnabled) {
+                        showConfirmModal({
+                            title: translate('workspace.bankAccount.areYouSure'),
+                            prompt: translate('workflowsPage.disableApprovalPromptDescription'),
+                            confirmText: translate('common.disable'),
+                            cancelText: translate('common.cancel'),
+                            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+                        }).then((result) => {
+                            if (result.action !== ModalActions.CONFIRM) {
+                                return;
+                            }
+                            confirmDisableApprovals();
+                        });
+                        return;
+                    }
+                    setWorkspaceApprovalMode(
+                        policy,
+                        policy?.owner ?? '',
+                        isEnabled ? updateApprovalMode : CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                        currentUserAccountID,
+                        currentUserEmail,
+                        isTrackIntentUser,
+                        rulesCollection,
+                        {
+                            transactionViolations,
+                            isASAPSubmitBetaEnabled: isBetaEnabledOrUnknown(CONST.BETAS.ASAP_SUBMIT),
+                            personalDetailsList: personalDetails,
+                        },
+                    );
+                }}
+                subMenuItems={
+                    <>
+                        {isDEWEnabled && (
+                            <View style={[styles.border, shouldUseNarrowLayout ? styles.p3 : styles.p4, styles.mt6, styles.mbn3, styles.flexRow, styles.alignItemsCenter]}>
+                                <Icon
+                                    src={expensifyIcons.Info}
+                                    fill={theme.textSupporting}
+                                    additionalStyles={styles.popoverMenuIcon}
                                 />
-                            </View>
-                        </View>
-                    )}
-                    {!shouldHideApprovalWorkflows && (
-                        <>
-                            {filteredApprovalWorkflows.length > CONST.SEARCH_BAR_THRESHOLD && (
-                                <SearchBar
-                                    label={translate('workflowsPage.findWorkflow')}
-                                    inputValue={workflowSearchInput}
-                                    onChangeText={setWorkflowSearchInput}
-                                    style={[styles.mt6, {marginHorizontal: 0}]}
-                                />
-                            )}
-                            <WorkflowNoResultsView
-                                message={translate('common.noResultsFoundMatching', workflowSearchInput)}
-                                shouldShow={searchFilteredWorkflows.length === 0 && workflowSearchInput.length > 0}
-                                searchValue={workflowSearchInput}
-                            />
-                            {displayedWorkflows.map((workflow) => {
-                                const firstApproverEmail = workflow.approvers.at(0)?.email ?? '';
-                                // The first approver isn't unique once rule-based chains diverge, so anchor the key/edit route
-                                // on a member too (each member belongs to exactly one workflow).
-                                const firstMemberEmail = workflow.members.at(0)?.email ?? '';
-
-                                return (
-                                    <OfflineWithFeedback
-                                        key={`${firstApproverEmail}-${firstMemberEmail}`}
-                                        pendingAction={workflow.pendingAction}
-                                    >
-                                        <ApprovalWorkflowSection
-                                            approvalWorkflow={workflow}
-                                            onPress={
-                                                shouldBlockApprovalWorkflowEditing || !canWriteApprovals
-                                                    ? undefined
-                                                    : () => {
-                                                          // Discard stale onyx edits or the Edit page's resume check would surface a prior abandoned session.
-                                                          clearApprovalWorkflow();
-                                                          Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, firstApproverEmail, firstMemberEmail));
-                                                      }
-                                            }
-                                            onShowAllMembersPress={
-                                                shouldBlockApprovalWorkflowEditing
-                                                    ? undefined
-                                                    : () => {
-                                                          selectApprovalWorkflowForEdit({
-                                                              workflow,
-                                                              defaultWorkflowMembers: availableMembers,
-                                                              usedApproverEmails,
-                                                          });
-                                                          Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.path));
-                                                      }
-                                            }
-                                            currency={policy?.outputCurrency}
-                                            isDisabled={shouldBlockApprovalWorkflowEditing || !canWriteApprovals}
-                                            providerName={approvalWorkflowSource?.providerName}
-                                            isHRAdvancedMode={isHRAdvancedModeEnabled}
-                                            isRecruitingAdvancedMode={isRecruitingAdvancedModeEnabled}
-                                            hrFinalApproverEmail={isHRAdvancedModeEnabled ? hrFinalApproverEmail : undefined}
-                                        />
-                                    </OfflineWithFeedback>
-                                );
-                            })}
-                            {hiddenWorkflowsCount > 0 && (
-                                <WorkflowsLoadMoreCard
-                                    count={hiddenWorkflowsCount}
-                                    onPress={() => setIsWorkflowListExpanded(true)}
-                                />
-                            )}
-                            {!shouldBlockApprovalWorkflowEditing && canWriteApprovals && (
-                                <View style={[styles.mt6, styles.mbn3]}>
-                                    <MenuItemSectionRoot
-                                        onPress={addApprovalAction}
-                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.ADD_APPROVAL}
-                                    >
-                                        <MenuItem.Row>
-                                            <MenuItem.Leading>
-                                                <MenuItem.Icon src={expensifyIcons.Plus} />
-                                            </MenuItem.Leading>
-                                            <MenuItem.Content>
-                                                <MenuItem.Title>{translate('workflowsPage.addApprovalButton')}</MenuItem.Title>
-                                            </MenuItem.Content>
-                                        </MenuItem.Row>
-                                    </MenuItemSectionRoot>
+                                <View style={[styles.flex1, styles.ml3]}>
+                                    <RenderHTML
+                                        html={
+                                            accountManagerReportID
+                                                ? translate('workflowsPage.customApprovalWorkflowEnabled')
+                                                : translate('workflowsPage.customApprovalWorkflowEnabledConciergeOnly')
+                                        }
+                                    />
                                 </View>
-                            )}
-                        </>
-                    )}
-                </>
-            }
-            disabled={!canWriteApprovals || isSmartLimitEnabled || isDEWEnabled || isWorkflowFromIntegration}
-            disabledAction={withApprovalsReadOnlyFallback(getAddApprovalsToggleDisabledAction())}
-            showLockIcon={!canWriteApprovals}
-            // Submit2026 workspaces have approval mode set to Advanced, but we want to show it here as off because configuring the advanced approvals is a paid feature.
-            isActive={
-                !isSubmitPolicyWorkspace &&
-                (isWorkflowFromIntegration ||
-                    isDEWEnabled ||
-                    (([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED].some((approvalMode) => approvalMode === policy?.approvalMode) && !hasApprovalError) ?? false))
-            }
-            pendingAction={policy?.pendingFields?.approvalMode}
-            errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE)}
-            onCloseError={() => clearPolicyErrorField(policyID, CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE)}
-        />
+                            </View>
+                        )}
+                        {!shouldHideApprovalWorkflows && (
+                            <>
+                                {filteredApprovalWorkflows.length > CONST.SEARCH_BAR_THRESHOLD && (
+                                    <SearchBar
+                                        label={translate('workflowsPage.findWorkflow')}
+                                        inputValue={workflowSearchInput}
+                                        onChangeText={setWorkflowSearchInput}
+                                        style={[styles.mt6, {marginHorizontal: 0}]}
+                                    />
+                                )}
+                                <WorkflowNoResultsView
+                                    message={translate('common.noResultsFoundMatching', workflowSearchInput)}
+                                    shouldShow={searchFilteredWorkflows.length === 0 && workflowSearchInput.length > 0}
+                                    searchValue={workflowSearchInput}
+                                />
+                                {displayedWorkflows.map((workflow) => {
+                                    const firstApproverEmail = workflow.approvers.at(0)?.email ?? '';
+                                    // The first approver isn't unique once rule-based chains diverge, so anchor the key/edit route
+                                    // on a member too (each member belongs to exactly one workflow).
+                                    const firstMemberEmail = workflow.members.at(0)?.email ?? '';
+
+                                    return (
+                                        <OfflineWithFeedback
+                                            key={`${firstApproverEmail}-${firstMemberEmail}`}
+                                            pendingAction={workflow.pendingAction}
+                                        >
+                                            <ApprovalWorkflowSection
+                                                approvalWorkflow={workflow}
+                                                onPress={
+                                                    shouldBlockApprovalWorkflowEditing || !canWriteApprovals
+                                                        ? undefined
+                                                        : () => {
+                                                              // Discard stale onyx edits or the Edit page's resume check would surface a prior abandoned session.
+                                                              clearApprovalWorkflow();
+                                                              Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, firstApproverEmail, firstMemberEmail));
+                                                          }
+                                                }
+                                                onShowAllMembersPress={
+                                                    shouldBlockApprovalWorkflowEditing
+                                                        ? undefined
+                                                        : () => {
+                                                              selectApprovalWorkflowForEdit({
+                                                                  workflow,
+                                                                  defaultWorkflowMembers: availableMembers,
+                                                                  usedApproverEmails,
+                                                              });
+                                                              Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.path));
+                                                          }
+                                                }
+                                                currency={policy?.outputCurrency}
+                                                isDisabled={shouldBlockApprovalWorkflowEditing || !canWriteApprovals}
+                                                providerName={approvalWorkflowSource?.providerName}
+                                                isHRAdvancedMode={isHRAdvancedModeEnabled}
+                                                isRecruitingAdvancedMode={isRecruitingAdvancedModeEnabled}
+                                                hrFinalApproverEmail={isHRAdvancedModeEnabled ? hrFinalApproverEmail : undefined}
+                                            />
+                                        </OfflineWithFeedback>
+                                    );
+                                })}
+                                {hiddenWorkflowsCount > 0 && (
+                                    <WorkflowsLoadMoreCard
+                                        count={hiddenWorkflowsCount}
+                                        onPress={() => setIsWorkflowListExpanded(true)}
+                                    />
+                                )}
+                                {!shouldBlockApprovalWorkflowEditing && canWriteApprovals && (
+                                    <View style={[styles.mt6, styles.mbn3]}>
+                                        <MenuItemSectionRoot
+                                            onPress={addApprovalAction}
+                                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.ADD_APPROVAL}
+                                        >
+                                            <MenuItem.Row>
+                                                <MenuItem.Leading>
+                                                    <MenuItem.Icon src={expensifyIcons.Plus} />
+                                                </MenuItem.Leading>
+                                                <MenuItem.Content>
+                                                    <MenuItem.Title>{translate('workflowsPage.addApprovalButton')}</MenuItem.Title>
+                                                </MenuItem.Content>
+                                            </MenuItem.Row>
+                                        </MenuItemSectionRoot>
+                                    </View>
+                                )}
+                            </>
+                        )}
+                    </>
+                }
+                disabled={!canWriteApprovals || isSmartLimitEnabled || isDEWEnabled || isWorkflowFromIntegration}
+                disabledAction={withApprovalsReadOnlyFallback(getAddApprovalsToggleDisabledAction())}
+                showLockIcon={!canWriteApprovals}
+                isActive={isApprovalsActive}
+                pendingAction={policy?.pendingFields?.approvalMode}
+                errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE)}
+                onCloseError={() => clearPolicyErrorField(policyID, CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE)}
+            />
+            {shouldShowApproverLimits && (
+                <WorkflowsApproverLimitsSection
+                    policyID={policyID}
+                    canEditApprovalLimits={canWriteApprovals && !shouldBlockApprovalWorkflowEditing}
+                />
+            )}
+        </>
     );
 }
 

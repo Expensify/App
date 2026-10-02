@@ -14,6 +14,9 @@ import {
     extractSubmitterEmails,
     filterRulesForPolicy,
     getApprovalLimitDescription,
+    getApprovalLimitGroups,
+    getApprovalLimitLoopApprover,
+    getApprovalLimitShortName,
     getOpenConnectedToPolicyBusinessBankAccounts,
     getApprovalWorkflowSource,
     getOverLimitForwardsToDisplayName,
@@ -1566,7 +1569,7 @@ describe('WorkflowUtils', () => {
                 convertToDisplayString,
             });
 
-            expect(result).toBe('Reports above $500.00 forward to 2@example.com');
+            expect(result).toBe('Approves up to $500.00. Over that, reports forward to 2@example.com.');
         });
 
         it('Should use overLimitForwardsToDisplayName baked into the approver when available', () => {
@@ -1584,7 +1587,129 @@ describe('WorkflowUtils', () => {
                 convertToDisplayString,
             });
 
-            expect(result).toBe('Reports above $1,000.00 forward to John Doe');
+            expect(result).toBe('Approves up to $1,000.00. Over that, reports forward to John Doe.');
+        });
+    });
+
+    describe('getApprovalLimitGroups', () => {
+        const limitPersonalDetailsByEmail: PersonalDetailsList = {
+            'priya@example.com': {accountID: 1, login: 'priya@example.com', displayName: 'Priya Verma'},
+            'sam@example.com': {accountID: 2, login: 'sam@example.com', displayName: 'Sam Borton'},
+            'adam@example.com': {accountID: 3, login: 'adam@example.com', displayName: 'Adam Ant'},
+            'elena@example.com': {accountID: 4, login: 'elena@example.com', displayName: 'Elena Boggs'},
+        };
+
+        it('Should share one row between approvers with the same limit and forward-to approver', () => {
+            // Given two approvers with the same limit and forward-to approver, listed out of alphabetical order
+            const employees: PolicyEmployeeList = {
+                'sam@example.com': {email: 'sam@example.com', approvalLimit: 50000, overLimitForwardsTo: 'elena@example.com'},
+                'priya@example.com': {email: 'priya@example.com', approvalLimit: 50000, overLimitForwardsTo: 'elena@example.com'},
+            };
+
+            // When the rows are built
+            const groups = getApprovalLimitGroups({employees, personalDetailsByEmail: limitPersonalDetailsByEmail, localeCompare});
+
+            // Then both approvers share one row, sorted by name, because a row is one amount and one forward-to approver
+            expect(groups).toEqual([{approvers: ['priya@example.com', 'sam@example.com'], approvalLimit: 50000, overLimitForwardsTo: 'elena@example.com', pendingAction: undefined}]);
+        });
+
+        it('Should split approvers whose amount or forward-to approver differ, and sort rows by first approver', () => {
+            // Given one approver with a different amount, one with a different forward-to approver, and one with no limit at all
+            const employees: PolicyEmployeeList = {
+                'priya@example.com': {email: 'priya@example.com', approvalLimit: 50000, overLimitForwardsTo: 'elena@example.com'},
+                'sam@example.com': {email: 'sam@example.com', approvalLimit: 100000, overLimitForwardsTo: 'elena@example.com'},
+                'adam@example.com': {email: 'adam@example.com', approvalLimit: 50000, overLimitForwardsTo: 'sam@example.com'},
+                'elena@example.com': {email: 'elena@example.com', approvalLimit: 50000},
+            };
+
+            // When the rows are built
+            const groups = getApprovalLimitGroups({employees, personalDetailsByEmail: limitPersonalDetailsByEmail, localeCompare});
+
+            // Then each limit gets its own row in alphabetical order of the approver, and an amount without a forward-to approver is not a limit
+            expect(groups.map((group) => group.approvers)).toEqual([['adam@example.com'], ['priya@example.com'], ['sam@example.com']]);
+        });
+    });
+
+    describe('getApprovalLimitLoopApprover', () => {
+        it('Should return the approver a direct forward leads back to', () => {
+            // Given Elena already forwards to Priya
+            const employees: PolicyEmployeeList = {
+                'elena@example.com': {email: 'elena@example.com', approvalLimit: 50000, overLimitForwardsTo: 'priya@example.com'},
+            };
+
+            // When Priya is set to forward to Elena
+            const loopApprover = getApprovalLimitLoopApprover({employees, approvers: ['priya@example.com'], overLimitForwardsTo: 'elena@example.com', originalApprovers: []});
+
+            // Then the save is a loop back to Priya
+            expect(loopApprover).toBe('priya@example.com');
+        });
+
+        it('Should follow the full chain, not just direct pairs', () => {
+            // Given Elena forwards to Sam and Sam forwards to Priya
+            const employees: PolicyEmployeeList = {
+                'elena@example.com': {email: 'elena@example.com', approvalLimit: 50000, overLimitForwardsTo: 'sam@example.com'},
+                'sam@example.com': {email: 'sam@example.com', approvalLimit: 50000, overLimitForwardsTo: 'priya@example.com'},
+            };
+
+            // When Priya is set to forward to Elena
+            const loopApprover = getApprovalLimitLoopApprover({employees, approvers: ['priya@example.com'], overLimitForwardsTo: 'elena@example.com', originalApprovers: []});
+
+            // Then the longer chain still loops back to Priya
+            expect(loopApprover).toBe('priya@example.com');
+        });
+
+        it('Should allow a chain that ends without looping back', () => {
+            // Given Elena forwards to Sam, who forwards nowhere
+            const employees: PolicyEmployeeList = {
+                'elena@example.com': {email: 'elena@example.com', approvalLimit: 50000, overLimitForwardsTo: 'sam@example.com'},
+                'sam@example.com': {email: 'sam@example.com'},
+            };
+
+            // When Priya is set to forward to Elena
+            const loopApprover = getApprovalLimitLoopApprover({employees, approvers: ['priya@example.com'], overLimitForwardsTo: 'elena@example.com', originalApprovers: []});
+
+            // Then there is no loop
+            expect(loopApprover).toBeUndefined();
+        });
+
+        it('Should ignore the limit of an approver being taken off this limit', () => {
+            // Given Sam forwards to Elena today, and is being removed from the limit Priya is on
+            const employees: PolicyEmployeeList = {
+                'sam@example.com': {email: 'sam@example.com', approvalLimit: 50000, overLimitForwardsTo: 'elena@example.com'},
+            };
+
+            // When Priya, on that limit, is set to forward to Sam
+            const loopApprover = getApprovalLimitLoopApprover({
+                employees,
+                approvers: ['priya@example.com'],
+                overLimitForwardsTo: 'sam@example.com',
+                originalApprovers: ['priya@example.com', 'sam@example.com'],
+            });
+
+            // Then Sam's limit no longer counts because saving removes it
+            expect(loopApprover).toBeUndefined();
+        });
+    });
+
+    describe('getApprovalLimitShortName', () => {
+        it('Should use the first name and last initial', () => {
+            // Given an approver with a first and last name
+            const shortNamePersonalDetailsByEmail: PersonalDetailsList = {'priya@example.com': {accountID: 1, login: 'priya@example.com', firstName: 'Priya', lastName: 'Verma'}};
+
+            // When their short name is built
+            const shortName = getApprovalLimitShortName('priya@example.com', shortNamePersonalDetailsByEmail, formatPhoneNumber);
+
+            // Then it is shortened the way the summary line names people
+            expect(shortName).toBe('Priya V.');
+        });
+
+        it('Should fall back to the login when there is no name', () => {
+            // Given an approver with no personal details
+            // When their short name is built
+            const shortName = getApprovalLimitShortName('elena@example.com', {}, formatPhoneNumber);
+
+            // Then the email is used instead
+            expect(shortName).toBe('elena@example.com');
         });
     });
 

@@ -15,6 +15,7 @@ import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 
+import ApprovalLimitInfoIcon from './ApprovalLimitInfoIcon';
 import Button from './Button';
 import Icon from './Icon';
 import MenuItem from './MenuItem';
@@ -175,46 +176,49 @@ function ApprovalWorkflowSection({
                     />
                 </OfflineWithFeedback>
 
-                {approvalWorkflow.approvers.map((approver, index) => (
-                    <OfflineWithFeedback
-                        // eslint-disable-next-line react/no-array-index-key
-                        key={`approver-${approver.email || approver.accountID}-${index}`}
-                        pendingAction={approver.pendingAction}
-                        errors={approver.errors}
-                    >
-                        <View>
-                            <View style={styles.workflowApprovalVerticalLine} />
-                            <MenuItem
-                                title={approverTitle(index)}
-                                style={styles.p0}
-                                titleStyle={styles.textLabelSupportingNormal}
-                                descriptionTextStyle={[styles.textNormalThemeText, styles.lineHeightXLarge]}
-                                icon={icons.UserCheck}
-                                shouldBeAccessible={false}
-                                tabIndex={-1}
-                                iconHeight={20}
-                                iconWidth={20}
-                                numberOfLinesDescription={1}
-                                iconFill={theme.icon}
-                                onPress={pressAction}
-                                shouldRemoveBackground
-                                titleComponent={
-                                    <View style={[styles.ml3, styles.pr3]}>
-                                        <UserPill
-                                            avatar={approver.avatar}
-                                            displayName={approver.displayName}
-                                            email={approver.email}
-                                            style={styles.userPillStandalone}
-                                        />
-                                    </View>
-                                }
-                                helperText={getApprovalLimitDescription({approver, currency, translate, formatPhoneNumber, convertToDisplayString})}
-                                helperTextStyle={styles.workflowApprovalLimitText}
-                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_APPROVER}
-                            />
-                        </View>
-                    </OfflineWithFeedback>
-                ))}
+                {approvalWorkflow.approvers.map((approver, index) => {
+                    const approvalLimitDescription = getApprovalLimitDescription({approver, currency, translate, formatPhoneNumber, convertToDisplayString});
+
+                    return (
+                        <OfflineWithFeedback
+                            // eslint-disable-next-line react/no-array-index-key
+                            key={`approver-${approver.email || approver.accountID}-${index}`}
+                            pendingAction={approver.pendingAction}
+                            errors={approver.errors}
+                        >
+                            <View>
+                                <View style={styles.workflowApprovalVerticalLine} />
+                                <MenuItem
+                                    title={approverTitle(index)}
+                                    style={styles.p0}
+                                    titleStyle={styles.textLabelSupportingNormal}
+                                    descriptionTextStyle={[styles.textNormalThemeText, styles.lineHeightXLarge]}
+                                    icon={icons.UserCheck}
+                                    shouldBeAccessible={false}
+                                    tabIndex={-1}
+                                    iconHeight={20}
+                                    iconWidth={20}
+                                    numberOfLinesDescription={1}
+                                    iconFill={theme.icon}
+                                    onPress={pressAction}
+                                    shouldRemoveBackground
+                                    titleComponent={
+                                        <View style={[styles.ml3, styles.pr3]}>
+                                            <UserPill
+                                                avatar={approver.avatar}
+                                                displayName={approver.displayName}
+                                                email={approver.email}
+                                                style={styles.userPillStandalone}
+                                                trailingContent={!!approvalLimitDescription && <ApprovalLimitInfoIcon description={approvalLimitDescription} />}
+                                            />
+                                        </View>
+                                    }
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_APPROVER}
+                                />
+                            </View>
+                        </OfflineWithFeedback>
+                    );
+                })}
             </View>
             {!isDisabled && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt4, styles.gap2]}>

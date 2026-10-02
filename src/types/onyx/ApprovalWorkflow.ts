@@ -170,5 +170,30 @@ type ApprovalWorkflowOnyx = Omit<ApprovalWorkflow, 'approvers'> & {
     isInitialFlow?: boolean;
 };
 
+/**
+ * Approval limit being added or edited from the Approver limits card
+ */
+type ApprovalLimitOnyx = {
+    /**
+     * Emails of the approvers the limit applies to, in the order they were picked
+     */
+    approvers: string[];
+
+    /**
+     * Report amount the limit is set to, as typed in the form
+     */
+    approvalLimit: string;
+
+    /**
+     * Email of the approver reports over the limit are forwarded to
+     */
+    overLimitForwardsTo: string;
+
+    /**
+     * Approvers the limit had when it was opened for editing. Empty when adding a new limit.
+     */
+    originalApprovers: string[];
+};
+
 export default ApprovalWorkflow;
-export type {ApprovalWorkflowOnyx, Approver, Member};
+export type {ApprovalLimitOnyx, ApprovalWorkflowOnyx, Approver, Member};

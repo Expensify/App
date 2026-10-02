@@ -3283,17 +3283,18 @@ const ROUTES = {
         route: 'workspaces/:policyID/workflows/approvals/approver',
         getRoute: (policyID: string, approverIndex: number) => `workspaces/${policyID}/workflows/approvals/approver?approverIndex=${approverIndex}` as const,
     },
-    WORKSPACE_WORKFLOWS_APPROVALS_APPROVER_CHANGE: {
-        route: 'workspaces/:policyID/workflows/approvals/approver-change',
-        getRoute: (policyID: string, approverIndex: number) => `workspaces/${policyID}/workflows/approvals/approver-change?approverIndex=${approverIndex}` as const,
-    },
     WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT: {
         route: 'workspaces/:policyID/workflows/approvals/approval-limit',
-        getRoute: (policyID: string, approverIndex: number) => `workspaces/${policyID}/workflows/approvals/approval-limit?approverIndex=${approverIndex}` as const,
+        getRoute: (policyID: string, approverEmail?: string) =>
+            `workspaces/${policyID}/workflows/approvals/approval-limit${approverEmail ? `?approverEmail=${encodeURIComponent(approverEmail)}` : ''}` as const,
+    },
+    WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT_APPROVER: {
+        route: 'workspaces/:policyID/workflows/approvals/approval-limit/approver',
+        getRoute: (policyID: string, approverIndex: number) => `workspaces/${policyID}/workflows/approvals/approval-limit/approver?approverIndex=${approverIndex}` as const,
     },
     WORKSPACE_WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER: {
-        route: 'workspaces/:policyID/workflows/approvals/over-limit-approver',
-        getRoute: (policyID: string, approverIndex: number) => `workspaces/${policyID}/workflows/approvals/over-limit-approver?approverIndex=${approverIndex}` as const,
+        route: 'workspaces/:policyID/workflows/approvals/approval-limit/new-approver',
+        getRoute: (policyID: string) => `workspaces/${policyID}/workflows/approvals/approval-limit/new-approver` as const,
     },
     WORKSPACE_WORKFLOWS_PAYER: {
         route: 'workspaces/:policyID/workflows/payer',

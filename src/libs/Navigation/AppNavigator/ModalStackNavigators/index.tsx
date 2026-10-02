@@ -553,10 +553,10 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.DYNAMIC_WORKFLOWS_APPROVALS_EXPENSES_FROM]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/workflows/approvals/DynamicWorkspaceWorkflowsApprovalsExpensesFromPage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsApproverPage').default,
-    [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER_CHANGE]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsApproverPage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVAL_LIMIT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsApprovalLimitPage').default,
+    [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVAL_LIMIT_APPROVER]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsApprovalLimitApproverPage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsOverLimitApproverPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE_MESSAGE]: () => require<ReactComponentModule>('../../../../pages/workspace/DynamicWorkspaceInviteMessagePage').default,
