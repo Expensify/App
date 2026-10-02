@@ -1,17 +1,13 @@
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import SubmitViolationsList from '@components/SubmitViolationsList';
 
-import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
-import {buildSubmitViolationBullets, getReportSubmitViolationSummary} from '@libs/Violations/getReportSubmitViolationSummary';
+import {getReportSubmitViolationSummary, hasAnySubmitViolation, shouldResolveAcknowledged} from '@libs/Violations/getReportSubmitViolationSummary';
+import showSubmitViolationsConfirmModal from '@libs/Violations/showSubmitViolationsConfirmModal';
 
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 
-import CONST from '@src/CONST';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-
-import React from 'react';
 
 import useConfirmModal from './useConfirmModal';
 import {useCurrencyListActions} from './useCurrencyList';
@@ -20,8 +16,7 @@ import useLocalize from './useLocalize';
 
 /**
  * Hook that returns a callback to confirm any report violations (rejected expenses, pending RTER
- * card-match, and other policy violations) before proceeding with a report submission. Replaces
- * useConfirmPendingRTERAndProceed, which only covered the RTER case.
+ * card-match, and other policy violations) before proceeding with a report submission.
  */
 function useConfirmSubmitReportViolations(
     transactions: Array<OnyxEntry<Transaction>>,
@@ -38,30 +33,19 @@ function useConfirmSubmitReportViolations(
 
     return (onProceed: (shouldResolveAcknowledgedViolations?: boolean) => void) => {
         const summary = getReportSubmitViolationSummary(transactions, violationsCollection, report, policy, currentUserEmail ?? '', currentUserAccountID);
-        if (!summary.hasRejectedExpense && !summary.hasReportBeenRejected && !summary.hasPendingCardMatch && summary.otherViolations.size === 0) {
+        if (!hasAnySubmitViolation(summary)) {
             onProceed();
             return;
         }
 
-        const bullets = buildSubmitViolationBullets({summary, translate, dateFnsLocale, convertToDisplayString});
-        // iOS can't present this modal while a just-closed popover (e.g. the submit-to popover) is still animating
-        // away, so defer until that transition finishes - same workaround the bulk-submit path already uses.
-        showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
-            title: translate(shouldShowMarkAsDoneCopy ? 'iou.confirmSubmitReportViolations.titleMarkAsDone' : 'iou.confirmSubmitReportViolations.title'),
-            subtitle: translate(shouldShowMarkAsDoneCopy ? 'iou.confirmSubmitReportViolations.descriptionMarkAsDone' : 'iou.confirmSubmitReportViolations.description'),
-            prompt: <SubmitViolationsList violations={bullets} />,
-            confirmText: translate(shouldShowMarkAsDoneCopy ? 'common.markAsDoneAnyway' : 'common.submitAnyway'),
-            cancelText: translate('common.cancel'),
-            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-            shouldEnablePromptScroll: true,
-        }).then((result) => {
+        showSubmitViolationsConfirmModal({summary, showConfirmModal, translate, dateFnsLocale, convertToDisplayString, shouldShowMarkAsDoneCopy}).then((result) => {
             if (result.action !== ModalActions.CONFIRM) {
                 return;
             }
             if (summary.hasPendingCardMatch) {
                 markPendingRTERTransactionsAsCash(transactions, violationsCollection, reportActions);
             }
-            onProceed(summary.hasRejectedExpense || summary.hasPendingCardMatch);
+            onProceed(shouldResolveAcknowledged(summary));
         });
     };
 }

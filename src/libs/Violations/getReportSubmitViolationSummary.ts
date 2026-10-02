@@ -2,7 +2,8 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
-import {hasPendingRTERViolation, hasTransactionBeenRejected, isBrokenConnectionViolation, shouldShowViolation} from '@libs/TransactionUtils';
+import {hasReportBeenRejectedToSubmitter} from '@libs/ReportUtils';
+import {hasPendingRTERViolation, hasTransactionBeenRejected, isPendingRTERViolation, shouldShowViolation} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,14 +23,6 @@ type ReportSubmitViolationSummary = {
     /** First-seen violation instance per violation name, so the full message (with amounts/thresholds) can be built later */
     otherViolations: Map<ValueOf<typeof CONST.VIOLATIONS>, TransactionViolation>;
 };
-
-/**
- * A whole-report rejection doesn't add a violation to the report's transactions - it's a report-level
- * state (nextStep, set when the last action is REJECTED_TO_SUBMITTER) rather than a TransactionViolations entry.
- */
-function hasReportBeenRejectedToSubmitter(report: OnyxEntry<Report>): boolean {
-    return report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.nextStep?.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT;
-}
 
 /**
  * Classifies a report's transaction violations into the three buckets shown by the "Submit report?"
@@ -71,7 +64,7 @@ function getReportSubmitViolationSummary(
                 continue;
             }
 
-            if (violation.name === CONST.VIOLATIONS.RTER && violation.data?.pendingPattern && !isBrokenConnectionViolation(violation)) {
+            if (isPendingRTERViolation(violation)) {
                 continue;
             }
 
@@ -124,4 +117,14 @@ function buildSubmitViolationBullets({summary, translate, dateFnsLocale, convert
     return bullets;
 }
 
-export {getReportSubmitViolationSummary, buildSubmitViolationBullets, hasReportBeenRejectedToSubmitter};
+/** Whether the summary has anything for the "Submit report?" modal to show. */
+function hasAnySubmitViolation(summary: ReportSubmitViolationSummary): boolean {
+    return summary.hasRejectedExpense || summary.hasReportBeenRejected || summary.hasPendingCardMatch || summary.otherViolations.size > 0;
+}
+
+/** Whether confirming the modal should tell the backend to resolve the violations the submitter acknowledged. */
+function shouldResolveAcknowledged(summary: ReportSubmitViolationSummary): boolean {
+    return summary.hasRejectedExpense || summary.hasPendingCardMatch;
+}
+
+export {getReportSubmitViolationSummary, buildSubmitViolationBullets, hasAnySubmitViolation, shouldResolveAcknowledged};

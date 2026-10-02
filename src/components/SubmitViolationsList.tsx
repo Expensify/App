@@ -16,9 +16,9 @@ type SubmitViolationsListProps = {
 };
 
 /**
- * Renders each violation next to a dot icon instead of a plain unicode bullet character (see PR #101662
- * design review). The dot column has a fixed width and is vertically centered against the label, and the
- * label sits in a flex1 column so wrapped text aligns under the first line, like a real <ul>.
+ * Renders each violation next to a dot icon instead of a plain unicode bullet character. The dot column has
+ * a fixed width and is vertically centered against the label, and the label sits in a flex1 column so
+ * wrapped text aligns under the first line, like a real <ul>.
  */
 function SubmitViolationsList({violations}: SubmitViolationsListProps) {
     const styles = useThemeStyles();
@@ -30,7 +30,7 @@ function SubmitViolationsList({violations}: SubmitViolationsListProps) {
             {violations.map((violation) => (
                 <View
                     key={violation}
-                    style={[styles.flexRow, styles.pl4, styles.pr4]}
+                    style={[styles.flexRow, styles.ph4]}
                 >
                     <View style={[styles.alignItemsCenter, {width: variables.iconSizeExtraSmall, marginTop: (variables.lineHeightNormal - variables.iconSizeExtraSmall) / 2}]}>
                         <Icon

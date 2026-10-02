@@ -2,8 +2,6 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {useMemo} from 'react';
-
 import useOnyx from './useOnyx';
 
 /**
@@ -12,7 +10,7 @@ import useOnyx from './useOnyx';
  */
 function useLiveReportActionsForViolations(reportID: string | undefined) {
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportID)}`);
-    return useMemo(() => Object.values(reportActions ?? {}), [reportActions]);
+    return Object.values(reportActions ?? {});
 }
 
 export default useLiveReportActionsForViolations;

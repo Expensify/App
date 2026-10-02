@@ -8,7 +8,6 @@ import {useOpenSearchReportSubmitToPopover} from '@components/ReportSubmitToPopo
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import {getSearchGroupCountByKey} from '@components/Search/selectionBuilders';
 import type {BulkPaySelectionData, PaymentData, QueryFilterKey, SearchColumnType, SearchFilterKey, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
-import SubmitViolationsList from '@components/SubmitViolationsList';
 
 import {getAccountingIntegrationDisplayName, getExportLabelForConnection} from '@libs/AccountingUtils';
 import {getExpensifyCardStatementPDF} from '@libs/actions/CompanyCards';
@@ -63,6 +62,7 @@ import {
     getPolicyExpenseChat,
     getReportOrDraftReport,
     hasOnlyHeldExpenses,
+    hasReportBeenRejectedToSubmitter,
     hasViolations as hasViolationsReportUtils,
     isArchivedReport,
     isBusinessInvoiceRoom,
@@ -102,18 +102,19 @@ import {
     hasOnlyPendingCardTransactions,
     hasReceipt as hasReceiptTransactionUtils,
     hasTransactionBeenRejected,
-    isBrokenConnectionViolation,
     isDeletedTransaction,
     isDistanceRequest,
     isManagedCardTransaction,
     isManualDistanceRequest,
     isOdometerDistanceRequest,
     isPending,
+    isPendingRTERViolation,
     isPerDiemRequest,
     isScanning,
     shouldShowViolation,
 } from '@libs/TransactionUtils';
-import {buildSubmitViolationBullets, getReportSubmitViolationSummary, hasReportBeenRejectedToSubmitter} from '@libs/Violations/getReportSubmitViolationSummary';
+import {getReportSubmitViolationSummary, hasAnySubmitViolation, shouldResolveAcknowledged} from '@libs/Violations/getReportSubmitViolationSummary';
+import showSubmitViolationsConfirmModal from '@libs/Violations/showSubmitViolationsConfirmModal';
 
 import variables from '@styles/variables';
 
@@ -2786,7 +2787,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             filteredViolationsCollection[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] = transactionViolationsForReport.filter(
                                 (violation) =>
                                     violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE ||
-                                    !!(violation.name === CONST.VIOLATIONS.RTER && violation.data?.pendingPattern && !isBrokenConnectionViolation(violation)) ||
+                                    isPendingRTERViolation(violation) ||
                                     shouldShowViolation(reportForViolations, policyForViolations, violation.name, email ?? '', accountID, true, transaction),
                             );
                         }
@@ -2859,20 +2860,18 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         summary.hasReportBeenRejected = true;
                     }
 
-                    if (!summary.hasRejectedExpense && !summary.hasReportBeenRejected && !summary.hasPendingCardMatch && summary.otherViolations.size === 0) {
+                    if (!hasAnySubmitViolation(summary)) {
                         runSubmit();
                         return;
                     }
 
-                    const bullets = buildSubmitViolationBullets({summary, translate, dateFnsLocale, convertToDisplayString});
-                    showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
-                        title: translate(allReportsShouldMarkAsDone ? 'iou.confirmSubmitReportViolations.titleMarkAsDone' : 'iou.confirmSubmitReportViolations.title'),
-                        subtitle: translate(allReportsShouldMarkAsDone ? 'iou.confirmSubmitReportViolations.descriptionMarkAsDone' : 'iou.confirmSubmitReportViolations.description'),
-                        prompt: <SubmitViolationsList violations={bullets} />,
-                        confirmText: translate(allReportsShouldMarkAsDone ? 'common.markAsDoneAnyway' : 'common.submitAnyway'),
-                        cancelText: translate('common.cancel'),
-                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-                        shouldEnablePromptScroll: true,
+                    showSubmitViolationsConfirmModal({
+                        summary,
+                        showConfirmModal,
+                        translate,
+                        dateFnsLocale,
+                        convertToDisplayString,
+                        shouldShowMarkAsDoneCopy: allReportsShouldMarkAsDone,
                     }).then((result) => {
                         if (result.action !== ModalActions.CONFIRM) {
                             return;
@@ -2886,7 +2885,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                                 );
                             }
                         }
-                        runSubmit(summary.hasRejectedExpense || summary.hasPendingCardMatch);
+                        runSubmit(shouldResolveAcknowledged(summary));
                     });
                 },
             });

@@ -50,13 +50,17 @@ function hasTransactionBeenRejected(transactionViolations: OnyxEntry<Transaction
 }
 
 /**
+ * Check if a violation is an RTER card-match still pending (not a broken-connection RTER, which is reported separately).
+ */
+function isPendingRTERViolation(violation: TransactionViolation): boolean {
+    return violation.name === CONST.VIOLATIONS.RTER && !!violation.data?.pendingPattern && !isBrokenConnectionViolation(violation);
+}
+
+/**
  * Check if there is pending rter violation in transactionViolations.
  */
 function hasPendingRTERViolation(transactionViolations?: TransactionViolations | null): boolean {
-    return !!transactionViolations?.some(
-        (transactionViolation: TransactionViolation) =>
-            transactionViolation.name === CONST.VIOLATIONS.RTER && transactionViolation.data?.pendingPattern && !isBrokenConnectionViolation(transactionViolation),
-    );
+    return !!transactionViolations?.some(isPendingRTERViolation);
 }
 
 /**
@@ -636,6 +640,7 @@ export {
     hasWarningTypeViolation,
     isBrokenConnectionViolation,
     isDuplicate,
+    isPendingRTERViolation,
     isTransactionSubmittable,
     isViolationDismissed,
     mergeProhibitedViolations,
