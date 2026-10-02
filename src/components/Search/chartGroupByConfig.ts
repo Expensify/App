@@ -111,6 +111,11 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
             return `date>=${start} date<=${end}`;
         },
     },
+    [CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER]: {
+        titleIconName: 'Users',
+        getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER ? (item.formattedViolationApprover ?? '') : ''),
+        getFilterQuery: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER ? `${CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER}:${item.accountID}` : ''),
+    },
 };
 
 export default CHART_GROUP_BY_CONFIG;

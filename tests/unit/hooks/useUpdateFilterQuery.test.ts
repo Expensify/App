@@ -101,4 +101,26 @@ describe('useUpdateFilterQuery', () => {
             expect(getSetParamsCall()).not.toHaveProperty('searchKey');
         });
     });
+
+    describe('getUpdatedFilterFormValues', () => {
+        it('clears groupBy and columns when approved-violation is removed from the has filter', () => {
+            // Given a query grouped by violation approver with a customized column list
+            const {result} = renderHook(() => useUpdateFilterQuery(queryJSON));
+
+            // When approved-violation is removed from the has filter
+            const updated = result.current.getUpdatedFilterFormValues(
+                {
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    groupBy: CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER,
+                    has: [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION],
+                    columns: [CONST.SEARCH.TABLE_COLUMNS.GROUP_VIOLATION_APPROVER, CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVAL_COUNT],
+                },
+                {has: []},
+            );
+
+            // Then both the group by and the columns are cleared so Auth is not sent a grouping it would reject
+            expect(updated.groupBy).toBeUndefined();
+            expect(updated.columns).toEqual([]);
+        });
+    });
 });
