@@ -17,6 +17,7 @@ const mockGetCurrentRoute = jest.fn<{params?: Record<string, unknown>} | undefin
 const mockGetFocusedReportId = jest.fn<string | undefined, [unknown]>();
 const mockGetRootState = jest.fn<unknown, []>(() => ({routes: []}));
 const mockGetTopmostReportId = jest.fn<string | undefined, []>();
+const mockIsMoneyRequestReport = jest.fn<boolean, [string]>();
 
 function buildTransaction(transactionID: string): Transaction {
     return {transactionID, reportID: 'iou-1', amount: 0, created: '', currency: CONST.CURRENCY.USD, merchant: '', comment: {}};
@@ -29,6 +30,9 @@ jest.mock('@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue', () => 
     callback();
 });
 jest.mock('@libs/getIsNarrowLayout', () => () => mockGetIsNarrowLayout());
+jest.mock('@libs/ReportUtils', () => ({
+    isMoneyRequestReport: (reportID: string) => mockIsMoneyRequestReport(reportID),
+}));
 jest.mock('@libs/actions/TransactionThreadNavigation', () => ({
     setActiveTransactionIDs: jest.fn(() => Promise.resolve()),
 }));
@@ -59,6 +63,7 @@ describe('navigateToCreatedExpense', () => {
         mockGetFocusedReportId.mockReturnValue(undefined);
         mockGetRootState.mockReturnValue({routes: []});
         mockGetTopmostReportId.mockReturnValue(undefined);
+        mockIsMoneyRequestReport.mockReturnValue(false);
     });
 
     it('should do nothing when the user already has the transaction thread open', async () => {
@@ -132,7 +137,7 @@ describe('navigateToCreatedExpense', () => {
         const reportRoute = ROUTES.REPORT_WITH_ID.getRoute('iou-1', undefined, undefined, '');
         expect(setActiveTransactionIDs).toHaveBeenCalledWith(['txn-1', 'txn-2']);
         expect(Navigation.navigate).toHaveBeenCalledTimes(2);
-        expect(Navigation.navigate).toHaveBeenNthCalledWith(1, reportRoute);
+        expect(Navigation.navigate).toHaveBeenNthCalledWith(1, reportRoute, {forceReplace: false});
         expect(Navigation.navigate).toHaveBeenNthCalledWith(2, ROUTES.SEARCH_REPORT.getRoute({reportID: 'thread-1', backTo: reportRoute}));
     });
 
@@ -186,7 +191,33 @@ describe('navigateToCreatedExpense', () => {
         const reportRoute = ROUTES.REPORT_WITH_ID.getRoute('iou-1', undefined, undefined, '');
         expect(setActiveTransactionIDs).toHaveBeenCalledWith(['txn-1', 'txn-2']);
         expect(Navigation.navigate).toHaveBeenCalledTimes(2);
-        expect(Navigation.navigate).toHaveBeenNthCalledWith(1, reportRoute);
+        expect(Navigation.navigate).toHaveBeenNthCalledWith(1, reportRoute, {forceReplace: false});
+        expect(Navigation.navigate).toHaveBeenNthCalledWith(2, ROUTES.SEARCH_REPORT.getRoute({reportID: 'thread-1', backTo: reportRoute}));
+    });
+
+    it('should replace another expense report open under the RHP instead of stacking on it on a narrow layout', async () => {
+        // Given an expense of another expense report is open in the RHP, on top of that report opened from its chat
+        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+        mockGetIsNarrowLayout.mockReturnValue(true);
+        mockIsReportOpenInRHP.mockReturnValue(true);
+        mockGetFocusedReportId.mockReturnValue('other-thread');
+        mockGetTopmostReportId.mockReturnValue('other-iou');
+        mockIsMoneyRequestReport.mockImplementation((reportID) => reportID === 'other-iou');
+
+        // When the user presses "View" and the RHP has closed, leaving the other expense report on top
+        navigateToCreatedExpense({
+            threadReportID: 'thread-1',
+            transactionID: 'txn-1',
+            iouReportID: 'iou-1',
+            reportTransactions: [buildTransaction('txn-1'), buildTransaction('txn-2')],
+        });
+        await waitForBatchedUpdates();
+        mockGetCurrentRoute.mockReturnValue({params: {backTo: 'r/chat-1'}});
+        jest.mocked(Navigation.dismissModal).mock.calls.at(0)?.at(0)?.afterTransition?.();
+
+        // Then the new expense report replaces the other one and takes over its backTo, so going back skips it
+        const reportRoute = ROUTES.REPORT_WITH_ID.getRoute('iou-1', undefined, undefined, 'r/chat-1');
+        expect(Navigation.navigate).toHaveBeenNthCalledWith(1, reportRoute, {forceReplace: true});
         expect(Navigation.navigate).toHaveBeenNthCalledWith(2, ROUTES.SEARCH_REPORT.getRoute({reportID: 'thread-1', backTo: reportRoute}));
     });
 

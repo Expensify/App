@@ -1,6 +1,7 @@
 import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import {isMoneyRequestReport} from '@libs/ReportUtils';
 import {getCreated} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -88,19 +89,23 @@ function navigateToCreatedExpense({threadReportID, transactionID, iouReportID, r
             return;
         }
 
-        const openThreadOnExpenseReport = (reportBackTo?: string) => {
+        const openThreadOnExpenseReport = () => {
+            // Expense reports replace each other rather than stack, so another one open full screen is swapped out
+            const openReportID = Navigation.getTopmostReportId(navigationRef.getRootState());
+            const shouldReplaceOpenReport = !!openReportID && isMoneyRequestReport(openReportID);
+            const reportBackTo = shouldReplaceOpenReport ? getCurrentRouteBackTo() : Navigation.getActiveRoute();
             const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, reportBackTo);
-            Navigation.navigate(reportRoute);
+            Navigation.navigate(reportRoute, {forceReplace: shouldReplaceOpenReport});
             setActiveTransactionIDs(openableTransactionIDs);
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo: reportRoute}));
         };
 
         // A full screen report would be pushed above the open RHP instead of replacing it, so close the RHP first.
         if (forceReplace) {
-            Navigation.dismissModal({afterTransition: () => openThreadOnExpenseReport(Navigation.getActiveRoute())});
+            Navigation.dismissModal({afterTransition: openThreadOnExpenseReport});
             return;
         }
-        openThreadOnExpenseReport(backTo);
+        openThreadOnExpenseReport();
         return;
     }
 
