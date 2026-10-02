@@ -4749,6 +4749,12 @@ ${amount} per ${merchant} - ${date}`,
             settlementFrequency: 'Frequenza di regolamento',
             setAsDefault: 'Imposta come spazio di lavoro predefinito',
             defaultNote: `Le ricevute inviate a ${CONST.EMAIL.RECEIPTS} verranno visualizzate in questo workspace.`,
+            archive: 'Archivia spazio di lavoro',
+            archiveConfirmation: 'Sei sicuro di voler archiviare questo spazio di lavoro?',
+            archiveWithThirdPartyCardsConfirmation:
+                'Sei sicuro di voler archiviare questo spazio di lavoro? Questa azione annullerà l’assegnazione di tutte le carte di credito agli utenti ed eliminerà definitivamente le spese con carta non inviate.',
+            archiveWithExpensifyCardsConfirmation:
+                'Sei sicuro di voler archiviare questo spazio di lavoro? Questa azione imposterà tutti i limiti delle Expensify Card a 0 $ e rifiuterà automaticamente qualsiasi nuovo tentativo di acquisto.',
             deleteWorkspaceTitle: (workspaceName: string) => `Eliminare ${workspaceName}?`,
             deleteConfirmation: 'Sei sicuro di voler eliminare questo spazio di lavoro?',
             deleteWithCardsConfirmation: 'Sei sicuro di voler eliminare questo spazio di lavoro? Questa azione rimuoverà tutti i feed delle carte e le carte assegnate.',
@@ -4756,6 +4762,8 @@ ${amount} per ${merchant} - ${date}`,
             deleteTravelInvoicingError: 'La tua azienda ha ancora la Fatturazione Viaggi Consolidata attivata.',
             outstandingBalanceWarning:
                 'Hai un saldo in sospeso che deve essere saldato prima di eliminare il tuo ultimo workspace. Vai alle impostazioni dell’abbonamento per risolvere il pagamento.',
+            outstandingBalanceArchiveWarning:
+                'Hai un saldo in sospeso che deve essere saldato prima di archiviare il tuo ultimo workspace. Vai alle impostazioni dell’abbonamento per risolvere il pagamento.',
             settleBalance: 'Vai all’abbonamento',
             unavailable: 'Spazio di lavoro non disponibile',
             memberNotFound: 'Membro non trovato. Per invitare un nuovo membro allo spazio di lavoro, usa il pulsante di invito qui sopra.',

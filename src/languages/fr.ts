@@ -4786,6 +4786,12 @@ ${amount} pour ${merchant} - ${date}`,
             settlementFrequency: 'Fréquence de règlement',
             setAsDefault: 'Définir comme espace de travail par défaut',
             defaultNote: `Les reçus envoyés à ${CONST.EMAIL.RECEIPTS} apparaîtront dans cet espace de travail.`,
+            archive: 'Archiver l’espace de travail',
+            archiveConfirmation: 'Voulez-vous vraiment archiver cet espace de travail ?',
+            archiveWithThirdPartyCardsConfirmation:
+                'Voulez-vous vraiment archiver cet espace de travail ? Cela désassignera toutes les cartes de crédit des utilisateurs et supprimera définitivement toutes les dépenses de carte non soumises.',
+            archiveWithExpensifyCardsConfirmation:
+                'Voulez-vous vraiment archiver cet espace de travail ? Cela fixera toutes les limites des Expensify Card à 0 $ et refusera automatiquement toute nouvelle tentative d’achat.',
             deleteWorkspaceTitle: (workspaceName: string) => `Supprimer ${workspaceName} ?`,
             deleteConfirmation: 'Voulez-vous vraiment supprimer cet espace de travail ?',
             deleteWithCardsConfirmation: 'Voulez-vous vraiment supprimer cet espace de travail ? Cela supprimera tous les flux de cartes et les cartes assignées.',
@@ -4793,6 +4799,8 @@ ${amount} pour ${merchant} - ${date}`,
             deleteTravelInvoicingError: 'Votre entreprise a toujours la facturation de voyages consolidée activée.',
             outstandingBalanceWarning:
                 'Vous avez un solde impayé qui doit être réglé avant de supprimer votre dernier espace de travail. Veuillez accéder à vos paramètres d’abonnement pour résoudre le paiement.',
+            outstandingBalanceArchiveWarning:
+                'Vous avez un solde impayé qui doit être réglé avant d’archiver votre dernier espace de travail. Veuillez accéder à vos paramètres d’abonnement pour résoudre le paiement.',
             settleBalance: 'Aller à l’abonnement',
             unavailable: 'Espace de travail indisponible',
             memberNotFound: 'Membre introuvable. Pour inviter un nouveau membre dans l’espace de travail, veuillez utiliser le bouton d’invitation ci-dessus.',

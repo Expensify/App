@@ -4703,6 +4703,12 @@ ${amount} para ${merchant} - ${date}`,
             settlementFrequency: 'Frecuencia de liquidación',
             setAsDefault: 'Establecer como espacio de trabajo predeterminado',
             defaultNote: `Los recibos enviados a ${CONST.EMAIL.RECEIPTS} aparecerán en este espacio de trabajo.`,
+            archive: 'Archivar espacio de trabajo',
+            archiveConfirmation: '¿Estás seguro de que quieres archivar este espacio de trabajo?',
+            archiveWithThirdPartyCardsConfirmation:
+                '¿Estás seguro de que quieres archivar este espacio de trabajo? Se desasignarán todas las tarjetas de crédito de los usuarios y se eliminarán permanentemente los gastos de tarjeta no enviados.',
+            archiveWithExpensifyCardsConfirmation:
+                '¿Estás seguro de que quieres archivar este espacio de trabajo? Se establecerán todos los límites de las Tarjetas Expensify a $0 y se rechazarán automáticamente los nuevos intentos de compra.',
             deleteWorkspaceTitle: (workspaceName: string) => `¿Eliminar ${workspaceName}?`,
             deleteConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo?',
             deleteWithCardsConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo? Se eliminarán todos los datos de las tarjetas y las tarjetas asignadas.',
@@ -4710,6 +4716,8 @@ ${amount} para ${merchant} - ${date}`,
             deleteTravelInvoicingError: 'Tu empresa todavía tiene habilitada la Facturación Consolidada de Viajes.',
             outstandingBalanceWarning:
                 'Tienes un saldo pendiente que debe liquidarse antes de eliminar tu último espacio de trabajo. Por favor, ve a la configuración de tu suscripción para resolver el pago.',
+            outstandingBalanceArchiveWarning:
+                'Tienes un saldo pendiente que debe liquidarse antes de archivar tu último espacio de trabajo. Por favor, ve a la configuración de tu suscripción para resolver el pago.',
             settleBalance: 'Ir a Suscripción',
             unavailable: 'Espacio de trabajo no disponible',
             memberNotFound: 'Miembro no encontrado. Para invitar a un nuevo miembro al espacio de trabajo, por favor, utiliza el botón invitar que está arriba.',

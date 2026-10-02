@@ -4779,6 +4779,12 @@ ${amount} dla ${merchant} - ${date}`,
             settlementFrequency: 'Częstotliwość rozliczeń',
             setAsDefault: 'Ustaw jako domyślne miejsce pracy',
             defaultNote: `Paragony wysłane na ${CONST.EMAIL.RECEIPTS} pojawią się w tym obszarze roboczym.`,
+            archive: 'Zarchiwizuj przestrzeń roboczą',
+            archiveConfirmation: 'Czy na pewno chcesz zarchiwizować tę przestrzeń roboczą?',
+            archiveWithThirdPartyCardsConfirmation:
+                'Czy na pewno chcesz zarchiwizować tę przestrzeń roboczą? Spowoduje to anulowanie przypisania wszystkich kart kredytowych użytkownikom i trwałe usunięcie nieprzesłanych wydatków z kart.',
+            archiveWithExpensifyCardsConfirmation:
+                'Czy na pewno chcesz zarchiwizować tę przestrzeń roboczą? Spowoduje to ustawienie wszystkich limitów Expensify Card na $0 i automatyczne odrzucanie nowych prób zakupu.',
             deleteWorkspaceTitle: (workspaceName: string) => `Usunąć ${workspaceName}?`,
             deleteConfirmation: 'Czy na pewno chcesz usunąć tę przestrzeń roboczą?',
             deleteWithCardsConfirmation: 'Na pewno chcesz usunąć tę przestrzeń roboczą? Spowoduje to usunięcie wszystkich źródeł kart i przypisanych kart.',
@@ -4786,6 +4792,8 @@ ${amount} dla ${merchant} - ${date}`,
             deleteTravelInvoicingError: 'Twoja firma nadal ma włączone Skonsolidowane Rozliczanie Podróży.',
             outstandingBalanceWarning:
                 'Masz zaległe saldo, które musi zostać uregulowane przed usunięciem ostatniego miejsca pracy. Przejdź do ustawień subskrypcji, aby uregulować płatność.',
+            outstandingBalanceArchiveWarning:
+                'Masz zaległe saldo, które musi zostać uregulowane przed zarchiwizowaniem ostatniego miejsca pracy. Przejdź do ustawień subskrypcji, aby uregulować płatność.',
             settleBalance: 'Przejdź do subskrypcji',
             unavailable: 'Niedostępne miejsce pracy',
             memberNotFound: 'Nie znaleziono członka. Aby zaprosić nową osobę do przestrzeni roboczej, użyj przycisku zaproszenia powyżej.',
