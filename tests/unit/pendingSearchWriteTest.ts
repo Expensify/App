@@ -4,7 +4,9 @@ import {
     flushPendingSearchWrite,
     getSearchWriteWatchKey,
     hasPendingSearchWrite,
+    holdPendingSearchWriteFlush,
     markPendingSearchWrite,
+    releasePendingSearchWriteFlush,
     resetForTesting,
     setSearchWriteWatchKey,
 } from '@libs/pendingSearchWrite';
@@ -182,6 +184,63 @@ describe('pendingSearchWrite', () => {
         } finally {
             jest.useRealTimers();
         }
+    });
+
+    describe('flush hold', () => {
+        it('runs a flush requested during the hold only on release', async () => {
+            // Given a write waiting on the barrier while a revealed wide pre-mount slides the RHP out
+            markPendingSearchWrite();
+            const isSettled = settled(acquireSearchWriteBarrier());
+            holdPendingSearchWriteFlush();
+
+            // When Search flushes mid-slide
+            flushPendingSearchWrite();
+            await Promise.resolve();
+
+            // Then the write stays gated, so the list does not re-render under the sliding RHP
+            expect(hasPendingSearchWrite()).toBe(true);
+            expect(isSettled()).toBe(false);
+
+            // When the slide ends and the hold is released
+            releasePendingSearchWriteFlush();
+            await Promise.resolve();
+
+            // Then the held flush runs and the write goes out
+            expect(hasPendingSearchWrite()).toBe(false);
+            expect(isSettled()).toBe(true);
+        });
+
+        it('does not flush on release when nothing asked for a flush', () => {
+            // Given a hold with no flush requested during it
+            markPendingSearchWrite();
+            acquireSearchWriteBarrier();
+            holdPendingSearchWriteFlush();
+
+            // When the hold is released
+            releasePendingSearchWriteFlush();
+
+            // Then the signal stays up for Search's own release point instead of being flushed early
+            expect(hasPendingSearchWrite()).toBe(true);
+        });
+
+        it('stops holding after the safety timeout when the release never comes', () => {
+            jest.useFakeTimers();
+            try {
+                // Given a hold whose release was lost
+                holdPendingSearchWriteFlush();
+                jest.advanceTimersByTime(SAFETY_TIMEOUT_MS);
+
+                // When a later submission is flushed by Search
+                markPendingSearchWrite();
+                acquireSearchWriteBarrier();
+                flushPendingSearchWrite();
+
+                // Then the flush goes through, so a lost release cannot hold every later write
+                expect(hasPendingSearchWrite()).toBe(false);
+            } finally {
+                jest.useRealTimers();
+            }
+        });
     });
 
     describe('watch key', () => {

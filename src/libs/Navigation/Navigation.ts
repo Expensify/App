@@ -8,6 +8,7 @@ import {setupHadTabNavigation} from '@libs/hadTabNavigation';
 import Log from '@libs/Log';
 import {cancelSkipNextFocusRestore, skipNextFocusRestore} from '@libs/NavigationFocusReturn';
 import {shallowCompare} from '@libs/ObjectUtils';
+import {holdPendingSearchWriteFlush, releasePendingSearchWriteFlush} from '@libs/pendingSearchWrite';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 
 import variables from '@styles/variables';
@@ -1209,11 +1210,17 @@ function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransiti
     }
 
     const preMountedRouteKey = takePreMountedFullscreenForReveal(route);
+    // The revealed Search re-renders its whole list when the new expense lands, which would block the RHP slide.
+    if (preMountedRouteKey) {
+        holdPendingSearchWriteFlush();
+    }
     // Revealing ends with the dismiss transition, or a later Search focus would skip its overlay and re-arm.
     const afterTransition =
         options?.afterTransition || preMountedRouteKey
             ? () => {
                   setIsRevealingPreMountedFullscreen(false);
+                  // The closing RHP leaves the DOM in a commit after its transition ends, so wait two frames.
+                  requestAnimationFrame(() => requestAnimationFrame(releasePendingSearchWriteFlush));
                   options?.afterTransition?.();
               }
             : undefined;
