@@ -45,9 +45,9 @@ import type BasePolicyParams from './types/BasePolicyParams';
 
 import {getAllPersonalDetails} from '.';
 import {getReceiptError, mergePolicyRecentlyUsedCategories, mergePolicyRecentlyUsedCurrencies} from './MoneyRequestBuilder';
-import {highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
 import resolveWriteBarrier from './resolveWriteBarrier';
 import {getSearchOnyxUpdate} from './SearchUpdate';
+import signalExpenseAddedGrowl from './signalExpenseAddedGrowl';
 
 type SendInvoiceInformation = {
     senderWorkspaceID: string | undefined;
@@ -732,16 +732,7 @@ function getSendInvoiceInformation({
     }
 
     // STEP 5: Build optimistic reportActions.
-    const reportPreviewAction = buildOptimisticReportPreview(
-        chatReport,
-        optimisticInvoiceReport,
-        getCurrencyDecimals,
-        trimmedComment,
-        optimisticTransaction,
-        undefined,
-        undefined,
-        delegateAccountID,
-    );
+    const reportPreviewAction = buildOptimisticReportPreview(chatReport, optimisticInvoiceReport, getCurrencyDecimals, delegateAccountID, trimmedComment, optimisticTransaction);
     optimisticInvoiceReport.parentReportActionID = reportPreviewAction.reportActionID;
     chatReport.lastVisibleActionCreated = reportPreviewAction.created;
     const [optimisticCreatedActionForChat, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
@@ -885,7 +876,9 @@ function sendInvoice({
         onWriteStarted: () => notifyNewAction(invoiceRoom.reportID, undefined, true),
     });
 
-    highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transactionID, CONST.SEARCH.DATA_TYPES.INVOICE);
+    if (isFromGlobalCreate) {
+        signalExpenseAddedGrowl(transactionID, CONST.SEARCH.DATA_TYPES.INVOICE);
+    }
 }
 
 export {getReceiverType, getSendInvoiceInformation, sendInvoice};
