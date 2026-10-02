@@ -54,6 +54,29 @@ describe('useConciergeAskState', () => {
         expect(result.current.shouldShowWelcome).toBe(true);
     });
 
+    it('keeps the empty state while a question that opens its own thread is sending', async () => {
+        const question = {
+            reportActionID: '3',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            actorAccountID: 100,
+            created: '2024-06-01 12:05:00.000',
+            childReportID: '4',
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        };
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, {[question.reportActionID]: question});
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useConciergeAskState(CONCIERGE_REPORT_ID), {wrapper});
+        expect(result.current.shouldShowWelcome).toBe(true);
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, {[question.reportActionID]: {pendingAction: null}});
+        await waitForBatchedUpdates();
+        expect(result.current.shouldShowWelcome).toBe(false);
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, null);
+        await waitForBatchedUpdates();
+    });
+
     it('shows the earlier conversation when the report opens at a linked action', () => {
         mockRouteParams = {reportActionID: '2'};
 

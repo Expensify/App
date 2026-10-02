@@ -44,7 +44,15 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
         if (!actions || !sessionStartTime) {
             return false;
         }
-        return Object.values(actions).some((action) => isCurrentUserPendingAddAction(action, currentUserAccountID) || (!isCreatedAction(action) && action.created >= sessionStartTime));
+        return Object.values(actions).some((action) => {
+            const isPendingAdd = isCurrentUserPendingAddAction(action, currentUserAccountID);
+
+            // A question that opens its own thread takes the user there, so the welcome stays until it is sent.
+            if (isPendingAdd && !!action.childReportID) {
+                return false;
+            }
+            return isPendingAdd || (!isCreatedAction(action) && action.created >= sessionStartTime);
+        });
     };
     const [hasSessionActivity] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         selector: hasSessionActivitySelector,
