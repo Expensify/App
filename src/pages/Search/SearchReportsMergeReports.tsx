@@ -20,7 +20,7 @@ import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {mergeReports} from '@libs/actions/Report';
-import {setSearchMergeReportIDs} from '@libs/actions/Search';
+import {getReportFromSearchSnapshot, setSearchMergeReportIDs} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {canMergeReports, getMoneyRequestSpendBreakdown, getPersonalDetailsForAccountID} from '@libs/ReportUtils';
@@ -119,16 +119,12 @@ function SearchMergeReports() {
         }
         return selectedReportIDs
             .map((reportID) => {
-                const key = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
-                const report = allReports?.[key];
+                const report = getReportFromSearchSnapshot(reportID, currentSearchResults?.data, allReports);
                 if (!reportID || !report?.reportID || report?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                     return undefined;
                 }
 
-                // Since the Merge Reports flow is always opened from the Search screen,
-                // we prioritize the totals from snapshot data for display.
-                const snapshotReport = currentSearchResults?.data[key];
-                const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(snapshotReport ?? report);
+                const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
                 return {
                     ...report,
                     groupedBy: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
@@ -222,11 +218,10 @@ function SearchMergeReports() {
     // Or while reports are being hydrated from snapshot data.
     const isLoading =
         isLoadingOnyxData ||
-        (reportItems.length === 0 &&
-            selectedReportIDs?.some((reportID) => {
-                const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
-                return !allReports?.[reportKey] && !!currentSearchResults?.data[reportKey];
-            }));
+        selectedReportIDs?.some((reportID) => {
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
+            return !allReports?.[reportKey] && !!currentSearchResults?.data[reportKey];
+        });
 
     if (!isReportMergeBetaEnabled) {
         return null;
