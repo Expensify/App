@@ -262,7 +262,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const submitButtonText = shouldShowMarkAsDoneCopy ? translate('common.markAsDone') : translate('common.submit');
     const approveButtonText = shouldShowMarkAsDoneCopy ? translate('common.markAsDone') : translate('iou.approve');
 
-    const selectionModeReportLevelActions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'subMenuHeaderText'>> = [
+    const selectionModeReportLevelActions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'rightIcon'>> = [
         ...(hasSubmitAction && !shouldBlockSubmit
             ? [
                   {

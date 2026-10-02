@@ -44,9 +44,11 @@ import useTransactionThreadData from './useTransactionThreadData';
 type PayPrimaryActionProps = {
     reportID: string | undefined;
     chatReportID: string | undefined;
+    /** Disables the Pay button, e.g. while expenses are selected */
+    isDisabled?: boolean;
 };
 
-function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
+function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryActionProps) {
     const {isBetaEnabled} = usePermissions();
     const {isPaidAnimationRunning, isApprovedAnimationRunning, stopAnimation, startAnimation} = usePaymentAnimationsContext();
     const {isOffline} = useNetwork();
@@ -217,7 +219,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
             onPress={confirmPayment}
             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
             shouldHidePaymentOptions={!shouldShowPayButton}
-            isDisabled={isOffline && !canAllowSettlement}
+            isDisabled={(isOffline && !canAllowSettlement) || isDisabled}
             isLoading={!isOffline && !canAllowSettlement}
         />
     );
