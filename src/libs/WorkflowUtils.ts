@@ -1574,6 +1574,7 @@ function getApprovalWorkflowRulesForPolicy(rulesCollection: OnyxCollection<Rule>
  * A change lands on the policy's employee list or, under the `MULTIPLE_APPROVERS` beta, on the approval workflow
  * rules, so a surface showing a member's approver has to read whichever one the save went to.
  *
+ * @param approvalWorkflows the workflows being shown, used to reach the first approver each member submits to.
  * @param rules the policy's rules, or nothing when the beta is off and the employee list holds the approver.
  */
 function getApproverPendingActionByMemberEmail(
@@ -1584,13 +1585,22 @@ function getApproverPendingActionByMemberEmail(
     const pendingActionByMemberEmail: Record<string, PendingAction> = {};
     const employees = policy?.employeeList ?? {};
 
+    // Turning approvals on or off rewrites who every member submits to, so the whole column is mid-change. The members
+    // themselves are never marked, the policy is, so this is the only signal that the change is in flight.
+    const approvalModePendingAction = policy?.pendingFields?.approvalMode;
+    if (approvalModePendingAction) {
+        for (const email of Object.keys(employees)) {
+            pendingActionByMemberEmail[email] = approvalModePendingAction;
+        }
+    }
+
     for (const employee of Object.values(employees)) {
         const pendingAction = employee.pendingFields?.submitsTo;
         if (!employee.email || !pendingAction) {
             continue;
         }
 
-        pendingActionByMemberEmail[employee.email] = pendingAction;
+        pendingActionByMemberEmail[employee.email] ??= pendingAction;
     }
 
     // A change further up the chain lands on the first approver's `forwardsTo`, leaving every submitter's `submitsTo`
@@ -1619,6 +1629,16 @@ function getApproverPendingActionByMemberEmail(
         for (const submitter of extractSubmitterEmails(rule)) {
             pendingActionByMemberEmail[submitter] ??= rule.pendingAction;
         }
+    }
+
+    // A member's approver is only ever changed, never taken away, since deleting the workflow they are on falls them
+    // back to the default approver. Passing DELETE through would strike the name out as though it were going away.
+    for (const [email, pendingAction] of Object.entries(pendingActionByMemberEmail)) {
+        if (pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
+        }
+
+        pendingActionByMemberEmail[email] = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
     }
 
     return pendingActionByMemberEmail;

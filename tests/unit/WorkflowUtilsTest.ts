@@ -2453,7 +2453,7 @@ describe('WorkflowUtils', () => {
             ...extra,
         });
 
-        const policyWithEmployees = (employeeList: Policy['employeeList']) => createMock<Policy>({...createRandomPolicy(1), employeeList});
+        const policyWithEmployees = (employeeList: Policy['employeeList'], extra: Partial<Policy> = {}) => createMock<Policy>({...createRandomPolicy(1), employeeList, ...extra});
 
         it('reads the employee list, which is where a save lands while the multiple approvers beta is off', () => {
             // Given an employee whose approver change is still in flight, the beta being off so no rules are passed.
@@ -2481,6 +2481,29 @@ describe('WorkflowUtils', () => {
             // Given a policy whose employees carry no pending approver change, because the save went to the rules.
             const policy = policyWithEmployees({'a@example.com': {email: 'a@example.com'}});
             const rules = {rules_1: approvalRuleFor('a@example.com', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE})};
+
+            expect(getApproverPendingActionByMemberEmail(policy, [], rules)).toEqual({'a@example.com': CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE});
+        });
+
+        it('marks every member while approvals are being turned on or off', () => {
+            // Given a policy whose approval mode is mid-change. That rewrites who everyone submits to, but it marks
+            // the policy rather than the employees, so nothing else here would show the change as in flight.
+            const policy = policyWithEmployees(
+                {'a@example.com': {email: 'a@example.com'}, 'b@example.com': {email: 'b@example.com'}},
+                {pendingFields: {approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}},
+            );
+
+            expect(getApproverPendingActionByMemberEmail(policy, [], undefined)).toEqual({
+                'a@example.com': CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                'b@example.com': CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            });
+        });
+
+        it('reports a deleted workflow as an update, since its members fall back to the default approver', () => {
+            // Given the rule for a workflow being deleted. The members keep an approver, so reporting the deletion
+            // would strike their new approver's name out as though it were going away.
+            const policy = policyWithEmployees({'a@example.com': {email: 'a@example.com'}});
+            const rules = {rules_1: approvalRuleFor('a@example.com', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})};
 
             expect(getApproverPendingActionByMemberEmail(policy, [], rules)).toEqual({'a@example.com': CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE});
         });
