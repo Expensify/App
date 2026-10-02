@@ -89,7 +89,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
         targetTransaction,
         targetReportTransactions,
         rules,
-        personalDetails
+        personalDetails,
     ]);
 
     const data = !eligibleTransactions
