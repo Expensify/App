@@ -1576,16 +1576,39 @@ function getApprovalWorkflowRulesForPolicy(rulesCollection: OnyxCollection<Rule>
  *
  * @param rules the policy's rules, or nothing when the beta is off and the employee list holds the approver.
  */
-function getApproverPendingActionByMemberEmail(policy: OnyxEntry<Policy>, rules: NonNullable<OnyxCollection<Rule>> | undefined): Record<string, PendingAction> {
+function getApproverPendingActionByMemberEmail(
+    policy: OnyxEntry<Policy>,
+    approvalWorkflows: ApprovalWorkflow[],
+    rules: NonNullable<OnyxCollection<Rule>> | undefined,
+): Record<string, PendingAction> {
     const pendingActionByMemberEmail: Record<string, PendingAction> = {};
+    const employees = policy?.employeeList ?? {};
 
-    for (const employee of Object.values(policy?.employeeList ?? {})) {
+    for (const employee of Object.values(employees)) {
         const pendingAction = employee.pendingFields?.submitsTo;
         if (!employee.email || !pendingAction) {
             continue;
         }
 
         pendingActionByMemberEmail[employee.email] = pendingAction;
+    }
+
+    // A change further up the chain lands on the first approver's `forwardsTo`, leaving every submitter's `submitsTo`
+    // alone. It still changes what their row shows, since the label follows how deep their chain runs.
+    for (const workflow of approvalWorkflows) {
+        const firstApproverEmail = workflow.approvers.at(0)?.email;
+        const pendingAction = firstApproverEmail ? employees[firstApproverEmail]?.pendingFields?.forwardsTo : undefined;
+        if (!pendingAction) {
+            continue;
+        }
+
+        for (const member of workflow.members) {
+            if (!member.email) {
+                continue;
+            }
+
+            pendingActionByMemberEmail[member.email] ??= pendingAction;
+        }
     }
 
     for (const rule of Object.values(rules ?? {})) {

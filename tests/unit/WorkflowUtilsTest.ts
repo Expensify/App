@@ -2462,7 +2462,19 @@ describe('WorkflowUtils', () => {
                 'b@example.com': {email: 'b@example.com'},
             });
 
-            expect(getApproverPendingActionByMemberEmail(policy, undefined)).toEqual({'a@example.com': CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE});
+            expect(getApproverPendingActionByMemberEmail(policy, [], undefined)).toEqual({'a@example.com': CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE});
+        });
+
+        it('marks every submitter when a change further up their chain is in flight', () => {
+            // Given a workflow where the first approver's own forwardsTo is pending, which is where a change to the
+            // second approver lands. The submitters' submitsTo is untouched, but their row's label still follows the
+            // depth of the chain, so it has a change coming.
+            const policy = policyWithEmployees({
+                '1@example.com': {email: '1@example.com'},
+                '2@example.com': {email: '2@example.com', pendingFields: {forwardsTo: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}},
+            });
+
+            expect(getApproverPendingActionByMemberEmail(policy, [buildWorkflow([1], [2])], undefined)).toEqual({'1@example.com': CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE});
         });
 
         it('reads the rules, which is where a save lands while the beta is on and the employee list is untouched', () => {
@@ -2470,13 +2482,13 @@ describe('WorkflowUtils', () => {
             const policy = policyWithEmployees({'a@example.com': {email: 'a@example.com'}});
             const rules = {rules_1: approvalRuleFor('a@example.com', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE})};
 
-            expect(getApproverPendingActionByMemberEmail(policy, rules)).toEqual({'a@example.com': CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE});
+            expect(getApproverPendingActionByMemberEmail(policy, [], rules)).toEqual({'a@example.com': CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE});
         });
 
         it('leaves out members whose approver is settled', () => {
             const policy = policyWithEmployees({'a@example.com': {email: 'a@example.com'}});
 
-            expect(getApproverPendingActionByMemberEmail(policy, {rules_1: approvalRuleFor('a@example.com')})).toEqual({});
+            expect(getApproverPendingActionByMemberEmail(policy, [], {rules_1: approvalRuleFor('a@example.com')})).toEqual({});
         });
     });
 

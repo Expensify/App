@@ -70,10 +70,12 @@ function useApprovalWorkflows({policy, personalDetails, currentUserLogin}: UseAp
         ? convertApprovalWorkflowRulesToWorkflows({...params, rules: getApprovalWorkflowRulesForPolicy(rulesCollection, policyID)})
         : convertPolicyEmployeesToApprovalWorkflows(params);
 
+    const enforcedApprovalWorkflows = getEnforcedApprovalWorkflowsForMembers(result.approvalWorkflows, policy, isMultipleApproversBetaEnabled);
+
     return {
         ...result,
-        enforcedApprovalWorkflows: getEnforcedApprovalWorkflowsForMembers(result.approvalWorkflows, policy, isMultipleApproversBetaEnabled),
-        approverPendingActionByMemberEmail: getApproverPendingActionByMemberEmail(policy, isMultipleApproversBetaEnabled ? rulesCollection : undefined),
+        enforcedApprovalWorkflows,
+        approverPendingActionByMemberEmail: getApproverPendingActionByMemberEmail(policy, enforcedApprovalWorkflows, isMultipleApproversBetaEnabled ? rulesCollection : undefined),
     };
 }
 
