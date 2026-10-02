@@ -225,6 +225,13 @@ const RESERVATION_TYPE = {
     TRAIN: 'train',
 } as const;
 
+/** Every event that can fire a rule, across all rule kinds. Hoisted so `RULES` can list subsets of it. */
+const RULE_TRIGGERS = {
+    REPORT_SUBMIT: 'ReportSubmit',
+    REPORT_APPROVE: 'ReportApprove',
+    CREATE_TRANSACTION: 'CreateTransaction',
+} as const;
+
 const EMAIL = {
     ACCOUNTING: 'accounting@expensify.com',
     ACCOUNTS_PAYABLE: 'accountspayable@expensify.com',
@@ -1130,6 +1137,7 @@ const CONST = {
         CAMPFIRE: 'campfire',
         BUSINESS_CENTRAL: 'businessCentral',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
+        COMMUTER_EXCLUSIONS_ARRANGEMENTS: 'commuterExclusionsArrangements',
         MULTIPLE_APPROVERS: 'multipleApprovers',
         GLOBAL_REIMBURSEMENTS: 'globalReimbursements',
         GLOBAL_REIMBURSEMENT_FX: 'globalReimbursementFX',
@@ -1942,6 +1950,7 @@ const CONST = {
                     UPDATE_REIMBURSER: 'POLICYCHANGELOG_UPDATE_REIMBURSER',
                     UPDATE_PROHIBITED_EXPENSES: 'POLICYCHANGELOG_UPDATE_PROHIBITED_EXPENSES',
                     UPDATE_COMMUTER_EXCLUSIONS: 'POLICYCHANGELOG_UPDATE_COMMUTER_EXCLUSIONS',
+                    UPDATE_MEMBER_WORK_ARRANGEMENT: 'POLICYCHANGELOG_UPDATE_MEMBER_WORK_ARRANGEMENT',
                     UPDATE_REIMBURSEMENT_CHOICE: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_CHOICE',
                     UPDATE_REIMBURSEMENT_ENABLED: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_ENABLED',
                     UPDATE_REPORT_FIELD: 'POLICYCHANGELOG_UPDATE_REPORT_FIELD',
@@ -2312,6 +2321,7 @@ const CONST = {
         BREADCRUMB_MEMORY_PERIODIC: 'Periodic memory check',
         BREADCRUMB_MEMORY_FOREGROUND: 'App foreground - memory check',
         TAGS: {
+            APP_BLOCKING: 'app_blocking',
             ACTIVE_POLICY: 'active_policy_id',
             POLICIES_COUNT: 'policies_count',
             REPORTS_COUNT: 'reports_count',
@@ -2721,6 +2731,7 @@ const CONST = {
         EXP_ERROR: 666,
         UNABLE_TO_RETRY: 'unableToRetry',
         UPDATE_REQUIRED: 426,
+        TOO_MANY_REQUESTS: 429,
         INCORRECT_VALIDATE_CODE: 451,
         ADMIN_REQUIRED: 460,
         SERVICE_UNAVAILABLE: 503,
@@ -3497,7 +3508,6 @@ const CONST = {
         PROVINCIAL_TAX_POSTING_ACCOUNT: 'provincialTaxPostingAccount',
         ALLOW_FOREIGN_CURRENCY: 'allowForeignCurrency',
         EXPORT_TO_NEXT_OPEN_PERIOD: 'exportToNextOpenPeriod',
-        SPLIT_EXPORTS_BY_POSTING_PERIOD: 'splitExportsByPostingPeriod',
         IMPORT_FIELDS: ['departments', 'classes', 'locations'],
         AUTO_SYNC: 'autoSync',
         ACCOUNTING_METHOD: 'accountingMethod',
@@ -3972,6 +3982,32 @@ const CONST = {
         SYNC_TAX_RATES: 'syncTaxRates',
         SYNC_ITEMS: 'syncItems',
         FIELD_MAPPING_PREFIX: 'fieldMapping_',
+        EXPORTER: 'exporter',
+        EXPORT_DATE: 'exportDate',
+        REIMBURSABLE: 'reimbursable',
+        NON_REIMBURSABLE: 'nonReimbursable',
+        REIMBURSABLE_ACCOUNT: 'reimbursableAccount',
+        NON_REIMBURSABLE_ACCOUNT: 'nonReimbursableAccount',
+        DEFAULT_VENDOR_ID: 'defaultVendorID',
+        PAYMENT_METHOD_CODE: 'paymentMethodCode',
+    },
+
+    BUSINESS_CENTRAL_EXPORT_DATE: {
+        LAST_EXPENSE: 'LAST_EXPENSE',
+        REPORT_EXPORTED: 'REPORT_EXPORTED',
+        REPORT_SUBMITTED: 'REPORT_SUBMITTED',
+    },
+
+    /** Business Central document an expense exports to */
+    BUSINESS_CENTRAL_EXPORT_DESTINATION: {
+        JOURNAL_ENTRY: 'JOURNAL_ENTRY',
+        PURCHASE_INVOICE: 'PURCHASE_INVOICE',
+    },
+
+    /** Whether an exported Business Central document is only created or also posted */
+    BUSINESS_CENTRAL_POSTING_MODE: {
+        CREATE_ONLY: 'CREATE_ONLY',
+        CREATE_AND_POST: 'CREATE_AND_POST',
     },
 
     BUSINESS_CENTRAL_MAPPING_VALUE: {
@@ -4968,6 +5004,12 @@ const CONST = {
                 BUSINESS_CENTRAL_SYNC_IMPORT_DATA: 'businessCentralSyncImportData',
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
+            /** How many days before a QuickBooks Online refresh token expires the workspace starts warning admins to reconnect */
+            QBO_REFRESH_TOKEN_EXPIRY_WARNING_DAYS: 7,
+            QBO_REFRESH_TOKEN_EXPIRY_STATUS: {
+                EXPIRING_SOON: 'expiringSoon',
+                EXPIRED: 'expired',
+            },
         },
         ACCESS_VARIANTS: {
             PAID: 'paid',
@@ -5546,6 +5588,14 @@ const CONST = {
     SUBSCRIPTION: {
         TEAM_2025_PRICING_START_DATE: new Date(2025, 3, 1),
         PRICING_TYPE_2025: 'team2025Pricing',
+        EARLY_RENEWAL: {
+            NON_INCENTIVIZED_START: '2026-10-01T00:00:00Z',
+            INCENTIVIZED_START: '2026-10-15T00:00:00Z',
+            CAMPAIGN_END: '2027-01-01T00:00:00Z',
+            OFFER_ID: {
+                NON_INCENTIVIZED_ONE_YEAR: 'nonIncentivizedOneYear',
+            },
+        },
         TYPE: {
             ANNUAL: 'yearly2018',
             PAY_PER_USE: 'monthly2018',
@@ -7158,6 +7208,7 @@ const CONST = {
         RHP_HOME_PAGE: 'rhpHomePage',
         TRACK_EXPENSES_WITH_CONCIERGE: 'trackExpensesWithConcierge',
         INBOX_ADMINS_BESPOKE: 'inboxAdminsBespoke',
+        HOME_PAGE_NO_RHP: 'homePageNoRHP',
     },
     ONBOARDING_JOINABLE_WORKSPACES_LIMIT: 5,
     ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE: 'What would you like to do with this expense?',
@@ -8251,7 +8302,7 @@ const CONST = {
             MAX_STALE_HOLD_DURATION: 500,
         },
         TODO_BADGE_MAX_COUNT: 50,
-        TOP_SEARCH_LIMIT: 10,
+        TOP_SEARCH_LIMIT: 5,
     },
     SEARCH_SELECTOR: {
         SELECTION_MODE_SINGLE: 'single',
@@ -8723,16 +8774,33 @@ const CONST = {
     RULES: {
         SCOPE: {
             POLICY: 'policy',
+            ACCOUNT: 'account',
+        },
+        TRIGGERS: RULE_TRIGGERS,
+        /** Every action a rule can perform, across all rule kinds. */
+        ACTIONS: {
+            FORWARD_TO: 'ForwardTo',
+            APPROVE_REPORT: 'ApproveReport',
+            SET: 'Set',
         },
         APPROVAL_WORKFLOW: {
-            TRIGGER: {
-                REPORT_SUBMIT: 'ReportSubmit',
-                REPORT_APPROVE: 'ReportApprove',
+            /** A rule firing only on these is an approval workflow rather than an expense default. */
+            TRIGGERS: [RULE_TRIGGERS.REPORT_SUBMIT, RULE_TRIGGERS.REPORT_APPROVE],
+        },
+        EXPENSE_DEFAULT: {
+            /** Expense fields a `Set` action can write to */
+            FIELD: {
+                BILLABLE: 'billable',
+                CATEGORY: 'category',
+                COMMENT: 'comment',
+                MERCHANT: 'merchant',
+                REIMBURSABLE: 'reimbursable',
+                TAG: 'tag',
+                TAX: 'tax',
+                VENDOR_ID: 'vendorID',
             },
-            ACTION: {
-                FORWARD_TO: 'ForwardTo',
-                APPROVE_REPORT: 'ApproveReport',
-            },
+            /** Every expense default rule is created with the same priority, per the rules engine spec */
+            PRIORITY: 10000,
         },
     },
 
@@ -9073,8 +9141,28 @@ const CONST = {
     OFFLINE_INDICATOR_HEIGHT: 25,
 
     BILLING: {
+        TYPE_FAILED: 'failed',
         TYPE_FAILED_2018: 'failed_2018',
+        TYPE_FAILED_SMARTSCAN: 'failed_smartscan2018',
         TYPE_STRIPE_FAILED_AUTHENTICATION: 'failed_stripe_authentication',
+        TYPE_CLEAR: 'clear',
+        TYPE_REFUND: 'refund',
+        TYPE_CC_REFUND: 'ccRefund',
+        TYPE_DISPUTE: 'dispute',
+        TYPE_TRANSFER: 'transfer',
+        TYPE_TRANSFER_TO: 'transfer_to',
+        TYPE_TRANSFER_FAILED: 'transfer_failed',
+        TYPE_TRANSFER_OLD: 'transfer_old',
+    },
+    PAYMENT_HISTORY: {
+        STATE: {
+            PAID: 'paid',
+            CLEARED: 'cleared',
+            FAILED: 'failed',
+            REFUNDED: 'refunded',
+            DISPUTED: 'disputed',
+            BALANCE_TRANSFER: 'balanceTransfer',
+        },
     },
 
     ONBOARDING_HELP: {
@@ -9156,7 +9244,10 @@ const CONST = {
             /** How narrow a free-text column may be squeezed before the table scrolls instead. Around 17 characters, so a typical merchant name or full name still reads, and a column is never squeezed below its header regardless. */
             MIN_FREE_TEXT_COLUMN_WIDTH: 120,
 
-            /** How wide a free-text column may be sized for its content once the table scrolls, so one unusually long value doesn't push every column after it out of view. A table that still fits its columns caps nothing: the spare room is there to be used. */
+            /** The width a free-text column is laid out at once the table scrolls, when horizontal room is no longer scarce. */
+            SCROLLED_FREE_TEXT_COLUMN_WIDTH: 180,
+
+            /** The cap a column opts into through `dynamicSizing.maxWidth`, so one unusually long value doesn't take room the columns after it need. */
             MAX_FREE_TEXT_COLUMN_WIDTH: 180,
         },
     },
@@ -9349,6 +9440,7 @@ const CONST = {
             CONTROL_WORKSPACE: 'Insights-ControlWorkspace',
             CONTROL_GROUP_CURRENCY: 'Insights-ControlGroupCurrency',
             CONTROL_GROUP_BY: 'Insights-ControlGroupBy',
+            CONTROL_COMPARE: 'Insights-ControlCompare',
         },
         EXPENSE_RULES: {
             TABLE_ROW: 'ExpenseRules-TableRow',
@@ -10022,6 +10114,7 @@ const CONST = {
             RETRY_PAYMENT: 'SettingsSubscription-RetryPayment',
             AUTHENTICATE_PAYMENT: 'SettingsSubscription-AuthenticatePayment',
             VIEW_PAYMENT_HISTORY: 'SettingsSubscription-ViewPaymentHistory',
+            PAYMENT_HISTORY_ROW: 'SettingsSubscription-PaymentHistoryRow',
             REQUEST_REFUND: 'SettingsSubscription-RequestRefund',
             CANCEL_SUBSCRIPTION: 'SettingsSubscription-CancelSubscription',
         },

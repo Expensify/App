@@ -4834,6 +4834,27 @@ function getMoneyRequestSpendBreakdown(report: OnyxInputOrEntry<Report>, searchR
     };
 }
 
+/**
+ * Builds the total columns used when an IOU report is converted to an expense report.
+ *
+ * IOU reports store their totals positive while expense reports store them negative, so every total column has to
+ * flip together with `total`. `getMoneyRequestSpendBreakdown` reads `reimbursableTotal` in preference to `total`,
+ * so negating `total` alone leaves the stale positive siblings behind and renders the Total as negative.
+ * Absent columns are not added so they keep being derived from `total`.
+ */
+function getNegatedReportTotals(
+    report: OnyxEntry<Report>,
+): Pick<Report, 'total' | 'reimbursableTotal' | 'nonReimbursableTotal' | 'unheldTotal' | 'unheldReimbursableTotal' | 'unheldNonReimbursableTotal'> {
+    return {
+        total: -(report?.total ?? 0),
+        ...(report?.reimbursableTotal != null && {reimbursableTotal: -report.reimbursableTotal}),
+        ...(report?.nonReimbursableTotal != null && {nonReimbursableTotal: -report.nonReimbursableTotal}),
+        ...(report?.unheldTotal != null && {unheldTotal: -report.unheldTotal}),
+        ...(report?.unheldReimbursableTotal != null && {unheldReimbursableTotal: -report.unheldReimbursableTotal}),
+        ...(report?.unheldNonReimbursableTotal != null && {unheldNonReimbursableTotal: -report.unheldNonReimbursableTotal}),
+    };
+}
+
 function getBillableAndTaxTotal(report: OnyxEntry<Report>, transactions: Array<OnyxEntry<Transaction>>) {
     if (!isExpenseReport(report)) {
         return {
@@ -5411,6 +5432,7 @@ function canEditMultipleTransactions(
                 policy,
                 reportActions: actionsForReport,
                 rules,
+                reportNameValuePairs: undefined,
             }),
         );
 
@@ -5485,8 +5507,7 @@ function canEditFieldOfMoneyRequest({
     transaction: OnyxEntry<Transaction>;
     report?: OnyxInputOrEntry<Report>;
     policy?: OnyxEntry<Policy>;
-    // Temporarily optional while archived report checks are migrated in smaller PRs. Remove this fallback as part of https://github.com/Expensify/App/issues/66422.
-    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
     // Temporarily optional while callers are migrated in smaller PRs. Once every caller passes it, the module-level fallback in hasReportBeenForwardedSinceLastSubmit is removed as part of https://github.com/Expensify/App/issues/66419.
     reportActions?: OnyxEntry<ReportActions> | ReportAction[];
     rules: OnyxCollection<Rule>;
@@ -8488,8 +8509,6 @@ function buildOptimisticModifiedExpenseReportAction(
     allowNegative = false,
 ): OptimisticModifiedExpenseReportAction {
     const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport, policy, updatedTransaction, allowNegative);
-    // Falls back to module-level delegateEmail (from Onyx.connect) for callers not yet migrated; will be removed in https://github.com/Expensify/App/issues/66425
-    const effectiveDelegateAccountID = delegateAccountIDParam ?? (delegateEmail ? getPersonalDetailByEmail(delegateEmail)?.accountID : undefined);
 
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
@@ -8518,7 +8537,7 @@ function buildOptimisticModifiedExpenseReportAction(
         reportActionID: rand64(),
         reportID: transactionThread?.reportID,
         shouldShow: true,
-        delegateAccountID: effectiveDelegateAccountID,
+        delegateAccountID: delegateAccountIDParam,
     };
 }
 
@@ -10692,6 +10711,16 @@ function shouldReportBeInOptionList(params: ShouldReportBeInOptionListParams) {
 }
 
 /**
+ * Stable key for a participant set, used by the `ONE_ON_ONE_CHAT_REPORT_IDS` derived value.
+ *
+ * Sorting uses the default comparator to match `getChatByParticipants`, which compares `.sort()`ed number arrays.
+ * That sort is lexicographic: [2, 10] becomes [10, 2]. A numeric sort here would stop matching.
+ */
+function getParticipantsChatKey(accountIDs: number[]): string {
+    return [...accountIDs].sort().join(',');
+}
+
+/**
  * Attempts to find a report in onyx with the provided list of participants. Does not include threads, task, expense, room, and policy expense chat.
  */
 function getChatByParticipants(newParticipantList: number[], reports: OnyxCollection<Report> = deprecatedAllReports, shouldIncludeGroupChats = false): OnyxEntry<Report> {
@@ -12378,8 +12407,7 @@ function isReportOutstanding(
     iouReport: OnyxInputOrEntry<Report>,
     policyID: string | undefined,
     rules: OnyxCollection<Rule>,
-    // Temporarily optional while archived report checks are migrated in smaller PRs. Remove this fallback as part of https://github.com/Expensify/App/issues/66422.
-    reportNameValuePair?: OnyxInputOrEntry<ReportNameValuePairs>,
+    reportNameValuePair: OnyxInputOrEntry<ReportNameValuePairs>,
     allowSubmitted = true,
 ): boolean {
     if (
@@ -12393,8 +12421,7 @@ function isReportOutstanding(
     ) {
         return false;
     }
-    const resolvedReportNameValuePair = reportNameValuePair ?? allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`];
-    if (isArchivedReport(resolvedReportNameValuePair)) {
+    if (isArchivedReport(reportNameValuePair)) {
         return false;
     }
     const currentRoute = navigationRef.getCurrentRoute();
@@ -12417,8 +12444,7 @@ function getOutstandingReportsForUser(
     policyID: string | undefined,
     reportOwnerAccountID: number | undefined,
     rules: OnyxCollection<Rule>,
-    // Temporarily optional while archived report checks are migrated in smaller PRs. Remove this fallback as part of https://github.com/Expensify/App/issues/66422.
-    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
     reports: OnyxCollection<Report> = deprecatedAllReports,
     allowSubmitted = true,
 ): Array<OnyxEntry<Report>> {
@@ -12452,7 +12478,7 @@ function getNewestOutstandingReportForUser(
     policyID: string | undefined,
     reportOwnerAccountID: number | undefined,
     rules: OnyxCollection<Rule>,
-    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
     reports: OnyxCollection<Report> = deprecatedAllReports,
 ): OnyxInputValue<Report> {
     const openReports = getOutstandingReportsForUser(policyID, reportOwnerAccountID, rules, reportNameValuePairs, reports, false).filter(isOpenExpenseReport);
@@ -13816,8 +13842,9 @@ function canRejectReportAction(report: Report, currentUserAccountID: number | un
     const isIOU = isIOUReport(report);
     const isInvoice = isInvoiceReport(report);
     const isCurrentUserManager = !!currentUserAccountID && report?.managerID === currentUserAccountID;
+    const isCurrentUserAdmin = isPolicyAdmin(policy);
 
-    if (!isCurrentUserManager) {
+    if (!isCurrentUserManager && !(isCurrentUserAdmin && !isCurrentUserSubmitter(report, currentUserAccountID))) {
         return false;
     }
 
@@ -14614,6 +14641,7 @@ export {
     getMissingPaymentMethodForQueuedPayment,
     getLastVisibleMessage,
     getMoneyRequestSpendBreakdown,
+    getNegatedReportTotals,
     getNonHeldAndFullAmount,
     getReimbursableTotal,
     getUnheldReimbursableTotal,
@@ -14624,6 +14652,7 @@ export {
     getParentNavigationSubtitle,
     getParsedComment,
     getParticipantsAccountIDsForDisplay,
+    getParticipantsChatKey,
     getParticipantsList,
     getPendingChatMembers,
     getPendingDeleteMemberAccountIDs,
