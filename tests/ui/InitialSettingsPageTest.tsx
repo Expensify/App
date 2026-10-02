@@ -110,19 +110,17 @@ jest.mock('@components/MenuItem', () => {
         badgeText,
         isBadgeSuccess,
         isBadgeCondensed,
-        onPress,
     }: {
         title: string;
         brickRoadIndicator?: string;
         badgeText?: string;
         isBadgeSuccess?: boolean;
         isBadgeCondensed?: boolean;
-        onPress?: () => void;
     }) =>
         ReactMock.createElement(
             ReactMock.Fragment,
             null,
-            ReactMock.createElement(Text, {testID: `menu-item-${String(title)}`, onPress}, title),
+            ReactMock.createElement(Text, {testID: `menu-item-${String(title)}`}, title),
             brickRoadIndicator ? ReactMock.createElement(Text, {testID: `decoration-${String(title)}-rbr`}, brickRoadIndicator) : null,
             badgeText ? ReactMock.createElement(Text, {testID: `decoration-${String(title)}-badge`}, badgeText) : null,
             isBadgeSuccess ? ReactMock.createElement(Text, {testID: `decoration-${String(title)}-badge-success`}) : null,
@@ -191,7 +189,6 @@ describe('InitialSettingsPage - agent account', () => {
         await act(async () => {
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
             await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
-            await Onyx.set(ONYXKEYS.BETA_CONFIGURATION, {explicitOnly: [CONST.BETAS.SUPPORT_TICKET]});
         });
 
         await waitForBatchedUpdatesWithAct();

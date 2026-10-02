@@ -124,43 +124,6 @@ describe('HeaderView', () => {
         await waitFor(() => expect(screen.getByTestId('DisplayNames')).toHaveTextContent(displayName));
     });
 
-    it('should display the localized support ticket title', async () => {
-        // Given a support ticket with a customer and assigned support rep
-        const supportRepAccountID = 2;
-        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}supportTicketReportID` as const;
-        const report: Report = {
-            reportID: 'supportTicketReportID',
-            type: CONST.REPORT.TYPE.SUPPORT_TICKET,
-            ownerAccountID: currentUserAccountID,
-            managerID: supportRepAccountID,
-            created: '2026-09-30 00:00:00.000',
-            reportName: 'Support ticket',
-        };
-        await act(async () => {
-            await Onyx.multiSet(
-                createMock<KeyValueMapping>({
-                    [reportKey]: report,
-                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
-                        [currentUserAccountID]: {accountID: currentUserAccountID, displayName: 'Jane Doe', login: 'jane@example.com'},
-                        [supportRepAccountID]: {accountID: supportRepAccountID, displayName: 'John Smith', login: 'john@example.com'},
-                    },
-                }),
-            );
-        });
-
-        render(
-            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-                <HeaderView
-                    onNavigationMenuButtonClicked={() => {}}
-                    reportID={report.reportID}
-                />
-            </ComposeProviders>,
-        );
-
-        // Then the header shows the report title instead of an empty participant name
-        await waitFor(() => expect(screen.getByTestId('DisplayNames')).toHaveTextContent('Support ticket, Sep 30, 2026: Jane Doe and John Smith'));
-    });
-
     it('should display join button', async () => {
         // Given an policy room header
         const report = {

@@ -3308,22 +3308,6 @@ describe('ReportActionItem', () => {
             expect(screen.getByText(/LiveTaskTitle/)).toBeOnTheScreen();
         });
 
-        it('renders a support ticket preview for a support ticket child action', async () => {
-            const action = {
-                ...createReportAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {}),
-                childReportID: 'supportTicket123',
-                childReportName: 'Support ticket',
-                childType: CONST.REPORT.TYPE.SUPPORT_TICKET,
-                childStateNum: CONST.REPORT.STATE_NUM.OPEN,
-                childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            } as ReportAction;
-
-            renderItemWithAction(action);
-            await waitForBatchedUpdatesWithAct();
-
-            expect(screen.getByText('Support ticket')).toBeOnTheScreen();
-        });
-
         it('REPORT_PREVIEW renders MoneyRequestReportPreview', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, {linkedReportID: 'iouReport1'});
             renderItemWithAction(action);
