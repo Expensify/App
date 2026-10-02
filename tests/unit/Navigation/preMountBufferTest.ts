@@ -596,6 +596,26 @@ describe('Navigation pre-mount buffer', () => {
         setIsRevealingPreMountedFullscreen(false);
     });
 
+    it('wide layout: a reveal drops a pre-mount covered by a later tab navigator', () => {
+        // Given a wide pre-mount for report 42, then a tab navigator pushed above the RHP (e.g. a Cmd+K result)
+        preMountOnWide();
+        const hmmmSpy = jest.spyOn(Log, 'hmmm').mockImplementation(() => {});
+        const coveredTabState = getWideTabState();
+        if (!coveredTabState) {
+            throw new Error('The wide pre-mount did not leave a tab state');
+        }
+        setRootState([...(mockRootState?.routes ?? []), {key: 'tab-navigator-2', name: NAVIGATORS.TAB_NAVIGATOR, state: {...coveredTabState, key: 'tab-state-2'}}]);
+
+        // When a later submit reveals the same route
+        const takenRouteKey = takePreMountedFullscreenForReveal(ROUTES.REPORT_WITH_ID.getRoute('42'));
+
+        // Then the covered pre-mount is not handed over, so the reveal does not reuse a screen the user cannot see
+        expect(takenRouteKey).toBeUndefined();
+        expect(Navigation.getPreMountedFullscreenRouteKey()).toBeUndefined();
+        expect(hmmmSpy).toHaveBeenCalledWith(expect.stringContaining('Wide pre-mount dropped'), expect.objectContaining({isInTopFullscreen: false}));
+        hmmmSpy.mockRestore();
+    });
+
     it('wide layout: a reveal of another route drops the pre-mount and logs the mismatch', () => {
         // Given a wide pre-mount for report 42
         preMountOnWide();
@@ -610,6 +630,7 @@ describe('Navigation pre-mount buffer', () => {
         expect(hmmmSpy).toHaveBeenCalledWith(expect.stringContaining('Wide pre-mount dropped'), {
             preMountedRoute: ROUTES.REPORT_WITH_ID.getRoute('42'),
             route: ROUTES.REPORT_WITH_ID.getRoute('43'),
+            isInTopFullscreen: true,
         });
         hmmmSpy.mockRestore();
     });

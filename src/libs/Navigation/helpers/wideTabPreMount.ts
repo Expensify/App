@@ -197,6 +197,11 @@ function preMountWideDestinationInTab(focusedTargetTab: NavigationPartialRoute):
     return routeKey;
 }
 
+/** True while the live pre-mount sits in the tab navigator shown as the top fullscreen, the only place a reveal can show it. */
+function isWideTabPreMountInTopFullscreen(): boolean {
+    return !!livePreMount && getCurrentTabState()?.key === livePreMount.tabStateKey;
+}
+
 /** Hands the pre-mount over to the reveal, which shows the pre-mounted screen as the destination. */
 function finishWideTabPreMountReveal(routeKey: string) {
     if (livePreMount?.routeKey !== routeKey) {
@@ -227,5 +232,5 @@ function cancelWideTabPreMount() {
     setLiveWideTabPreMountTabRouteKey(undefined);
 }
 
-export {buildWideTabPreMount, buildCancelledWideTabPreMount, preMountWideDestinationInTab, finishWideTabPreMountReveal, cancelWideTabPreMount};
+export {buildWideTabPreMount, buildCancelledWideTabPreMount, preMountWideDestinationInTab, finishWideTabPreMountReveal, cancelWideTabPreMount, isWideTabPreMountInTopFullscreen};
 export type {LiveWideTabPreMount, TabStateWithPreloads};

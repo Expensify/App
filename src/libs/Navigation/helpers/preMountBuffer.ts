@@ -12,7 +12,7 @@ import {DeviceEventEmitter} from 'react-native';
 
 import hasNativeSwipeBackGesture from './hasNativeSwipeBackGesture';
 import {isPreMountBufferHostName} from './isNavigatorName';
-import {cancelWideTabPreMount} from './wideTabPreMount';
+import {cancelWideTabPreMount, isWideTabPreMountInTopFullscreen} from './wideTabPreMount';
 
 // Always set and cleared together - the route name is only meaningful while the flag is true.
 let isFullscreenPreInsertedUnderRHP = false;
@@ -223,9 +223,10 @@ function takePreMountedFullscreenForReveal(route: Route): string | undefined {
     if (!preMountedFullscreen) {
         return undefined;
     }
-    if (preMountedFullscreen.route !== route) {
-        // A mismatch means the pre-mount was built for another route, so the submit falls back to a regular, slower reveal.
-        Log.hmmm('[preMountBuffer] Wide pre-mount dropped, reveal route does not match', {preMountedRoute: preMountedFullscreen.route, route});
+    const isInTopFullscreen = isWideTabPreMountInTopFullscreen();
+    if (preMountedFullscreen.route !== route || !isInTopFullscreen) {
+        // Built for another route, or covered by a tab navigator pushed later (e.g. a Cmd+K result): fall back to a regular reveal.
+        Log.hmmm('[preMountBuffer] Wide pre-mount dropped before reveal', {preMountedRoute: preMountedFullscreen.route, route, isInTopFullscreen});
         removePreInsertedFullscreenIfNeeded();
         return undefined;
     }
