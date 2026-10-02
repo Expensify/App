@@ -6862,7 +6862,17 @@ const staticStyles = (theme: ThemeColors) =>
             height: 12,
         },
         chartInlineTable: {
-            marginTop: 20,
+            marginTop: 32,
+            rowGap: 24,
+        },
+        chartInlineTableDot: {
+            borderRadius: '50%',
+            width: 20,
+            height: 20,
+        },
+        chartInlineTableAvatarBorder: {
+            borderWidth: 2,
+            borderRadius: '50%',
         },
         homeWidgetIconContainer: {
             width: variables.iconSizeExtraLarge,
