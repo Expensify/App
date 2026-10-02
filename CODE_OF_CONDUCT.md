@@ -34,7 +34,7 @@ everyone here. One of the ways that we do that is by ensuring that we never turn
 eye towards discrimination. We expect the contributors we work with to do the same.
 We value everyone’s right to freedom of thought and freedom of speech. Everyone is
 encouraged to make their own decisions about what to believe and how to live.
-However, when working on Expensify sponsored projects, or any time your actions could reflect on our company, we expect everyone to act in an inclusive manner.
+However, when working on Expensify-sponsored projects or any time your actions could reflect on our company, we expect everyone to act in an inclusive manner.
 
 It’s possible to be unintentionally offensive. Everyone has some unconscious biases. No
 one is expected to be perfect or to know everything. However, we draw a clear line as a
