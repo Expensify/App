@@ -329,10 +329,33 @@ describe('ReportActionsList (body)', () => {
             revealDraftFromReportAction: jest.fn(),
         });
         mockUseConciergeSessionState.mockReturnValue({sessionStartTime: null, showFullHistory: false, hadMessagesAtSessionStart: false});
-        mockUseConciergeSessionActions.mockReturnValue({startSession: jest.fn(),
-                    resetSession: jest.fn(), setShowFullHistory: jest.fn(), setHadMessagesAtSessionStart: jest.fn()});
+        mockUseConciergeSessionActions.mockReturnValue({startSession: jest.fn(), resetSession: jest.fn(), setShowFullHistory: jest.fn(), setHadMessagesAtSessionStart: jest.fn()});
 
-        mockUseOnyx.mockImplementation(getMockOnyxValue);
+        mockUseOnyx.mockImplementation((key: string, options) => {
+            // useReportActionsListModel derives app-load state from the request queue via useIsAppLoadPending,
+            // which reads these queue keys through selectors that resolve to a boolean. Returning that boolean
+            // directly mirrors what useOnyx yields once the selector runs. The legacy IS_LOADING_APP flag is kept
+            // in the fixture for any component still reading it directly.
+            if (key === ONYXKEYS.IS_LOADING_APP || key === ONYXKEYS.PERSISTED_REQUESTS || key === ONYXKEYS.PERSISTED_ONGOING_REQUESTS) {
+                return [false, {status: 'loaded'}];
+            }
+            if (key === ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING) {
+                return [false, {status: 'loaded'}];
+            }
+            if (key.includes('reportLoadingState')) {
+                return [getMockReportLoadingState(options?.selector), {status: 'loaded'}];
+            }
+            if (key.includes('reportActions')) {
+                return [[], {status: 'loaded'}];
+            }
+            if (key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`) {
+                return [mockReport, {status: 'loaded'}];
+            }
+            if (key.includes('report')) {
+                return [undefined, {status: 'loaded'}];
+            }
+            return [undefined, {status: 'loaded'}];
+        });
     });
 
     afterEach(async () => {
@@ -925,8 +948,7 @@ describe('ReportActionsList (body)', () => {
             mockUseIsInSidePanel.mockReturnValue(false);
             mockUseSidePanelState.mockReturnValue(defaultSidePanelState);
             mockUseConciergeSessionState.mockReturnValue({sessionStartTime, showFullHistory, hadMessagesAtSessionStart: false});
-            mockUseConciergeSessionActions.mockReturnValue({startSession: jest.fn(),
-                    resetSession: jest.fn(), setShowFullHistory: jest.fn(), setHadMessagesAtSessionStart: jest.fn()});
+            mockUseConciergeSessionActions.mockReturnValue({startSession: jest.fn(), resetSession: jest.fn(), setShowFullHistory: jest.fn(), setHadMessagesAtSessionStart: jest.fn()});
 
             mockUseOnyx.mockImplementation((key: string, options) => {
                 if (key === ONYXKEYS.CONCIERGE_REPORT_ID) {
@@ -1163,6 +1185,23 @@ describe('ReportActionsList (body)', () => {
             const passedActions = getCapturedVisibleActions();
             // New user with no prior messages — onboarding messages pass through (no filtering)
             expect(passedActions?.some((a) => a.reportActionID === 'onboarding-msg')).toBe(true);
+        });
+
+        it('should hide pre-session messages when nothing matches the session and there is no created action', () => {
+            setupMainDMConciergeMocks();
+
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: oldReportActions.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED),
+                hasOlderActions: true,
+            });
+
+            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
+
+            expect(mockInvertedFlashList).toHaveBeenCalled();
+            const passedActions = getCapturedVisibleActions();
+            expect(passedActions?.some((a) => a.reportActionID === 'old-user-msg')).toBe(false);
+            expect(passedActions?.some((a) => a.reportActionID === 'old-concierge-msg')).toBe(false);
         });
 
         it('should call startSession on mount for main DM concierge', () => {

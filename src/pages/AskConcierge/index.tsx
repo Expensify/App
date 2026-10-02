@@ -21,12 +21,13 @@ import type SCREENS from '@src/SCREENS';
 
 import type {BottomTabScreenProps} from '@react-navigation/bottom-tabs';
 
-import React, {useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import AskConciergeReport from './AskConciergeReport';
 import AskConciergeSidebar from './AskConciergeSidebar';
 import useConciergeThreads from './useConciergeThreads';
+import {useNewConciergeQuestionRequests} from './NewQuestionStore';
 
 type AskConciergePageProps = BottomTabScreenProps<TabNavigatorParamList, typeof SCREENS.ASK_CONCIERGE>;
 
@@ -61,6 +62,18 @@ function AskConciergePage({navigation}: AskConciergePageProps) {
         }
         setSelectedReportID(undefined);
     };
+
+    // Pressing the navigation row while the page is open asks for a blank question, which no navigation can deliver.
+    const newQuestionRequests = useNewConciergeQuestionRequests();
+    const handledNewQuestionRequests = useRef(newQuestionRequests);
+    useEffect(() => {
+        if (handledNewQuestionRequests.current === newQuestionRequests) {
+            return;
+        }
+        handledNewQuestionRequests.current = newQuestionRequests;
+        resetSession();
+        setSelectedReportID(undefined);
+    }, [newQuestionRequests, resetSession]);
 
     const sidebar = (
         <AskConciergeSidebar

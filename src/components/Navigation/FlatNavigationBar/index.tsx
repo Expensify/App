@@ -45,6 +45,7 @@ import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import {formatBadgeText, getItemBadgeText, getLastSearchQuery, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
 import {ACCOUNTING_KEYS, EXPENSES_KEYS, getGroupedSearchTranslationPath, REPORTS_KEYS} from '@libs/SpendNavigationGroups';
 
+import {requestNewConciergeQuestion} from '@pages/AskConcierge/NewQuestionStore';
 import NavigationTabBarFloatingActionButton from '@pages/inbox/sidebar/NavigationTabBarFloatingActionButton';
 import ProfileAvatarWithIndicator from '@pages/inbox/sidebar/ProfileAvatarWithIndicator';
 
@@ -210,7 +211,9 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     };
 
     const navigateToAskConcierge = () => {
+        // Pressing the row while the page is open starts a new question, since there is nowhere to navigate.
         if (selectedTab === NAVIGATION_TABS.ASK_CONCIERGE) {
+            requestNewConciergeQuestion();
             return;
         }
         clearSelectedText();
