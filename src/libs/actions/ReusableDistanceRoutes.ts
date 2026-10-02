@@ -4,6 +4,7 @@ import {READ_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReusableDistanceRoute} from '@src/types/onyx';
+import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
 import type {OnyxUpdate} from 'react-native-onyx';
 
@@ -38,8 +39,6 @@ function fetchReusableDistanceRoutes() {
 
     read(READ_COMMANDS.OPEN_REUSE_ROUTE_PAGE, null, {optimisticData, successData, failureData});
 }
-
-import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
 /**
  * Seeds the draft transaction from a reused route.
