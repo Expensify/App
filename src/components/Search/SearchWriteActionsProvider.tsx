@@ -68,6 +68,9 @@ type SearchWriteActionsProviderProps = {
     /** Everything scoped to one search is keyed on it */
     searchHash: number;
 
+    /** The same hash with the Spend footer's own selections left out, so a footer switch can be told from a real query change */
+    searchHashWithoutFooterSelections: number;
+
     /** The live TRANSACTION collection, subscribed by `<Search>` and passed down. */
     transactions: OnyxCollection<Transaction>;
 
@@ -125,6 +128,12 @@ type ReconcileSelectionParams = {
 
     /** Whether the current snapshot is settled and can safely refresh/prune exclusions */
     shouldReconcileExcludedTransactions: boolean;
+
+    /** The search whose rows are being reconciled against */
+    searchHash: number;
+
+    /** @see SearchWriteActionsProviderProps['searchHashWithoutFooterSelections'] */
+    searchHashWithoutFooterSelections: number;
 };
 
 /**
@@ -148,12 +157,23 @@ function useReconcileSelectionWithData({
     reportNameValuePairs,
     outstandingReportsByPolicyID,
     shouldReconcileExcludedTransactions,
+    searchHash,
+    searchHashWithoutFooterSelections,
 }: ReconcileSelectionParams) {
     const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {applySelection} = useSearchSelectionActions();
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const previousSearchRef = useRef({hash: searchHash, hashWithoutFooterSelections: searchHashWithoutFooterSelections});
+    const footerSwitchedToHashRef = useRef<number | undefined>(undefined);
 
     useEffect(() => {
+        const previousSearch = previousSearchRef.current;
+        if (searchHash !== previousSearch.hash) {
+            footerSwitchedToHashRef.current = searchHashWithoutFooterSelections === previousSearch.hashWithoutFooterSelections ? searchHash : undefined;
+            previousSearchRef.current = {hash: searchHash, hashWithoutFooterSelections: searchHashWithoutFooterSelections};
+        }
+        const shouldKeepUnloadedSelection = footerSwitchedToHashRef.current === searchHash;
+
         const shouldReconcileMovedExcludedTransaction =
             isExpenseReportType &&
             areAllMatchingItemsSelected &&
@@ -378,6 +398,16 @@ function useReconcileSelectionWithData({
             }
         }
 
+        // Rows the footer-switched search has not loaded back yet keep the selection they had.
+        if (shouldKeepUnloadedSelection) {
+            for (const [key, selectedTransaction] of Object.entries(selectedTransactions)) {
+                if (Object.hasOwn(newTransactionList, key) || Object.hasOwn(excludedTransactions, key)) {
+                    continue;
+                }
+                newTransactionList[key] = selectedTransaction;
+            }
+        }
+
         // A lazy group's children never reach `filteredData`, so the group's presence is what keeps them.
         if (areItemsGrouped) {
             for (const [key, selectedTransaction] of Object.entries(selectedTransactions)) {
@@ -522,6 +552,7 @@ function SearchWriteActionsProvider({
     totalSelectableItemsCount,
     searchResults,
     searchHash,
+    searchHashWithoutFooterSelections,
     transactions,
     isMobileSelectionModeEnabled,
     type,
@@ -930,6 +961,8 @@ function SearchWriteActionsProvider({
         outstandingReportsByPolicyID,
         shouldReconcileExcludedTransactions:
             (type === CONST.SEARCH.DATA_TYPES.EXPENSE || isExpenseReportType) && !!searchResultsData && searchResults?.search?.isLoading === false && !searchResults?.errors,
+        searchHash,
+        searchHashWithoutFooterSelections,
     });
     useTurnOffSelectionModeWhenEmpty({isFocused, isMobileSelectionModeEnabled});
     useSyncMobileSelectionModeWithScreenSize({isFocused, isMobileSelectionModeEnabled, isSearchResultsEmpty});
