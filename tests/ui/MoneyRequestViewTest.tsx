@@ -281,6 +281,78 @@ describe('MoneyRequestView edit fields', () => {
         expect(screen.queryByTestId('menu-item-Location')).not.toBeOnTheScreen();
     });
 
+    it("shows every level of another user's unreported expense tag instead of the viewer's own workspace tag lists", async () => {
+        // Given an unreported self-DM expense with a three-level tag that was created by another user
+        const selfDMReportID = 'self_dm_mrv_tags';
+        const otherUserAccountID = 20;
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: selfDMReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {
+                reportID: selfDMReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                ownerAccountID: otherUserAccountID,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`, {
+                [parentReportActionID]: {
+                    ...LHNTestUtils.getFakeReportAction(),
+                    reportActionID: parentReportActionID,
+                    reportID: selfDMReportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    actorAccountID: otherUserAccountID,
+                    originalMessage: {
+                        type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                        IOUTransactionID: transactionID,
+                        amount: 5000,
+                        currency: CONST.CURRENCY.USD,
+                    },
+                },
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                tag: 'Engineering:Berlin:Floor 2',
+            });
+
+            // And the viewer's own default workspace has a single, unrelated tag list
+            await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, policyID);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {areTagsEnabled: true});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
+                Tag: {name: 'Tag', orderWeight: 0, required: false, tags: {Sales: {name: 'Sales', enabled: true}}},
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the viewer opens the expense
+        render(
+            <ComposeProviders components={[OnyxListItemProvider]}>
+                <ScreenWrapperStatusContext.Provider value={SCREEN_WRAPPER_STATUS}>
+                    <MoneyRequestView
+                        transactionThreadReport={threadReport}
+                        parentReportID={selfDMReportID}
+                        expensePolicy={undefined}
+                        shouldShowAnimatedBackground={false}
+                    />
+                </ScreenWrapperStatusContext.Provider>
+            </ComposeProviders>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then one row is shown per level of the expense's tag, not one row per level of the viewer's workspace
+        await waitFor(() => {
+            expect(screen.getAllByTestId('menu-item-common.tag')).toHaveLength(3);
+        });
+        expect(screen.getByText('Engineering')).toBeOnTheScreen();
+        expect(screen.getByText('Berlin')).toBeOnTheScreen();
+        expect(screen.getByText('Floor 2')).toBeOnTheScreen();
+        expect(screen.queryByTestId('menu-item-Tag')).not.toBeOnTheScreen();
+    });
+
     it('should show tax fields when tax tracking is disabled but transaction has tax data', async () => {
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
