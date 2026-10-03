@@ -122,6 +122,8 @@ You can update or remove approval workflows at any time as your team or process 
 3. Select a new member or deselect one to remove them.
 4. Click **Save**.
 
+**Tip:** You can also open a member's workflow from **Workspaces > [Workspace Name] > Members**. Click the member's name, then click **Approver** (or **First approver** if their workflow has more than one approver).
+
 **Note:** When you change an approver in a workflow, any Outstanding reports assigned to the approver you replaced are reassigned to the new approver. A system message appears in the report confirming the reassignment. Reports are also reassigned when you remove an approver from the workspace or shorten an approval chain. Some reports are intentionally excluded — see the FAQ below for the full list of triggers and exclusions.
 
 ## Delete a Workflow
