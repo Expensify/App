@@ -1,3 +1,7 @@
+import {isAddCommentAction, isDeletedAction} from '@libs/ReportActionsUtils';
+
+import type {ReportActions} from '@src/types/onyx/ReportAction';
+
 import render from 'dom-serializer';
 import {DomUtils, parseDocument} from 'htmlparser2';
 
@@ -39,5 +43,26 @@ function parseFollowupsFromHtml(html: string): Followup[] | null {
     });
 }
 
-export {parseFollowupsFromHtml};
+function hasUserMessageSinceQuestion(actions: ReportActions | undefined, questionReportActionID: string | undefined, agentAccountID: number): boolean {
+    if (!actions || !questionReportActionID) {
+        return false;
+    }
+
+    const questionCreated = actions[questionReportActionID]?.created;
+    if (!questionCreated) {
+        return false;
+    }
+
+    return Object.values(actions).some(
+        (action) =>
+            isAddCommentAction(action) &&
+            !isDeletedAction(action) &&
+            action.shouldShow !== false &&
+            action.actorAccountID !== agentAccountID &&
+            action.reportActionID !== questionReportActionID &&
+            action.created > questionCreated,
+    );
+}
+
+export {hasUserMessageSinceQuestion, parseFollowupsFromHtml};
 export type {Followup};
