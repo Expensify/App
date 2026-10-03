@@ -2096,10 +2096,19 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 // Fixed width: wide enough for the long headers these columns carry, so no amount-based widening is needed.
                 columnWidth = {...getWidthStyle(variables.w130), ...styles.alignItemsEnd};
                 break;
+            // The amount cell draws its edit button on the leading edge it renders its value from, so this column holds
+            // both. A table that measures its columns works the room out from the value itself, which leaves this as
+            // the width for the tables that cannot, such as one nested inside an expanded group.
+            case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
+                columnWidth = {
+                    ...getWidthStyle((isAmountColumnWide ? variables.w130 : variables.w96) + variables.editableCellEditButtonWidth),
+                    ...(!shouldRemoveTotalColumnFlex && styles.flex1),
+                    ...styles.alignItemsEnd,
+                };
+                break;
             case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL:
             case CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL:
             case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:
-            case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL:
             case CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE:
             case CONST.SEARCH.TABLE_COLUMNS.TOTAL:

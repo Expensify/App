@@ -1,3 +1,4 @@
+import type {CurrencyListActionsContextType} from '@components/CurrencyListContextProvider/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {ExpenseReportListItemType, SearchListItem, TransactionListItemType, TransactionWithdrawalIDGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchColumnType} from '@components/Search/types';
@@ -19,7 +20,7 @@ import {getCategoryGLCode, getDecodedLeafCategoryName, isCategoryMissing} from '
 import getBase62ReportID from './getBase62ReportID';
 import {getTagGLCode, getVendorDisplayName} from './PolicyUtils';
 import {getReportName} from './ReportNameUtils';
-import {getPolicyName, getReportStatusTranslation} from './ReportUtils';
+import {getPolicyName, getReportStatusTranslation, getTransactionDisplayAmount} from './ReportUtils';
 import {
     isTransactionCategoryGroupListItemType,
     isTransactionDayGroupListItemType,
@@ -34,7 +35,18 @@ import {
     isTransactionYearGroupListItemType,
 } from './SearchUIUtils';
 import {getDecodedTagName} from './TagUtils';
-import {getDescription, getExchangeRate, getMerchantName, getTagForDisplay, getTaxName, isDeletedTransaction, isPerDiemRequest, isTimeRequest} from './TransactionUtils';
+import {
+    getCurrency as getTransactionCurrency,
+    getDescription,
+    getExchangeRate,
+    getMerchantName,
+    getTagForDisplay,
+    getTaxName,
+    isDeletedTransaction,
+    isPerDiemRequest,
+    isScanning,
+    isTimeRequest,
+} from './TransactionUtils';
 
 /**
  * The data a column needs to resolve its text that doesn't travel on the transaction itself. Read once at the list
@@ -49,6 +61,9 @@ type SearchColumnMeasurementContext = {
 
     /** Every policy's tag lists, so a transaction's tag GL code can be looked up by its policy. */
     policyTags?: OnyxCollection<PolicyTagLists>;
+
+    /** Formats an amount the way the cell renders it, since its decimals come from the viewer's currency list. */
+    convertToDisplayString?: CurrencyListActionsContextType['convertToDisplayString'];
 };
 
 /** The policy a transaction belongs to, which is where its category and tag GL codes are defined. */
@@ -79,14 +94,17 @@ const EDITABLE_SEARCH_COLUMNS = new Set<SearchColumnType>([
     CONST.SEARCH.TABLE_COLUMNS.APPROVED,
     CONST.SEARCH.TABLE_COLUMNS.POSTED,
     CONST.SEARCH.TABLE_COLUMNS.EXPORTED,
+    CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
 ]);
 
 /**
  * The Search columns sized from their content: the free-text ones that share the table's leftover space today, and so
  * the ones that truncate while a short column beside them keeps room it doesn't need.
  *
- * Columns left out hold values of a known size (a date, an amount, a status badge, an icon) and keep their fixed
- * widths, so measuring them would cost work without changing the layout.
+ * Columns left out hold values of a known size (a date, a status badge, an icon) and keep their fixed widths, so
+ * measuring them would cost work without changing the layout. The amount is measured despite being one of those: its
+ * cell draws an edit button over the edge it renders from, so the room that button needs has to be worked out from
+ * the value rather than guessed at from a width that fits the digits alone.
  */
 const DYNAMICALLY_SIZED_SEARCH_COLUMNS = new Set<SearchColumnType>([
     CONST.SEARCH.TABLE_COLUMNS.STATUS,
@@ -122,17 +140,21 @@ const DYNAMICALLY_SIZED_SEARCH_COLUMNS = new Set<SearchColumnType>([
     CONST.SEARCH.TABLE_COLUMNS.CARD,
     CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE,
     CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE,
+    CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
 ]);
 
 /**
- * Columns sized to fit their content exactly rather than sharing the row's spare space. Their content is a fixed-size
- * element, not free text, so widening it past what it holds only pads the row out.
+ * Columns sized to fit their content exactly rather than sharing the row's spare space. What they hold is bounded, a
+ * badge or an amount rather than free text, so widening them past it only pads the row out and leaves the spare room
+ * where it is worth more.
  */
-const HUGGED_SEARCH_COLUMNS = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.STATUS]);
+const HUGGED_SEARCH_COLUMNS = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.STATUS, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
 
 /** Each dynamically sized column's header label, so a column can be kept wide enough to show its own heading. */
 const SEARCH_COLUMN_HEADER_TRANSLATION_KEYS: Partial<Record<SearchColumnType, TranslationPaths>> = {
     [CONST.SEARCH.TABLE_COLUMNS.STATUS]: 'common.status',
+    // The heading reads "Total" in a grouped search, which renders narrower, so the wider of the two is measured.
+    [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: 'iou.amount',
     [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: 'common.merchant',
     [CONST.SEARCH.TABLE_COLUMNS.VENDOR]: 'common.vendor',
     [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: 'common.description',
@@ -168,13 +190,25 @@ const SEARCH_COLUMN_HEADER_TRANSLATION_KEYS: Partial<Record<SearchColumnType, Tr
 };
 
 /**
- * Width to add so a short value in an editable cell isn't covered by the edit button when the row is hovered.
+ * Width to add so an editable cell's value isn't covered by the edit button when the row is hovered.
  *
- * Applies to the measured value rather than to the column: a column is only ever this narrow when it has settled at
- * exactly what its content needs, since anything wider already clears the button on its own.
+ * For a value the cell renders from its leading edge, this applies to the measured value rather than to the column: a
+ * column is only ever narrow enough to be covered when it has settled at exactly what its content needs, since
+ * anything wider already clears the button on its own.
  */
 function getSearchColumnEditButtonReserve(column: SearchColumnType, contentTextWidth: number): number {
-    if (!EDITABLE_SEARCH_COLUMNS.has(column) || contentTextWidth >= variables.narrowEditableContentWidth) {
+    if (!EDITABLE_SEARCH_COLUMNS.has(column)) {
+        return 0;
+    }
+
+    // The amount is the one cell that renders from its trailing edge, with its edit button on the leading one, so the
+    // button lands on the value at every width instead of only in a narrow column. A partly covered amount reads as a
+    // different amount, so the room is always reserved.
+    if (column === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT) {
+        return variables.editableCellEditButtonWidth;
+    }
+
+    if (contentTextWidth >= variables.narrowEditableContentWidth) {
         return 0;
     }
 
@@ -221,6 +255,16 @@ function getTransactionColumnContentToMeasure(
                     font: {fontSize: textVariants.finePrint.fontSize},
                 },
             ];
+        case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT: {
+            // A scanning expense shows a status string where its amount will go, which can render wider than the amount.
+            if (isScanning(item)) {
+                return [{text: translate('iou.receiptStatusTitle')}];
+            }
+
+            const amount = getTransactionDisplayAmount(item, item.report, item.policy);
+
+            return [{text: context.convertToDisplayString?.(amount, getTransactionCurrency(item))}];
+        }
         case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
             return [{text: getMerchantName(item, translate)}];
         case CONST.SEARCH.TABLE_COLUMNS.VENDOR:

@@ -1,3 +1,4 @@
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -85,6 +86,7 @@ function SearchListViewLayout({
 }: SearchListViewLayoutProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {convertToDisplayString} = useCurrencyListActions();
 
     const {tableWidthRef, tableWidth, onTableLayout} = useSearchTableWidth();
 
@@ -95,7 +97,7 @@ function SearchListViewLayout({
         // A header is only rendered in the table layout. Narrow layouts render rows as cards with no columns to size.
         isEnabled: isHeaderVisible && !!data,
         columnSizeOptions,
-        measurementContext: {nonPersonalAndWorkspaceCards, policyCategories, policyTags},
+        measurementContext: {nonPersonalAndWorkspaceCards, policyCategories, policyTags, convertToDisplayString},
     });
 
     // The scroller decides whether to scroll by summing what each column refuses to shrink below, which it otherwise has
@@ -123,7 +125,7 @@ function SearchListViewLayout({
         const sizing = columnWidths[column];
 
         if (sizing) {
-            columnMinWidths[column] = sizing.minWidth;
+            columnMinWidths[column] = sizing.contentWidth;
             columnContentWidths[column] = sizing.contentWidth;
             continue;
         }

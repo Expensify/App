@@ -610,7 +610,6 @@ function getExportAccountColumn<DataType extends ExportAccountRowData>(label: st
         },
         dynamicSizing: {
             getContentToMeasure: (item) => (item.exportAccountTitle ? [{text: item.exportAccountTitle, fontSize: fontScale.text}] : []),
-            maxWidth: CONST.TABLES.DYNAMIC_COLUMNS.MAX_FREE_TEXT_COLUMN_WIDTH,
         },
     };
 }
