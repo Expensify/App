@@ -1,6 +1,6 @@
 # `whatwg-patches` patches
 
-### [whatwg-fetch+3.6.2+001+use-microtask-queue-for-xhr-events.patch](whatwg-fetch+3.6.2+001+use-microtask-queue-for-xhr-events.patch)
+### [whatwg-fetch+3.6.20+001+use-microtask-queue-for-xhr-events.patch](whatwg-fetch+3.6.20+001+use-microtask-queue-for-xhr-events.patch)
 
 - Reason:
   

@@ -1,8 +1,8 @@
 diff --git a/node_modules/expo-modules-core/ios/Fabric/ExpoFabricViewObjC.mm b/node_modules/expo-modules-core/ios/Fabric/ExpoFabricViewObjC.mm
-index 0645540..9243248 100644
+index 370015f..1eb91cb 100644
 --- a/node_modules/expo-modules-core/ios/Fabric/ExpoFabricViewObjC.mm
 +++ b/node_modules/expo-modules-core/ios/Fabric/ExpoFabricViewObjC.mm
-@@ -137,6 +137,11 @@ - (void)finalizeUpdates:(RNComponentViewUpdateMask)updateMask
+@@ -218,6 +218,11 @@ - (void)finalizeUpdates:(RNComponentViewUpdateMask)updateMask
    }
  }
  
