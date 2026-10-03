@@ -4339,16 +4339,16 @@ function deleteReportField(reportID: string, reportField: PolicyReportField) {
     API.write(WRITE_COMMANDS.DELETE_REPORT_FIELD, parameters, {optimisticData, failureData, successData});
 }
 
-function updateDescription(report: Report, newMarkdownValue: string, currentUserAccountID: number) {
+function updateDescription(report: Report, newMarkdownValue: string, currentUserAccountID: number, accountIDToName?: Record<string, string>) {
     // No change needed
     const currentDescription = report.description ?? '';
-    if (Parser.htmlToMarkdown(currentDescription) === newMarkdownValue) {
+    if (Parser.htmlToMarkdown(currentDescription, {accountIDToName}) === newMarkdownValue) {
         return;
     }
 
     const reportID = report.reportID;
     const parsedDescription = getParsedComment(newMarkdownValue, {reportID});
-    const optimisticDescriptionUpdatedReportAction = buildOptimisticRoomDescriptionUpdatedReportAction(parsedDescription);
+    const optimisticDescriptionUpdatedReportAction = buildOptimisticRoomDescriptionUpdatedReportAction(parsedDescription, accountIDToName);
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {

@@ -11,6 +11,7 @@ import type {TableHandle} from '@components/Table';
 import type {RoomMemberRowData, RoomMembersTableColumnKey} from '@components/Tables/RoomMembersTable';
 import RoomMembersTable from '@components/Tables/RoomMembersTable';
 
+import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -69,6 +70,7 @@ import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 type DynamicRoomMembersPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.DYNAMIC_ROOT>;
 
 function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
+    const accountIDToName = useAccountIDToNameMap();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.ROOM_MEMBERS.path);
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'RemoveMembers']);
     const reportAction = useMemo(() => getReportAction(report?.parentReportID, report?.parentReportActionID), [report?.parentReportID, report?.parentReportActionID]);
@@ -355,7 +357,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
             >
                 <HeaderWithBackButton
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
-                    subtitle={StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(subtitleReportName) : subtitleReportName)}
+                    subtitle={StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(subtitleReportName, {accountIDToName}) : subtitleReportName)}
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
                             clearTableSelection();
