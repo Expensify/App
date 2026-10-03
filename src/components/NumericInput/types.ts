@@ -81,4 +81,18 @@ type NumericErrorProps = {
     style?: StyleProp<ViewStyle>;
 };
 
-export type {NumericErrorProps, NumericInputContainerProps, NumericMinusSignProps, NumericSymbolButtonProps, NumericSymbolProps, NumericTextInputProps};
+type NumericBigNumberPadProps = {
+    /** Style applied to the pad container */
+    style?: StyleProp<ViewStyle>;
+
+    /** Called when the user starts or stops long pressing the "<" (backspace) button */
+    longPressHandlerStateChanged?: (isUserLongPressingBackspace: boolean) => void;
+
+    /** Optional callback when a number or backspace is pressed */
+    numberPressed?: (key: string) => void;
+
+    /** Test identifier for the pad */
+    testID?: string;
+};
+
+export type {NumericBigNumberPadProps, NumericErrorProps, NumericInputContainerProps, NumericMinusSignProps, NumericSymbolButtonProps, NumericSymbolProps, NumericTextInputProps};
