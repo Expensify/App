@@ -4,6 +4,7 @@ import ComposeProviders from '@components/ComposeProviders';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import MoneyReportView from '@components/ReportActionItem/MoneyReportView';
 
+import getPlatform from '@libs/getPlatform';
 import {COPYABLE_ROW_CONTINUATION_DATA_SET, COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
@@ -36,6 +37,8 @@ jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
     }),
 }));
 
+jest.mock('@libs/getPlatform', () => jest.fn());
+
 jest.mock('@react-navigation/native', () => ({
     ...((): typeof NativeNavigation => jest.requireActual('@react-navigation/native'))(),
     useNavigation: jest.fn(() => ({navigate: jest.fn(), addListener: jest.fn(() => jest.fn())})),
@@ -49,6 +52,8 @@ jest.mock('@pages/inbox/report/AnimatedEmptyStateBackground', () => {
 });
 
 TestHelper.setupGlobalFetchMock();
+
+const mockedGetPlatform = jest.mocked(getPlatform);
 
 const policyID = 'policy_mrv_breakdown';
 const reportID = 'report_mrv_breakdown';
@@ -337,6 +342,10 @@ describe('MoneyReportView report fields visibility', () => {
         initOnyxDerivedValues();
     });
 
+    beforeEach(() => {
+        mockedGetPlatform.mockReturnValue(CONST.PLATFORM.MOBILE_WEB);
+    });
+
     afterEach(async () => {
         await act(async () => {
             await Onyx.clear();
@@ -345,6 +354,7 @@ describe('MoneyReportView report fields visibility', () => {
 
     it('keeps a custom report field visible and copyable for a non-admin submitter after the report is approved', async () => {
         // Given an approved report with a custom field that is read-only for the submitter
+        mockedGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
         const fieldList = {
             [CONST.REPORT_FIELD_TITLE_FIELD_ID]: buildTitleField(),
             [customFieldKey]: buildCustomTextField(),
@@ -364,7 +374,7 @@ describe('MoneyReportView report fields visibility', () => {
         // Then only the custom field value is marked as copyable
         await waitFor(() => {
             const [copyableReportFields] = screen.UNSAFE_getAllByProps({dataSet: COPYABLE_ROW_CONTINUATION_DATA_SET});
-            expect(copyableReportFields).toHaveStyle({display: 'contents'});
+            expect(copyableReportFields.props.style).toEqual(expect.objectContaining({display: 'contents'}));
             expect(screen.getByText('Copyable field value')).toHaveProp('dataSet', expect.objectContaining(COPYABLE_TEXT_DATA_SET));
             expect(screen.getByText('Test')).toHaveProp('dataSet', {[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true});
         });
