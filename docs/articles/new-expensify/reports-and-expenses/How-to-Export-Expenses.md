@@ -28,7 +28,9 @@ You'll receive the exported CSV file in a message from Concierge.
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend** > **Expenses**.
 2. Select the checkbox next to each expense you want to export, or use the top checkbox to select all.
-3. Select **Selected** at the top.
+3. Open the bulk actions:
+   - **On web:** Use the bar that appears at the bottom of the list. Select **More** to see the actions that don't fit in the bar.
+   - **On mobile:** Tap **Selected**.
 4. Select **Export**.
 5. Choose an export template from the menu that appears. 
 
@@ -40,7 +42,9 @@ You can download the receipts attached to your selected expenses in a single ZIP
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend** > **Expenses**.
 2. Select the checkbox next to each expense whose receipt you want to download, or use the top checkbox to select all.
-3. Select **Selected** at the top.
+3. Open the bulk actions:
+   - **On web:** Use the bar that appears at the bottom of the list. Select **More** to see the actions that don't fit in the bar.
+   - **On mobile:** Tap **Selected**.
 4. Select **Download receipts**, or **Download receipt** if only one selected expense has a receipt.
 5. Wait for the files to finish preparing. The zip file downloads automatically when it's ready. If it doesn't, select **Download file** to save it to your device.
 
@@ -53,7 +57,9 @@ Use **Export current view** to download a CSV that matches the columns currently
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend** > **Expenses**.
 2. Select **Display**, then select **Edit columns** to choose which columns appear on the page.
 3. Select the checkbox next to each expense you want to export, or use the top checkbox to select all.
-4. Select **Selected** at the top.
+4. Open the bulk actions:
+   - **On web:** Use the bar that appears at the bottom of the list. Select **More** to see the actions that don't fit in the bar.
+   - **On mobile:** Tap **Selected**.
 5. Select **Export**.
 6. Select **Export current view**.
 

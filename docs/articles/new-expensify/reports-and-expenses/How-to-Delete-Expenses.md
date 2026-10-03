@@ -25,7 +25,9 @@ Most expenses can be deleted directly. If an expense is on a submitted report or
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile) select **Spend** > **Expenses**.
 2. Select the expenses you want to delete.
-3. Choose **Selected**, then **Delete**.
+3. Choose **Delete**:
+   - **On web:** Select **Delete** in the bar that appears at the bottom of the list. If you don't see it, select **More** first.
+   - **On mobile:** Tap **Selected**, then select **Delete**.
 
 **Note:** You can only delete your own Unreported, Draft, and Outstanding expenses. You can’t delete expenses created by other members.
 
@@ -81,7 +83,9 @@ Deleted expenses are not permanently removed. You can find and restore them from
 1. In the navigation tabs (on the left on web, on the bottom on mobile) select **Spend** > **Expenses**.
 2. Filter by **Status** = **Deleted** and click **Apply**.
 3. Select the expenses you want to restore using the checkboxes.
-4. Choose **Selected**, then **Undelete**.
+4. Choose **Undelete**:
+   - **On web:** Select **Undelete** in the bar that appears at the bottom of the list. If you don't see it, select **More** first.
+   - **On mobile:** Tap **Selected**, then select **Undelete**.
 
 The restored expenses return to your account. 
 
