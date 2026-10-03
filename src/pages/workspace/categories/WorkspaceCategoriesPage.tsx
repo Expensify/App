@@ -4,7 +4,7 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import DecisionModal from '@components/DecisionModal';
 import type {EmptyStateButton} from '@components/EmptyStateComponent/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
@@ -663,11 +663,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
             >
-                <HeaderWithBackButton
-                    shouldShowBackButton={shouldUseNarrowLayout}
+                <HeaderCentralPane
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.categories')}
-                    shouldUseHeadlineHeader={!selectionModeHeader}
-                    shouldDisplayHelpButton
+                    isHeadline={!selectionModeHeader}
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
                             clearTableSelection();
@@ -684,7 +682,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     }}
                 >
                     {!shouldDisplayButtonsInSeparateLine && getHeaderButtons()}
-                </HeaderWithBackButton>
+                </HeaderCentralPane>
                 {shouldDisplayButtonsInSeparateLine && !!getHeaderButtons() && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
 
                 {(!hasVisibleCategories || isLoading) && headerContent}

@@ -1,11 +1,12 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import ImportOnyxState from '@components/ImportOnyxState';
 import MenuItemList from '@components/MenuItemList';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchQueryActions} from '@components/Search/SearchContext';
+import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import Section from '@components/Section';
 import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
 import SentryDebugToolMenu from '@components/SentryDebugToolMenu';
@@ -207,14 +208,9 @@ function TroubleshootPage() {
             shouldShowOfflineIndicatorInWideScreen
             testID="TroubleshootPage"
         >
-            <HeaderWithBackButton
-                title={translate('initialSettingsPage.aboutPage.troubleshoot')}
-                shouldShowBackButton={shouldUseNarrowLayout}
-                shouldDisplaySearchRouter
-                shouldDisplayHelpButton
-                onBackButtonPress={Navigation.goBack}
-                shouldUseHeadlineHeader
-            />
+            <HeaderCentralPane title={translate('initialSettingsPage.aboutPage.troubleshoot')}>
+                <SearchButton />
+            </HeaderCentralPane>
             <View style={styles.flex1}>
                 <ScrollView contentContainerStyle={styles.pt3}>
                     <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>

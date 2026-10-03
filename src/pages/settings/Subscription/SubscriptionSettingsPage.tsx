@@ -1,7 +1,8 @@
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import SearchButton from '@components/Search/SearchRouter/SearchButton';
 
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useLocalize from '@hooks/useLocalize';
@@ -62,7 +63,7 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
             testID="SubscriptionSettingsPage"
             shouldShowOfflineIndicatorInWideScreen
         >
-            <HeaderWithBackButton
+            <HeaderCentralPane
                 title={translate('workspace.common.subscription')}
                 onBackButtonPress={() => {
                     if (backTo) {
@@ -71,11 +72,9 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
                     }
                     Navigation.goBack();
                 }}
-                shouldShowBackButton={shouldUseNarrowLayout}
-                shouldDisplaySearchRouter
-                shouldDisplayHelpButton
-                shouldUseHeadlineHeader
-            />
+            >
+                <SearchButton />
+            </HeaderCentralPane>
             <ScrollView style={styles.pt3}>
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <CardSection />

@@ -1,5 +1,5 @@
 import Button from '@components/Button';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -16,7 +16,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
-import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
@@ -64,13 +63,7 @@ function WorkspaceMCPPage({route}: WorkspaceMCPPageProps) {
                 testID="WorkspaceMCPPage"
                 shouldShowOfflineIndicatorInWideScreen
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.common.mcp')}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldUseHeadlineHeader
-                    shouldDisplayHelpButton
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderCentralPane title={translate('workspace.common.mcp')} />
                 <ScrollView
                     contentContainerStyle={styles.pt3}
                     addBottomSafeAreaPadding

@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {WorkspaceVendorTableRowData} from '@components/Tables/WorkspaceVendorsTable';
@@ -10,7 +10,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
-import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getActiveVendorMatchingIntegration, getMatchingVendors, hasVendorFeature, sortVendors} from '@libs/PolicyUtils';
@@ -78,13 +77,7 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
             >
-                <HeaderWithBackButton
-                    shouldUseHeadlineHeader
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldDisplayHelpButton
-                    title={translate('workspace.common.vendors')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderCentralPane title={translate('workspace.common.vendors')} />
                 <WorkspaceVendorsTable
                     vendors={vendorRows}
                     headerComponent={headerContent}
