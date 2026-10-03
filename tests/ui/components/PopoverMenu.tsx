@@ -25,13 +25,26 @@ type MockMeasuredPopoverProps = PropsWithChildren<{
     outerStyle?: unknown;
 }>;
 
+type MockFocusableMenuItemProps = {
+    title: string;
+    pressableTestID?: string;
+    onPress?: (event: GestureResponderEvent) => void;
+    focused?: boolean;
+    shouldSyncFocus?: boolean;
+};
+
 type RestoreFocusType = PopoverMenuProps['restoreFocusType'];
 
 const mockPopoverWithMeasuredContent = jest.fn<void, [MockMeasuredPopoverProps]>();
 const mockClose = jest.fn<void, [(() => void | Promise<void>) | undefined, boolean | undefined, boolean | undefined]>();
 const mockGetPlatform = jest.mocked(getPlatform);
+const mockKeyboardShortcuts = new Map<string, {callback: () => void; isActive: boolean}>();
+const mockFocusableMenuItem = jest.fn<void, [MockFocusableMenuItemProps]>();
 
 jest.mock('@libs/getPlatform');
+jest.mock('@hooks/useKeyboardShortcut', () => (shortcut: {shortcutKey: string}, callback: () => void, config: {isActive?: boolean} = {}) => {
+    mockKeyboardShortcuts.set(shortcut.shortcutKey, {callback, isActive: config.isActive ?? true});
+});
 
 describe('PopoverMenu utils', () => {
     const menuItems: PopoverMenuItem[] = [
@@ -186,15 +199,19 @@ jest.mock('@components/FocusableMenuItem', () => {
 
     return {
         __esModule: true,
-        default: (props: {title: string; pressableTestID?: string; onPress?: (event: GestureResponderEvent) => void}) => (
-            <Pressable
-                testID={props.pressableTestID}
-                onPress={props.onPress}
-                accessibilityLabel="Pressable"
-            >
-                <Text>{props.title}</Text>
-            </Pressable>
-        ),
+        default: (props: MockFocusableMenuItemProps) => {
+            mockFocusableMenuItem(props);
+            return (
+                <Pressable
+                    testID={props.pressableTestID}
+                    onPress={props.onPress}
+                    accessibilityLabel="Pressable"
+                    accessibilityState={{selected: props.focused}}
+                >
+                    <Text>{props.title}</Text>
+                </Pressable>
+            );
+        },
     };
 });
 
@@ -367,6 +384,8 @@ describe('PopoverMenu integration — optional search', () => {
 
     beforeEach(() => {
         mockPopoverWithMeasuredContent.mockClear();
+        mockKeyboardShortcuts.clear();
+        mockFocusableMenuItem.mockClear();
     });
 
     it('keeps existing popovers keyboard-neutral when search is disabled', () => {
@@ -403,6 +422,29 @@ describe('PopoverMenu integration — optional search', () => {
         expect(mockPopoverWithMeasuredContent.mock.calls.at(-1)?.[0].avoidKeyboard).toBe(true);
         expect(renderResult.UNSAFE_getByType(ScrollView).props.keyboardShouldPersistTaps).toBe('always');
         expect(renderResult.UNSAFE_getByType(ScrollView).props.scrollEventThrottle).toBe(16);
+    });
+
+    it('shows the visually focused row while keeping focus synchronized to the search input', () => {
+        render(
+            <PopoverMenu
+                isVisible
+                shouldUseScrollView
+                shouldShowRadioButton
+                menuItems={[{text: 'Item 1'}, {text: 'Item 2'}]}
+                searchInputOptions={{label: 'Find a member', value: '', onChangeText: () => {}}}
+                onClose={() => {}}
+                anchorPosition={anchorPosition}
+                anchorRef={anchorRef}
+            />,
+        );
+
+        fireEvent(screen.getByLabelText('Find a member'), 'focus');
+        const arrowDownShortcut = mockKeyboardShortcuts.get(CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN.shortcutKey);
+        expect(arrowDownShortcut?.isActive).toBe(true);
+        act(() => arrowDownShortcut?.callback());
+
+        const focusedItemProps = mockFocusableMenuItem.mock.calls.find(([props]) => props.focused)?.[0];
+        expect(focusedItemProps).toEqual(expect.objectContaining({title: 'Item 1', shouldSyncFocus: false}));
     });
 });
 
