@@ -334,6 +334,40 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
+    it('excludes the reimbursable toggle label from selection and copied content', async () => {
+        // Given an expense that displays the reimbursable toggle
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+
+        // When the expense details are rendered
+        renderMoneyRequestView(threadReport);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the visual label is hidden from selection while the switch remains accessible
+        await waitFor(() => {
+            const reimbursableLabel = screen.getByText(/reimbursable$/i, {includeHiddenElements: true});
+            expect(reimbursableLabel).toHaveStyle({userSelect: 'none'});
+            expect(reimbursableLabel).toHaveProp(
+                'dataSet',
+                expect.objectContaining({
+                    [CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true,
+                }),
+            );
+            expect(reimbursableLabel).not.toHaveProp(
+                'dataSet',
+                expect.objectContaining({
+                    [CONST.COPYABLE_TEXT_ELEMENT]: true,
+                }),
+            );
+            expect(screen.getByLabelText(/reimbursable$/i)).toBeOnTheScreen();
+        });
+    });
+
     it('renders every copyable attendee on an editable expense', async () => {
         // Given an editable expense with more attendees than UserPills displays by default
         const threadReport = {

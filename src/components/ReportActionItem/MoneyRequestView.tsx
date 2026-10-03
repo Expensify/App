@@ -98,7 +98,7 @@ import {
     isTrackExpenseReportNew,
     shouldEnableNegative,
 } from '@libs/ReportUtils';
-import {COPYABLE_ROW_DATA_SET, COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
+import {COPYABLE_ROW_DATA_SET} from '@libs/SelectionScraper';
 import {getDependentTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     getAttendeesListDisplayString,
@@ -1721,8 +1721,8 @@ function MoneyRequestView({
                             <Text
                                 accessible={false}
                                 aria-hidden
-                                style={styles.userSelectText}
-                                dataSet={COPYABLE_TEXT_DATA_SET}
+                                style={styles.userSelectNone}
+                                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                             >
                                 {Str.UCFirst(translate('iou.reimbursable'))}
                             </Text>
