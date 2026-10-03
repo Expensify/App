@@ -6,6 +6,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 
+import type {ValueOf} from 'type-fest';
+
 import Onyx from 'react-native-onyx';
 
 import getOnyxValue from '../../utils/getOnyxValue';
@@ -55,40 +57,53 @@ describe('isSubmitterAndApprover', () => {
         expect(isSubmitterAndApprover(policies, '')).toBe(false);
     });
 
-    it('returns true for a user who submits on one policy and approves on another', () => {
-        // submitter: role=user on a free policy
-        const submitPolicy = makeFreePolicy({
-            id: 'submitPolicy',
-            employeeList: {
-                [USER_EMAIL]: {email: USER_EMAIL, role: CONST.POLICY.ROLE.USER, submitsTo: APPROVER_EMAIL},
-            },
+    it('returns true for a manager who manages one policy and approves on another', () => {
+        // manager: admin role on a free (Submit-type) policy
+        const managePolicy = makeFreePolicy({
+            id: 'managePolicy',
+            role: CONST.POLICY.ROLE.ADMIN,
         });
-        // approver: paid+basic policy where user receives submissions
+        // approver: paid+basic policy where a peer submits to the user
         const approvePolicy = makePaidPolicy({
             id: 'approvePolicy',
+            role: CONST.POLICY.ROLE.USER,
             approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
             employeeList: {
                 [PEER_EMAIL]: {email: PEER_EMAIL, role: CONST.POLICY.ROLE.USER, submitsTo: USER_EMAIL},
             },
         });
-        expect(isSubmitterAndApprover({submitPolicy, approvePolicy}, USER_EMAIL)).toBe(true);
+        expect(isSubmitterAndApprover({managePolicy, approvePolicy}, USER_EMAIL)).toBe(true);
     });
 
-    it('returns true when the user is both submitter and approver on the same paid policy', () => {
+    it('returns true when the user is both manager and approver on the same paid policy', () => {
         const policy = makePaidPolicy({
             id: 'dualPolicy',
+            role: CONST.POLICY.ROLE.ADMIN,
             approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
             employeeList: {
-                [USER_EMAIL]: {email: USER_EMAIL, role: CONST.POLICY.ROLE.USER, submitsTo: APPROVER_EMAIL},
+                [USER_EMAIL]: {email: USER_EMAIL, role: CONST.POLICY.ROLE.ADMIN, submitsTo: APPROVER_EMAIL},
                 [PEER_EMAIL]: {email: PEER_EMAIL, role: CONST.POLICY.ROLE.USER, submitsTo: USER_EMAIL},
             },
         });
         expect(isSubmitterAndApprover({dualPolicy: policy}, USER_EMAIL)).toBe(true);
     });
 
-    it('returns false for a submit-only user (no one submits to them)', () => {
+    it('returns true for an auditor who approves, not only admins', () => {
+        const policy = makePaidPolicy({
+            id: 'auditorApprover',
+            role: CONST.POLICY.ROLE.AUDITOR,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            employeeList: {
+                [PEER_EMAIL]: {email: PEER_EMAIL, role: CONST.POLICY.ROLE.USER, submitsTo: USER_EMAIL},
+            },
+        });
+        expect(isSubmitterAndApprover({auditorApprover: policy}, USER_EMAIL)).toBe(true);
+    });
+
+    it('returns false for a plain member who manages nothing, even though they submit', () => {
         const policy = makePaidPolicy({
             id: 'submitOnly',
+            role: CONST.POLICY.ROLE.USER,
             approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
             employeeList: {
                 [USER_EMAIL]: {email: USER_EMAIL, role: CONST.POLICY.ROLE.USER, submitsTo: APPROVER_EMAIL},
@@ -97,34 +112,54 @@ describe('isSubmitterAndApprover', () => {
         expect(isSubmitterAndApprover({submitOnly: policy}, USER_EMAIL)).toBe(false);
     });
 
-    it('returns true for an admin who approves on a group policy (any member is a submitter, not just role=user)', () => {
+    // The default workflow gives every member a `submitsTo` target, so role is the only thing separating an
+    // approve-only member from a manager.
+    it('returns false for an approve-only plain member who is another member’s approver', () => {
         const policy = makePaidPolicy({
-            id: 'adminApprover',
+            id: 'approveOnly',
+            role: CONST.POLICY.ROLE.USER,
             approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
             employeeList: {
-                [USER_EMAIL]: {email: USER_EMAIL, role: CONST.POLICY.ROLE.ADMIN, submitsTo: ''},
+                [USER_EMAIL]: {email: USER_EMAIL, role: CONST.POLICY.ROLE.USER, submitsTo: APPROVER_EMAIL},
                 [PEER_EMAIL]: {email: PEER_EMAIL, role: CONST.POLICY.ROLE.USER, submitsTo: USER_EMAIL},
             },
         });
-        expect(isSubmitterAndApprover({adminApprover: policy}, USER_EMAIL)).toBe(true);
+        expect(isSubmitterAndApprover({approveOnly: policy}, USER_EMAIL)).toBe(false);
     });
 
-    it('returns true for an approver on a free (Submit-type) group policy, not only paid group policies', () => {
-        const policy = makeFreePolicy({
-            id: 'freeApprover',
+    it('returns false for a manager who approves nothing (no approval flow reaches them)', () => {
+        const policy = makePaidPolicy({
+            id: 'adminOnly',
+            role: CONST.POLICY.ROLE.ADMIN,
             approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
             employeeList: {
-                [PEER_EMAIL]: {email: PEER_EMAIL, role: CONST.POLICY.ROLE.USER, submitsTo: USER_EMAIL},
+                [USER_EMAIL]: {email: USER_EMAIL, role: CONST.POLICY.ROLE.ADMIN, submitsTo: APPROVER_EMAIL},
+                [PEER_EMAIL]: {email: PEER_EMAIL, role: CONST.POLICY.ROLE.USER, submitsTo: APPROVER_EMAIL},
             },
         });
-        expect(isSubmitterAndApprover({freeApprover: policy}, USER_EMAIL)).toBe(true);
+        expect(isSubmitterAndApprover({adminOnly: policy}, USER_EMAIL)).toBe(false);
+    });
+
+    it('treats the named policy approver as an approver', () => {
+        const policy = makePaidPolicy({
+            id: 'namedApprover',
+            role: CONST.POLICY.ROLE.ADMIN,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            approver: USER_EMAIL,
+            employeeList: {
+                [USER_EMAIL]: {email: USER_EMAIL, role: CONST.POLICY.ROLE.ADMIN, submitsTo: USER_EMAIL},
+            },
+        });
+        expect(isSubmitterAndApprover({namedApprover: policy}, USER_EMAIL)).toBe(true);
     });
 
     it('treats an over-limit forwards-to target as an approver', () => {
         const policy = makePaidPolicy({
             id: 'overLimitApprover',
+            role: CONST.POLICY.ROLE.ADMIN,
             approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
             employeeList: {
+                [USER_EMAIL]: {email: USER_EMAIL, role: CONST.POLICY.ROLE.ADMIN, submitsTo: APPROVER_EMAIL},
                 [PEER_EMAIL]: {email: PEER_EMAIL, role: CONST.POLICY.ROLE.USER, submitsTo: APPROVER_EMAIL, overLimitForwardsTo: USER_EMAIL},
             },
         });
@@ -132,20 +167,66 @@ describe('isSubmitterAndApprover', () => {
     });
 
     it('returns false when the approver policy has OPTIONAL approval mode (no approval flow)', () => {
-        const submitPolicy = makeFreePolicy({
-            id: 'submitPolicy',
-            employeeList: {
-                [USER_EMAIL]: {email: USER_EMAIL, role: CONST.POLICY.ROLE.USER, submitsTo: APPROVER_EMAIL},
-            },
+        const managePolicy = makeFreePolicy({
+            id: 'managePolicy',
+            role: CONST.POLICY.ROLE.ADMIN,
         });
         const optionalApprovePolicy = makePaidPolicy({
             id: 'optionalApprove',
+            role: CONST.POLICY.ROLE.ADMIN,
             approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
             employeeList: {
                 [PEER_EMAIL]: {email: PEER_EMAIL, role: CONST.POLICY.ROLE.USER, submitsTo: USER_EMAIL},
             },
         });
-        expect(isSubmitterAndApprover({submitPolicy, optionalApprovePolicy}, USER_EMAIL)).toBe(false);
+        expect(isSubmitterAndApprover({managePolicy, optionalApprovePolicy}, USER_EMAIL)).toBe(false);
+    });
+
+    // An owner who invited a submitter and an approver, with a workflow routing the submitter to the approver.
+    describe('a workspace with an owner, a submitter and an approver', () => {
+        const OWNER = 'owner@expensifail.com';
+        const SUBMITTER = 'submitter@gmail.com';
+        const APPROVER = 'approver@expensifail.com';
+        const employeeList: Record<string, NonNullable<Policy['employeeList']>[string]> = {
+            [APPROVER]: {email: APPROVER, role: CONST.POLICY.ROLE.USER, submitsTo: OWNER, forwardsTo: '', overLimitForwardsTo: ''},
+            [OWNER]: {email: OWNER, role: CONST.POLICY.ROLE.ADMIN, submitsTo: OWNER, forwardsTo: ''},
+            [SUBMITTER]: {email: SUBMITTER, role: CONST.POLICY.ROLE.USER, submitsTo: APPROVER},
+        };
+        // `policy.role` holds the viewing user's own role, so build a per-viewer copy.
+        const asViewedBy = (role: ValueOf<typeof CONST.POLICY.ROLE>) =>
+            makePaidPolicy({
+                id: 'reported',
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                approver: OWNER,
+                owner: OWNER,
+                employeeList,
+                role,
+            });
+
+        it('does not seed the approve-only member', () => {
+            expect(isSubmitterAndApprover({reported: asViewedBy(CONST.POLICY.ROLE.USER)}, APPROVER)).toBe(false);
+        });
+
+        it('does not seed the submit-only member', () => {
+            expect(isSubmitterAndApprover({reported: asViewedBy(CONST.POLICY.ROLE.USER)}, SUBMITTER)).toBe(false);
+        });
+
+        it('seeds the owner/admin who also approves', () => {
+            expect(isSubmitterAndApprover({reported: asViewedBy(CONST.POLICY.ROLE.ADMIN)}, OWNER)).toBe(true);
+        });
+    });
+
+    it('returns false for a personal policy even when the user is its admin', () => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        const personal = {
+            id: 'personal',
+            type: CONST.POLICY.TYPE.PERSONAL,
+            role: CONST.POLICY.ROLE.ADMIN,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            approver: USER_EMAIL,
+            employeeList: {[USER_EMAIL]: {email: USER_EMAIL, role: CONST.POLICY.ROLE.ADMIN}},
+        } as unknown as Policy;
+        expect(isSubmitterAndApprover({personal}, USER_EMAIL)).toBe(false);
     });
 
     it('returns false for an empty policy collection', () => {
