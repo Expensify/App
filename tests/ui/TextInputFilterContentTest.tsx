@@ -1,4 +1,4 @@
-import {act, fireEvent, render, within} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, within} from '@testing-library/react-native';
 
 import TextInputFilterContent, {TextInputFilterContentFillHeight} from '@components/Search/FilterComponents/AdvancedFilters/TextInputFilterContent';
 import type * as TextFilterValidationModule from '@components/Search/hooks/useTextFilterValidation';
@@ -10,7 +10,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 import React from 'react';
-import {Text, View} from 'react-native';
+import {View} from 'react-native';
 
 type ButtonMockProps = {
     onPress?: () => void;
@@ -42,7 +42,6 @@ const mockKeyboardShortcut = jest.fn();
 const mockNegatableFilter = jest.fn<void, [NegatableFilterMockProps]>();
 const mockTextInput = jest.fn<void, [TextInputMockProps]>();
 const MockView = View;
-const MockText = Text;
 let mockValidationError = '';
 let mockShouldFooterBeInsideList = false;
 
@@ -56,8 +55,9 @@ jest.mock('@components/AutoGrowHeightInputContainer', () => ({
 jest.mock('@components/Button', () => {
     function MockButton(props: ButtonMockProps) {
         const MockReact = jest.requireActual<typeof React>('react');
+        const {Pressable: MockPressable} = jest.requireActual<typeof import('react-native')>('react-native');
         mockButton(props);
-        return MockReact.createElement(MockView, {testID: 'confirm-button', onPress: props.onPress}, props.children);
+        return MockReact.createElement(MockPressable, {testID: 'confirm-button', onPress: props.onPress}, props.children);
     }
 
     MockButton.KeyboardShortcut = () => {
@@ -66,6 +66,7 @@ jest.mock('@components/Button', () => {
     };
     MockButton.Text = ({children}: {children: React.ReactNode}) => {
         const MockReact = jest.requireActual<typeof React>('react');
+        const {Text: MockText} = jest.requireActual<typeof import('react-native')>('react-native');
         return MockReact.createElement(MockText, null, children);
     };
 
@@ -273,23 +274,23 @@ describe('TextInputFilterContent', () => {
                     onChange={onChange}
                 />
             );
-            const {getByTestId, getByText, rerender} = render(filter());
-            expect(getByText('Save filter')).toBeTruthy();
-            expect(within(getByTestId('search-scroll-view')).queryByTestId('confirm-button')).toBeNull();
+            const {rerender} = render(filter());
+            expect(screen.getByText('Save filter')).toBeTruthy();
+            expect(within(screen.getByTestId('search-scroll-view')).queryByTestId('confirm-button')).toBeNull();
 
             // When entered text is followed by a landscape keyboard transition.
             act(() => mockTextInput.mock.calls.at(-1)?.[0].onChangeText?.('Acme\nOffice'));
             mockShouldFooterBeInsideList = true;
             rerender(filter());
             // Then the action scrolls with the filter and submits its preserved, normalized value.
-            expect(within(getByTestId('search-scroll-view')).getByText('Save filter')).toBeTruthy();
+            expect(within(screen.getByTestId('search-scroll-view')).getByText('Save filter')).toBeTruthy();
             expect(mockTextInput.mock.calls.at(-1)?.[0].value).toBe('Acme\nOffice');
-            fireEvent.press(getByTestId('confirm-button'));
+            fireEvent.press(screen.getByTestId('confirm-button'));
             expect(onChange).toHaveBeenCalledWith('Acme Office', true);
 
             mockShouldFooterBeInsideList = false;
             rerender(filter());
-            expect(within(getByTestId('search-scroll-view')).queryByTestId('confirm-button')).toBeNull();
+            expect(within(screen.getByTestId('search-scroll-view')).queryByTestId('confirm-button')).toBeNull();
             expect(mockTextInput.mock.calls.at(-1)?.[0].value).toBe('Acme\nOffice');
         });
 
