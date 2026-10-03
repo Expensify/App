@@ -3,9 +3,11 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import DateUtils from '@libs/DateUtils';
 import {
     ANDROID_SAFE_FILE_NAME_LENGTH,
+    appendExtensionFromMimeType,
     appendTimeToFileName,
     canvasFallback,
     getExportFileName,
+    getExtensionFromMimeType,
     getFileNameWithFallback,
     getFileValidationErrorText,
     getImageDimensionsAfterResize,
@@ -571,6 +573,66 @@ describe('FileUtils', () => {
 
             expect(result.title).toBe('');
             expect(result.reason).toBe('');
+        });
+    });
+
+    describe('getExtensionFromMimeType', () => {
+        it('should return the primary extension registered for a known MIME type', () => {
+            // Given a MIME type mime-db knows
+            // When the extension is looked up
+            // Then the first registered extension is returned
+            expect(getExtensionFromMimeType('video/mp4')).toBe('mp4');
+            expect(getExtensionFromMimeType('image/jpeg')).toBe('jpeg');
+            expect(getExtensionFromMimeType('application/pdf')).toBe('pdf');
+        });
+
+        it('should return undefined for an unknown or missing MIME type', () => {
+            // Given a MIME type that is unregistered, empty or undefined
+            // When the extension is looked up
+            // Then nothing is returned, so callers can decide their own fallback rather than guess wrong
+            expect(getExtensionFromMimeType('application/not-a-real-type')).toBeUndefined();
+            expect(getExtensionFromMimeType('')).toBeUndefined();
+            expect(getExtensionFromMimeType(undefined)).toBeUndefined();
+        });
+    });
+
+    describe('appendExtensionFromMimeType', () => {
+        it('should add the extension when the name has none', () => {
+            // Given a name with no extension, as an Android content:// URI or a null picker name produces
+            // When the MIME type is known
+            // Then the extension is recovered so the downloaded file is not a generic document
+            expect(appendExtensionFromMimeType('1000000042', 'video/mp4')).toBe('1000000042.mp4');
+            expect(appendExtensionFromMimeType(CONST.DEFAULT_ATTACHMENT_FILENAME, 'video/mp4')).toBe(`${CONST.DEFAULT_ATTACHMENT_FILENAME}.mp4`);
+        });
+
+        it('should leave a name that already has an extension alone', () => {
+            // Given a name that already carries an extension
+            // When the MIME type disagrees with it
+            // Then the original name wins, because the picker's name is more trustworthy than the MIME type
+            expect(appendExtensionFromMimeType('recording.mov', 'video/mp4')).toBe('recording.mov');
+        });
+
+        it('should leave the name alone when the MIME type cannot be resolved', () => {
+            // Given a name with no extension
+            // When the MIME type is unknown, empty or undefined
+            // Then no extension is invented, because a wrong extension is worse than none
+            expect(appendExtensionFromMimeType('1000000042', 'application/not-a-real-type')).toBe('1000000042');
+            expect(appendExtensionFromMimeType('1000000042', '')).toBe('1000000042');
+            expect(appendExtensionFromMimeType('1000000042', undefined)).toBe('1000000042');
+        });
+
+        it('should leave the name alone for application/octet-stream instead of adding .bin', () => {
+            // Given a name with no extension whose MIME type is the generic one the Android document picker reports
+            // When the extension is recovered
+            // Then no meaningless .bin extension is added
+            expect(appendExtensionFromMimeType('1000000042', 'application/octet-stream')).toBe('1000000042');
+        });
+
+        it('should return an empty name unchanged', () => {
+            // Given no name at all
+            // When an extension is requested
+            // Then nothing is produced, since a bare ".mp4" is not a usable file name
+            expect(appendExtensionFromMimeType('', 'video/mp4')).toBe('');
         });
     });
 });

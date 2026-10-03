@@ -3,7 +3,17 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {ValueOf} from 'type-fest';
 
-import {cleanFileName, hasHeicOrHeifExtension, isValidReceiptExtension, normalizeFileObject, validateImageForCorruption} from './fileDownload/FileUtils';
+import {
+    appendExtensionFromMimeType,
+    cleanFileName,
+    hasHeicOrHeifExtension,
+    isUnknownMimeType,
+    isValidReceiptExtension,
+    normalizeFileObject,
+    splitExtensionFromFileName,
+    validateImageForCorruption,
+} from './fileDownload/FileUtils';
+import getMimeTypeFromFileHeader from './getMimeTypeFromFileHeader';
 import snapshotPickedFile from './snapshotPickedFile';
 
 type ValidateAttachmentValidResult = {
@@ -62,17 +72,33 @@ async function validateAttachmentFile(file: FileObject, item?: DataTransferItem,
         return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED};
     }
 
+    /**
+     * Recovering a missing extension is done here so that it covers every upload flow (picker, drag and
+     * drop, copy-paste, share). An attachment stored without an extension downloads as a file the OS
+     * treats as a generic document, even when the bytes are a perfectly valid video or image.
+     * Receipts are unaffected: `isValidReceiptExtension` already rejected names with no extension above.
+     * When the MIME type is also unknown (the Android document picker reports `application/octet-stream`
+     * for an extensionless file, and web reports `''`), the real type is detected from the file's first bytes.
+     */
+    const fileName = normalizedFile.name ?? '';
+    let fileType = normalizedFile.type;
+    if (fileName && isUnknownMimeType(fileType) && !splitExtensionFromFileName(fileName).fileExtension) {
+        // Read from the pre-normalization object: on native it carries the uri, which normalizeFileObject drops.
+        fileType = (await getMimeTypeFromFileHeader(fileObject)) ?? fileType;
+    }
+    const fileNameWithExtension = appendExtensionFromMimeType(fileName, fileType);
+
     if (normalizedFile instanceof File) {
         /**
          * Cleaning file name, done here so that it covers all cases:
          * upload, drag and drop, copy-paste
          */
         let updatedFile = normalizedFile;
-        const cleanName = cleanFileName(updatedFile.name);
+        const cleanName = cleanFileName(fileNameWithExtension);
         // On web this snapshots the bytes into a memory-backed File so a later change to the OS file
         // can't invalidate the queued request (see snapshotPickedFile); on native it only cleans the name.
         try {
-            updatedFile = await snapshotPickedFile(updatedFile, cleanName);
+            updatedFile = await snapshotPickedFile(updatedFile, cleanName, fileType ?? updatedFile.type);
         } catch {
             // The backing file was already modified or deleted since it was picked.
             return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FILE_INVALID};
@@ -89,6 +115,10 @@ async function validateAttachmentFile(file: FileObject, item?: DataTransferItem,
         updatedFile.uri = inputSource;
 
         return {isValid: true, file: updatedFile};
+    }
+
+    if (fileNameWithExtension !== normalizedFile.name || fileType !== normalizedFile.type) {
+        return {isValid: true, file: {...normalizedFile, name: fileNameWithExtension, type: fileType}};
     }
 
     return {isValid: true, file: normalizedFile};

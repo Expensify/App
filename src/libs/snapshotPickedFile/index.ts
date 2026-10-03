@@ -12,17 +12,17 @@ function isIPadInDesktopMode(): boolean {
  * IndexedDB write fails with "Failed to write blobs" and poisons the persisted request queue.
  * Rejects when the backing file is already unreadable.
  */
-async function snapshotPickedFile(file: File, name: string): Promise<File> {
+async function snapshotPickedFile(file: File, name: string, type = file.type): Promise<File> {
     // Mobile browsers hand over sandboxed temp copies the OS won't touch after picking, and copying
     // every file's bytes would multiply peak memory by batch size on memory-constrained mobile
-    // Safari — keep the lazy File there and only clean the name.
+    // Safari — keep the lazy File there and only clean the name and type.
     if (isMobile() || isIPadInDesktopMode()) {
-        if (file.name !== name) {
-            return new File([file], name, {type: file.type});
+        if (file.name !== name || file.type !== type) {
+            return new File([file], name, {type});
         }
         return file;
     }
-    return new File([await file.arrayBuffer()], name, {type: file.type, lastModified: file.lastModified});
+    return new File([await file.arrayBuffer()], name, {type, lastModified: file.lastModified});
 }
 
 export default snapshotPickedFile;
