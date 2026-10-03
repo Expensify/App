@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearReportFieldKeyErrors} from '@libs/actions/Report';
 import {resolveReportFieldValue} from '@libs/Formula';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import getPlatform from '@libs/getPlatform';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {
@@ -21,6 +22,7 @@ import {
     shouldDisplayReportFields as shouldDisplayReportFieldsUtils,
     shouldHideSingleReportField,
 } from '@libs/ReportUtils';
+import {COPYABLE_ROW_CONTINUATION_DATA_SET} from '@libs/SelectionScraper';
 
 import type {ThemeStyles} from '@styles/index';
 
@@ -65,6 +67,7 @@ function ReportFieldView(reportField: EnrichedPolicyReportField, report: OnyxEnt
         >
             <MenuItemWithTopDescription
                 description={Str.UCFirst(reportField.name)}
+                descriptionTextStyle={[styles.breakWord, styles.userSelectNone]}
                 title={reportField.fieldValue}
                 onPress={() => {
                     if (!report?.policyID) {
@@ -81,6 +84,10 @@ function ReportFieldView(reportField: EnrichedPolicyReportField, report: OnyxEnt
                 titleWithTooltips={[]}
                 brickRoadIndicator={reportField.violation ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 errorText={reportField.violationTranslation}
+                errorTextStyle={styles.userSelectNone}
+                copyValue={reportField.fieldValue || undefined}
+                copyable={reportField.isFieldDisabled && !!reportField.fieldValue}
+                isTitleSelectable={!!reportField.fieldValue}
             />
         </OfflineWithFeedback>
     );
@@ -91,6 +98,7 @@ function MoneyRequestViewReportFields({report, policy, pendingAction}: MoneyRequ
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(report?.reportID)}`);
     const {getCurrencyDecimals} = useCurrencyListActions();
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const shouldUseCopyableRowContinuation = getPlatform(true) === CONST.PLATFORM.WEB;
 
     const sortedPolicyReportFields = useMemo<EnrichedPolicyReportField[]>((): EnrichedPolicyReportField[] => {
         const {fieldValues, fieldsByName} = getReportFieldMaps(report, policy?.fieldList ?? {}, reportNameValuePairs);
@@ -130,9 +138,14 @@ function MoneyRequestViewReportFields({report, policy, pendingAction}: MoneyRequ
 
     return (
         <View style={styles.mb3}>
-            {sortedPolicyReportFields.map((reportField) => {
-                return ReportFieldView(reportField, report, styles, pendingAction);
-            })}
+            <View
+                style={styles.dContents}
+                dataSet={shouldUseCopyableRowContinuation ? COPYABLE_ROW_CONTINUATION_DATA_SET : undefined}
+            >
+                {sortedPolicyReportFields.map((reportField) => {
+                    return ReportFieldView(reportField, report, styles, pendingAction);
+                })}
+            </View>
         </View>
     );
 }

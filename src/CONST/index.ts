@@ -6573,6 +6573,7 @@ const CONST = {
     INNER_BOX_SHADOW_ELEMENT: 'inner-box-shadow-element',
     COPYABLE_TEXT_ELEMENT: 'copyable-text',
     COPYABLE_ROW_ELEMENT: 'copyable-row',
+    COPYABLE_ROW_CONTINUATION_ELEMENT: 'copyable-row-continuation',
     MODERATION: {
         MODERATOR_DECISION_PENDING: 'pending',
         MODERATOR_DECISION_PENDING_HIDE: 'pendingHide',

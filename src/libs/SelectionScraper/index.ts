@@ -19,6 +19,8 @@ const COPYABLE_TEXT_SELECTOR = `[data-${CONST.COPYABLE_TEXT_ELEMENT}=true]`;
 const COPYABLE_TEXT_DATA_SET = {[CONST.COPYABLE_TEXT_ELEMENT]: true} as const;
 const COPYABLE_ROW_SELECTOR = `[data-${CONST.COPYABLE_ROW_ELEMENT}=true]`;
 const COPYABLE_ROW_DATA_SET = {[CONST.COPYABLE_ROW_ELEMENT]: true} as const;
+const copyableRowContinuationAttribute = `data-${CONST.COPYABLE_ROW_CONTINUATION_ELEMENT}`;
+const COPYABLE_ROW_CONTINUATION_DATA_SET = {...COPYABLE_ROW_DATA_SET, [CONST.COPYABLE_ROW_CONTINUATION_ELEMENT]: true} as const;
 
 function getCopyableElementText(element: globalThis.Element, selection: Selection): string {
     const elementRange = document.createRange();
@@ -46,12 +48,14 @@ function getCopyableElementText(element: globalThis.Element, selection: Selectio
         .replaceAll(/[\t\n\r ]+/g, ' ');
 }
 
-function replaceElementContentWithLines(element: globalThis.Element, lines: string[]) {
-    for (const [index, line] of lines.entries()) {
+function replaceElementContentWithLines(element: globalThis.Element, lines: Array<{row: globalThis.Element; text: string}>) {
+    for (const [index, {text}] of lines.entries()) {
         if (index > 0) {
-            element.appendChild(document.createElement('br'));
+            const previousRow = lines.at(index - 1)?.row;
+            const separator = previousRow?.getAttribute(copyableRowContinuationAttribute) === 'true' ? document.createTextNode(' ') : document.createElement('br');
+            element.appendChild(separator);
         }
-        element.appendChild(document.createTextNode(line));
+        element.appendChild(document.createTextNode(text));
     }
 }
 
@@ -167,14 +171,15 @@ function getHTMLOfSelectedCopyableRows(selection: Selection): string {
     }
 
     const lines = selectedRows
-        .map((row) =>
-            [row, ...Array.from(row.querySelectorAll(COPYABLE_TEXT_SELECTOR))]
+        .map((row) => ({
+            row,
+            text: [row, ...Array.from(row.querySelectorAll(COPYABLE_TEXT_SELECTOR))]
                 .filter((copyableElement) => selectedCopyableElementsByRow.get(row)?.has(copyableElement))
                 .map((copyableElement) => getCopyableElementText(copyableElement, selection))
                 .filter((text) => !!text)
                 .join(' '),
-        )
-        .filter((line) => !!line);
+        }))
+        .filter(({text}) => !!text);
 
     if (lines.length === 0) {
         return '';
@@ -342,7 +347,7 @@ const getCurrentSelection: GetCurrentSelection = () => {
     return newHtml || '';
 };
 
-export {COPYABLE_ROW_DATA_SET, COPYABLE_TEXT_DATA_SET};
+export {COPYABLE_ROW_CONTINUATION_DATA_SET, COPYABLE_ROW_DATA_SET, COPYABLE_TEXT_DATA_SET};
 
 export default {
     getCurrentSelection,

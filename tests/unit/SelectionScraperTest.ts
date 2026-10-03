@@ -84,6 +84,27 @@ describe('SelectionScraper', () => {
         expect(SelectionScraper.getCurrentSelection()).toBe('Aug 26 Paid<br>Aug 27 Draft');
     });
 
+    it('joins a continuation row to the next row with a space', () => {
+        // Given report fields followed by expense details in separate copyable rows
+        createFixture(`
+            <div>
+                <div ${copyableRowAttribute}="true" data-${CONST.COPYABLE_ROW_CONTINUATION_ELEMENT}="true">
+                    <span id="report-field" ${copyableTextAttribute}="true">Test is good</span>
+                </div>
+                <div ${copyableRowAttribute}="true">
+                    <span id="date" ${copyableTextAttribute}="true">2026-10-03</span>
+                    <span id="amount" ${copyableTextAttribute}="true">10.00</span>
+                </div>
+            </div>
+        `);
+
+        // When the selection crosses from the report field into the expense details
+        selectText(getTextNode('report-field'), 0, getTextNode('amount'), '10.00'.length);
+
+        // Then all selected values are separated by spaces without introducing a line break
+        expect(SelectionScraper.getCurrentSelection()).toBe('Test is good 2026-10-03 10.00');
+    });
+
     it('keeps browser selection behavior for a single selected copyable cell', () => {
         createFixture(`
             <div ${copyableRowAttribute}="true">
