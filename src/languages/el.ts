@@ -4803,6 +4803,8 @@ ${amount} για ${merchant} - ${date}`,
             workspaceStatus: 'Κατάσταση χώρου εργασίας',
             findDomain: 'Εύρεση τομέα',
             findRoom: 'Βρείτε δωμάτιο',
+            emptyRoomsTitle: 'Δεν υπάρχουν ακόμη δωμάτια',
+            emptyRoomsSubtitle: 'Τα δωμάτια που δημιουργούνται σε αυτόν τον χώρο εργασίας θα εμφανίζονται εδώ.',
             edit: 'Επεξεργασία χώρου εργασίας',
             enabled: 'Ενεργοποιημένο',
             disabled: 'Απενεργοποιημένο',
@@ -4908,6 +4910,7 @@ ${amount} για ${merchant} - ${date}`,
             cardAdminAlternateText: 'Διαχειριστείτε τις κάρτες χώρου εργασίας.',
             peopleAdminAlternateText: 'Διαχειριστείτε μέλη και ροές έγκρισης.',
             paymentsAdminAlternateText: 'Διαχειριστείτε τις πληρωμές ροής εργασιών.',
+            approveOnlyAlternateText: 'Μόνο έγκριση αναφορών.',
             reimbursementChoice: {
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES]: 'Άμεσο',
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO]: 'Κανένα',
@@ -4929,6 +4932,8 @@ ${amount} για ${merchant} - ${date}`,
                         return 'Διαχείριση προσώπων';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'διαχείριση πληρωμών';
+                    case CONST.POLICY.ROLE.APPROVE_ONLY:
+                        return 'Μόνο έγκριση';
                     case CONST.POLICY.ROLE.USER:
                         return 'Μέλος';
                     default:
@@ -7202,6 +7207,15 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
         },
         people: {
             genericFailureMessage: 'Παρουσιάστηκε σφάλμα κατά την αφαίρεση μέλους από τον χώρο εργασίας, δοκιμάστε ξανά',
+            approveOnlyRoleBlockedTitle: 'Δεν είναι δυνατή η αλλαγή αυτού του ρόλου',
+            approveOnlyRoleBlockedConfirm: 'Κατάλαβα',
+            approveOnlyRoleBlockedDescription: 'Τα μέλη με μόνο έγκριση δεν μπορούν να δημιουργήσουν έξοδα σε αυτόν τον χώρο εργασίας. Αυτά πρέπει να επιλυθούν πρώτα:',
+            approveOnlyRoleBlockedReasons: {
+                hasCardOnPolicy: 'Έχει εκχωρηθεί μια κάρτα σε αυτούς σε αυτόν τον χώρο εργασίας. Ένας διαχειριστής χώρου εργασίας ή καρτών πρέπει πρώτα να την αφαιρέσει.',
+                isRestrictedByDomainGroup:
+                    'Αυτός ο χώρος εργασίας είναι ο προτιμώμενος χώρος εργασίας για μια ομάδα τομέα στην οποία ανήκουν. Ένας διαχειριστής τομέα πρέπει πρώτα να τον αλλάξει.',
+                isDefaultPolicy: 'Αυτός είναι ο προεπιλεγμένος χώρος εργασίας τους. Θα πρέπει να ορίσουν έναν διαφορετικό πριν μπορέσετε να ενημερώσετε τον ρόλο τους.',
+            },
             removeMembersPrompt: ({memberName}: {memberName: string}) => ({
                 one: `Είστε βέβαιοι ότι θέλετε να αφαιρέσετε τον/την ${memberName};`,
                 other: 'Είστε βέβαιοι ότι θέλετε να αφαιρέσετε αυτά τα μέλη;',

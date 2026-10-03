@@ -13,6 +13,7 @@ import {
     canMemberManageMemberWithRole,
     canMemberRead,
     canMemberWrite,
+    canRoleCreateExpenses,
     canSendInvoiceFromWorkspace,
     evaluateApprovalWorkflowRule,
     findVendorByID,
@@ -64,6 +65,7 @@ import {
     matchesParentTagPath,
     matchesParentTagsFilter,
     getGLCodeFromPolicyTag,
+    getGroupPoliciesWhereReportCanBeCreated,
     getTagList,
     getTagListByOrderWeight,
     getUberConnectionErrorDirectlyFromPolicy,
@@ -375,12 +377,12 @@ describe('PolicyUtils', () => {
             expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES)).toBe(false);
         });
 
-        it('allows auditors to read but not write every policy feature', () => {
+        it('allows auditors to read every policy feature but only write expense creation', () => {
             const policy = buildPolicy(CONST.POLICY.ROLE.AUDITOR);
 
             for (const feature of Object.values(CONST.POLICY.POLICY_FEATURE)) {
                 expect(canMemberRead(policy, memberLogin, feature)).toBe(true);
-                expect(canMemberWrite(policy, memberLogin, feature)).toBe(false);
+                expect(canMemberWrite(policy, memberLogin, feature)).toBe(feature === CONST.POLICY.POLICY_FEATURE.CREATE_EXPENSES);
             }
         });
 
@@ -400,6 +402,26 @@ describe('PolicyUtils', () => {
             expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.CARD_ADMIN)).toBe(false);
             expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.PEOPLE_ADMIN)).toBe(false);
             expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.PAYMENTS_ADMIN)).toBe(false);
+        });
+
+        it('allows People Admins to assign the approve-only role', () => {
+            const policy = buildPolicy(CONST.POLICY.ROLE.PEOPLE_ADMIN);
+
+            expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.APPROVE_ONLY)).toBe(true);
+        });
+
+        it('gives approve-only members read-only access like members', () => {
+            const policy = buildPolicy(CONST.POLICY.ROLE.APPROVE_ONLY);
+
+            expect(canMemberRead(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.OVERVIEW)).toBe(true);
+            expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.OVERVIEW)).toBe(false);
+        });
+
+        it('allows every role except approve-only to create expenses', () => {
+            expect(canRoleCreateExpenses(CONST.POLICY.ROLE.USER)).toBe(true);
+            expect(canRoleCreateExpenses(CONST.POLICY.ROLE.ADMIN)).toBe(true);
+            expect(canRoleCreateExpenses(CONST.POLICY.ROLE.AUDITOR)).toBe(true);
+            expect(canRoleCreateExpenses(CONST.POLICY.ROLE.APPROVE_ONLY)).toBe(false);
         });
 
         it('allows Submit workspace editors to manage editor memberships without assigning roles', () => {
@@ -773,10 +795,11 @@ describe('PolicyUtils', () => {
     });
     describe('getActivePoliciesWithExpenseChat', () => {
         it('excludes archived policies while keeping the active sibling', () => {
-            const activePolicy = createMock<Policy>({...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), name: 'active', pendingAction: null});
+            const activePolicy = createMock<Policy>({...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), name: 'active', role: CONST.POLICY.ROLE.USER, pendingAction: null});
             const archivedPolicy = createMock<Policy>({
                 ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE),
                 name: 'archived',
+                role: CONST.POLICY.ROLE.USER,
                 pendingAction: null,
                 archivedDate: '2024-01-01',
             });
@@ -789,6 +812,41 @@ describe('PolicyUtils', () => {
             const result = getActivePoliciesWithExpenseChat(policies, undefined);
             expect(result).toHaveLength(1);
             expect(result.at(0)?.id).toBe(activePolicy.id);
+        });
+
+        it('excludes policies where the current user is approve-only', () => {
+            const approveOnlyPolicy = createMock<Policy>({
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                name: 'approveOnly',
+                role: CONST.POLICY.ROLE.APPROVE_ONLY,
+                pendingAction: null,
+            });
+            const memberPolicy = createMock<Policy>({...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), name: 'member', role: CONST.POLICY.ROLE.USER, pendingAction: null});
+            const policies = createCollection<Policy>(
+                (item) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,
+                (index) => (index === 0 ? approveOnlyPolicy : memberPolicy),
+                2,
+            );
+
+            const result = getActivePoliciesWithExpenseChat(policies, employeeEmail);
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.id).toBe(memberPolicy.id);
+        });
+    });
+
+    describe('getGroupPoliciesWhereReportCanBeCreated', () => {
+        it('excludes workspaces where the current user is approve-only', () => {
+            const approveOnlyPolicy = createMock<Policy>({...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), role: CONST.POLICY.ROLE.APPROVE_ONLY, pendingAction: null});
+            const memberPolicy = createMock<Policy>({...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), role: CONST.POLICY.ROLE.USER, pendingAction: null});
+            const policies = createCollection<Policy>(
+                (item) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,
+                (index) => (index === 0 ? approveOnlyPolicy : memberPolicy),
+                2,
+            );
+
+            const result = getGroupPoliciesWhereReportCanBeCreated(policies, employeeEmail);
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.id).toBe(memberPolicy.id);
         });
     });
     describe('getCustomUnitsForDuplication', () => {
@@ -1888,6 +1946,7 @@ describe('PolicyUtils', () => {
 
             const newPolicy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                role: CONST.POLICY.ROLE.ADMIN,
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
                 employeeList: {
                     [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
@@ -1922,6 +1981,7 @@ describe('PolicyUtils', () => {
 
             const newPolicy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.SUBMIT),
+                role: CONST.POLICY.ROLE.ADMIN,
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
                 employeeList: {
                     [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
@@ -1940,6 +2000,24 @@ describe('PolicyUtils', () => {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             };
+            const result = isWorkspaceEligibleForReportChange(currentUserLogin, newPolicy);
+            expect(result).toBe(false);
+        });
+
+        it('returns false if the submitter is approve-only on the new policy', async () => {
+            const currentUserLogin = employeeEmail;
+
+            const newPolicy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                role: undefined,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                employeeList: {
+                    [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.APPROVE_ONLY},
+                },
+                pendingAction: null,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
+
             const result = isWorkspaceEligibleForReportChange(currentUserLogin, newPolicy);
             expect(result).toBe(false);
         });

@@ -1381,6 +1381,99 @@ describe('OptionsListUtils', () => {
             expect(results.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
         });
 
+        describe('excludeApproveOnlyWorkspaces', () => {
+            const approveOnlyPolicyID = 'APPROVEONLYPOLICY1';
+            const approveOnlyChatReportID = '901';
+
+            const buildPolicyWithRole = (role: string): Policy => ({
+                id: approveOnlyPolicyID,
+                name: 'Approve Only Workspace',
+                role,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                owner: 'reedrichards@expensify.com',
+                outputCurrency: 'USD',
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                employeeList: {
+                    [CURRENT_USER_EMAIL]: {
+                        email: CURRENT_USER_EMAIL,
+                        role,
+                    },
+                },
+            });
+
+            const workspaceChatReports: OnyxCollection<Report> = {
+                [approveOnlyChatReportID]: {
+                    reportID: approveOnlyChatReportID,
+                    reportName: 'Approve Only Workspace',
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    isOwnPolicyExpenseChat: true,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    policyID: approveOnlyPolicyID,
+                    policyName: 'Approve Only Workspace',
+                    ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                    lastVisibleActionCreated: '2022-11-22 03:26:02.001',
+                    participants: {
+                        [CURRENT_USER_ACCOUNT_ID]: {
+                            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                        },
+                    },
+                },
+            };
+
+            // Mirrors the config ParticipantSearchResults passes for create/submit flows
+            const getOptionsForPolicy = (policy: Policy) => {
+                const policies: OnyxCollection<Policy> = {
+                    [`${ONYXKEYS.COLLECTION.POLICY}${approveOnlyPolicyID}`]: policy,
+                };
+                const optionList = createFilteredOptionList(
+                    PERSONAL_DETAILS,
+                    workspaceChatReports,
+                    createMockReportAttributesDerived(workspaceChatReports, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID),
+                    EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+                    policies,
+                    {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
+                    undefined,
+                );
+
+                return getValidOptions(
+                    optionList,
+                    policies,
+                    {},
+                    loginList,
+                    CURRENT_USER_ACCOUNT_ID,
+                    CURRENT_USER_EMAIL,
+                    undefined,
+                    {
+                        getReportByID: getReportByIDFromOnyx,
+                        dateFnsLocale: undefined,
+                        convertToDisplayString,
+                        includeRecentReports: true,
+                        includeP2P: true,
+                        includeOwnedWorkspaceChats: true,
+                        excludeApproveOnlyWorkspaces: true,
+                        shouldSeparateWorkspaceChat: true,
+                        action: CONST.IOU.ACTION.CREATE,
+                        personalDetails: PERSONAL_DETAILS,
+                    },
+                    translateLocal,
+                    undefined,
+                );
+            };
+
+            it('should exclude the workspace chat when the member role is approveOnly', () => {
+                const {options: results} = getOptionsForPolicy(buildPolicyWithRole(CONST.POLICY.ROLE.APPROVE_ONLY));
+
+                expect(results.workspaceChats).toEqual([]);
+                expect(results.recentReports.find((report) => report.reportID === approveOnlyChatReportID)).toBeUndefined();
+            });
+
+            it('should include the workspace chat when the member role can create expenses', () => {
+                const {options: results} = getOptionsForPolicy(buildPolicyWithRole(CONST.POLICY.ROLE.USER));
+
+                expect(results.workspaceChats).toEqual(expect.arrayContaining([expect.objectContaining({reportID: approveOnlyChatReportID})]));
+            });
+        });
+
         it.each([
             {
                 description: 'Vietnamese diacritics',

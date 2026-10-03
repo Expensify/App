@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearCopyPolicySettings} from '@libs/actions/Policy/CopyPolicySettings';
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import Navigation from '@libs/Navigation/Navigation';
+import {canRoleCreateExpenses} from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 
 import {setNameValuePair} from '@userActions/User';
@@ -125,7 +126,8 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, pendingDeletePolicy
             }
         }
 
-        if (!isDefault && !item?.isJoinRequestPending && !isRestrictedToPreferredPolicy) {
+        // Approve-only members cannot create expenses, so making the workspace their default would break expense creation routing.
+        if (!isDefault && !item?.isJoinRequestPending && !isRestrictedToPreferredPolicy && canRoleCreateExpenses(item.role)) {
             menuItems.push({
                 icon: icons.Star,
                 text: translate('workspace.common.setAsDefault'),

@@ -4708,6 +4708,8 @@ ${amount} voor ${merchant} - ${date}`,
             archived: 'Gearchiveerd',
             workspaceStatus: 'Werkruimtestatus',
             findRoom: 'Kamer zoeken',
+            emptyRoomsTitle: 'Nog geen kamers',
+            emptyRoomsSubtitle: 'Kamers die in deze werkruimte worden aangemaakt, verschijnen hier.',
             edit: 'Werkruimte bewerken',
             enabled: 'Ingeschakeld',
             disabled: 'Uitgeschakeld',
@@ -4824,6 +4826,8 @@ ${amount} voor ${merchant} - ${date}`,
                         return 'Beheer personen';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Beheerder betalingen';
+                    case CONST.POLICY.ROLE.APPROVE_ONLY:
+                        return 'Alleen goedkeuren';
                     case CONST.POLICY.ROLE.USER:
                         return 'Lid';
                     default:
@@ -4864,6 +4868,7 @@ ${amount} voor ${merchant} - ${date}`,
             cardAdminAlternateText: 'Werkruimtekaarten beheren.',
             peopleAdminAlternateText: 'Beheer leden en goedkeuringsworkflows.',
             paymentsAdminAlternateText: 'Workflowsbetalingen beheren.',
+            approveOnlyAlternateText: 'Alleen rapporten goedkeuren.',
             readOnlyActionTitle: 'Niet zo snel...',
             readOnlyActionPrompt: 'Je rol in de workspace kan deze instellingen bekijken, maar niet bewerken.',
             noAccessActionPrompt: 'Je rol in deze workspace heeft geen toegang tot deze instellingen. Vraag een admin als je die nodig hebt.',
@@ -7019,6 +7024,14 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
         },
         people: {
             genericFailureMessage: 'Er is een fout opgetreden bij het verwijderen van een lid uit de werkruimte, probeer het opnieuw.',
+            approveOnlyRoleBlockedTitle: 'Kan deze rol niet wijzigen',
+            approveOnlyRoleBlockedConfirm: 'Begrepen',
+            approveOnlyRoleBlockedDescription: 'Leden met alleen goedkeuren kunnen geen uitgaven aanmaken in deze werkruimte. Deze moeten eerst worden opgelost:',
+            approveOnlyRoleBlockedReasons: {
+                hasCardOnPolicy: 'Er is een kaart aan hen toegewezen in deze werkruimte. Een werkruimte- of kaartbeheerder moet deze eerst ontkoppelen.',
+                isRestrictedByDomainGroup: 'Deze werkruimte is de voorkeurswerkruimte voor een domeingroep waarvan ze deel uitmaken. Een domeinbeheerder moet dit eerst wijzigen.',
+                isDefaultPolicy: 'Dit is hun standaardwerkruimte. Ze moeten een andere instellen voordat je hun rol kunt bijwerken.',
+            },
             removeMembersPrompt: ({memberName}: {memberName: string}) => ({
                 one: `Weet je zeker dat je ${memberName} wilt verwijderen?`,
                 other: 'Weet je zeker dat je deze leden wilt verwijderen?',
