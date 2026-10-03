@@ -2,7 +2,7 @@ import FormProvider from '@components/Form/FormProvider';
 import FormValueWatcher from '@components/Form/FormValueWatcher';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextPicker from '@components/TextPicker';
@@ -175,10 +175,7 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, ge
                 testID={testID}
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton
-                    title={translate(isInvoiceField ? 'workspace.invoiceFields.addField' : 'workspace.reportFields.addField')}
-                    onBackButtonPress={Navigation.goBack}
-                />
+                <HeaderWithBackButtonAndTitle title={translate(isInvoiceField ? 'workspace.invoiceFields.addField' : 'workspace.reportFields.addField')} />
                 <FormProvider
                     ref={formRef}
                     style={[styles.mh5, styles.flex1]}

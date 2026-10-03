@@ -1,7 +1,7 @@
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {ReportFieldListValueRowData} from '@components/Tables/WorkspaceReportFieldListValuesTable';
@@ -374,7 +374,7 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
                 testID={testID}
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.reportFields.listValues')}
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
@@ -386,7 +386,7 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
                     }}
                 >
                     {!shouldDisplayButtonsInSeparateLine && headerButtons}
-                </HeaderWithBackButton>
+                </HeaderWithBackButtonAndTitle>
                 {isInvoicePage && tableHeaderComponent}
                 <WorkspaceReportFieldListValuesTable
                     listValues={listValueRows}

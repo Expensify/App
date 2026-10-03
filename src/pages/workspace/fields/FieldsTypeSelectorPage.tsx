@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 
@@ -69,7 +69,7 @@ function FieldsTypeSelectorPage({policyID, currentType, featureName, createRoute
                 style={styles.defaultModalContainer}
                 testID={testID}
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('common.type')}
                     onBackButtonPress={() => Navigation.goBack(createRoute)}
                 />
