@@ -4981,7 +4981,7 @@ const translations = {
             cardAdminAlternateText: 'Manage workspace cards.',
             peopleAdminAlternateText: 'Manage members and approval workflows.',
             paymentsAdminAlternateText: 'Manage workflow payments.',
-            approveOnlyAlternateText: 'Approve reports without submitting them.',
+            approveOnlyAlternateText: 'Approve reports only.',
             reimbursementChoice: {
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES]: 'Direct',
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO]: 'None',
