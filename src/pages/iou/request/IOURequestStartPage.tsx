@@ -1,7 +1,7 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ParticipantPickerOverlayHost from '@components/ParticipantPicker/OverlayHost';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -295,7 +295,7 @@ function IOURequestStartPage({
                                 onContainerElementChanged={setHeaderWithBackButtonContainerElement}
                                 style={[styles.w100]}
                             >
-                                <HeaderWithBackButton
+                                <HeaderWithBackButtonAndTitle
                                     title={tabTitles[iouType]}
                                     onBackButtonPress={navigateBack}
                                 />

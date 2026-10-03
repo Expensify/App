@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
 import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
@@ -142,10 +142,7 @@ function SearchEditMultipleAmountPage() {
             shouldEnableMaxHeight
             testID="SearchEditMultipleAmountPage"
         >
-            <HeaderWithBackButton
-                title={translate('iou.amount')}
-                onBackButtonPress={Navigation.goBack}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('iou.amount')} />
             <IOURequestStepCurrencyModal
                 isPickerVisible={isCurrencyPickerVisible}
                 hidePickerModal={() => setIsCurrencyPickerVisible(false)}
