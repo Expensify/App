@@ -5796,6 +5796,8 @@ function canHoldUnholdReportAction(
 const changeMoneyRequestHoldStatus = (
     reportAction: OnyxEntry<ReportAction>,
     iouTransaction: OnyxEntry<Transaction>,
+    iouTransactionReport: OnyxEntry<Report>,
+    reportActionChildReport: OnyxEntry<Report>,
     isOffline: boolean,
     currentUserLogin: string,
     currentUserAccountID: number,
@@ -5826,9 +5828,10 @@ const changeMoneyRequestHoldStatus = (
 
     if (isOnHold) {
         if (reportAction.childReportID) {
-            unholdRequest(
+            unholdRequest({
                 transactionID,
-                reportAction.childReportID,
+                transactionReport: iouTransactionReport,
+                report: reportActionChildReport,
                 policy,
                 isOffline,
                 currentUserLogin,
@@ -5837,7 +5840,7 @@ const changeMoneyRequestHoldStatus = (
                 isTrackIntentUser,
                 delegateAccountID,
                 rules,
-            );
+            });
         } else {
             Log.warn('Missing reportAction.childReportID during money request unhold');
         }
