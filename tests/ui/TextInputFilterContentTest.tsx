@@ -18,7 +18,7 @@ type ButtonMockProps = {
 };
 
 type NativeButtonMockComponents = {
-    Pressable: React.ComponentType<ButtonMockProps>;
+    Pressable: React.ComponentType<ButtonMockProps & {testID?: string}>;
     Text: React.ComponentType<{children: React.ReactNode}>;
 };
 
