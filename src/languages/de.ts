@@ -2409,9 +2409,11 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: 'Kontoeinstellungen',
         account: 'Konto',
         general: 'Allgemein',
+        talkToAHuman: 'Mit einem Menschen sprechen',
         helpPage: {
             title: 'Hilfe und Support',
             description: 'Wir sind rund um die Uhr für Sie da.',
+            talkToAHumanDescription: 'Holen Sie sich Hilfe von einer echten Person',
             helpSite: 'Hilfeseite',
             helpSiteDescription: 'Artikel, Tutorials und mehr',
             conciergeChat: 'Concierge',
@@ -9746,6 +9748,14 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         genericCreateTaskFailureMessage: 'Beim Erstellen dieser Aufgabe ist ein Fehler aufgetreten. Bitte versuche es später erneut.',
         deleteTask: 'Aufgabe löschen',
         deleteConfirmation: 'Sind Sie sicher, dass Sie diese Aufgabe löschen möchten?',
+    },
+    supportTicket: {
+        title: ({date, customer, supportRep}) => `Support-Ticket, ${date}: ${customer} und ${supportRep}`,
+        description: ({supportRep}) =>
+            `Hallo, ich bin ${supportRep} und begleite dich, bis das vollständig gelöst ist. Wenn du uns bereits Details mitgeteilt hast, prüfe ich sie vor meiner Antwort, damit du dich nicht wiederholen musst. Wenn dies ein neues Problem ist, lass mich wissen, wobei du Hilfe brauchst.`,
+        checkboxTooltip: 'Dein Support-Mitarbeiter markiert dies als erledigt.',
+        genericCreateSupportTicketFailureMessage: 'Dieses Support-Ticket konnte nicht erstellt werden. Bitte schließe diesen Fehler und versuche es erneut.',
+        fallbackTitle: 'Support-Ticket',
     },
     statementPage: {
         title: (year: number | string, monthName: string) => `Abrechnung ${monthName} ${year}`,

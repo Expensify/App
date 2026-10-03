@@ -2454,9 +2454,11 @@ const translations: TranslationDeepObject<typeof en> = {
         versionLetter: 'ν',
         readTheTermsAndPrivacy: `Διαβάστε τους <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">όρους παροχής υπηρεσιών</a> και την <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">πολιτική απορρήτου</a>.`,
         help: 'Βοήθεια',
+        talkToAHuman: 'Μιλήστε με έναν άνθρωπο',
         helpPage: {
             title: 'Βοήθεια και υποστήριξη',
             description: 'Είμαστε εδώ για να σας βοηθάμε 24/7.',
+            talkToAHumanDescription: 'Λάβετε βοήθεια από έναν πραγματικό άνθρωπο',
             helpSite: 'Ιστότοπος βοήθειας',
             helpSiteDescription: 'Άρθρα, οδηγίες και άλλα',
             conciergeChat: 'Concierge',
@@ -9931,6 +9933,14 @@ ${reportName}`,
         genericCreateTaskFailureMessage: 'Παρουσιάστηκε σφάλμα κατά τη δημιουργία αυτής της εργασίας. Παρακαλούμε δοκιμάστε ξανά αργότερα.',
         deleteTask: 'Διαγραφή εργασίας',
         deleteConfirmation: 'Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτήν την εργασία;',
+    },
+    supportTicket: {
+        title: ({date, customer, supportRep}) => `Αίτημα υποστήριξης, ${date}: ${customer} και ${supportRep}`,
+        description: ({supportRep}) =>
+            `Γεια σας, είμαι ο/η ${supportRep} και θα συνεργαστώ μαζί σας μέχρι να επιλυθεί πλήρως αυτό το ζήτημα. Αν έχετε ήδη μοιραστεί λεπτομέρειες μαζί μας, θα τις εξετάσω πριν απαντήσω, ώστε να μη χρειαστεί να επαναληφθείτε. Αν πρόκειται για νέο ζήτημα, ενημερώστε με για το πώς μπορώ να βοηθήσω.`,
+        checkboxTooltip: 'Ο εκπρόσωπος υποστήριξής σας θα το επιλέξει όταν επιλυθεί.',
+        genericCreateSupportTicketFailureMessage: 'Δεν ήταν δυνατή η δημιουργία αυτού του αιτήματος υποστήριξης. Κλείστε αυτό το σφάλμα και δοκιμάστε ξανά.',
+        fallbackTitle: 'Αίτημα υποστήριξης',
     },
     statementPage: {
         title: (year: number | string, monthName: string) => `αντίγραφο κίνησης ${monthName} ${year}`,

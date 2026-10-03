@@ -2438,9 +2438,11 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: 'Ustawienia konta',
         account: 'Konto',
         general: 'Ogólne',
+        talkToAHuman: 'Porozmawiaj z człowiekiem',
         helpPage: {
             title: 'Pomoc i wsparcie',
             description: 'Jesteśmy tutaj, aby pomagać przez całą dobę.',
+            talkToAHumanDescription: 'Uzyskaj pomoc od prawdziwej osoby',
             helpSite: 'Centrum pomocy',
             helpSiteDescription: 'Artykuły, poradniki i więcej',
             conciergeChat: 'Concierge',
@@ -9677,6 +9679,14 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         genericCreateTaskFailureMessage: 'Wystąpił błąd podczas tworzenia tego zadania. Spróbuj ponownie później.',
         deleteTask: 'Usuń zadanie',
         deleteConfirmation: 'Czy na pewno chcesz usunąć to zadanie?',
+    },
+    supportTicket: {
+        title: ({date, customer, supportRep}) => `Zgłoszenie do pomocy technicznej, ${date}: ${customer} i ${supportRep}`,
+        description: ({supportRep}) =>
+            `Cześć, jestem ${supportRep} i będę z Tobą pracować, aż sprawa zostanie w pełni rozwiązana. Jeśli już przekazano nam szczegóły, przejrzę je przed odpowiedzią, aby nie trzeba było ich powtarzać. Jeśli to nowy problem, daj mi znać, w czym potrzebujesz pomocy.`,
+        checkboxTooltip: 'Pracownik pomocy technicznej zaznaczy to po rozwiązaniu sprawy.',
+        genericCreateSupportTicketFailureMessage: 'Nie udało się utworzyć tego zgłoszenia. Zamknij ten błąd i spróbuj ponownie.',
+        fallbackTitle: 'Zgłoszenie do pomocy technicznej',
     },
     statementPage: {
         title: (year: number | string, monthName: string) => `Wyciąg za ${monthName} ${year}`,

@@ -5,6 +5,7 @@ import ExportIntegration from '@components/ReportActionItem/ExportIntegration';
 import IssueCardMessage from '@components/ReportActionItem/IssueCardMessage';
 import MoneyRequestReportPreview from '@components/ReportActionItem/MoneyRequestReportPreview';
 import MovedTransactionAction from '@components/ReportActionItem/MovedTransactionAction';
+import SupportTicketPreview from '@components/ReportActionItem/SupportTicketPreview';
 import TaskAction from '@components/ReportActionItem/TaskAction';
 import TaskPreview from '@components/ReportActionItem/TaskPreview';
 import TripRoomPreview from '@components/ReportActionItem/TripRoomPreview';
@@ -41,6 +42,7 @@ import {
     isCardBrokenConnectionAction,
     isCardIssuedAction,
     isCreatedTaskReportAction,
+    isCreatedSupportTicketReportAction,
     isIOURequestReportAction,
     isMemberChangeAction,
     isMoneyRequestAction,
@@ -241,6 +243,15 @@ function ActionContentRouter({
                 action={action}
                 isHovered={hovered}
                 policyID={policyID}
+            />
+        );
+    }
+    if (isCreatedSupportTicketReportAction(action)) {
+        return (
+            <SupportTicketPreview
+                style={displayAsGroup ? [] : [styles.mt1]}
+                action={action}
+                isHovered={hovered}
             />
         );
     }

@@ -2414,9 +2414,11 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: 'Paramètres du compte',
         account: 'Compte',
         general: 'Général',
+        talkToAHuman: 'Parler à une personne',
         helpPage: {
             title: 'Aide et assistance',
             description: 'Nous sommes là pour vous aider, à toute heure.',
+            talkToAHumanDescription: 'Obtenez de l’aide d’une vraie personne',
             helpSite: "Site d'aide",
             helpSiteDescription: 'Articles, tutoriels et plus',
             conciergeChat: 'Concierge',
@@ -9771,6 +9773,14 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         genericCreateTaskFailureMessage: 'Une erreur s’est produite lors de la création de cette tâche. Veuillez réessayer plus tard.',
         deleteTask: 'Supprimer la tâche',
         deleteConfirmation: 'Voulez-vous vraiment supprimer cette tâche ?',
+    },
+    supportTicket: {
+        title: ({date, customer, supportRep}) => `Ticket d’assistance, ${date} : ${customer} et ${supportRep}`,
+        description: ({supportRep}) =>
+            `Bonjour, je suis ${supportRep} et je travaillerai avec vous jusqu’à ce que tout soit entièrement résolu. Si vous nous avez déjà transmis des détails, je les examinerai avant de répondre afin que vous n’ayez pas à vous répéter. S’il s’agit d’un nouveau problème, dites-moi ce pour quoi vous avez besoin d’aide.`,
+        checkboxTooltip: 'Votre représentant de l’assistance cochera cette case lorsque le ticket sera résolu.',
+        genericCreateSupportTicketFailureMessage: 'Nous n’avons pas pu créer ce ticket d’assistance. Fermez cette erreur et réessayez.',
+        fallbackTitle: 'Ticket d’assistance',
     },
     statementPage: {
         title: (year: number | string, monthName: string) => `Relevé de ${monthName} ${year}`,

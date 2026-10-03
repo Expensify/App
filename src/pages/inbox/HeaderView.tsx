@@ -73,6 +73,7 @@ import {
     isOpenTaskReport,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
     isSelfDM as isSelfDMReportUtils,
+    isSupportTicket,
     isTaskReport as isTaskReportReportUtils,
     navigateToDetailsPage,
     shouldDisableDetailPage as shouldDisableDetailPageReportUtils,
@@ -164,9 +165,10 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const isChatRoom = isChatRoomReportUtils(report);
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(report);
     const isTaskReport = isTaskReportReportUtils(report);
+    const isSupportTicketReport = isSupportTicket(report);
     // Transaction threads under an invoice use the invoice report header. Other threads use their parent action message.
     const isParentInvoiceAndIsTransactionThread = isChatThread && !!parentReport && isInvoiceReport(parentReport) && isTransactionThread(parentReportAction);
-    const reportHeaderData = (!isTaskReport && !isChatThread && report?.parentReportID) || isParentInvoiceAndIsTransactionThread ? parentReport : report;
+    const reportHeaderData = (!isTaskReport && !isSupportTicketReport && !isChatThread && report?.parentReportID) || isParentInvoiceAndIsTransactionThread ? parentReport : report;
     const isParentOneTransactionThread = isOneTransactionThread(parentReport, grandParentReport, grandParentReportAction);
     const parentNavigationReport = isParentOneTransactionThread ? parentReport : reportHeaderData;
     const derivedNames = useDerivedReportNamesByReportIDs([parentNavigationReport?.parentReportID, reportHeaderData?.reportID]);
@@ -253,8 +255,10 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const shouldShowAccountManagerBookCall = bookCallVisibility.accountManager.inDM || bookCallVisibility.accountManager.inConcierge;
     const shouldShowPartnerManagerBookCall = bookCallVisibility.partnerManager.inDM || bookCallVisibility.partnerManager.inConcierge;
     const shouldShowGuideBookCall = bookCallVisibility.guide.inDM || bookCallVisibility.guide.inConcierge;
+    const shouldShowSupportTicketBookCall =
+        isSupportTicketReport && !!report?.supportTicketCalendarLink && Object.values(allPolicies ?? {}).some((workspacePolicy) => workspacePolicy?.role === CONST.POLICY.ROLE.ADMIN);
 
-    const shouldShowBookCall = shouldShowAccountManagerBookCall || shouldShowPartnerManagerBookCall || shouldShowGuideBookCall;
+    const shouldShowBookCall = shouldShowAccountManagerBookCall || shouldShowPartnerManagerBookCall || shouldShowGuideBookCall || shouldShowSupportTicketBookCall;
 
     // Render the button full width below the header whenever the available space is narrow, which includes the side panel (e.g. Concierge third-panel)
     const shouldStackBookCall = shouldUseNarrowLayout || isInSidePanel;
@@ -262,7 +266,10 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     // A single 1:1 chat can only match one of these roles, and in Concierge only one button is shown at a time, so precedence (account manager, then partner manager, then guide) resolves any overlap
     let bookCallCalendarLink: string | undefined;
     let bookCallAvatarAccountID: number | undefined;
-    if (shouldShowAccountManagerBookCall) {
+    if (shouldShowSupportTicketBookCall) {
+        bookCallCalendarLink = report?.supportTicketCalendarLink;
+        bookCallAvatarAccountID = report?.managerID;
+    } else if (shouldShowAccountManagerBookCall) {
         bookCallCalendarLink = bookCallDetails?.accountManagerCalendarLink;
         bookCallAvatarAccountID = bookCallVisibility.accountManager.inConcierge ? accountManagerAccountID : undefined;
     } else if (shouldShowPartnerManagerBookCall) {
@@ -414,7 +421,9 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                                 tooltipEnabled
                                                 numberOfLines={1}
                                                 textStyles={[styles.headerText, styles.pre]}
-                                                shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport || shouldUseGroupTitle || isReportArchived}
+                                                shouldUseFullTitle={
+                                                    isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport || isSupportTicketReport || shouldUseGroupTitle || isReportArchived
+                                                }
                                                 renderAdditionalText={renderAdditionalText}
                                                 shouldAddEllipsis={shouldAddEllipsis}
                                             />

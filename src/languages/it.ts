@@ -2402,9 +2402,11 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: 'Impostazioni account',
         account: 'Account',
         general: 'Generale',
+        talkToAHuman: 'Parla con una persona',
         helpPage: {
             title: 'Aiuto e supporto',
             description: 'Siamo qui per aiutarti, a qualsiasi ora.',
+            talkToAHumanDescription: 'Ricevi assistenza da una persona reale',
             helpSite: 'Sito di assistenza',
             helpSiteDescription: 'Articoli, tutorial e altro',
             conciergeChat: 'Concierge',
@@ -9700,6 +9702,14 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         genericCreateTaskFailureMessage: 'Si è verificato un errore durante la creazione di questa attività. Riprova più tardi.',
         deleteTask: 'Elimina attività',
         deleteConfirmation: 'Sei sicuro di voler eliminare questa attività?',
+    },
+    supportTicket: {
+        title: ({date, customer, supportRep}) => `Ticket di assistenza, ${date}: ${customer} e ${supportRep}`,
+        description: ({supportRep}) =>
+            `Ciao, sono ${supportRep} e lavorerò con te finché questo non sarà completamente risolto. Se hai già condiviso dei dettagli con noi, li esaminerò prima di rispondere così non dovrai ripeterti. Se si tratta di un nuovo problema, fammi sapere di cosa hai bisogno.`,
+        checkboxTooltip: 'Il tuo rappresentante dell’assistenza lo selezionerà quando sarà risolto.',
+        genericCreateSupportTicketFailureMessage: 'Non siamo riusciti a creare questo ticket di assistenza. Chiudi questo errore e riprova.',
+        fallbackTitle: 'Ticket di assistenza',
     },
     statementPage: {
         title: (year: number | string, monthName: string) => `Estratto conto di ${monthName} ${year}`,

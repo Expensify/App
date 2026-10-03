@@ -12,6 +12,7 @@ import type {
     AddCommentOrAttachmentParams,
     AddWorkspaceRoomParams,
     CompleteGuidedSetupParams,
+    CreateSupportTicketParams,
     DeleteAppReportParams,
     DeleteCommentParams,
     ExpandURLPreviewParams,
@@ -4852,6 +4853,26 @@ function createNewReport(
     return {...optimisticReportData, reportPreviewReportActionID};
 }
 
+function openSupportTicket(resolvedSupportTicketReportID?: string) {
+    const newSupportTicketReportID = generateReportID();
+    const parameters: CreateSupportTicketParams = {
+        newSupportTicketReportID,
+        ...(resolvedSupportTicketReportID ? {resolvedSupportTicketReportID} : {}),
+    };
+
+    Navigation.navigate(getReportRouteForCurrentContext({reportID: newSupportTicketReportID, isPendingCreation: true}));
+
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method -- this command creates the report under the client-generated ID used by the pending route.
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_SUPPORT_TICKET, parameters).then(() => undefined);
+}
+
+function dismissFailedSupportTicket(supportTicketReportID: string, parentReportID: string, parentReportActionID: string) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${supportTicketReportID}`, null);
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${supportTicketReportID}`, null);
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${supportTicketReportID}`, null);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {[parentReportActionID]: null});
+}
+
 /**
  * Removes the report after failure to create. Also removes it's related report actions and next step from Onyx.
  */
@@ -9002,6 +9023,8 @@ export {
     completeOnboarding,
     extractRHPVariantFromResponse,
     createNewReport,
+    openSupportTicket,
+    dismissFailedSupportTicket,
     clearAllReportActionDrafts,
     deleteReportComment,
     deleteReportField,

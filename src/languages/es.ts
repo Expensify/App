@@ -2321,9 +2321,11 @@ const translations: TranslationDeepObject<typeof en> = {
         versionLetter: 'v',
         readTheTermsAndPrivacy: `Leer los <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Términos de Servicio</a> y <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacidad</a>.`,
         help: 'Ayuda',
+        talkToAHuman: 'Hablar con una persona',
         helpPage: {
             title: 'Ayuda y soporte',
             description: 'Estamos aquí para ayudarte en todo momento.',
+            talkToAHumanDescription: 'Obtén ayuda de una persona real',
             helpSite: 'Centro de ayuda',
             helpSiteDescription: 'Artículos, tutoriales y más',
             conciergeChat: 'Concierge',
@@ -9573,6 +9575,14 @@ ${reportName}`,
         genericCreateTaskFailureMessage: 'Error inesperado al crear la tarea. Por favor, inténtalo más tarde.',
         deleteTask: 'Eliminar tarea',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar esta tarea?',
+    },
+    supportTicket: {
+        title: ({date, customer, supportRep}) => `Ticket de soporte, ${date}: ${customer} y ${supportRep}`,
+        description: ({supportRep}) =>
+            `Hola, soy ${supportRep} y trabajaré contigo hasta que esto se resuelva por completo. Si ya compartiste detalles con nosotros, los revisaré antes de responder para que no tengas que repetirlos. Si se trata de un problema nuevo, cuéntame con qué necesitas ayuda.`,
+        checkboxTooltip: 'Tu representante de soporte marcará esto cuando se resuelva.',
+        genericCreateSupportTicketFailureMessage: 'No pudimos crear este ticket de soporte. Descarta este error e inténtalo de nuevo.',
+        fallbackTitle: 'Ticket de soporte',
     },
     statementPage: {
         title: (year, monthName) => `Estado de cuenta de ${monthName} ${year}`,

@@ -422,6 +422,10 @@ function isCreatedTaskReportAction(reportAction: OnyxInputOrEntry<ReportAction>)
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) && !!getOriginalMessage(reportAction)?.taskReportID;
 }
 
+function isCreatedSupportTicketReportAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) && reportAction.childType === CONST.REPORT.TYPE.SUPPORT_TICKET;
+}
+
 function isTripPreview(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW);
 }
@@ -5345,6 +5349,7 @@ export {
     isCreatedAction,
     isCurrentUserPendingAddAction,
     isCreatedTaskReportAction,
+    isCreatedSupportTicketReportAction,
     isCurrentActionUnread,
     isDeletedAction,
     isDeletedParentAction,

@@ -2400,9 +2400,11 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: 'Accountinstellingen',
         account: 'Account',
         general: 'Algemeen',
+        talkToAHuman: 'Praat met een medewerker',
         helpPage: {
             title: 'Hulp en ondersteuning',
             description: 'We zijn er 24/7 om je te helpen.',
+            talkToAHumanDescription: 'Krijg hulp van een echt persoon',
             helpSite: 'Hulpwebsite',
             helpSiteDescription: 'Artikelen, handleidingen en meer',
             conciergeChat: 'Concierge',
@@ -9667,6 +9669,14 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         genericCreateTaskFailureMessage: 'Er is een fout opgetreden bij het maken van deze taak. Probeer het later opnieuw.',
         deleteTask: 'Taak verwijderen',
         deleteConfirmation: 'Weet je zeker dat je deze taak wilt verwijderen?',
+    },
+    supportTicket: {
+        title: ({date, customer, supportRep}) => `Supportticket, ${date}: ${customer} en ${supportRep}`,
+        description: ({supportRep}) =>
+            `Hoi, ik ben ${supportRep} en ik werk met je samen totdat dit volledig is opgelost. Als je al details met ons hebt gedeeld, bekijk ik die voordat ik reageer zodat je jezelf niet hoeft te herhalen. Als dit een nieuw probleem is, laat me dan weten waarmee je hulp nodig hebt.`,
+        checkboxTooltip: 'Je supportmedewerker vinkt dit aan wanneer het is opgelost.',
+        genericCreateSupportTicketFailureMessage: 'We konden dit supportticket niet maken. Sluit deze foutmelding en probeer het opnieuw.',
+        fallbackTitle: 'Supportticket',
     },
     statementPage: {
         title: (year: number | string, monthName: string) => `Overzicht van ${monthName} ${year}`,

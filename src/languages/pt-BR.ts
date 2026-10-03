@@ -2392,9 +2392,11 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: 'Configurações da conta',
         account: 'Conta',
         general: 'Geral',
+        talkToAHuman: 'Falar com uma pessoa',
         helpPage: {
             title: 'Ajuda e suporte',
             description: 'Estamos aqui para ajudar, 24 horas por dia.',
+            talkToAHumanDescription: 'Receba ajuda de uma pessoa real',
             helpSite: 'Site de ajuda',
             helpSiteDescription: 'Artigos, tutoriais e mais',
             conciergeChat: 'Concierge',
@@ -9665,6 +9667,14 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         genericCreateTaskFailureMessage: 'Ocorreu um erro ao criar esta tarefa. Tente novamente mais tarde.',
         deleteTask: 'Excluir tarefa',
         deleteConfirmation: 'Tem certeza de que deseja excluir esta tarefa?',
+    },
+    supportTicket: {
+        title: ({date, customer, supportRep}) => `Chamado de suporte, ${date}: ${customer} e ${supportRep}`,
+        description: ({supportRep}) =>
+            `Olá, eu sou ${supportRep} e vou trabalhar com você até que isso seja totalmente resolvido. Se você já compartilhou detalhes conosco, vou analisá-los antes de responder para que não precise se repetir. Se este for um problema novo, diga-me com o que você precisa de ajuda.`,
+        checkboxTooltip: 'Seu representante de suporte marcará isto quando for resolvido.',
+        genericCreateSupportTicketFailureMessage: 'Não foi possível criar este chamado de suporte. Feche este erro e tente novamente.',
+        fallbackTitle: 'Chamado de suporte',
     },
     statementPage: {
         title: (year: number | string, monthName: string) => `Extrato de ${monthName} de ${year}`,

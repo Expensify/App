@@ -2382,9 +2382,11 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: 'アカウント設定',
         account: 'アカウント',
         general: '一般',
+        talkToAHuman: '担当者と話す',
         helpPage: {
             title: 'ヘルプとサポート',
             description: '24時間いつでもサポートします。',
+            talkToAHumanDescription: '担当者からサポートを受ける',
             helpSite: 'ヘルプサイト',
             helpSiteDescription: '記事、チュートリアルなど',
             conciergeChat: 'Concierge',
@@ -9562,6 +9564,14 @@ ${reportName}`,
         genericCreateTaskFailureMessage: 'このタスクの作成中にエラーが発生しました。後でもう一度お試しください。',
         deleteTask: 'タスクを削除',
         deleteConfirmation: 'このタスクを削除してもよろしいですか？',
+    },
+    supportTicket: {
+        title: ({date, customer, supportRep}) => `サポートチケット、${date}: ${customer} と ${supportRep}`,
+        description: ({supportRep}) =>
+            `こんにちは、${supportRep}です。完全に解決するまで対応します。すでに詳細をお知らせいただいている場合は、同じ内容を繰り返していただく必要がないよう、返信前に確認します。新しい問題の場合は、必要なサポートをお知らせください。`,
+        checkboxTooltip: '解決時にサポート担当者がこれをチェックします。',
+        genericCreateSupportTicketFailureMessage: 'このサポートチケットを作成できませんでした。このエラーを閉じて、もう一度お試しください。',
+        fallbackTitle: 'サポートチケット',
     },
     statementPage: {
         title: (year: number | string, monthName: string) => `${year}年${monthName}の明細書`,
