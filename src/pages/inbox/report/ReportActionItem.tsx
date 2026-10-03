@@ -14,6 +14,7 @@ import UnreadActionIndicator from '@components/UnreadActionIndicator';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -187,6 +188,7 @@ function ReportActionItem({
     isHarvestCreatedExpenseReport = false,
 }: ReportActionItemProps) {
     const reportID = report?.reportID ?? action?.reportID;
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const originalReportID = useOriginalReportID(report?.reportID, action);
     const {isOffline} = useNetwork();
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getIOUReportIDFromReportActionPreview(action)}`, {selector: getStableReportSelector});
@@ -270,6 +272,7 @@ function ReportActionItem({
         if (isSendingMoney && transactionIDToDismiss && reportID) {
             cleanUpMoneyRequest({
                 transactionID: transactionIDToDismiss,
+                currentUserAccountID,
                 reportAction: action,
                 reportID,
                 transactionThreadReport,

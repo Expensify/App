@@ -726,8 +726,15 @@ function getDeleteTrackExpenseInformation({
     if (chatReport) {
         canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(chatReport, isChatReportArchived);
     }
-    const lastVisibleAction = getLastVisibleAction(chatReport?.reportID, canUserPerformWriteAction, updatedReportAction);
-    const {lastMessageText = '', lastMessageHtml = ''} = getLastVisibleMessage(chatReport?.reportID, canUserPerformWriteAction, updatedReportAction);
+    const lastVisibleAction = getLastVisibleAction(chatReport?.reportID, canUserPerformWriteAction, updatedReportAction, undefined, undefined, currentUserAccountID);
+    const {lastMessageText = '', lastMessageHtml = ''} = getLastVisibleMessage(
+        chatReport?.reportID,
+        canUserPerformWriteAction,
+        updatedReportAction,
+        undefined,
+        undefined,
+        currentUserAccountID,
+    );
 
     // STEP 4: Build Onyx data
     const optimisticData: Array<
