@@ -366,12 +366,14 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                                   // animate when the row/keyboard toggles it. `focusable={false}` stops the Switch from being a
                                   // second tab stop — the row owns keyboard focus and toggling.
                                   rightComponent: (
-                                      <Switch
-                                          {...item.switchProps}
-                                          isNested
-                                          shouldAnimateOnExternalChange
-                                          focusable={false}
-                                      />
+                                      <View style={styles.justifyContentCenter}>
+                                          <Switch
+                                              {...item.switchProps}
+                                              isNested
+                                              shouldAnimateOnExternalChange
+                                              focusable={false}
+                                          />
+                                      </View>
                                   ),
                               }
                             : {}),
