@@ -225,6 +225,9 @@ If you create a draft report and have unreported expenses in your SelfDM, a prom
 ## Can I export reports from the Spend page?
 Yes! Choose the **Current view** option within the **Export** menu to download a CSV of exactly what you're seeing—your active filters, columns, and ordering are all preserved. You can also use a template-based export for a standard set of columns. Learn more about [exporting from the Spend page](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Search-and-Download-Expenses).
 
+## Where did the Insights on the Spend page go?
+The **Spend over time**, **Top categories**, **Top merchants**, and **Top spenders** charts moved from the **Insights** section of the Spend page to the **Insights** page, a top-level tab between **Spend** and **Workspaces**. Learn more about [using Insights](/articles/new-expensify/insights/Use-Insights).
+
 ## Do smart suggestions work on mobile?
 Yes, smart suggestions also appear in the mobile Inbox and draft reports.
 

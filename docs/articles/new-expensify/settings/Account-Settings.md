@@ -6,7 +6,9 @@ keywords: [New Expensify, profile, account preferences, notifications, language,
 
 # Account Settings
 
-Expensify allows you to personalize your experience by customizing your profile, preferences, and notifications. This guide shows you how to update your photo, language, timezone, notification settings, and more—all from the left-hand navigation menu.
+Expensify allows you to personalize your experience by customizing your profile, preferences, and notifications. This guide shows you how to update your photo, language, timezone, notification settings, and more—all from **Account**.
+
+To open **Account** on web, select **Account** in the navigation tabs on the left. On mobile, tap your profile picture in the top-right corner of the screen.
 
 ---
 
@@ -30,7 +32,7 @@ You can update the following profile settings:
 
 To upload or update a profile photo:
 
-1. In the navigation tabs, click **Account > Profile**.
+1. Go to **Account > Profile**.
 2. Click the pencil icon next to your profile image.
 3. Select **Upload Image** and choose a new photo.
 
@@ -40,7 +42,7 @@ To upload or update a profile photo:
 
 To use an avatar instead of a profile photo:
 
-1. In the navigation tabs, click **Account > Profile**.
+1. Go to **Account > Profile**.
 2. Click the pencil icon next to your profile image.
 3. Scroll down to **Or choose a custom avatar**.
 4. Select an avatar in your desired colored palette.
@@ -65,7 +67,7 @@ To manually set or update your timezone:
 
 To set or change your language:
 
-1. In the navigation tabs, select **Account > Preferences**.
+1. Go to **Account > Preferences**.
 2. Tap or click on **Language**.
 3. Choose your preferred language from the list.
 4. The checkmark will confirm the selected language.
@@ -193,7 +195,7 @@ Your photo helps teammates identify you easily in chats, reports, and notificati
 No. It only changes the language of your user interface, not the content of your reports.
 
 ## Can I disable all Expensify app notifications?
-Yes. From the navigation tabs, go to **Account > Preferences** and toggle off both update and sound notifications.
+Yes. Go to **Account > Preferences** and toggle off both update and sound notifications.
 
 ## Can I disable email notifications for reports that I approve for reimbursement?
 No. To comply with regulations in several US states, Expensify is required to send you an email whenever you send money to another individual.

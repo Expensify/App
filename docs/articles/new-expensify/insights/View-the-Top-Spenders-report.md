@@ -1,135 +1,51 @@
 ---
-title: View the Top Spenders report
-description: Learn how Workspace Admins, Approvers, and Auditors can use the Top Spenders report to understand spending trends.
-keywords: [New Expensify, Top Spenders, Top Categories, Top Merchants, Spend over time, employee spending, high spenders, expense trends, Workspace Admin, Approver, Auditor, monthly spending, spending insights, virtual CFO, analytics, insight, budget]
-internalScope: Audience is Workspace Admins, Approvers, and Auditors. Covers using the Top Spenders suggested search to view employee-level spending, and which expenses are included in the results. Does not cover custom reports, exporting data, or grouping by category or merchant.
+title: Understand Top spenders
+description: Learn what the Top spenders chart on the Insights page shows, who can see it, how members are ranked, and how to open a member's expenses.
+keywords: [Top spenders, top spenders chart, highest spenders, employee spending, who spent the most, spend by member, Insights, Workspace Admin, Auditor, approver, can't see Top spenders]
+internalScope: Audience is Workspace Admins, Auditors, and approvers. Covers what the Top spenders chart shows, who can see it, how members are ranked, and what opens when you select a member. Does not cover the Insights page filters or the other Insights charts.
+contentType: topic
+platform: new-expensify
 ---
 
-# View the Top Spenders report
+# Understand Top spenders
 
-The Top Spenders report shows which employees submitted the highest total expenses last month. It’s a fast way to:
-
-- Identify high or unusual spenders
-- Spot trends without exporting data
-- Make data-backed decisions with minimal effort
-
-This report is a pre-built suggested search so you can review spending activity at a glance.
-
-![Viewing the Top Spenders report]({{site.url}}/assets/images/top-spender-2.png{:width="100%"}
+**Top spenders** is a chart on the **Insights** page that ranks the members who spent the most in the selected date range. Use it to spot unusually high spending and see whose expenses make up most of your total.
 
 ---
 
-## Who can use the Top Spenders report 
+## Who can see Top spenders
 
-The Top Spenders report is available to Workspace Admins, Approvers, and Auditors on both web and mobile.
+**Top spenders** appears only if you're a Workspace Admin, Auditor, or approver on a workspace with at least two members. If you don't hold one of these roles on a workspace like this, the chart doesn't appear on your Insights page.
 
-**Note:** Exporting data is only available on web.
-
----
-
-## Where to find the Top Spenders report
-
-**Web:**  
-Use the navigation tabs on the left and select **Spend**, then click **Top spenders** under the **Insights** section.
-
-**Mobile:**  
-Tap **Spend** from the navigation tabs on the bottom, then tap the hamburger menu in the top-right corner. Under **Insights**, tap **Top spenders**.
+The chart only includes expenses you have permission to see. For example, approvers see expenses submitted to them, while Workspace Admins and Auditors see all workspace expenses.
 
 ---
 
-## What information the Top Spenders report displays
+## What the Top spenders chart shows
 
-The Top Spenders report is powered by a saved search query using Expensify's grouping and filtering engine. The report shows:
+**Top spenders** groups expenses by the member who submitted them and shows the top 5 members as a bar chart. The table below the chart lists each member with:
 
-- The **top expense submitters** for the last month  
-- The **total amount spent** by each person  
-- The **number of expenses** by each person
+- The number of expenses they submitted
+- Their total amount
+- Their share of total spend, as a percentage
 
-Results cover only the workspaces where you're a Workspace Admin, Approver, or Auditor. Expenses submitted in an individual chat instead of to a workspace aren't included.
-
----
-
-## How to interpret the Top Spenders report 
-
-Each row represents an individual employee, sorted in descending order by amount. Columns include:
-
-- **Number of expenses submitted**
-- **Total amount spent**
-
-Click any row to view that member's individual expenses.
+The chart uses the **Date**, **Workspace**, and **Group currency** filters at the top of the Insights page. Amounts are converted to the selected **Group currency**.
 
 ---
 
-## Can you customize the Top Spenders report?
+## How Top spenders ranks members
 
-Yes - you can adjust filters like date range, workspace, or employee to explore spending trends. However, the Top Spenders report is a built-in suggested search, so you can’t save changes to it directly.
-
-To create and save a custom report: 
-
-1. Go to the **Spend** or **Expenses** tab.
-2. Use filters to adjust grouping and timeframes.
-3. Apply filters and save your custom search.
-
-[Learn how to create custom reports](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Using-Reports-in-New-Expensify#how-to-use-spend-search-query-commands).
+Members are ranked from highest to lowest total amount spent in the selected date range. Only the top 5 appear in the chart. To see every member, select the three dots **(⋮)** on the chart, then select **View on Spend**.
 
 ---
 
-## Ways to use the Top Spenders report
+## What opens when you select a member in Top spenders
 
-Workspace Admins and finance teams use the Top Spenders report to:
-
-- Identify high or unusual spenders at a glance
-- Spot spending trends without exporting data
-- Make data-backed decisions quickly
+Select a member's bar to open **Spend** with a list of that member's expenses for the selected filters, with the newest first.
 
 ---
 
-## How to switch views in the Top Spenders report
+## Related articles
 
-By default, the Top Spenders report displays a **Table**. You can also switch to **Bar**, **Line** or **Pie** view depending on how you want to analyze your data.
-
- - **Bar** shows totals for easy comparison.
- - **Line** shows trends over time.
- - **Pie** shows how data is distributed.
-
-To change the view:
-
-1. Open the Top Spenders report.
-2. Click **View** in the top navigation.
-3. Select **Bar**, **Line**, or **Pie**.
-
-The report will update instantly to reflect your selected view.
-
----
-
-# FAQ
-
-## Can you export the Top Spenders report?
-
-Not directly — the Top Spenders report can’t be exported with its grouped totals or summary data. However, if you expand each group to reveal the individual expenses, you can then select those expenses and use Export to CSV to download the raw data.
-
-1. Go to the **Spend** tab.
-2. Apply filters to create your own view.
-3. Click **Export to CSV**.
-
-## What other Insights reports are available?
-
-Additional Insights reports help you analyze spending from different perspectives:
-
-- **Spend over time** shows how total expenses change over a date range.
-- **Top Merchants** shows which vendors received the most payments.
-- **Top Categories** shows the highest-spending expense types (e.g., Travel, Meals).
-
-[Learn more about all available Insights](https://help.expensify.com/articles/new-expensify/insights/Insights-Overview)
-
-## Can other people see my Top Spenders report?
-
-Only Workspace Admins, Approvers, and Auditors can view a workspace's **Top Spenders** report. Regular members do not have access.
-
-## How is the Top Spenders report calculated?
-
-The Top Spenders report uses expenses from the previous calendar month that belong to the workspaces where you're a Workspace Admin, Approver, or Auditor, and groups them by submitter (employee). It shows the top 10 people by total amount spent.
-
-## Why is an expense missing from the Top Spenders report?
-
-The expense is left out when it doesn't belong to one of your workspaces. An expense submitted in an individual chat isn't part of a workspace, so it never appears in **Top spenders**. Expenses dated outside the previous calendar month are also excluded.
+- [Learn about Insights](/articles/new-expensify/insights/How-to-Use-Insights-in-Expensify)
+- [Use Insights](/articles/new-expensify/insights/Use-Insights)
