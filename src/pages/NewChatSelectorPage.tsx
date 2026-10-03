@@ -1,5 +1,5 @@
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
@@ -80,7 +80,7 @@ function NewChatSelectorPage() {
                 onContainerElementChanged={setHeaderWithBackButtonContainerElement}
                 style={[styles.w100]}
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('sidebarScreen.fabNewChat')}
                     onBackButtonPress={navigateBack}
                 />

@@ -1,9 +1,9 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
+import HeaderThreeDotsMenu from '@components/Header/primitives/HeaderThreeDotsMenu';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {useSession} from '@components/OnyxListItemProvider';
-import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -164,20 +164,7 @@ function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
         }
     };
 
-    const menuItems: PopoverMenuItem[] = [];
-
     const isReportFieldDeletable = reportField.deletable && reportField?.fieldID !== CONST.REPORT_FIELD_TITLE_FIELD_ID;
-
-    if (isReportFieldDeletable) {
-        menuItems.push({
-            icon: icons.Trashcan,
-            text: translate('common.delete'),
-            onSelected: () => {
-                handleReportFieldDelete();
-            },
-            shouldCallAfterModalHide: true,
-        });
-    }
 
     const fieldName = Str.UCFirst(reportField.name);
 
@@ -187,12 +174,25 @@ function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
             shouldEnableMaxHeight
             testID="DynamicEditReportFieldPage"
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={fieldName}
-                threeDotsMenuItems={menuItems}
-                shouldShowThreeDotsButton={!!menuItems?.length}
                 onBackButtonPress={goBack}
-            />
+            >
+                {isReportFieldDeletable && (
+                    <HeaderThreeDotsMenu
+                        items={[
+                            {
+                                icon: icons.Trashcan,
+                                text: translate('common.delete'),
+                                onSelected: () => {
+                                    handleReportFieldDelete();
+                                },
+                                shouldCallAfterModalHide: true,
+                            },
+                        ]}
+                    />
+                )}
+            </HeaderWithBackButtonAndTitle>
 
             {(reportField.type === CONST.REPORT_FIELD_TYPES.TEXT || isReportFieldTitle) && (
                 <EditReportFieldText

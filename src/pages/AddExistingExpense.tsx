@@ -1,7 +1,7 @@
 import AddExistingExpenseFooter from '@components/AddExistingExpenseFooter';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import FixedFooter from '@components/FixedFooter';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import UnreportedExpensesSkeleton from '@components/Skeletons/UnreportedExpensesSkeleton';
@@ -133,10 +133,7 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
                 testID="NewChatSelectorPage"
                 focusTrapSettings={{active: false}}
             >
-                <HeaderWithBackButton
-                    title={translate('iou.addExistingExpense')}
-                    onBackButtonPress={Navigation.goBack}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('iou.addExistingExpense')} />
                 <UnreportedExpensesSkeleton />
             </ScreenWrapper>
         );
@@ -151,10 +148,7 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
                 testID="NewChatSelectorPage"
                 focusTrapSettings={{active: false}}
             >
-                <HeaderWithBackButton
-                    title={translate('iou.addExistingExpense')}
-                    onBackButtonPress={Navigation.goBack}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('iou.addExistingExpense')} />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     <EmptyStateComponent
                         minModalHeight={isInLandscapeMode ? 0 : undefined}
@@ -199,10 +193,7 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
             testID="NewChatSelectorPage"
             focusTrapSettings={{active: false}}
         >
-            <HeaderWithBackButton
-                title={translate('iou.addExistingExpense')}
-                onBackButtonPress={Navigation.goBack}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('iou.addExistingExpense')} />
             <View style={styles.flex1}>
                 <AddExistingExpenseTable
                     data={unreportedExpenses}

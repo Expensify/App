@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -789,7 +789,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     return (
         <ScreenWrapper testID="DynamicReportDetailsPage">
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('common.details')}
                     onBackButtonPress={() => Navigation.goBack(navigateBackFromReportDetailsPath)}
                 />
