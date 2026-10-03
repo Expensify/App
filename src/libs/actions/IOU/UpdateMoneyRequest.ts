@@ -64,7 +64,7 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxKey, OnyxUpdate} from '
 import lodashUnionBy from 'lodash/unionBy';
 import Onyx from 'react-native-onyx';
 
-import {getAllReports, getAllTransactions, getAllTransactionViolations, getRecentAttendees} from '.';
+import {getAllPolicyVendors, getAllReports, getAllTransactions, getAllTransactionViolations, getRecentAttendees} from '.';
 import {getUpdatedMoneyRequestReportData, mergePolicyRecentlyUsedCategories, mergePolicyRecentlyUsedCurrencies} from './MoneyRequestBuilder';
 
 type UpdateMoneyRequestData<TKey extends OnyxKey> = {
@@ -1830,6 +1830,7 @@ type GetUpdateMoneyRequestParamsType = {
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    policyVendors?: OnyxEntry<OnyxTypes.PolicyVendors>;
 };
 
 type UpdateMoneyRequestDataKeys =
@@ -1883,6 +1884,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         getCurrencySymbol,
         rules,
         isVendorMatchingBetaEnabled,
+        policyVendors: policyVendorsParam,
     } = params;
     const optimisticData: Array<
         OnyxUpdate<
@@ -2393,6 +2395,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             );
         }
 
+        const policyVendors = policyVendorsParam ?? (policy?.id ? getAllPolicyVendors()?.[`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${policy.id}`] : undefined);
         const violationsOnyxData = ViolationsUtils.getViolationsOnyxData({
             updatedTransaction,
             transactionViolations: optimisticViolations,
@@ -2407,6 +2410,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             isFromExpenseReport,
             distanceOriginalPolicy,
             isVendorMatchingBetaEnabled,
+            policyVendors,
         });
         optimisticData.push(violationsOnyxData);
         failureData.push({
