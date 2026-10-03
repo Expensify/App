@@ -6,6 +6,7 @@ import {MenuItemConfigContext, MenuItemInteractionContext} from '@components/Men
 import MenuItemSecondaryInteractionContext, {useMenuItemSecondaryInteractionRegistry} from '@components/MenuItem/MenuItemSecondaryInteractionContext';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 
+import useCopyableTextRowPress from '@hooks/useCopyableTextRowPress';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -13,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getButtonState from '@libs/getButtonState';
+import getPlatform from '@libs/getPlatform';
 
 import variables from '@styles/variables';
 
@@ -23,7 +25,7 @@ import type WithTestID from '@src/types/utils/TestID';
 import type {ComponentRef, PropsWithChildren} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 
-import React, {useRef} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type MenuItemRootProps = PropsWithChildren &
@@ -46,15 +48,23 @@ type MenuItemRootProps = PropsWithChildren &
          * before the hover/press background so the row keeps its interaction feedback.
          */
         style?: StyleProp<ViewStyle>;
+
+        /** Whether explicitly marked child text can start native browser text selection */
+        shouldAllowTextSelection?: boolean;
     };
 
-function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testID, accessibilityLabel, style}: MenuItemRootProps) {
+function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testID, accessibilityLabel, style, shouldAllowTextSelection = false}: MenuItemRootProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<ComponentRef<typeof View>>(null);
+    const didTouchStartOnCopyableTextRef = useRef(false);
+    const [didTouchStartOnCopyableText, setDidTouchStartOnCopyableText] = useState(false);
     const isCompactPopover = useIsCompactPopover();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isInteractive = !!onPress;
+    const shouldEnableTextSelection = shouldAllowTextSelection && getPlatform() === CONST.PLATFORM.WEB;
+    const {isPressStartOnCopyableText, markMouseDownOnCopyableText, markTouchStartOnCopyableText, shouldSuppressCopyableTextRowLongPress, shouldSuppressCopyableTextRowPress} =
+        useCopyableTextRowPress();
 
     const {accessibilityLabel: derivedAccessibilityLabel, accessibilityHint, accessibilityActions} = useMenuItemAccessibility();
     const {handler: registeredSecondaryInteraction, register: registerSecondaryInteraction} = useMenuItemSecondaryInteractionRegistry();
@@ -63,6 +73,10 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testI
 
     const onPressAction = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
         if (isDisabled || !isInteractive) {
+            return;
+        }
+
+        if (shouldSuppressCopyableTextRowPress(shouldEnableTextSelection)) {
             return;
         }
 
@@ -79,19 +93,48 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testI
 
     // Left undefined when no sub-component wants it, so the web keeps its native context menu on a plain row
     const onSecondaryInteractionAction = registeredSecondaryInteraction
-        ? (event: GestureResponderEvent | MouseEvent) => registeredSecondaryInteraction(event, pressableRef.current)
+        ? (event: GestureResponderEvent | MouseEvent) => {
+              if (shouldEnableTextSelection && (shouldSuppressCopyableTextRowLongPress() || isPressStartOnCopyableText(event))) {
+                  return;
+              }
+              registeredSecondaryInteraction(event, pressableRef.current);
+          }
         : undefined;
 
+    const handlePressIn = () => {
+        // RN Web responder events omit client coordinates, so reuse the original touch hit-test.
+        if (shouldEnableTextSelection && didTouchStartOnCopyableTextRef.current) {
+            return;
+        }
+
+        if (onSecondaryInteractionAction && shouldUseNarrowLayout && canUseTouchScreen()) {
+            ControlSelection.block();
+        }
+    };
+
     return (
-        <MenuItemConfigContext.Provider value={{isDisabled, isInteractive}}>
+        <MenuItemConfigContext.Provider value={{isDisabled, isInteractive, shouldAllowTextSelection: shouldEnableTextSelection}}>
             <Hoverable>
                 {(isHovered) => (
                     <PressableWithSecondaryInteraction
                         onPress={onPressAction}
-                        // A long press on a touch device starts a text selection under the context menu the row is about to open, so block it while the press lasts
-                        onPressIn={() => !!onSecondaryInteractionAction && shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
+                        onMouseDown={(event) => {
+                            didTouchStartOnCopyableTextRef.current = false;
+                            setDidTouchStartOnCopyableText(false);
+                            markMouseDownOnCopyableText(event?.target, shouldEnableTextSelection);
+                        }}
+                        onTouchStart={(event) => {
+                            const isCopyableTarget = markTouchStartOnCopyableText(event, shouldEnableTextSelection && isPressStartOnCopyableText(event));
+                            didTouchStartOnCopyableTextRef.current = isCopyableTarget;
+                            setDidTouchStartOnCopyableText(isCopyableTarget);
+                        }}
+                        shouldAllowTextSelection={shouldEnableTextSelection}
+                        preventDefaultContextMenu={(event) => !shouldEnableTextSelection || !isPressStartOnCopyableText(event)}
+                        onPressIn={handlePressIn}
                         onPressOut={ControlSelection.unblock}
-                        onSecondaryInteraction={onSecondaryInteractionAction}
+                        // RN Web prevents the native context menu whenever an onLongPress handler is attached.
+                        // Reset on the next pointer start, since press-out can precede the browser's selection menu.
+                        onSecondaryInteraction={shouldEnableTextSelection && didTouchStartOnCopyableText ? undefined : onSecondaryInteractionAction}
                         activeOpacity={!isInteractive ? 1 : variables.pressDimValue}
                         opacityAnimationDuration={variables.instantAnimationDuration}
                         style={({pressed}) =>

@@ -5,6 +5,8 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
 import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
 
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
 import CONST from '@src/CONST';
@@ -12,6 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 
 import type * as NativeNavigation from '@react-navigation/native';
+import type {StyleProp, TextStyle} from 'react-native';
 import type {PartialDeep} from 'type-fest';
 
 import escapeRegExp from 'lodash/escapeRegExp';
@@ -23,11 +26,45 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
+type MockMenuItemWithTopDescriptionProps = {
+    description?: string;
+    title?: string;
+    interactive?: boolean;
+    descriptionTextStyle?: StyleProp<TextStyle>;
+    titleComponent?: React.ReactNode;
+};
+
+type MockUserPillsProps = {
+    users: unknown[];
+    maxVisible?: number;
+    isCopyable?: boolean;
+};
+
+const mockMenuItemWithTopDescription = jest.fn(({description, title, interactive, titleComponent}: MockMenuItemWithTopDescriptionProps) => {
+    const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string; children?: React.ReactNode}>>>('react-native');
+
+    return (
+        <>
+            <RN.View testID={`menu-item-${description}`}>
+                <RN.Text>{interactive ? 'editable' : 'readonly'}</RN.Text>
+            </RN.View>
+            {title !== undefined && (
+                <RN.View testID={`menu-item-title-${description}`}>
+                    <RN.Text>{title}</RN.Text>
+                </RN.View>
+            )}
+            {titleComponent}
+        </>
+    );
+});
+const mockUserPills = jest.fn<null, [MockUserPillsProps]>(() => null);
+
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: jest.fn((key: string) => key),
         numberFormat: jest.fn((num: number) => num.toString()),
         toLocaleDigit: jest.fn((digit: string) => digit),
+        localeCompare: jest.fn((first: string, second: string) => first.localeCompare(second)),
     })),
 );
 
@@ -58,19 +95,11 @@ jest.mock('@pages/inbox/report/AnimatedEmptyStateBackground', () => {
 // Title lives in a sibling element so existing toHaveTextContent('editable'|'readonly') assertions on
 // the menu-item testID stay strict-equal — they don't pick up the title text.
 jest.mock('@components/MenuItemWithTopDescription', () => {
-    const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string; children?: React.ReactNode}>>>('react-native');
-    return ({description, title, interactive}: {description?: string; title?: string; interactive?: boolean}) => (
-        <>
-            <RN.View testID={`menu-item-${description}`}>
-                <RN.Text>{interactive ? 'editable' : 'readonly'}</RN.Text>
-            </RN.View>
-            {title !== undefined && (
-                <RN.View testID={`menu-item-title-${description}`}>
-                    <RN.Text>{title}</RN.Text>
-                </RN.View>
-            )}
-        </>
-    );
+    return (props: MockMenuItemWithTopDescriptionProps) => mockMenuItemWithTopDescription(props);
+});
+
+jest.mock('@components/UserPills', () => {
+    return (props: MockUserPillsProps) => mockUserPills(props);
 });
 
 // Mock the legacy MenuItem (used for some fields like billable), but keep the real compound parts the migrated rows render with
@@ -107,11 +136,23 @@ const parentReportActionID = 'parent_action_mrv';
 const transactionID = 'txn_mrv_test';
 
 const SCREEN_WRAPPER_STATUS = {didScreenTransitionEnd: true, shouldUseNarrowLayoutOnWideRHP: false, isSafeAreaTopPaddingApplied: true, isSafeAreaBottomPaddingApplied: true};
+let renderedThemeStyles: ReturnType<typeof useThemeStyles> | undefined;
+
+function ThemeStylesObserver() {
+    const styles = useThemeStyles();
+
+    React.useEffect(() => {
+        renderedThemeStyles = styles;
+    }, [styles]);
+
+    return null;
+}
 
 const renderMoneyRequestView = (threadReport: ReturnType<typeof LHNTestUtils.getFakeReport>, policy?: PartialDeep<Policy>) =>
     render(
         <ComposeProviders components={[OnyxListItemProvider]}>
             <ScreenWrapperStatusContext.Provider value={SCREEN_WRAPPER_STATUS}>
+                <ThemeStylesObserver />
                 <MoneyRequestView
                     transactionThreadReport={threadReport}
                     parentReportID={expenseReportID}
@@ -143,6 +184,8 @@ describe('MoneyRequestView edit fields', () => {
         await act(async () => {
             await Onyx.clear();
         });
+        mockMenuItemWithTopDescription.mockClear();
+        mockUserPills.mockClear();
     });
 
     const setupTestData = async (isSettledReport = false) => {
@@ -250,6 +293,112 @@ describe('MoneyRequestView edit fields', () => {
         await waitFor(() => {
             expect(screen.getByLabelText(fieldLabel('common.category'))).toBeOnTheScreen();
             expect(screen.getByTestId('menu-item-Location')).toBeOnTheScreen();
+        });
+    });
+
+    it('preserves word wrapping when expense detail labels are made non-selectable', async () => {
+        // Given an expense with all labels affected by the non-selectable text styling
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+        const longTagName = 'LongTagNameWithoutSpaces';
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
+                [longTagName]: {name: longTagName, orderWeight: 0, required: false, tags: {Berlin: {name: 'Berlin', enabled: true}}},
+            });
+        });
+
+        // When the expense details are rendered
+        renderMoneyRequestView(threadReport, {areTagsEnabled: true});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then each affected description keeps both breakWord and userSelectNone
+        await waitFor(() => {
+            const renderedRows = mockMenuItemWithTopDescription.mock.calls.map(([props]) => props);
+            const affectedRows = [
+                renderedRows.find(({description}) => description === longTagName),
+                renderedRows.find(({description}) => description?.startsWith('iou.amount')),
+                renderedRows.find(({description}) => description === 'common.description'),
+                renderedRows.find(({description}) => description === 'common.merchant'),
+                renderedRows.find(({description}) => description === 'common.report'),
+            ];
+
+            expect(affectedRows).not.toContain(undefined);
+            for (const row of affectedRows) {
+                expect(row?.descriptionTextStyle).toEqual([renderedThemeStyles?.breakWord, renderedThemeStyles?.userSelectNone]);
+            }
+        });
+    });
+
+    it('excludes the reimbursable toggle label from selection and copied content', async () => {
+        // Given an expense that displays the reimbursable toggle
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+
+        // When the expense details are rendered
+        renderMoneyRequestView(threadReport);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the visual label is hidden from selection while the switch remains accessible
+        await waitFor(() => {
+            const reimbursableLabel = screen.getByText(/reimbursable$/i, {includeHiddenElements: true});
+            expect(reimbursableLabel).toHaveStyle({userSelect: 'none'});
+            expect(reimbursableLabel).toHaveProp(
+                'dataSet',
+                expect.objectContaining({
+                    [CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true,
+                }),
+            );
+            expect(reimbursableLabel).not.toHaveProp(
+                'dataSet',
+                expect.objectContaining({
+                    [CONST.COPYABLE_TEXT_ELEMENT]: true,
+                }),
+            );
+            expect(screen.getByLabelText(/reimbursable$/i)).toBeOnTheScreen();
+        });
+    });
+
+    it('renders every copyable attendee on an editable expense', async () => {
+        // Given an editable expense with more attendees than UserPills displays by default
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+        const attendees = Array.from({length: 8}, (_, index) => ({
+            email: `attendee${index}@example.com`,
+            displayName: `Attendee ${index}`,
+            avatarUrl: '',
+        }));
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                type: CONST.POLICY.TYPE.CORPORATE,
+                isAttendeeTrackingEnabled: true,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {attendees}});
+        });
+
+        // When attendee tracking is enabled and the expense details are rendered
+        renderMoneyRequestView(threadReport, {type: CONST.POLICY.TYPE.CORPORATE, isAttendeeTrackingEnabled: true});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then every copyable attendee is rendered instead of collapsing the final attendees into a non-copyable summary
+        await waitFor(() => {
+            const userPillsProps = mockUserPills.mock.calls.at(-1)?.[0];
+            expect(userPillsProps).toEqual(expect.objectContaining({isCopyable: true, maxVisible: attendees.length}));
+            expect(userPillsProps?.users).toHaveLength(attendees.length);
         });
     });
 

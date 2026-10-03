@@ -6,11 +6,13 @@ import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWi
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useCopyableTextRowPress, {isPressStartOnCopyableText} from '@hooks/useCopyableTextRowPress';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {COPYABLE_ROW_DATA_SET} from '@libs/SelectionScraper';
 import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 
 import variables from '@styles/variables';
@@ -72,6 +74,8 @@ export default function TableRow({
     focusable,
     fullDisabled,
     tabIndex,
+    shouldAllowTextSelection = false,
+    dataSet,
     ...props
 }: TableRowProps) {
     const theme = useTheme();
@@ -92,6 +96,7 @@ export default function TableRow({
         listProps,
         shouldFooterRenderAsLastRow,
     } = useTableContext();
+    const {handleCopyableTextRowPress, markMouseDownOnCopyableText, markTouchStartOnCopyableText, shouldSuppressCopyableTextRowLongPress} = useCopyableTextRowPress();
     const semanticRowID = useTableRowSemanticID();
     const semanticTableHasHeader = rendersColumnHeader(tableListMetadata);
     const isAccessibilityHidden = semanticRowID === null || ariaHidden === true;
@@ -110,6 +115,7 @@ export default function TableRow({
     // the static ones. They're only ever set on wide web layouts.
     const gridTemplateColumns = dynamicGridTemplateColumns ? [...dynamicGridTemplateColumns] : getGridTemplateColumns(columns);
     const isSelectionCheckboxVisible = selectionEnabled && (isMobileSelectionEnabled || !selectionUsesNarrowLayout);
+    const rowDataSet = shouldAllowTextSelection ? {...dataSet, ...COPYABLE_ROW_DATA_SET} : dataSet;
 
     const isDisabled = !!disabled || isAccessibilityHidden;
     const isFirstRow = rowIndex === 0;
@@ -148,7 +154,7 @@ export default function TableRow({
     const tableRowPressableStyles = [
         styles.mh5,
         isGroupHeader ? styles.hoveredComponentBG : styles.highlightBG,
-        styles.userSelectNone,
+        !shouldAllowTextSelection && styles.userSelectNone,
         !isFirstRow && styles.borderTop,
         isLastRow && styles.tableBottomRadius,
         item.selected && [styles.activeComponentBG, {borderColor: theme.buttonHoveredBG}],
@@ -230,25 +236,34 @@ export default function TableRow({
     };
 
     const handleRowPress = (event?: GestureResponderEvent | KeyboardEvent | undefined) => {
-        if (isDisabled || !interactive) {
-            return;
-        }
+        handleCopyableTextRowPress(
+            () => {
+                if (isDisabled || !interactive) {
+                    return;
+                }
 
-        if (!selectionUsesNarrowLayout || !isMobileSelectionEnabled || !selectionEnabled) {
-            onPress?.(event);
-            return;
-        }
+                if (!selectionUsesNarrowLayout || !isMobileSelectionEnabled || !selectionEnabled) {
+                    onPress?.(event);
+                    return;
+                }
 
-        if (item.disabled) {
-            return;
-        }
+                if (item.disabled) {
+                    return;
+                }
 
-        if (!item.isSelectionDisabled) {
-            handleCheckboxPress(event);
-        }
+                if (!item.isSelectionDisabled) {
+                    handleCheckboxPress(event);
+                }
+            },
+            {shouldCheck: shouldAllowTextSelection},
+        );
     };
 
     const handleRowLongPress = () => {
+        if (shouldSuppressCopyableTextRowLongPress(shouldAllowTextSelection)) {
+            return;
+        }
+
         if (isDisabled || item.disabled || !selectionEnabled || isMobileSelectionEnabled || !shouldEnableMobileSelectionLongPress || !interactive || item.isSelectionDisabled) {
             return;
         }
@@ -269,6 +284,7 @@ export default function TableRow({
                 style={tableRowPressableStyles}
                 sentryLabel={sentryLabel}
                 interactive={interactive}
+                shouldAllowTextSelection={shouldAllowTextSelection}
                 disabled={isDisabled}
                 hoverStyle={tableRowPressableHoverStyle}
                 pressDimmingValue={!interactive ? undefined : 1}
@@ -276,6 +292,12 @@ export default function TableRow({
                 {...getRowAccessibilityProps(isTableSemanticsEnabled, rowIndex, false, semanticTableHasHeader)}
                 onMouseDown={(e) => {
                     const target = e?.target;
+                    const isCopyableTextMouseDown = shouldAllowTextSelection && isPressStartOnCopyableText(e);
+                    const isCopyableTarget = markMouseDownOnCopyableText(target, isCopyableTextMouseDown, {shouldSuppressNextPress: e.detail > 1});
+
+                    if (isCopyableTarget) {
+                        return;
+                    }
 
                     if (!(target instanceof HTMLElement)) {
                         e.preventDefault();
@@ -293,10 +315,15 @@ export default function TableRow({
 
                     e.preventDefault();
                 }}
+                onTouchStart={(e) => {
+                    const isCopyableTextTouchStart = shouldAllowTextSelection && isPressStartOnCopyableText(e);
+                    markTouchStartOnCopyableText(e, isCopyableTextTouchStart);
+                }}
                 onPress={(event) => handleRowPress(event)}
                 onLongPress={handleRowLongPress}
                 {...props}
                 {...inertProps}
+                dataSet={rowDataSet}
                 focusable={isAccessibilityHidden ? false : focusable}
                 fullDisabled={isAccessibilityHidden || fullDisabled}
                 tabIndex={isAccessibilityHidden ? -1 : tabIndex}

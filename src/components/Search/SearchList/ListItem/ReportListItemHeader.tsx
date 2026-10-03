@@ -173,6 +173,8 @@ function HeaderFirstRow<TItem extends ListItem>({
                         style={[{maxWidth: 700}]}
                         transactions={reportItem.transactions}
                         avatarBorderColor={avatarBorderColor}
+                        // Grouped report headers sit inside pressable rows, so their title needs the copyable marker too.
+                        isTitleCopyable
                     />
                 </View>
             </View>
@@ -203,7 +205,10 @@ function HeaderFirstRow<TItem extends ListItem>({
                 )}
             </View>
             {isLargeScreenWidth && (
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
+                <View
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}
+                    dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                >
                     <ActionCell
                         action={reportItem.action}
                         onButtonPress={handleOnButtonPress}

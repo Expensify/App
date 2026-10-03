@@ -6,6 +6,7 @@ import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {SearchGroupBy} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 
+import useCopyableTextRowPress, {isPressStartOnCopyableText} from '@hooks/useCopyableTextRowPress';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -21,6 +22,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {isTransactionDayGroupListItemType} from '@libs/SearchUIUtils';
+import {COPYABLE_ROW_DATA_SET} from '@libs/SelectionScraper';
 import {getVisibleTransactionViolations, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
@@ -221,6 +223,8 @@ function TransactionGroupListItemImpl({
         isItemSelected && styles.activeComponentBG,
     ];
     const pressableRef = useRef<ComponentRef<typeof View>>(null);
+    const {markMouseDownOnCopyableText, markTouchStartOnCopyableText, shouldSuppressCopyableTextRowFocus, shouldSuppressCopyableTextRowLongPress, shouldSuppressCopyableTextRowPress} =
+        useCopyableTextRowPress();
 
     useEffect(() => {
         if (!newTransactionID || !isExpanded) {
@@ -277,6 +281,10 @@ function TransactionGroupListItemImpl({
     };
 
     const onPress = (event?: ModifiedMouseEvent) => {
+        if (shouldSuppressCopyableTextRowPress()) {
+            return;
+        }
+
         const isEmptyGroupWithoutTransactionsQuery = transactions.length === 0 && !groupItem.transactionsQueryJSON;
         if (isExpenseReportType || isEmptyGroupWithoutTransactionsQuery) {
             onSelectRow(item, transactionPreviewData, event);
@@ -287,6 +295,9 @@ function TransactionGroupListItemImpl({
     };
 
     const onLongPress = () => {
+        if (shouldSuppressCopyableTextRowLongPress()) {
+            return;
+        }
         onLongPressRow?.(item, isExpenseReportType ? undefined : transactions);
     };
 
@@ -548,15 +559,30 @@ function TransactionGroupListItemImpl({
                 accessibilityLabel={item.text ?? ''}
                 role={CONST.ROLE.BUTTON}
                 isNested
+                shouldAllowTextSelection
                 hoverStyle={[!isExpanded && !item.isDisabled && styles.hoveredComponentBG, isItemSelected && styles.activeComponentBG]}
-                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}
-                onMouseDown={(e) => e.preventDefault()}
+                dataSet={{...COPYABLE_ROW_DATA_SET, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}
+                onMouseDown={(e) => {
+                    const isCopyableTarget = markMouseDownOnCopyableText(e?.target);
+                    if (isCopyableTarget) {
+                        return;
+                    }
+                    e.preventDefault();
+                }}
+                onTouchStart={(event) => {
+                    markTouchStartOnCopyableText(event, isPressStartOnCopyableText(event));
+                }}
                 id={item.keyForList ?? ''}
                 style={[
                     pressableStyle,
                     isFocused && StyleUtils.getItemBackgroundColorStyle(!!isItemSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                 ]}
-                onFocus={onFocus}
+                onFocus={(event) => {
+                    if (shouldSuppressCopyableTextRowFocus()) {
+                        return;
+                    }
+                    onFocus?.(event);
+                }}
                 wrapperStyle={[
                     styles.mh5,
                     StyleUtils.getSearchRowBackgroundStyle(!!isItemSelected),

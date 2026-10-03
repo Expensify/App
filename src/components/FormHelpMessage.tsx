@@ -8,7 +8,7 @@ import Parser from '@libs/Parser';
 
 import CONST from '@src/CONST';
 
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewProps, ViewStyle} from 'react-native';
 
 import isEmpty from 'lodash/isEmpty';
 import React, {useContext, useMemo} from 'react';
@@ -32,6 +32,13 @@ type FormHelpMessageProps = {
     /** Container style props */
     style?: StyleProp<ViewStyle>;
 
+    /** Message text style props */
+    messageStyle?: StyleProp<TextStyle>;
+
+    /** Data attributes applied to the message container. */
+    dataSet?: ViewProps['dataSet'];
+
+    /** Whether to show dot indicator */
     shouldShowRedDotIndicator?: boolean;
 
     /** Whether should render error text as HTML or as Text */
@@ -54,6 +61,8 @@ function FormHelpMessage({
     children,
     isError = true,
     style,
+    messageStyle,
+    dataSet,
     shouldShowRedDotIndicator = true,
     shouldRenderMessageAsHTML = false,
     isInfo = false,
@@ -114,7 +123,10 @@ function FormHelpMessage({
     }
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.mb1, style]}>
+        <View
+            style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.mb1, style]}
+            dataSet={dataSet}
+        >
             {isError && shouldShowRedDotIndicator && (
                 <View
                     accessible
@@ -141,7 +153,7 @@ function FormHelpMessage({
                         <RenderHTML html={HTMLMessage} />
                     ) : (
                         <Text
-                            style={[isError ? styles.formError : styles.formHelp, styles.mb0]}
+                            style={[isError ? styles.formError : styles.formHelp, styles.mb0, messageStyle]}
                             nativeID={nativeID}
                             role={visibleMessageRole}
                             accessibilityRole={!isWeb && shouldAnnounceError ? CONST.ROLE.ALERT : undefined}

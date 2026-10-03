@@ -21,6 +21,9 @@ type MenuItemPrimaryTextProps = (
 ) & {
     /** Defaults to 1. Anything else lets the text wrap, and `0` lets it grow unbounded */
     numberOfLines?: number;
+
+    /** Whether this text can start native browser text selection inside an interactive row */
+    isSelectable?: boolean;
 };
 
 /** Props of the muted leaves */
