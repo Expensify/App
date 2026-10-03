@@ -145,6 +145,63 @@ describe('ExpenseFieldRow', () => {
         });
     });
 
+    describe('dropdown state', () => {
+        it('reports expanded on the element a screen reader focuses', () => {
+            // Given a row whose list is open
+            render(
+                <ExpenseFieldRow
+                    name={FIELD_NAME}
+                    value={FIELD_VALUE}
+                    onPress={jest.fn()}
+                    testID="category-row"
+                    isExpanded
+                />,
+            );
+
+            // When the row is read out
+            const row = screen.getByTestId('category-row');
+
+            // Then the state sits on the pressable itself, which is what carries the button role and what the
+            // screen reader lands on. On a wrapper around it the state is never announced.
+            expect(row).toBeExpanded();
+        });
+
+        it('reports collapsed while the list is closed', () => {
+            // Given a dropdown row whose list is not open
+            render(
+                <ExpenseFieldRow
+                    name={FIELD_NAME}
+                    value={FIELD_VALUE}
+                    onPress={jest.fn()}
+                    testID="category-row"
+                    isExpanded={false}
+                />,
+            );
+
+            // When the row is read out
+            // Then it reads as a dropdown that is closed, rather than as a plain link
+            expect(screen.getByTestId('category-row')).toBeCollapsed();
+        });
+
+        it('says nothing about expansion for a row with no list to open', () => {
+            // Given a row that opens a page rather than a list in place
+            render(
+                <ExpenseFieldRow
+                    name={FIELD_NAME}
+                    value={FIELD_VALUE}
+                    onPress={jest.fn()}
+                    testID="category-row"
+                />,
+            );
+
+            // When the row is read out
+            // Then it is neither expanded nor collapsed: it does not read as a dropdown at all
+            const row = screen.getByTestId('category-row');
+            expect(row).not.toBeExpanded();
+            expect(row).not.toBeCollapsed();
+        });
+    });
+
     describe('read-only presentation', () => {
         it('renders a field the user cannot change as a disabled input', () => {
             const {result} = renderHook(() => useThemeStyles());

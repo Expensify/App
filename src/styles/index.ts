@@ -7203,11 +7203,11 @@ const dynamicStyles = (theme: ThemeColors) =>
             isNegatable,
             extraHeight = 0,
         }: SelectionListPopover) => {
-            const MODAL_VERTICAL_PADDING = 32;
+            const MODAL_VERTICAL_PADDING = variables.popoverVerticalPadding;
             const BUTTON_HEIGHT = hasButton ? 48 : 0;
             const HEADER_HEIGHT = hasHeader ? 48 : 0;
             const TITLE_HEIGHT = hasTitle ? 34 : 0;
-            const SEARCHBAR_HEIGHT = isSearchable ? 64 : 0;
+            const SEARCHBAR_HEIGHT = isSearchable ? variables.popoverSearchInputHeight : 0;
             const NEGATION_TOGGLE_BORDER_WIDTH = 1;
             const NEGATION_TOGGLE_HEIGHT = isNegatable ? variables.componentSizeSmall + NEGATION_TOGGLE_BORDER_WIDTH * 2 + spacing.gap3.gap : 0;
 

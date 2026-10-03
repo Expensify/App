@@ -22,7 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React from 'react';
+import React, {useEffect} from 'react';
 // eslint-disable-next-line no-restricted-imports -- Need original useOnyx to avoid reading partial Search snapshot policy data (GL code flags are trimmed from the snapshot).
 import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
@@ -39,6 +39,14 @@ type CategoryPickerProps = {
 
     /** Whether the search input should auto-focus when the picker mounts. Only opted into by the inline-edit popover wrapper. */
     shouldAutoFocusSearchInput?: boolean;
+
+    /**
+     * Reports how many rows the list renders. A pop-over wrapper sizes itself from this rather than from the
+     * category count, which the rendered list does not match: a nested name adds a row for each parent it hangs
+     * off, a selected out-of-policy category gets a row of its own, and the `Recent` and `All` sections each add
+     * a heading. Reported from the built sections so the size can't drift from what is on screen.
+     */
+    onRenderedRowCountChange?: (rowCount: number) => void;
 };
 
 const getSelectedOptions = (selectedCategory?: string): Category[] => {
@@ -55,7 +63,15 @@ const getSelectedOptions = (selectedCategory?: string): Category[] => {
     ];
 };
 
-function CategoryPicker({selectedCategory, policyID, onSubmit, shouldShowNoneOption = false, addBottomSafeAreaPadding = false, shouldAutoFocusSearchInput = false}: CategoryPickerProps) {
+function CategoryPicker({
+    selectedCategory,
+    policyID,
+    onSubmit,
+    shouldShowNoneOption = false,
+    addBottomSafeAreaPadding = false,
+    shouldAutoFocusSearchInput = false,
+    onRenderedRowCountChange,
+}: CategoryPickerProps) {
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
     const [shouldShowGLCode] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(policyID)}`, {
@@ -106,6 +122,13 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, shouldShowNoneOpt
         noneOption.length > 0 ? [...sections.slice(0, selectedCategorySectionIndex + 1), noneOptionSection, ...sections.slice(selectedCategorySectionIndex + 1)] : sections;
 
     const categoryData = sectionsWithNoneOption.flatMap((section) => section.data);
+    // A titled section draws a heading above its rows, so it takes a row's worth of space of its own.
+    const renderedRowCount = sectionsWithNoneOption.reduce((total, section) => total + section.data.length + (section.title ? 1 : 0), 0);
+
+    useEffect(() => {
+        onRenderedRowCountChange?.(renderedRowCount);
+    }, [renderedRowCount, onRenderedRowCountChange]);
+
     const categoriesCount = getEnabledCategoriesCount(categories);
     const selectedOptionKey = categoryData.find((category) => category.searchText === selectedCategory)?.keyForList;
 
