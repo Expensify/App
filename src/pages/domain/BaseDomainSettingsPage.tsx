@@ -1,5 +1,6 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SidePanelButton from '@components/SidePanel/SidePanelButton';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,13 +35,14 @@ function BaseDomainSettingsPage({domainAccountID, children}: BaseDomainSettingsP
                 shouldShowOfflineIndicator
                 shouldShowOfflineIndicatorInWideScreen
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('domain.common.settings')}
                     onBackButtonPress={() => {
                         Navigation.dismissModal();
                     }}
-                    shouldDisplayHelpButton
-                />
+                >
+                    <SidePanelButton />
+                </HeaderWithBackButtonAndTitle>
                 <View style={styles.flex1}>{children}</View>
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>

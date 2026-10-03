@@ -1,7 +1,7 @@
 import ConfirmationPage from '@components/ConfirmationPage';
 import FormHelpMessage from '@components/FormHelpMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -65,10 +65,7 @@ function DomainAccessRestrictedPage({route}: DomainAccessRestrictedPageProps) {
         >
             {(domainName) => (
                 <ScreenWrapper testID="DomainAccessRestrictedPage">
-                    <HeaderWithBackButton
-                        title={translate('domain.accessRestricted.headerTitle')}
-                        onBackButtonPress={Navigation.goBack}
-                    />
+                    <HeaderWithBackButtonAndTitle title={translate('domain.accessRestricted.headerTitle')} />
                     <ConfirmationPage
                         illustration={icons.EmptyStateSpyPigeon}
                         heading={translate('domain.accessRestricted.title')}
