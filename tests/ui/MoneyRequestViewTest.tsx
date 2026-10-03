@@ -23,6 +23,10 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
+jest.mock('@expensify/react-native-hybrid-app', () => ({
+    isHybridApp: jest.fn(() => false),
+}));
+
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: jest.fn((key: string) => key),
@@ -59,7 +63,19 @@ jest.mock('@pages/inbox/report/AnimatedEmptyStateBackground', () => {
 // the menu-item testID stay strict-equal — they don't pick up the title text.
 jest.mock('@components/MenuItemWithTopDescription', () => {
     const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string; children?: React.ReactNode}>>>('react-native');
-    return ({description, title, interactive}: {description?: string; title?: string; interactive?: boolean}) => (
+    return ({
+        description,
+        title,
+        interactive,
+        errorText,
+        brickRoadIndicator,
+    }: {
+        description?: string;
+        title?: string;
+        interactive?: boolean;
+        errorText?: string;
+        brickRoadIndicator?: string;
+    }) => (
         <>
             <RN.View testID={`menu-item-${description}`}>
                 <RN.Text>{interactive ? 'editable' : 'readonly'}</RN.Text>
@@ -67,6 +83,16 @@ jest.mock('@components/MenuItemWithTopDescription', () => {
             {title !== undefined && (
                 <RN.View testID={`menu-item-title-${description}`}>
                     <RN.Text>{title}</RN.Text>
+                </RN.View>
+            )}
+            {errorText !== undefined && (
+                <RN.View testID={`menu-item-error-${description}`}>
+                    <RN.Text>{errorText}</RN.Text>
+                </RN.View>
+            )}
+            {brickRoadIndicator !== undefined && (
+                <RN.View testID={`menu-item-indicator-${description}`}>
+                    <RN.Text>{brickRoadIndicator}</RN.Text>
                 </RN.View>
             )}
         </>
@@ -948,6 +974,55 @@ describe('MoneyRequestView edit fields', () => {
             const vendorTitle = screen.getByLabelText(fieldLabel('common.vendor'));
             expect(vendorTitle).toHaveTextContent(/Stale Intacct Vendor/);
             expect(vendorTitle).not.toHaveTextContent(/violations\.inactiveVendor/);
+        });
+    });
+
+    it('shows the vendor-field error when assigned vendor is disabled in policyVendors', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        const disabledVendorID = 'disabled-vendor-id';
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.VENDOR_MATCHING]);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${policyID}`, {
+                [disabledVendorID]: {
+                    externalID: disabledVendorID,
+                    name: 'Disabled Vendor',
+                    enabled: false,
+                },
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                reimbursable: false,
+                comment: {vendor: {externalID: disabledVendorID, wasManuallySet: false}},
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, [
+                {
+                    name: CONST.VIOLATIONS.INACTIVE_VENDOR,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                },
+            ]);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderMoneyRequestView(threadReport, {
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                    config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                    data: {vendors: [{id: disabledVendorID, name: 'Disabled Vendor', currency: 'USD', email: 'vendor@example.com'}]},
+                },
+            },
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByRole('alert')).toHaveTextContent('violations.inactiveVendor.');
+            expect(screen.getByTestId('menu-item-brick-road-indicator')).toBeOnTheScreen();
         });
     });
 

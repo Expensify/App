@@ -30,7 +30,20 @@ import {hasValidModifiedAmount, isViolationDismissed, shouldShowViolation} from 
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CardList, Policy, PolicyCategories, PolicyTagLists, PolicyTags, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
+import type {
+    Card,
+    CardList,
+    Policy,
+    PolicyCategories,
+    PolicyTagLists,
+    PolicyTags,
+    PolicyVendors,
+    Report,
+    ReportAction,
+    Transaction,
+    TransactionViolation,
+    ViolationName,
+} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
@@ -464,6 +477,7 @@ const ViolationsUtils = {
         distanceOriginalPolicy,
         ownerLogin: ownerLoginParam,
         isVendorMatchingBetaEnabled,
+        policyVendors: policyVendorsParam,
     }: {
         updatedTransaction: Transaction;
         transactionViolations: TransactionViolation[];
@@ -480,6 +494,7 @@ const ViolationsUtils = {
         ownerLogin: string | undefined;
         /** Undefined while the account betas are still loading, which leaves the inactive vendor violation untouched */
         isVendorMatchingBetaEnabled: boolean | undefined;
+        policyVendors?: OnyxEntry<PolicyVendors>;
     }): OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> {
         const isScanning = TransactionUtils.isScanning(updatedTransaction);
         const isScanRequest = TransactionUtils.isScanRequest(updatedTransaction);
@@ -588,21 +603,23 @@ const ViolationsUtils = {
                 // positive in Onyx, and rejecting it would strip a legitimate one. Leave the
                 // existing violation state untouched until the list arrives.
                 const matchedVendor = getMatchingVendorByID(policy, transactionVendorID);
+                const isVendorDisabled = policyVendorsParam?.[transactionVendorID]?.enabled === false;
+                const isVendorInactive = !matchedVendor || isVendorDisabled;
 
                 // Stamp Xero-specific copy on the violation so the render site can use the
                 // "Supplier" wording the rest of the Xero UI uses; QBO/Intacct keep the default
                 // "Vendor" wording.
                 const isSupplierViolation = isXeroActiveMatchingSource(policy);
-                if (!matchedVendor && !hasInactiveVendorViolation) {
+                if (isVendorInactive && !hasInactiveVendorViolation) {
                     newTransactionViolations.push({
                         name: CONST.VIOLATIONS.INACTIVE_VENDOR,
                         type: CONST.VIOLATION_TYPES.VIOLATION,
                         showInReview: true,
                         ...(isSupplierViolation ? {data: {isSupplierViolation: true}} : {}),
                     });
-                } else if (matchedVendor && hasInactiveVendorViolation) {
+                } else if (!isVendorInactive && hasInactiveVendorViolation) {
                     newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
-                } else if (!matchedVendor && hasInactiveVendorViolation) {
+                } else if (isVendorInactive && hasInactiveVendorViolation) {
                     // Reconcile data.isSupplierViolation with the current active matching source.
                     // Backfills the flag when Xero is now active (server-fired violation, or
                     // persisted from before this code path existed). Strips a stale flag when the
