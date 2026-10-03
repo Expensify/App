@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -13,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import StringUtils from '@libs/StringUtils';
 import {getFieldRequiredErrors, isValidInputLength} from '@libs/ValidationUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -29,7 +31,6 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/CompanyCardLayoutNameForm';
 
 import React from 'react';
-import {View} from 'react-native';
 
 type CompanyCardLayoutNamePageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_LAYOUT_NAME>;
 
@@ -38,7 +39,7 @@ function CompanyCardLayoutNamePage({route}: CompanyCardLayoutNamePageProps) {
     const dynamicAddNewPath = createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.path, ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef} = useAutoFocusInput(true);
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const defaultValue = addNewCard?.data?.companyCardLayoutName ?? '';
     const requiredFields = [INPUT_IDS.COMPANY_CARD_LAYOUT_NAME];
@@ -78,26 +79,31 @@ function CompanyCardLayoutNamePage({route}: CompanyCardLayoutNamePageProps) {
                     onBackButtonPress={() => Navigation.goBack(dynamicAddNewPath)}
                 />
                 <FormProvider
+                    submitFlexEnabled={false}
                     formID={ONYXKEYS.FORMS.COMPANY_CARD_LAYOUT_NAME_FORM}
                     submitButtonText={translate('common.save')}
-                    onSubmit={submit}
-                    validate={validate}
+                    onSubmit={(values) => submit({...values, [INPUT_IDS.COMPANY_CARD_LAYOUT_NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.COMPANY_CARD_LAYOUT_NAME])})}
+                    validate={(values) => validate({...values, [INPUT_IDS.COMPANY_CARD_LAYOUT_NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.COMPANY_CARD_LAYOUT_NAME])})}
                     style={[styles.flexGrow1, styles.ph5]}
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    <View style={styles.mb4}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.COMPANY_CARD_LAYOUT_NAME}
-                            label={translate('workspace.companyCards.addNewCard.companyCardLayoutName')}
-                            accessibilityLabel={translate('workspace.companyCards.addNewCard.companyCardLayoutName')}
-                            role={CONST.ROLE.PRESENTATION}
-                            defaultValue={defaultValue}
-                            ref={inputCallbackRef}
-                        />
-                    </View>
+                    <AutoGrowHeightInputContainer style={styles.mb4}>
+                        {(maxAutoGrowHeight) => (
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                inputID={INPUT_IDS.COMPANY_CARD_LAYOUT_NAME}
+                                label={translate('workspace.companyCards.addNewCard.companyCardLayoutName')}
+                                accessibilityLabel={translate('workspace.companyCards.addNewCard.companyCardLayoutName')}
+                                role={CONST.ROLE.PRESENTATION}
+                                defaultValue={defaultValue}
+                                ref={inputCallbackRef}
+                                maxAutoGrowHeight={maxAutoGrowHeight}
+                                autoGrowSingleLine
+                            />
+                        )}
+                    </AutoGrowHeightInputContainer>
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -19,8 +20,6 @@ import Parser from '@libs/Parser';
 import {getCommentLength} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 
-import variables from '@styles/variables';
-
 import {setDescriptionValue} from '@userActions/Task';
 
 import CONST from '@src/CONST';
@@ -30,7 +29,6 @@ import INPUT_IDS from '@src/types/form/NewTaskForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React from 'react';
-import {View} from 'react-native';
 
 function DynamicNewTaskDescriptionPage() {
     const styles = useThemeStyles();
@@ -72,6 +70,7 @@ function DynamicNewTaskDescriptionPage() {
                     onBackButtonPress={goBack}
                 />
                 <FormProvider
+                    submitFlexEnabled={false}
                     formID={ONYXKEYS.FORMS.NEW_TASK_FORM}
                     submitButtonText={translate('common.next')}
                     style={[styles.mh5, styles.flexGrow1]}
@@ -80,26 +79,28 @@ function DynamicNewTaskDescriptionPage() {
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
                 >
-                    <View style={styles.mb5}>
-                        <InputWrapperWithRef
-                            InputComponent={TextInput}
-                            defaultValue={Parser.htmlToMarkdown(Parser.replace(task?.description ?? ''), {accountIDToName})}
-                            inputID={INPUT_IDS.TASK_DESCRIPTION}
-                            label={translate('newTaskPage.descriptionOptional')}
-                            accessibilityLabel={translate('newTaskPage.descriptionOptional')}
-                            role={CONST.ROLE.PRESENTATION}
-                            ref={(el) => {
-                                if (!inputRef.current) {
-                                    updateMultilineInputRange(el);
-                                }
-                                inputCallbackRef(el);
-                            }}
-                            autoGrowHeight
-                            maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                            shouldSubmitForm
-                            type="markdown"
-                        />
-                    </View>
+                    <AutoGrowHeightInputContainer style={styles.mb5}>
+                        {(maxAutoGrowHeight) => (
+                            <InputWrapperWithRef
+                                InputComponent={TextInput}
+                                defaultValue={Parser.htmlToMarkdown(Parser.replace(task?.description ?? ''), {accountIDToName})}
+                                inputID={INPUT_IDS.TASK_DESCRIPTION}
+                                label={translate('newTaskPage.descriptionOptional')}
+                                accessibilityLabel={translate('newTaskPage.descriptionOptional')}
+                                role={CONST.ROLE.PRESENTATION}
+                                ref={(el) => {
+                                    if (!inputRef.current) {
+                                        updateMultilineInputRange(el);
+                                    }
+                                    inputCallbackRef(el);
+                                }}
+                                autoGrowHeight
+                                maxAutoGrowHeight={maxAutoGrowHeight}
+                                shouldSubmitForm
+                                type="markdown"
+                            />
+                        )}
+                    </AutoGrowHeightInputContainer>
                 </FormProvider>
             </>
         </ScreenWrapper>

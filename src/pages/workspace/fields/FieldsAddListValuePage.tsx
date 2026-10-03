@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -14,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PolicyFeature} from '@libs/PolicyUtils';
 import {getReportFieldKey} from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 import {isReportFieldImportedFromIntegration, isReportFieldTargetValid, validateReportFieldListValueName} from '@libs/WorkspaceReportFieldUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -45,7 +47,7 @@ type FieldsAddListValuePageProps = {
 function FieldsAddListValuePage({policy, policyID, reportFieldID, featureName, policyFeature, expectedTarget, testID}: FieldsAddListValuePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef} = useAutoFocusInput(true);
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
     const {canWrite} = usePolicyFeatureWriteAccess(policy, policyFeature);
     const reportField = reportFieldID ? policy?.fieldList?.[getReportFieldKey(reportFieldID)] : undefined;
@@ -109,25 +111,32 @@ function FieldsAddListValuePage({policy, policyID, reportFieldID, featureName, p
                     onBackButtonPress={Navigation.goBack}
                 />
                 <FormProvider
+                    submitFlexEnabled={false}
                     formID={ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM}
-                    onSubmit={createValue}
+                    onSubmit={(values) => createValue({...values, [INPUT_IDS.VALUE_NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.VALUE_NAME])})}
                     submitButtonText={translate('common.save')}
-                    validate={validate}
+                    validate={(values) => validate({...values, [INPUT_IDS.VALUE_NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.VALUE_NAME])})}
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
                     isSubmitButtonVisible={canWrite}
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        label={translate('common.value')}
-                        accessibilityLabel={translate('common.value')}
-                        inputID={INPUT_IDS.VALUE_NAME}
-                        role={CONST.ROLE.PRESENTATION}
-                        ref={inputCallbackRef}
-                        disabled={!canWrite}
-                    />
+                    <AutoGrowHeightInputContainer>
+                        {(maxAutoGrowHeight) => (
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                label={translate('common.value')}
+                                accessibilityLabel={translate('common.value')}
+                                inputID={INPUT_IDS.VALUE_NAME}
+                                role={CONST.ROLE.PRESENTATION}
+                                ref={inputCallbackRef}
+                                disabled={!canWrite}
+                                maxAutoGrowHeight={maxAutoGrowHeight}
+                                autoGrowSingleLine
+                            />
+                        )}
+                    </AutoGrowHeightInputContainer>
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
