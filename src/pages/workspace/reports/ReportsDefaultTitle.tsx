@@ -2,7 +2,7 @@ import BulletList from '@components/BulletList';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -98,10 +98,7 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
                 shouldEnableMaxHeight
                 testID="ReportsDefaultTitlePage"
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.reports.customNameTitle')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.reports.customNameTitle')} />
                 <View style={[styles.renderHTML, styles.flexRow, styles.ph5, styles.pb4]}>
                     <RenderHTML html={translate('workspace.reports.customNameDescription')} />
                 </View>

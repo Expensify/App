@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceMembersSelectionList from '@components/WorkspaceMembersSelectionList';
 
@@ -49,7 +49,7 @@ function DynamicCategoryApproverPage({
                 testID="DynamicCategoryApproverPage"
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('workspace.rules.categoryRules.approver')}
                     onBackButtonPress={() => Navigation.goBack(categorySettingsBackPath)}
                 />

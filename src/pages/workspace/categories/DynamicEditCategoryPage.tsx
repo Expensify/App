@@ -1,5 +1,5 @@
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -90,7 +90,7 @@ function DynamicEditCategoryPage({route}: DynamicEditCategoryPageProps) {
                 testID="DynamicEditCategoryPage"
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('workspace.categories.editCategory')}
                     onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? settingsBackPath : workspaceBackPath)}
                 />
