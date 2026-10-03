@@ -1,5 +1,5 @@
 import Button from '@components/Button';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ImageSVG from '@components/ImageSVG';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -53,7 +53,7 @@ function ReportVirtualCardFraudConfirmationPage({
             testID="ReportVirtualCardFraudConfirmationPage"
             offlineIndicatorStyle={themeStyles.mtAuto}
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('reportFraudConfirmationPage.title')}
                 onBackButtonPress={close}
             />

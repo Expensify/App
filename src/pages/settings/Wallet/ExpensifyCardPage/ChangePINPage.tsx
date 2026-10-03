@@ -1,6 +1,6 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -94,7 +94,7 @@ function ChangePINPageContent({cardID, wasPINBlocked}: {cardID: string; wasPINBl
 
     return (
         <ScreenWrapper testID={ChangePINPage.displayName}>
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate(wasPINBlocked ? 'cardPage.unblockCard' : 'cardPage.changePin')}
                 onBackButtonPress={() => {
                     if (!isConfirmStep) {

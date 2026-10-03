@@ -2,7 +2,7 @@ import BlockingView from '@components/BlockingViews/BlockingView';
 import ConfirmationPage from '@components/ConfirmationPage';
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
@@ -182,7 +182,7 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
 
     return (
         <ScreenWrapper testID={ShareBankAccount.displayName}>
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate(shouldShowSuccess ? 'walletPage.bankAccountShared' : 'walletPage.shareBankAccount')}
                 onBackButtonPress={onButtonPress}
             />
