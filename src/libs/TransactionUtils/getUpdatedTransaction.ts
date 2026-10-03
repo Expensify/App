@@ -25,6 +25,7 @@ import {deepEqual} from 'fast-equals';
 import lodashDeepClone from 'lodash/cloneDeep';
 import lodashSet from 'lodash/set';
 
+import {isFailedScanAmountPlaceholder} from './amountUtils';
 import getDistanceInMeters from './getDistanceInMeters';
 // This cycle import is safe because this file was extracted from TransactionUtils/index.ts, which re-exports it.
 // The functions imported here are pure helpers that aren't called at initialization time.
@@ -38,6 +39,7 @@ import {
     isFetchingWaypointsFromServer,
     isManualDistanceRequest,
     isOdometerDistanceRequest,
+    isScanRequest,
 } from './index';
 
 function getClearedPendingFields(transactionChanges: TransactionChanges) {
@@ -152,6 +154,15 @@ function getUpdatedTransaction({
 
     // Only changing the first level fields so no need for deep clone now
     const updatedTransaction = lodashDeepClone(transaction);
+    const shouldPreserveConfirmedScanZeroAmount =
+        isScanRequest(transaction) &&
+        transaction.receipt?.state === CONST.IOU.RECEIPT_STATE.OPEN &&
+        transaction.amount === 0 &&
+        !Object.hasOwn(transactionChanges, 'amount') &&
+        !isFailedScanAmountPlaceholder(transaction);
+    if (shouldPreserveConfirmedScanZeroAmount) {
+        updatedTransaction.isAmountSet = true;
+    }
     let shouldStopSmartscan = false;
 
     // The comment property does not have its modifiedComment counterpart
