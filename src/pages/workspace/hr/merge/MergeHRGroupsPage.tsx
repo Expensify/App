@@ -1,6 +1,6 @@
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
@@ -102,7 +102,7 @@ function MergeHRGroupsPage({
                 shouldEnableMaxHeight
                 testID="MergeHRGroupsPage"
             >
-                <HeaderWithBackButton title={translate('workspace.hr.mergeHR.groups.title')} />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.hr.mergeHR.groups.title')} />
                 <View style={styles.flex1}>
                     <Text style={[styles.ph5, styles.mb5]}>{translate('workspace.hr.mergeHR.groups.description')}</Text>
                     <SelectionList

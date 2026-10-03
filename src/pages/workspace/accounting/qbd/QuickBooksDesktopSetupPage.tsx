@@ -3,7 +3,7 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import Button from '@components/Button';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import FixedFooter from '@components/FixedFooter';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Icon from '@components/Icon';
 import ImageSVG from '@components/ImageSVG';
 import RenderHTML from '@components/RenderHTML';
@@ -144,11 +144,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
             shouldShowOfflineIndicatorInWideScreen
             testID="RequireQuickBooksDesktopModal"
         >
-            <HeaderWithBackButton
-                title={translate('workspace.qbd.qbdSetup')}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('workspace.qbd.qbdSetup')} />
             {hasResultOfFetchingSetupLink ? children : <FullPageOfflineBlockingView addBottomSafeAreaPadding>{children}</FullPageOfflineBlockingView>}
         </ScreenWrapper>
     );
