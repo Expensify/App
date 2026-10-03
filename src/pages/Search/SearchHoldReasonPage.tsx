@@ -15,6 +15,7 @@ import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
 import {putOnHold, putTransactionsOnHold} from '@libs/actions/IOU/Hold';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
 import type {SearchReportActionsParamList} from '@navigation/types';
@@ -25,11 +26,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestHoldReasonForm';
-import type {Report} from '@src/types/onyx';
-
-import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {reportsByIDsSelector} from '@selectors/Report';
 import {transactionViolationsByIDsSelector} from '@selectors/TransactionViolations';
 import React, {useCallback, useEffect, useMemo} from 'react';
 
@@ -48,24 +47,31 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     const relevantTransactionIDs = useMemo(() => (isBulkHold ? selectedTransactionIDs : Object.keys(selectedTransactions)), [isBulkHold, selectedTransactionIDs, selectedTransactions]);
     const [selectedTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: transactionViolationsByIDsSelector(relevantTransactionIDs)});
     const [relevantTransactions] = useTransactionsByID(relevantTransactionIDs);
-    const selectedTransactionReports = relevantTransactions?.reduce(
-        (reportCollection, selectedTransaction) => {
-            if (!selectedTransaction.transactionID) {
-                return reportCollection;
-            }
 
-            // Mutating the accumulator in-place is intentional here to build the reports map in a single reduce pass
-            // eslint-disable-next-line no-param-reassign
-            reportCollection[selectedTransaction.transactionID] = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedTransaction?.reportID}`];
-            return reportCollection;
-        },
-        {} as Record<string, OnyxEntry<Report>>,
-    );
+    // Subscribe only to the reports the hold flow reads: every transaction's expense report and its thread report
+    // (taken from the selection on the single-hold path, or from the report's IOU actions on the bulk path).
+    const relevantReportIDs = useMemo(() => {
+        const transactionsByID = new Map(relevantTransactions.map((transaction) => [transaction.transactionID, transaction]));
+        const reportIDs = new Set<string>();
+        for (const transactionID of relevantTransactionIDs) {
+            const selection = selectedTransactions[transactionID];
+            const transactionReportID = (transactionsByID.get(transactionID) ?? selection?.transaction)?.reportID;
+            if (transactionReportID) {
+                reportIDs.add(transactionReportID);
+            }
+            const childReportID = selection?.reportAction?.childReportID ?? (isBulkHold ? getIOUActionForReportID(reportID, transactionID)?.childReportID : undefined);
+            if (childReportID) {
+                reportIDs.add(childReportID);
+            }
+        }
+        return [...reportIDs];
+    }, [isBulkHold, reportID, relevantTransactionIDs, relevantTransactions, selectedTransactions]);
+    const relevantReportsSelector = useMemo(() => reportsByIDsSelector(relevantReportIDs), [relevantReportIDs]);
+    const [relevantReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: relevantReportsSelector});
     const {isOffline} = useNetwork();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
         selector: isTrackIntentUserSelector,
@@ -87,8 +93,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
             if (isBulkHold) {
                 putTransactionsOnHold({
                     transactionsID: selectedTransactionIDs,
-                    allReports,
-                    transactionReports: selectedTransactionReports,
+                    allReports: relevantReports,
                     comment,
                     reportID,
                     isOffline,
@@ -114,8 +119,8 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                         transaction,
                         comment,
                         initialReportID: transactionThreadReportID,
-                        initialReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`],
-                        transactionReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`],
+                        initialReport: relevantReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`],
+                        transactionReport: relevantReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`],
                         isOffline,
                         currentUserLogin: currentUserLogin ?? '',
                         currentUserAccountID,
@@ -142,10 +147,9 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
             currentUserAccountID,
             selectedTransactionViolations,
             relevantTransactions,
+            relevantReports,
             isTrackIntentUser,
             delegateAccountID,
-            allReports,
-            selectedTransactionReports,
             rules,
             ancestors,
             clearSelectedTransactions,

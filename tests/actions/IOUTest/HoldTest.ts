@@ -304,10 +304,6 @@ describe('actions/IOU/Hold', () => {
                             [`${ONYXKEYS.COLLECTION.REPORT}${transactionThread1.reportID}`]: transactionThread1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${transactionThread2.reportID}`]: transactionThread2,
                         },
-                        transactionReports: {
-                            [transaction1.transactionID]: iouReport,
-                            [transaction2.transactionID]: iouReport,
-                        },
                         comment,
                         reportID: iouReport.reportID,
                         isOffline: false,
@@ -419,10 +415,6 @@ describe('actions/IOU/Hold', () => {
                             [`${ONYXKEYS.COLLECTION.REPORT}${transactionThread1.reportID}`]: transactionThread1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${transactionThread2.reportID}`]: transactionThread2,
                         },
-                        transactionReports: {
-                            [transaction1.transactionID]: iouReport,
-                            [transaction2.transactionID]: iouReport,
-                        },
                         comment,
                         reportID: iouReport.reportID,
                         isOffline: true,
@@ -508,10 +500,6 @@ describe('actions/IOU/Hold', () => {
                             [`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport,
                             [`${ONYXKEYS.COLLECTION.REPORT}${transactionThread1.reportID}`]: transactionThread1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${transactionThread2.reportID}`]: transactionThread2,
-                        },
-                        transactionReports: {
-                            [transaction1.transactionID]: iouReport,
-                            [transaction2.transactionID]: iouReport,
                         },
                         comment,
                         reportID: iouReport.reportID,

@@ -368,7 +368,6 @@ function putOnHold({
 function putTransactionsOnHold({
     transactionsID,
     allReports,
-    transactionReports,
     comment,
     reportID,
     isOffline,
@@ -383,7 +382,6 @@ function putTransactionsOnHold({
 }: {
     transactionsID: string[];
     allReports: OnyxCollection<OnyxTypes.Report>;
-    transactionReports: Record<string, OnyxEntry<OnyxTypes.Report>>;
     comment: string;
     reportID: string;
     isOffline: boolean;
@@ -409,7 +407,7 @@ function putTransactionsOnHold({
             comment,
             initialReportID: childReportID,
             initialReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`],
-            transactionReport: transactionReports[transactionID],
+            transactionReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`],
             isOffline,
             currentUserLogin,
             currentUserAccountID,
