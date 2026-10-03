@@ -49,12 +49,14 @@ const mockTrackVerticalScrolling = jest.fn();
 const mockOnViewableItemsChanged = jest.fn();
 let mockIsFloatingMessageCounterVisible = false;
 let mockIsActionBadgeAboveViewport = false;
+let mockIsActionBadgeBelowViewport = false;
 jest.mock('@pages/inbox/report/useReportUnreadMessageScrollTracking', () => ({
     __esModule: true,
     default: () => ({
         isFloatingMessageCounterVisible: mockIsFloatingMessageCounterVisible,
         setIsFloatingMessageCounterVisible: mockSetIsFloatingMessageCounterVisible,
         isActionBadgeAboveViewport: mockIsActionBadgeAboveViewport,
+        isActionBadgeBelowViewport: mockIsActionBadgeBelowViewport,
         trackVerticalScrolling: mockTrackVerticalScrolling,
         onViewableItemsChanged: mockOnViewableItemsChanged,
     }),
@@ -239,6 +241,7 @@ describe('useReportActionsScroll', () => {
         mockReportRHPActiveRoute = undefined;
         mockIsFloatingMessageCounterVisible = false;
         mockIsActionBadgeAboveViewport = false;
+        mockIsActionBadgeBelowViewport = false;
         mockIsScrollToBottomEnabled = false;
         mockIsTransactionThread = false;
         mockIsSentMoneyReportAction = false;
@@ -651,17 +654,29 @@ describe('useReportActionsScroll', () => {
         it('forwards tracking handlers and visibility flags from the tracking hook', async () => {
             mockIsFloatingMessageCounterVisible = true;
             mockIsActionBadgeAboveViewport = true;
+            mockIsActionBadgeBelowViewport = false;
 
             const {result} = await renderScroll();
 
             expect(result.current.isFloatingMessageCounterVisible).toBe(true);
             expect(result.current.isActionBadgeAboveViewport).toBe(true);
+            expect(result.current.isActionBadgeBelowViewport).toBe(false);
 
             result.current.trackVerticalScrolling(undefined);
             expect(mockTrackVerticalScrolling).toHaveBeenCalledWith(undefined);
 
             result.current.onViewableItemsChanged({viewableItems: [], changed: []});
             expect(mockOnViewableItemsChanged).toHaveBeenCalled();
+        });
+
+        it('forwards isActionBadgeBelowViewport from the tracking hook', async () => {
+            mockIsActionBadgeAboveViewport = false;
+            mockIsActionBadgeBelowViewport = true;
+
+            const {result} = await renderScroll();
+
+            expect(result.current.isActionBadgeBelowViewport).toBe(true);
+            expect(result.current.isActionBadgeAboveViewport).toBe(false);
         });
     });
 });
