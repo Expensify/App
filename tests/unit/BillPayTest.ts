@@ -1,8 +1,9 @@
 import {canApproveBill, canPayBill, isBillPayReport} from '@libs/BillPayUtils';
 import {translate} from '@libs/Localize';
+import {getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getSuggestedSearches} from '@libs/SearchSuggestionUtils';
-import {getSections, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
+import {createTypeMenuSections, getSections, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -26,6 +27,7 @@ describe('Bill Pay', () => {
         role: CONST.POLICY.ROLE.ADMIN,
         owner: email,
         reimburser: email,
+        reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
         outputCurrency: CONST.CURRENCY.USD,
     };
     const bill: Report = {
@@ -56,6 +58,65 @@ describe('Bill Pay', () => {
         expect(canPayBill(approved, {...policy, reimburser: undefined}, accountID, email)).toBe(true);
         expect(canPayBill(approved, {...policy, reimburser: undefined, owner: email}, 456, 'admin@example.com')).toBe(true);
     });
+
+    it.each([CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO])(
+        'hides the report Pay action when workspace payments are disabled with %s',
+        (reimbursementChoice) => {
+            // Given an approved bill whose workspace payer can pay when payments are enabled.
+            const approved: Report = {...bill, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED};
+            const params = {
+                report: approved,
+                currentUserAccountID: accountID,
+                currentUserLogin: email,
+                policy,
+                ownerLogin: email,
+                reportTransactions: [],
+                violations: {},
+                bankAccountList: {},
+                chatReport: undefined,
+                isChatReportArchived: false,
+                rules: undefined,
+            };
+            expect(getReportPrimaryAction(params)).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
+
+            // When the workspace disables payments using either its current or Classic setting.
+            const disabledPolicy = {...policy, reimbursementChoice};
+
+            // Then the same approved bill offers no Pay action.
+            expect(canPayBill(approved, disabledPolicy, accountID, email)).toBe(false);
+            expect(getReportPrimaryAction({...params, policy: disabledPolicy})).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
+        },
+    );
+
+    it.each([CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO])(
+        'omits Ready to pay from Bills navigation when workspace payments are disabled with %s',
+        (reimbursementChoice) => {
+            // Given Bills content in a workspace with payments disabled.
+            const params = {
+                currentUserEmail: email,
+                currentUserAccountID: accountID,
+                cardFeedsByPolicy: {},
+                defaultCardFeed: undefined,
+                policies: {[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: {...policy, reimbursementChoice}},
+                savedSearches: undefined,
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                draftTransactionIDs: undefined,
+                isTrackIntentUser: false,
+                hasBills: true,
+            };
+
+            // When the menu builds the suggested searches from the workspace settings.
+            const disabledSection = createTypeMenuSections(params).find((section) => section.translationPath === 'billPay.bills');
+
+            // Then Bills and Needs approval remain available, while Ready to pay requires payments enabled.
+            expect(disabledSection?.menuItems.map((item) => item.key)).toEqual([CONST.SEARCH.SEARCH_KEYS.BILLS, CONST.SEARCH.SEARCH_KEYS.BILLS_APPROVE]);
+            const enabledSection = createTypeMenuSections({...params, policies: {[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy}}).find(
+                (section) => section.translationPath === 'billPay.bills',
+            );
+            expect(enabledSection?.menuItems.map((item) => item.key)).toContain(CONST.SEARCH.SEARCH_KEYS.BILLS_PAY);
+        },
+    );
 
     it('includes received standalone invoices without requiring a room', () => {
         const invoice: Report = {...bill, type: CONST.REPORT.TYPE.INVOICE, ownerAccountID: 456};

@@ -4790,9 +4790,13 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
     }
 
     if (hasBills) {
+        const billMenuItems = [suggestedSearches[CONST.SEARCH.SEARCH_KEYS.BILLS], suggestedSearches[CONST.SEARCH.SEARCH_KEYS.BILLS_APPROVE]];
+        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.PAY]) {
+            billMenuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.BILLS_PAY]);
+        }
         typeMenuSections.push({
             translationPath: 'billPay.bills',
-            menuItems: [suggestedSearches[CONST.SEARCH.SEARCH_KEYS.BILLS], suggestedSearches[CONST.SEARCH.SEARCH_KEYS.BILLS_APPROVE], suggestedSearches[CONST.SEARCH.SEARCH_KEYS.BILLS_PAY]],
+            menuItems: billMenuItems,
         });
     }
 

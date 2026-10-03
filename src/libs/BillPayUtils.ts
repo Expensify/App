@@ -4,6 +4,8 @@ import type {Policy, Report} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {arePaymentsEnabled} from './PolicyUtils';
+
 function isBillReport(report: OnyxEntry<Report>): boolean {
     return report?.type === CONST.REPORT.TYPE.BILL;
 }
@@ -32,6 +34,9 @@ function canPayBill(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> | null,
     }
     if (report.type === CONST.REPORT.TYPE.INVOICE) {
         return report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED;
+    }
+    if (!arePaymentsEnabled(policy)) {
+        return false;
     }
     if (report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || (report.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED && report.statusNum !== CONST.REPORT.STATUS_NUM.CLOSED)) {
         return false;
