@@ -22,7 +22,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {Locale as DateFnsLocale} from 'date-fns';
 
 import {format as formatDate} from 'date-fns';
-import React, {createContext, useEffect, useState} from 'react';
+import React, {createContext, useEffect, useSyncExternalStore} from 'react';
 
 type LocaleContextProviderProps = {
     children: React.ReactNode;
@@ -95,12 +95,19 @@ const LocaleContext = createContext<LocaleContextProps>({
     dateFnsLocale: undefined,
 });
 
+const subscribeToLocale = (onLocaleChange: () => void) => IntlStore.subscribe(onLocaleChange);
+
+const getCurrentLocale = () => IntlStore.getCurrentLocale();
+
 function LocaleContextProvider({children}: LocaleContextProviderProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [areTranslationsLoading = true] = useOnyx(ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING);
     const [countryCodeByIP = 1] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [nvpPreferredLocale, nvpPreferredLocaleMetadata] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
-    const [currentLocale, setCurrentLocale] = useState<Locale | undefined>(() => IntlStore.getCurrentLocale());
+
+    // IntlStore.currentLocale is external mutable state, so we subscribe to the value itself rather than to the
+    // RAM_ONLY_ARE_TRANSLATIONS_LOADING true -> false transition. On native the locale module can resolve before React
+    // commits a render with the loading flag set to true, which made a transition-based sync miss the change entirely.
+    const currentLocale = useSyncExternalStore(subscribeToLocale, getCurrentLocale, getCurrentLocale);
 
     let localeToApply: Locale | undefined;
     if (!isLoadingOnyxValue(nvpPreferredLocaleMetadata)) {
@@ -120,22 +127,6 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
         IntlStore.load(localeToApply);
         setLocale(localeToApply, nvpPreferredLocale);
     }, [localeToApply, nvpPreferredLocale]);
-
-    // Sync currentLocale from IntlStore after translations finish loading.
-    // IntlStore.currentLocale is external mutable state that React can't track,
-    // so we use this effect to explicitly update React state when it changes.
-    useEffect(() => {
-        if (areTranslationsLoading) {
-            return;
-        }
-
-        const locale = IntlStore.getCurrentLocale();
-        if (!locale) {
-            return;
-        }
-
-        setCurrentLocale(locale);
-    }, [areTranslationsLoading]);
 
     const selectedTimezone = currentUserPersonalDetails?.timezone?.selected;
     const effectiveTimezone = selectedTimezone ?? CONST.DEFAULT_TIME_ZONE.selected;
@@ -197,7 +188,6 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
         dateFnsLocale,
     };
 
-    // eslint-disable-next-line rulesdir/context-provider-split-values
     return <LocaleContext.Provider value={contextValue}>{children}</LocaleContext.Provider>;
 }
 

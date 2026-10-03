@@ -52,6 +52,10 @@ class IntlStore {
         return this.currentLocale;
     }
 
+    static subscribe() {
+        return () => {};
+    }
+
     static load() {
         return Promise.resolve();
     }
