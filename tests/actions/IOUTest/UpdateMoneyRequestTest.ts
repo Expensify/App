@@ -24,9 +24,10 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyTagLists, RecentlyUsedTags, RecentWaypoint, Report, SearchResults, TransactionViolation} from '@src/types/onyx';
+import type {Policy, PolicyTagLists, PolicyVendors, RecentlyUsedTags, RecentWaypoint, Report, SearchResults, TransactionViolation} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+import type {Connections} from '@src/types/onyx/Policy';
 import type {Routes} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 
@@ -3142,12 +3143,12 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             const policy = createMock<Policy>({
                 ...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.TEAM),
-                connections: {
+                connections: createMock<Connections>({
                     [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
-                        config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD} as any,
+                        config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
                         data: {vendors: [{id: vendorID, name: 'Acme Disabled', currency: 'USD', email: 'vendor@example.com'}]},
                     },
-                },
+                }),
             });
 
             const parentReport: Report = {
@@ -3177,7 +3178,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 showInReview: true,
             };
 
-            const policyVendors = {
+            const policyVendors: PolicyVendors = {
                 [vendorID]: {
                     externalID: vendorID,
                     name: 'Acme Disabled',
@@ -3230,12 +3231,12 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 ...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.TEAM),
                 requiresCategory: false,
                 requiresTag: false,
-                connections: {
+                connections: createMock<Connections>({
                     [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
-                        config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD} as any,
+                        config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
                         data: {vendors: [{id: vendorID, name: 'Acme Enabled', currency: 'USD', email: 'vendor@example.com'}]},
                     },
-                },
+                }),
             });
 
             const parentReport: Report = {
@@ -3265,7 +3266,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 showInReview: true,
             };
 
-            const policyVendors = {
+            const policyVendors: PolicyVendors = {
                 [vendorID]: {
                     externalID: vendorID,
                     name: 'Acme Enabled',

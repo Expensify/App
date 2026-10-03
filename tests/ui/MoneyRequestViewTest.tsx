@@ -921,7 +921,7 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
-    it('shows the vendor-field violation error when assigned vendor is disabled in policyVendors', async () => {
+    it('shows the vendor-field error when assigned vendor is disabled in policyVendors', async () => {
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
             parentReportID: expenseReportID,
