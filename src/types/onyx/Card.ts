@@ -1,4 +1,5 @@
 import type CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
 import type {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
 
 import type {ValueOf} from 'type-fest';
@@ -178,6 +179,9 @@ type Card = OnyxValueWithOfflineFeedback<{
         /** Whether the card's PIN is currently blocked due to too many incorrect entries */
         isPINBlocked?: boolean;
 
+        /** Where the admin who issued the card asked for it to be shipped */
+        shippingAddress?: ShippingAddress;
+
         errors?: Errors;
 
         /** Collection of form field errors  */
@@ -294,6 +298,33 @@ type IssueNewCardStep = ValueOf<typeof CONST.EXPENSIFY_CARD.STEP>;
 /** Card spending limit type */
 type CardLimitType = ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>;
 
+/** Name and address the admin entered for shipping a physical card */
+type ShippingAddress = {
+    /** Cardholder's first name printed on the card */
+    legalFirstName: string;
+
+    /** Cardholder's last name printed on the card */
+    legalLastName: string;
+
+    /** Street, with the second address line after a new line */
+    addressStreet: string;
+
+    /** City */
+    addressCity: string;
+
+    /** State or province */
+    addressState: string;
+
+    /** Zip or postal code */
+    addressZip: string;
+
+    /** Country code */
+    addressCountry: Country;
+
+    /** Phone number for the shipping label, set when the cardholder has none */
+    phoneNumber?: string;
+};
+
 /** Data required to be sent to issue a new card */
 type IssueNewCardData = {
     /** The email address of the cardholder */
@@ -319,6 +350,9 @@ type IssueNewCardData = {
 
     /** Optional end date for card validity (YYYY-MM-DD) */
     validThru?: string;
+
+    /** Where the admin wants the physical card shipped, unset when the cardholder is prompted for it */
+    shippingAddress?: ShippingAddress | null;
 
     /** Whether or not we are adding a spend rule to the card or not */
     spendRuleEnabled?: boolean;
@@ -373,6 +407,9 @@ type IssueNewCard = {
 
     /** Whether the request was successful */
     isSuccessful?: boolean;
+
+    /** Whether the cardholder has a phone number for the shipping label, null while we're checking */
+    hasAssigneePhoneNumber?: boolean | null;
 };
 
 /** List of Expensify cards */
@@ -437,4 +474,5 @@ export type {
     CardAssignmentData,
     UnassignedCard,
     PossibleFraudData,
+    ShippingAddress,
 };

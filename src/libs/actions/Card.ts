@@ -9,6 +9,7 @@ import type {
     DeletePersonalCardParams,
     FreezeCardParams,
     OpenCardDetailsPageParams,
+    OpenIssueNewCardShippingAddressStepParams,
     ReportVirtualExpensifyCardFraudParams,
     RequestReplacementExpensifyCardParams,
     ResolveFraudAlertParams,
@@ -23,9 +24,10 @@ import type {
     UpdateExpensifyCardLimitTypeParams,
     UpdateExpensifyCardTitleParams,
 } from '@libs/API/parameters';
+import type {ActivatePhysicalCardPersonalDetails} from '@libs/API/parameters/ActivatePhysicalExpensifyCardParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {CardProgramKey} from '@libs/CardUtils';
-import {getTranslationKeyForLimitType} from '@libs/CardUtils';
+import {getTranslationKeyForLimitType, shouldShowShippingAddressStep} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -222,10 +224,11 @@ function requestReplacementExpensifyCard(cardID: number, reason: ReplacementReas
 /**
  * Activates the physical Expensify card based on the last four digits of the card number
  */
-function activatePhysicalExpensifyCard(cardLastFourDigits: string, cardID: number) {
+function activatePhysicalExpensifyCard(cardLastFourDigits: string, cardID: number, personalDetails?: ActivatePhysicalCardPersonalDetails) {
     const parameters: ActivatePhysicalExpensifyCardParams = {
         cardLastFourDigits,
         cardID,
+        ...personalDetails,
     };
 
     API.write(WRITE_COMMANDS.ACTIVATE_PHYSICAL_EXPENSIFY_CARD, parameters, buildCardLoadingOnyxData(cardID));
@@ -1357,6 +1360,28 @@ function startIssueNewCardFlow(policyID: string | undefined) {
     API.read(READ_COMMANDS.START_ISSUE_NEW_CARD_FLOW, parameters);
 }
 
+/** Finds out whether the cardholder has a phone number for the shipping label, so we know if the admin needs to enter one */
+function openIssueNewCardShippingAddressStep(policyID: string | undefined, assigneeEmail: string | undefined) {
+    if (!assigneeEmail) {
+        return;
+    }
+
+    const parameters: OpenIssueNewCardShippingAddressStepParams = {
+        policyID,
+        assigneeEmail: addSMSDomainIfPhoneNumber(assigneeEmail),
+    };
+
+    API.read(READ_COMMANDS.OPEN_ISSUE_NEW_CARD_SHIPPING_ADDRESS_STEP, parameters, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`,
+                value: {hasAssigneePhoneNumber: null},
+            },
+        ],
+    });
+}
+
 function configureExpensifyCardsForPolicy(policyID: string, workspaceAccountID: number, bankAccountID?: number) {
     if (!bankAccountID) {
         return;
@@ -1436,7 +1461,7 @@ function issueExpensifyCard(domainAccountID: number, policyID: string | undefine
 
     const spendRuleEnabled = !!data.spendRuleEnabled;
     const spendRuleOption = data.spendRuleOption ?? CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.COPY_EXISTING;
-    const {assigneeEmail, limit, limitType, cardTitle, cardType, validFrom, validThru, spendRuleValue, spendRuleID} = data;
+    const {assigneeEmail, limit, limitType, cardTitle, cardType, validFrom, validThru, spendRuleValue, spendRuleID, shippingAddress} = data;
     const normalizedAssigneeEmail = addSMSDomainIfPhoneNumber(assigneeEmail);
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD | typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
@@ -1534,7 +1559,7 @@ function issueExpensifyCard(domainAccountID: number, policyID: string | undefine
     if (cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL) {
         API.write(
             WRITE_COMMANDS.CREATE_EXPENSIFY_CARD,
-            {...parameters, policyID},
+            {...parameters, policyID, shippingAddress: shippingAddress && shouldShowShippingAddressStep(data) ? JSON.stringify(shippingAddress) : undefined},
             {
                 optimisticData,
                 successData,
@@ -2031,6 +2056,7 @@ export {
     updateExpensifyCardTitle,
     updateSettlementAccount,
     startIssueNewCardFlow,
+    openIssueNewCardShippingAddressStep,
     configureExpensifyCardsForPolicy,
     issueExpensifyCard,
     openCardDetailsPage,
