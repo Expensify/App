@@ -2,8 +2,8 @@ import type {FullScreenLoadingIndicatorIconSize} from '@components/FullscreenLoa
 
 import type CONST from '@src/CONST';
 
-import type {ImagePrefetchOptions, ImageSource} from 'expo-image';
-import type {ImageProps as RNImageProps, ImageRequireSource, ImageStyle, ImageURISource, StyleProp, ViewStyle} from 'react-native';
+import type {ImagePrefetchOptions, ImageProps as ExpoImageProps, ImageSource} from 'expo-image';
+import type {ImageProps as RNImageProps, ImageRequireSource, ImageURISource, StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 type ExpoImageSource = ImageSource | number | ImageSource[];
@@ -27,7 +27,7 @@ type BaseImageProps = {
     /** Called when the image starts to load. */
     onLoadStart?: () => void;
 
-    style?: StyleProp<ImageStyle>;
+    style?: ExpoImageProps['style'];
     cachePolicy?: ImagePrefetchOptions['cachePolicy'];
 
     /** Priorities for completing loads. If more than one load is queued at a time,
