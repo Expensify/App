@@ -15,8 +15,10 @@ import {unassignWorkspaceCompanyCard} from '@libs/actions/CompanyCards';
 import navigateToCardTransactions from '@libs/CardNavigationUtils';
 import {formatMaskedCardName} from '@libs/CardUtils';
 import localFileDownload from '@libs/localFileDownload';
+import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 import {format, parseISO} from 'date-fns';
 import React from 'react';
@@ -24,12 +26,13 @@ import {View} from 'react-native';
 
 import type {WorkspaceCompanyCardTableItemData} from './WorkspaceCompanyCardsTableRow';
 
-type WorkspaceCompanyCardBulkActionType = 'unassign' | 'viewTransactions' | 'exportCSV';
+type WorkspaceCompanyCardBulkActionType = 'editTransactionStartDate' | 'unassign' | 'viewTransactions' | 'exportCSV';
 
 type WorkspaceCompanyCardsTableControlsProps = {
     policyID: string;
     domainOrWorkspaceAccountID: number;
     bankName: UseCompanyCardsResult['bankName'];
+    feedName: UseCompanyCardsResult['feedName'];
 
     /** Whether the current member can edit company cards */
     canWriteCompanyCards: boolean;
@@ -55,6 +58,7 @@ function WorkspaceCompanyCardsTableControls({
     policyID,
     domainOrWorkspaceAccountID,
     bankName,
+    feedName,
     canWriteCompanyCards,
     clearCardSelection,
     isSelectionModeEnabled,
@@ -62,7 +66,7 @@ function WorkspaceCompanyCardsTableControls({
     const styles = useThemeStyles();
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
-    const icons = useMemoizedLazyExpensifyIcons(['Export', 'MoneySearch', 'RemoveMembers']);
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Export', 'MoneySearch', 'RemoveMembers']);
     const {processedData, shouldUseNarrowTableLayout} = useTableContext<WorkspaceCompanyCardTableItemData>();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -146,6 +150,22 @@ function WorkspaceCompanyCardsTableControls({
         clearCardSelection();
     };
 
+    const editSelectedCardTransactionStartDates = () => {
+        if (!feedName) {
+            return;
+        }
+
+        const selectedCardIDs = selectedAssignedCards
+            .map((card) => card.assignedCard?.cardID)
+            .filter((cardID): cardID is number => cardID !== undefined)
+            .map(String);
+        if (selectedCardIDs.length === 0) {
+            return;
+        }
+        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BULK_EDIT_TRANSACTION_START_DATE.getRoute(policyID, feedName, selectedCardIDs));
+        clearCardSelection();
+    };
+
     const getBulkActionOptions = (): Array<DropdownOption<WorkspaceCompanyCardBulkActionType>> => {
         const options: Array<DropdownOption<WorkspaceCompanyCardBulkActionType>> = [];
 
@@ -157,6 +177,12 @@ function WorkspaceCompanyCardsTableControls({
                     value: 'unassign',
                     shouldSkipFocusRestore: !!bankName,
                     onSelected: confirmBulkUnassign,
+                });
+                options.push({
+                    icon: icons.CalendarSolid,
+                    text: translate('workspace.moreFeatures.companyCards.bulkUpdateTransactionStartDate'),
+                    value: 'editTransactionStartDate',
+                    onSelected: editSelectedCardTransactionStartDates,
                 });
             }
 

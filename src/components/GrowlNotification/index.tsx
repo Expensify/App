@@ -1,5 +1,5 @@
 import {setIsReady} from '@libs/Growl';
-import type {GrowlAction, GrowlRef, GrowlType} from '@libs/Growl';
+import type {GrowlAction, GrowlPosition, GrowlRef, GrowlType} from '@libs/Growl';
 
 import type {ForwardedRef} from 'react';
 
@@ -12,6 +12,7 @@ type GrowlContent = {
     type: GrowlType;
     duration: number;
     action?: GrowlAction;
+    position?: GrowlPosition;
 
     /** Bumped on every show() call so identical-args re-shows still remount and re-trigger the growl. */
     nonce: number;
@@ -29,8 +30,8 @@ type GrowlNotificationProps = {
 function GrowlNotification({ref}: GrowlNotificationProps) {
     const [content, setContent] = useState<GrowlContent | null>(null);
 
-    const show = (text: string, growlType: GrowlType, duration: number, action?: GrowlAction) => {
-        setContent((prev) => ({bodyText: text, type: growlType, duration, action, nonce: (prev?.nonce ?? 0) + 1}));
+    const show = (text: string, growlType: GrowlType, duration: number, action?: GrowlAction, position?: GrowlPosition) => {
+        setContent((prev) => ({bodyText: text, type: growlType, duration, action, position, nonce: (prev?.nonce ?? 0) + 1}));
     };
 
     useImperativeHandle(ref, () => ({show}), [show]);
@@ -56,6 +57,7 @@ function GrowlNotification({ref}: GrowlNotificationProps) {
             type={content.type}
             duration={content.duration}
             action={content.action}
+            position={content.position}
             nonce={content.nonce}
             onDismissed={handleDismissed}
         />
