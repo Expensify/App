@@ -1187,6 +1187,7 @@ function MoneyRequestView({
     // actualAttendees is already sorted by enrichAndSortAttendees above; pass without localeCompare to preserve that order while stripping the SMS domain.
     const getAttendeesTitle = Array.isArray(actualAttendees) ? getAttendeesListDisplayString(actualAttendees) : '';
     const attendeesCopyValue = getAttendeesTitle || undefined;
+    const areAttendeesCopyable = !!attendeesCopyValue;
 
     const tagList = policyTagLists.map(({name, orderWeight, tags}, index) => {
         const tagForDisplay = getTagForDisplay(updatedTransaction ?? transaction, index);
@@ -1686,8 +1687,8 @@ function MoneyRequestView({
                                             accountID: a?.accountID,
                                             email: a?.email,
                                         }))}
-                                        maxVisible={canEdit ? undefined : actualAttendees.length}
-                                        isCopyable={!!attendeesCopyValue}
+                                        maxVisible={areAttendeesCopyable ? actualAttendees.length : undefined}
+                                        isCopyable={areAttendeesCopyable}
                                     />
                                 ) : undefined
                             }
@@ -1706,8 +1707,8 @@ function MoneyRequestView({
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
                             copyValue={attendeesCopyValue}
-                            copyable={!canEdit && !!attendeesCopyValue}
-                            isTitleSelectable={!!attendeesCopyValue}
+                            copyable={!canEdit && areAttendeesCopyable}
+                            isTitleSelectable={areAttendeesCopyable}
                         />
                     </OfflineWithFeedback>
                 )}
