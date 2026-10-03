@@ -121,6 +121,93 @@ describe('useShouldSuppressConciergeIndicators', () => {
         });
     });
 
+    describe('newer user turn during the followup-list window', () => {
+        const QUESTION_ID = '90';
+        const NEWER_MESSAGE_ID = '95';
+        const REPLY_ID = REPORT_ACTION_ID;
+        const LATER_CONCIERGE_ID = '101';
+        const CONCIERGE_ACCOUNT_ID = CONST.ACCOUNT_ID.CONCIERGE;
+
+        async function seedFollowupTurn(actions: Record<string, ReportAction>, questionReportActionID?: string) {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, actions);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${REPORT_ID}`, {
+                reportActionID: REPLY_ID,
+                createdAt: Date.now(),
+                questionReportActionID,
+            });
+            await waitForBatchedUpdates();
+        }
+
+        it('stops suppressing once the user sends a message after the question, even though the reply is future-stamped newest', async () => {
+            // Given a followup turn whose pregenerated reply is stamped 4s after the question, and a
+            // second user message sent inside that window (so it sorts before the reply)
+            await seedFollowupTurn(
+                {
+                    [QUESTION_ID]: buildAction({reportActionID: QUESTION_ID, created: '2026-06-29 10:00:00.000'}),
+                    [NEWER_MESSAGE_ID]: buildAction({reportActionID: NEWER_MESSAGE_ID, created: '2026-06-29 10:00:02.000'}),
+                    [REPLY_ID]: buildAction({reportActionID: REPLY_ID, actorAccountID: CONCIERGE_ACCOUNT_ID, created: '2026-06-29 10:00:04.000'}),
+                },
+                QUESTION_ID,
+            );
+
+            const {result} = renderHook(() => useShouldSuppressConciergeIndicators(REPORT_ID));
+
+            // Then the skeleton window no longer hides the indicators — that message is a turn of its own
+            await waitFor(() => {
+                expect(result.current).toBe(false);
+            });
+        });
+
+        it('keeps suppressing while only the question exists', async () => {
+            await seedFollowupTurn(
+                {
+                    [QUESTION_ID]: buildAction({reportActionID: QUESTION_ID, created: '2026-06-29 10:00:00.000'}),
+                    [REPLY_ID]: buildAction({reportActionID: REPLY_ID, actorAccountID: CONCIERGE_ACCOUNT_ID, created: '2026-06-29 10:00:04.000'}),
+                },
+                QUESTION_ID,
+            );
+
+            const {result} = renderHook(() => useShouldSuppressConciergeIndicators(REPORT_ID));
+
+            await waitFor(() => {
+                expect(result.current).toBe(true);
+            });
+        });
+
+        it('keeps suppressing when the only newer action is from Concierge', async () => {
+            await seedFollowupTurn(
+                {
+                    [QUESTION_ID]: buildAction({reportActionID: QUESTION_ID, created: '2026-06-29 10:00:00.000'}),
+                    [REPLY_ID]: buildAction({reportActionID: REPLY_ID, actorAccountID: CONCIERGE_ACCOUNT_ID, created: '2026-06-29 10:00:04.000'}),
+                    [LATER_CONCIERGE_ID]: buildAction({reportActionID: LATER_CONCIERGE_ID, actorAccountID: CONCIERGE_ACCOUNT_ID, created: '2026-06-29 10:00:05.000'}),
+                },
+                QUESTION_ID,
+            );
+
+            const {result} = renderHook(() => useShouldSuppressConciergeIndicators(REPORT_ID));
+
+            await waitFor(() => {
+                expect(result.current).toBe(true);
+            });
+        });
+
+        it('keeps suppressing when the pending flag predates questionReportActionID', async () => {
+            // Given a flag persisted by an older client, with no question anchor to compare against
+            await seedFollowupTurn({
+                [QUESTION_ID]: buildAction({reportActionID: QUESTION_ID, created: '2026-06-29 10:00:00.000'}),
+                [NEWER_MESSAGE_ID]: buildAction({reportActionID: NEWER_MESSAGE_ID, created: '2026-06-29 10:00:02.000'}),
+                [REPLY_ID]: buildAction({reportActionID: REPLY_ID, actorAccountID: CONCIERGE_ACCOUNT_ID, created: '2026-06-29 10:00:04.000'}),
+            });
+
+            const {result} = renderHook(() => useShouldSuppressConciergeIndicators(REPORT_ID));
+
+            // Then behavior falls back to the pre-anchor suppression instead of guessing
+            await waitFor(() => {
+                expect(result.current).toBe(true);
+            });
+        });
+    });
+
     describe('session activity (Concierge welcome state)', () => {
         beforeEach(() => {
             // An active session for the main Concierge DM.

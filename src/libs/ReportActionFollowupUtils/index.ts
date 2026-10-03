@@ -1,3 +1,10 @@
+import {isActionOfType} from '@libs/ReportActionsUtils';
+
+import CONST from '@src/CONST';
+import type {ReportActions} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 import render from 'dom-serializer';
 import {DomUtils, parseDocument} from 'htmlparser2';
 
@@ -39,5 +46,30 @@ function parseFollowupsFromHtml(html: string): Followup[] | null {
     });
 }
 
-export {parseFollowupsFromHtml};
+/**
+ * Whether someone other than the agent commented after the given question — i.e. the user started
+ * another agent request while this turn was still in flight. Compares identity plus `created`
+ * within non-agent comments only: the pregenerated Concierge reply is future-stamped past its
+ * display delay, so a message sent during that window sorts before the reply yet is still a
+ * newer request.
+ */
+function hasUserMessageSinceQuestion(actions: OnyxEntry<ReportActions>, questionReportActionID: string | undefined, agentAccountID: number): boolean {
+    if (!actions || !questionReportActionID) {
+        return false;
+    }
+    const question = actions[questionReportActionID];
+    if (!question) {
+        return false;
+    }
+    return Object.values(actions).some(
+        (action) =>
+            !!action &&
+            action.reportActionID !== questionReportActionID &&
+            action.actorAccountID !== agentAccountID &&
+            isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) &&
+            action.created > question.created,
+    );
+}
+
+export {hasUserMessageSinceQuestion, parseFollowupsFromHtml};
 export type {Followup};
