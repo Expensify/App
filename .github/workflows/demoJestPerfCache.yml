@@ -1,0 +1,174 @@
+name: Demo - Jest perf cache speedup
+# cspell:ignore nvmrc
+
+# THROWAWAY. NEVER MERGE. This exists only to produce, on Expensify's own runners, the CI evidence
+# that https://github.com/Expensify/App/pull/100297 cannot produce for itself: seedJestPerfCache.yml
+# only writes the transform cache once it is on main, and reassurePerformanceTests.yml ignores
+# .github/**, so that PR neither triggers the perf workflow nor finds an entry to restore.
+#
+# It runs on pull_request because that is the only trigger a fork can reach: a push to a fork runs
+# on the fork's runners, which have no blacksmith labels, while a fork PR runs in the base repo on
+# the same runner class every figure in the proposal was measured on.
+#
+# Two independent measurements, because they can fail for different reasons:
+#
+#   cold-then-warm  Runs the measure step twice in ONE job. The second run reuses the .jest-cache
+#                   the first run just wrote. This needs no cache backend, no ref scoping and no
+#                   fork permissions, so it is the measurement that cannot be taken away. It is
+#                   also exactly how the 217.0s vs 119.7s local pairs were produced.
+#
+#   restored        Restores, in a SECOND job, the entry the first job saved. This is the part that
+#                   mirrors what the PR actually does, and the part that answers the proposal's
+#                   first open question, since a hit here is Blacksmith's backend serving an entry
+#                   another job wrote. It is continue-on-error: if fork PRs cannot write Blacksmith's
+#                   cache, that is worth learning, but it must not take the primary number down
+#                   with it.
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cold-then-warm:
+    name: Cold, then warm, in one job
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    outputs:
+      cold: ${{ steps.cold.outputs.seconds }}
+      warm: ${{ steps.warm.outputs.seconds }}
+      files: ${{ steps.size.outputs.files }}
+    steps:
+      - name: Checkout
+        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+
+      - name: Setup NodeJS
+        uses: ./.github/actions/composite/setupNode
+
+      # setupNode restores node_modules, which can carry a .jest-cache with it. Start from nothing
+      # so the first run is genuinely cold.
+      - name: Guarantee an empty transform cache
+        run: rm -rf .jest-cache
+
+      - name: Measure with no transform cache
+        id: cold
+        shell: bash
+        run: |
+          START=$(date +%s)
+          NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
+          echo "seconds=$(( $(date +%s) - START ))" >> "$GITHUB_OUTPUT"
+
+      - name: Report what the cold run produced
+        id: size
+        shell: bash
+        run: |
+          FILES=$(find .jest-cache -type f | wc -l)
+          echo "files=$FILES" >> "$GITHUB_OUTPUT"
+          echo "::notice::Cold: ${{ steps.cold.outputs.seconds }}s, wrote $(du -sm .jest-cache | cut -f1)MB / $FILES files"
+
+      # Identical command, identical commit, same machine, seconds later. The only thing that
+      # changed is that .jest-cache is now populated.
+      - name: Measure again with the cache the first run wrote
+        id: warm
+        shell: bash
+        run: |
+          START=$(date +%s)
+          NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
+          echo "seconds=$(( $(date +%s) - START ))" >> "$GITHUB_OUTPUT"
+
+      - name: Save the entry for the restore job
+        # v5.0.1
+        uses: actions/cache/save@9255dc7a253b0ccc959486e2bca901246202afeb
+        with:
+          path: .jest-cache
+          key: demo-jest-perf-${{ github.run_id }}
+
+  restored:
+    name: Warm from a restored cache (mirrors the PR)
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    needs: cold-then-warm
+    continue-on-error: true
+    outputs:
+      seconds: ${{ steps.measure.outputs.seconds }}
+      hit: ${{ steps.restore.outputs.cache-hit }}
+    steps:
+      - name: Checkout
+        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+
+      - name: Setup NodeJS
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Guarantee an empty transform cache
+        run: rm -rf .jest-cache
+
+      - name: Restore the entry the previous job saved
+        id: restore
+        # v5.0.1
+        uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb
+        with:
+          path: .jest-cache
+          key: demo-jest-perf-${{ github.run_id }}
+
+      # Without this a miss would silently measure cold again and report a 0% saving as a result.
+      - name: Stop if nothing was restored
+        if: steps.restore.outputs.cache-hit != 'true'
+        run: |
+          echo "::error::Cache miss. Blacksmith did not serve the entry the previous job saved."
+          exit 1
+
+      - name: Confirm what was restored
+        shell: bash
+        run: echo "::notice::Restored $(du -sm .jest-cache | cut -f1)MB / $(find .jest-cache -type f | wc -l) files"
+
+      - name: Measure with the restored cache
+        id: measure
+        shell: bash
+        run: |
+          START=$(date +%s)
+          NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
+          echo "seconds=$(( $(date +%s) - START ))" >> "$GITHUB_OUTPUT"
+
+  compare:
+    name: Compare
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    needs: [cold-then-warm, restored]
+    if: always() && needs.cold-then-warm.result == 'success'
+    steps:
+      - name: Write the comparison to the run summary
+        shell: bash
+        env:
+          COLD: ${{ needs.cold-then-warm.outputs.cold }}
+          WARM: ${{ needs.cold-then-warm.outputs.warm }}
+          FILES: ${{ needs.cold-then-warm.outputs.files }}
+          RESTORED: ${{ needs.restored.outputs.seconds }}
+          HIT: ${{ needs.restored.outputs.hit }}
+        run: |
+          if [[ -z "$COLD" || -z "$WARM" || "$COLD" -eq 0 ]]; then
+            echo "::error::Missing a duration (cold='$COLD' warm='$WARM')."
+            exit 1
+          fi
+          pct() { awk "BEGIN {printf \"%.1f\", (($1 - $2) / $1) * 100}"; }
+          {
+            echo "## Reassure measure step, with and without a Jest transform cache"
+            echo
+            echo "Runner: \`blacksmith-4vcpu-ubuntu-2404\`, the class the perf jobs use."
+            echo "Command: \`npx reassure --baseline\`, identical every time."
+            echo
+            echo "| | seconds | saving |"
+            echo "| --- | --- | --- |"
+            echo "| Cold, $FILES files transformed | ${COLD}s | - |"
+            echo "| Warm, cache written by the previous step | ${WARM}s | **$(pct "$COLD" "$WARM")%** |"
+            if [[ "$HIT" == "true" && -n "$RESTORED" ]]; then
+              echo "| Warm, cache restored in a separate job | ${RESTORED}s | **$(pct "$COLD" "$RESTORED")%** |"
+              echo
+              echo "The third row is what the PR actually does, and a hit there is Blacksmith's cache"
+              echo "backend serving an entry a different job wrote."
+            else
+              echo
+              echo "> The separate-job restore did not report a hit, so only the first two rows stand."
+              echo "> They still measure the transform saving itself, which is what the PR is claiming."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "::notice::cold ${COLD}s, warm ${WARM}s, restored ${RESTORED:-n/a}s"
