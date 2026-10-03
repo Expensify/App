@@ -105,7 +105,7 @@ type ContactState = {
     /** Function to trigger contact import */
     importContacts: () => void;
 
-    /** Opens the system contact picker and adds the picked contact to the list. Only set where contacts can't be imported in bulk (Android) */
+    /** Opens the system contact picker and adds the picked contacts to the list. Only set where contacts can't be imported in bulk (Android) */
     pickContact?: () => void;
 
     setContactPermissionState: (status: PermissionStatus) => void;

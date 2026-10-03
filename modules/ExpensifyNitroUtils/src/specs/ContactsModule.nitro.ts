@@ -27,7 +27,7 @@ type Contact = {
 interface ContactsModule extends HybridObject<{ios: 'swift'; android: 'kotlin'}> {
     getAll(keys: ContactFields[]): Promise<Contact[]>;
 
-    /** Opens the system contact picker and resolves with the contact the user selected, or an empty array if they cancel */
+    /** Opens the system contact picker and resolves with the contacts the user selected, or an empty array if they cancel */
     pick(keys: ContactFields[]): Promise<Contact[]>;
 }
 
