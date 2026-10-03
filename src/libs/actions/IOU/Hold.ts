@@ -86,7 +86,6 @@ function putOnHold({
     const createdReportActionComment = buildOptimisticHoldReportActionComment(comment, delegateAccountID, DateUtils.addMillisecondsFromDateTime(currentTime, 1));
     const newViolation = {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true};
     const updatedViolations = [...(transactionViolations ?? []), newViolation];
-    const iouReport = transactionReport;
     const iouAction = getIOUActionForReportID(transaction?.reportID, transactionID);
     let transactionThreadReport: OnyxTypes.Report;
 
@@ -142,17 +141,19 @@ function putOnHold({
         },
     ];
 
-    if (iouReport && iouReport.currency === transaction?.currency) {
-        const isExpenseReportLocal = isExpenseReport(iouReport);
+    if (transactionReport && transactionReport.currency === transaction?.currency) {
+        const isExpenseReportLocal = isExpenseReport(transactionReport);
         const coefficient = isExpenseReportLocal ? -1 : 1;
         const transactionAmount = getAmount(transaction, isExpenseReportLocal) * coefficient;
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionReport.reportID}`,
             value: {
-                unheldTotal: (iouReport.unheldTotal ?? 0) - transactionAmount,
-                unheldNonReimbursableTotal: !transaction?.reimbursable ? (iouReport.unheldNonReimbursableTotal ?? 0) - transactionAmount : iouReport.unheldNonReimbursableTotal,
-                unheldReimbursableTotal: transaction?.reimbursable ? getUnheldReimbursableTotal(iouReport) - transactionAmount : getUnheldReimbursableTotal(iouReport),
+                unheldTotal: (transactionReport.unheldTotal ?? 0) - transactionAmount,
+                unheldNonReimbursableTotal: !transaction?.reimbursable
+                    ? (transactionReport.unheldNonReimbursableTotal ?? 0) - transactionAmount
+                    : transactionReport.unheldNonReimbursableTotal,
+                unheldReimbursableTotal: transaction?.reimbursable ? getUnheldReimbursableTotal(transactionReport) - transactionAmount : getUnheldReimbursableTotal(transactionReport),
             },
         });
     }
@@ -302,10 +303,10 @@ function putOnHold({
         );
     }
 
-    if (iouReport) {
+    if (transactionReport) {
         const optimisticNextStep = buildOptimisticNextStep({
-            report: iouReport,
-            predictedNextStatus: iouReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
+            report: transactionReport,
+            predictedNextStatus: transactionReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
             shouldFixViolations: true,
             currentUserAccountIDParam: currentUserAccountID,
             currentUserEmailParam: currentUserLogin,
@@ -315,7 +316,7 @@ function putOnHold({
 
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionReport.reportID}`,
             value: {
                 nextStep: optimisticNextStep,
                 pendingFields: {
@@ -326,7 +327,7 @@ function putOnHold({
 
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionReport.reportID}`,
             value: {
                 pendingFields: {
                     nextStep: null,
@@ -336,9 +337,9 @@ function putOnHold({
 
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionReport.reportID}`,
             value: {
-                nextStep: iouReport.nextStep ?? null,
+                nextStep: transactionReport.nextStep ?? null,
                 pendingFields: {
                     nextStep: null,
                 },
