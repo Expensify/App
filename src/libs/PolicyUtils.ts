@@ -163,7 +163,7 @@ function getActivePoliciesWithExpenseChat(policies: OnyxCollection<Policy> | nul
             !!policy.id &&
             !!getPolicyRole(policy, currentUserLogin) &&
             // Approve-only members cannot create expenses, so their workspaces are not expense destinations.
-            getPolicyRole(policy, currentUserLogin) !== CONST.POLICY.ROLE.APPROVE_ONLY &&
+            canRoleCreateExpenses(getPolicyRole(policy, currentUserLogin)) &&
             (isPaidGroupPolicy(policy) || isSubmitPolicy(policy)) &&
             !isArchivedPolicy(policy),
     );
@@ -792,6 +792,14 @@ function getOwnerChangePayerSuccessData(policy: OnyxEntry<Policy>, newOwnerLogin
  */
 function canRolePay(role: string | undefined): boolean {
     return !!role && ROLE_PERMISSION_BUNDLES[role]?.[CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS] === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE;
+}
+
+/**
+ * Whether a role allows creating expenses on a workspace. Approve-only members can only approve, so every
+ * expense-creation entry point gates on this.
+ */
+function canRoleCreateExpenses(role: string | undefined): boolean {
+    return role !== CONST.POLICY.ROLE.APPROVE_ONLY;
 }
 
 /**
@@ -3302,7 +3310,7 @@ function getGroupPoliciesWhereReportCanBeCreated(policies: OnyxCollection<Policy
             (isPaidGroupPolicy(policy) || isSubmitPolicy(policy)) &&
             shouldShowPolicy(policy, false, currentUserLogin) &&
             // Approve-only members cannot create expenses, so they cannot create reports on that workspace either.
-            getPolicyRole(policy, currentUserLogin) !== CONST.POLICY.ROLE.APPROVE_ONLY &&
+            canRoleCreateExpenses(getPolicyRole(policy, currentUserLogin)) &&
             !isTeachersUnitePolicyID(policy.id),
     );
 }
@@ -3725,6 +3733,7 @@ export {
     getOwnerChangePayerSuccessData,
     PAYER_ROLES,
     canRolePay,
+    canRoleCreateExpenses,
     arePaymentsEnabled,
     isAutoPayApprovedReportsAvailable,
     getReimbursementChoice,

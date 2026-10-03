@@ -20,6 +20,7 @@ import type {OptionData as PersonalDetailOptionData} from '@libs/PersonalDetailO
 import {getLoginByAccountID, getPersonalDetailForAccountID, getPersonalDetailsForAccountIDs, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {
+    canRoleCreateExpenses,
     canSendInvoiceFromWorkspace,
     canSubmitPerDiemExpenseFromWorkspace,
     getCountOfEnabledTagsOfList,
@@ -1913,7 +1914,7 @@ function isValidReport(
     }
 
     // Approve-only members cannot create expenses, so their workspace chat is not a valid submit destination.
-    if (isPolicyExpenseChat && excludeApproveOnlyWorkspaces && policy?.role === CONST.POLICY.ROLE.APPROVE_ONLY) {
+    if (isPolicyExpenseChat && excludeApproveOnlyWorkspaces && !canRoleCreateExpenses(policy?.role)) {
         return false;
     }
 

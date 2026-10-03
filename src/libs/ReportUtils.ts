@@ -140,6 +140,7 @@ import {getAllPersonalDetails, getPersonalDetail} from './PersonalDetailsStore';
 import {buildPersonalDetailsUpdate, getAccountIDsByLogins, getLoginByAccountID, getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {
     canMemberWrite as canMemberWritePolicyUtils,
+    canRoleCreateExpenses,
     canSendInvoiceFromWorkspace,
     getActivePolicies,
     getConnectedIntegration,
@@ -11017,7 +11018,7 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
     }
 
     // Approve-only members cannot create expenses on the workspace, so its chats and reports offer no create options.
-    if (policy?.role === CONST.POLICY.ROLE.APPROVE_ONLY && !!policy?.id && report?.policyID === policy.id) {
+    if (!!policy?.id && report?.policyID === policy.id && !canRoleCreateExpenses(policy.role)) {
         return false;
     }
 
@@ -13635,7 +13636,7 @@ function isWorkspaceEligibleForReportChange(submitterEmail: string | undefined, 
         return false;
     }
     // Moving a report to a workspace creates expenses there, which an approve-only submitter cannot do.
-    if (getPolicyRole(newPolicy, submitterEmail) === CONST.POLICY.ROLE.APPROVE_ONLY) {
+    if (!canRoleCreateExpenses(getPolicyRole(newPolicy, submitterEmail))) {
         return false;
     }
     return !!newPolicy.role && !isPendingDeletePolicy(newPolicy);

@@ -13,6 +13,7 @@ import {
     canMemberManageMemberWithRole,
     canMemberRead,
     canMemberWrite,
+    canRoleCreateExpenses,
     canSendInvoiceFromWorkspace,
     evaluateApprovalWorkflowRule,
     findVendorByID,
@@ -416,6 +417,13 @@ describe('PolicyUtils', () => {
             expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.OVERVIEW)).toBe(false);
         });
 
+        it('allows every role except approve-only to create expenses', () => {
+            expect(canRoleCreateExpenses(CONST.POLICY.ROLE.USER)).toBe(true);
+            expect(canRoleCreateExpenses(CONST.POLICY.ROLE.ADMIN)).toBe(true);
+            expect(canRoleCreateExpenses(CONST.POLICY.ROLE.AUDITOR)).toBe(true);
+            expect(canRoleCreateExpenses(CONST.POLICY.ROLE.APPROVE_ONLY)).toBe(false);
+        });
+
         it('allows Submit workspace editors to manage editor memberships without assigning roles', () => {
             const policy = {
                 ...buildPolicy(CONST.POLICY.ROLE.EDITOR),
@@ -787,10 +795,11 @@ describe('PolicyUtils', () => {
     });
     describe('getActivePoliciesWithExpenseChat', () => {
         it('excludes archived policies while keeping the active sibling', () => {
-            const activePolicy = createMock<Policy>({...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), name: 'active', pendingAction: null});
+            const activePolicy = createMock<Policy>({...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), name: 'active', role: CONST.POLICY.ROLE.USER, pendingAction: null});
             const archivedPolicy = createMock<Policy>({
                 ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE),
                 name: 'archived',
+                role: CONST.POLICY.ROLE.USER,
                 pendingAction: null,
                 archivedDate: '2024-01-01',
             });
@@ -1937,6 +1946,7 @@ describe('PolicyUtils', () => {
 
             const newPolicy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                role: CONST.POLICY.ROLE.ADMIN,
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
                 employeeList: {
                     [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
@@ -1971,6 +1981,7 @@ describe('PolicyUtils', () => {
 
             const newPolicy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.SUBMIT),
+                role: CONST.POLICY.ROLE.ADMIN,
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
                 employeeList: {
                     [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},

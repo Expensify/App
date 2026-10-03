@@ -19,7 +19,7 @@ import useWorkspaceList from '@hooks/useWorkspaceList';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {isGroupPolicy} from '@libs/PolicyUtils';
+import {canRoleCreateExpenses, isGroupPolicy} from '@libs/PolicyUtils';
 
 import type {MoneyRequestNavigatorParamList} from '@navigation/types';
 
@@ -84,7 +84,7 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
         searchTerm: debouncedSearchTerm,
         localeCompare,
         // Approve-only members cannot create expenses, so their workspaces cannot be the default expense destination.
-        additionalFilter: (newPolicy) => isGroupPolicy(newPolicy) && newPolicy.role !== CONST.POLICY.ROLE.APPROVE_ONLY,
+        additionalFilter: (newPolicy) => isGroupPolicy(newPolicy) && canRoleCreateExpenses(newPolicy.role),
     });
 
     const confirmButtonOptions = {
