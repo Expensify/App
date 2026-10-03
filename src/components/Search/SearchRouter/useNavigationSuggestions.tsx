@@ -77,7 +77,7 @@ const SEARCH_ROUTER_ICON_NAMES = [
     ...SEARCH_TYPE_MENU_ICON_NAMES,
     'Users',
     'Hashtag',
-    'Sync',
+    'Connect',
     'Briefcase',
     'Tag',
     'Coins',
@@ -89,8 +89,6 @@ const SEARCH_ROUTER_ICON_NAMES = [
     'Clock',
     'InvoiceGeneric',
     'Bolt',
-    'Bot',
-    'UserPlus',
 ] as const;
 
 // Saved searches are user-defined searches, not canned destinations, so they are excluded from go-to navigation suggestions.
@@ -139,9 +137,6 @@ type BuildWorkspaceNavigationItemsParams = {
     isOffline: boolean;
 
     isVendorMatchingBetaEnabled: boolean;
-
-    /** Whether the Merge ATS beta gating the Recruiting feature is enabled. */
-    isRecruitingBetaEnabled: boolean;
 
     /** Whether navigation should use the narrow-layout Workspace flow. */
     shouldUseNarrowLayout: boolean;
@@ -290,7 +285,6 @@ function buildWorkspaceNavigationItems({
     icons,
     isOffline,
     isVendorMatchingBetaEnabled,
-    isRecruitingBetaEnabled,
     shouldUseNarrowLayout,
     convertToDisplayString,
     getItemText,
@@ -309,7 +303,6 @@ function buildWorkspaceNavigationItems({
                 icons,
                 policyCategories: policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`],
                 isVendorMatchingBetaEnabled,
-                isRecruitingBetaEnabled,
                 convertToDisplayString,
             });
 
@@ -321,7 +314,11 @@ function buildWorkspaceNavigationItems({
                     action: () => navigateToWorkspaceSettingsRoute(item.getRoute(), policy.id, shouldUseNarrowLayout, item.screenName),
                     keyForList: `workspace_${policy.id}_${item.screenName}`,
                     rightElement: <WorkspaceIdentityCell policy={policy} />,
-                    matchTerms: item.screenName === SCREENS.WORKSPACE.PROFILE ? [itemText, policy.name] : [itemText],
+                    matchTerms: [
+                        itemText,
+                        ...(item.screenName === SCREENS.WORKSPACE.PROFILE ? [policy.name] : []),
+                        ...(item.searchAliasKeys ?? []).map((translationKey) => getItemText({...item, translationKey})),
+                    ],
                     sortText: policy.name,
                 };
             });
@@ -440,7 +437,6 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
         icons,
         isOffline: !!isOffline,
         isVendorMatchingBetaEnabled: isBetaEnabled(CONST.BETAS.VENDOR_MATCHING),
-        isRecruitingBetaEnabled: isBetaEnabled(CONST.BETAS.MERGE_ATS),
         shouldUseNarrowLayout,
         convertToDisplayString,
         getItemText: (item) => translate(item.translationKey),

@@ -58,7 +58,7 @@ import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {ImageContentFit} from 'expo-image';
 import type {ComponentRef, ReactElement, ReactNode, Ref} from 'react';
-import type {GestureResponderEvent, Role, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, ImageStyle, Role, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 
@@ -178,6 +178,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Optional component to render before the description text (e.g. a badge pill) */
         descriptionAddon?: ReactNode;
 
+        /** Content shown right after the title, on the same line */
+        titleAddon?: ReactNode;
+
         /** Text to show below menu item. This text is not interactive */
         helperText?: string;
 
@@ -240,6 +243,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** Prop to represent the size of the avatar images to be shown */
         avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
+
+        /** Additional styles for the avatar image when the icon type is an avatar */
+        avatarImageStyles?: StyleProp<ViewStyle & ImageStyle>;
 
         /** Affects avatar size  */
         viewMode?: ValueOf<typeof CONST.OPTION_MODE>;
@@ -358,6 +364,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Whether the tooltip should hide on scroll */
         shouldHideOnScroll?: boolean;
 
+        /** Whether the tooltip should hide when the screen loses navigation focus */
+        shouldHideTooltipOnNavigate?: boolean;
+
         shouldShowLoadingSpinnerIcon?: boolean;
         shouldShowRadioButton?: boolean;
 
@@ -473,6 +482,7 @@ function MenuItem({
     furtherDetailsComponent,
     description,
     descriptionAddon,
+    titleAddon,
     helperText,
     helperTextStyle,
     errorText,
@@ -503,6 +513,7 @@ function MenuItem({
     leftComponent,
     rightIconReportID,
     avatarSize = CONST.AVATAR_SIZE.DEFAULT,
+    avatarImageStyles,
     isSmallAvatarSubscriptMenu = false,
     brickRoadIndicator,
     shouldRenderAsHTML = false,
@@ -534,6 +545,7 @@ function MenuItem({
     shouldRenderTooltip = false,
     shouldDisplayEducationalTooltip,
     shouldHideOnScroll = false,
+    shouldHideTooltipOnNavigate = true,
     tooltipAnchorAlignment,
     tooltipWrapperStyle = {},
     tooltipShiftHorizontal = 0,
@@ -799,6 +811,7 @@ function MenuItem({
                 shouldTeleportPortalToModalLayer={shouldTeleportPortalToModalLayer}
                 onTooltipPress={onEducationTooltipPress}
                 shouldHideOnScroll={shouldHideOnScroll}
+                shouldHideOnNavigate={shouldHideTooltipOnNavigate}
             >
                 <View>
                     <Hoverable
@@ -944,7 +957,7 @@ function MenuItem({
                                                             )}
                                                             {iconType === CONST.ICON_TYPE_AVATAR && (
                                                                 <UserAvatar
-                                                                    imageStyles={styles.alignSelfCenter}
+                                                                    imageStyles={[styles.alignSelfCenter, avatarImageStyles]}
                                                                     source={icon}
                                                                     accountID={getAccountIDFromAvatarID(avatarID)}
                                                                     fallbackIcon={fallbackIcon ?? icons.FallbackAvatar}
@@ -1021,6 +1034,7 @@ function MenuItem({
                                                                         />
                                                                     </View>
                                                                 )}
+                                                                {titleAddon}
                                                             </View>
                                                         )}
                                                         {!shouldShowDescriptionOnTop && renderDescriptionView()}

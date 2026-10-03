@@ -79,19 +79,19 @@ jest.mock('@components/ScrollView', () => ({
     default: ({children}: {children: React.ReactNode}) => children,
 }));
 
-jest.mock('@components/HeaderWithBackButton', () => ({__esModule: true, default: () => null}));
 jest.mock('@components/MenuItemList', () => ({__esModule: true, default: () => null}));
 jest.mock('@components/Section', () => ({__esModule: true, default: ({children}: {children: React.ReactNode}) => children}));
 jest.mock('@components/CollapsibleSection', () => ({__esModule: true, default: () => null}));
 jest.mock('@components/ActivityIndicator', () => ({__esModule: true, default: () => null}));
 
-// The real menu only renders its entries inside a popover once pressed. Rendering their labels inline lets the tests
+// The header's three-dot menu only renders its entries inside a popover once pressed. Rendering their labels inline lets the tests
 // read which credentials entry the page offers without driving the popover.
-jest.mock('@components/ThreeDotsMenu', () => {
+jest.mock('@components/HeaderWithBackButton', () => {
     const {default: MockText} = jest.requireActual<{default: typeof TextComponent}>('@components/Text');
     return {
         __esModule: true,
-        default: ({menuItems}: {menuItems: PopoverMenuItem[]}) => menuItems.map((menuItem) => <MockText key={menuItem.text}>{`${OVERFLOW_MENU_ITEM_PREFIX}${menuItem.text}`}</MockText>),
+        default: ({threeDotsMenuItems, shouldShowThreeDotsButton}: {threeDotsMenuItems?: PopoverMenuItem[]; shouldShowThreeDotsButton?: boolean}) =>
+            shouldShowThreeDotsButton ? threeDotsMenuItems?.map((menuItem) => <MockText key={menuItem.text}>{`${OVERFLOW_MENU_ITEM_PREFIX}${menuItem.text}`}</MockText>) : null,
     };
 });
 

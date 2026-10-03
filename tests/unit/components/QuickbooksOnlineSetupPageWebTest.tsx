@@ -60,7 +60,7 @@ describe('QuickbooksOnlineSetupPage (web)', () => {
     it('returns to the workspace accounting page', () => {
         renderQuickbooksOnlineSetupPage();
 
-        expect(mockedGoBack).toHaveBeenCalledWith(ROUTES.POLICY_ACCOUNTING.getRoute(POLICY_ID));
+        expect(mockedGoBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_CONNECTIONS.getRoute(POLICY_ID));
     });
 
     it('renders nothing', () => {

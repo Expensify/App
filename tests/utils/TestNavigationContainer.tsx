@@ -109,7 +109,7 @@ function TestWorkspaceSplitNavigator({route}: {route: RouteProp<WorkspaceNavigat
                 getComponent={getEmptyComponent}
             />
             <WorkspaceSplit.Screen
-                name={SCREENS.WORKSPACE.RECEIPT_PARTNERS}
+                name={SCREENS.WORKSPACE.CONNECTIONS}
                 getComponent={getEmptyComponent}
             />
         </WorkspaceSplit.Navigator>

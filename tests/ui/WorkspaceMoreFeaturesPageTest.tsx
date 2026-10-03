@@ -6,7 +6,6 @@ import {ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
-import useIsPolicyConnectedToUberReceiptPartner from '@hooks/useIsPolicyConnectedToUberReceiptPartner';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
@@ -44,8 +43,6 @@ jest.mock('@components/Modal/ReanimatedModal', () => {
     const {default: MockReanimatedModal} = jest.requireActual<typeof MockReanimatedModalModule>('../utils/mockReanimatedModal');
     return MockReanimatedModal;
 });
-
-jest.mock('@hooks/useIsPolicyConnectedToUberReceiptPartner', () => ({__esModule: true, default: jest.fn(() => false)}));
 
 jest.mock('@libs/CardUtils', () => {
     const actual: typeof CardUtils = jest.requireActual('@libs/CardUtils');
@@ -121,7 +118,6 @@ const isSmartLimitEnabledMock = jest.mocked(CardUtils.isSmartLimitEnabled);
 const getCompanyFeedsMock = jest.mocked(CardUtils.getCompanyFeeds);
 const hasAccountingConnectionsMock = jest.mocked(PolicyUtils.hasAccountingConnections);
 const hasAccountingFeatureConnectionMock = jest.mocked(PolicyUtils.hasAccountingFeatureConnection);
-const useIsUberConnectedMock = jest.mocked(useIsPolicyConnectedToUberReceiptPartner);
 
 const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => undefined);
 const navigateToConciergeChatSpy = jest.spyOn(ReportActions, 'navigateToConciergeChat').mockImplementation(() => Promise.resolve());
@@ -159,7 +155,6 @@ describe('WorkspaceMoreFeaturesPage', () => {
         getCompanyFeedsMock.mockReturnValue({});
         hasAccountingConnectionsMock.mockReturnValue(false);
         hasAccountingFeatureConnectionMock.mockReturnValue(false);
-        useIsUberConnectedMock.mockReturnValue(false);
     });
 
     afterEach(async () => {
@@ -302,41 +297,6 @@ describe('WorkspaceMoreFeaturesPage', () => {
         });
     });
 
-    describe('Accounting toggle (locked when an integration is connected)', () => {
-        it('locks the Accounting switch when the policy has an active connection', async () => {
-            await TestHelper.signInWithTestUser();
-            hasAccountingConnectionsMock.mockReturnValue(true);
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID}));
-            });
-
-            renderPage({policyID: POLICY_ID});
-            await waitForBatchedUpdatesWithAct();
-
-            await expect(findLockedSwitch('workspace.moreFeatures.connections.subtitle')).resolves.toBeOnTheScreen();
-        });
-
-        it('routes confirm to the accounting page', async () => {
-            await TestHelper.signInWithTestUser();
-            hasAccountingConnectionsMock.mockReturnValue(true);
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID}));
-            });
-
-            renderPage({policyID: POLICY_ID});
-            await waitForBatchedUpdatesWithAct();
-            fireEvent.press(await findLockedSwitch('workspace.moreFeatures.connections.subtitle'));
-
-            await waitFor(() => {
-                expect(screen.getByText(TestHelper.translateLocal('workspace.moreFeatures.connectionsWarningModal.disconnectText'))).toBeOnTheScreen();
-            });
-            fireEvent.press(await screen.findByLabelText(TestHelper.translateLocal('workspace.moreFeatures.connectionsWarningModal.manageSettings')));
-            await waitForBatchedUpdatesWithAct();
-
-            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.POLICY_ACCOUNTING.getRoute(POLICY_ID));
-        });
-    });
-
     describe('Concierge-routed disable flows', () => {
         it('opens Concierge chat when the user confirms the Expensify Card disable warning', async () => {
             await TestHelper.signInWithTestUser();
@@ -380,31 +340,6 @@ describe('WorkspaceMoreFeaturesPage', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(navigateToConciergeChatSpy).toHaveBeenCalledTimes(1);
-        });
-    });
-
-    describe('Receipt partners (informational warning, no confirm action)', () => {
-        it('opens the disconnect-Uber info modal without a Cancel button when locked', async () => {
-            await TestHelper.signInWithTestUser();
-            useIsUberConnectedMock.mockReturnValue(true);
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID}));
-            });
-
-            renderPage({policyID: POLICY_ID});
-            await waitForBatchedUpdatesWithAct();
-            fireEvent.press(await findLockedSwitch('workspace.moreFeatures.receiptPartners.subtitle'));
-
-            await waitFor(() => {
-                expect(screen.getByText(TestHelper.translateLocal('workspace.moreFeatures.receiptPartnersWarningModal.disconnectText'))).toBeOnTheScreen();
-            });
-            expect(screen.queryByText(TestHelper.translateLocal('common.cancel'))).toBeNull();
-
-            fireEvent.press(await screen.findByLabelText(TestHelper.translateLocal('workspace.moreFeatures.receiptPartnersWarningModal.confirmText')));
-            await waitForBatchedUpdatesWithAct();
-
-            expect(navigateSpy).not.toHaveBeenCalled();
-            expect(navigateToConciergeChatSpy).not.toHaveBeenCalled();
         });
     });
 

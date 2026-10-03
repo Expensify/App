@@ -5,7 +5,7 @@ import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePolicy from '@hooks/usePolicy';
 
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import MergeConnectionsPageBase from '@pages/workspace/merge/MergeConnectionsPageBase';
 
@@ -17,7 +17,7 @@ import React from 'react';
 
 import {getHRCards} from './utils';
 
-type WorkspaceHRPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.HR>;
+type WorkspaceHRPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.HR>;
 
 function WorkspaceHRPage({
     route: {

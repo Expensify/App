@@ -3524,16 +3524,15 @@ ${date} の ${merchant} への ${amount}`,
                     `接続${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : 'から へ'} [${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの' : ''} ${integrationName}](${workspaceAccountingLink})`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     Str.dedent(`
-${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの' : '宛先'} ${integrationName} を接続して、自動経費コード設定と同期を行い、月末締めをスムーズにしましょう。
+${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの' : '宛先'} ${integrationName} を連携して、経費の自動仕訳と同期を行い、月次決算をスムーズにしましょう。
 
-                        1.「*ワークスペース*」をクリックします。
+                        1. 「*ワークスペース*」をクリックします。
                         2. ワークスペースを選択します。
-                        3.「*会計*」をクリックします。
+                        3. 「*接続*」をクリックします。
                         4. ${integrationName} を探します。
-                        5.「*接続*」をクリックします。
+                        5. 「*接続*」をクリックします。
 
-                        [経理画面に移動](${workspaceAccountingLink})。
-                    `),
+                        [接続画面へ移動](${workspaceAccountingLink})。`),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `[法人カード](${corporateCardLink})を連携`,
@@ -4830,6 +4829,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             readOnlyActionTitle: 'ちょっと待ってください…',
             readOnlyActionPrompt: 'このワークスペースでのあなたのロールは、これらの設定を表示できますが、編集することはできません。',
             noAccessActionPrompt: 'このワークスペースでのあなたのロールでは、これらの設定にアクセスできません。必要な場合は管理者に依頼してください。',
+            connections: '連携',
         },
         createdForClient: {
             title: 'クライアントのワークスペースを作成しました！',
@@ -6376,10 +6376,6 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 title: '整理',
                 subtitle: '支出をグループ化して分析し、支払ったすべての税金を記録します。',
             },
-            integrateSection: {
-                title: '連携する',
-                subtitle: 'Expensify を人気の金融サービスに接続しましょう。',
-            },
             distanceRates: {
                 title: '距離単価',
                 subtitle: 'レートを追加、更新し、適用します。',
@@ -6596,27 +6592,18 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             },
             connections: {
                 title: '会計',
-                subtitle: '勘定科目表などを同期します。',
-            },
-            mcp: {
-                title: 'MCP',
-                subtitle: 'AIアシスタントをExpensifyアカウントに接続します。',
             },
             receiptPartners: {
                 title: '領収書パートナー',
-                subtitle: '領収書を自動で取り込みます。',
             },
             connectionsWarningModal: {
                 featureEnabledTitle: 'ちょっと待ってください…',
                 featureEnabledText: 'この機能を有効または無効にするには、会計インポート設定を変更する必要があります。',
-                disconnectText: '会計機能を無効にするには、ワークスペースから会計連携を切断する必要があります。',
                 manageSettings: '設定を管理',
             },
             receiptPartnersWarningModal: {
                 featureEnabledTitle: 'Uber との連携を解除',
-                disconnectText: 'この機能を無効にするには、まず Uber for Business の連携を解除してください。',
                 description: 'この連携を解除してもよろしいですか？',
-                confirmText: '了解しました',
             },
             workflowWarningModal: {
                 featureEnabledTitle: 'ちょっと待ってください…',
@@ -6633,15 +6620,11 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 subtitle: '時間追跡用の請求可能な時間単価を設定します。',
                 defaultHourlyRate: 'デフォルトの時給率',
             },
-            hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `HR を無効にするには、まずこのワークスペースから ${integration} を切断してください。`},
             vendors: {
                 title: 'ベンダー',
                 subtitle: '会計ソフトからインポートした取引先にカード経費を照合します。',
                 disabledTitle: 'ちょっと待ってください...',
                 disabledMessage: 'この機能を有効または無効にするには、会計インポート設定を変更する必要があります。',
-            },
-            recruitingWarningModal: {
-                disconnectText: ({integration}: {integration: string}) => `採用機能を無効にするには、まずこのワークスペースから ${integration} の連携を解除してください。`,
             },
         },
         reports: {
@@ -7154,7 +7137,6 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             disconnect: '切断',
             reinstall: 'コネクタを再インストール',
             disconnectTitle: (connectionName = '連携') => `${connectionName}の接続を解除`,
-            connectTitle: (connectionName) => `${connectionName} を接続`,
             syncError: (connectionName) => `${connectionName} に接続できません`,
             accounts: '勘定科目表',
             taxes: '税金',
@@ -7171,12 +7153,10 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'NetSuite 従業員のデフォルト',
             },
             disconnectPrompt: (connectionName = 'この連携') => `${connectionName} の接続を本当に解除しますか？`,
-            connectPrompt: (connectionName) => `${connectionName} を接続してもよろしいですか？これにより、既存の会計連携はすべて削除されます。`,
             enterCredentials: '認証情報を入力してください',
             reconnect: '再接続',
             updateCredentials: '認証情報を更新',
             claimOffer: {
-                badgeText: 'オファーをご利用いただけます！',
                 xero: {
                     headline: 'Xero を6か月間無料で利用しましょう！',
                     description:
@@ -8547,10 +8527,6 @@ ${reportName}`,
         },
         hr: {
             title: '人事',
-            connectionsSubtitle: '人事システムと連携して従業員データを同期し、精算を自動で正しい担当者に紐づけることで、手作業なしでチームの経費を正確に管理できます。',
-            subtitle: '人事ツールを連携して、従業員の承認を常に同期させます。',
-            alreadyConnectedTitle: '複数の人事プラットフォームには接続できません',
-            alreadyConnectedPrompt: '別の人事プラットフォームに接続する前に、現在の人事プラットフォームとの接続を解除する必要があります。',
             connectionDescription: (providerName: string) => `${providerName}を接続して、従業員の承認をワークスペースと同期させましょう。`,
             providerApprovalMode: (providerName: string) => `${providerName} 承認モード`,
             providerFinalApprover: (providerName: string) => `${providerName} 最終承認者`,
@@ -8602,13 +8578,9 @@ ${reportName}`,
         },
         recruiting: {
             title: '採用',
-            connectionsSubtitle: '採用システムに接続して候補者データを同期し、払い戻しを自動的に適切な人に紐づけることで、手作業なしでチームの経費精度を保てます。',
-            alreadyConnectedTitle: '複数の ATS プラットフォームには接続できません',
-            alreadyConnectedPrompt: '別の ATS を接続する前に、現在の ATS を必ず切断する必要があります。',
             syncing: '候補者を同期しています',
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>接続済み。${setupLink ? `<a href="${setupLink}">セットアップを完了</a>` : '設定を完了'} をインポート候補として追加します。</muted-text-label>`,
-            dontSeeYourATS: `<muted-text-label>ご利用のATSが見つかりませんか？<a href="#">Concierge にお問い合わせ</a>いただければ、追加できます。</muted-text-label>`,
             importSettings: 'インポート設定',
             defaultApprover: 'デフォルト承認者',
             approverFields: {recruiter: '採用担当者', recruitingCoordinator: '採用コーディネーター'},
@@ -8629,7 +8601,6 @@ ${reportName}`,
                 offices: {title: 'オフィス', description: 'このワークスペースと同期したい候補者のオフィスを選択してください', toggleTitle: 'オフィス', allSelected: 'すべてのオフィス'},
                 enableJobStagesOrTags: '続行するにはジョブステージまたはタグを有効にしてください',
             },
-            subtitle: '採用ツールを連携して、候補者の承認を常に同期させます。',
             syncResults: {
                 importedCount: () => ({
                     one: '1 名の候補者',
@@ -8649,9 +8620,6 @@ ${reportName}`,
             },
         },
         merge: {
-            connections: '接続',
-            connect: '接続',
-            findIntegration: '連携を検索',
             syncNow: '今すぐ同期',
             disconnect: '切断',
             disconnectTitle: (providerName: string) => `${providerName}を切断`,
@@ -8834,6 +8802,32 @@ ${reportName}`,
             noBankAccountsFoundDescription: 'Dynamics 365 Business Central で銀行口座を追加し、接続を再度同期してください',
             noPaymentMethodsFound: '支払方法が見つかりません',
             noPaymentMethodsFoundDescription: 'Dynamics 365 Business Central で支払方法を追加し、接続を再度同期してください',
+        },
+        connections: {
+            tabs: {
+                [CONST.TAB.CONNECTIONS.ALL]: 'すべて',
+                [CONST.TAB.CONNECTIONS.ACCOUNTING]: '会計',
+                [CONST.TAB.CONNECTIONS.PEOPLE]: '人事・人材',
+                [CONST.TAB.CONNECTIONS.RECRUITING]: '採用',
+                [CONST.TAB.CONNECTIONS.RECEIPTS]: '領収書',
+                [CONST.TAB.CONNECTIONS.AI]: 'AI と MCP',
+            },
+            findConnections: '連携先を見つける',
+            configure: '設定',
+            fix: '修正',
+            active: '有効',
+            broken: '壊れています',
+            brokenConnection: '接続が切断されているため同期できません',
+            replaceConnectionTitle: '接続を置き換えますか？',
+            offer: 'オファー',
+            replaceConnectionPrompt: (connectionName: string) => `現在の ${connectionName} 接続が削除されます。`,
+            hrisListing: (providerName: string) => `${providerName}（HRIS）`,
+            atsListing: (providerName: string) => `${providerName}（ATS）`,
+            suggestIntegration: 'お探しのものが見つかりませんか？連携を提案してください、こちらで検討します。',
+            noResultsPrompt: '検索条件を調整するか',
+            suggestAnIntegration: '連携を提案する',
+            allConnectedTitle: 'すべて接続されました',
+            allConnectedPrompt: 'ここにあるものはすべてすでに連携されています。さらに、次のこともできます',
         },
     },
     getAssistancePage: {
@@ -11160,6 +11154,7 @@ ${reportName}`,
         markAllAsRead: '<tooltip>右クリックで<strong>すべて既読にする</strong>ことができます。</tooltip>',
         markAllAsReadTouchScreen: '<tooltip>長押しで<strong>すべて既読にする</strong>ことができます。</tooltip>',
         accountMovedToTopBar: '<tooltip>アカウントと個人設定にアクセスします。</tooltip>',
+        connectionsMoved: 'すべての連携をひとまとめに',
     },
     discardChangesConfirmation: {
         title: '変更を破棄しますか？',

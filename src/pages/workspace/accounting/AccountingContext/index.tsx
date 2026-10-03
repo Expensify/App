@@ -7,11 +7,14 @@ import useHasReusablePoliciesConnectedTo from '@hooks/useHasReusablePoliciesConn
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 
+import {getAccountingIntegrationDisplayName} from '@libs/AccountingUtils';
 import {removePolicyConnection} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy, tryNavigateToSubmitWorkspaceUpgrade} from '@libs/PolicyUtils';
 
 import {getAccountingIntegrationData} from '@pages/workspace/accounting/utils';
+
+import {enablePolicyConnections} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -117,7 +120,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 return;
             }
 
-            if (tryNavigateToSubmitWorkspaceUpgrade(policy, true, CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias)) {
+            if (tryNavigateToSubmitWorkspaceUpgrade(policy, true, CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias, ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID))) {
                 return;
             }
 
@@ -151,6 +154,10 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 );
                 return;
             }
+            // Enabled only once the plan allows the integration, so backing out of the upgrade leaves the feature untouched
+            if (!policy?.areConnectionsEnabled) {
+                enablePolicyConnections(policyID, true, false);
+            }
             setActiveIntegration({
                 ...newActiveIntegration,
                 key: Math.random(),
@@ -163,22 +170,18 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
 
             // Mirrors `shouldShowConfirmationModal` below, which keeps `renderActiveIntegration()` from mounting the
             // setup flow until the user has decided what to do with the connection that has to be disconnected first.
-            const connectionName = newActiveIntegration.isIntuitEnterpriseSuite
-                ? translate('workspace.accounting.intuitEnterpriseSuite')
-                : (CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[newActiveIntegration.name] ?? newActiveIntegration.name);
-
             isDisconnectConfirmationPendingRef.current = true;
 
             showConfirmModal({
                 // `startIntegrationFlow` can run more than once for the same flow (the `useFocusEffect` in
-                // `PolicyAccountingPage` re-fires whenever `startIntegrationFlow` is re-created). A stable id keeps the
+                // `WorkspaceConnectionsPage` re-fires whenever `startIntegrationFlow` is re-created). A stable id keeps the
                 // repeat call updating this prompt in place instead of stacking a second copy behind it.
                 id: ACCOUNTING_CONNECTION_CONFIRMATION_MODAL_ID,
-                title: translate('workspace.accounting.connectTitle', connectionName),
-                prompt: translate('workspace.accounting.connectPrompt', connectionName),
-                confirmText: translate('workspace.accounting.setup'),
+                title: translate('workspace.connections.replaceConnectionTitle'),
+                prompt: translate('workspace.connections.replaceConnectionPrompt', getAccountingIntegrationDisplayName(policy, integrationToDisconnect, translate)),
+                confirmText: translate('common.replace'),
                 cancelText: translate('common.cancel'),
-                buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
+                buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             }).then((result) => {
                 // A repeat call for the same id is handed back the promise the first call got, so every call's handler
                 // runs on a single user answer. Only the first one may act, or the disconnect would be requested twice.

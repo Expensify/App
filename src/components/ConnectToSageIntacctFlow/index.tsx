@@ -25,7 +25,7 @@ function ConnectToSageIntacctFlow({policyID}: ConnectToSageIntacctFlowProps) {
             return;
         }
         if (!hasReusablePoliciesConnectedToSageIntacct) {
-            Navigation.navigate(`${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}/${DYNAMIC_ROUTES.SAGE_INTACCT_PREREQUISITES.path}`);
+            Navigation.navigate(`${ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID)}/${DYNAMIC_ROUTES.SAGE_INTACCT_PREREQUISITES.path}`);
             return;
         }
         Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXISTING_CONNECTIONS.getRoute(policyID));

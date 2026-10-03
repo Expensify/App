@@ -814,6 +814,18 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.DISTANCE_RATES_COMMUTER_EXCLUSIONS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.HR]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RECRUITING]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RECEIPT_PARTNERS]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_SETUP]: {
         policyID: string;
         isIntuitEnterpriseSuite?: string;
@@ -3168,11 +3180,12 @@ type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.COMPANY_CARDS]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.MCP]: {
+    [SCREENS.WORKSPACE.CONNECTIONS]: {
         policyID: string;
-    };
-    [SCREENS.WORKSPACE.RECEIPT_PARTNERS]: {
-        policyID: string;
+        newConnectionName?: ConnectionName;
+        integrationToDisconnect?: ConnectionName;
+        shouldDisconnectIntegrationBeforeConnecting?: boolean;
+        isIntuitEnterpriseSuite?: string;
     };
     [SCREENS.WORKSPACE.DYNAMIC_RECEIPT_PARTNERS_INVITE]: {
         policyID: string;
@@ -3272,12 +3285,6 @@ type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.MORE_FEATURES]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.HR]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.RECRUITING]: {
-        policyID: string;
-    };
     [SCREENS.WORKSPACE.TAGS]: {
         policyID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
@@ -3298,9 +3305,6 @@ type WorkspaceSplitNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.TRAVEL]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_ADVANCED]: {

@@ -27,6 +27,8 @@ const oldRoutes: Record<string, string> = {
     '/workspaces/*/downgrade/': '/workspaces/$1/overview/plan/downgrade?policyID=$1',
     '/workspaces/*/downgrade': '/workspaces/$1/overview/plan/downgrade?policyID=$1',
     '/workspaces/downgrade': '/settings/subscription/downgrade',
+    // The MCP page merged into the unified Connections page.
+    '/workspaces/*/mcp': '/workspaces/$1/connections',
     '/settings/workspaces/*': '/workspaces/$1',
     '/settings/workspaces': '/workspaces',
     '/r/*/settings': '/r/$1/details/report-settings',

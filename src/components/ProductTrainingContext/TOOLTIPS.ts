@@ -16,6 +16,7 @@ const {
     MILEAGE_RATE_AUTO_UPDATED,
     MARK_ALL_AS_READ,
     ACCOUNT_MOVED_TO_TOP_BAR,
+    CONNECTIONS_MOVED,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
 type ProductTrainingTooltipName = Exclude<
@@ -31,6 +32,9 @@ type ShouldShowConditionProps = {
     isUserPolicyAdmin: boolean;
     hasBeenAddedToNudgeMigration: boolean;
     isUserInPaidPolicy: boolean;
+
+    /** The user's free-trial start date, e.g. "2026-06-24". Accounts without a workspace trial don't have one. */
+    firstDayFreeTrial: string | undefined;
 };
 
 type TooltipData = {
@@ -113,6 +117,14 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         name: ACCOUNT_MOVED_TO_TOP_BAR,
         priority: 1700,
         shouldShow: () => true,
+    },
+    [CONNECTIONS_MOVED]: {
+        content: 'productTrainingTooltip.connectionsMoved',
+        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(CONNECTIONS_MOVED, isDismissedUsingCloseButton),
+        name: CONNECTIONS_MOVED,
+        priority: 1650,
+        // Only users who knew the old pages need to hear they moved. The workspace menu limits it to members who can read Connections.
+        shouldShow: ({firstDayFreeTrial}) => !firstDayFreeTrial || new Date(firstDayFreeTrial).getTime() < new Date(CONST.CONNECTIONS_MOVED_NEW_USER_CUTOFF_DATE).getTime(),
     },
 };
 

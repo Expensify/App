@@ -25,10 +25,11 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
+import {enablePolicyReceiptPartners} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
@@ -44,7 +45,6 @@ type IntegrationConfig = {
     claimOfferLink?: string;
     connectButtonText: string;
     connectionName: string;
-    featureName: PolicyFeatureName;
     onConnect: () => void;
 };
 
@@ -82,7 +82,6 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
             claimOfferLink: CONST.XERO_PARTNER_LINK,
             connectButtonText: translate('workspace.accounting.claimOffer.xero.connectButton'),
             connectionName: CONST.POLICY.CONNECTIONS.NAME.XERO,
-            featureName: CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED,
             onConnect: () => {
                 startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.XERO});
             },
@@ -93,8 +92,11 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
             descriptionHtml: translate('workspace.accounting.claimOffer.uber.description'),
             connectButtonText: translate('workspace.accounting.claimOffer.uber.connectButton'),
             connectionName: CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER,
-            featureName: CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED,
             onConnect: () => {
+                // Offers open from Connections, where Receipt partners only turns on once a partner is connected
+                if (!policy?.receiptPartners?.enabled) {
+                    enablePolicyReceiptPartners(policyID, true, false);
+                }
                 openExternalLink(`${CONST.UBER_CONNECT_URL}?${integrations?.uber?.connectFormData}`);
             },
         },
@@ -144,7 +146,7 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
-            featureName={config.featureName}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
             shouldBeBlocked={!config}
         >
             <ScreenWrapper
