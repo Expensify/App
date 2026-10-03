@@ -7,6 +7,7 @@ import LoadingIndicator from '@components/LoadingIndicator';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 
 import useClickZoomPan from '@hooks/useClickZoomPan';
+import useFailStuckImageLoad from '@hooks/useFailStuckImageLoad';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,6 +34,8 @@ function calculateZoomScale(containerSize: Dimensions, imageSize: Dimensions) {
     return Math.min(containerSize.width / imageSize.width, containerSize.height / imageSize.height);
 }
 
+const LOADING_CONTEXT = {context: 'ImageView'};
+
 function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageViewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -41,6 +44,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
     const canUseTouchScreen = canUseTouchScreenUtil();
 
     const [isLoading, setIsLoading] = useState(true);
+    const [hasLoadFailed, setHasLoadFailed] = useState(false);
     const [containerSize, setContainerSize] = useState<Dimensions>({width: 0, height: 0});
     const [imageSize, setImageSize] = useState<Dimensions>({width: 0, height: 0});
 
@@ -66,7 +70,13 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
 
         setImageSize({width: 0, height: 0});
         setIsLoading(true);
+        setHasLoadFailed(false);
         resetZoom();
+    };
+
+    const handleError = () => {
+        setHasLoadFailed(true);
+        onError?.();
     };
 
     const imageLoad = ({nativeEvent: size}: ImageOnLoadEvent) => {
@@ -85,6 +95,10 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
     }
 
     const shouldShowOfflineIndicator = isOffline && !isLoading && !isLocalToUserDeviceFile;
+    const shouldShowLoadingIndicator = !isImageLoaded && !shouldShowOfflineIndicator && !hasLoadFailed;
+
+    useFailStuckImageLoad(!canUseTouchScreen && !isOffline && shouldShowLoadingIndicator, handleError);
+
     if (canUseTouchScreen) {
         return (
             <Lightbox
@@ -127,13 +141,19 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
                     waitForSession={() => {
                         setImageSize({width: 0, height: 0});
                         setIsLoading(true);
+                        setHasLoadFailed(false);
                         resetZoom();
                     }}
-                    onError={onError}
+                    onError={handleError}
                 />
             </PressableWithoutFeedback>
 
-            {!isImageLoaded && !shouldShowOfflineIndicator && <LoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
+            {shouldShowLoadingIndicator && (
+                <LoadingIndicator
+                    style={[styles.opacity1, styles.bgTransparent]}
+                    extraLoadingContext={LOADING_CONTEXT}
+                />
+            )}
             {!isImageLoaded && shouldShowOfflineIndicator && <AttachmentOfflineIndicator />}
         </View>
     );

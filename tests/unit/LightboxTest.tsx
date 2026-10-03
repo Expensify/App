@@ -1,4 +1,4 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import {AttachmentCarouselPagerActionsContext, AttachmentCarouselPagerStateContext} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import type {AttachmentCarouselPagerActionsContextType, AttachmentCarouselPagerStateContextType} from '@components/Attachments/AttachmentCarousel/Pager/types';
@@ -28,6 +28,16 @@ jest.mock('@components/Image', () => {
         default: MockReact.memo(MockImage),
     };
 });
+
+jest.mock('@components/ActivityIndicator', () => {
+    const MockReact = jest.requireActual<typeof React>('react');
+    const {View} = jest.requireActual<typeof ReactNative>('react-native');
+    return {__esModule: true, default: () => MockReact.createElement(View, {testID: 'activity-indicator'})};
+});
+
+let mockIsOffline = false;
+
+jest.mock('@hooks/useNetwork', () => () => ({isOffline: mockIsOffline}));
 
 jest.mock('@components/Lightbox/numberOfConcurrentLightboxes', () => ({
     __esModule: true,
@@ -206,6 +216,87 @@ describe('Lightbox', () => {
             for (const image of images) {
                 expect(image.props.accessibilityHint).toBe(CONST.IMAGE_LOADING_PRIORITY.LOW);
             }
+        });
+    });
+
+    describe('image that never finishes loading', () => {
+        beforeEach(() => {
+            jest.useFakeTimers();
+            mockIsOffline = false;
+        });
+
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
+        function renderStandaloneLightbox() {
+            const onError = jest.fn();
+            render(
+                <Lightbox
+                    uri="https://example.com/receipt.jpg"
+                    onError={onError}
+                />,
+            );
+            fireEvent(screen.getByTestId('lightbox-wrapper'), 'onLayout', {
+                nativeEvent: {layout: {width: 400, height: 800}},
+            });
+            return {onError};
+        }
+
+        it('fails the load when the spinner is still showing after the timeout', () => {
+            // Given a lightbox whose image never emits onLoad or onError
+            const {onError} = renderStandaloneLightbox();
+            expect(screen.getByTestId('activity-indicator')).toBeTruthy();
+
+            // When the spinner has been on screen for the whole timeout
+            act(() => {
+                jest.advanceTimersByTime(CONST.TIMING.ACTIVITY_INDICATOR_TIMEOUT);
+            });
+
+            // Then the load is treated as a failure so the parent can show its error UI instead of an endless spinner
+            expect(onError).toHaveBeenCalledTimes(1);
+            expect(screen.queryByTestId('activity-indicator')).toBeNull();
+        });
+
+        it('hides the spinner when the image fails to load', () => {
+            // Given a lightbox whose image is loading
+            const {onError} = renderStandaloneLightbox();
+
+            // When the image reports an error
+            fireEvent(screen.getByTestId('image'), 'error');
+
+            // Then the spinner goes away instead of spinning over the parent's error UI
+            expect(onError).toHaveBeenCalledTimes(1);
+            expect(screen.queryByTestId('activity-indicator')).toBeNull();
+        });
+
+        it('does not fail an image that loads before the timeout', () => {
+            // Given a lightbox whose image is loading
+            const {onError} = renderStandaloneLightbox();
+
+            // When the image loads and the timeout then passes
+            fireEvent(screen.getByTestId('image'), 'load', {nativeEvent: {width: 100, height: 100}});
+            act(() => {
+                jest.advanceTimersByTime(CONST.TIMING.ACTIVITY_INDICATOR_TIMEOUT);
+            });
+
+            // Then the timer was cleared with the spinner and never reports an error
+            expect(screen.queryByTestId('activity-indicator')).toBeNull();
+            expect(onError).not.toHaveBeenCalled();
+        });
+
+        it('does not fail the load while offline', () => {
+            // Given the device is offline while the lightbox image is loading
+            mockIsOffline = true;
+            const {onError} = renderStandaloneLightbox();
+
+            // When the timeout passes
+            act(() => {
+                jest.advanceTimersByTime(CONST.TIMING.ACTIVITY_INDICATOR_TIMEOUT);
+            });
+
+            // Then the load is not failed, so the image can still load once the device is back online
+            expect(onError).not.toHaveBeenCalled();
         });
     });
 });

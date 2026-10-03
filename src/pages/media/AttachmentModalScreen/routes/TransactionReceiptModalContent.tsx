@@ -70,7 +70,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {isOffline} = useNetwork();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera', 'Download', 'Crop', 'Trashcan', 'Rotate', 'Close', 'Checkmark']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera', 'Download', 'Crop', 'Trashcan', 'Rotate', 'Close', 'Checkmark', 'AttachmentNotFound']);
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: Boolean});
@@ -719,6 +719,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             footerActionButtons,
             customAttachmentContent,
             attachmentViewContainerStyles: [styles.pv5, styles.ph2],
+            fallbackSource: expensifyIcons.AttachmentNotFound,
         }),
         [
             source,
@@ -738,6 +739,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             customAttachmentContent,
             styles.pv5,
             styles.ph2,
+            expensifyIcons.AttachmentNotFound,
         ],
     );
 

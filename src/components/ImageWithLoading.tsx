@@ -1,3 +1,4 @@
+import useFailStuckImageLoad from '@hooks/useFailStuckImageLoad';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -82,6 +83,10 @@ function ImageWithLoading({
         return () => clearTimeout(timeout);
     }, [isLoading]);
 
+    const shouldShowLoadingIndicator = (previewUri ? isLoading : isLoading && !isImageCached) && !isOffline;
+
+    useFailStuckImageLoad(shouldShowLoadingIndicator, handleError);
+
     return (
         <View
             style={[styles.w100, styles.h100, containerStyles]}
@@ -126,10 +131,14 @@ function ImageWithLoading({
                 loadingIconSize={loadingIconSize}
                 loadingIndicatorStyles={loadingIndicatorStyles}
             />
-            {(previewUri ? isLoading : isLoading && !isImageCached) && !isOffline && (
+            {shouldShowLoadingIndicator && (
                 <LoadingIndicator
                     iconSize={loadingIconSize}
                     style={[styles.opacity1, styles.bgTransparent, loadingIndicatorStyles]}
+                    extraLoadingContext={{
+                        context: 'ImageWithLoading',
+                        hasPreview: !!previewUri,
+                    }}
                 />
             )}
             {isLoading && shouldShowOfflineIndicator && !isImageCached && <AttachmentOfflineIndicator isPreview />}

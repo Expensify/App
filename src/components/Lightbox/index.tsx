@@ -9,6 +9,7 @@ import type {OnScaleChangedCallback, ZoomRange} from '@components/MultiGestureCa
 import {getCanvasFitScale} from '@components/MultiGestureCanvas/utils';
 
 import useCanvasSize from '@hooks/useCanvasSize';
+import useFailStuckImageLoad from '@hooks/useFailStuckImageLoad';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -27,6 +28,8 @@ import {useSharedValue} from 'react-native-reanimated';
 import NUMBER_OF_CONCURRENT_LIGHTBOXES from './numberOfConcurrentLightboxes';
 
 const FALLBACK_OFFSET = 2;
+
+const LOADING_CONTEXT = {context: 'Lightbox'};
 
 const cachedImageDimensions = new Map<string, Dimensions | undefined>();
 
@@ -144,6 +147,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
 
     const [isLightboxImageLoaded, setLightboxImageLoaded] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [hasLoadFailed, setHasLoadFailed] = useState(false);
 
     const isFallbackVisible = !hasSiblingCarouselItems ? !isLightboxVisible : !(isActive && isLightboxVisible && isLightboxImageLoaded);
     const [isFallbackImageLoaded, setFallbackImageLoaded] = useState(false);
@@ -197,6 +201,14 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
 
     const isALocalFile = isLocalFile(uri);
     const shouldShowOfflineIndicator = isOffline && !isLoading && !isALocalFile;
+    const shouldShowLoadingIndicator = !isImageLoaded && !shouldShowOfflineIndicator && !hasLoadFailed;
+
+    const handleError = () => {
+        setHasLoadFailed(true);
+        onError?.();
+    };
+
+    useFailStuckImageLoad(!isOffline && shouldShowLoadingIndicator, handleError);
 
     return (
         <View
@@ -228,7 +240,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                                     style={[contentSize ?? styles.invisibleImage]}
                                     isAuthTokenRequired={isAuthTokenRequired}
                                     priority={imagePriority}
-                                    onError={onError}
+                                    onError={handleError}
                                     onLoad={(e) => {
                                         updateContentSize(e);
                                         setLightboxImageLoaded(true);
@@ -240,6 +252,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                                         }
                                         setContentSize(cachedImageDimensions.get(uri));
                                         setLightboxImageLoaded(false);
+                                        setHasLoadFailed(false);
                                     }}
                                     onLoadEnd={() => {
                                         setIsLoading(false);
@@ -268,10 +281,11 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                     )}
 
                     {/* Show activity indicator while the lightbox is still loading the image. */}
-                    {!isImageLoaded && !shouldShowOfflineIndicator && (
+                    {shouldShowLoadingIndicator && (
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             style={StyleSheet.absoluteFill}
+                            extraLoadingContext={LOADING_CONTEXT}
                         />
                     )}
                     {!isImageLoaded && shouldShowOfflineIndicator && <AttachmentOfflineIndicator />}
