@@ -4536,6 +4536,7 @@ const CONST = {
             REPORT_FIELDS: 'reportFields',
             ACCOUNTING: 'accounting',
             MORE_FEATURES: 'moreFeatures',
+            CREATE_EXPENSES: 'createExpenses',
         },
         POLICY_FEATURE_ACCESS: {
             READ: 'read',
