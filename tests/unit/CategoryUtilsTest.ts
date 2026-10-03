@@ -2,6 +2,7 @@ import {
     formatRequireItemizedReceiptsOverText,
     getAvailableNonPersonalPolicyCategories,
     getCategoryDefaultTaxRate,
+    getCategoryDescriptionHint,
     getCategoryGLCode,
     getDecodedFullCategoryName,
     getDecodedLeafCategoryName,
@@ -82,6 +83,51 @@ describe('formatRequireItemizedReceiptsOverText', () => {
         } as Policy;
         const result = formatRequireItemizedReceiptsOverText(translateLocal, policyWithUndefinedItemizedReceipt, undefined, convertToDisplayString);
         expect(result).toBe(translateLocal('workspace.rules.categoryRules.requireItemizedReceiptsOverList.never'));
+    });
+});
+
+describe('getCategoryDescriptionHint', () => {
+    const mockPolicyCategories: PolicyCategories = {
+        Advertising: {
+            commentHint: 'Client name',
+            enabled: true,
+            name: 'Advertising',
+        },
+        Meals: {
+            enabled: true,
+            name: 'Meals',
+        },
+    };
+
+    it('returns the hint when the category has one and rules are enabled', () => {
+        // Given a category with a description hint on a workspace with Rules on
+        // When the hint is looked up
+        // Then the saved hint is returned so the description field can show it
+        expect(getCategoryDescriptionHint(mockPolicyCategories, 'Advertising', true)).toBe('Client name');
+    });
+
+    it('returns an empty string when rules are not enabled, even if the category has a hint', () => {
+        // Given a category that kept its hint but its workspace has Rules off (for example a duplicated workspace)
+        // When the hint is looked up
+        // Then no hint is returned, because category rules don't apply without Rules
+        expect(getCategoryDescriptionHint(mockPolicyCategories, 'Advertising', false)).toBe('');
+        expect(getCategoryDescriptionHint(mockPolicyCategories, 'Advertising', undefined)).toBe('');
+    });
+
+    it('returns an empty string when the category has no hint', () => {
+        // Given a category without a description hint
+        // When the hint is looked up
+        // Then nothing is returned
+        expect(getCategoryDescriptionHint(mockPolicyCategories, 'Meals', true)).toBe('');
+    });
+
+    it('returns an empty string when no category is selected or categories are missing', () => {
+        // Given no selected category, an unknown category, or no loaded categories
+        // When the hint is looked up
+        // Then nothing is returned instead of throwing
+        expect(getCategoryDescriptionHint(mockPolicyCategories, undefined, true)).toBe('');
+        expect(getCategoryDescriptionHint(mockPolicyCategories, 'NonExistentCategory', true)).toBe('');
+        expect(getCategoryDescriptionHint(undefined, 'Advertising', true)).toBe('');
     });
 });
 
