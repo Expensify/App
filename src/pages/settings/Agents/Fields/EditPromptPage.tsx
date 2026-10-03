@@ -2,7 +2,7 @@ import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -91,10 +91,7 @@ function EditPromptPage({route}: EditPromptPageProps) {
             shouldEnableMaxHeight={shouldAutoGrowPromptInput}
         >
             <CollapsibleHeaderOnKeyboard>
-                <HeaderWithBackButton
-                    title={translate('editAgentPromptPage.title')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('editAgentPromptPage.title')} />
             </CollapsibleHeaderOnKeyboard>
             <FormProvider
                 ref={formRef}

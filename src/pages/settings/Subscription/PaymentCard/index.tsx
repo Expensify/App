@@ -2,7 +2,7 @@ import PaymentCardForm from '@components/AddPaymentCard/PaymentCardForm';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -115,12 +115,9 @@ function AddPaymentCard() {
 
     return (
         <ScreenWrapper testID="AddPaymentCard">
-            <FullPageNotFoundView
-                shouldShow={shouldShowBlockingView}
-                onBackButtonPress={Navigation.goBack}
-            >
+            <FullPageNotFoundView shouldShow={shouldShowBlockingView}>
                 <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
-                    <HeaderWithBackButton title={translate('subscription.paymentCard.addPaymentCard')} />
+                    <HeaderWithBackButtonAndTitle title={translate('subscription.paymentCard.addPaymentCard')} />
                     <View style={styles.containerWithSpaceBetween}>
                         <PaymentCardForm
                             shouldShowPaymentCardForm

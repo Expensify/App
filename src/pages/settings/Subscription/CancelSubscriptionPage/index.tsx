@@ -4,7 +4,7 @@ import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FeedbackSurvey from '@components/FeedbackSurvey';
 import FixedFooter from '@components/FixedFooter';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -84,10 +84,7 @@ function CancelSubscriptionPage() {
         >
             <FullPageNotFoundView shouldShow={!isEligibleToCancel && !resolvedCancellationType}>
                 <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
-                    <HeaderWithBackButton
-                        title={translate('subscription.cancelSubscription.title')}
-                        onBackButtonPress={Navigation.goBack}
-                    />
+                    <HeaderWithBackButtonAndTitle title={translate('subscription.cancelSubscription.title')} />
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.pt3]}>
                         {isManualCancellation && (
                             <View style={[styles.flexGrow1, styles.justifyContentBetween, styles.mh5]}>

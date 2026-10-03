@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -92,7 +92,7 @@ function DynamicVisibilityPage({report}: DynamicVisibilityProps) {
             testID="VisibilityPage"
         >
             <FullPageNotFoundView shouldShow={shouldDisableVisibility}>
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('newRoomPage.visibility')}
                     onBackButtonPress={goBack}
                 />
