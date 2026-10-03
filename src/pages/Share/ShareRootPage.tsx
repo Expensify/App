@@ -16,6 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
 import ShareActionHandler from '@libs/ShareActionHandlerModule';
+import {getShareTempFile, normalizeShareFileMimeType} from '@libs/ShareActionHandlerModule/utils';
 
 import {close as closeModal} from '@userActions/Modal';
 import Tab from '@userActions/Tab';
@@ -99,16 +100,29 @@ function ShareRootPage() {
     }, [errorTitle, errorMessage]);
 
     const handleProcessFiles = useCallback(() => {
-        ShareActionHandler.processFiles((processedFiles) => {
-            const tempFile = Array.isArray(processedFiles) ? processedFiles.at(0) : (JSON.parse(processedFiles) as ShareTempFile);
+        ShareActionHandler.processFiles((processedFiles: unknown) => {
             if (errorTitle) {
                 return;
             }
-            if (!tempFile?.mimeType || !shareFileMimeTypes.includes(tempFile?.mimeType)) {
+
+            const tempFile = getShareTempFile(processedFiles);
+            if (!tempFile) {
+                setErrorTitle(translate('attachmentPicker.attachmentError'));
+                setErrorMessage(translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
+                return;
+            }
+
+            const rawMimeType = normalizeShareFileMimeType(tempFile.mimeType);
+            const isValidMimeType =
+                !!rawMimeType && (shareFileMimeTypes.includes(rawMimeType) || shareFileMimeTypes.some((allowed) => allowed.endsWith('/*') && rawMimeType.startsWith(allowed.slice(0, -1))));
+
+            if (!isValidMimeType) {
                 setErrorTitle(translate('attachmentPicker.wrongFileType'));
                 setErrorMessage(translate('attachmentPicker.notAllowedExtension'));
                 return;
             }
+
+            tempFile.mimeType = rawMimeType;
 
             const isImage = /image\/.*/.test(tempFile?.mimeType);
             if (tempFile?.mimeType && tempFile?.mimeType !== 'txt' && !isImage) {
