@@ -13,8 +13,10 @@ import {sendBulkActionSummaryFromConcierge} from '@userActions/BulkAction';
 import {close} from '@userActions/Modal';
 
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {BulkActionType} from '@src/types/onyx/BulkAction';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -23,6 +25,22 @@ import ActivityIndicator from './ActivityIndicator';
 import Button from './Button';
 import Modal from './Modal';
 import Text from './Text';
+
+const RUNNING_TITLES = {
+    [CONST.SEARCH.BULK_ACTION_TYPES.APPROVE]: 'bulkAction.approvingTitle',
+    [CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT]: 'bulkAction.submittingTitle',
+    [CONST.SEARCH.BULK_ACTION_TYPES.PAY]: 'bulkAction.payingTitle',
+    [CONST.SEARCH.BULK_ACTION_TYPES.HOLD]: 'bulkAction.holdingTitle',
+    [CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD]: 'bulkAction.unholdingTitle',
+} as const satisfies Record<BulkActionType, TranslationPaths>;
+
+const DONE_TITLES = {
+    [CONST.SEARCH.BULK_ACTION_TYPES.APPROVE]: 'bulkAction.approvedTitle',
+    [CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT]: 'bulkAction.submittedTitle',
+    [CONST.SEARCH.BULK_ACTION_TYPES.PAY]: 'bulkAction.paidTitle',
+    [CONST.SEARCH.BULK_ACTION_TYPES.HOLD]: 'bulkAction.heldTitle',
+    [CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD]: 'bulkAction.unheldTitle',
+} as const satisfies Record<BulkActionType, TranslationPaths>;
 
 type BulkActionStatusModalProps = {
     /** The bulk action ID to subscribe to */
@@ -68,16 +86,10 @@ function BulkActionStatusModal({bulkActionID, isVisible, onClose}: BulkActionSta
 
     const renderContent = () => {
         if (isRunning) {
-            let runningTitle = translate('bulkAction.payingTitle');
-            if (action === CONST.SEARCH.BULK_ACTION_TYPES.APPROVE) {
-                runningTitle = translate('bulkAction.approvingTitle');
-            } else if (action === CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT) {
-                runningTitle = translate('bulkAction.submittingTitle');
-            }
             return (
                 <>
                     <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mb2]}>
-                        <Text style={[styles.exportDownloadTitle, styles.flexShrink1]}>{runningTitle}</Text>
+                        <Text style={[styles.exportDownloadTitle, styles.flexShrink1]}>{translate(RUNNING_TITLES[action ?? CONST.SEARCH.BULK_ACTION_TYPES.PAY])}</Text>
                         <ActivityIndicator size="small" />
                     </View>
                     <Text style={styles.mb5}>{translate('bulkAction.runningBody')}</Text>
@@ -115,14 +127,7 @@ function BulkActionStatusModal({bulkActionID, isVisible, onClose}: BulkActionSta
 
         if (state === CONST.BULK_ACTION.STATE.DONE) {
             const count = total - failedReportIDs.length;
-            let doneTitle = translate('bulkAction.paidTitle', {count, total});
-            if (total === 0) {
-                doneTitle = translate('bulkAction.noReportsTitle');
-            } else if (action === CONST.SEARCH.BULK_ACTION_TYPES.APPROVE) {
-                doneTitle = translate('bulkAction.approvedTitle', {count, total});
-            } else if (action === CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT) {
-                doneTitle = translate('bulkAction.submittedTitle', {count, total});
-            }
+            const doneTitle = total === 0 ? translate('bulkAction.noReportsTitle') : translate(DONE_TITLES[action ?? CONST.SEARCH.BULK_ACTION_TYPES.PAY], {count, total});
             return (
                 <>
                     <Text style={[styles.exportDownloadTitle, styles.mb2]}>{doneTitle}</Text>
