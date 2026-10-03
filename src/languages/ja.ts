@@ -8597,7 +8597,16 @@ ${reportName}`,
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>接続されました。従業員をインポートするには ${setupLink ? `<a href="${setupLink}">セットアップを完了</a>` : '設定を完了'} に接続してください。</muted-text-label>`,
             mergeHR: {
-                groups: {title: 'グループ', description: 'このワークスペースと同期したい従業員グループを選択してください'},
+                groups: {
+                    title: 'グループ',
+                    description: 'このワークスペースと同期したい従業員グループを選択してください',
+                    staleSelectionError: (providerName: string) => `選択されたグループの一部は、${providerName} では既に存在しないため、その従業員の同期が停止しました。`,
+                    updateSelectionLink: 'グループを更新します。',
+                    noGroupsFound: 'グループが見つかりませんでした',
+                    noGroupsFoundDescription:
+                        '現在選択できるグループはありません。グループを選択せずに保存して全従業員を同期するか、新しいグループが作成されてから再度接続を同期してください。',
+                    unnamedGroup: (groupID: string) => `名称未設定のグループ（${groupID}）`,
+                },
             },
         },
         recruiting: {

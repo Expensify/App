@@ -6,9 +6,9 @@ import getGustoSetupLink from '@libs/actions/connections/Gusto';
 import {getMergeSetupLink} from '@libs/actions/connections/merge';
 import getZenefitsSetupLink from '@libs/actions/connections/Zenefits';
 import {formatList} from '@libs/Localize';
-import {getConnectedHRProvider, getHRApprovalMode, isMergeHRCompleteSetupNeeded} from '@libs/merge/HRUtils';
+import {getConnectedHRProvider, getHRApprovalMode, hasStaleMergeHRGroups, isMergeHRCompleteSetupNeeded} from '@libs/merge/HRUtils';
 import type {HRConnectionName} from '@libs/merge/HRUtils';
-import {getMergeFinalApproverDisplayName} from '@libs/merge/MergeUtils';
+import {getMergeFinalApproverDisplayName, hasMergeSyncError} from '@libs/merge/MergeUtils';
 import {getIntegrationLastSuccessfulDate} from '@libs/PolicyUtils';
 
 import type {MergeProviderCardDescriptor, MergeProviderConfigRow} from '@pages/workspace/merge/types';
@@ -46,7 +46,7 @@ function getMergeHRSyncState(policy: OnyxEntry<Policy>) {
     return {
         isSyncInProgress,
         isInitialSyncInProgress: isSyncInProgress && lastSync?.syncType === CONST.MERGE.SYNC_TYPE.INITIAL,
-        hasError: lastSync?.syncStatus === CONST.MERGE.SYNC_STATUS.FAILED,
+        hasError: hasMergeSyncError(policy, CONST.POLICY.CONNECTIONS.NAME.MERGE_HR),
         syncStageInProgress: undefined,
         successfulDate: lastSync?.successfulDate,
     };
@@ -247,6 +247,7 @@ function getHRCards({
         const state = getHRCardState({policy, connectionName: mergeConnectionName, connectionSyncProgress, getLocalDateFromDatetime, mergeSlug: slug});
         const mergeConfig = state.isConnected ? policy?.connections?.merge_hris?.config : undefined;
         const needsSetup = state.isConnected && !state.needsReconnect && isMergeHRCompleteSetupNeeded(policy);
+        const hasStaleGroups = state.isConnected && !state.needsReconnect && !needsSetup && hasStaleMergeHRGroups(policy);
         const groupsRoute = ROUTES.WORKSPACE_HR_MERGE_GROUPS.getRoute(policyID);
 
         const configRows: MergeProviderConfigRow[] =
@@ -259,6 +260,7 @@ function getHRCards({
                           route: groupsRoute,
                           pendingAction: mergeConfig?.pendingFields?.groups,
                           errors: mergeConfig?.errorFields?.groups,
+                          hasInvalidValue: hasStaleGroups,
                       },
                       {
                           field: 'approvalMode',
@@ -288,6 +290,7 @@ function getHRCards({
             setupLink: getMergeSetupLink(policyID, slug, CONST.MERGE.CATEGORY.HRIS),
             ...(state.isConnected ? state : disconnectedState),
             completeSetupRoute: needsSetup ? groupsRoute : undefined,
+            staleGroupsRoute: hasStaleGroups ? groupsRoute : undefined,
             configRows,
         });
     }
