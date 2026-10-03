@@ -1012,8 +1012,7 @@ type GetPolicyNameBaseParams = {
     reports?: Report[];
 };
 
-// TODO: We'll remove the optional (?) modifier from the unavailableTranslation parameter once https://github.com/Expensify/App/issues/66430 is completed.
-type GetPolicyNameParams = GetPolicyNameBaseParams & ({returnEmptyIfNotFound: true} | {returnEmptyIfNotFound?: false; unavailableTranslation?: string});
+type GetPolicyNameParams = GetPolicyNameBaseParams & ({returnEmptyIfNotFound: true} | {returnEmptyIfNotFound?: false; unavailableTranslation: string});
 
 type GetReportStatusParams = {
     stateNum?: number;
@@ -1234,7 +1233,6 @@ Onyx.connect({
 });
 
 let hiddenTranslation = '';
-let unavailableTranslation = '';
 
 Onyx.connect({
     key: ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,
@@ -1243,7 +1241,6 @@ Onyx.connect({
             return;
         }
         hiddenTranslation = translateLocal('common.hidden');
-        unavailableTranslation = translateLocal('workspace.common.unavailable');
     },
 });
 
@@ -1401,10 +1398,13 @@ function getPolicyType(report: OnyxInputOrEntry<Report>, policies: OnyxCollectio
 
 /**
  * Get the policy name from a given report
+ *
+ * Callers pass their own `unavailableTranslation` (the "Unavailable workspace" copy) for the case where no policy resolves, unless they
+ * pass `returnEmptyIfNotFound`. Builders that persist their output pass the English literal, everything else passes `translate('workspace.common.unavailable')`.
  */
 function getPolicyName(params: GetPolicyNameParams): string {
     const {report, policy, policies, reports} = params;
-    const noPolicyFound = params.returnEmptyIfNotFound ? '' : (params.unavailableTranslation ?? unavailableTranslation);
+    const noPolicyFound = params.returnEmptyIfNotFound ? '' : params.unavailableTranslation;
     const parentReport = report ? getRootParentReport({report, reports}) : undefined;
 
     // A caller that explicitly passes `policy` (e.g. a draft workspace's policy from getReportOption) can resolve a name
@@ -6408,10 +6408,18 @@ function getReportPreviewReportActionMessage(
     const {totalDisplaySpend: totalAmount} = getMoneyRequestSpendBreakdown(report);
 
     const parentReport = getParentReport(report);
-    const policyName = getPolicyName({report: parentReport ?? report, policy});
+    // Like the rest of this function, the workspace and participant fallbacks below are the raw English copy: this message is stored on a
+    // report action and read back by every viewer, so it must not follow the locale of whoever happened to build it. These mirror
+    // `workspace.common.unavailable` and `common.hidden` in `src/languages/en.ts`, and ReportUtilsTest asserts they do not drift from them.
+    const policyName = getPolicyName({report: parentReport ?? report, policy, unavailableTranslation: 'Unavailable workspace'});
     const payerName = isExpenseReport(report)
         ? policyName
-        : getDisplayNameForParticipant({accountID: report.managerID, shouldUseShortForm: !isPreviewMessageForParentChatReport, formatPhoneNumber: formatPhoneNumberPhoneUtils});
+        : getDisplayNameForParticipant({
+              accountID: report.managerID,
+              shouldUseShortForm: !isPreviewMessageForParentChatReport,
+              formatPhoneNumber: formatPhoneNumberPhoneUtils,
+              hiddenTranslation: 'Hidden',
+          });
 
     const formattedAmount = convertToDisplayStringEnLocale(totalAmount, report.currency, getCurrencyDecimals);
 
@@ -6470,7 +6478,12 @@ function getReportPreviewReportActionMessage(
         let actualPayerName =
             report.managerID === deprecatedCurrentUserAccountID && !isForListPreview
                 ? ''
-                : getDisplayNameForParticipant({accountID: payerAccountID, shouldUseShortForm: true, formatPhoneNumber: formatPhoneNumberPhoneUtils});
+                : getDisplayNameForParticipant({
+                      accountID: payerAccountID,
+                      shouldUseShortForm: true,
+                      formatPhoneNumber: formatPhoneNumberPhoneUtils,
+                      hiddenTranslation: 'Hidden',
+                  });
 
         actualPayerName = actualPayerName && isForListPreview && !isPreviewMessageForParentChatReport ? `${actualPayerName}:` : actualPayerName;
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
@@ -6509,7 +6522,13 @@ function getReportPreviewReportActionMessage(
     }
 
     if (report.isWaitingOnBankAccount) {
-        const submitterDisplayName = getDisplayNameForParticipant({accountID: report.ownerAccountID, shouldUseShortForm: true, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
+        const submitterDisplayName =
+            getDisplayNameForParticipant({
+                accountID: report.ownerAccountID,
+                shouldUseShortForm: true,
+                formatPhoneNumber: formatPhoneNumberPhoneUtils,
+                hiddenTranslation: 'Hidden',
+            }) ?? '';
         return `started payment, but is waiting for ${submitterDisplayName} to add a personal bank account.`;
     }
 
@@ -6538,13 +6557,18 @@ function getReportPreviewReportActionMessage(
         // We only want to show the actor name in the preview if it's not the current user who took the action
         const requestorName =
             lastActorID && lastActorID !== deprecatedCurrentUserAccountID
-                ? getDisplayNameForParticipant({accountID: lastActorID, shouldUseShortForm: !isPreviewMessageForParentChatReport, formatPhoneNumber: formatPhoneNumberPhoneUtils})
+                ? getDisplayNameForParticipant({
+                      accountID: lastActorID,
+                      shouldUseShortForm: !isPreviewMessageForParentChatReport,
+                      formatPhoneNumber: formatPhoneNumberPhoneUtils,
+                      hiddenTranslation: 'Hidden',
+                  })
                 : '';
         return `${requestorName ? `${requestorName}: ` : ''}${amountToDisplay}${comment ? ` for ${comment}` : ''}`;
     }
 
     if (containsNonReimbursable) {
-        const ownerName = getDisplayNameForParticipant({accountID: report.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
+        const ownerName = getDisplayNameForParticipant({accountID: report.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, hiddenTranslation: 'Hidden'}) ?? '';
         return `${ownerName} spent ${formattedAmount}`;
     }
     return `${payerName ?? ''} owes ${formattedAmount}${comment ? ` for ${comment}` : ''}`;
@@ -7619,7 +7643,8 @@ function buildOptimisticExpenseReport({
     const storedTotal = total * -1;
     const storedNonReimbursableTotal = nonReimbursableTotal * -1;
     const report = chatReportID ? getReportOrDraftReport(chatReportID) : undefined;
-    const policyName = getPolicyName({report});
+    // The report name below is stored in English (see the `reportName` comment), so its workspace fallback is the raw English copy too.
+    const policyName = getPolicyName({report, unavailableTranslation: 'Unavailable workspace'});
     const formattedTotal = convertToDisplayStringEnLocale(storedTotal, currency, getCurrencyDecimals);
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const policyReal = getPolicy(policyID);
