@@ -2,7 +2,6 @@ import useContactImport from '@hooks/useContactImport';
 
 import {canPickContacts} from '@libs/ContactPicker';
 
-import {Str} from 'expensify-common';
 import {useMemo} from 'react';
 import {RESULTS} from 'react-native-permissions';
 
@@ -32,17 +31,6 @@ function useSearchSelector(config: UseSearchSelectorConfig): UseSearchSelectorRe
         contactOptions: enablePhoneContacts ? memoizedContacts : undefined,
     });
 
-    // Put the picked contact in the search input so its row (or the existing user with the same login) is shown for the user to select
-    const pickContactAndSearch = () => {
-        pickContact().then((pickedContacts) => {
-            const login = pickedContacts.at(0)?.login;
-            if (!login) {
-                return;
-            }
-            baseResult.setSearchTerm(Str.removeSMSDomain(login));
-        });
-    };
-
     // Build contact state if enabled
     const contactState: ContactState | undefined = enablePhoneContacts
         ? {
@@ -50,7 +38,12 @@ function useSearchSelector(config: UseSearchSelectorConfig): UseSearchSelectorRe
               contactOptions: contacts,
               showImportUI: showImportContacts,
               importContacts: importAndSaveContacts,
-              pickContact: canPickContacts ? pickContactAndSearch : undefined,
+              // Like the bulk import, the picked contact is only added to the list
+              pickContact: canPickContacts
+                  ? () => {
+                        pickContact();
+                    }
+                  : undefined,
               setContactPermissionState,
           }
         : undefined;
