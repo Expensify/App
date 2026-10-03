@@ -32,6 +32,7 @@ function PopoverWithoutOverlay({
     children,
     shouldDisplayBelowModals = false,
     enableEdgeToEdgeBottomSafeAreaPadding,
+    shouldCloseOnWheel = true,
 }: PopoverWithoutOverlayProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -62,6 +63,7 @@ function PopoverWithoutOverlay({
                 ref: withoutOverlayRef,
                 close: onClose ?? NOOP,
                 anchorRef,
+                shouldCloseOnWheel,
             });
             removeOnClose = setCloseModal(onClose ?? NOOP);
         } else {

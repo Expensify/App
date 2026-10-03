@@ -160,6 +160,9 @@ function FormProvider({
     const inputRefs = useRef<InputRefs>({});
     const formWrapperRef = useRef<FormWrapperRef>(null);
     const touchedInputs = useRef<Record<string, boolean>>({});
+
+    // A ref rather than state, so an input reporting its own error cannot drive a render of the form it sits in
+    const inputValidationErrors = useRef<Record<string, string>>({});
     const [inputValues, setInputValues] = useState<Form>(() => ({...draftValues}));
     const isLoadingDraftValues = isLoadingOnyxValue(draftValuesMetadata);
     const previousDraftValues = useRef(draftValues);
@@ -207,6 +210,15 @@ function FormProvider({
             }
 
             const validateErrors: GenericFormInputErrors = validate?.(trimmedStringValues, translate) ?? {};
+
+            for (const [inputID, inputError] of Object.entries(inputValidationErrors.current)) {
+                // A rule the page wrote itself is the more specific one, so it keeps the field
+                if (!inputError || validateErrors[inputID]) {
+                    continue;
+                }
+
+                validateErrors[inputID] = inputError;
+            }
 
             if (!allowHTML) {
                 // Validate the input for html tags. It should supersede any other error unless
@@ -581,7 +593,13 @@ function FormProvider({
     const fallbackAnnouncementMessage = !isGeneralAlertVisible ? firstFieldErrorMessage : '';
     const getErrorAnnouncementKey = useCallback(() => errorAnnouncementKey, [errorAnnouncementKey]);
     const getFallbackAnnouncementMessage = useCallback(() => fallbackAnnouncementMessage, [fallbackAnnouncementMessage]);
-    const value = useMemo(() => ({registerInput, getErrorAnnouncementKey, getFallbackAnnouncementMessage}), [registerInput, getErrorAnnouncementKey, getFallbackAnnouncementMessage]);
+    const setInputValidationError = useCallback((inputID: keyof Form, error: string) => {
+        inputValidationErrors.current[inputID] = error;
+    }, []);
+    const value = useMemo(
+        () => ({registerInput, getErrorAnnouncementKey, getFallbackAnnouncementMessage, setInputValidationError}),
+        [registerInput, getErrorAnnouncementKey, getFallbackAnnouncementMessage, setInputValidationError],
+    );
 
     const submitAndAnnounce = useCallback(() => {
         if (hasServerError) {

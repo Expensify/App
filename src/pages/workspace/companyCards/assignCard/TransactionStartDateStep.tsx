@@ -41,10 +41,14 @@ function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
     const cardToAssign = assignCard?.cardToAssign;
 
     const [localDateOption, setLocalDateOption] = useState<string>();
-    const [errorText, setErrorText] = useState('');
+    // A required error belongs after the field has been left or the page submitted, and not while the date is being filled
+    const [hasVisitedDateField, setHasVisitedDateField] = useState(false);
     const [localStartDate, setLocalStartDate] = useState<string>();
+    // The field reports a date its calendar would never have offered, which only typing can reach
+    const [dateError, setDateError] = useState('');
     const dateOptionSelected = localDateOption ?? cardToAssign?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM;
     const startDate = localStartDate ?? cardToAssign?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
+    const requiredError = hasVisitedDateField && !isRequiredFulfilled(startDate) ? translate('common.error.fieldRequired') : '';
 
     const handleBackButtonPress = () => {
         if (isEditing) {
@@ -56,7 +60,7 @@ function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
     };
 
     const handleSelectDateOption = (dateOption: string) => {
-        setErrorText('');
+        setHasVisitedDateField(false);
         setLocalDateOption(dateOption);
         if (dateOption === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING) {
             return;
@@ -66,7 +70,11 @@ function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
 
     const submit = () => {
         if (dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM && !isRequiredFulfilled(startDate)) {
-            setErrorText(translate('common.error.fieldRequired'));
+            setHasVisitedDateField(true);
+            return;
+        }
+
+        if (dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM && dateError) {
             return;
         }
 
@@ -145,16 +153,11 @@ function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
                                                 inputID=""
                                                 value={startDate}
                                                 label={translate('iou.startDate')}
-                                                onInputChange={(value) => {
-                                                    if (!isRequiredFulfilled(value)) {
-                                                        setErrorText(translate('common.error.fieldRequired'));
-                                                    } else {
-                                                        setErrorText('');
-                                                    }
-                                                    setLocalStartDate(value);
-                                                }}
+                                                onInputChange={setLocalStartDate}
                                                 minDate={CONST.CALENDAR_PICKER.MIN_DATE}
-                                                errorText={errorText}
+                                                errorText={requiredError}
+                                                onTouched={() => setHasVisitedDateField(true)}
+                                                onValidationErrorChange={setDateError}
                                             />
                                         </View>
                                     ) : null

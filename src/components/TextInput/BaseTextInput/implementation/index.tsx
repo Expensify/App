@@ -327,6 +327,8 @@ function BaseTextInput({
 
     const shouldAddPaddingBottom = isMultiline || (autoGrowHeight && !isAutoGrowHeightMarkdown && textInputHeight > variables.componentSizeLarge);
     const hasLabel = !!label?.length;
+    // A date part way through being entered reads as no date at all, so its digits are clearable without a value
+    const hasContentToClear = !!value || !!inputProps.dateSegmentsConfig?.hasTypedDigits;
     const isReadOnly = inputProps.readOnly ?? inputProps.disabled;
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and errorText can be an empty string
 
@@ -552,7 +554,7 @@ function BaseTextInput({
                                     </Text>
                                 </View>
                             )}
-                            {((isFocused && !isReadOnly && shouldShowClearButton) || !shouldHideClearButton) && !!value && !inputProps.isLoading && (
+                            {((isFocused && !isReadOnly && shouldShowClearButton) || !shouldHideClearButton) && hasContentToClear && !inputProps.isLoading && (
                                 <View
                                     onLayout={() => {
                                         if (didScrollToEndRef.current || !input.current) {
