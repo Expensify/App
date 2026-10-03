@@ -1021,10 +1021,8 @@ describe('MoneyRequestView edit fields', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            const vendorError = screen.getByTestId('menu-item-error-common.vendor');
-            expect(vendorError).toHaveTextContent('violations.inactiveVendor.');
-            const vendorIndicator = screen.getByTestId('menu-item-indicator-common.vendor');
-            expect(vendorIndicator).toHaveTextContent(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+            expect(screen.getByRole('alert')).toHaveTextContent('violations.inactiveVendor.');
+            expect(screen.getByTestId('menu-item-brick-road-indicator')).toBeOnTheScreen();
         });
     });
 
