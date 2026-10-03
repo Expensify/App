@@ -104,6 +104,8 @@ class HybridContactsModule : HybridContactsModuleSpec() {
                 requestedDataFields.add(Phone.CONTENT_ITEM_TYPE)
             }
             return Intent(ContactsPickerSessionContract.ACTION_PICK_CONTACTS).apply {
+                // Below targetSdk 37 the picker forwards to a contacts app unless we opt in, and none handle this action
+                putExtra(Intent.EXTRA_USE_SYSTEM_CONTACTS_PICKER, true)
                 putStringArrayListExtra(ContactsPickerSessionContract.EXTRA_PICK_CONTACTS_REQUESTED_DATA_FIELDS, requestedDataFields)
             }
         }
