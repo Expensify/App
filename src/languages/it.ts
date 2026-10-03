@@ -4822,6 +4822,8 @@ ${amount} per ${merchant} - ${date}`,
                         return 'Amministrazione persone';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Amministrazione pagamenti';
+                    case CONST.POLICY.ROLE.APPROVE_ONLY:
+                        return 'Solo approvazione';
                     case CONST.POLICY.ROLE.USER:
                         return 'Membro';
                     default:
@@ -4862,6 +4864,7 @@ ${amount} per ${merchant} - ${date}`,
             cardAdminAlternateText: 'Gestisci le carte dello spazio di lavoro.',
             peopleAdminAlternateText: 'Gestisci i membri e i flussi di approvazione.',
             paymentsAdminAlternateText: 'Gestisci i pagamenti del flusso di lavoro.',
+            approveOnlyAlternateText: 'Approva i report senza inviarli.',
             readOnlyActionTitle: 'Non così in fretta...',
             readOnlyActionPrompt: 'Il tuo ruolo nello spazio di lavoro può visualizzare queste impostazioni, ma non può modificarle.',
             noAccessActionPrompt: 'Il tuo ruolo nello spazio di lavoro non ha accesso a queste impostazioni. Chiedi a un amministratore se ne hai bisogno.',
@@ -7034,6 +7037,15 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
         },
         people: {
             genericFailureMessage: 'Si è verificato un errore durante la rimozione di un membro dallo spazio di lavoro, riprova per favore',
+            approveOnlyRoleBlockedTitle: 'Impossibile modificare questo ruolo',
+            approveOnlyRoleBlockedConfirm: 'Capito',
+            approveOnlyRoleBlockedDescription: 'I membri con solo approvazione non possono creare spese in questo spazio di lavoro. Questi problemi devono essere risolti prima:',
+            approveOnlyRoleBlockedReasons: {
+                hasCardOnPolicy: 'Hanno una carta assegnata in questo spazio di lavoro. Un amministratore dello spazio di lavoro o delle carte deve prima rimuoverla.',
+                isRestrictedByDomainGroup:
+                    'Questo spazio di lavoro è lo spazio di lavoro preferito per un gruppo di dominio di cui fanno parte. Un amministratore di dominio deve prima modificarlo.',
+                isDefaultPolicy: 'Questo è il loro spazio di lavoro predefinito. Dovranno impostarne uno diverso prima che tu possa aggiornare il loro ruolo.',
+            },
             removeMembersPrompt: ({memberName}: {memberName: string}) => ({
                 one: `Sei sicuro di voler rimuovere ${memberName}?`,
                 other: 'Sei sicuro di voler rimuovere questi membri?',

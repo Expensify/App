@@ -125,7 +125,8 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, pendingDeletePolicy
             }
         }
 
-        if (!isDefault && !item?.isJoinRequestPending && !isRestrictedToPreferredPolicy) {
+        // Approve-only members cannot create expenses, so making the workspace their default would break expense creation routing.
+        if (!isDefault && !item?.isJoinRequestPending && !isRestrictedToPreferredPolicy && item.role !== CONST.POLICY.ROLE.APPROVE_ONLY) {
             menuItems.push({
                 icon: icons.Star,
                 text: translate('workspace.common.setAsDefault'),

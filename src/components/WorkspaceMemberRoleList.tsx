@@ -87,6 +87,13 @@ function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLo
             isSelected: role === CONST.POLICY.ROLE.USER,
             keyForList: CONST.POLICY.ROLE.USER,
         },
+        {
+            value: CONST.POLICY.ROLE.APPROVE_ONLY,
+            text: translate('workspace.common.roleName', CONST.POLICY.ROLE.APPROVE_ONLY),
+            alternateText: translate('workspace.common.approveOnlyAlternateText'),
+            isSelected: role === CONST.POLICY.ROLE.APPROVE_ONLY,
+            keyForList: CONST.POLICY.ROLE.APPROVE_ONLY,
+        },
     ];
 
     const availableRoleItems: ListItemType[] = workspaceRoles.filter(

@@ -162,6 +162,8 @@ function getActivePoliciesWithExpenseChat(policies: OnyxCollection<Policy> | nul
             !!policy.name &&
             !!policy.id &&
             !!getPolicyRole(policy, currentUserLogin) &&
+            // Approve-only members cannot create expenses, so their workspaces are not expense destinations.
+            getPolicyRole(policy, currentUserLogin) !== CONST.POLICY.ROLE.APPROVE_ONLY &&
             (isPaidGroupPolicy(policy) || isSubmitPolicy(policy)) &&
             !isArchivedPolicy(policy),
     );
@@ -244,6 +246,12 @@ const ROLE_PERMISSION_BUNDLES: Record<string, Partial<Record<PolicyFeature, Poli
         [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
         [CONST.POLICY.POLICY_FEATURE.MEMBERS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
     },
+    // Approve-only members act on reports routed to them but cannot create expenses, so their workspace
+    // feature access matches a Member. The no-create rule is enforced by the creation entry points, not here.
+    [CONST.POLICY.ROLE.APPROVE_ONLY]: {
+        [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.MEMBERS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+    },
     [CONST.POLICY.ROLE.CARD_ADMIN]: {
         [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
         [CONST.POLICY.POLICY_FEATURE.MEMBERS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
@@ -264,7 +272,7 @@ const ROLE_PERMISSION_BUNDLES: Record<string, Partial<Record<PolicyFeature, Poli
     },
 };
 
-const CONTROL_POLICY_ONLY_ROLES = [CONST.POLICY.ROLE.AUDITOR, CONST.POLICY.ROLE.CARD_ADMIN, CONST.POLICY.ROLE.PEOPLE_ADMIN, CONST.POLICY.ROLE.PAYMENTS_ADMIN];
+const CONTROL_POLICY_ONLY_ROLES = [CONST.POLICY.ROLE.AUDITOR, CONST.POLICY.ROLE.CARD_ADMIN, CONST.POLICY.ROLE.PEOPLE_ADMIN, CONST.POLICY.ROLE.PAYMENTS_ADMIN, CONST.POLICY.ROLE.APPROVE_ONLY];
 
 function isControlPolicyOnlyRole(role: string | undefined): boolean {
     return CONTROL_POLICY_ONLY_ROLES.some((controlPolicyOnlyRole) => controlPolicyOnlyRole === role);
@@ -310,10 +318,11 @@ function canMemberAssignRole(policy: OnyxInputOrEntry<Policy>, login: string, ro
         return true;
     }
 
-    // Reaching here: USER always, plus AUDITOR only on corporate policies (control-only roles are
-    // already filtered out on non-corporate policies above). Assigning USER/AUDITOR needs the
-    // MEMBERS permission, and only on corporate policies.
-    const isNonElevatedRole = role === CONST.POLICY.ROLE.USER || role === CONST.POLICY.ROLE.AUDITOR;
+    // Reaching here: USER always, plus AUDITOR and APPROVE_ONLY on corporate policies (control-only roles are
+    // already filtered out on non-corporate policies above). Assigning these needs the
+    // MEMBERS permission, and only on corporate policies. APPROVE_ONLY stays within a People Admin's
+    // authority because it is strictly less permissive than USER.
+    const isNonElevatedRole = role === CONST.POLICY.ROLE.USER || role === CONST.POLICY.ROLE.AUDITOR || role === CONST.POLICY.ROLE.APPROVE_ONLY;
     return isCorporatePolicy && canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.MEMBERS) && isNonElevatedRole;
 }
 
@@ -3292,6 +3301,8 @@ function getGroupPoliciesWhereReportCanBeCreated(policies: OnyxCollection<Policy
             !policy.isJoinRequestPending &&
             (isPaidGroupPolicy(policy) || isSubmitPolicy(policy)) &&
             shouldShowPolicy(policy, false, currentUserLogin) &&
+            // Approve-only members cannot create expenses, so they cannot create reports on that workspace either.
+            getPolicyRole(policy, currentUserLogin) !== CONST.POLICY.ROLE.APPROVE_ONLY &&
             !isTeachersUnitePolicyID(policy.id),
     );
 }

@@ -83,7 +83,8 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
         shouldSortSelectedToTop: false,
         searchTerm: debouncedSearchTerm,
         localeCompare,
-        additionalFilter: (newPolicy) => isGroupPolicy(newPolicy),
+        // Approve-only members cannot create expenses, so their workspaces cannot be the default expense destination.
+        additionalFilter: (newPolicy) => isGroupPolicy(newPolicy) && newPolicy.role !== CONST.POLICY.ROLE.APPROVE_ONLY,
     });
 
     const confirmButtonOptions = {

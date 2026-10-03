@@ -64,6 +64,7 @@ import {
     matchesParentTagPath,
     matchesParentTagsFilter,
     getGLCodeFromPolicyTag,
+    getGroupPoliciesWhereReportCanBeCreated,
     getTagList,
     getTagListByOrderWeight,
     getUberConnectionErrorDirectlyFromPolicy,
@@ -400,6 +401,19 @@ describe('PolicyUtils', () => {
             expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.CARD_ADMIN)).toBe(false);
             expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.PEOPLE_ADMIN)).toBe(false);
             expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.PAYMENTS_ADMIN)).toBe(false);
+        });
+
+        it('allows People Admins to assign the approve-only role', () => {
+            const policy = buildPolicy(CONST.POLICY.ROLE.PEOPLE_ADMIN);
+
+            expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.APPROVE_ONLY)).toBe(true);
+        });
+
+        it('gives approve-only members read-only access like members', () => {
+            const policy = buildPolicy(CONST.POLICY.ROLE.APPROVE_ONLY);
+
+            expect(canMemberRead(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.OVERVIEW)).toBe(true);
+            expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.OVERVIEW)).toBe(false);
         });
 
         it('allows Submit workspace editors to manage editor memberships without assigning roles', () => {
@@ -789,6 +803,41 @@ describe('PolicyUtils', () => {
             const result = getActivePoliciesWithExpenseChat(policies, undefined);
             expect(result).toHaveLength(1);
             expect(result.at(0)?.id).toBe(activePolicy.id);
+        });
+
+        it('excludes policies where the current user is approve-only', () => {
+            const approveOnlyPolicy = createMock<Policy>({
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                name: 'approveOnly',
+                role: CONST.POLICY.ROLE.APPROVE_ONLY,
+                pendingAction: null,
+            });
+            const memberPolicy = createMock<Policy>({...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), name: 'member', role: CONST.POLICY.ROLE.USER, pendingAction: null});
+            const policies = createCollection<Policy>(
+                (item) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,
+                (index) => (index === 0 ? approveOnlyPolicy : memberPolicy),
+                2,
+            );
+
+            const result = getActivePoliciesWithExpenseChat(policies, employeeEmail);
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.id).toBe(memberPolicy.id);
+        });
+    });
+
+    describe('getGroupPoliciesWhereReportCanBeCreated', () => {
+        it('excludes workspaces where the current user is approve-only', () => {
+            const approveOnlyPolicy = createMock<Policy>({...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), role: CONST.POLICY.ROLE.APPROVE_ONLY, pendingAction: null});
+            const memberPolicy = createMock<Policy>({...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), role: CONST.POLICY.ROLE.USER, pendingAction: null});
+            const policies = createCollection<Policy>(
+                (item) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,
+                (index) => (index === 0 ? approveOnlyPolicy : memberPolicy),
+                2,
+            );
+
+            const result = getGroupPoliciesWhereReportCanBeCreated(policies, employeeEmail);
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.id).toBe(memberPolicy.id);
         });
     });
     describe('getCustomUnitsForDuplication', () => {
@@ -1940,6 +1989,24 @@ describe('PolicyUtils', () => {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             };
+            const result = isWorkspaceEligibleForReportChange(currentUserLogin, newPolicy);
+            expect(result).toBe(false);
+        });
+
+        it('returns false if the submitter is approve-only on the new policy', async () => {
+            const currentUserLogin = employeeEmail;
+
+            const newPolicy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                role: undefined,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                employeeList: {
+                    [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.APPROVE_ONLY},
+                },
+                pendingAction: null,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
+
             const result = isWorkspaceEligibleForReportChange(currentUserLogin, newPolicy);
             expect(result).toBe(false);
         });

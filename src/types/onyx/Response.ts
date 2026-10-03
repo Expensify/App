@@ -15,6 +15,9 @@ type Data = {
 
     /** Workspaces the vacation delegate is missing from, returned with jsonCode 305 by SetVacationDelegate */
     policyDiff?: VacationDelegatePolicyDiff;
+
+    /** Reasons the backend refused the approve-only role, returned by UpdateWorkspaceMembersRole */
+    blockedReasons?: string[];
 };
 
 /** Model of server response */

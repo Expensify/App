@@ -2,7 +2,9 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceMemberRoleList from '@components/WorkspaceMemberRoleList';
 import type {ListItemType} from '@components/WorkspaceMemberRoleList';
 
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
 import useRedirectSubmitWorkspaceFeatureUpgrade from '@hooks/useRedirectSubmitWorkspaceFeatureUpgrade';
 import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
 
@@ -35,6 +37,8 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
     const accountID = Number(route.params.accountID);
     const policyID = route.params.policyID;
     const showRuleBotGuardModal = useRuleBotGuardModal();
+    const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
     const member = policy?.employeeList?.[memberLogin];
@@ -49,6 +53,24 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
         upgradeFeatureAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias,
     });
 
+    const showApproveOnlyBlockedModal = (blockedReasons: string[]) => {
+        const reasonLines = blockedReasons.map((reason) => {
+            if (reason === 'hasCardOnPolicy') {
+                return `• ${translate('workspace.people.approveOnlyRoleBlockedReasons.hasCardOnPolicy')}`;
+            }
+            if (reason === 'isRestrictedByDomainGroup') {
+                return `• ${translate('workspace.people.approveOnlyRoleBlockedReasons.isRestrictedByDomainGroup')}`;
+            }
+            return `• ${translate('workspace.people.approveOnlyRoleBlockedReasons.isDefaultPolicy')}`;
+        });
+        showConfirmModal({
+            title: translate('workspace.people.approveOnlyRoleBlockedTitle'),
+            prompt: [translate('workspace.people.approveOnlyRoleBlockedDescription'), ...reasonLines].join('\n'),
+            confirmText: translate('workspace.people.approveOnlyRoleBlockedConfirm'),
+            shouldShowCancelButton: false,
+        });
+    };
+
     const changeRole = ({value}: ListItemType) => {
         if (value === member?.role) {
             return;
@@ -62,6 +84,17 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
         }
         if (value !== CONST.POLICY.ROLE.ADMIN && isRuleBotEnforcingRules(accountID, policy)) {
             showRuleBotGuardModal('changeRole', policyID);
+            return;
+        }
+        if (value === CONST.POLICY.ROLE.APPROVE_ONLY) {
+            updateWorkspaceMembersRole(policy, [memberLogin], [accountID], value).then((response) => {
+                const blockedReasons = response?.data?.blockedReasons ?? [];
+                if (blockedReasons.length > 0) {
+                    showApproveOnlyBlockedModal(blockedReasons);
+                    return;
+                }
+                Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
+            });
             return;
         }
         updateWorkspaceMembersRole(policy, [memberLogin], [accountID], value);

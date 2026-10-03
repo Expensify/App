@@ -4507,6 +4507,7 @@ const CONST = {
             CARD_ADMIN: 'cardAdmin',
             PEOPLE_ADMIN: 'peopleAdmin',
             PAYMENTS_ADMIN: 'paymentsAdmin',
+            APPROVE_ONLY: 'approveOnly',
         },
         WORKSPACE_STATUS: {
             ACTIVE: 'active',
