@@ -247,7 +247,7 @@ const workspaceCardFeedsClosed: Record<string, WorkspaceCardsList | undefined> =
                 isVirtual: false,
             },
             lastFourPAN: '1234',
-            state: 6, // CLOSED
+            state: 5, // STATE_DEACTIVATED
         }),
         '21539012': createMock<Card>({
             accountID: 1,
@@ -259,7 +259,7 @@ const workspaceCardFeedsClosed: Record<string, WorkspaceCardsList | undefined> =
                 isVirtual: false,
             },
             lastFourPAN: '3211',
-            state: 6, // CLOSED
+            state: 5, // STATE_DEACTIVATED
         }),
         '21539027': createMock<Card>({
             accountID: 1,
@@ -287,11 +287,11 @@ const cardListClosed: CardList = {
             isVirtual: false,
         },
         lastFourPAN: '',
-        state: 6, // CLOSED
+        state: 5, // STATE_DEACTIVATED
     }),
     '21534525': createMock<Card>({
         accountID: 1,
-        bank: 'Expensify Card',
+        bank: 'vcf',
         cardID: 21534525,
         domainName: 'expensify-policy1.exfy',
         nameValuePairs: {
@@ -387,6 +387,15 @@ describe('buildCardsData closed cards', () => {
             lastFourPAN: '',
             isSelected: false,
         });
+    });
+
+    it('Keeps deactivated and closed cards out of the individual cards section', () => {
+        // Given deactivated Expensify Cards and a closed company card alongside open cards
+        // When building the individual (non-closed) cards section
+        const result = buildCardsData(workspaceCardFeedsClosed, cardListClosed, {}, [], illustrationsMock, companyCardIconsMock);
+
+        // Then only the open cards are listed, because removed Expensify Cards are deactivated rather than closed and must still be treated as closed
+        expect(result.map((card) => card.keyForList).sort()).toEqual(['21534526', '21539027']);
     });
 });
 
