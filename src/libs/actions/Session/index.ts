@@ -686,7 +686,7 @@ function signUpUser(login: string | undefined, preferredLocale: Locale | undefin
 
     const onyxOperationToCleanUpAnonymousUser = buildOnyxDataToCleanUpAnonymousUser();
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT> | PersonalDetailsOnyxUpdate> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.MARKETING_ATTRIBUTION> | PersonalDetailsOnyxUpdate> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -695,6 +695,12 @@ function signUpUser(login: string | undefined, preferredLocale: Locale | undefin
             },
         },
         onyxOperationToCleanUpAnonymousUser,
+        // The attribution is stored on the new account, so clear it to avoid sending it again on a later signup
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.MARKETING_ATTRIBUTION,
+            value: null,
+        },
     ];
 
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [

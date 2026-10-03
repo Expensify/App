@@ -6,19 +6,20 @@ import type MarketingAttribution from '@src/types/onyx/MarketingAttribution';
 import Onyx from 'react-native-onyx';
 
 /**
- * The UTM params and Google Ads click ID we capture from the landing URL, keyed by their backend request
+ * The UTM params, Google Ads device and network, and Google Ads click IDs we capture from the landing URL, keyed by their backend request
  * param names. UTM params aren't present on new.expensify.com URLs today, but we capture them
  * anyway so attribution works automatically if that changes.
  */
-const MARKETING_PARAM_KEYS: Array<keyof MarketingAttribution> = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid'];
+const MARKETING_PARAM_KEYS: Array<keyof MarketingAttribution> = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'device', 'network', 'gclid', 'gbraid', 'wbraid'];
 
 /**
- * Captures marketing attribution (UTM params and Google Ads click ID) from the landing URL and persists it
+ * Captures marketing attribution (UTM params, Google Ads device and network, and Google Ads click IDs) from the landing URL and persists it
  * to Onyx so it can be sent during signup. This only runs on web, where ad traffic lands, and reads
  * `window.location` directly at app startup before the router can strip the query string.
  *
- * We merge (rather than set) so that a later page load with only some params doesn't clobber
- * previously-captured values, while present params overwrite for last-touch attribution.
+ * When the URL carries any of the params, we replace the whole stored attribution instead of merging
+ * into it, so values from different ad clicks (e.g. a Google gclid and later Reddit UTMs) never get
+ * combined. A page load without any of the params keeps the stored attribution.
  */
 function captureMarketingAttribution() {
     if (typeof window === 'undefined' || !window.location) {
@@ -37,7 +38,7 @@ function captureMarketingAttribution() {
         return;
     }
 
-    Onyx.merge(ONYXKEYS.MARKETING_ATTRIBUTION, captured);
+    Onyx.set(ONYXKEYS.MARKETING_ATTRIBUTION, captured);
 }
 
 // eslint-disable-next-line import/prefer-default-export
