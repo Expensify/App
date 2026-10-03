@@ -6,6 +6,7 @@ import {assertAndroidAppInstalled, createAndroidAdapter, parseAndroidProcessIden
 import {
     createIOSAdapter,
     iOSBenchmarkMarkerPath,
+    iOSProcessListArguments,
     parseIOSInstalledAppURL,
     parseIOSInstalledAppsResponse,
     parseIOSLaunchProcessIdentifier,
@@ -27,6 +28,7 @@ export {
     createNativeAppBenchmarkAdapter,
     findBenchmarkDuration,
     iOSBenchmarkMarkerPath,
+    iOSProcessListArguments,
     latestBenchmarkEvents,
     parseAndroidProcessIdentifier,
     parseBenchmarkLogEvents,
