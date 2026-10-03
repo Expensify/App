@@ -151,7 +151,7 @@ function SearchMergeReports() {
         !!destinationReportID &&
         !!destinationReport &&
         sourceReportIDs.length > 0 &&
-        canMergeReports(reportItems, currentUserPersonalDetails.accountID, rules);
+        canMergeReports(reportItems, currentUserPersonalDetails.accountID, rules, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItems.at(0)?.policyID}`]);
 
     const mergeSelectedReports = () => {
         if (!destinationReportID || !destinationReport || !isValidForMerge) {
