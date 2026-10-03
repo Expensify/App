@@ -54,7 +54,7 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
     });
     const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${nonEmptyStringReportID}`);
 
-    const {linkedActionTransactionThreadReportID, isLinkedActionInMergedTransactionThread} = useLinkedActionTransactionThread(report, sortedAllReportActions, reportActionID);
+    const {isLinkedActionInMergedTransactionThread} = useLinkedActionTransactionThread(report, sortedAllReportActions, reportActionID);
 
     // Default (regular inbox chats): snapshot lastReadTime at first render via a ref — production behavior.
     const firstRenderLastReadTime = useRef(report?.lastReadTime);
