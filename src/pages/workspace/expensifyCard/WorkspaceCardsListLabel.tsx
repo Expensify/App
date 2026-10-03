@@ -46,7 +46,7 @@ import type {ValueOf} from 'type-fest';
 import {useRoute} from '@react-navigation/native';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {addDays, format} from 'date-fns';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type WorkspaceCardsListLabelProps = {
@@ -103,13 +103,11 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
 
     const isLessThanMediumScreen = isMediumScreenWidth || shouldUseNarrowLayout;
 
-    const isConnectedWithPlaid = useMemo(() => {
-        const bankAccountData = bankAccountList?.[paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID]?.accountData;
+    const bankAccountData = bankAccountList?.[paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID]?.accountData;
 
-        // TODO: remove the extra check when plaidAccountID storing is aligned in https://github.com/Expensify/App/issues/47944
-        // Right after adding a bank account plaidAccountID is stored inside the accountData and not in the additionalData
-        return !!bankAccountData?.plaidAccountID || !!bankAccountData?.additionalData?.plaidAccountID;
-    }, [bankAccountList, paymentBankAccountID]);
+    // Admins who aren't shared on the settlement account don't have it in bankAccountList, so they rely on the card settings.
+    // Right after adding a bank account plaidAccountID is stored inside the accountData and not in the additionalData
+    const isConnectedWithPlaid = !!settings?.isPaymentBankAccountConnectedWithPlaid || !!bankAccountData?.plaidAccountID || !!bankAccountData?.additionalData?.plaidAccountID;
 
     useEffect(() => {
         if (!anchorRef.current || !isVisible) {
