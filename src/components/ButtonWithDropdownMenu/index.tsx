@@ -2,6 +2,7 @@ import Button from '@components/Button';
 import Icon from '@components/Icon';
 import InlineIcon from '@components/Icon/InlineIcon';
 import PopoverMenu from '@components/PopoverMenu';
+import Switch from '@components/Switch';
 import Text from '@components/Text';
 
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -354,8 +355,34 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                     containerStyles={containerStyles}
                     menuItems={options.map((item, index) => ({
                         ...item,
+                        ...(item.switchProps
+                            ? {
+                                  shouldShowRightComponent: true,
+                                  // Mirror the Switch's disabled state onto the row so a disabled toggle can't be flipped by
+                                  // pressing the row (or Enter) — only the Switch carried `disabled` before.
+                                  disabled: item.disabled ?? item.switchProps.disabled,
+                                  // `isNested` lets the Switch handle its own press (so it animates) while stopping the event from
+                                  // bubbling to the row — no double-toggle. `shouldAnimateOnExternalChange` makes the thumb also
+                                  // animate when the row/keyboard toggles it. `focusable={false}` stops the Switch from being a
+                                  // second tab stop — the row owns keyboard focus and toggling.
+                                  rightComponent: (
+                                      <View style={styles.justifyContentCenter}>
+                                          <Switch
+                                              {...item.switchProps}
+                                              isNested
+                                              shouldAnimateOnExternalChange
+                                              focusable={false}
+                                          />
+                                      </View>
+                                  ),
+                              }
+                            : {}),
                         onSelected: item.onSelected
                             ? () => {
+                                  // Enter routes here directly (bypassing the row's disabled press-guard), so block a disabled toggle.
+                                  if (item.switchProps?.disabled) {
+                                      return;
+                                  }
                                   item.onSelected?.();
                                   if (item.shouldUpdateSelectedIndex) {
                                       setSelectedItemIndex(index);

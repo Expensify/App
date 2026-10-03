@@ -511,16 +511,6 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.DYNAMIC_PAY_AND_DOWNGRADE]: {
         policyID?: string;
     };
-    [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_SETTINGS]: {
-        policyID: string;
-    };
-    [SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORIES_SETTINGS]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.DYNAMIC_SPEND_CATEGORY_SELECTOR]: {
-        policyID: string;
-        groupID: string;
-    };
     [SCREENS.WORKSPACE.DYNAMIC_DEFAULT_CATEGORY_SELECTOR]: {
         policyID: string;
         customUnitID: string;
@@ -574,12 +564,6 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.DISTANCE_RATE_END_DATE_EDIT]: {
         policyID: string;
         rateID: string;
-    };
-    [SCREENS.WORKSPACE.DYNAMIC_TAGS_SETTINGS]: {
-        policyID: string;
-    };
-    [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAGS_SETTINGS]: {
-        policyID: string;
     };
     [SCREENS.WORKSPACE.DYNAMIC_TAGS_IMPORT]: {
         policyID: string;
