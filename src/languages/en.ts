@@ -4872,6 +4872,8 @@ const translations = {
             workspaceStatus: 'Workspace status',
             findDomain: 'Find domain',
             findRoom: 'Find room',
+            emptyRoomsTitle: 'No rooms yet',
+            emptyRoomsSubtitle: 'Rooms created in this workspace will appear here.',
             edit: 'Edit workspace',
             enabled: 'Enabled',
             disabled: 'Disabled',

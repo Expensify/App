@@ -4672,6 +4672,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             archived: 'アーカイブ済み',
             workspaceStatus: 'ワークスペースのステータス',
             findRoom: 'ルームを探す',
+            emptyRoomsTitle: 'ルームはまだありません',
+            emptyRoomsSubtitle: 'このワークスペースで作成されたルームはここに表示されます。',
             edit: 'ワークスペースを編集',
             enabled: '有効',
             disabled: '無効',
