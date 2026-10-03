@@ -71,6 +71,7 @@ import createRandomTransaction from '../../utils/collections/transaction';
 import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
 import initCurrencyListContext from '../../utils/initCurrencyListContext';
+import getFlaggedTransactionIDs from '../../utils/pendingNewTransactionFlags';
 import {
     createGlobalFetchMock,
     formatPhoneNumber,
@@ -10126,17 +10127,80 @@ describe('createDistanceRequest', () => {
     it('flags the new transaction for the 1→2 highlight fallback when added to an expense report that already has one transaction', async () => {
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
         const existingTransactionID = 'existing-txn-one-to-two';
+        const chatReportID = 'chat-one-to-two';
+        const policyID = 'policy-one-to-two';
+        // A report the expense can be added to, or the builder creates its own and this is a first add.
+        const expenseReport: Report = {
+            reportID: '123',
+            type: CONST.REPORT.TYPE.EXPENSE,
+            chatReportID,
+            policyID,
+            ownerAccountID: RORY_ACCOUNT_ID,
+            managerID: RORY_ACCOUNT_ID,
+            currency: 'USD',
+            total: 0,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {id: policyID, type: CONST.POLICY.TYPE.CORPORATE, name: 'One To Two', role: CONST.POLICY.ROLE.ADMIN});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {
+            reportID: chatReportID,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            policyID,
+            isOwnPolicyExpenseChat: true,
+            type: CONST.REPORT.TYPE.CHAT,
+            iouReportID: '123',
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}123`, expenseReport);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`, {transactionID: existingTransactionID, reportID: '123'});
         await waitForBatchedUpdates();
 
         const result = createDistanceRequest({
-            ...getDefaultDistanceRequestParams({reportID: '123', type: CONST.REPORT.TYPE.EXPENSE}, {amount: 1}, recentWaypoints),
+            ...getDefaultDistanceRequestParams(expenseReport, {amount: 1}, recentWaypoints),
             participants: [],
         });
         await waitForBatchedUpdates();
 
         const reportMetadata = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}123`);
-        expect(Object.keys(reportMetadata?.pendingNewTransactionIDs ?? {})).toContain(result.transactionID);
+        expect(getFlaggedTransactionIDs(reportMetadata?.pendingNewTransactionIDs)).toContain(result.transactionID);
+    });
+
+    it('does not flag any report when the add forks a new expense report, since the transaction joins that one at 0→1', async () => {
+        // Given a report that cannot take another expense, since its policy is not loaded, so an add forks a new report
+        const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+        const existingTransactionID = 'existing-txn-forked';
+        const chatReportID = 'chat-forked';
+        const reportClosedToNewExpenses: Report = {
+            reportID: '789',
+            type: CONST.REPORT.TYPE.EXPENSE,
+            chatReportID,
+            policyID: 'policy-absent',
+            ownerAccountID: RORY_ACCOUNT_ID,
+            currency: 'USD',
+            total: 0,
+        };
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {
+            reportID: chatReportID,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            policyID: 'policy-absent',
+            isOwnPolicyExpenseChat: true,
+            type: CONST.REPORT.TYPE.CHAT,
+            iouReportID: '789',
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}789`, reportClosedToNewExpenses);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`, {transactionID: existingTransactionID, reportID: '789'});
+        await waitForBatchedUpdates();
+
+        // When a distance expense is added from that report
+        createDistanceRequest({
+            ...getDefaultDistanceRequestParams(reportClosedToNewExpenses, {amount: 1}, recentWaypoints),
+            participants: [],
+        });
+        await waitForBatchedUpdates();
+
+        // Then the original report carries no flag: the expense landed on the new report, so no row here could claim it
+        const callerReportMetadata = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}789`);
+        expect(getFlaggedTransactionIDs(callerReportMetadata?.pendingNewTransactionIDs)).toEqual([]);
     });
 
     it('correctly sets quickAction', async () => {

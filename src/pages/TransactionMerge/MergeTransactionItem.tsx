@@ -27,7 +27,7 @@ function MergeTransactionItem<TItem extends ListItem>({item, isFocused, showTool
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`);
     const policy = usePolicy(report?.policyID);
 
-    const animatedHighlightStyle = useRowHighlightAnimation({shouldHighlight: item?.shouldAnimateInHighlight ?? false, borderRadius: 0});
+    const animatedHighlightStyle = useRowHighlightAnimation({shouldHighlight: item?.shouldAnimateInHighlight ?? false, highlightKey: item?.keyForList, borderRadius: 0});
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<ComponentRef<typeof View>>(null);
 

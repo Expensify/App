@@ -23,6 +23,7 @@ import Onyx from 'react-native-onyx';
 import currencyList from '../../unit/currencyList.json';
 import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
+import getFlaggedTransactionIDs from '../../utils/pendingNewTransactionFlags';
 import {getGlobalFetchMock, formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -56,9 +57,9 @@ jest.mock('@react-navigation/native');
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
 jest.mock('@libs/actions/IOU/PendingNewTransactions', () => ({
-    addPendingNewTransactionIDs: jest.fn(),
+    ...jest.requireActual<Record<string, unknown>>('@libs/actions/IOU/PendingNewTransactions'),
+    flagNewTransactionForChatPreview: jest.fn(),
     deletePendingNewTransactionIDs: jest.fn(),
-    isOneToTwoTransactionTransition: jest.fn(() => false),
 }));
 jest.mock('@libs/API/writeWhenReady');
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
@@ -770,8 +771,7 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             // Then nothing is registered — no highlight for reverse splits
-            const pendingNewTransactionIDs = await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID);
-            expect(pendingNewTransactionIDs?.['new-merged-tx']).toBeUndefined();
+            expect(getFlaggedTransactionIDs(await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID))).toEqual([]);
         });
 
         it('skips registration when the expense report will become empty after the split', async () => {
@@ -800,9 +800,7 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             // Then nothing is registered — the list navigates away before any highlight could render
-            const pendingNewTransactionIDs = await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID);
-            expect(pendingNewTransactionIDs?.['new-tx-1']).toBeUndefined();
-            expect(pendingNewTransactionIDs?.['new-tx-2']).toBeUndefined();
+            expect(getFlaggedTransactionIDs(await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID))).toEqual([]);
         });
 
         it('does not write pendingNewTransactionIDs into report metadata when splitting from the Search/Spend page', async () => {
@@ -836,9 +834,7 @@ describe('actions/IOU', () => {
             // Then no highlight flags land in REPORT_METADATA. Search navigates back to the Spend page and never mounts
             // the expense report's list, so nothing would consume or clear them - they would instead highlight stale rows
             // the next time the user opened that report from the Inbox.
-            const pendingNewTransactionIDs = await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID);
-            expect(pendingNewTransactionIDs?.['new-tx-1']).toBeUndefined();
-            expect(pendingNewTransactionIDs?.['new-tx-2']).toBeUndefined();
+            expect(getFlaggedTransactionIDs(await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID))).toEqual([]);
         });
 
         it('writes pendingNewTransactionIDs into report metadata when splitting from the expense report', async () => {
@@ -870,13 +866,12 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             // Then the flags are written, because this path opens the report and its list consumes and clears them on mount
-            const pendingNewTransactionIDs = await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID);
-            expect(pendingNewTransactionIDs?.['new-tx-3']).toBe(true);
-            expect(pendingNewTransactionIDs?.['new-tx-4']).toBe(true);
+            const flaggedTransactionIDs = getFlaggedTransactionIDs(await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID));
+            expect(flaggedTransactionIDs).toEqual(expect.arrayContaining(['new-tx-3', 'new-tx-4']));
 
             // And the transaction that already existed in the report is not flagged - it is not new, so highlighting it
             // would draw attention to a row the user has already seen
-            expect(pendingNewTransactionIDs?.['existing-tx-2']).toBeUndefined();
+            expect(flaggedTransactionIDs).not.toContain('existing-tx-2');
         });
 
         it('does not signal the "Expense added" growl during a reverse split operation', async () => {
@@ -983,11 +978,9 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             // Then neither the source report nor the destination reports carry stranded highlight flags
-            const sourceRail = await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID);
-            expect(sourceRail?.['moved-tx-1']).toBeUndefined();
-            expect(sourceRail?.['moved-tx-2']).toBeUndefined();
-            expect((await getPendingNewTransactionIDsFromOnyx('other-report-1'))?.['moved-tx-1']).toBeUndefined();
-            expect((await getPendingNewTransactionIDsFromOnyx('other-report-2'))?.['moved-tx-2']).toBeUndefined();
+            expect(getFlaggedTransactionIDs(await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID))).toEqual([]);
+            expect(getFlaggedTransactionIDs(await getPendingNewTransactionIDsFromOnyx('other-report-1'))).toEqual([]);
+            expect(getFlaggedTransactionIDs(await getPendingNewTransactionIDsFromOnyx('other-report-2'))).toEqual([]);
         });
     });
 });

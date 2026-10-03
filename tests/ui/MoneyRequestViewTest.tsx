@@ -106,7 +106,7 @@ const expenseReportID = 'expense_mrv_123';
 const parentReportActionID = 'parent_action_mrv';
 const transactionID = 'txn_mrv_test';
 
-const SCREEN_WRAPPER_STATUS = {didScreenTransitionEnd: true, shouldUseNarrowLayoutOnWideRHP: false, isSafeAreaTopPaddingApplied: true, isSafeAreaBottomPaddingApplied: true};
+const SCREEN_WRAPPER_STATUS = {didScreenTransitionEnd: true, isSafeAreaTopPaddingApplied: true, isSafeAreaBottomPaddingApplied: true};
 
 const renderMoneyRequestView = (threadReport: ReturnType<typeof LHNTestUtils.getFakeReport>, policy?: PartialDeep<Policy>) =>
     render(

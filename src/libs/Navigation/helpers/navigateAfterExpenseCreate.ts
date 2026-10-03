@@ -1,4 +1,4 @@
-import {addPendingNewTransactionIDs} from '@libs/actions/IOU/PendingNewTransactions';
+import {flagNewTransactionForChatPreview} from '@libs/actions/IOU/PendingNewTransactions';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
@@ -32,8 +32,8 @@ type NavigateAfterExpenseCreateParams = {
     /** Whether the destination report already contains transactions */
     hasMultipleTransactions: boolean;
 
-    /** Whether to record the transaction ID in the report's pendingNewTransactionIDs metadata, used to highlight the newly-added row */
-    shouldAddPendingNewTransactionIDs?: boolean;
+    /** Whether `activeReportID` is the chat whose preview shows this transaction, which only the caller knows. */
+    shouldFlagNewTransactionForChatPreview: boolean;
 
     /** Whether to perform navigation, or only run the side effects */
     shouldNavigate?: boolean;
@@ -75,7 +75,7 @@ function navigateAfterExpenseCreate({
     isFromGlobalCreate,
     isInvoice,
     hasMultipleTransactions,
-    shouldAddPendingNewTransactionIDs = false,
+    shouldFlagNewTransactionForChatPreview,
     shouldNavigate = true,
     isLookingAroundUser = false,
     isSelfDMDestination = false,
@@ -91,8 +91,8 @@ function navigateAfterExpenseCreate({
         if (shouldNavigate) {
             dismissModalAndOpenReportInInboxTab(activeReportID, isInvoice, hasMultipleTransactions, transactionID);
         }
-        if (shouldAddPendingNewTransactionIDs) {
-            addPendingNewTransactionIDs(activeReportID, transactionID);
+        if (shouldFlagNewTransactionForChatPreview) {
+            flagNewTransactionForChatPreview({chatReportID: activeReportID, transactionID});
         }
         return;
     }

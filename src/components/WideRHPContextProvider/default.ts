@@ -15,12 +15,6 @@ const defaultWideRHPActionsContextValue: WideRHPActionsContextType = {
     setRHPWidth: () => {},
     removeRHPRouteKey: () => {},
     markReportRHPWidth: () => {},
-    unmarkReportRHPWidth: () => {},
-    getReportRHPWidthHint: () => undefined,
-    syncRHPKeys: () => {},
-    clearWideRHPKeys: () => {},
-    setIsWideRHPClosing: () => {},
-    setIsSuperWideRHPClosing: () => {},
 };
 
 export {defaultWideRHPStateContextValue, defaultWideRHPActionsContextValue};

@@ -32,7 +32,6 @@ import {
     getReimbursableTotal,
     getReportNotificationPreference,
     getReportOrDraftReport,
-    getReportTransactions,
     getTransactionDetails,
     getUnheldReimbursableTotal,
     hasViolations as hasViolationsReportUtils,
@@ -87,7 +86,6 @@ import {
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
 } from './MoneyRequestBuilder';
-import {addPendingNewTransactionIDs, isOneToTwoTransactionTransition} from './PendingNewTransactions';
 import resolveWriteBarrier from './resolveWriteBarrier';
 import signalExpenseAddedGrowl from './signalExpenseAddedGrowl';
 
@@ -2365,10 +2363,6 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     }
 
     const activeReportID = isMoneyRequestReport && report?.reportID ? report.reportID : parameters.chatReportID;
-
-    if (isOneToTwoTransactionTransition(isMoneyRequestReport, getReportTransactions(moneyRequestReportID))) {
-        addPendingNewTransactionIDs(activeReportID, parameters.transactionID);
-    }
 
     API.writeWhenReady(
         WRITE_COMMANDS.CREATE_DISTANCE_REQUEST,
