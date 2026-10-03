@@ -64,7 +64,9 @@ jest.mock('@hooks/useWaitForNavigation', () => () => (callback: () => void) => c
 jest.mock('@hooks/useWorkspaceAccountID', () => jest.fn());
 
 jest.mock('@components/BlockingViews/FullPageNotFoundView', () => (props: {children: React.ReactNode; shouldShow: boolean}) => mockFullPageNotFoundView(props));
-jest.mock('@components/HeaderWithBackButton', () => jest.fn());
+jest.mock('@components/Avatar/UserAvatar', () => jest.fn(() => null));
+jest.mock('@components/Avatar/WorkspaceAvatar', () => jest.fn(() => null));
+jest.mock('@components/Navigation/AccountAvatarButton', () => jest.fn(() => null));
 jest.mock('@components/HighlightableMenuItem', () => jest.fn());
 jest.mock('@components/Navigation/TabBarBottomContent', () => jest.fn());
 jest.mock(
