@@ -935,7 +935,7 @@ describe('MoneyRequestView edit fields', () => {
             await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.VENDOR_MATCHING]);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${policyID}`, {
                 [disabledVendorID]: {
-                    id: disabledVendorID,
+                    externalID: disabledVendorID,
                     name: 'Disabled Vendor',
                     enabled: false,
                 },
@@ -958,7 +958,7 @@ describe('MoneyRequestView edit fields', () => {
             connections: {
                 [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                     config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
-                    data: {vendors: [{id: disabledVendorID, name: 'Disabled Vendor', currency: 'USD'}]},
+                    data: {vendors: [{id: disabledVendorID, name: 'Disabled Vendor', currency: 'USD', email: 'vendor@example.com'}]},
                 },
             },
         });
