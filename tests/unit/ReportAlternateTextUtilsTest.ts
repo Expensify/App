@@ -137,7 +137,7 @@ function getAlternateText({report = makeReport(), lastAction, lastMessageTextFro
         translate: translateLocal,
         localeCompare,
         formatPhoneNumber,
-        dateFnsLocale: undefined,
+        preferredLocale: CONST.LOCALES.EN,
         convertToDisplayString,
         convertToDisplayStringWithoutCurrency,
         rules: undefined,
@@ -483,7 +483,7 @@ describe('ReportAlternateTextUtils', () => {
             };
 
             const lastMessage = getLastMessageTextForReport({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 conciergeReportID: undefined,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 personalDetails: undefined,
@@ -610,7 +610,7 @@ describe('ReportAlternateTextUtils', () => {
 
                 const lastMessage = getLastMessageTextForReport({
                     rules: undefined,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -679,7 +679,7 @@ describe('ReportAlternateTextUtils', () => {
 
                 const lastMessage = getLastMessageTextForReport({
                     rules: undefined,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -733,7 +733,7 @@ describe('ReportAlternateTextUtils', () => {
 
                 const lastMessage = getLastMessageTextForReport({
                     rules: undefined,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -787,7 +787,7 @@ describe('ReportAlternateTextUtils', () => {
 
                 const lastMessage = getLastMessageTextForReport({
                     rules: undefined,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -841,7 +841,7 @@ describe('ReportAlternateTextUtils', () => {
 
                 const lastMessage = getLastMessageTextForReport({
                     rules: undefined,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -894,7 +894,7 @@ describe('ReportAlternateTextUtils', () => {
 
                 const lastMessage = getLastMessageTextForReport({
                     rules: undefined,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -935,7 +935,7 @@ describe('ReportAlternateTextUtils', () => {
 
                 const lastMessage = getLastMessageTextForReport({
                     rules: undefined,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -1002,7 +1002,7 @@ describe('ReportAlternateTextUtils', () => {
 
                 const lastMessage = getLastMessageTextForReport({
                     rules: undefined,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -1055,7 +1055,7 @@ describe('ReportAlternateTextUtils', () => {
 
                 const lastMessage = getLastMessageTextForReport({
                     rules: undefined,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -1094,7 +1094,7 @@ describe('ReportAlternateTextUtils', () => {
             });
             const lastMessage = getLastMessageTextForReport({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -1127,7 +1127,7 @@ describe('ReportAlternateTextUtils', () => {
                 });
                 const lastMessage = getLastMessageTextForReport({
                     rules: undefined,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -1160,7 +1160,7 @@ describe('ReportAlternateTextUtils', () => {
                 });
                 const lastMessage = getLastMessageTextForReport({
                     rules: undefined,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -1195,7 +1195,7 @@ describe('ReportAlternateTextUtils', () => {
                 });
                 const lastMessage = getLastMessageTextForReport({
                     rules: undefined,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -1227,7 +1227,7 @@ describe('ReportAlternateTextUtils', () => {
                 });
                 const lastMessage = getLastMessageTextForReport({
                     rules: undefined,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -1257,7 +1257,7 @@ describe('ReportAlternateTextUtils', () => {
                 });
                 const lastMessage = getLastMessageTextForReport({
                     rules: undefined,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -1286,7 +1286,7 @@ describe('ReportAlternateTextUtils', () => {
             });
             const lastMessage = getLastMessageTextForReport({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -1314,7 +1314,7 @@ describe('ReportAlternateTextUtils', () => {
             });
             const lastMessage = getLastMessageTextForReport({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -1347,7 +1347,7 @@ describe('ReportAlternateTextUtils', () => {
             // When getting the last message text of the report
             const lastMessage = getLastMessageTextForReport({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -1377,7 +1377,7 @@ describe('ReportAlternateTextUtils', () => {
             });
             const lastMessage = getLastMessageTextForReport({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 personalDetails: undefined,
@@ -1404,7 +1404,7 @@ describe('ReportAlternateTextUtils', () => {
             });
             const lastMessage = getLastMessageTextForReport({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 personalDetails: undefined,
@@ -1431,7 +1431,7 @@ describe('ReportAlternateTextUtils', () => {
             });
             const lastMessage = getLastMessageTextForReport({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 personalDetails: undefined,
@@ -1461,7 +1461,7 @@ describe('ReportAlternateTextUtils', () => {
             });
             const lastMessage = getLastMessageTextForReport({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -1489,7 +1489,7 @@ describe('ReportAlternateTextUtils', () => {
             });
             const lastMessage = getLastMessageTextForReport({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -1517,7 +1517,7 @@ describe('ReportAlternateTextUtils', () => {
             });
             const lastMessage = getLastMessageTextForReport({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -1548,7 +1548,7 @@ describe('ReportAlternateTextUtils', () => {
             });
             const lastMessage = getLastMessageTextForReport({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -1576,7 +1576,7 @@ describe('ReportAlternateTextUtils', () => {
             });
             const lastMessage = getLastMessageTextForReport({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -1610,7 +1610,7 @@ describe('ReportAlternateTextUtils', () => {
             });
             const lastMessage = getLastMessageTextForReport({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -1623,7 +1623,7 @@ describe('ReportAlternateTextUtils', () => {
 
                 currentUserLogin: CURRENT_USER_LOGIN,
             });
-            expect(lastMessage).toBe(getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action));
+            expect(lastMessage).toBe(getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, CONST.LOCALES.EN, action));
         });
         it('UPDATE_REQUIRES_TAG action', async () => {
             const report: Report = createRandomReport(0, undefined);
@@ -1638,7 +1638,7 @@ describe('ReportAlternateTextUtils', () => {
             });
             const lastMessage = getLastMessageTextForReport({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -1666,7 +1666,7 @@ describe('ReportAlternateTextUtils', () => {
             });
             const lastMessage = getLastMessageTextForReport({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -1693,7 +1693,7 @@ describe('ReportAlternateTextUtils', () => {
             });
             const lastMessage = getLastMessageTextForReport({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -1720,7 +1720,7 @@ describe('ReportAlternateTextUtils', () => {
             });
             const lastMessage = getLastMessageTextForReport({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -1751,7 +1751,7 @@ describe('ReportAlternateTextUtils', () => {
             });
             const lastMessage = getLastMessageTextForReport({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -1782,7 +1782,7 @@ describe('ReportAlternateTextUtils', () => {
             });
             const lastMessage = getLastMessageTextForReport({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -1812,7 +1812,7 @@ describe('ReportAlternateTextUtils', () => {
             });
             const lastMessage = getLastMessageTextForReport({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -1843,7 +1843,7 @@ describe('ReportAlternateTextUtils', () => {
             });
             const lastMessage = getLastMessageTextForReport({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -1870,7 +1870,7 @@ describe('ReportAlternateTextUtils', () => {
             });
             const lastMessage = getLastMessageTextForReport({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -1898,7 +1898,7 @@ describe('ReportAlternateTextUtils', () => {
             });
             const lastMessage = getLastMessageTextForReport({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -1926,7 +1926,7 @@ describe('ReportAlternateTextUtils', () => {
             });
             const lastMessage = getLastMessageTextForReport({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -1958,7 +1958,7 @@ describe('ReportAlternateTextUtils', () => {
             // When getting the last message text for the report
             const lastMessage = getLastMessageTextForReport({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -1992,7 +1992,7 @@ describe('ReportAlternateTextUtils', () => {
             const expectedVisibleText = '';
             const result = getLastMessageTextForReport({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -2045,7 +2045,7 @@ describe('ReportAlternateTextUtils', () => {
             // When we get the last message text while the mentioned user is absent from personal details
             const lastMessage = getLastMessageTextForReport({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 personalDetails: undefined,
@@ -2071,7 +2071,7 @@ describe('ReportAlternateTextUtils', () => {
 
             const lastMessage = getLastMessageTextForReport({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -2108,7 +2108,7 @@ describe('ReportAlternateTextUtils', () => {
 
             const result = getLastMessageTextForReport({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -2158,7 +2158,7 @@ describe('ReportAlternateTextUtils', () => {
 
             const result = getLastMessageTextForReport({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -2209,7 +2209,7 @@ describe('ReportAlternateTextUtils', () => {
                 });
                 const lastMessage = getLastMessageTextForReport({
                     rules: undefined,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -2250,7 +2250,7 @@ describe('ReportAlternateTextUtils', () => {
                 });
                 const lastMessage = getLastMessageTextForReport({
                     rules: undefined,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -2287,7 +2287,7 @@ describe('ReportAlternateTextUtils', () => {
                 });
                 const lastMessage = getLastMessageTextForReport({
                     rules: undefined,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -2332,7 +2332,7 @@ describe('ReportAlternateTextUtils', () => {
 
                 const lastMessage = getLastMessageTextForReport({
                     rules: undefined,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -2376,7 +2376,7 @@ describe('ReportAlternateTextUtils', () => {
 
                 const lastMessage = getLastMessageTextForReport({
                     rules: undefined,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -2417,7 +2417,7 @@ describe('ReportAlternateTextUtils', () => {
 
                 const lastMessage = getLastMessageTextForReport({
                     rules: undefined,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     personalDetails: undefined,
@@ -2454,7 +2454,7 @@ describe('ReportAlternateTextUtils', () => {
 
                 const lastMessage = getLastMessageTextForReport({
                     rules: undefined,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -2490,7 +2490,7 @@ describe('ReportAlternateTextUtils', () => {
 
                 const lastMessage = getLastMessageTextForReport({
                     rules: undefined,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -2526,7 +2526,7 @@ describe('ReportAlternateTextUtils', () => {
                 });
                 const lastMessage = getLastMessageTextForReport({
                     rules: undefined,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -2561,7 +2561,7 @@ describe('ReportAlternateTextUtils', () => {
                 });
                 const lastMessage = getLastMessageTextForReport({
                     rules: undefined,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,

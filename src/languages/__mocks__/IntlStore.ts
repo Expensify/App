@@ -4,7 +4,7 @@ import flattenObject from '@src/languages/flattenObject';
 import type {FlatTranslationsObject, TranslationPaths} from '@src/languages/types';
 
 class IntlStore {
-    private static currentLocale: Locale | undefined = 'en';
+    private static currentLocale: Locale = 'en';
 
     private static localeCache = new Map<Locale, FlatTranslationsObject>([
         [
@@ -48,21 +48,52 @@ class IntlStore {
         },
     };
 
+    private static listeners = new Set<() => void>();
+
+    // One cached snapshot, so repeated `useSyncExternalStore` reads return the same reference. Replaced, never mutated.
+    private static snapshot: {locale: Locale; isCurrentLocaleLoaded: boolean} = {
+        locale: IntlStore.currentLocale,
+        isCurrentLocaleLoaded: IntlStore.localeCache.has(IntlStore.currentLocale),
+    };
+
     static getCurrentLocale() {
-        return this.currentLocale;
+        return IntlStore.currentLocale;
     }
 
-    static load() {
+    static load(locale?: Locale): Promise<void> {
+        if (locale && !IntlStore.localeCache.has(locale)) {
+            throw new Error(`[IntlStore mock] no seed for "${locale}", so this switch would silently do nothing. Add one above.`);
+        }
+        // Real behaviour, otherwise a suite exercising a locale switch sees no effect and passes for the wrong reason.
+        if (locale && IntlStore.localeCache.has(locale)) {
+            IntlStore.currentLocale = locale;
+            IntlStore.snapshot = {locale, isCurrentLocaleLoaded: true};
+            for (const listener of IntlStore.listeners) {
+                listener();
+            }
+        }
         return Promise.resolve();
     }
 
     static get<TPath extends TranslationPaths>(key: TPath, locale?: Locale) {
-        const localeToUse = locale && this.localeCache.has(locale) ? locale : this.currentLocale;
-        if (!localeToUse) {
-            return null;
-        }
-        const translations = this.localeCache.get(localeToUse);
+        const localeToUse = locale && IntlStore.localeCache.has(locale) ? locale : IntlStore.currentLocale;
+        const translations = IntlStore.localeCache.get(localeToUse);
         return translations?.[key] ?? null;
+    }
+
+    static subscribe(listener: () => void): () => void {
+        IntlStore.listeners.add(listener);
+        return () => {
+            IntlStore.listeners.delete(listener);
+        };
+    }
+
+    static getSnapshot(): {locale: Locale; isCurrentLocaleLoaded: boolean} {
+        return IntlStore.snapshot;
+    }
+
+    static hasLocale(locale: Locale): boolean {
+        return IntlStore.localeCache.has(locale);
     }
 }
 

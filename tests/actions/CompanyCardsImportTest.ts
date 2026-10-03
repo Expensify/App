@@ -44,6 +44,7 @@ describe('actions/CompanyCards importCSVCompanyCards', () => {
                 ['merchant', 'amount'],
                 ['Coffee Shop', '-5.00'],
             ],
+            locale: CONST.LOCALES.EN,
             existingInstanceID: 'domain-instance',
             workspaceCardFeeds: undefined,
         });
@@ -91,6 +92,7 @@ describe('actions/CompanyCards importCSVCompanyCards', () => {
             layoutType: CSV_FEED,
             columnMappings: ['merchant', 'amount'],
             csvData: [['merchant', 'amount']],
+            locale: CONST.LOCALES.EN,
             existingInstanceID: 'domain-instance',
             workspaceCardFeeds: existingFeeds,
         });
@@ -121,6 +123,7 @@ describe('actions/CompanyCards importCSVCompanyCards', () => {
             domainAccountID: DOMAIN_ACCOUNT_ID,
             layoutName: 'My Layout',
             layoutType: CSV_FEED,
+            locale: CONST.LOCALES.EN,
             columnMappings: ['externalID', 'cardName', 'postedDate', 'merchant', 'amount', 'currency', 'tag'],
             csvData: [
                 ['Unique ID', 'Card Name', 'Date', 'Merchant', 'Amount', 'Currency', 'Tag'],
@@ -180,12 +183,35 @@ describe('actions/CompanyCards importCSVCompanyCards', () => {
                     ['Card', 'Date', 'Merchant', 'Amount', 'Currency'],
                     ['1234', '01/15/2024', 'Coffee Shop', '-5.00', 'USD'],
                 ],
+                locale: CONST.LOCALES.EN,
                 workspaceCardFeeds: undefined,
             });
 
             // Then an externalID column is appended to the mappings and every row is filled with a generated ID
             expect(sentImports.at(0)?.settings ?? '').toContain('"columnMappings":["cardNumber","postedDate","merchant","amount","currency","externalID"]');
             expect(sentImports.at(0)?.csvData ?? '').toMatch(/,"USD","\d+"]/);
+        });
+
+        it('normalizes a posted date written in the uploading language', () => {
+            // Given a file a German user exported, whose posted-date cell abbreviates the month as that language writes it
+            // When the file is imported with that user's locale
+            importCSVCompanyCards({
+                policyID: POLICY_ID,
+                domainAccountID: DOMAIN_ACCOUNT_ID,
+                layoutName: 'My Layout',
+                layoutType: CSV_FEED,
+                columnMappings: ['cardNumber', 'postedDate', 'merchant', 'amount', 'currency'],
+                csvData: [
+                    ['Card', 'Date', 'Merchant', 'Amount', 'Currency'],
+                    ['1234', '2 Mär 2024', 'Coffee Shop', '-5.00', 'USD'],
+                ],
+                locale: CONST.LOCALES.DE,
+                workspaceCardFeeds: undefined,
+            });
+
+            // Then the row reaches the backend with the wire date it expects. Parsed against English instead, the cell
+            // yields nothing and the row is dropped before it is ever sent.
+            expect(sentImports.at(0)?.csvData ?? '').toContain('2024-03-02');
         });
 
         it('sends the mapped unique ID column values as externalID so re-imports can be deduped', () => {
@@ -202,6 +228,7 @@ describe('actions/CompanyCards importCSVCompanyCards', () => {
                     ['txn-abc-1', '1234', '01/15/2024', 'Coffee Shop', '-5.00', 'USD'],
                     ['txn-abc-2', '1234', '01/16/2024', 'Book Store', '-10.00', 'USD'],
                 ],
+                locale: CONST.LOCALES.EN,
                 workspaceCardFeeds: undefined,
             });
 
@@ -229,6 +256,7 @@ describe('actions/CompanyCards importCSVCompanyCards', () => {
                     ['Unique ID', 'Card', 'Date', 'Merchant', 'Amount', 'Currency'],
                     ['   ', '1234', '01/15/2024', 'Coffee Shop', '-5.00', 'USD'],
                 ],
+                locale: CONST.LOCALES.EN,
                 workspaceCardFeeds: undefined,
             });
 

@@ -80,7 +80,7 @@ function ReportSubmitToContent({
     canSubmitRef,
 }: ReportSubmitToContentProps) {
     const styles = useThemeStyles();
-    const {translate, localeCompare, dateFnsLocale} = useLocalize();
+    const {translate, localeCompare, preferredLocale} = useLocalize();
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const isInLandscapeMode = useIsInLandscapeMode();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -211,7 +211,7 @@ function ReportSubmitToContent({
         }
 
         const inviteOption = getUserToInviteOption({
-            dateFnsLocale,
+            preferredLocale,
             convertToDisplayString,
             searchValue: trimmed,
             personalDetails,
@@ -243,7 +243,7 @@ function ReportSubmitToContent({
         loginList,
         managerEmail,
         personalDetails,
-        dateFnsLocale,
+        preferredLocale,
         convertToDisplayString,
         rules,
         currentUserDetails.accountID,

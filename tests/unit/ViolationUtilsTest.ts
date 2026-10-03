@@ -4102,9 +4102,15 @@ describe('getViolationTranslation', () => {
         const testPolicyID = 'test-policy-123';
         const companyCardPageURL = `workspaces/${testPolicyID}/company-cards`;
         const brokenCardConnectionViolationExpected = translateLocal('violations.rter', true, true, false, undefined, CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION, companyCardPageURL);
-        expect(ViolationsUtils.getViolationTranslation({dateFnsLocale: undefined, violation: brokenCardConnectionViolation, translate: translateLocal, convertToDisplayString})).toBe(
-            brokenCardConnectionViolationExpected,
-        );
+        expect(
+            ViolationsUtils.getViolationTranslation({
+                violation: brokenCardConnectionViolation,
+                translate: translateLocal,
+                convertToDisplayString,
+                companyCardPageURL,
+                preferredLocale: CONST.LOCALES.EN,
+            }),
+        ).toBe(brokenCardConnectionViolationExpected);
         const brokenCardConnection530ViolationExpected = translateLocal(
             'violations.rter',
             true,
@@ -4114,9 +4120,15 @@ describe('getViolationTranslation', () => {
             CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530,
             companyCardPageURL,
         );
-        expect(ViolationsUtils.getViolationTranslation({dateFnsLocale: undefined, violation: brokenCardConnection530Violation, translate: translateLocal, convertToDisplayString})).toBe(
-            brokenCardConnection530ViolationExpected,
-        );
+        expect(
+            ViolationsUtils.getViolationTranslation({
+                violation: brokenCardConnection530Violation,
+                translate: translateLocal,
+                convertToDisplayString,
+                companyCardPageURL,
+                preferredLocale: CONST.LOCALES.EN,
+            }),
+        ).toBe(brokenCardConnection530ViolationExpected);
     });
 
     it('should return the correct message for a re-auth broken card connection violation', () => {
@@ -4131,9 +4143,15 @@ describe('getViolationTranslation', () => {
             CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH,
             companyCardPageURL,
         );
-        expect(ViolationsUtils.getViolationTranslation({dateFnsLocale: undefined, violation: brokenCardConnectionReauthViolation, translate: translateLocal, convertToDisplayString})).toBe(
-            brokenCardConnectionReauthViolationExpected,
-        );
+        expect(
+            ViolationsUtils.getViolationTranslation({
+                preferredLocale: CONST.LOCALES.EN,
+                violation: brokenCardConnectionReauthViolation,
+                translate: translateLocal,
+                convertToDisplayString,
+                companyCardPageURL,
+            }),
+        ).toBe(brokenCardConnectionReauthViolationExpected);
     });
 
     describe('per-night over limit messages', () => {
@@ -4146,10 +4164,10 @@ describe('getViolationTranslation', () => {
                 const withNights: TransactionViolation = {name, type: CONST.VIOLATION_TYPES.VIOLATION, data: {...limit, nights: 3}};
                 const withoutNights: TransactionViolation = {name, type: CONST.VIOLATION_TYPES.VIOLATION, data: limit};
 
-                expect(ViolationsUtils.getViolationTranslation({dateFnsLocale: undefined, violation: withNights, translate: translateLocal, convertToDisplayString})).toBe(
+                expect(ViolationsUtils.getViolationTranslation({preferredLocale: CONST.LOCALES.EN, violation: withNights, translate: translateLocal, convertToDisplayString})).toBe(
                     translateLocal(perNightKey, formattedLimit),
                 );
-                expect(ViolationsUtils.getViolationTranslation({dateFnsLocale: undefined, violation: withoutNights, translate: translateLocal, convertToDisplayString})).toBe(
+                expect(ViolationsUtils.getViolationTranslation({preferredLocale: CONST.LOCALES.EN, violation: withoutNights, translate: translateLocal, convertToDisplayString})).toBe(
                     translateLocal(defaultKey, formattedLimit),
                 );
             },
@@ -4159,9 +4177,9 @@ describe('getViolationTranslation', () => {
     it('should return the temporary retry-later message for a 531 broken card connection', async () => {
         IntlStore.load(CONST.LOCALES.EN);
         await waitForBatchedUpdates();
-        expect(ViolationsUtils.getViolationTranslation({dateFnsLocale: undefined, violation: brokenCardConnection531Violation, translate: translateLocal, convertToDisplayString})).toBe(
-            "Can't auto-match receipt due to a temporary bank issue. Please try again later.",
-        );
+        expect(
+            ViolationsUtils.getViolationTranslation({preferredLocale: CONST.LOCALES.EN, violation: brokenCardConnection531Violation, translate: translateLocal, convertToDisplayString}),
+        ).toBe("Can't auto-match receipt due to a temporary bank issue. Please try again later.");
     });
 
     describe('increasedDistance violation', () => {
@@ -4183,7 +4201,7 @@ describe('getViolationTranslation', () => {
 
         it('should return formatted message with route distance in km', () => {
             const result = ViolationsUtils.getViolationTranslation({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 violation: increasedDistanceViolation,
                 translate: translateLocal,
                 convertToDisplayString,
@@ -4196,7 +4214,7 @@ describe('getViolationTranslation', () => {
 
         it('should return formatted message with route distance in miles', () => {
             const result = ViolationsUtils.getViolationTranslation({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 violation: increasedDistanceViolation,
                 translate: translateLocal,
                 convertToDisplayString,
@@ -4209,7 +4227,7 @@ describe('getViolationTranslation', () => {
 
         it('should return fallback message when routeDistanceMeters is zero', () => {
             const result = ViolationsUtils.getViolationTranslation({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 violation: increasedDistanceViolation,
                 translate: translateLocal,
                 convertToDisplayString,
@@ -4222,7 +4240,7 @@ describe('getViolationTranslation', () => {
 
         it('should return fallback message when routeDistanceMeters is undefined', () => {
             const result = ViolationsUtils.getViolationTranslation({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 violation: increasedDistanceViolation,
                 translate: translateLocal,
                 convertToDisplayString,
@@ -4234,7 +4252,7 @@ describe('getViolationTranslation', () => {
 
         it('should return fallback message when distanceUnit is undefined', () => {
             const result = ViolationsUtils.getViolationTranslation({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 violation: increasedDistanceViolation,
                 translate: translateLocal,
                 convertToDisplayString,
@@ -4248,7 +4266,7 @@ describe('getViolationTranslation', () => {
     describe('customUnitRateOutOfDateRange violation', () => {
         it('should return the formatted message when both start and end dates are present', () => {
             const result = ViolationsUtils.getViolationTranslation({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 violation: {
                     name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
                     type: CONST.VIOLATION_TYPES.WARNING,
@@ -4266,7 +4284,7 @@ describe('getViolationTranslation', () => {
 
         it('should return the formatted message when only the start date is present', () => {
             const result = ViolationsUtils.getViolationTranslation({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 violation: {
                     name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
                     type: CONST.VIOLATION_TYPES.WARNING,
@@ -4283,7 +4301,7 @@ describe('getViolationTranslation', () => {
 
         it('should return the formatted message when only the end date is present', () => {
             const result = ViolationsUtils.getViolationTranslation({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 violation: {
                     name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
                     type: CONST.VIOLATION_TYPES.WARNING,
@@ -4324,7 +4342,7 @@ describe('getRBRMessages', () => {
     it('should return all violations and missing field error', () => {
         const missingFieldError = 'Missing required field';
         const result = ViolationsUtils.getRBRMessages({
-            dateFnsLocale: undefined,
+            preferredLocale: CONST.LOCALES.EN,
             transaction: mockTransaction,
             transactionViolations: mockViolations,
             translate: translateLocal,
@@ -4339,7 +4357,7 @@ describe('getRBRMessages', () => {
 
     it('should filter out empty strings', () => {
         const result = ViolationsUtils.getRBRMessages({
-            dateFnsLocale: undefined,
+            preferredLocale: CONST.LOCALES.EN,
             transaction: mockTransaction,
             transactionViolations: mockViolations,
             translate: translateLocal,

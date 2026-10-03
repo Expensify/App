@@ -25,6 +25,7 @@ type BootsplashGateStatus = {
     hasAttemptedToOpenPublicRoom: boolean;
     isNavigationReady: boolean;
     preferredLocale: Locale | undefined;
+    isCurrentLocaleLoaded: boolean;
     shouldInit: boolean;
     shouldHideSplash: boolean;
     isAuthenticated: boolean;

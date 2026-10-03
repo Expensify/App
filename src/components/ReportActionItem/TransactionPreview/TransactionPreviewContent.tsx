@@ -25,6 +25,7 @@ import getIOUPayerAndReceiver from '@libs/getIOUPayerAndReceiver';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {calculateAmount} from '@libs/IOUUtils';
 import Parser from '@libs/Parser';
+import {getDisplayMerchant} from '@libs/PerDiemMerchantUtils';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -81,7 +82,7 @@ function TransactionPreviewContent({
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
     const {environmentURL} = useEnvironment();
     const isParentPolicyExpenseChat = isPolicyExpenseChat(chatReport);
@@ -89,7 +90,8 @@ function TransactionPreviewContent({
         () => getTransactionDetails(transaction, undefined, policy, isParentPolicyExpenseChat) ?? {},
         [transaction, policy, isParentPolicyExpenseChat],
     );
-    const {amount, comment: requestComment, merchant, category, currency: requestCurrency} = transactionDetails;
+    const {amount, comment: requestComment, merchant: storedMerchant, category, currency: requestCurrency} = transactionDetails;
+    const merchant = storedMerchant === undefined ? undefined : getDisplayMerchant(transaction, storedMerchant, preferredLocale);
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
     // Only when the expense is actually held: the hold is appended to the RBR message on its own, so it must not also be picked
     // as the violation to describe. Left alone otherwise, so duplicates and settled expenses keep their existing message.
@@ -146,7 +148,7 @@ function TransactionPreviewContent({
 
     const violationMessage = firstViolation
         ? ViolationsUtils.getViolationTranslation({
-              dateFnsLocale,
+              preferredLocale,
               violation: firstViolation,
               translate,
               convertToDisplayString,
@@ -163,7 +165,7 @@ function TransactionPreviewContent({
     const previewText = useMemo(
         () =>
             getTransactionPreviewTextAndTranslationPaths({
-                dateFnsLocale,
+                preferredLocale,
                 ...transactionPreviewCommonArguments,
                 shouldShowRBR,
                 violationMessage,
@@ -171,7 +173,7 @@ function TransactionPreviewContent({
                 originalTransaction,
                 convertToDisplayString,
             }),
-        [transactionPreviewCommonArguments, shouldShowRBR, violationMessage, reportActions, originalTransaction, convertToDisplayString, dateFnsLocale],
+        [transactionPreviewCommonArguments, shouldShowRBR, violationMessage, reportActions, originalTransaction, convertToDisplayString, preferredLocale],
     );
     const getTranslatedText = (item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? ''));
 

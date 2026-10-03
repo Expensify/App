@@ -179,7 +179,7 @@ function SearchAutocompleteList({
     ref,
 }: SearchAutocompleteListProps) {
     const styles = useThemeStyles();
-    const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber, preferredLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
@@ -261,7 +261,7 @@ function SearchAutocompleteList({
             return defaultListOptions;
         }
         return getSearchOptions({
-            dateFnsLocale,
+            preferredLocale,
             convertToDisplayString,
             options: listOptions,
             draftComments,
@@ -306,7 +306,7 @@ function SearchAutocompleteList({
         isTrackIntentUser,
         translate,
         getReportByID,
-        dateFnsLocale,
+        preferredLocale,
         convertToDisplayString,
         rules,
     ]);
@@ -322,7 +322,7 @@ function SearchAutocompleteList({
         const orderedReportIDs = orderedSearchResultReportIDs.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS);
         const reportIDs = new Set(orderedReportIDs);
         const options = getSearchOptions({
-            dateFnsLocale,
+            preferredLocale,
             convertToDisplayString,
             options: {reports: listOptions.reports.filter((option) => reportIDs.has(option.reportID)), personalDetails: []},
             draftComments,
@@ -358,7 +358,7 @@ function SearchAutocompleteList({
         hasActiveSearchResults,
         listOptions,
         orderedSearchResultReportIDs,
-        dateFnsLocale,
+        preferredLocale,
         convertToDisplayString,
         draftComments,
         isDefaultRoomsBetaEnabled,

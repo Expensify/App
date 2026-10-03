@@ -25,7 +25,7 @@ type FraudAlertContentProps = {
 };
 
 function FraudAlertContent({action, reportID}: FraudAlertContentProps) {
-    const {translate, getLocalDateFromDatetime, dateFnsLocale} = useLocalize();
+    const {translate, getLocalDateFromDatetime, preferredLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
 
     const reportActionID = action?.reportActionID;
@@ -34,7 +34,7 @@ function FraudAlertContent({action, reportID}: FraudAlertContentProps) {
     const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardByIdSelector(String(cardID))});
     const possibleFraud = card?.nameValuePairs?.possibleFraud ?? null;
 
-    const message = getActionableCardFraudAlertMessage(translate, dateFnsLocale, action, getLocalDateFromDatetime, convertToDisplayString);
+    const message = getActionableCardFraudAlertMessage(translate, preferredLocale, action, getLocalDateFromDatetime, convertToDisplayString);
 
     return (
         <View

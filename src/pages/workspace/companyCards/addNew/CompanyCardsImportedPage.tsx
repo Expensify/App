@@ -60,7 +60,7 @@ function getCompanyCardImportColumnRoles(translate: LocaleContextProps['translat
 }
 
 function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [addNewCard, addNewCardMetadata] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const policyID = route.params.policyID;
@@ -215,6 +215,7 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
             layoutType,
             columnMappings,
             csvData: rows,
+            locale: preferredLocale,
             lastSelectedFeed: lastSelectedFeed ?? undefined,
             workspaceCardFeeds,
             existingInstanceID: addNewCard?.data?.existingInstanceID,

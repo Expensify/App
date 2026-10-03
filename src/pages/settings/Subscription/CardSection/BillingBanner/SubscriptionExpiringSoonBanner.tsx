@@ -20,12 +20,12 @@ type SubscriptionExpiringSoonBannerProps = {
 };
 
 function SubscriptionExpiringSoonBanner({endDate}: SubscriptionExpiringSoonBannerProps) {
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['SubscriptionAnnual']);
 
     return (
         <BillingBanner
-            title={translate('subscription.billingBanner.subscriptionExpiringSoon.title', {date: formatSubscriptionEndDate(endDate, dateFnsLocale)})}
+            title={translate('subscription.billingBanner.subscriptionExpiringSoon.title', {date: formatSubscriptionEndDate(endDate, preferredLocale)})}
             subtitle={translate('subscription.billingBanner.subscriptionExpiringSoon.subtitle')}
             icon={illustrations.SubscriptionAnnual}
             rightComponent={

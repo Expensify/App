@@ -135,7 +135,7 @@ function buildQBOPolicy(refreshTokenExpiresAt: Date, isAuthenticationError = fal
 }
 
 function formatExpiryDate(expiryDate: Date): string {
-    return DateUtils.formatWithUTCTimeZone(expiryDate.toISOString(), CONST.DATE.MONTH_DAY_YEAR_FORMAT, undefined);
+    return DateUtils.formatInUTCToLong(expiryDate.toISOString(), CONST.LOCALES.EN);
 }
 
 async function renderPage(policy: Policy) {

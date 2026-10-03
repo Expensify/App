@@ -18,12 +18,12 @@ type ReimbursedContentProps = {
 };
 
 function ReimbursedContent({action, reportOwnerAccountID}: ReimbursedContentProps) {
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [submitterLogin] = usePersonalDetail(reportOwnerAccountID, loginSelector);
     const [actorLogin] = usePersonalDetail(action.actorAccountID, loginSelector);
-    const message = getReimbursedMessage(translate, dateFnsLocale, action, reportOwnerAccountID, submitterLogin, actorLogin, convertToDisplayString, currentUserAccountID);
+    const message = getReimbursedMessage(translate, preferredLocale, action, reportOwnerAccountID, submitterLogin, actorLogin, convertToDisplayString, currentUserAccountID);
 
     return <ReportActionItemBasicMessage message={message} />;
 }

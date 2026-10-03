@@ -19,7 +19,7 @@ type StatusProps = {
 
 function Status({optionItem}: StatusProps) {
     const styles = useThemeStyles();
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const emojiCode = optionItem.status?.emojiCode ?? '';
@@ -32,10 +32,10 @@ function Status({optionItem}: StatusProps) {
     const currentSelectedTimezone = currentUserPersonalDetails?.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected;
     const formattedDate = DateUtils.getStatusUntilDate(
         translate,
-        dateFnsLocale,
         statusClearAfterDate,
         optionItem?.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected,
         currentSelectedTimezone,
+        preferredLocale,
     );
     const statusContent = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
 

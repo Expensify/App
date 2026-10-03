@@ -29,7 +29,7 @@ const SKELETON_SUBTITLE_WIDTH = 120;
 function ignorePaymentRowPress() {}
 
 function PaymentHistoryTable() {
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const styles = useThemeStyles();
     const [purchaseList] = useOnyx(ONYXKEYS.PURCHASE_LIST);
     const isLoading = purchaseList === undefined;
@@ -61,7 +61,7 @@ function PaymentHistoryTable() {
                     <PaymentHistoryTableRow
                         key={row.purchaseID}
                         row={row}
-                        dateLabel={DateUtils.formatWithUTCTimeZone(row.created, CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale) || row.created}
+                        dateLabel={DateUtils.formatInUTCToLong(row.created, preferredLocale) || row.created}
                         shouldShowDivider={index < rows.length - 1}
                     />
                 ))}

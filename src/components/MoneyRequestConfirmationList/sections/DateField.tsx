@@ -12,6 +12,7 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearMoneyRequestCreated, setMoneyRequestCreated, updateDistanceRateOnExpenseDateChange} from '@libs/actions/IOU/MoneyRequest';
+import DateUtils from '@libs/DateUtils';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -53,7 +54,7 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
     const {isEditingSplitBill, canEnterScanFieldsManually} = useConfirmationFields();
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
     const policyForTrackExpense = usePolicy(isTrackExpense ? policyForMovingExpensesID : undefined);
@@ -163,7 +164,8 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(action, iouType, transactionID, reportID, reportActionID)));
     };
 
-    const readOnlyDate = iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
+    // A stored expense date is date-only, so it renders UTC-anchored, and a draft with no date yet reads as today in the user's own zone.
+    const readOnlyDate = iouCreated ? DateUtils.formatInUTCToMedium(iouCreated, preferredLocale) : DateUtils.formatToMediumDate(new Date(), preferredLocale);
 
     // On the bordered form the editable date is a text input, so a locked one has to read as a disabled input too
     // rather than as a push row, or the same screen answers "this field can't be changed" two different ways.

@@ -49,6 +49,7 @@ jest.mock('@hooks/useLocalize', () =>
         translate: jest.fn((key: string, params?: Record<string, unknown>) => (params ? `${key}:${JSON.stringify(params)}` : key)),
         numberFormat: jest.fn((num: number) => num.toString()),
         localeCompare: jest.fn((a: string, b: string) => a.localeCompare(b)),
+        preferredLocale: 'en',
     })),
 );
 

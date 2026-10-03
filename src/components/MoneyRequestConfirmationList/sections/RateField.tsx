@@ -59,7 +59,7 @@ function RateField({
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm, isPolicyExpenseChat} = useConfirmationFields();
     const styles = useThemeStyles();
-    const {translate, toLocaleDigit, dateFnsLocale} = useLocalize();
+    const {translate, toLocaleDigit, preferredLocale} = useLocalize();
     const {getCurrencySymbol, convertToDisplayString} = useCurrencyListActions();
     const shouldDisplayDistanceRateError = formError === 'iou.error.invalidRate';
     const {isOffline} = useNetwork();
@@ -68,7 +68,7 @@ function RateField({
     const policyRate = customUnitRateID && policy ? DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID, policy}) : undefined;
     const rateOutOfDateRangeErrorText = isRateOutOfDateRange
         ? ViolationsUtils.getViolationTranslation({
-              dateFnsLocale,
+              preferredLocale,
               violation: {
                   name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
                   type: CONST.VIOLATION_TYPES.WARNING,

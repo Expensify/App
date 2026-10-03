@@ -387,7 +387,7 @@ const computeReportName = (
     conciergeReportID?: string,
 ) =>
     computeReportNameOriginal({
-        dateFnsLocale: undefined,
+        preferredLocale: CONST.LOCALES.EN,
         report,
         reports,
         policies,
@@ -636,7 +636,7 @@ describe('ReportUtils', () => {
             const last4Digits = policyWithBank.achAccount?.accountNumber.slice(-4);
             const paidSystemMessage = translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', last4Digits);
 
-            expect(getIOUReportActionDisplayMessage(translateLocal, reportAction, convertToDisplayString, policyWithBank, undefined)).toBe(paidSystemMessage);
+            expect(getIOUReportActionDisplayMessage(translateLocal, CONST.LOCALES.EN, reportAction, convertToDisplayString, policyWithBank, undefined)).toBe(paidSystemMessage);
         });
 
         it('should use the passed policy (not module-level allPolicies) for the bank account last 4 digits', () => {
@@ -645,7 +645,7 @@ describe('ReportUtils', () => {
             const paidSystemMessage = translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', last4Digits);
 
             // Then the ACH last 4 digits are resolved from the passed policy alone
-            expect(getIOUReportActionDisplayMessage(translateLocal, reportAction, convertToDisplayString, policyWithBank, undefined)).toBe(paidSystemMessage);
+            expect(getIOUReportActionDisplayMessage(translateLocal, CONST.LOCALES.EN, reportAction, convertToDisplayString, policyWithBank, undefined)).toBe(paidSystemMessage);
         });
 
         it('should show the bank account from the action accountNumber instead of the policy default', async () => {
@@ -661,7 +661,7 @@ describe('ReportUtils', () => {
             const paidSystemMessage = translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '4321');
 
             // Then the message shows the last 4 digits of that account, not the policy default
-            expect(getIOUReportActionDisplayMessage(translateLocal, actionWithAccountNumber, convertToDisplayString, policyWithBank, undefined)).toBe(paidSystemMessage);
+            expect(getIOUReportActionDisplayMessage(translateLocal, CONST.LOCALES.EN, actionWithAccountNumber, convertToDisplayString, policyWithBank, undefined)).toBe(paidSystemMessage);
         });
 
         it('should show the cross-border FX message with the credited amount and both account last-4s', async () => {
@@ -685,7 +685,7 @@ describe('ReportUtils', () => {
                 debitBankAccount: '6789',
                 creditBankAccount: '3335',
             });
-            expect(getIOUReportActionDisplayMessage(translateLocal, crossBorderAction, convertToDisplayString, policyWithBank, undefined)).toBe(expectedMessage);
+            expect(getIOUReportActionDisplayMessage(translateLocal, CONST.LOCALES.EN, crossBorderAction, convertToDisplayString, policyWithBank, undefined)).toBe(expectedMessage);
         });
 
         it('should return received payment when submitter marked payment received', () => {
@@ -700,7 +700,7 @@ describe('ReportUtils', () => {
                 },
             };
 
-            expect(getIOUReportActionDisplayMessage(translateLocal, paymentReceivedReportAction, convertToDisplayString, policyWithBank, undefined)).toBe(
+            expect(getIOUReportActionDisplayMessage(translateLocal, CONST.LOCALES.EN, paymentReceivedReportAction, convertToDisplayString, policyWithBank, undefined)).toBe(
                 translateLocal('iou.receivedPaymentReportAction'),
             );
         });
@@ -716,7 +716,9 @@ describe('ReportUtils', () => {
                 },
             };
 
-            expect(getIOUReportActionDisplayMessage(translateLocal, paidElsewhereReportAction, convertToDisplayString, policyWithBank, undefined)).toBe(translateLocal('iou.paidElsewhere'));
+            expect(getIOUReportActionDisplayMessage(translateLocal, CONST.LOCALES.EN, paidElsewhereReportAction, convertToDisplayString, policyWithBank, undefined)).toBe(
+                translateLocal('iou.paidElsewhere'),
+            );
         });
 
         it('should return an empty string for a non-money-request action', () => {
@@ -725,7 +727,7 @@ describe('ReportUtils', () => {
                 actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
             };
 
-            expect(getIOUReportActionDisplayMessage(translateLocal, createdAction, convertToDisplayString, policyWithBank, undefined)).toBe('');
+            expect(getIOUReportActionDisplayMessage(translateLocal, CONST.LOCALES.EN, createdAction, convertToDisplayString, policyWithBank, undefined)).toBe('');
         });
 
         it('should use the passed policy for the last 4 digits of an automatic VBBA payment', () => {
@@ -738,7 +740,7 @@ describe('ReportUtils', () => {
             const expected = translate(CONST.LOCALES.EN, 'iou.automaticallyPaidWithBusinessBankAccount', '', last4Digits);
 
             // Then the workspace-rules message resolves the last 4 digits from the passed policy
-            expect(getIOUReportActionDisplayMessage(translateLocal, automaticVBBAAction, convertToDisplayString, policyWithBank, undefined)).toBe(expected);
+            expect(getIOUReportActionDisplayMessage(translateLocal, CONST.LOCALES.EN, automaticVBBAAction, convertToDisplayString, policyWithBank, undefined)).toBe(expected);
         });
 
         it('should return the workspace-rules message for an automatic Expensify payment', () => {
@@ -747,7 +749,7 @@ describe('ReportUtils', () => {
                 originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY, automaticAction: true},
             };
 
-            expect(getIOUReportActionDisplayMessage(translateLocal, automaticExpensifyAction, convertToDisplayString, policyWithBank, undefined)).toBe(
+            expect(getIOUReportActionDisplayMessage(translateLocal, CONST.LOCALES.EN, automaticExpensifyAction, convertToDisplayString, policyWithBank, undefined)).toBe(
                 translate(CONST.LOCALES.EN, 'iou.automaticallyPaidWithExpensify', ''),
             );
         });
@@ -757,7 +759,7 @@ describe('ReportUtils', () => {
             const nonPayerAdminAction = {...reportAction, actorAccountID: reimburserAccountID + 1};
 
             // Then the message does not guess the workspace account, since the admin paid from an account of their own
-            expect(getIOUReportActionDisplayMessage(translateLocal, nonPayerAdminAction, convertToDisplayString, policyWithBank, undefined)).toBe(
+            expect(getIOUReportActionDisplayMessage(translateLocal, CONST.LOCALES.EN, nonPayerAdminAction, convertToDisplayString, policyWithBank, undefined)).toBe(
                 translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', ''),
             );
         });
@@ -768,7 +770,7 @@ describe('ReportUtils', () => {
             const last4Digits = policyWithBank.achAccount?.accountNumber.slice(-4);
 
             // Then the payer can't be ruled out, so the message keeps the workspace account instead of blanking the digits
-            expect(getIOUReportActionDisplayMessage(translateLocal, reportAction, convertToDisplayString, policyWithUnknownReimburser, undefined)).toBe(
+            expect(getIOUReportActionDisplayMessage(translateLocal, CONST.LOCALES.EN, reportAction, convertToDisplayString, policyWithUnknownReimburser, undefined)).toBe(
                 translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', last4Digits),
             );
         });
@@ -791,7 +793,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${approvedReportID}`, approvedReport);
 
             // Then the display message uses the "approved" copy
-            expect(getIOUReportActionDisplayMessage(translateLocal, approveIOUAction, convertToDisplayString, undefined, transaction)).toContain('approved');
+            expect(getIOUReportActionDisplayMessage(translateLocal, CONST.LOCALES.EN, approveIOUAction, convertToDisplayString, undefined, transaction)).toContain('approved');
         });
 
         it('should return marked as paid when the invoice sender copies a settled elsewhere payment (missing invoice bank account)', async () => {
@@ -821,7 +823,9 @@ describe('ReportUtils', () => {
             };
 
             // Then the copied message matches what is displayed ("marked as paid"), not the broken empty-amount string.
-            expect(getIOUReportActionDisplayMessage(translateLocal, invoicePaidElsewhereReportAction, convertToDisplayString, undefined)).toBe(translateLocal('iou.paidElsewhere'));
+            expect(getIOUReportActionDisplayMessage(translateLocal, CONST.LOCALES.EN, invoicePaidElsewhereReportAction, convertToDisplayString, undefined)).toBe(
+                translateLocal('iou.paidElsewhere'),
+            );
         });
     });
 
@@ -17114,6 +17118,7 @@ describe('ReportUtils', () => {
 
             const result = getTransactionReportName({
                 translate: translateLocal,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 reportAction: undefined,
                 linkedTransaction: transaction,
@@ -17136,6 +17141,7 @@ describe('ReportUtils', () => {
 
             const result = getTransactionReportName({
                 translate: translateLocal,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 reportAction: undefined,
                 linkedTransaction: transaction,
@@ -17154,6 +17160,7 @@ describe('ReportUtils', () => {
 
             const result = getTransactionReportName({
                 translate: translateLocal,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 reportAction,
                 linkedTransaction: undefined,
@@ -17171,6 +17178,7 @@ describe('ReportUtils', () => {
 
             const result = getTransactionReportName({
                 translate: translateLocal,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 reportAction,
                 linkedTransaction: undefined,
@@ -17192,6 +17200,7 @@ describe('ReportUtils', () => {
 
             const result = getTransactionReportName({
                 translate: translateLocal,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 reportAction: undefined,
                 linkedTransaction: transaction,
@@ -17206,6 +17215,7 @@ describe('ReportUtils', () => {
         test('returns expense fallback when linkedTransaction is empty and reportAction is not track expense', () => {
             const result = getTransactionReportName({
                 translate: translateLocal,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 reportAction: undefined,
                 linkedTransaction: undefined,
@@ -17222,6 +17232,7 @@ describe('ReportUtils', () => {
 
             const result = getTransactionReportName({
                 translate: translateLocal,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 reportAction,
                 linkedTransaction: undefined,
@@ -17241,6 +17252,7 @@ describe('ReportUtils', () => {
 
             const result = getTransactionReportName({
                 translate: translateLocal,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 reportAction: undefined,
                 linkedTransaction: transaction,
@@ -17260,6 +17272,7 @@ describe('ReportUtils', () => {
 
             const result = getTransactionReportName({
                 translate: translateLocal,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 reportAction: undefined,
                 linkedTransaction: transaction,
@@ -17283,6 +17296,7 @@ describe('ReportUtils', () => {
 
             const result = getTransactionReportName({
                 translate: translateLocal,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 reportAction: undefined,
                 linkedTransaction: transaction,
@@ -17341,6 +17355,7 @@ describe('ReportUtils', () => {
 
             const result = getTransactionReportName({
                 translate: translateLocal,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 reportAction: undefined,
                 linkedTransaction: transaction,
@@ -17376,6 +17391,7 @@ describe('ReportUtils', () => {
 
             const result = getTransactionReportName({
                 translate: translateLocal,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 reportAction: undefined,
                 linkedTransaction: transaction,
@@ -19873,7 +19889,7 @@ describe('ReportUtils', () => {
             };
 
             // When we call getReportPreviewMessage passing the policy explicitly
-            const result = getReportPreviewMessage(translateLocal, convertToDisplayString, {reportOrID: expenseReport, policy: groupPolicy});
+            const result = getReportPreviewMessage(translateLocal, CONST.LOCALES.EN, convertToDisplayString, {reportOrID: expenseReport, policy: groupPolicy});
 
             // Then the group-policy "approved" branch is taken based on the passed policy alone
             expect(result).toContain('approved');
@@ -20012,7 +20028,7 @@ describe('ReportUtils', () => {
                 it('keeps the bank account wording in the localized preview', () => {
                     const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
 
-                    const result = getReportPreviewMessage(englishTranslate, convertToDisplayString, {
+                    const result = getReportPreviewMessage(englishTranslate, CONST.LOCALES.EN, convertToDisplayString, {
                         reportOrID: settledReport,
                         iouReportAction: actionNamingAccount,
                         originalReportAction: actionNamingAccount,
@@ -20039,7 +20055,9 @@ describe('ReportUtils', () => {
                     const params = {reportOrID: settledReport, iouReportAction: actionNamingAccountID, originalReportAction: actionNamingAccountID, policy: settledPolicy, bankAccountList};
 
                     // Then both previews name that account, matching PaymentContent, rather than the workspace default
-                    expect(getReportPreviewMessage(englishTranslate, convertToDisplayString, params)).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '5678'));
+                    expect(getReportPreviewMessage(englishTranslate, CONST.LOCALES.EN, convertToDisplayString, params)).toBe(
+                        translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '5678'),
+                    );
                     expect(getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal)).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '5678'));
                 });
             });
@@ -20049,7 +20067,9 @@ describe('ReportUtils', () => {
                 const params = {reportOrID: settledReport, iouReportAction: payReportAction, originalReportAction: payReportAction, policy: settledPolicy};
 
                 // The hardcoded English copy must not drift from the localized function
-                expect(getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal)).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params));
+                expect(getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal)).toBe(
+                    getReportPreviewMessage(englishTranslate, CONST.LOCALES.EN, convertToDisplayString, params),
+                );
             });
 
             describe('cross-border payment', () => {
@@ -20062,7 +20082,7 @@ describe('ReportUtils', () => {
 
                 it('names the credited amount, falling back to the policy default for the debited account', () => {
                     // Given a converted payment that recorded the employee's account but not the account it was paid from
-                    const result = getReportPreviewMessage(englishTranslate, convertToDisplayString, crossBorderParams);
+                    const result = getReportPreviewMessage(englishTranslate, CONST.LOCALES.EN, convertToDisplayString, crossBorderParams);
 
                     // Then the debited account comes from the policy default, the same fallback the non-converted wording uses
                     expect(result).toBe(
@@ -20077,14 +20097,14 @@ describe('ReportUtils', () => {
                 it('stores the same wording on the report action as the localized preview shows', () => {
                     // The hardcoded English copy must not drift from the localized function
                     expect(getReportPreviewReportActionMessage(crossBorderParams, getCurrencyDecimalsLocal)).toBe(
-                        getReportPreviewMessage(englishTranslate, convertToDisplayString, crossBorderParams),
+                        getReportPreviewMessage(englishTranslate, CONST.LOCALES.EN, convertToDisplayString, crossBorderParams),
                     );
                 });
 
                 it('still names the report total in the parent chat preview', () => {
                     // Given the parent chat preview, which summarizes the report rather than describing the payment
                     const params = {...crossBorderParams, isPreviewMessageForParentChatReport: true};
-                    const paymentWithoutConversion = getReportPreviewMessage(englishTranslate, convertToDisplayString, {
+                    const paymentWithoutConversion = getReportPreviewMessage(englishTranslate, CONST.LOCALES.EN, convertToDisplayString, {
                         reportOrID: settledReport,
                         iouReportAction: payReportAction,
                         originalReportAction: payReportAction,
@@ -20093,7 +20113,7 @@ describe('ReportUtils', () => {
                     });
 
                     // Then the credited amount does not replace the report total, which is what the report is denominated in
-                    expect(getReportPreviewMessage(englishTranslate, convertToDisplayString, params)).toBe(paymentWithoutConversion);
+                    expect(getReportPreviewMessage(englishTranslate, CONST.LOCALES.EN, convertToDisplayString, params)).toBe(paymentWithoutConversion);
                 });
             });
         });
@@ -20120,13 +20140,15 @@ describe('ReportUtils', () => {
                 await IntlStore.load(CONST.LOCALES.ES).then(waitForBatchedUpdates);
 
                 // The localized preview differs between English and Spanish...
-                expect(getReportPreviewMessage(spanishTranslate, convertToDisplayString, params)).not.toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params));
+                expect(getReportPreviewMessage(spanishTranslate, CONST.LOCALES.ES, convertToDisplayString, params)).not.toBe(
+                    getReportPreviewMessage(englishTranslate, CONST.LOCALES.EN, convertToDisplayString, params),
+                );
                 // ...but the report-action-message variant is always the English text, regardless of the loaded locale
 
                 // TODO: Re-enable this assertion once getReportPreviewReportActionMessage is refactored
                 // This will be done in the next PR https://github.com/Expensify/App/issues/66430.
 
-                // expect(getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal)).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params));
+                // expect(getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal)).toBe(getReportPreviewMessage(englishTranslate, CONST.LOCALES.EN, convertToDisplayString, params));
             });
 
             it('routes the participant display name through the injected translate function', async () => {
@@ -20150,7 +20172,7 @@ describe('ReportUtils', () => {
                 const translateWithMarker: LocalizedTranslate = (path, ...parameters) =>
                     path === 'common.hidden' ? 'HiddenParticipantMarker' : translate(CONST.LOCALES.EN, path, ...parameters);
 
-                const result = getReportPreviewMessage(translateWithMarker, convertToDisplayString, {reportOrID: iouReport, policy: undefined});
+                const result = getReportPreviewMessage(translateWithMarker, CONST.LOCALES.EN, convertToDisplayString, {reportOrID: iouReport, policy: undefined});
 
                 // The manager's name resolves to the marker, proving getDisplayNameForParticipant received the injected translate
                 expect(result).toContain('HiddenParticipantMarker');
@@ -20173,7 +20195,7 @@ describe('ReportUtils', () => {
                 const result = getReportPreviewReportActionMessage({reportOrID: report}, getCurrencyDecimalsLocal);
 
                 // The hardcoded English string must match the en.ts translation produced by the localized function
-                expect(result).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report, policy: undefined}));
+                expect(result).toBe(getReportPreviewMessage(englishTranslate, CONST.LOCALES.EN, convertToDisplayString, {reportOrID: report, policy: undefined}));
                 expect(result).toContain('owes');
             });
 
@@ -20199,7 +20221,7 @@ describe('ReportUtils', () => {
                 const result = getReportPreviewReportActionMessage({reportOrID: report}, getCurrencyDecimalsLocal);
 
                 // The hardcoded English string must match the en.ts translation produced by the localized function
-                expect(result).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report, policy: undefined}));
+                expect(result).toBe(getReportPreviewMessage(englishTranslate, CONST.LOCALES.EN, convertToDisplayString, {reportOrID: report, policy: undefined}));
                 expect(result).toContain('spent');
             });
         });

@@ -5,6 +5,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import DateUtils from '@libs/DateUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {getWaypointIndex, hasPendingDistanceReceiptRegeneration, hasReceipt} from '@libs/TransactionUtils';
@@ -36,11 +37,12 @@ type DistanceEReceiptPanelProps = {
  */
 function DistanceEReceiptPanel({transaction}: DistanceEReceiptPanelProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark']);
     const thumbnail = hasReceipt(transaction) ? getThumbnailAndImageURIs(transaction).thumbnail : null;
-    const {amount: transactionAmount, currency: transactionCurrency, merchant: transactionMerchant, created: transactionDate} = getTransactionDetails(transaction) ?? {};
+    const {amount: transactionAmount, currency: transactionCurrency, merchant: transactionMerchant, created: transactionCreated} = getTransactionDetails(transaction) ?? {};
+    const transactionDate = transactionCreated ? DateUtils.formatInUTCToLong(transactionCreated, preferredLocale) : '';
     const formattedTransactionAmount = convertToDisplayString(transactionAmount, transactionCurrency);
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail ?? '');
     // The thumbnail this card draws is the stored route map. An edit that makes the server rebuild the receipt

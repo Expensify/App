@@ -20,6 +20,7 @@ import FullstoryInitHandler from './FullstoryInitHandler';
 import FullstoryUserContextHandler from './FullstoryUserContextHandler';
 import GlobalModals from './GlobalModals';
 import useDebugShortcut from './hooks/useDebugShortcut';
+import useIntlStoreSnapshot from './hooks/useIntlStoreSnapshot';
 import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useLocalize from './hooks/useLocalize';
 import useOnyx from './hooks/useOnyx';
@@ -131,17 +132,22 @@ function Expensify() {
         });
     }, [isCheckingPublicRoom]);
 
+    // Monotonic, unlike `areTranslationsLoading`, which a language switch re-raises and would tear the app shell back down.
+    const {isCurrentLocaleLoaded} = useIntlStoreSnapshot();
+    const hasEndedLocaleSpan = useRef(false);
     useEffect(() => {
-        if (!preferredLocale) {
+        if (!isCurrentLocaleLoaded || hasEndedLocaleSpan.current) {
             return;
         }
+        // Startup span, so it ends once rather than on every subsequent locale load.
+        hasEndedLocaleSpan.current = true;
         endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.LOCALE);
-    }, [preferredLocale]);
+    }, [isCurrentLocaleLoaded]);
 
     const isSplashReadyToBeHidden = splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN;
     const isSplashVisible = splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE;
 
-    const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom && !!preferredLocale;
+    const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom && isCurrentLocaleLoaded;
     const shouldHideSplash = shouldInit && (CONFIG.IS_HYBRID_APP ? isSplashReadyToBeHidden : isSplashVisible);
 
     // We store this in a ref to get the latest values in BootsplashMonitor callback
@@ -153,6 +159,7 @@ function Expensify() {
         hasAttemptedToOpenPublicRoom,
         isNavigationReady,
         preferredLocale,
+        isCurrentLocaleLoaded,
         shouldInit,
         shouldHideSplash,
         isAuthenticated,

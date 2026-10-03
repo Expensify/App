@@ -25,7 +25,7 @@ function getGroupedAccountIDs(data: SearchResults['data'] = {}): number[] {
  * Caps the rows to the query's limit, since the backend may return more rows than the chart shows.
  */
 function useGroupedItems(searchResults: OnyxEntry<SearchResults>, queryJSON: Readonly<SearchQueryJSON> | undefined): GroupedItem[] | undefined {
-    const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber, preferredLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {accountID, login} = useCurrentUserPersonalDetails();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -38,7 +38,7 @@ function useGroupedItems(searchResults: OnyxEntry<SearchResults>, queryJSON: Rea
             ? getSortedSections(
                   queryJSON.type,
                   getSections({
-                      dateFnsLocale,
+                      preferredLocale,
                       type: queryJSON.type,
                       data: searchResults.data,
                       groupBy,

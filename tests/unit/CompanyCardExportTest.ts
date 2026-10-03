@@ -602,8 +602,13 @@ describe('getExportMenuItem - Sage Intacct', () => {
 });
 
 describe('getExportMenuItem - Rillet', () => {
-    const exportsTo = translateLocal('common.exportsTo');
-    const defaultSuffix = translateLocal('common.default').toLocaleLowerCase();
+    // Read inside a hook rather than while the suite is being collected: the English table is seeded in a `beforeAll`, so a describe-body translation is still the raw key.
+    let exportsTo = '';
+    let defaultSuffix = '';
+    beforeAll(() => {
+        exportsTo = translateLocal('common.exportsTo');
+        defaultSuffix = translateLocal('common.default').toLocaleLowerCase();
+    });
 
     function createRilletPolicy(exportOverrides?: {exportToMultipleAccounts?: boolean; cardProgramAccounts?: Record<string, string>}) {
         return createBasePolicy({
@@ -679,8 +684,12 @@ describe('getExportMenuItem - Rillet', () => {
 });
 
 describe('getExportMenuItem - DualEntry', () => {
-    const exportsTo = translateLocal('common.exportsTo');
-    const defaultSuffix = translateLocal('common.default').toLocaleLowerCase();
+    let exportsTo = '';
+    let defaultSuffix = '';
+    beforeAll(() => {
+        exportsTo = translateLocal('common.exportsTo');
+        defaultSuffix = translateLocal('common.default').toLocaleLowerCase();
+    });
 
     function createDualEntryPolicy(exportOverrides?: {exportToMultipleAccounts?: boolean; cardProgramAccounts?: Record<string, string>}) {
         return createBasePolicy({

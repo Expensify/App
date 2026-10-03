@@ -23,7 +23,7 @@ const INSIGHTS_ALLOWED_CUSTOM_DATE_MODIFIERS: readonly CustomDateModifier[] = [C
 const INSIGHTS_DATE_PRESETS = getDatePresets(CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, false);
 
 function InsightsDateControl({value, onChange}: InsightsControlProps<InsightsFilters['date']>) {
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const label = translate('common.date');
 
     const datePopover = ({closeOverlay, setPopoverWidth}: PopoverComponentProps) => (
@@ -41,7 +41,7 @@ function InsightsDateControl({value, onChange}: InsightsControlProps<InsightsFil
     return (
         <DropdownButton
             label={label}
-            value={getDateDisplayValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, buildDateFormValues(value), translate, dateFnsLocale)}
+            value={getDateDisplayValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, buildDateFormValues(value), translate, preferredLocale)}
             sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_DATE}
             popoverAnchorAlignment={INSIGHTS_CONTROL_ANCHOR_ALIGNMENT}
             PopoverComponent={datePopover}

@@ -309,9 +309,9 @@ describe('RecruitingUtils', () => {
 
             // When the label is built
             // Then each dimension reads as its all-selected copy, which stays short as the catalog grows
-            expect(getMergeATSFilterLabel(TAGS, filters, DATA, translateLocal)).toBe('workspace.recruiting.filters.tags.allSelected');
-            expect(getMergeATSFilterLabel(STAGES, filters, DATA, translateLocal)).toBe('workspace.recruiting.filters.stages.allSelected');
-            expect(getMergeATSFilterLabel(OFFICES, filters, DATA, translateLocal)).toBe('workspace.recruiting.filters.offices.allSelected');
+            expect(getMergeATSFilterLabel(TAGS, filters, DATA, translateLocal)).toBe('All tags');
+            expect(getMergeATSFilterLabel(STAGES, filters, DATA, translateLocal)).toBe('All job stages');
+            expect(getMergeATSFilterLabel(OFFICES, filters, DATA, translateLocal)).toBe('All offices');
         });
 
         it('names the selected values when only some of them are selected', () => {
@@ -648,7 +648,7 @@ describe('getRecruitingCards', () => {
         // Then it opts out of the top description and shows the download icon next to its label
         expect(row?.shouldRenderAsMenuItem).toBe(true);
         expect(row?.icon).toBe(STUB_ICON);
-        expect(row?.title).toBe('workspace.recruiting.importSettings');
+        expect(row?.title).toBe('Import settings');
         expect(row?.description).toBeUndefined();
     });
 
@@ -676,32 +676,28 @@ describe('getRecruitingCards', () => {
             // Given a connected policy with no approval mode
             // When the default approver row is built
             // Then nothing is set yet
-            expect(getDefaultApproverTitle({config: {approvalMode: null}})).toBe('workspace.merge.notSet');
+            expect(getDefaultApproverTitle({config: {approvalMode: null}})).toBe('Not set');
         });
 
         it('shows only the mode name in custom mode', () => {
             // Given a connection in custom approval mode, where approvals are configured in Expensify instead
             // When the default approver row is built
             // Then only the mode is shown, with no approver
-            expect(getDefaultApproverTitle({config: {approvalMode: CONST.MERGE.APPROVAL_MODE.CUSTOM, finalApprover: APPROVER_LOGIN}})).toBe('workspace.merge.approvalModes.custom');
+            expect(getDefaultApproverTitle({config: {approvalMode: CONST.MERGE.APPROVAL_MODE.CUSTOM, finalApprover: APPROVER_LOGIN}})).toBe('Custom approval');
         });
 
         it('shows the mode and the approver in basic mode', () => {
             // Given a connection in basic mode with a final approver
             // When the default approver row is built
             // Then the mode and the approver are shown together
-            expect(getDefaultApproverTitle({config: {approvalMode: CONST.MERGE.APPROVAL_MODE.BASIC, finalApprover: APPROVER_LOGIN}})).toBe(
-                `workspace.merge.approvalModes.basic • ${APPROVER_LOGIN}`,
-            );
+            expect(getDefaultApproverTitle({config: {approvalMode: CONST.MERGE.APPROVAL_MODE.BASIC, finalApprover: APPROVER_LOGIN}})).toBe(`Basic approval • ${APPROVER_LOGIN}`);
         });
 
         it('falls back to "not set" for the approver when basic mode has none', () => {
             // Given a connection in basic mode with no final approver chosen
             // When the default approver row is built
             // Then the missing approver is called out rather than left blank
-            expect(getDefaultApproverTitle({config: {approvalMode: CONST.MERGE.APPROVAL_MODE.BASIC, finalApprover: null}})).toBe(
-                'workspace.merge.approvalModes.basic • workspace.merge.notSet',
-            );
+            expect(getDefaultApproverTitle({config: {approvalMode: CONST.MERGE.APPROVAL_MODE.BASIC, finalApprover: null}})).toBe('Basic approval • Not set');
         });
 
         it('resolves the approver login to their display name', () => {
@@ -713,7 +709,7 @@ describe('getRecruitingCards', () => {
                     {config: {approvalMode: CONST.MERGE.APPROVAL_MODE.BASIC, finalApprover: APPROVER_LOGIN}},
                     {[APPROVER_LOGIN]: {accountID: 1, displayName: 'Alex Approver'}},
                 ),
-            ).toBe('workspace.merge.approvalModes.basic • Alex Approver');
+            ).toBe('Basic approval • Alex Approver');
         });
 
         it('shows the ATS field the approver is read from in advanced mode', () => {
@@ -724,7 +720,7 @@ describe('getRecruitingCards', () => {
                 getDefaultApproverTitle({
                     config: {approvalMode: CONST.MERGE.APPROVAL_MODE.ADVANCED, approverField: CONST.MERGE.ATS_APPROVER_FIELD.RECRUITER, finalApprover: APPROVER_LOGIN},
                 }),
-            ).toBe(`workspace.merge.approvalModes.advanced • workspace.recruiting.approverFields.recruiter -> ${APPROVER_LOGIN}`);
+            ).toBe(`Advanced approval • Recruiter -> ${APPROVER_LOGIN}`);
         });
 
         it('translates the recruiting coordinator field in advanced mode', () => {
@@ -735,7 +731,7 @@ describe('getRecruitingCards', () => {
                 getDefaultApproverTitle({
                     config: {approvalMode: CONST.MERGE.APPROVAL_MODE.ADVANCED, approverField: CONST.MERGE.ATS_APPROVER_FIELD.RECRUITING_COORDINATOR, finalApprover: APPROVER_LOGIN},
                 }),
-            ).toBe(`workspace.merge.approvalModes.advanced • workspace.recruiting.approverFields.recruitingCoordinator -> ${APPROVER_LOGIN}`);
+            ).toBe(`Advanced approval • Recruiting coordinator -> ${APPROVER_LOGIN}`);
         });
 
         it('reads "not set" for the ATS field when advanced mode has none', () => {
@@ -746,7 +742,7 @@ describe('getRecruitingCards', () => {
                 getDefaultApproverTitle({
                     config: {approvalMode: CONST.MERGE.APPROVAL_MODE.ADVANCED, approverField: null, finalApprover: APPROVER_LOGIN},
                 }),
-            ).toBe(`workspace.merge.approvalModes.advanced • workspace.merge.notSet -> ${APPROVER_LOGIN}`);
+            ).toBe(`Advanced approval • Not set -> ${APPROVER_LOGIN}`);
         });
     });
 });

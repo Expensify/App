@@ -218,7 +218,7 @@ function ReportActionItem({
     const isConciergeGreeting = action.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID;
     const shouldDisplayContextMenuValue = shouldDisplayContextMenu && !isConciergeGreeting;
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
-    const {translate, datetimeToCalendarTime, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {translate, datetimeToCalendarTime, formatPhoneNumber, preferredLocale} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const [actorDisplayName] = usePersonalDetail(action.actorAccountID, displayNameOrDefaultSelector(translate, formatPhoneNumber));
     const {showConfirmModal} = useConfirmModal();
@@ -523,10 +523,10 @@ function ReportActionItem({
     const isEmpty = !shouldRenderViewBasedOnAction && !isClosedExpenseReportWithNoExpenses;
     const shouldDisplayThreadReplies = shouldDisplayThreadRepliesUtils(action, isThreadReportParentAction) && !isOnSearch;
 
-    const formattedTimestamp = datetimeToCalendarTime(action.created, false);
+    const formattedTimestamp = datetimeToCalendarTime(action.created);
     const plainMessage = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED)
         ? getAgentPromptUpdatedMessage(translate, action)
-        : getPaymentMessageWithExpectedDate(translate, dateFnsLocale, getReportActionText(action), paymentExpectedDate);
+        : getPaymentMessageWithExpectedDate(translate, preferredLocale, getReportActionText(action), paymentExpectedDate);
     const accessibilityLabel = `${actorDisplayName ?? ''}, ${formattedTimestamp}, ${plainMessage}`;
 
     return (

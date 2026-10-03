@@ -6,9 +6,11 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 
-import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
+import CONST from '@src/CONST';
 import '@libs/Navigation/AppNavigator/AuthScreens';
 
+import IntlStore from '@src/languages/IntlStore';
+import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 
@@ -236,6 +238,22 @@ describe('actions/App', () => {
                 ]),
             );
             expect((await getOnyxValue(ONYXKEYS.PERSISTED_ONGOING_REQUESTS)) == null).toBe(true);
+        });
+    });
+
+    describe('setLocale', () => {
+        it('asks the store to load the chosen language', () => {
+            // Given a store serving English because the chosen language failed to load, which leaves the NVP holding
+            // that language while the app renders in English
+            const loadSpy = jest.spyOn(IntlStore, 'load').mockResolvedValue(undefined);
+
+            // When the user chooses it again
+            App.setLocale(CONST.LOCALES.ES, CONST.LOCALES.EN);
+
+            // Then the load is asked for directly, because writing the language the NVP already holds changes nothing
+            // and nothing else would ask again
+            expect(loadSpy).toHaveBeenCalledWith(CONST.LOCALES.ES);
+            loadSpy.mockRestore();
         });
     });
 

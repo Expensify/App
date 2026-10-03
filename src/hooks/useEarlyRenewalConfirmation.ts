@@ -12,15 +12,15 @@ import useLocalize from './useLocalize';
 /** Opens the confirmation modal for the non-incentivized early renewal offer. */
 function useEarlyRenewalConfirmation() {
     const {showConfirmModal} = useConfirmModal();
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
 
     const showEarlyRenewalConfirmation = async () => {
         const {startDate, endDate} = getNonIncentivizedEarlyRenewalDates();
         const result = await showConfirmModal({
             title: translate('earlyRenewal.confirmTitle'),
             prompt: translate('earlyRenewal.confirmationDescription', {
-                startDate: DateUtils.formatWithUTCTimeZone(startDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale),
-                endDate: DateUtils.formatWithUTCTimeZone(endDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale),
+                startDate: DateUtils.formatInUTCToLong(startDate, preferredLocale),
+                endDate: DateUtils.formatInUTCToLong(endDate, preferredLocale),
             }),
             confirmText: translate('earlyRenewal.renew'),
             cancelText: translate('common.cancel'),

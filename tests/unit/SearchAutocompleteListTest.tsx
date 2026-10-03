@@ -187,7 +187,7 @@ const mockedOptions = createFilteredOptionList(
     undefined,
     {
         currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-        dateFnsLocale: undefined,
+        preferredLocale: CONST.LOCALES.EN,
         convertToDisplayString: TestHelper.convertToDisplayString,
         conciergeReportID: undefined,
         isSearching: true,
@@ -481,7 +481,7 @@ describe('SearchAutocompleteList', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString: TestHelper.convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
@@ -576,7 +576,7 @@ describe('SearchAutocompleteList', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString: TestHelper.convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,

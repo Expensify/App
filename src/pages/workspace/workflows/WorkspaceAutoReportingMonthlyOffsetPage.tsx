@@ -8,6 +8,7 @@ import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
 import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 
+import {toLocaleDayOfMonth} from '@libs/LocaleDigitUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -45,7 +46,7 @@ type WorkspaceAutoReportingMonthlyOffsetPageItem = {
 };
 
 function WorkspaceAutoReportingMonthlyOffsetPage({policy, route}: WorkspaceAutoReportingMonthlyOffsetProps) {
-    const {translate, toLocaleOrdinal} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const policyID = policy?.id;
     const offset = policy?.autoReportingOffset ?? 1;
@@ -60,7 +61,7 @@ function WorkspaceAutoReportingMonthlyOffsetPage({policy, route}: WorkspaceAutoR
         const day = index + 1;
 
         return {
-            text: toLocaleOrdinal(day),
+            text: toLocaleDayOfMonth(preferredLocale, day),
             keyForList: day.toString(), // we have to cast it as string for <ListItem> to work
             value: day.toString(),
             isSelected: day === selectedOffset,

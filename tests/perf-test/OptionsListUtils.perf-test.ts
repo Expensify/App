@@ -108,7 +108,7 @@ const options = createFilteredOptionList(
     EMPTY_PRIVATE_IS_ARCHIVED_MAP,
     undefined,
     {
-        dateFnsLocale: undefined,
+        preferredLocale: CONST.LOCALES.EN,
         convertToDisplayString,
         conciergeReportID: undefined,
         isSearching: true,
@@ -121,7 +121,7 @@ const options = createFilteredOptionList(
 const getReportByID = (reportID: string | undefined): OnyxEntry<Report> => (mockedReportsMap as OnyxCollection<Report>)?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
 const ValidOptionsConfig = {
-    dateFnsLocale: undefined,
+    preferredLocale: CONST.LOCALES.EN,
     getReportByID,
     convertToDisplayString,
     isDefaultRoomsBetaEnabled: true,
@@ -162,7 +162,7 @@ describe('OptionsListUtils', () => {
         await waitForBatchedUpdates();
         await measureFunction(() =>
             getSearchOptions({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 translate: translateLocal,
                 options,
@@ -206,7 +206,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 personalDetails,
                 config: {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 },
@@ -240,7 +240,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 personalDetails,
                 config: {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 },
@@ -264,7 +264,7 @@ describe('OptionsListUtils', () => {
                 MOCK_CURRENT_USER_EMAIL,
                 undefined,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     getReportByID,
                     convertToDisplayString,
                     isDefaultRoomsBetaEnabled: true,
@@ -334,7 +334,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 translateLocal,
                 convertToDisplayString,
-                undefined,
+                CONST.LOCALES.EN,
                 getReportByID,
                 undefined,
                 mockedPersonalDetails,
@@ -360,7 +360,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 translateLocal,
                 convertToDisplayString,
-                undefined,
+                CONST.LOCALES.EN,
                 getReportByID,
                 undefined,
                 mockedPersonalDetails,
@@ -382,7 +382,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     maxRecentReports: 500,
@@ -404,7 +404,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     maxRecentReports: 500,
@@ -429,7 +429,7 @@ describe('OptionsListUtils', () => {
             undefined,
             {
                 currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 conciergeReportID: undefined,
             },
@@ -459,7 +459,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 personalDetails: largePersonalDetails,
                 config: {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 },
@@ -480,7 +480,7 @@ describe('OptionsListUtils', () => {
             undefined,
             {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 maxRecentReports: 500,
@@ -491,7 +491,7 @@ describe('OptionsListUtils', () => {
 
         await measureFunction(() =>
             getSearchOptions({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 translate: translateLocal,
                 options: optionLists,

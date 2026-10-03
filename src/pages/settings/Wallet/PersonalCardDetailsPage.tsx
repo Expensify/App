@@ -23,6 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getActiveServer} from '@libs/ApiUtils';
 import navigateToCardTransactions from '@libs/CardNavigationUtils';
 import {getCardFeedIcon, getPlaidInstitutionIconUrl, isPersonalCard, isPersonalCardBrokenConnection} from '@libs/CardUtils';
+import DateUtils from '@libs/DateUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -44,7 +45,6 @@ import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeed} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import {format} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -57,7 +57,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
     const {cardID} = route.params;
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [activeServer = getActiveServer()] = useOnyx(ONYXKEYS.ACTIVE_SERVER);
-    const {translate, formatPhoneNumber, getLocalDateFromDatetime} = useLocalize();
+    const {translate, formatPhoneNumber, getLocalDateFromDatetime, preferredLocale} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
@@ -148,7 +148,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
     const shouldShowBreakConnection = isMockBank && isUsingNonProductionAPI;
 
     const lastScrape = card?.lastScrape
-        ? format(getLocalDateFromDatetime(card.lastScrape), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING)
+        ? DateUtils.formatToLocalDateTime(getLocalDateFromDatetime(card.lastScrape), preferredLocale)
         : translate('workspace.moreFeatures.companyCards.neverUpdated');
 
     const getCardIconSource = () => {

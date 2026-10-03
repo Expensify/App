@@ -22,11 +22,11 @@ type PayOverdueInvoiceProps = {
 };
 
 function PayOverdueInvoice({gracePeriodEndUnixSeconds, isOverdue = false}: PayOverdueInvoiceProps) {
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['InvoiceGeneric']);
 
-    // formatWithUTCTimeZone needs ISO 8601. toUTCString (RFC 1123) would silently format as empty
-    const dueDate = DateUtils.formatWithUTCTimeZone(fromUnixTime(gracePeriodEndUnixSeconds).toISOString(), CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale);
+    // An ISO string rather than a `Date`, which `formatInUTCToLong` would re-read as the device's local calendar day.
+    const dueDate = DateUtils.formatInUTCToLong(fromUnixTime(gracePeriodEndUnixSeconds).toISOString(), preferredLocale);
 
     const title = isOverdue
         ? translate('homePage.timeSensitiveSection.payOverdueInvoice.overdueTitle')

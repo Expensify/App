@@ -53,7 +53,7 @@ type TransactionItemRowRBRProps = TransactionItemRowRBRInnerProps & {
 
 function TransactionItemRowRBRInner({transaction, violations, report, containerStyles, missingFieldError, shouldUseNarrowLayout}: TransactionItemRowRBRInnerProps) {
     const styles = useThemeStyles();
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const theme = useTheme();
     const {environmentURL} = useEnvironment();
@@ -73,7 +73,7 @@ function TransactionItemRowRBRInner({transaction, violations, report, containerS
 
     const canEdit = wasActionTakenByCurrentUser(iouAction, currentUserAccountID);
     const RBRMessages = ViolationsUtils.getRBRMessages({
-        dateFnsLocale,
+        preferredLocale,
         transaction,
         transactionViolations: isSettled(report) ? [] : (violations ?? []),
         translate,

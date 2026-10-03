@@ -5,4 +5,5 @@ import initSkiaForCli from './initSkiaForCli';
 // would otherwise be hoisted above any top-level await in this file.
 await initSkiaForCli();
 await import('./initOnyxForCli');
+await import('./initTranslationsForCli');
 await import('./cli');

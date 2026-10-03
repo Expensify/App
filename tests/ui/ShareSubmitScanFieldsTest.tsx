@@ -142,7 +142,7 @@ describe('SubmitDetailsPage — manually entered Scan fields', () => {
         await waitForBatchedUpdatesWithAct();
         fireEvent(screen.getByLabelText(translateLocal('common.date')), 'onInputChange', '2026-01-15');
         await waitForBatchedUpdatesWithAct();
-        expect(screen.getByLabelText(translateLocal('common.date'))).toHaveDisplayValue('2026-01-15');
+        expect(screen.getByLabelText(translateLocal('common.date'))).toHaveDisplayValue('01/15/2026');
 
         // When the workspace policy resolves afterwards, re-running the draft-seeding effect
         await act(async () => {
@@ -160,7 +160,7 @@ describe('SubmitDetailsPage — manually entered Scan fields', () => {
         const draft = await getDraft();
         expect(draft?.created).toBe('2026-01-15');
         expect(draft?.isCreatedSet).toBe(true);
-        expect(screen.getByLabelText(translateLocal('common.date'))).toHaveDisplayValue('2026-01-15');
+        expect(screen.getByLabelText(translateLocal('common.date'))).toHaveDisplayValue('01/15/2026');
     });
 
     it('re-seeds the destination on mount while keeping an already-entered merchant and currency', async () => {

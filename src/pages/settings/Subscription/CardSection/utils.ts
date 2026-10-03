@@ -5,6 +5,7 @@ import DateUtils from '@libs/DateUtils';
 import {getSubscriptionStatus, PAYMENT_STATUS} from '@libs/SubscriptionUtils';
 
 import CONST from '@src/CONST';
+import type {Locale} from '@src/CONST/LOCALES';
 import type {StripeCustomerID} from '@src/types/onyx';
 import type BillingStatus from '@src/types/onyx/BillingStatus';
 import type {AccountData, FundList} from '@src/types/onyx/Fund';
@@ -12,10 +13,9 @@ import type {Purchase} from '@src/types/onyx/PurchaseList';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {addMonths, format, fromUnixTime, startOfMonth} from 'date-fns';
+import {addMonths, fromUnixTime, startOfMonth} from 'date-fns';
 
 type BillingStatusResult = {
     title: string;
@@ -29,8 +29,8 @@ type BillingStatusResult = {
 };
 
 type GetBillingStatusProps = {
-    dateFnsLocale: DateFnsLocale | undefined;
     translate: LocaleContextProps['translate'];
+    preferredLocale: Locale;
     stripeCustomerId: OnyxEntry<StripeCustomerID>;
     accountData?: AccountData;
     purchase?: Purchase;
@@ -48,7 +48,7 @@ type GetBillingStatusProps = {
 
 function getBillingStatus({
     translate,
-    dateFnsLocale,
+    preferredLocale,
     stripeCustomerId,
     accountData,
     purchase,
@@ -79,8 +79,8 @@ function getBillingStatus({
 
     const endDate = ownerTravelBillingGracePeriodEnd ?? ownerBillingGracePeriodEnd;
 
-    // formatWithUTCTimeZone parses ISO 8601, so an RFC 1123 string from toUTCString would silently format as empty
-    const endDateFormatted = endDate ? DateUtils.formatWithUTCTimeZone(fromUnixTime(endDate).toISOString(), CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale) : null;
+    // Must be `toISOString`. The formatters parse ISO 8601, so an RFC 1123 string from `toUTCString` silently yields ''.
+    const endDateFormatted = endDate ? DateUtils.formatInUTCToLong(fromUnixTime(endDate).toISOString(), preferredLocale) : null;
 
     const isCurrentCardExpired = DateUtils.isCardExpired(accountData?.cardMonth ?? 0, accountData?.cardYear ?? 0);
 
@@ -88,7 +88,7 @@ function getBillingStatus({
     const purchaseCurrency = purchase?.currency;
     const purchaseDate = purchase?.created;
     const isBillingFailed = purchase?.message.billingType === CONST.BILLING.TYPE_FAILED_2018;
-    const purchaseDateFormatted = purchaseDate ? DateUtils.formatWithUTCTimeZone(purchaseDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale) : undefined;
+    const purchaseDateFormatted = purchaseDate ? DateUtils.formatInUTCToLong(purchaseDate, preferredLocale) : undefined;
     const purchaseAmountWithCurrency = convertAmountToDisplayString(purchaseAmount, purchaseCurrency);
 
     switch (subscriptionStatus?.status) {
@@ -205,17 +205,12 @@ function getBillingStatus({
     }
 }
 
-/**
- * Get the next billing date.
- *
- * @returns - The next billing date in 'yyyy-MM-dd' format.
- */
-function getNextBillingDate(dateFnsLocale: DateFnsLocale | undefined): string {
+function getNextBillingDate(preferredLocale: Locale): string {
     const today = new Date();
 
     const nextBillingDate = startOfMonth(addMonths(today, 1));
 
-    return format(nextBillingDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT, {locale: dateFnsLocale});
+    return DateUtils.formatToReadableString(nextBillingDate, preferredLocale);
 }
 
 export default {getBillingStatus, getNextBillingDate};

@@ -101,7 +101,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate, datetimeToRelative: getDatetimeToRelative, getLocalDateFromDatetime, dateFnsLocale} = useLocalize();
+    const {translate, datetimeToRelative: getDatetimeToRelative, getLocalDateFromDatetime, preferredLocale} = useLocalize();
     const {environment} = useEnvironment();
     const oldDotEnvironmentURL = getOldDotURLFromEnvironment(environment);
     const {isOffline} = useNetwork();
@@ -745,7 +745,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
         let qboTokenExpiryHint;
         if (qboTokenExpiryDate && canWriteAccounting) {
-            const formattedExpiryDate = DateUtils.formatWithUTCTimeZone(qboTokenExpiryDate.toISOString(), CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale);
+            const formattedExpiryDate = DateUtils.formatInUTCToLong(qboTokenExpiryDate.toISOString(), preferredLocale);
             qboTokenExpiryHint = (
                 <>
                     {translate(
@@ -816,7 +816,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         datetimeToRelative,
         qboTokenExpiryDate,
         qboTokenExpiryStatus,
-        dateFnsLocale,
+        preferredLocale,
         hasReusablePoliciesConnectedToSageIntacct,
         hasReusablePoliciesConnectedToCertinia,
         hasReusablePoliciesConnectedToRillet,
