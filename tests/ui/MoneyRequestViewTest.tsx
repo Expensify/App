@@ -57,7 +57,7 @@ const mockMenuItemWithTopDescription = jest.fn(({description, title, interactive
         </>
     );
 });
-const mockUserPills = jest.fn((_props: MockUserPillsProps) => null);
+const mockUserPills = jest.fn<null, [MockUserPillsProps]>(() => null);
 
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
