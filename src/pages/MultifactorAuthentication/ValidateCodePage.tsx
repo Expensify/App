@@ -2,7 +2,7 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import FormHelpMessage from '@components/FormHelpMessage';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {useMultifactorAuthentication, useMultifactorAuthenticationActions, useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
 import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
 import useMFACancelOnEscape from '@components/MultifactorAuthentication/useMFACancelOnEscape';
@@ -220,10 +220,9 @@ function MultifactorAuthenticationValidateCodePage() {
                 },
             }}
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('multifactorAuthentication.letsVerifyItsYou')}
                 onBackButtonPress={requestCancel}
-                shouldShowBackButton
             />
             <FullPageOfflineBlockingView>
                 <Text style={[styles.m5, styles.mt3, styles.textNormal]}>{translate('contacts.enterSecurityCode', contactMethod)}</Text>

@@ -1,7 +1,7 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -14,7 +14,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {getPhoneLogin, validateNumber} from '@libs/LoginUtils';
-import Navigation from '@libs/Navigation/Navigation';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
 import {getFieldRequiredErrors, isValidDisplayName} from '@libs/ValidationUtils';
 
@@ -89,10 +88,7 @@ function KnowATeacherPage() {
             includeSafeAreaPaddingBottom
             testID="KnowATeacherPage"
         >
-            <HeaderWithBackButton
-                title={translate('teachersUnitePage.iKnowATeacher')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('teachersUnitePage.iKnowATeacher')} />
             <FormProvider
                 enabledWhenOffline
                 style={[styles.flexGrow1, styles.ph5]}
