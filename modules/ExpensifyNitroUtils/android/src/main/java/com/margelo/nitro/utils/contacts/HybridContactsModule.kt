@@ -117,7 +117,8 @@ class HybridContactsModule : HybridContactsModuleSpec() {
     }
 
     private fun readPickedContacts(resultUri: Uri): Array<Contact> {
-        if (resultUri.authority == ContactsPickerSessionContract.AUTHORITY) {
+        // Match the intent createPickIntent launched. The session URI carries a user prefix (0@...), so its authority never equals AUTHORITY
+        if (Build.VERSION.SDK_INT >= CONTACTS_PICKER_MIN_SDK) {
             return readContactsPickerSession(resultUri)
         }
         return readPickedDataRow(resultUri)
@@ -166,7 +167,8 @@ class HybridContactsModule : HybridContactsModuleSpec() {
             val contact = PickedContact(displayName = cursor.getStringOrNull(cursor.getColumnIndex(ContactsContract.Data.DISPLAY_NAME_PRIMARY)))
             when (cursor.getStringOrNull(cursor.getColumnIndex(ContactsContract.Data.MIMETYPE))) {
                 Phone.CONTENT_ITEM_TYPE -> contact.phoneNumbers.add(StringHolder(value))
-                else -> contact.emailAddresses.add(StringHolder(value))
+                Email.CONTENT_ITEM_TYPE -> contact.emailAddresses.add(StringHolder(value))
+                else -> return emptyArray()
             }
             return arrayOf(contact.toContact())
         }
