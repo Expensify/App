@@ -77,8 +77,8 @@ function putOnHold({
     transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>;
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
-    ancestors?: Ancestor[];
     rules: OnyxCollection<OnyxTypes.Rule>;
+    ancestors?: Ancestor[];
 }) {
     const currentTime = DateUtils.getDBTime();
     const reportID = initialReportID ?? generateReportID();
