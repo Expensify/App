@@ -2,40 +2,33 @@ import Button from '@components/Button';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 
-import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
+import useCreateReport from '@hooks/useCreateReport';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePopoverPosition from '@hooks/usePopoverPosition';
-import useShouldShowEmptyReportConfirmation from '@hooks/useShouldShowEmptyReportConfirmation';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import {createNewReport} from '@libs/actions/Report';
 import getIconForAction from '@libs/getIconForAction';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {getDefaultChatEnabledPolicySelection} from '@libs/PolicyUtils';
 import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
-import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {ComponentRef} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import {emailSelector} from '@selectors/Session';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -51,7 +44,6 @@ function SearchActionsBarCreateButton() {
     const {calculatePopoverPosition} = usePopoverPosition();
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [email] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const {isBetaEnabled} = usePermissions();
@@ -59,26 +51,12 @@ function SearchActionsBarCreateButton() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const {shouldNavigateToUpgradePath} = usePolicyForMovingExpenses();
-    // scalar selector keeps useOnyx from deep-comparing thousands of policy objects
-    const [defaultChatEnabledPolicySelection] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: (policies: OnyxCollection<OnyxTypes.Policy>) => getDefaultChatEnabledPolicySelection(policies, email, activePolicyID),
-    });
-    const defaultChatEnabledPolicyID = defaultChatEnabledPolicySelection?.defaultChatEnabledPolicyID;
-    const hasMultipleChatEnabledPolicies = !!defaultChatEnabledPolicySelection?.hasMultipleChatEnabledPolicies;
-    const [defaultChatEnabledPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(defaultChatEnabledPolicyID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
-    const shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy = useShouldShowEmptyReportConfirmation(defaultChatEnabledPolicyID);
-
     const handleCreateWorkspaceReport = useCallback(
-        (shouldDismissEmptyReportsConfirmation?: boolean) => {
-            if (!defaultChatEnabledPolicy?.id) {
+        (policy: OnyxEntry<OnyxTypes.Policy>, shouldDismissEmptyReportsConfirmation?: boolean) => {
+            if (!policy?.id) {
                 return;
             }
 
@@ -86,7 +64,7 @@ function SearchActionsBarCreateButton() {
                 currentUserPersonalDetails,
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                defaultChatEnabledPolicy,
+                policy,
                 isTrackIntentUser,
                 getCurrencyDecimals,
                 rules,
@@ -101,14 +79,10 @@ function SearchActionsBarCreateButton() {
                 );
             });
         },
-        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, isTrackIntentUser, getCurrencyDecimals, rules],
+        [currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, isTrackIntentUser, getCurrencyDecimals, rules],
     );
 
-    const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({
-        policyID: defaultChatEnabledPolicyID,
-        policyName: defaultChatEnabledPolicy?.name ?? '',
-        onConfirm: handleCreateWorkspaceReport,
-    });
+    const {createReport} = useCreateReport({onCreateReport: handleCreateWorkspaceReport});
 
     const hideCreateMenu = useCallback(() => setIsCreateMenuActive(false), []);
     const showCreateMenu = useCallback(() => {
@@ -145,83 +119,10 @@ function SearchActionsBarCreateButton() {
             {
                 icon: expensifyIcons.Document,
                 text: translate('report.newReport.createReport'),
-                onSelected: () =>
-                    interceptAnonymousUser(() => {
-                        // No valid policy at all → upgrade + create workspace flow
-                        if (shouldNavigateToUpgradePath) {
-                            const freshReportID = generateReportID();
-                            const freshTransactionID = generateReportID();
-                            Navigation.navigate(
-                                createDynamicRoute(
-                                    DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                        action: CONST.IOU.ACTION.CREATE,
-                                        iouType: CONST.IOU.TYPE.CREATE,
-                                        transactionID: freshTransactionID,
-                                        reportID: freshReportID,
-                                        upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                                    }),
-                                ),
-                            );
-                            return;
-                        }
-
-                        const workspaceIDForReportCreation = defaultChatEnabledPolicyID;
-
-                        // No default or restricted with multiple workspaces → workspace selector
-                        if (
-                            !workspaceIDForReportCreation ||
-                            (shouldRestrictUserBillableActions(
-                                defaultChatEnabledPolicy,
-                                ownerBillingGracePeriodEnd,
-                                userBillingGracePeriodEnds,
-                                amountOwed,
-                                currentUserPersonalDetails.accountID,
-                            ) &&
-                                hasMultipleChatEnabledPolicies)
-                        ) {
-                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.path));
-                            return;
-                        }
-
-                        // Default workspace is not restricted → create report directly
-                        if (
-                            !shouldRestrictUserBillableActions(
-                                defaultChatEnabledPolicy,
-                                ownerBillingGracePeriodEnd,
-                                userBillingGracePeriodEnds,
-                                amountOwed,
-                                currentUserPersonalDetails.accountID,
-                            )
-                        ) {
-                            // Check if empty report confirmation should be shown
-                            if (shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy) {
-                                openCreateReportConfirmation();
-                            } else {
-                                handleCreateWorkspaceReport(false);
-                            }
-                            return;
-                        }
-
-                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
-                    }),
+                onSelected: createReport,
             },
         ],
-        [
-            translate,
-            expensifyIcons,
-            draftTransactionIDs,
-            shouldNavigateToUpgradePath,
-            hasMultipleChatEnabledPolicies,
-            defaultChatEnabledPolicyID,
-            shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy,
-            ownerBillingGracePeriodEnd,
-            userBillingGracePeriodEnds,
-            openCreateReportConfirmation,
-            handleCreateWorkspaceReport,
-            amountOwed,
-            currentUserPersonalDetails.accountID,
-            defaultChatEnabledPolicy,
-        ],
+        [translate, expensifyIcons, draftTransactionIDs, createReport],
     );
 
     return (
