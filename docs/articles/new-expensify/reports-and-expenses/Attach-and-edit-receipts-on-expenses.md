@@ -1,7 +1,7 @@
 ---
 title: Attach and edit receipts on expenses
 description: Learn how to properly attach, verify, and troubleshoot receipts on expenses in New Expensify for audits and accounting.
-keywords: [New Expensify, attach receipt, verify receipt, missing receipt, expense attachments, audit trail, receipt not showing, crop receipt, rotate receipt, trim receipt, receipt upload failed, receipt upload error, save receipt, delete expense, ereceipt, ereceipts, e-receipt, electronic receipt, digital receipt, auto-generated receipt, add additional receipt, who can add a receipt, add additional receipt icon missing, expand receipt, receipt on approved report, add receipt after approval, admin add receipt approved expense]
+keywords: [New Expensify, attach receipt, verify receipt, missing receipt, expense attachments, audit trail, receipt not showing, crop receipt, rotate receipt, trim receipt, receipt upload failed, receipt upload error, upload failed, try again receipt upload, retry receipt upload, save receipt, ereceipt, ereceipts, e-receipt, electronic receipt, digital receipt, auto-generated receipt, add additional receipt, who can add a receipt, add additional receipt icon missing, expand receipt, receipt on approved report, add receipt after approval, admin add receipt approved expense]
 internalScope: Audience is Expensify members and Workspace Admins. Covers attaching, replacing, and cropping receipts on expenses, who is allowed to add a receipt versus only view one, and the Workspace Admin exception that allows attaching or replacing a receipt on an Approved report. Does not cover SmartScan configuration or receipt forwarding via email.
 ---
 
@@ -172,10 +172,16 @@ No. eReceipts cannot be cropped or rotated. The **Crop** button is available for
 
 ## What should I do if my receipt upload fails?
 
-If the upload fails (for example, due to a lost network connection), you'll see the message "Receipt upload failed. Save the receipt, or delete the expense and lose it." with two options:
+If the upload fails (for example, due to a lost network connection), an error appears on the expense below the receipt. The options depend on where you created the expense.
 
-- **Save receipt** — downloads the receipt image to your device so you don't lose it. You can then re-create the expense and attach the saved receipt.
-- **Delete expense** — removes the failed expense entirely. The receipt will be lost if you haven't saved it first.
+**In the native mobile app (iOS and Android):** You'll see the message "Upload failed. Try again or save for later." with two options:
+
+- **Try again** — sends the same expense and receipt again. When the upload succeeds, the error goes away. This does not create a duplicate expense.
+- **Save** — downloads the receipt image to your device so you don't lose it.
+
+**On web and mobile web:** You'll see the message "Upload failed. Save your receipt to keep it." Click **Save** to download the receipt image to your device. You can then re-create the expense and attach the saved receipt.
+
+**Try again** is not available on web or mobile web. In the native mobile app, it's also not available for distance, per diem, or time expenses, for track expenses, or when replacing a receipt on an existing expense. In those cases, only **Save** is shown.
 
 ## Can I attach both the card and itemized restaurant receipts?
 Yes. Attach the **card receipt** as the primary receipt on the expense, then use **Add additional receipt** to attach the **itemized receipt** directly on the same expense.
