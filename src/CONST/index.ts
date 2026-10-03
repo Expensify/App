@@ -9684,6 +9684,9 @@ const CONST = {
         MAP_VIEW: {
             COMPASS: 'compass',
         },
+        NEW_CHAT: {
+            IMPORT_CONTACTS_ITEM: 'NewChat-ImportContacts',
+        },
         MONEY_REQUEST: {
             AMOUNT_NEXT_BUTTON: 'MoneyRequest-AmountNextButton',
             AMOUNT_PAY_BUTTON: 'MoneyRequest-AmountPayButton',
