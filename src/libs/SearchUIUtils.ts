@@ -5614,6 +5614,10 @@ const FILTER_VIEW_MAP = {
         labelKey: 'common.tag',
         icon: 'Tag',
     },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR]: {
+        labelKey: 'common.vendor',
+        icon: 'Building',
+    },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE]: {
         labelKey: 'workspace.taxes.taxRate',
         icon: 'Percent',
@@ -5845,6 +5849,13 @@ function getDisplayValue(
         return form[key]
             ?.sort((a, b) => sortOptionsWithEmptyValue(a, b, localeCompare))
             .map(mapFn)
+            .join(', ');
+    }
+
+    if (key === FILTER_KEYS.VENDOR || key === FILTER_KEYS.VENDOR_NOT) {
+        return form[key]
+            ?.sort((a, b) => sortOptionsWithEmptyValue(a, b, localeCompare))
+            .map((value) => (value === CONST.SEARCH.VENDOR_EMPTY_VALUE ? translate('search.noVendor') : value))
             .join(', ');
     }
 
