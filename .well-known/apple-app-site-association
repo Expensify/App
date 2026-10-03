@@ -113,6 +113,15 @@
                         "comment": "Submit Expense"
                     }
                 ]
+            },
+            {
+                "appIDs": ["452835FXHF.com.expensify.expensifylite.adhoc"],
+                "components": [
+                    {
+                        "/": "/oauth/native-callback",
+                        "comment": "Ad-hoc PR builds claim only the QA OAuth callback"
+                    }
+                ]
             }
         ]
     },
