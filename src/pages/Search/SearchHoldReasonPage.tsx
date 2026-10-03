@@ -1,6 +1,6 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -9,10 +9,13 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {getAllMatchingExpenseActionQuery} from '@hooks/useSearchBulkActions';
 import useTransactionsByID from '@hooks/useTransactionsByID';
 
 import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
 import {putOnHold, putTransactionsOnHold} from '@libs/actions/IOU/Hold';
+import {queueBulkHoldExpenses} from '@libs/actions/Search';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
@@ -40,7 +43,9 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const {reportID} = route.params ?? {};
     const dynamicBackPath = useDynamicBackPath(DYNAMIC_ROUTES.HOLD_TRANSACTIONS.path);
     const backTo = isBulkHold ? dynamicBackPath : route.params.backTo;
-    const {selectedTransactionIDs, selectedTransactions} = useSearchSelectionContext();
+    const {selectedTransactionIDs, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {currentSearchQueryJSON} = useSearchQueryContext();
+    const {currentSearchResults} = useSearchResultsContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
@@ -67,7 +72,16 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                 showDelegateNoAccessModal();
                 return;
             }
-            if (isBulkHold) {
+            if (!isBulkHold && areAllMatchingItemsSelected) {
+                // "Select all" can cover more expenses than are loaded, so hand the search query to the backend to hold every match.
+                const allMatchingQuery = currentSearchQueryJSON ? getAllMatchingExpenseActionQuery(currentSearchQueryJSON, excludedTransactions, currentSearchResults?.data) : undefined;
+                if (!allMatchingQuery) {
+                    Log.info('[BulkHold] Dropping bulk hold: an excluded row could not be resolved');
+                    return;
+                }
+                queueBulkHoldExpenses(allMatchingQuery.jsonQuery, comment, allMatchingQuery.excludedTransactionIDList);
+                clearSelectedTransactions();
+            } else if (isBulkHold) {
                 putTransactionsOnHold({
                     transactionsID: selectedTransactionIDs,
                     comment,
@@ -127,6 +141,10 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
             ancestors,
             clearSelectedTransactions,
             selectedTransactions,
+            areAllMatchingItemsSelected,
+            currentSearchQueryJSON,
+            excludedTransactions,
+            currentSearchResults?.data,
         ],
     );
 
