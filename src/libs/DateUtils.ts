@@ -1,5 +1,5 @@
-// cspell:ignore Ιανουάριος Φεβρουάριος Μάρτιος Απρίλιος Μάιος Ιούνιος Ιούλιος Αύγουστος Σεπτέμβριος Οκτώβριος Νοέμβριος Δεκέμβριος Ιανουαρίου
-// cspell:ignore -- the Greek months as the language writes one standing alone, and the form it writes beside a day.
+// cspell:ignore Ιανουάριος Φεβρουάριος Μάρτιος Απρίλιος Μάιος Ιούνιος Ιούλιος Αύγουστος Σεπτέμβριος Οκτώβριος Νοέμβριος Δεκέμβριος Ιανουαρίου stycznia
+// cspell:ignore -- the Greek months as the language writes one standing alone, and the form Greek and Polish write beside a day.
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';
@@ -540,11 +540,24 @@ const getMonthNames = memoize(
     {maxSize: 16, equality: 'shallow'},
 );
 
-/** The month as it reads beside a day, which Greek inflects. Only the CSV parser wants it, to match what a spreadsheet wrote. */
-const getInflectedMonthNames = memoize((locale: Locale): readonly string[] => monthNamesWithFallback(locale, 'LONG_MONTH', CONST.DATE.ENGLISH_MONTH_NAMES), {
-    maxSize: 16,
-    equality: 'shallow',
-});
+/**
+ * The month as it reads beside a day, which Polish and Greek inflect (`15 stycznia`). Only the CSV parser wants it, to match
+ * what a spreadsheet wrote. A language that numbers the month beside a day (ja `1月15日`) keeps its standalone name, because a
+ * bare digit would match inside every numeric date.
+ */
+const getInflectedMonthNames = memoize(
+    (locale: Locale): readonly string[] => {
+        const standaloneNames = getMonthNames(locale);
+        return Object.freeze(
+            Array.from({length: 12}, (_, monthIndex) => {
+                // Mid-month, so no timezone can shift the date into the neighboring month.
+                const name = formatIntlPart(locale, 'LONG_DATE', new Date(Date.UTC(2000, monthIndex, 15)), 'month');
+                return /\p{L}/u.test(name) ? name : (standaloneNames.at(monthIndex) ?? '');
+            }),
+        );
+    },
+    {maxSize: 16, equality: 'shallow'},
+);
 
 /** @returns ene (es) / Mär (de), as a language abbreviates a month. */
 const getShortMonthNames = memoize((locale: Locale): readonly string[] => monthNamesWithFallback(locale, 'SHORT_MONTH', ENGLISH_SHORT_MONTH_NAMES), {maxSize: 16, equality: 'shallow'});

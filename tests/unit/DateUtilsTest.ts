@@ -541,12 +541,18 @@ describe('DateUtils', () => {
             }
         });
 
-        it('keeps the form that goes beside a day for the CSV parser', () => {
-            // Given Greek, where the two forms differ
-            // When both lists are read
-            // Then the inflected one is what a spreadsheet writes in a date, so the importer can still match it
-            expect(DateUtils.getInflectedMonthNames(CONST.LOCALES.EL).at(0)).toBe('Ιανουαρίου');
-            expect(DateUtils.getInflectedMonthNames(CONST.LOCALES.EN).at(0)).toBe('January');
+        it('reproduces the month every supported locale writes beside a day', () => {
+            // Given CLDR's formatting-context month for each shipped language, which is what a spreadsheet writes in a date
+            for (const locale of SORTED_LOCALES) {
+                for (const month of MONTHS) {
+                    // When the list the CSV parser matches against is built
+                    const name = DateUtils.getInflectedMonthNames(locale).at(month);
+
+                    // Then it matches, so Polish reads `stycznia` and Greek `Ιανουαρίου`, and Japanese keeps `1月` rather than
+                    // the bare digit `Intl` puts beside a day, which would match inside every numeric date
+                    expect(name).toBe(DATE_FNS_LOCALE_BY_TAG[locale].localize.month(month, {width: 'wide', context: 'formatting'}));
+                }
+            }
         });
     });
 

@@ -1,4 +1,4 @@
-// cspell:ignore Mär März janv -- German and French month names as a spreadsheet exported by that language writes them.
+// cspell:ignore Mär März janv styczeń stycznia października -- German, French and Polish month names as a spreadsheet exported by that language writes them.
 import parseCSVDate from '@libs/CSVDateUtils';
 
 import CONST from '@src/CONST';
@@ -37,6 +37,24 @@ describe('CSVDateUtils', () => {
 
             // Then it resolves to the day the cell names
             expect(result).toBe('2025-03-02');
+        });
+
+        it('reads a Polish month in the form it takes beside a day', () => {
+            // Given cells a Polish spreadsheet wrote, where a month beside a day is genitive (`stycznia`, not `styczeń`)
+            // When each is parsed for that uploader
+            // Then each resolves to the day it names: main read the first through date-fns' Polish locale, and the rewrite
+            // to English has to know the genitive to keep reading it
+            expect(parseCSVDate('stycznia 15, 2025', CONST.LOCALES.PL)).toBe('2025-01-15');
+            expect(parseCSVDate('15 stycznia 2025', CONST.LOCALES.PL)).toBe('2025-01-15');
+            expect(parseCSVDate('1 października 2025', CONST.LOCALES.PL)).toBe('2025-10-01');
+        });
+
+        it('leaves a numeric date alone for an uploader whose language numbers its months', () => {
+            // Given a Japanese uploader, whose language writes a month beside a day as a bare digit
+            // When numeric dates are parsed
+            // Then they resolve as written, because no digit is treated as a month name to rewrite
+            expect(parseCSVDate('2025-01-15', CONST.LOCALES.JA)).toBe('2025-01-15');
+            expect(parseCSVDate('15/01/2025', CONST.LOCALES.ZH_HANS)).toBe('2025-01-15');
         });
 
         it('reads a Spanish month abbreviation', () => {

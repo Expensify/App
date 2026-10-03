@@ -59,7 +59,7 @@ const getEnglishMonthNameByLocalizedName = memoize(
         const names: Array<[string, string]> = [];
         const seen = new Set<string>();
         const addName = (name: string, englishName: string) => {
-            // Deduplicated because the lists overlap: only Greek writes a month beside a day differently from one standing alone.
+            // Deduplicated because the lists overlap: only Polish and Greek write a month beside a day differently from one standing alone.
             if (seen.has(name)) {
                 return;
             }
