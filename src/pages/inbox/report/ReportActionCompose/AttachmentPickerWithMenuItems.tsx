@@ -28,7 +28,7 @@ import getButtonState from '@libs/getButtonState';
 import getIconForAction from '@libs/getIconForAction';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDistanceExpenseTypeForPolicy} from '@libs/PolicyDistanceRatesUtils';
-import {isGroupPolicyByType} from '@libs/PolicyUtils';
+import {canRoleCreateExpenses, isGroupPolicyByType} from '@libs/PolicyUtils';
 import {
     canCreateTaskInReport,
     getPayeeName,
@@ -337,7 +337,8 @@ function AttachmentPickerWithMenuItems({
     ]);
 
     const createReportOption: PopoverMenuItem[] = useMemo(() => {
-        if (!isPolicyExpenseChat(report) || !isGroupPolicyByType(policy?.type) || !isReportOwner(report)) {
+        // Approve-only members cannot create expenses, so they cannot create reports on the workspace either.
+        if (!isPolicyExpenseChat(report) || !isGroupPolicyByType(policy?.type) || !isReportOwner(report) || !canRoleCreateExpenses(policy?.role)) {
             return [];
         }
 
@@ -350,7 +351,7 @@ function AttachmentPickerWithMenuItems({
                 onSelected: () => selectOption(() => handleCreateReport(), true),
             },
         ];
-    }, [icons.Document, handleCreateReport, policy?.type, report, selectOption, shouldUseNarrowLayout, translate]);
+    }, [icons.Document, handleCreateReport, policy?.role, policy?.type, report, selectOption, shouldUseNarrowLayout, translate]);
 
     /**
      * Determines if we can show the task option
