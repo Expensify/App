@@ -106,7 +106,6 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                 const transactionIDs = Object.keys(selectedTransactions);
                 for (const transactionID of transactionIDs) {
                     const transactionThreadReportID = selectedTransactions[transactionID].reportAction?.childReportID;
-                    const transactionReportID = selectedTransactions[transactionID].transaction?.reportID;
                     const transactionViolations = selectedTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
                     const transaction = relevantTransactions.find((t) => t.transactionID === transactionID) ?? selectedTransactions[transactionID].transaction;
 
@@ -116,7 +115,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                         comment,
                         initialReportID: transactionThreadReportID,
                         initialReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`],
-                        transactionReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionReportID}`],
+                        transactionReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`],
                         isOffline,
                         currentUserLogin: currentUserLogin ?? '',
                         currentUserAccountID,
