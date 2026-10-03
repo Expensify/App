@@ -1,5 +1,5 @@
 import Button from '@components/Button';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -10,7 +10,6 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearRevokeError, revokeDevice} from '@libs/actions/User';
-import Navigation from '@libs/Navigation/Navigation';
 import {getDeviceDisplayName, getDeviceLogins, getLastLogin, getLoginKey} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
@@ -72,10 +71,7 @@ function DeviceManagementPage() {
             includeSafeAreaPaddingBottom
             testID="DeviceManagementPage"
         >
-            <HeaderWithBackButton
-                title={translate('deviceManagementPage.title')}
-                onBackButtonPress={Navigation.goBack}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('deviceManagementPage.title')} />
             <FlashList
                 data={logins}
                 renderItem={renderItem}

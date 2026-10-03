@@ -1,5 +1,5 @@
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
@@ -123,10 +123,7 @@ function AddDelegatePage() {
             testID="AddDelegatePage"
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
-                <HeaderWithBackButton
-                    title={translate('delegate.addCopilot')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('delegate.addCopilot')} />
                 <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                     <SelectionListWithSections
                         sections={areOptionsInitialized ? sections : []}

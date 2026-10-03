@@ -1,6 +1,6 @@
 import ConfirmationPage from '@components/ConfirmationPage';
 import type {ConfirmationPageProps} from '@components/ConfirmationPage';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import LottieAnimations from '@components/LottieAnimations';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -254,13 +254,16 @@ function MergeResultPage() {
             includeSafeAreaPaddingBottom
             testID="MergeResultPage"
         >
-            <HeaderWithBackButton
-                title={translate('mergeAccountsPage.mergeAccount')}
-                shouldShowBackButton={result !== CONST.MERGE_ACCOUNT_RESULTS.SUCCESS}
-                onBackButtonPress={() => {
-                    Navigation.goBack(backTo ?? ROUTES.SETTINGS_MERGE_ACCOUNTS.getRoute());
-                }}
-            />
+            <Header>
+                {result !== CONST.MERGE_ACCOUNT_RESULTS.SUCCESS && (
+                    <Header.BackButton
+                        onPress={() => {
+                            Navigation.goBack(backTo ?? ROUTES.SETTINGS_MERGE_ACCOUNTS.getRoute());
+                        }}
+                    />
+                )}
+                <Header.Title title={translate('mergeAccountsPage.mergeAccount')} />
+            </Header>
             <ConfirmationPage
                 containerStyle={{...styles.flexGrow1, ...styles.mt3}}
                 heading={heading}
