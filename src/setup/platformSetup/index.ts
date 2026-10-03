@@ -1,3 +1,4 @@
+import {captureMarketingAttribution} from '@libs/actions/MarketingAttribution';
 import CacheAPI from '@libs/CacheAPI';
 import checkForUpdates from '@libs/checkForUpdates';
 import DateUtils from '@libs/DateUtils';
@@ -61,6 +62,9 @@ const webUpdater = (): PlatformSpecificUpdater => ({
 export default function () {
     // Initialize Cache API
     CacheAPI.init();
+
+    // Capture marketing attribution from the landing URL before the router can strip the query string
+    captureMarketingAttribution();
 
     AppRegistry.runApplication(Config.APP_NAME, {
         rootTag: document.getElementById('root'),

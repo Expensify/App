@@ -73,6 +73,7 @@ import ADD_WORK_EMAIL_INPUT_IDS from '@src/types/form/AddWorkEmailForm';
 import type {TryNewDot} from '@src/types/onyx';
 import type Credentials from '@src/types/onyx/Credentials';
 import type Locale from '@src/types/onyx/Locale';
+import type MarketingAttribution from '@src/types/onyx/MarketingAttribution';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
@@ -128,6 +129,12 @@ let credentials: Credentials = {};
 Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
     callback: (value) => (credentials = value ?? {}),
+});
+
+let marketingAttribution: MarketingAttribution = {};
+Onyx.connectWithoutView({
+    key: ONYXKEYS.MARKETING_ATTRIBUTION,
+    callback: (value) => (marketingAttribution = value ?? {}),
 });
 
 let stashedCredentials: Credentials = {};
@@ -679,7 +686,7 @@ function signUpUser(login: string | undefined, preferredLocale: Locale | undefin
 
     const onyxOperationToCleanUpAnonymousUser = buildOnyxDataToCleanUpAnonymousUser();
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT> | PersonalDetailsOnyxUpdate> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.MARKETING_ATTRIBUTION> | PersonalDetailsOnyxUpdate> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -688,6 +695,12 @@ function signUpUser(login: string | undefined, preferredLocale: Locale | undefin
             },
         },
         onyxOperationToCleanUpAnonymousUser,
+        // The attribution is stored on the new account, so clear it to avoid sending it again on a later signup
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.MARKETING_ATTRIBUTION,
+            value: null,
+        },
     ];
 
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
@@ -701,7 +714,7 @@ function signUpUser(login: string | undefined, preferredLocale: Locale | undefin
     ];
 
     Device.getDeviceInfoWithID().then((deviceInfo) => {
-        const params: SignUpUserParams = {email: login, preferredLocale: preferredLocale ?? null, deviceInfo};
+        const params: SignUpUserParams = {email: login, preferredLocale: preferredLocale ?? null, deviceInfo, ...marketingAttribution};
         if (hasSMSMarketingConsent !== undefined) {
             params.hasSMSMarketingConsent = hasSMSMarketingConsent;
         }

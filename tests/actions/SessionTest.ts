@@ -29,7 +29,7 @@ import * as SessionUtil from '@src/libs/actions/Session';
 import {KEYS_TO_PRESERVE_SUPPORTAL, signOutAndRedirectToSignIn} from '@src/libs/actions/Session';
 import * as API from '@src/libs/API';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Account, Credentials, Session} from '@src/types/onyx';
+import type {Account, Credentials, MarketingAttribution, Session} from '@src/types/onyx';
 
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
@@ -1448,6 +1448,44 @@ describe('Session', () => {
 
             expect(writeSpy.mock.calls.at(0)?.at(1)).not.toHaveProperty('authToken');
 
+            writeSpy.mockRestore();
+        });
+    });
+
+    describe('signUpUser', () => {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        const googleAdAttribution: MarketingAttribution = {utm_source: 'google', device: 'm', network: 'g', gclid: 'testGclid', wbraid: 'testWbraid'};
+
+        test('sends the captured marketing attribution and clears it on success', async () => {
+            // Given marketing attribution captured from a Google ad
+            await Onyx.set(ONYXKEYS.MARKETING_ATTRIBUTION, googleAdAttribution);
+            await waitForBatchedUpdates();
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+
+            // When the user signs up
+            SessionUtil.signUpUser('new.user@example.com', CONST.LOCALES.EN);
+            await waitForBatchedUpdates();
+
+            // Then the attribution is sent with the request params
+            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.SIGN_UP_USER, expect.objectContaining({email: 'new.user@example.com', ...googleAdAttribution}), expect.anything());
+
+            // And the success data clears it so it isn't sent again
+            const onyxData = writeSpy.mock.calls.at(0)?.[2];
+            expect(onyxData?.successData).toContainEqual({onyxMethod: Onyx.METHOD.SET, key: ONYXKEYS.MARKETING_ATTRIBUTION, value: null});
+            writeSpy.mockRestore();
+        });
+
+        test('sends no attribution params when none were captured', async () => {
+            // Given no captured marketing attribution
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+
+            // When the user signs up
+            SessionUtil.signUpUser('new.user@example.com', CONST.LOCALES.EN);
+            await waitForBatchedUpdates();
+
+            // Then the request carries only the signup params
+            const params = writeSpy.mock.calls.at(0)?.[1] ?? {};
+            expect(Object.keys(params).sort()).toEqual(['deviceInfo', 'email', 'preferredLocale']);
             writeSpy.mockRestore();
         });
     });
