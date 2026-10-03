@@ -9,14 +9,17 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import type * as ReactNativeModule from 'react-native';
-
 import React from 'react';
 import {View} from 'react-native';
 
 type ButtonMockProps = {
     onPress?: () => void;
     children?: React.ReactNode;
+};
+
+type NativeButtonMockComponents = {
+    Pressable: React.ComponentType<ButtonMockProps>;
+    Text: React.ComponentType<{children: React.ReactNode}>;
 };
 
 type NegatableFilterMockProps = {
@@ -57,7 +60,7 @@ jest.mock('@components/AutoGrowHeightInputContainer', () => ({
 jest.mock('@components/Button', () => {
     function MockButton(props: ButtonMockProps) {
         const MockReact = jest.requireActual<typeof React>('react');
-        const {Pressable: MockPressable} = jest.requireActual<typeof ReactNativeModule>('react-native');
+        const {Pressable: MockPressable} = jest.requireActual<NativeButtonMockComponents>('react-native');
         mockButton(props);
         return MockReact.createElement(MockPressable, {testID: 'confirm-button', onPress: props.onPress}, props.children);
     }
@@ -68,7 +71,7 @@ jest.mock('@components/Button', () => {
     };
     MockButton.Text = ({children}: {children: React.ReactNode}) => {
         const MockReact = jest.requireActual<typeof React>('react');
-        const {Text: MockText} = jest.requireActual<typeof ReactNativeModule>('react-native');
+        const {Text: MockText} = jest.requireActual<NativeButtonMockComponents>('react-native');
         return MockReact.createElement(MockText, null, children);
     };
 
