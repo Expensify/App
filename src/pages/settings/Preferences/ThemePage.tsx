@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -9,8 +9,6 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-
-import Navigation from '@libs/Navigation/Navigation';
 
 import {getBaseTheme, getContrastTheme, isHighContrastTheme} from '@styles/theme/utils';
 
@@ -74,10 +72,7 @@ function ThemePage() {
             enableEdgeToEdgeBottomSafeAreaPadding
             testID="ThemePage"
         >
-            <HeaderWithBackButton
-                title={translate('themePage.theme')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('themePage.theme')} />
             <Text style={[styles.mh5, styles.mv4]}>{translate('themePage.chooseThemeBelowOrSync')}</Text>
             <View style={styles.flex1}>
                 <SelectionList

@@ -1,6 +1,6 @@
 import CurrencySelectionList from '@components/CurrencySelectionList';
 import type {CurrencyListItem} from '@components/CurrencySelectionList/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 
@@ -39,9 +39,8 @@ function PaymentCurrencyPage() {
         >
             {({didScreenTransitionEnd}) => (
                 <>
-                    <HeaderWithBackButton
+                    <HeaderWithBackButtonAndTitle
                         title={translate('billingCurrency.paymentCurrency')}
-                        shouldShowBackButton
                         onBackButtonPress={handleDismissKeyboardAndGoBack}
                     />
 
