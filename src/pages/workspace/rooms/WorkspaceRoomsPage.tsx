@@ -23,7 +23,7 @@ import {openReport} from '@libs/actions/Report';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {isArchivedPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {isArchivedPolicy, isPolicyAdmin, isPolicyGuest} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
 
@@ -56,6 +56,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const isAdmin = isPolicyAdmin(policy);
+    const isGuest = isPolicyGuest(policy);
     const isArchived = isArchivedPolicy(policy);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.rooms');
 
@@ -138,13 +139,15 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     // The fetch is driven by the requested page: loading more only bumps `pageNumber` and this effect issues the
     // request, the same way Search drives its own pagination from `offset`. Refocusing and coming back online refetch
     // the page that is currently displayed.
+    // Guests are blocked from this page, so they must not fetch room data either. Otherwise the rooms they
+    // should not browse would end up in Onyx.
     useEffect(() => {
-        if (!isFocused || isOffline) {
+        if (!isFocused || isOffline || isGuest) {
             return;
         }
 
         openPolicyRoomsPage(policyID, pageNumber, sortBy, roomSort.order, searchValue);
-    }, [isFocused, isOffline, pageNumber, policyID, roomSort.order, searchValue, sortBy]);
+    }, [isFocused, isOffline, isGuest, pageNumber, policyID, roomSort.order, searchValue, sortBy]);
 
     const loadMoreRooms = () => {
         // The requested page is only bumped once the previous one has landed, so repeated end-reached events while
@@ -172,7 +175,10 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
         ) : undefined;
 
     return (
-        <AccessOrNotFoundWrapper policyID={policyID}>
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            shouldBeBlocked={isGuest}
+        >
             <ScreenWrapper
                 testID={WorkspaceRoomsPage.displayName}
                 style={[styles.defaultModalContainer]}

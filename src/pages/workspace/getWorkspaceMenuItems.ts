@@ -20,6 +20,7 @@ import {
     isMCPEnabled,
     isPerDiemEnabled,
     isPolicyAdmin,
+    isPolicyGuest,
     isQBORefreshTokenExpiringSoonSelector,
     isTimeTrackingEnabled,
     shouldShowEmployeeListError,
@@ -133,6 +134,7 @@ function getWorkspaceMenuItems({
     convertToDisplayString,
 }: GetWorkspaceMenuItemsParams): WorkspaceMenuItem[] {
     const canReadPolicyFeature = (policyFeature: PolicyFeature) => canMemberRead(policy, currentUserLogin ?? '', policyFeature);
+    const isGuest = isPolicyGuest(policy, currentUserLogin ?? '');
     const canReadMoreFeatures = canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
     const shouldShowProtectedItems = [
         CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS,
@@ -193,7 +195,7 @@ function getWorkspaceMenuItems({
     };
     const highlightedPolicyFeature = getObjectKeys(policyFeatureStates).find((key) => policyFeatureStates[key] && !previousPendingFields?.[key] && policy?.pendingFields?.[key]);
 
-    const items: WorkspaceMenuItem[] = [
+    const defaultItems: WorkspaceMenuItem[] = [
         {
             translationKey: 'workspace.common.profile',
             icon: icons.Building,
@@ -218,6 +220,7 @@ function getWorkspaceMenuItems({
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.ROOMS,
         },
     ];
+    const items = defaultItems.filter((item) => !isGuest || item.screenName === SCREENS.WORKSPACE.PROFILE);
 
     if (isGroupPolicy(policy) && shouldShowProtectedItems) {
         if (canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS)) {

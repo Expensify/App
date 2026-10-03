@@ -164,6 +164,7 @@ import {
     isPerDiemEnabled,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyAuditor,
+    isPolicyGuest,
     isPolicyOwner,
     isSubmitAndClose,
     isSubmitterApproveBlockedOnSubmitWorkspace,
@@ -11876,7 +11877,8 @@ function canEditReportDescription(report: OnyxEntry<Report>, policy: OnyxEntry<P
         !isChatThread(report) &&
         !isEmpty(policy) &&
         hasParticipantInArray(report, deprecatedCurrentUserAccountID ? [deprecatedCurrentUserAccountID] : []) &&
-        !isAuditor(report)
+        !isAuditor(report) &&
+        !isPolicyGuest(policy)
     );
 }
 

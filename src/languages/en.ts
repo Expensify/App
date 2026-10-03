@@ -4978,6 +4978,7 @@ const translations = {
             memberAlternateText: 'Submit and approve reports.',
             adminAlternateText: 'Manage reports and workspace settings.',
             auditorAlternateText: 'View and comment on reports.',
+            guestAlternateText: 'Submit and approve reports, with invite-only chats.',
             cardAdminAlternateText: 'Manage workspace cards.',
             peopleAdminAlternateText: 'Manage members and approval workflows.',
             paymentsAdminAlternateText: 'Manage workflow payments.',
@@ -4994,6 +4995,8 @@ const translations = {
                         return 'Workspace admin';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditor';
+                    case CONST.POLICY.ROLE.GUEST:
+                        return 'Guest';
                     case CONST.POLICY.ROLE.EDITOR:
                         return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
@@ -7417,6 +7420,10 @@ const translations = {
                 one: 'Make auditor',
                 other: 'Make auditors',
             }),
+            makeGuest: () => ({
+                one: 'Make guest',
+                other: 'Make guests',
+            }),
             makeCardAdmin: () => ({
                 one: 'Make card admin',
                 other: 'Make card admins',
@@ -7447,6 +7454,7 @@ const translations = {
             paymentsAdmins: 'Payments Admins',
             approvers: 'Approvers',
             auditors: 'Auditors',
+            guests: 'Guests',
             editors: 'Editors',
             members: 'Members',
             emptyRoleFilter: {

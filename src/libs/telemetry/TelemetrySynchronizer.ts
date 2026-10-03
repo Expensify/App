@@ -1,3 +1,4 @@
+import getHighestPolicyRole from '@libs/getHighestPolicyRole';
 import {getActivePolicies} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
@@ -126,17 +127,7 @@ function sendPoliciesContext() {
         return;
     }
     const activePolicies = getActivePolicies(policies, session.email).map((policy) => policy.id);
-
-    let userRole: string = CONST.POLICY.ROLE.USER;
-    for (const policy of Object.values(policies)) {
-        if (policy?.role === CONST.POLICY.ROLE.ADMIN) {
-            userRole = CONST.POLICY.ROLE.ADMIN;
-            break;
-        }
-        if (policy?.role === CONST.POLICY.ROLE.AUDITOR) {
-            userRole = CONST.POLICY.ROLE.AUDITOR;
-        }
-    }
+    const userRole = getHighestPolicyRole(Object.values(policies));
 
     Sentry.setTag(CONST.TELEMETRY.TAGS.ACTIVE_POLICY, activePolicyID);
     Sentry.setTag(CONST.TELEMETRY.TAGS.POLICIES_COUNT, getAccountSizeTier(CONST.TELEMETRY.TAGS.POLICIES_COUNT, activePolicies.length));
