@@ -836,7 +836,7 @@ const translations: TranslationDeepObject<typeof en> = {
             } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                 type = 'report';
             }
-            return `この${type}を削除してもよろしいですか？`;
+            return `この${type}を削除してもよろしいですか？${action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW ? 'このレポート内のすべての経費は未報告になります。' : ''}`;
         },
         onlyVisible: '次のユーザーにのみ表示',
         explain: '説明',
@@ -1458,7 +1458,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'レポートを削除',
         }),
         deleteReportConfirmation: () => ({
-            one: 'このレポートを削除してもよろしいですか？',
+            one: 'このレポートを削除してもよろしいですか？このレポート内のすべての経費は未報告になります。',
             other: 'これらのレポートを削除してもよろしいですか？',
         }),
         settledExpensify: '支払い済み',

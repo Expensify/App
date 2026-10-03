@@ -826,7 +826,7 @@ const translations: TranslationDeepObject<typeof en> = {
             } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                 type = 'report';
             }
-            return `确定要删除此${type}吗？`;
+            return `确定要删除此${type}吗？${action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW ? '此报告中的所有费用都将变为未报销状态。' : ''}`;
         },
         onlyVisible: '仅对以下对象可见',
         explain: '解释',
@@ -1418,7 +1418,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: '删除报告',
         }),
         deleteReportConfirmation: () => ({
-            one: '您确定要删除此报告吗？',
+            one: '您确定要删除此报告吗？此报告中的所有费用都将变为未报销状态。',
             other: '您确定要删除这些报告吗？',
         }),
         settledExpensify: '已支付',

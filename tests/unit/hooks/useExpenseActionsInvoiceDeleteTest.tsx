@@ -7,6 +7,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import useExpenseActions from '@hooks/useExpenseActions';
 
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
+import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -30,6 +31,15 @@ jest.mock('@libs/showConfirmModalAfterMoreMenuDismiss', () => ({__esModule: true
 // provided by the showConfirmModalAfterMoreMenuDismiss mock above).
 jest.mock('@hooks/useConfirmModal', () => ({__esModule: true, default: () => ({showConfirmModal: jest.fn(), closeModal: jest.fn()})}));
 
+const mockDeleteAppReport = jest.fn();
+
+jest.mock('@libs/actions/Report', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actualReportActions = jest.requireActual('@libs/actions/Report');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {...actualReportActions, __esModule: true, deleteAppReport: (...args: unknown[]) => mockDeleteAppReport(...args)};
+});
+
 // The actual server delete is out of scope; assert on the navigate-back URL the delete writes, not the deletion itself.
 const mockDeleteTransactions = jest.fn(() => ({action: 'deleted', deletedTransactionThreadReportIDs: []}));
 const mockShouldOpenSplitExpenseEditFlowOnDelete = jest.fn(() => false);
@@ -45,7 +55,7 @@ jest.mock('@libs/ReportUtils', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const actualReportUtils = jest.requireActual('@libs/ReportUtils');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {...actualReportUtils, __esModule: true, navigateOnDeleteExpense: jest.fn()};
+    return {...actualReportUtils, __esModule: true, canEditFieldOfMoneyRequest: jest.fn(() => false), navigateOnDeleteExpense: jest.fn()};
 });
 
 // The transaction-thread data normally comes from a context provider fed by Onyx; supply it directly.
@@ -63,7 +73,7 @@ const wrapper = ({children}: {children: React.ReactNode}) => (
     </OnyxListItemProvider>
 );
 
-describe('useExpenseActions - invoice delete on the /e/:reportID (expense report) page', () => {
+describe('useExpenseActions delete', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS, evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS]});
         initOnyxDerivedValues();
@@ -199,5 +209,74 @@ describe('useExpenseActions - invoice delete on the /e/:reportID (expense report
         await waitFor(() => {
             expect(result.current.actions[CONST.REPORT.SECONDARY_ACTIONS.DELETE]?.text).toBe('Delete');
         });
+    });
+
+    it('deletes the report instead of its only restricted card expense', async () => {
+        // Given a draft report whose only restricted card expense was created by the current user
+        const currentUserAccountID = 0;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        const iouAction = {
+            ...createRandomReportAction(Number(iouActionID)),
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            actorAccountID: currentUserAccountID,
+            originalMessage: {
+                IOUReportID: invoiceReportID,
+                IOUTransactionID: transactionID,
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: 100,
+                currency: CONST.CURRENCY.USD,
+            },
+        } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>;
+        const report: Report = {
+            ...createRandomReport(Number(invoiceReportID), undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            chatReportID: invoiceRoomID,
+            ownerAccountID: currentUserAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+        const chatReport = createRandomReport(Number(invoiceRoomID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+        const transaction = {
+            ...createRandomTransaction(Number(transactionID)),
+            transactionID,
+            reportID: invoiceReportID,
+            managedCard: true,
+            comment: {liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT},
+        };
+
+        jest.mocked(useMoneyReportTransactionThread).mockReturnValue({
+            iouTransactionID: transactionID,
+            requestParentReportAction: iouAction,
+            transactionThreadReportID: undefined,
+            transactionThreadReport: undefined,
+            reportActions: [iouAction],
+        });
+        const goBackSpy = jest.spyOn(Navigation, 'goBack').mockImplementation((_backToRoute, options) => options?.afterTransition?.());
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${invoiceRoomID}`, chatReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReportID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${invoiceReportID}`, {[iouActionID]: iouAction});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        const {result} = renderHook(() => useExpenseActions({reportID: invoiceReportID, isReportInSearch: false, backTo: undefined}), {wrapper});
+        await waitFor(() => {
+            expect(result.current.actions[CONST.REPORT.SECONDARY_ACTIONS.DELETE]).toBeDefined();
+        });
+
+        // When Delete is selected and the report navigation finishes
+        jest.useFakeTimers();
+        await act(async () => {
+            await result.current.actions[CONST.REPORT.SECONDARY_ACTIONS.DELETE]?.onSelected?.();
+            jest.runAllTimers();
+        });
+        jest.useRealTimers();
+        goBackSpy.mockRestore();
+
+        // Then the report-level delete path is used so the card expense becomes unreported
+        expect(mockDeleteTransactions).not.toHaveBeenCalled();
+        expect(mockDeleteAppReport).toHaveBeenCalledWith(expect.objectContaining({report}));
     });
 });

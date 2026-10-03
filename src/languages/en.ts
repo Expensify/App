@@ -912,7 +912,7 @@ const translations = {
             } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                 type = 'report';
             }
-            return `Are you sure you want to delete this ${type}?`;
+            return `Are you sure you want to delete this ${type}?${action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW ? ' All expenses in this report will become unreported.' : ''}`;
         },
         onlyVisible: 'Only visible to',
         explain: 'Explain',
@@ -1581,7 +1581,7 @@ const translations = {
             other: 'Delete reports',
         }),
         deleteReportConfirmation: () => ({
-            one: 'Are you sure that you want to delete this report?',
+            one: 'Are you sure that you want to delete this report? All expenses in this report will become unreported.',
             other: 'Are you sure that you want to delete these reports?',
         }),
         settledExpensify: 'Paid',

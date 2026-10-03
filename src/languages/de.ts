@@ -847,7 +847,7 @@ const translations: TranslationDeepObject<typeof en> = {
             } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                 type = 'report';
             }
-            return `Sind Sie sicher, dass Sie diesen ${type} löschen möchten?`;
+            return `Sind Sie sicher, dass Sie diesen ${type} löschen möchten?${action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW ? ' Alle Ausgaben in diesem Bericht werden als nicht gemeldet markiert.' : ''}`;
         },
         onlyVisible: 'Nur sichtbar für',
         explain: 'Erklären',
@@ -1476,7 +1476,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Berichte löschen',
         }),
         deleteReportConfirmation: () => ({
-            one: 'Möchten Sie diesen Bericht wirklich löschen?',
+            one: 'Möchten Sie diesen Bericht wirklich löschen? Alle Ausgaben in diesem Bericht werden als nicht gemeldet markiert.',
             other: 'Möchten Sie diese Berichte wirklich löschen?',
         }),
         settledExpensify: 'Bezahlt',

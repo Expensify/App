@@ -279,6 +279,7 @@ import {
     isDeletedTransaction,
     isDemoTransaction,
     isDistanceRequest,
+    isExpensifyCardTransaction,
     isFailedScanAmountPlaceholder,
     isFetchingWaypointsFromServer,
     isManagedCardTransaction,
@@ -3273,6 +3274,10 @@ function shouldCurrentUserSubmitReport(iouReport: OnyxEntry<Report>, chatReport:
  * Checks whether the card transaction support deleting based on liability type
  */
 function canDeleteCardTransactionByLiabilityType(transaction: OnyxEntry<Transaction>): boolean {
+    if (isExpensifyCardTransaction(transaction)) {
+        return false;
+    }
+
     const isCardTransaction = isCardTransactionTransactionUtils(transaction);
     if (!isCardTransaction) {
         return true;
@@ -3305,6 +3310,17 @@ function canDeleteMoneyRequestReport(
         return true;
     }
 
+    const hasExpensifyCardTransaction = reportTransactions.some(isExpensifyCardTransaction);
+    const hasRestrictedCorporateCardTransaction = reportTransactions.some((reportTransaction) => reportTransaction.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT);
+    // Expensify Card transactions cannot be deleted or unreported, including by workspace admins.
+    if (isReportLevelDelete && hasExpensifyCardTransaction) {
+        return false;
+    }
+
+    if (isReportLevelDelete && !isReportPolicyAdmin && hasRestrictedCorporateCardTransaction) {
+        return false;
+    }
+
     const isUnreported = isSelfDM(report) || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const canCardTransactionBeDeleted = canDeleteCardTransactionByLiabilityType(transaction);
     if (isUnreported) {
@@ -3312,7 +3328,7 @@ function canDeleteMoneyRequestReport(
     }
 
     // Admins can delete a draft report even when they are not its submitter, but not its individual expenses.
-    // Card liability does not apply here: deleting a draft report leaves its expenses unreported rather than deleting them.
+    // Admins can delete reports containing third-party card expenses because those expenses become unreported.
     const isDraft = report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN;
     if (isDraft && isReportPolicyAdmin && isReportLevelDelete) {
         return true;

@@ -852,7 +852,7 @@ const translations: TranslationDeepObject<typeof en> = {
             } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                 type = 'report';
             }
-            return `Czy na pewno chcesz usunąć ten/ tę ${type}?`;
+            return `Czy na pewno chcesz usunąć ten/ tę ${type}?${action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW ? ' Wszystkie wydatki w tym raporcie zostaną oznaczone jako nierozliczone.' : ''}`;
         },
         onlyVisible: 'Widoczne tylko dla',
         explain: 'Wyjaśnij',
@@ -1507,7 +1507,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Usuń raporty',
         }),
         deleteReportConfirmation: () => ({
-            one: 'Czy na pewno chcesz usunąć ten raport?',
+            one: 'Czy na pewno chcesz usunąć ten raport? Wszystkie wydatki w tym raporcie zostaną oznaczone jako nierozliczone.',
             other: 'Czy na pewno chcesz usunąć te raporty?',
         }),
         settledExpensify: 'Zapłacono',

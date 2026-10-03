@@ -181,6 +181,7 @@ import {
 } from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
+    canDeleteCardTransactionByLiabilityType,
     canDeleteReportAction,
     canEditReportAction,
     canFlagReportAction,
@@ -267,6 +268,18 @@ import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 function getActionHtml(reportAction: OnyxInputOrEntry<ReportAction>): string {
     const message = Array.isArray(reportAction?.message) ? (reportAction?.message?.at(-1) ?? null) : (reportAction?.message ?? null);
     return message?.html ?? '';
+}
+
+function getDeleteAction(
+    reportAction: OnyxEntry<ReportAction>,
+    moneyRequestAction: ReportAction | undefined,
+    currentUserAccountID: number,
+    iouTransaction: OnyxEntry<Transaction>,
+): OnyxEntry<ReportAction> {
+    const isOwnExpense = moneyRequestAction?.actorAccountID === currentUserAccountID;
+    const shouldDeleteExpense = isOwnExpense && (!isReportPreviewActionReportActionsUtils(reportAction) || canDeleteCardTransactionByLiabilityType(iouTransaction));
+
+    return shouldDeleteExpense ? (moneyRequestAction ?? reportAction) : reportAction;
 }
 
 /** Sets the HTML string to Clipboard */
@@ -1709,10 +1722,9 @@ const ContextMenuActions: ContextMenuAction[] = [
             currentUserAccountID,
             rules,
         }) => {
-            // A single-expense report preview also exposes its embedded money request action.
-            // Preserve the expense-delete flow for its author. Otherwise, use the preview action so an admin
-            // can delete a member's report and leave its expenses unreported.
-            const actionToDelete = moneyRequestAction?.actorAccountID === currentUserAccountID ? (moneyRequestAction ?? reportAction) : reportAction;
+            // A single-expense report preview also exposes its embedded money request action. Use the preview when
+            // card liability prevents deleting the expense so deleting the report leaves it unreported instead.
+            const actionToDelete = getDeleteAction(reportAction, moneyRequestAction, currentUserAccountID, iouTransaction);
 
             // Until deleting parent threads is supported in FE, we will prevent the user from deleting a thread parent
             let reportID = reportIDParam;
@@ -1742,9 +1754,9 @@ const ContextMenuActions: ContextMenuAction[] = [
                 !isMessageDeleted(reportAction)
             );
         },
-        onPress: (closePopover, {reportID: reportIDParam, reportAction, moneyRequestAction, currentUserAccountID}) => {
+        onPress: (closePopover, {reportID: reportIDParam, reportAction, moneyRequestAction, currentUserAccountID, iouTransaction}) => {
             // Must resolve to the same action shouldShow authorised, so the delete matches what was permitted.
-            const actionToDelete = moneyRequestAction?.actorAccountID === currentUserAccountID ? (moneyRequestAction ?? reportAction) : reportAction;
+            const actionToDelete = getDeleteAction(reportAction, moneyRequestAction, currentUserAccountID, iouTransaction);
             const actionReportID = isMoneyRequestAction(actionToDelete) ? actionToDelete?.reportID : undefined;
 
             const reportID = actionReportID && Number(actionReportID) !== 0 ? actionReportID : reportIDParam;
