@@ -12,8 +12,8 @@ import type {PersonalDetailsList, ReportAction} from '@src/types/onyx';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import getOnyxValue from 'tests/utils/getOnyxValue';
 
+import getOnyxValue from '../../utils/getOnyxValue';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@components/ActionSheetAwareScrollView', () => ({
