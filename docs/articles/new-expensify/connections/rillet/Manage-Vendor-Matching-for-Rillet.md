@@ -18,7 +18,9 @@ This feature is available to Workspace Admins whose Workspace:
  - Is connected to Rillet.
  - Has finished configuring the Rillet connection.
 
-Rillet vendor matching is rolling out gradually. If the **Vendors** feature and the **Vendor** field don't appear on a configured Rillet Workspace, they aren't enabled for your Workspace yet.
+There's nothing to enable. On a configured Rillet Workspace, the **Vendors** feature and the **Vendor** field are available to every Workspace Admin. The **Vendors** switch under **More features** is on and can't be turned off, because the feature follows your Rillet connection settings.
+
+Until the Rillet connection finishes configuring, the **Vendors** switch still appears under **More features** but stays off.
 
 If your Workspace isn't connected to Rillet yet, learn how to [connect to Rillet](/articles/new-expensify/connections/rillet/Connect-to-Rillet).
 
@@ -31,6 +33,8 @@ Expensify assigns vendors automatically in the following order:
  - If no match is found, the **Vendor** field remains empty until a Workspace Admin selects one.
 
 Whenever a vendor is assigned automatically, Concierge posts a system message on the expense indicating whether the vendor was set by a merchant rule or by vendor matching.
+
+Automatic matching for Rillet is still rolling out. Until it's turned on for your Workspace, the **Vendor** field stays empty until a Workspace Admin selects a vendor, and any expense left without one exports using the **Default company card vendor**.
 
 The **Vendor** field appears only on non-reimbursable expenses. It isn't shown on reimbursable expenses or on invoices.
 
