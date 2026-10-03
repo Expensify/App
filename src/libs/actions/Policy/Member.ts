@@ -21,7 +21,7 @@ import Parser from '@libs/Parser';
 import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
 import type {PersonalDetailsOnyxUpdate} from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
-import {getDefaultApprover, getOwnerChangePayerSuccessData, isControlPolicy, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
+import {canRoleCreateExpenses, getDefaultApprover, getOwnerChangePayerSuccessData, isControlPolicy, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 
@@ -883,15 +883,17 @@ function buildAddMembersToWorkspaceOnyxData(
         doesPersonalDetailExistByAccountID[accountID] = !newPersonalDetailAccountIDs.has(accountID);
     }
 
-    // create onyx data for policy expense chats for each new member
-    const membersChats = createPolicyExpenseChats({
-        policyID,
-        invitedEmailsToAccountIDs,
-        currentUser,
-        reportActionsList,
-        notificationPreference: policyExpenseChatNotificationPreference,
-        doesPersonalDetailExistByAccountID,
-    });
+    // Approve-only members get no workspace chat from the backend, so building an optimistic one would leave a phantom report in Onyx.
+    const membersChats = canRoleCreateExpenses(effectiveRole)
+        ? createPolicyExpenseChats({
+              policyID,
+              invitedEmailsToAccountIDs,
+              currentUser,
+              reportActionsList,
+              notificationPreference: policyExpenseChatNotificationPreference,
+              doesPersonalDetailExistByAccountID,
+          })
+        : {onyxSuccessData: [], onyxOptimisticData: [], onyxFailureData: [], reportCreationData: {}};
 
     const optimisticMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
     const successMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
