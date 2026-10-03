@@ -122,6 +122,22 @@ describe('BulkActionStatusManager', () => {
         expect(mockClearBulkAction).toHaveBeenCalledWith(BULK_ACTION_ID, expect.objectContaining({state: CONST.BULK_ACTION.STATE.DONE}));
     });
 
+    it('shows a bulk hold while it runs and once it is done', async () => {
+        // Given a bulk hold that is still running
+        await Onyx.set(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.RUNNING, action: CONST.SEARCH.BULK_ACTION_TYPES.HOLD});
+
+        render(<BulkActionStatusManager />);
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByText('bulkAction.holdingTitle')).toBeTruthy();
+
+        // When the backend finishes it
+        await Onyx.set(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.DONE, action: CONST.SEARCH.BULK_ACTION_TYPES.HOLD, total: 2, failedReportIDs: []});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the modal shows the hold result
+        expect(screen.getByText('bulkAction.heldTitle')).toBeTruthy();
+    });
+
     it('says so when no report matched', async () => {
         // Given a bulk pay that found no report to mark as paid
         await Onyx.set(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.DONE, action: CONST.SEARCH.BULK_ACTION_TYPES.PAY, total: 0});
