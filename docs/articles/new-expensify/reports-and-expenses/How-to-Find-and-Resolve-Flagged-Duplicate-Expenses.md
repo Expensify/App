@@ -1,7 +1,7 @@
 ---
 title: How to Find and Resolve Flagged Duplicate Expenses
 description: Learn how Expensify detects duplicate expenses and how to resolve them when they are flagged and placed on hold.
-keywords: [New Expensify, duplicate expense, review duplicates, expense on hold, resolve duplicate, flagged expense, Fix badge, duplicate detection, keep all, keep this one, held expense, Inbox Fix badge, find duplicate expenses, where to find duplicates, automatic duplicate review, Concierge resolved the duplicate, duplicate warning removed]
+keywords: [New Expensify, duplicate expense, review duplicates, expense on hold, resolve duplicate, flagged expense, Fix badge, duplicate detection, keep all, keep this one, held expense, Inbox Fix badge, find duplicate expenses, where to find duplicates, automatic duplicate review, Concierge resolved the duplicate, duplicate warning removed, expense submitted to an individual not flagged as duplicate]
 internalScope: Audience is members and approvers on Collect or Control plans. Covers how to locate reports with duplicate expense violations and resolve flagged duplicates. Does not cover manually merging expenses or preventing duplicates.
 ---
 
@@ -20,6 +20,8 @@ If you have two expenses that were not automatically flagged but should be combi
 ## Who Can Use Duplicate Detection
 
 Duplicate detection is available to all members on Collect and Control plans. Both submitters and approvers can resolve flagged duplicates on Draft and Outstanding reports. 
+
+Duplicate detection only applies to expenses on a workspace. Expenses submitted to an individual (rather than on a workspace) are never flagged as **Potential duplicate**, and **Review duplicates** does not appear on them.
 
 ---
 
@@ -103,6 +105,10 @@ Often, but not always. Expensify also compares additional receipt details, such 
 - The expenses were split from a single expense.
 - They were imported from a credit card.
 - They came from matching email receipts with different timestamps.
+
+## Why aren't expenses I submitted to an individual flagged as duplicates?
+
+Duplicate detection only applies to expenses on a workspace. If you submit expenses to an individual (rather than on a workspace), they are not checked for duplicates, even if they have the same receipt, amount, and date. Review these expenses yourself before you submit them.
 
 ## Why was a duplicate warning removed automatically?
 

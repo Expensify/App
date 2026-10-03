@@ -113,3 +113,5 @@ Yes. Imported card expenses can still merge with eligible SmartScanned receipts 
 Yes. When two expenses appear to represent the same purchase, a **Potential duplicate** warning appears on both expenses. Review potential duplicate warnings before submitting or approving a report. 
 
 The **Potential duplicate** warning is shown on **Draft** and **Outstanding** reports. It does not appear on **Approved**, **Paid**, or **Done** reports.
+
+The **Potential duplicate** warning only appears on expenses on a workspace. Expenses submitted to an individual (rather than on a workspace) are not checked for duplicates.
