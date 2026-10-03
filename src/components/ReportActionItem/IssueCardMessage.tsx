@@ -14,14 +14,13 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
-import {getCardIssuedMessage, getOriginalMessage, shouldShowActivateCard, shouldShowAddMissingDetails} from '@libs/ReportActionsUtils';
+import {getCardIssuedMessage, getOriginalMessage, isCardIssuedAction, shouldShowActivateCard, shouldShowAddMissingDetails} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {ReportAction} from '@src/types/onyx';
-import type {IssueNewCardOriginalMessage} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -38,7 +37,8 @@ function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const session = useSession();
-    const assigneeAccountID = (getOriginalMessage(action) as IssueNewCardOriginalMessage)?.assigneeAccountID;
+    const cardIssuedActionOriginalMessage = isCardIssuedAction(action) ? getOriginalMessage(action) : undefined;
+    const assigneeAccountID = cardIssuedActionOriginalMessage?.assigneeAccountID;
     const expensifyCard = useGetExpensifyCardFromReportAction({
         reportAction: action,
         policyID,
@@ -48,7 +48,7 @@ function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const shouldNavigateToCardDetails = isPolicyAdmin(policy);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
-    const companyCard = cardList?.[(getOriginalMessage(action) as IssueNewCardOriginalMessage)?.cardID];
+    const companyCard = cardIssuedActionOriginalMessage?.cardID !== undefined ? cardList?.[cardIssuedActionOriginalMessage.cardID] : undefined;
     const shouldShowAddMissingDetailsButton =
         !!expensifyCard?.cardID && isAssigneeCurrentUser && shouldShowAddMissingDetails(action?.actionName, privatePersonalDetails, expensifyCard?.state);
     const shouldShowActivateButton = isAssigneeCurrentUser && shouldShowActivateCard(action?.actionName, expensifyCard, privatePersonalDetails);
