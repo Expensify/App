@@ -2,7 +2,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import ConfirmationPage from '@components/ConfirmationPage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {useSession} from '@components/OnyxListItemProvider';
 import ReimbursementAccountLoadingIndicator from '@components/ReimbursementAccountLoadingIndicator';
 import RenderHTML from '@components/RenderHTML';
@@ -622,7 +622,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     if (isOffline && !hasLoadedData) {
         return (
             <ScreenWrapper testID="ReimbursementAccountPage">
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('bankAccount.addBankAccount')}
                     onBackButtonPress={() => Navigation.goBack(backTo)}
                 />
@@ -676,7 +676,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     if (errorText) {
         return (
             <ScreenWrapper testID="ReimbursementAccountPage">
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('bankAccount.addBankAccount')}
                     subtitle={policyNameToDisplay}
                     onBackButtonPress={() => Navigation.goBack(backTo)}
@@ -692,7 +692,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         if (topmostFullScreenRoute?.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR) {
             return (
                 <ScreenWrapper testID="ReimbursementAccountPage">
-                    <HeaderWithBackButton
+                    <HeaderWithBackButtonAndTitle
                         title={translate('bankAccount.addBankAccount')}
                         onBackButtonPress={() => Navigation.dismissModal()}
                     />

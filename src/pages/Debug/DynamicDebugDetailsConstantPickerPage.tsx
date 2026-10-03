@@ -1,6 +1,6 @@
 import CategoryPicker from '@components/CategoryPicker';
 import CurrencySelectionList from '@components/CurrencySelectionList';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -86,9 +86,8 @@ function DynamicDebugDetailsConstantPickerPage({
 
     return (
         <ScreenWrapper testID="DebugDetailsConstantPickerPage">
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={fieldName}
-                shouldShowBackButton
                 onBackButtonPress={() => {
                     Navigation.goBack(fieldValue ? appendParam(backPath, fieldName, fieldValue) : backPath, {compareParams: false});
                 }}

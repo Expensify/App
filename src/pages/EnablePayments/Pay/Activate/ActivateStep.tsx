@@ -1,5 +1,5 @@
 import ConfirmationPage from '@components/ConfirmationPage';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import LottieAnimations from '@components/LottieAnimations';
 
@@ -39,7 +39,7 @@ function ActivateStep({userWallet}: ActivateStepProps) {
 
     return (
         <>
-            <HeaderWithBackButton title={translate('activateStep.headerTitle')} />
+            <HeaderWithBackButtonAndTitle title={translate('activateStep.headerTitle')} />
             <ConfirmationPage
                 illustration={animation}
                 heading={translate(`activateStep.${isActivatedWallet ? 'activated' : 'checkBackLater'}Title`)}
