@@ -10271,6 +10271,7 @@ const translations = {
         mergeReports: {
             title: 'Merge reports',
             description: 'Select the report to keep. All expenses will be moved into it and the other reports will be deleted.',
+            exportedWarning: 'One or more selected reports have already been exported to an accounting integration. Merging them may cause duplicate data if they are exported again.',
         },
     },
     genericErrorPage: {

@@ -3110,16 +3110,23 @@ function canDeleteTransaction(moneyRequestReport: OnyxEntry<Report>, rules: Onyx
 /**
  * Determines whether a money request report is eligible for merging transactions based on the user's role and permissions.
  * Rules:
- * - **Admins**: reports that are in "Open" or "Processing" status
+ * - **Admins**: reports that are in "Open" or "Processing" status, or "Approved" when allowReportApprovedForAdmin is true
  * - **Submitters**: IOUs, unreported expenses, and expenses on Open or Processing reports at the first level of approval
  * - **Managers**: Expenses on Open or Processing reports
  *
  * @param reportOrReportID - The ID of the money request report to check for merge eligibility
  * @param isAdmin - Whether the current user is an admin of the policy associated with the target report
+ * @param allowReportApprovedForAdmin - Whether admins are allowed to merge reports that are in an approved state
  *
  * @returns True if the report is eligible for merging transactions, false otherwise
  */
-function isMoneyRequestReportEligibleForMerge(reportOrReportID: Report | string, isAdmin: boolean, rules: OnyxCollection<Rule>, currentUserAccountID?: number): boolean {
+function isMoneyRequestReportEligibleForMerge(
+    reportOrReportID: Report | string,
+    isAdmin: boolean,
+    rules: OnyxCollection<Rule>,
+    currentUserAccountID?: number,
+    allowReportApprovedForAdmin?: boolean,
+): boolean {
     const report = typeof reportOrReportID === 'string' ? getReportOrDraftReport(reportOrReportID) : reportOrReportID;
 
     if (!isMoneyRequestReport(report) || isIOUReport(report)) {
@@ -3130,7 +3137,7 @@ function isMoneyRequestReportEligibleForMerge(reportOrReportID: Report | string,
     const isSubmitter = isReportOwner(report, currentUserAccountID);
 
     if (isAdmin) {
-        return isOpenReport(report) || isProcessingReport(report);
+        return isOpenReport(report) || isProcessingReport(report) || (!!allowReportApprovedForAdmin && isReportApproved({report}));
     }
 
     if (isSubmitter) {
@@ -14572,7 +14579,7 @@ function canMergeReports(selectedReports: Array<OnyxEntry<Report>>, currentUserA
         const hasWriteAccess = canUserPerformWriteAction(report, isReportArchived);
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
         const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-        const isReportEligibleForMerge = isMoneyRequestReportEligibleForMerge(report, isAdmin, rules, currentUserAccountID);
+        const isReportEligibleForMerge = isMoneyRequestReportEligibleForMerge(report, isAdmin, rules, currentUserAccountID, true);
 
         if (!hasWriteAccess || !isReportEligibleForMerge) {
             return false;
