@@ -132,7 +132,7 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
 
     if (!isReadOnly) {
         return (
-            <View style={styles.mh4}>
+            <View style={[styles.mh4, styles.mb2]}>
                 <DatePicker
                     inputID={INPUT_IDS.MONEY_REQUEST_CREATED}
                     value={shouldShowEmptyDate ? '' : iouCreated}
