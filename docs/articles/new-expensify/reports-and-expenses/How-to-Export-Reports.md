@@ -78,6 +78,10 @@ The PDF includes all expenses, attached receipts, and report notes.
 
 For reports on a Submit workspace, the PDF also includes an **Approve or Pay** button and QR code that let your approver open and approve the report online.
 
+**Note:** On a Draft report, **Download report** only appears for the report's submitter. This includes reports that were rejected back to the submitter.
+
+If the PDF can't be generated, you'll see **There was an error when trying to generate your PDF**. Select **Close** to dismiss the window, then try again.
+
 ## How to download multiple reports as PDFs
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Reports**. 
@@ -127,6 +131,10 @@ The window stays open and switches to **Your file is ready!** when the export fi
 ## What happens if some reports fail to download as PDFs?
 
 When you download multiple reports as PDFs, a message tells you how many of the selected reports were exported. If any reports could not be generated, open your Concierge chat in the **Inbox** to see which reports failed.
+
+## Why don't I see Download report on a report?
+
+On a Draft report, **Download report** only appears for the report's submitter. When an approver rejects a report back to the submitter, the report returns to Draft. After that, the approver, their vacation delegate, and other members no longer see **Download report** until the report is submitted again.
 
 ## What happens if I refresh the page while my download is preparing?
 
