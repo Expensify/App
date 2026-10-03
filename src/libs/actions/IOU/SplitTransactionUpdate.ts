@@ -547,6 +547,11 @@ function updateSplitTransactions({
     // selfDM split transactions can't resolve their IOU action, which leaves the "From" column
     // blank and breaks downstream ownership lookups.
     const optimisticSelfDMIouActionsByReportID: Record<string, Record<string, OnyxTypes.ReportAction>> = {};
+    // Everything created optimistically for brand-new splits is removed on failure. These updates are pushed after all
+    // other failure data so no earlier failure MERGE (errors, hold state, etc.) recreates the removed keys.
+    const newSplitsFailureCleanupData: Array<OnyxUpdate<BuildOnyxDataForMoneyRequestKeys>> = [];
+    // Reports whose totals the optimistic pass rewrites, keyed by reportID, so the pre-split values can be restored on failure
+    const reportsToRestoreOnFailure = new Map<string, OnyxTypes.Report>();
 
     for (const [index, splitExpense] of splitExpenses.entries()) {
         const existingTransactionID = isReverseSplitOperation ? originalTransactionID : splitExpense.transactionID;
@@ -789,6 +794,7 @@ function updateSplitTransactions({
             transaction: optimisticTransactionFromGetMoneyRequest,
             onyxData: moneyRequestInformationOnyxData,
             iouAction,
+            iouReport: moneyRequestIOUReport,
         } = getMoneyRequestInformation({
             isVendorMatchingBetaEnabled,
             participantParams,
@@ -1373,6 +1379,29 @@ function updateSplitTransactions({
             onyxData.optimisticData?.push(...(moneyRequestInformationOnyxData.optimisticData ?? []));
             onyxData.successData?.push(...(moneyRequestInformationOnyxData.successData ?? []));
             onyxData.failureData?.push(...(moneyRequestInformationOnyxData.failureData ?? []));
+
+            const reportToRestore = isSelfDMSplit ? undefined : allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestIOUReport.reportID}`];
+            if (reportToRestore && !reportsToRestoreOnFailure.has(reportToRestore.reportID)) {
+                reportsToRestoreOnFailure.set(reportToRestore.reportID, reportToRestore);
+            }
+        }
+
+        // A brand-new split has no server counterpart, so on failure remove it and its thread rather than leaving it next to the restored original
+        if (!splitTransaction && !isReverseSplitOperation && optimisticTransactionFromGetMoneyRequest) {
+            const newSplitTransactionID = optimisticTransactionFromGetMoneyRequest.transactionID;
+            const iouActionReportID = isSelfDMSplit && selfDMReportID ? selfDMReportID : moneyRequestIOUReport.reportID;
+            newSplitsFailureCleanupData.push(
+                {onyxMethod: Onyx.METHOD.SET, key: `${ONYXKEYS.COLLECTION.TRANSACTION}${newSplitTransactionID}`, value: null},
+                {onyxMethod: Onyx.METHOD.SET, key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${newSplitTransactionID}`, value: null},
+                {onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouActionReportID}`, value: {[iouAction.reportActionID]: null}},
+            );
+            if (transactionThreadReportID) {
+                newSplitsFailureCleanupData.push(
+                    {onyxMethod: Onyx.METHOD.SET, key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, value: null},
+                    {onyxMethod: Onyx.METHOD.SET, key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, value: null},
+                    {onyxMethod: Onyx.METHOD.SET, key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionThreadReportID}`, value: null},
+                );
+            }
         }
         onyxData.optimisticData?.push(...(updateMoneyRequestParamsOnyxData.optimisticData ?? []), ...optimisticDataComments);
         onyxData.successData?.push(...(updateMoneyRequestParamsOnyxData.successData ?? []), ...successDataComments);
@@ -2004,6 +2033,33 @@ function updateSplitTransactions({
             );
         }
     }
+
+    // The new splits are removed on failure, so surface the error on the restored original expense instead
+    if (isCreationOfSplits) {
+        onyxData.failureData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
+            value: {errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage')},
+        });
+    }
+
+    for (const [reportID, reportToRestore] of reportsToRestoreOnFailure) {
+        onyxData.failureData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                total: reportToRestore.total ?? null,
+                unheldTotal: reportToRestore.unheldTotal ?? null,
+                nonReimbursableTotal: reportToRestore.nonReimbursableTotal ?? null,
+                unheldNonReimbursableTotal: reportToRestore.unheldNonReimbursableTotal ?? null,
+                reimbursableTotal: reportToRestore.reimbursableTotal ?? null,
+                unheldReimbursableTotal: reportToRestore.unheldReimbursableTotal ?? null,
+                transactionCount: reportToRestore.transactionCount ?? null,
+                lastVisibleActionCreated: reportToRestore.lastVisibleActionCreated ?? null,
+            },
+        });
+    }
+    onyxData.failureData?.push(...newSplitsFailureCleanupData);
 
     // Saving from the split-expenses flow also navigates to the destination screen. A plain API.write would apply
     // optimisticData right away and re-render that screen mid-transition, so writeSplit holds the write until the

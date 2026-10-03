@@ -6116,6 +6116,47 @@ describe('updateSplitTransactions', () => {
         expect(Object.values(latestSplitTransactionFailureErrors).at(0)).toBe(localizedFallback);
     });
 
+    it('should remove the new split transactions and restore the original expense with an error when the first split fails', async () => {
+        // Given an existing expense on an expense report
+        const {expenseReport, originalTransactionID} = await createBaseExpense();
+        if (!originalTransactionID || !expenseReport?.reportID) {
+            throw new Error('Missing original transaction data');
+        }
+        const reportBeforeSplit = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+        const iouAction = getIOUActionForReportID(expenseReport.reportID, originalTransactionID);
+
+        // When the expense is split into two while the request is held, and the server then rejects it
+        mockFetch?.pause?.();
+        const {splitTransactionID1, splitTransactionID2} = await splitToTwo(expenseReport, originalTransactionID, iouAction);
+        const split1ThreadReportID = getIOUActionForReportID(expenseReport.reportID, splitTransactionID1)?.childReportID;
+        const split2ThreadReportID = getIOUActionForReportID(expenseReport.reportID, splitTransactionID2)?.childReportID;
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID1}`)).toBeDefined();
+        expect(split1ThreadReportID).toBeDefined();
+        expect(split2ThreadReportID).toBeDefined();
+
+        mockFetch?.fail?.();
+        await mockFetch?.resume?.();
+        await waitForBatchedUpdates();
+
+        // Then the optimistic splits and their threads are removed, so the money isn't counted twice
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID1}`)).toBeUndefined();
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID2}`)).toBeUndefined();
+        expect(getIOUActionForReportID(expenseReport.reportID, splitTransactionID1)).toBeUndefined();
+        expect(getIOUActionForReportID(expenseReport.reportID, splitTransactionID2)).toBeUndefined();
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${split1ThreadReportID}`)).toBeUndefined();
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${split2ThreadReportID}`)).toBeUndefined();
+
+        // And the original expense is back on its report with the failure surfaced on it
+        const originalTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
+        expect(originalTransaction?.reportID).toBe(expenseReport.reportID);
+        expect(Object.values(originalTransaction?.errors ?? {})).toContain(translateLocal('iou.error.genericEditFailureMessage'));
+
+        // And the report totals match what they were before the split
+        const reportAfterFailure = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+        expect(reportAfterFailure?.total).toBe(reportBeforeSplit?.total);
+        expect(reportAfterFailure?.transactionCount).toBe(reportBeforeSplit?.transactionCount);
+    });
+
     it('should keep all split transactions on hold when splitting a held transaction', async () => {
         const {expenseReport, transactionThreadReportID, originalTransactionID} = await createBaseExpense();
         const {allReports, allReportActions} = await getCollections();
