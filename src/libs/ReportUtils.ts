@@ -3066,6 +3066,34 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, rules
 }
 
 /**
+ * Checks whether a policy is configured for instant submit and Submit & Close.
+ */
+function isInstantSubmitAndClose(policy: OnyxEntry<Policy>): boolean {
+    return isInstantSubmitEnabled(policy) && isSubmitAndClose(policy);
+}
+
+/**
+ * Checks whether an instant-submit, Submit & Close policy rejects a report that only contains non-reimbursable transactions.
+ */
+function isInstantSubmitAndCloseWithOnlyNonReimbursableTransactions(policy: OnyxEntry<Policy>, hasOnlyNonReimbursable: boolean): boolean {
+    return isInstantSubmitAndClose(policy) && hasOnlyNonReimbursable;
+}
+
+/**
+ * Checks whether moving an expense into a report would be rejected because the report only contains non-reimbursable transactions.
+ */
+function isReportIneligibleForMoveExpenses(moneyRequestReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>, transactions: Transaction[]): boolean {
+    if (!isExpenseReport(moneyRequestReport) || (isOpenExpenseReport(moneyRequestReport) && (hasReportBeenReopened(moneyRequestReport) || hasReportBeenRetracted(moneyRequestReport)))) {
+        return false;
+    }
+
+    const hasCompleteLocalTransactions = transactions.length > 0 && moneyRequestReport?.transactionCount === transactions.length;
+    const hasOnlyNonReimbursable = hasCompleteLocalTransactions && hasOnlyNonReimbursableTransactions(moneyRequestReport.reportID, transactions);
+
+    return isInstantSubmitAndCloseWithOnlyNonReimbursableTransactions(policy, hasOnlyNonReimbursable);
+}
+
+/**
  * Checks whether the supplied report supports adding more transactions to it.
  * Return true if:
  * - report is a non-settled IOU
@@ -3085,12 +3113,14 @@ function canAddTransaction(moneyRequestReport: OnyxEntry<Report>, rules: OnyxCol
         return false;
     }
 
-    if (
-        isInstantSubmitEnabled(policy) &&
-        isSubmitAndClose(policy) &&
-        (hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID) ||
-            (!isMovingTransaction && !isOpenExpenseReport(moneyRequestReport) && getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO))
-    ) {
+    const isRejectedForOnlyNonReimbursableTransactions = isInstantSubmitAndClose(policy) && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID);
+    const isRejectedForDisabledReimbursement =
+        isInstantSubmitAndClose(policy) &&
+        !isMovingTransaction &&
+        !isOpenExpenseReport(moneyRequestReport) &&
+        getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+
+    if (isRejectedForOnlyNonReimbursableTransactions || isRejectedForDisabledReimbursement) {
         return false;
     }
 
@@ -14638,6 +14668,7 @@ export {
     canAccessReport,
     isReportNotFound,
     canAddTransaction,
+    isReportIneligibleForMoveExpenses,
     canDeleteTransaction,
     canBeAutoReimbursed,
     canCreateRequest,

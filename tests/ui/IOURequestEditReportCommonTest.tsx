@@ -22,6 +22,8 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 const FAKE_REPORT_ID = '1';
 const FAKE_POLICY_ID = '1';
 const FAKE_TRANSACTION_ID = '2';
+const ELIGIBLE_REPORT_ID = '3';
+const SOURCE_REPORT_ID = 'sourceReport';
 const FAKE_EMAIL = 'fake@gmail.com';
 const FAKE_ACCOUNT_ID = 1;
 const FAKE_SECOND_ACCOUNT_ID = 2;
@@ -144,6 +146,67 @@ describe('IOURequestEditReportCommon', () => {
             // Then do not show RBR
             const dotIndicators = screen.queryAllByTestId(CONST.DOT_INDICATOR_TEST_ID);
             expect(dotIndicators).toHaveLength(0);
+        });
+
+        it('does not list an ineligible report for a policy admin after canAddTransaction rejects it', async () => {
+            // Given a policy admin, an ineligible destination report, and an eligible destination report
+            const sourceReport: Report = {
+                reportID: SOURCE_REPORT_ID,
+                reportName: 'Source Report',
+                ownerAccountID: FAKE_ACCOUNT_ID,
+                policyID: FAKE_POLICY_ID,
+            };
+            await act(async () => {
+                await Onyx.multiSet({
+                    [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: {
+                        ...createRandomPolicy(Number(FAKE_POLICY_ID), CONST.POLICY.TYPE.TEAM),
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        autoReporting: true,
+                        autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                        approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                    },
+                    [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: {
+                        reportID: FAKE_REPORT_ID,
+                        reportName: 'Ineligible Report',
+                        ownerAccountID: FAKE_ACCOUNT_ID,
+                        policyID: FAKE_POLICY_ID,
+                        type: CONST.REPORT.TYPE.EXPENSE,
+                        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                        transactionCount: 1,
+                        total: -100,
+                        nonReimbursableTotal: -100,
+                    },
+                    [`${ONYXKEYS.COLLECTION.REPORT}${ELIGIBLE_REPORT_ID}` as const]: {
+                        reportID: ELIGIBLE_REPORT_ID,
+                        reportName: 'Eligible Report',
+                        ownerAccountID: FAKE_ACCOUNT_ID,
+                        policyID: FAKE_POLICY_ID,
+                        type: CONST.REPORT.TYPE.EXPENSE,
+                        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                        transactionCount: 1,
+                        total: -100,
+                        nonReimbursableTotal: 0,
+                    },
+                    [`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_ID}` as const]: sourceReport,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${FAKE_TRANSACTION_ID}` as const]: {
+                        transactionID: FAKE_TRANSACTION_ID,
+                        reportID: FAKE_REPORT_ID,
+                        reimbursable: false,
+                    },
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // When the move-report picker is rendered
+            renderIOURequestEditReportCommon({selectedReportID: sourceReport.reportID, selectedPolicyID: sourceReport.policyID});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the ineligible report is not re-added by the policy-admin fallback
+            expect(screen.queryByText('Ineligible Report')).not.toBeOnTheScreen();
+            // And the eligible report remains available
+            expect(screen.getByText('Eligible Report')).toBeOnTheScreen();
         });
 
         const setUpCommuterExclusionTest = async () => {
