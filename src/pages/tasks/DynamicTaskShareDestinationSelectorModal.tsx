@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
@@ -120,7 +120,7 @@ function DynamicTaskShareDestinationSelectorModal() {
             onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
         >
             <>
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('common.share')}
                     onBackButtonPress={() => Navigation.goBack(backPath)}
                 />

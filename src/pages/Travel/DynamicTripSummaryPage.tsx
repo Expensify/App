@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {ReservationView} from '@components/ReportActionItem/TripDetailsView';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -46,9 +46,8 @@ function DynamicTripSummaryPage({route}: DynamicTripSummaryPageProps) {
                 shouldForceFullScreen
                 shouldShow={reservationsData.length === 0 || !CONFIG.IS_HYBRID_APP}
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate(`travel.tripDetails`)}
-                    shouldShowBackButton
                     onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
                 <ScrollView>

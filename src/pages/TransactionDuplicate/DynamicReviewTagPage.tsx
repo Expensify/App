@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -70,7 +70,7 @@ function DynamicReviewTagPage() {
 
     return (
         <ScreenWrapper testID="DynamicReviewTagPage">
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('iou.reviewDuplicates')}
                 onBackButtonPress={() => Navigation.goBack(backPath, {compareParams: false})}
             />
