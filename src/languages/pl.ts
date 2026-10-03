@@ -416,8 +416,6 @@ const translations: TranslationDeepObject<typeof en> = {
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
         skip: 'Pomiń',
-        chatWithAccountManager: (accountManagerDisplayName: string) => `Potrzebujesz czegoś konkretnego? Porozmawiaj ze swoim opiekunem konta, ${accountManagerDisplayName}.`,
-        chatNow: 'Czat teraz',
         workEmail: 'Służbowy e-mail',
         destination: 'Cel',
         subrate: 'Stawka dodatkowa',
@@ -527,6 +525,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noResultsFoundSubtitle: 'Brak wyników. Spróbuj zmienić filtry lub zapytanie wyszukiwania',
         unableToDisplayChart: 'Nie można wyświetlić wykresu',
         webGLNotSupported: 'Twoja przeglądarka nie obsługuje WebGL. Włącz ją albo zmień przeglądarkę.',
+        chartFailedToLoad: 'Nie udało się załadować wykresu. Odśwież stronę i spróbuj ponownie.',
         apiKey: 'Klucz API',
         exportsTo: 'Eksporty do',
     },
@@ -1373,6 +1372,8 @@ const translations: TranslationDeepObject<typeof en> = {
                     : 'Zanim zaczniesz śledzić dystans, musisz dodać swój adres domowy do prywatnego profilu. To miejsce pracy używa tego adresu do odliczeń dojazdów.',
             cta: 'Dodaj adres domowy',
         },
+        expenseAdded: 'Dodano wydatek',
+        invoiceSent: 'Wysłano fakturę',
         amount: 'Kwota',
         percent: 'Procent',
         date: 'Data',
@@ -3178,6 +3179,8 @@ ${amount} dla ${merchant} - ${date}`,
             updateAvatar: 'Wystąpił problem z aktualizacją awatara tego agenta',
         },
     },
+    agentPromptUpdated: ({updatedBy, previousPrompt, newPrompt}: {updatedBy: string; previousPrompt: string; newPrompt: string}) =>
+        `${updatedBy} zaktualizował(-a) instrukcje tego agenta.\nPoprzednie instrukcje:\n${previousPrompt}\nNowe instrukcje:\n${newPrompt}`,
     newAgentPage: {
         title: 'Nowy agent',
         buildCustomAgent: 'Utwórz własnego agenta',
@@ -4696,21 +4699,21 @@ ${amount} dla ${merchant} - ${date}`,
         },
         nudge: {
             airfareManual:
-                'Czy wiesz, że możesz rezerwować i zarządzać lotami bezpośrednio w Expensify? Następnym razem uniknij kłopotu ręcznego tworzenia wydatku i po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Wiesz, że możesz rezerwować loty bezpośrednio w Expensify i nadal zbierać mile w swoich programach lojalnościowych dla często podróżujących? Następnym razem uniknij kłopotu ręcznego tworzenia wydatku i po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             airfareCard:
-                'Wiesz, że możesz rezerwować i zarządzać lotami bezpośrednio w Expensify? I że paragony są automatycznie przesyłane za ciebie? Następnym razem po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Wiesz, że możesz rezerwować loty bezpośrednio w Expensify i nadal zbierać mile w swoich programach lojalnościowych linii lotniczych? Paragony też są automatycznie przesyłane za Ciebie. Następnym razem po prostu zarezerwuj lot przez <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             hotelManual:
-                'Czy wiesz, że możesz rezerwować i zarządzać pobytami w hotelach bezpośrednio w Expensify? Następnym razem uniknij kłopotu ręcznego tworzenia wydatku i po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Wiesz, że możesz rezerwować pobyty w hotelach bezpośrednio w Expensify i nadal korzystać ze swoich programów lojalnościowych hoteli? Następnym razem uniknij kłopotu z ręcznym tworzeniem wydatku i po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             hotelCard:
-                'Wiesz, że możesz rezerwować i zarządzać pobytami w hotelach bezpośrednio w Expensify? Następnym razem po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Wiesz, że możesz rezerwować pobyty w hotelach bezpośrednio w Expensify i nadal korzystać ze swoich programów lojalnościowych hoteli? Następnym razem po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             carManual:
-                'Wiesz, że możesz rezerwować i zarządzać wynajmem samochodów bezpośrednio w Expensify? Następnym razem uniknij kłopotu ręcznego tworzenia wydatku i po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+                'Wiesz, że możesz rezerwować wynajem samochodów bezpośrednio w Expensify i nadal korzystać ze swoich programów lojalnościowych wypożyczalni? Następnym razem uniknij kłopotu z ręcznym tworzeniem wydatku i po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             carCard:
-                'Wiesz, że możesz rezerwować i zarządzać wynajmem samochodów bezpośrednio w Expensify? Następnym razem po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+                'Wiesz, że możesz rezerwować samochody w Expensify i nadal korzystać ze swoich programów lojalnościowych wypożyczalni? Następnym razem po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             railManual:
-                'Wiesz, że możesz rezerwować i zarządzać przejazdami pociągiem bezpośrednio w Expensify? Następnym razem uniknij kłopotu z ręcznym tworzeniem wydatku i po prostu zarezerwuj przejazd przez <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+                'Wiesz, że możesz rezerwować przejazdy pociągiem bezpośrednio w Expensify i nadal korzystać ze swoich programów lojalnościowych kolei oraz kart zniżkowych? Następnym razem uniknij kłopotu ręcznego tworzenia wydatku i po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
-                'Wiesz, że możesz rezerwować i zarządzać przejazdami pociągiem bezpośrednio w Expensify? I że paragony są automatycznie przesyłane za Ciebie? Następnym razem po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a>',
+                'Wiesz, że możesz rezerwować przejazdy pociągiem bezpośrednio w Expensify i wciąż korzystać ze swoich programów lojalnościowych kolei oraz kart zniżkowych? Paragony też są automatycznie przesyłane za ciebie. Następnym razem po prostu zarezerwuj podróż przez <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             hotelBlockManual:
                 'Wiesz, że możesz rezerwować i zarządzać takimi wyjazdami grupowymi bezpośrednio w Expensify? Oszczędź sobie zachodu następnym razem i wypróbuj nasze narzędzie <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a>.',
             hotelBlockCard:
@@ -5501,6 +5504,9 @@ ${amount} dla ${merchant} - ${date}`,
             journalEntriesProvTaxPostingAccount: 'Konto księgowania prowincjonalnego podatku w dzienniku',
             foreignCurrencyAmount: 'Eksportuj kwotę w walucie obcej',
             exportToNextOpenPeriod: 'Eksportuj do następnego otwartego okresu',
+            exportToNextOpenPeriodLockedSubtitle: 'Aby wyłączyć eksport do następnego otwartego okresu, najpierw wyłącz dzielenie eksportów niepodlegających zwrotowi według okresu.',
+            splitExportsByPostingPeriod: 'Podziel eksporty według okresu księgowego',
+            splitExportsByPostingPeriodSubtitle: 'Włącz eksport do następnego otwartego okresu, aby włączyć dzielenie eksportów niepodlegających zwrotowi według okresu w NetSuite',
             nonReimbursableJournalPostingAccount: 'Konto księgowania nierozliczanych wydatków',
             reimbursableJournalPostingAccount: 'Konto księgowe dla zwrotów kosztów',
             journalPostingPreference: {
@@ -6394,6 +6400,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             csvColumnType: 'Typ',
             csvColumnLimitType: 'Typ limitu',
             csvColumnLimit: 'Limit',
+            noCardFeedsAvailable: 'Brak dostępnych kanałów kart',
+            noCardFeedsAvailableDescription: 'Dla tego obszaru roboczego nie ma dostępnych żadnych kanałów kart.',
         },
         categories: {
             deleteCategories: 'Usuń kategorie',
@@ -11047,7 +11055,18 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 invalid: 'Ten kod jest nieprawidłowy',
             },
         },
-        paymentHistory: {title: 'Zobacz historię płatności', subtitle: 'Pełna miesięczna historia płatności obciążających to konto.'},
+        paymentHistory: {
+            title: 'Zobacz historię płatności',
+            subtitle: 'Pełna miesięczna historia płatności obciążających to konto.',
+            payments: 'Płatności',
+            inclTax: 'z VAT',
+            empty: 'Brak płatności.',
+            activeUsers: ({count}: {count: number}) => ({
+                one: '1 aktywny użytkownik',
+                other: `${count} aktywnych użytkowników`,
+            }),
+            state: {paid: 'Opłacone', cleared: 'Rozliczono', failed: 'Niepowodzenie', refunded: 'Zwrócono', disputed: 'Kwestionowana', balanceTransfer: 'Przelew salda'},
+        },
         subscriptionSettings: {
             title: 'Ustawienia subskrypcji',
             summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>
@@ -11618,6 +11637,13 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             title: 'Zbuduj własne agentów',
             description: `<muted-text>Twórz niestandardowych agentów do przeglądania, zatwierdzania i kierowania wydatków na podstawie ustalonych przez siebie zasad. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Dowiedz się więcej</a>.</muted-text>`,
         },
+    },
+    earlyRenewal: {
+        confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Odnów swoją subskrypcję na 12-miesięczny okres, od ${startDate} do ${endDate}.`,
+        title: 'Odnów swoją subskrypcję Expensify',
+        subtitle: 'O jedną rzecz mniej do zrobienia przed nowym rokiem.',
+        confirmTitle: 'Potwierdź odnowienie',
+        renew: 'Odnów',
     },
 };
 export default translations;
