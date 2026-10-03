@@ -1,7 +1,10 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import {hasSynchronizationErrorMessage, isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
 import isTeachersUnitePolicyID from '@libs/isTeachersUnitePolicyID';
 import {getConnectedHRProvider} from '@libs/merge/HRUtils';
+import type {PolicyPaymentAttribution} from '@libs/PolicyPaymentUtils';
 import {
     canSendInvoice,
     getActiveAdminWorkspaces,
@@ -478,13 +481,13 @@ const hasReusablePoliciesConnectedToSelector = (policies: OnyxCollection<Policy>
 // cspell:disable-next-line
 const WORKSPACE_TRANSLATIONS = 'Workspace|Espacio de trabajo|Espace de travail|Spazio di lavoro|ワークスペース|Werkruimte|Przestrzeń robocza|Espaço de trabalho|工作区';
 
-function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: string, userDisplayName: string | undefined): number | undefined {
+function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: string, userDisplayName: string | undefined, localeTranslate: LocalizedTranslate): number | undefined {
     const emailParts = email.split('@');
     if (emailParts.length !== 2) {
         return undefined;
     }
 
-    const displayNameForWorkspace = getDisplayNameForWorkspace(email, userDisplayName);
+    const displayNameForWorkspace = getDisplayNameForWorkspace(email, userDisplayName, localeTranslate);
     // find default named workspaces and increment the last number
     const escapedName = escapeRegExp(displayNameForWorkspace);
 
@@ -512,7 +515,9 @@ const policyRoleSelector = (policy: OnyxEntry<Policy>) => policy?.role;
 
 const areInvoicesEnabledSelector = (policy: OnyxEntry<Policy>) => policy?.areInvoicesEnabled;
 
-const policyACHAccountNumberSelector = (policy: OnyxEntry<Policy>) => policy?.achAccount?.accountNumber;
+/** The policy fields that attribute a payment to a bank account (see `getBankAccountLastFourDigits`). */
+const policyPaymentAttributionSelector = (policy: OnyxEntry<Policy>): PolicyPaymentAttribution | undefined =>
+    policy ? {achAccount: policy.achAccount, reimburser: policy.reimburser} : undefined;
 
 function isAdminForPolicyByIDSelector(policyID?: string) {
     return (policies: OnyxCollection<Policy> | null): boolean => {
@@ -575,7 +580,7 @@ export {
     policyRoleSelector,
     policyTypeSelector,
     areInvoicesEnabledSelector,
-    policyACHAccountNumberSelector,
+    policyPaymentAttributionSelector,
     createAdminPoliciesSelector,
     isAdminForPolicyByIDSelector,
 };
