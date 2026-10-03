@@ -10072,6 +10072,12 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             title: 'Berichte zusammenführen',
             description: 'Wählen Sie den Bericht aus, der beibehalten werden soll. Alle Ausgaben werden in ihn verschoben und die anderen Berichte werden gelöscht.',
         },
+        saveEdits: {
+            title: 'Änderungen speichern',
+            prompt: ({name}: {name: string}) => `Änderungen an „${name}“ aktualisieren oder eine neue erstellen`,
+            createNew: 'Neu erstellen',
+            updateExisting: 'Vorhandene aktualisieren',
+        },
         percentOfSpend: ({percent}: {percent: string}) => `${percent} der Ausgaben`,
     },
     genericErrorPage: {

@@ -9992,6 +9992,12 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             title: 'Rapporten samenvoegen',
             description: 'Selecteer het rapport dat je wilt behouden. Alle uitgaven worden daarheen verplaatst en de andere rapporten worden verwijderd.',
         },
+        saveEdits: {
+            title: 'Wijzigingen opslaan',
+            prompt: ({name}: {name: string}) => `Wijzigingen bijwerken in ‘${name}’ of een nieuwe maken`,
+            createNew: 'Nieuw aanmaken',
+            updateExisting: 'Bestaande bijwerken',
+        },
         percentOfSpend: ({percent}: {percent: string}) => `${percent} van de uitgaven`,
     },
     genericErrorPage: {

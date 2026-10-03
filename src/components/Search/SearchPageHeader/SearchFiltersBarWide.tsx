@@ -4,7 +4,7 @@ import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
 import React from 'react';
 
 import SearchFilterBar from './SearchFilterBar';
-import SearchFiltersResetButton from './SearchFiltersResetButton';
+import SearchFiltersActionButtons from './SearchFiltersActionButtons';
 import useSearchFiltersBar from './useSearchFiltersBar';
 
 type SearchFiltersBarWideProps = {
@@ -12,7 +12,7 @@ type SearchFiltersBarWideProps = {
 };
 
 function SearchFiltersBarWide({queryJSON}: SearchFiltersBarWideProps) {
-    const {filters, hasErrors, shouldShowFiltersBarLoading, shouldShowResetFilters, resetFilters} = useSearchFiltersBar(queryJSON);
+    const {filters, hasErrors, shouldShowFiltersBarLoading, hasFiltersChanged, hasFiltersOrKeywordChanged, resetFilters} = useSearchFiltersBar(queryJSON);
 
     if (hasErrors) {
         return null;
@@ -30,7 +30,11 @@ function SearchFiltersBarWide({queryJSON}: SearchFiltersBarWideProps) {
                     item={item}
                 />
             ))}
-            {shouldShowResetFilters && <SearchFiltersResetButton onPress={resetFilters} />}
+            <SearchFiltersActionButtons
+                hasFiltersChanged={hasFiltersChanged}
+                hasFiltersOrKeywordChanged={hasFiltersOrKeywordChanged}
+                resetFilters={resetFilters}
+            />
         </>
     );
 }
