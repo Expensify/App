@@ -106,6 +106,9 @@ type NumberWithSymbolFormProps = {
     /** Whether to show the currency selection button */
     shouldShowCurrencyButton?: boolean;
 
+    /** Extra content rendered at the start of the right-hand side, before the flip and currency buttons. `displayAsTextInput` mode only. */
+    leadingRightHandSideComponent?: React.ReactNode;
+
     onCurrencyButtonPress?: () => void;
 
     /**
@@ -115,6 +118,14 @@ type NumberWithSymbolFormProps = {
 
     /** Accessibility label for the trailing dropdown button (defaults to currency-based copy when unset) */
     currencyButtonAccessibilityLabel?: string;
+
+    /**
+     * Renders the flip and currency buttons as their icon plus label, without the pill background, so they read as
+     * part of the field rather than as controls stacked on top of it. Their tap targets are unchanged.
+     * Left off for `AmountForm`, whose trailing button (e.g. the Chronos OOO duration unit) is a control on top of a
+     * standalone amount input rather than a row inside a form, so it keeps the pill.
+     */
+    shouldUseBorderlessButtons?: boolean;
 } & Omit<TextInputWithSymbolProps, 'formattedAmount' | 'onAmountChange' | 'placeholder' | 'onSelectionChange' | 'onKeyPress' | 'onMouseDown' | 'onMouseUp'>;
 
 type NumberWithSymbolFormRef = {
@@ -184,9 +195,11 @@ function NumberWithSymbolForm({
     onSubmitEditing,
     shouldShowFlipButton = false,
     shouldShowCurrencyButton = false,
+    leadingRightHandSideComponent,
     onCurrencyButtonPress,
     currencyButtonLabel,
     currencyButtonAccessibilityLabel,
+    shouldUseBorderlessButtons = false,
     ...props
 }: NumberWithSymbolFormProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'PlusMinus', 'CoinsButton']);
@@ -475,6 +488,10 @@ function NumberWithSymbolForm({
         onInputChange?.(newValue);
     }, [currentNumber, onInputChange]);
 
+    // Borderless buttons read as part of the field rather than as controls on top of it, so their labels take the
+    // supporting text color instead of the button's own, matching the icons beside them.
+    const borderlessButtonTextStyle = shouldUseBorderlessButtons ? styles.textSupporting : undefined;
+
     /**
      * Creates the right-hand side component for text input mode
      * Renders flip (+/-) button and/or currency selection button when enabled
@@ -483,9 +500,14 @@ function NumberWithSymbolForm({
     const textInputRightHandSideComponent = useMemo(() => {
         return (
             <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
+                {leadingRightHandSideComponent}
                 {shouldShowFlipButton && allowNegativeInput && canUseTouchScreen && (
                     <Button
                         size={CONST.BUTTON_SIZE.SMALL}
+                        innerStyles={shouldUseBorderlessButtons ? styles.bgTransparent : undefined}
+                        // `innerStyles` never reaches the hover style `Button` layers on top, so the pill the
+                        // borderless treatment removes would come back under the cursor without this.
+                        hoverStyles={shouldUseBorderlessButtons ? styles.bgTransparent : undefined}
                         onPress={handleFlipPress}
                         onMouseDown={(e) => e.preventDefault()}
                         contentContainerStyle={styles.justifyContentCenter}
@@ -496,13 +518,21 @@ function NumberWithSymbolForm({
                             src={icons.PlusMinus}
                             accessibilityLabel={translate('iou.flip')}
                         />
-                        <Button.Text>{translate('iou.flip')}</Button.Text>
+                        <Button.Text style={borderlessButtonTextStyle}>{translate('iou.flip')}</Button.Text>
                     </Button>
                 )}
                 {shouldShowCurrencyButton && !!currencyOrUnitButtonText && (
                     <Button
                         size={CONST.BUTTON_SIZE.SMALL}
+                        innerStyles={shouldUseBorderlessButtons ? styles.bgTransparent : undefined}
+                        // `innerStyles` never reaches the hover style `Button` layers on top, so the pill the
+                        // borderless treatment removes would come back under the cursor without this.
+                        hoverStyles={shouldUseBorderlessButtons ? styles.bgTransparent : undefined}
                         onPress={onTrailingDropdownPress}
+                        // Keep the press from blurring the input. Callers that only reveal these buttons while the
+                        // field is focused would otherwise unmount this one before the press lands, leaving the
+                        // currency unreachable until an amount is typed.
+                        onMouseDown={(e) => e.preventDefault()}
                         contentContainerStyle={styles.justifyContentCenter}
                         accessibilityLabel={currencyButtonAccessibilityLabel ?? `${translate('common.selectCurrency')}, ${currencyOrUnitButtonText}`}
                         isDisabled={disabled}
@@ -511,7 +541,7 @@ function NumberWithSymbolForm({
                             src={icons.CoinsButton}
                             accessibilityLabel={translate('common.currency')}
                         />
-                        <Button.Text>{currencyOrUnitButtonText}</Button.Text>
+                        <Button.Text style={borderlessButtonTextStyle}>{currencyOrUnitButtonText}</Button.Text>
                     </Button>
                 )}
             </View>
@@ -520,7 +550,10 @@ function NumberWithSymbolForm({
         shouldShowFlipButton,
         allowNegativeInput,
         disabled,
+        shouldUseBorderlessButtons,
+        borderlessButtonTextStyle,
         shouldShowCurrencyButton,
+        leadingRightHandSideComponent,
         styles,
         icons,
         handleFlipPress,
@@ -565,7 +598,7 @@ function NumberWithSymbolForm({
                 onFocus={props.onFocus}
                 onBlur={props.onBlur}
                 testID={props.testID}
-                rightHandSideComponent={shouldShowCurrencyButton || shouldShowFlipButton ? textInputRightHandSideComponent : undefined}
+                rightHandSideComponent={shouldShowCurrencyButton || shouldShowFlipButton || !!leadingRightHandSideComponent ? textInputRightHandSideComponent : undefined}
             />
         );
     }

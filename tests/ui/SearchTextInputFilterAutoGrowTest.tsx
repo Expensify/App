@@ -20,6 +20,7 @@ const defaultProps = {
     baseFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
     value: undefined,
     isNegated: false,
+    buttonText: 'Save filter',
     onChange: jest.fn(),
 };
 
@@ -32,7 +33,7 @@ describe('Search text input filter wrappers', () => {
     it('enables fill-height auto-grow in the narrow Search RHP', () => {
         render(<TextInputFilterContentPageWrapper {...defaultProps} />);
 
-        expect(mockTextInputFilterContentFillHeight.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({autoFocus: true, size: CONST.BUTTON_SIZE.LARGE}));
+        expect(mockTextInputFilterContentFillHeight.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({autoFocus: true, buttonText: 'Save filter', size: CONST.BUTTON_SIZE.LARGE}));
         expect(mockTextInputFilterContent).not.toHaveBeenCalled();
     });
 

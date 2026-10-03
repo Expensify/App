@@ -13,7 +13,7 @@ import React from 'react';
 import type {BaseMenuItemTextProps, MenuItemPrimaryTextProps} from './types';
 
 /** Base of the full-contrast leaves */
-function BaseMenuItemPrimaryText({children, accessibilityLabel, slot, style}: MenuItemPrimaryTextProps & BaseMenuItemTextProps) {
+function BaseMenuItemPrimaryText({children, accessibilityLabel, numberOfLines = 1, slot, style}: MenuItemPrimaryTextProps & BaseMenuItemTextProps) {
     const styles = useThemeStyles();
     const {isDisabled, isInteractive} = useMenuItemConfig();
 
@@ -21,8 +21,16 @@ function BaseMenuItemPrimaryText({children, accessibilityLabel, slot, style}: Me
 
     return (
         <Text
-            style={[styles.flexShrink1, styles.popoverMenuText, styles.pre, isInteractive && isDisabled && styles.userSelectNone, styles.ltr, styles.mw100, style]}
-            numberOfLines={1}
+            style={[
+                styles.flexShrink1,
+                styles.popoverMenuText,
+                numberOfLines === 1 ? styles.pre : styles.preWrap,
+                isInteractive && isDisabled && styles.userSelectNone,
+                styles.ltr,
+                styles.mw100,
+                style,
+            ]}
+            numberOfLines={numberOfLines}
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: isInteractive && isDisabled}}
         >
             {typeof children === 'string' ? convertToLTR(children) : children}

@@ -1,7 +1,7 @@
 import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 
@@ -55,10 +55,7 @@ function RulesCustomPage({
                 shouldEnableMaxHeight
                 testID="RulesCustomPage"
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.rules.customRules.title')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.rules.customRules.title')} />
                 <FormProvider
                     submitFlexEnabled={false}
                     style={[styles.flexGrow1, styles.ph5]}

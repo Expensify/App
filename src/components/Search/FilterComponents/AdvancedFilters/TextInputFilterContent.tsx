@@ -1,5 +1,6 @@
 import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import Button from '@components/Button';
+import ScrollView from '@components/ScrollView';
 import NegatableFilter from '@components/Search/FilterComponents/NegatableFilter';
 import useTextFilterValidation from '@components/Search/hooks/useTextFilterValidation';
 import type {ReportFieldTextKey, SearchTextFilterKeys} from '@components/Search/types';
@@ -8,6 +9,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
@@ -17,6 +19,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 import type {TextInput as RNTextInput, StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
@@ -30,6 +33,7 @@ type TextInputFilterContentProps = {
     size?: Exclude<ValueOf<typeof CONST.BUTTON_SIZE>, typeof CONST.BUTTON_SIZE.SMALL>;
     autoFocus?: boolean;
     style?: StyleProp<ViewStyle>;
+    buttonText?: string;
     onChange: (value: string | undefined, isNegated: boolean) => void;
 };
 
@@ -43,7 +47,7 @@ type TextInputFilterInputOptions = {
     textInputContainerStyles?: StyleProp<ViewStyle>;
 };
 
-function isTextInput(element: BaseTextInputRef | RNTextInput | null): element is RNTextInput {
+function isTextInput(element: BaseTextInputRef | ComponentRef<typeof RNTextInput> | null): element is ComponentRef<typeof RNTextInput> {
     return !!element && 'isFocused' in element;
 }
 
@@ -93,7 +97,7 @@ function useTextInputFilterState({baseFilterKey, value: initialValue, isNegated:
     return {error, isNegated, label, renderTextInput, setIsNegated, setValue, styles, submit, translate, value};
 }
 
-function TextInputFilterContent({baseFilterKey, value: initialValue, isNegated: initialIsNegated, autoFocus, size, style, onChange}: TextInputFilterContentProps) {
+function TextInputFilterContent({baseFilterKey, value: initialValue, isNegated: initialIsNegated, autoFocus, size, style, buttonText, onChange}: TextInputFilterContentProps) {
     const {isNegated, renderTextInput, setIsNegated, styles, submit, translate} = useTextInputFilterState({
         baseFilterKey,
         value: initialValue,
@@ -102,29 +106,40 @@ function TextInputFilterContent({baseFilterKey, value: initialValue, isNegated: 
         onChange,
     });
 
+    const shouldButtonBeInScrollView = useShouldFooterBeInsideList();
+    const button = (
+        <Button
+            style={[styles.ph5, styles.pb5]}
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            size={size}
+            onPress={submit}
+        >
+            <Button.KeyboardShortcut />
+            <Button.Text>{buttonText ?? translate('common.confirm')}</Button.Text>
+        </Button>
+    );
+
     return (
         <View style={[styles.flex1, styles.justifyContentBetween, style]}>
-            <NegatableFilter
-                baseFilterKey={baseFilterKey}
-                isNegated={isNegated}
-                onNegationChange={setIsNegated}
+            <ScrollView
+                keyboardShouldPersistTaps="handled"
+                contentContainerStyle={[styles.flexGrow1, styles.gap3]}
             >
-                {renderTextInput()}
-            </NegatableFilter>
-            <Button
-                style={[styles.ph5, styles.pb5]}
-                variant={CONST.BUTTON_VARIANT.SUCCESS}
-                size={size}
-                onPress={submit}
-            >
-                <Button.KeyboardShortcut />
-                <Button.Text>{translate('common.confirm')}</Button.Text>
-            </Button>
+                <NegatableFilter
+                    baseFilterKey={baseFilterKey}
+                    isNegated={isNegated}
+                    onNegationChange={setIsNegated}
+                >
+                    {renderTextInput()}
+                </NegatableFilter>
+                {shouldButtonBeInScrollView && button}
+            </ScrollView>
+            {!shouldButtonBeInScrollView && button}
         </View>
     );
 }
 
-function TextInputFilterContentFillHeight({baseFilterKey, value: initialValue, isNegated: initialIsNegated, autoFocus, size, style, onChange}: TextInputFilterContentProps) {
+function TextInputFilterContentFillHeight({baseFilterKey, value: initialValue, isNegated: initialIsNegated, autoFocus, size, style, buttonText, onChange}: TextInputFilterContentProps) {
     const {isNegated, renderTextInput, setIsNegated, styles, submit, translate, value} = useTextInputFilterState({
         baseFilterKey,
         value: initialValue,
@@ -133,34 +148,45 @@ function TextInputFilterContentFillHeight({baseFilterKey, value: initialValue, i
         onChange,
     });
 
+    const shouldButtonBeInScrollView = useShouldFooterBeInsideList();
+    const button = (
+        <Button
+            style={[styles.ph5, styles.pb5]}
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            size={size}
+            onPress={submit}
+        >
+            <Button.Text>{buttonText ?? translate('common.confirm')}</Button.Text>
+        </Button>
+    );
+
     return (
         <View style={[styles.flex1, styles.justifyContentBetween, style]}>
-            <NegatableFilter
-                baseFilterKey={baseFilterKey}
-                isNegated={isNegated}
-                style={styles.flex1}
-                onNegationChange={setIsNegated}
+            <ScrollView
+                keyboardShouldPersistTaps="handled"
+                contentContainerStyle={[styles.flexGrow1, styles.gap3]}
             >
-                <AutoGrowHeightInputContainer>
-                    {(maxAutoGrowHeight) =>
-                        renderTextInput({
-                            autoGrowHeight: true,
-                            maxAutoGrowHeight: !value ? variables.componentSizeLarge : maxAutoGrowHeight,
-                            onSubmitEditing: submit,
-                            submitBehavior: 'submit',
-                            textInputContainerStyles: [styles.pt3],
-                        })
-                    }
-                </AutoGrowHeightInputContainer>
-            </NegatableFilter>
-            <Button
-                style={[styles.ph5, styles.pb5]}
-                variant={CONST.BUTTON_VARIANT.SUCCESS}
-                size={size}
-                onPress={submit}
-            >
-                <Button.Text>{translate('common.confirm')}</Button.Text>
-            </Button>
+                <NegatableFilter
+                    baseFilterKey={baseFilterKey}
+                    isNegated={isNegated}
+                    style={styles.flex1}
+                    onNegationChange={setIsNegated}
+                >
+                    <AutoGrowHeightInputContainer>
+                        {(maxAutoGrowHeight) =>
+                            renderTextInput({
+                                autoGrowHeight: true,
+                                maxAutoGrowHeight: !value ? variables.componentSizeLarge : maxAutoGrowHeight,
+                                onSubmitEditing: submit,
+                                submitBehavior: 'submit',
+                                textInputContainerStyles: [styles.pt3],
+                            })
+                        }
+                    </AutoGrowHeightInputContainer>
+                </NegatableFilter>
+                {shouldButtonBeInScrollView && button}
+            </ScrollView>
+            {!shouldButtonBeInScrollView && button}
         </View>
     );
 }
