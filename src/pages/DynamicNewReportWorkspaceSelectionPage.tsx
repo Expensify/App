@@ -265,7 +265,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
         label: usersWorkspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? translate('common.search') : undefined,
         value: searchTerm,
         onChangeText: setSearchTerm,
-        headerMessage: getHeaderMessageForNonUserList(areResultsFound, debouncedSearchTerm),
+        headerMessage: getHeaderMessageForNonUserList(translate, areResultsFound, debouncedSearchTerm),
     };
 
     return (

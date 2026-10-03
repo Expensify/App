@@ -62,7 +62,7 @@ function EditReportFieldDropdown({onSubmit, fieldKey, fieldValue, fieldOptions}:
         value: searchValue,
         label: translate('common.search'),
         onChangeText: setSearchValue,
-        headerMessage: getHeaderMessageForNonUserList(policyReportFieldData.length > 0, debouncedSearchValue),
+        headerMessage: getHeaderMessageForNonUserList(translate, policyReportFieldData.length > 0, debouncedSearchValue),
     };
 
     return (
