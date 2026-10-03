@@ -202,6 +202,57 @@ describe('MoneyRequestView edit fields', () => {
         return transaction;
     };
 
+    it('renders the shared report fields in order and reacts to preference changes', async () => {
+        // Given an expense whose report columns include accounting data absent from the default editor.
+        const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {
+                // eslint-disable-next-line @typescript-eslint/naming-convention -- GL Code is the backend's category property.
+                Travel: {name: 'Travel', enabled: true, 'GL Code': '6100'},
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                category: 'Travel',
+                mcc: '5812',
+                currency: 'EUR',
+                currencyConversionRate: '1.25',
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {currency: 'USD'});
+            await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, [
+                CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE,
+                CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE,
+                CONST.SEARCH.TABLE_COLUMNS.MCC,
+                CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+                CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
+            ]);
+        });
+
+        // When the same expense is opened, it uses the report's selection and keeps existing editors.
+        renderMoneyRequestView(threadReport);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the extra values are read-only, selected fields keep their order, and unchecked fields are absent.
+        expect(screen.getByTestId('menu-item-title-common.categoryGLCode')).toHaveTextContent('6100');
+        expect(screen.getByTestId('menu-item-title-common.exchangeRate')).toHaveTextContent('1.2500 EUR/USD');
+        expect(screen.getByTestId('menu-item-title-common.mcc')).toHaveTextContent('5812');
+        expect(screen.getByTestId('menu-item-common.categoryGLCode')).toHaveTextContent('readonly');
+        expect(screen.getByTestId('menu-item-common.merchant')).toHaveTextContent('editable');
+        expect(screen.queryByTestId('menu-item-common.category')).not.toBeOnTheScreen();
+        const fieldIDs = screen.getAllByTestId(/^menu-item-(?!title)/).map((item) => String(item.props.testID));
+        expect(fieldIDs.slice(0, 4)).toEqual(['menu-item-common.categoryGLCode', 'menu-item-common.exchangeRate', 'menu-item-common.mcc', 'menu-item-common.merchant']);
+
+        // When another view updates the shared preference, the mounted expense must update too.
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.MCC]);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the old selection is removed without reopening the expense.
+        expect(screen.queryByTestId('menu-item-common.categoryGLCode')).not.toBeOnTheScreen();
+        expect(screen.queryByTestId('menu-item-common.merchant')).not.toBeOnTheScreen();
+        expect(screen.getByTestId('menu-item-common.mcc')).toBeOnTheScreen();
+    });
+
     it('should show amount and merchant as editable when report is open', async () => {
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),

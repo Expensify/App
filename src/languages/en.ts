@@ -10030,6 +10030,7 @@ const translations = {
             },
         },
         columns: 'Columns',
+        customizeFields: 'Customize fields',
         editColumns: 'Edit columns',
         resetColumns: 'Reset columns',
         groupColumns: 'Group columns',

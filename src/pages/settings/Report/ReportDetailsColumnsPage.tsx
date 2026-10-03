@@ -6,6 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 
 import {setReportDetailsColumns} from '@libs/actions/ReportLayout';
+import getMoneyRequestViewFields from '@libs/getMoneyRequestViewFields';
 import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -18,7 +19,7 @@ import type {ReportSettingsNavigatorParamList} from '@navigation/types';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import arraysEqual from '@src/utils/arraysEqual';
 
@@ -42,10 +43,13 @@ const REPORT_DETAILS_DEFAULT_COLUMNS: SearchCustomColumnIds[] = [
 ];
 
 const ALL_REPORT_DETAILS_CUSTOM_COLUMNS = Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS).filter(isReportDetailsCustomColumn);
+const EXPENSE_DEFAULT_FIELDS = getMoneyRequestViewFields().filter(isReportDetailsCustomColumn);
+const ALL_EXPENSE_FIELDS = [...new Set([...EXPENSE_DEFAULT_FIELDS, ...ALL_REPORT_DETAILS_CUSTOM_COLUMNS])].filter((column) => column !== CONST.SEARCH.TABLE_COLUMNS.RECEIPT);
 
 function ReportDetailsColumnsPage() {
-    const route = useRoute<PlatformStackRouteProp<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.COLUMNS>>();
+    const route = useRoute<PlatformStackRouteProp<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.COLUMNS | typeof SCREENS.REPORT_SETTINGS.FIELDS>>();
     const reportID = route.params.reportID;
+    const isExpenseView = route.name === SCREENS.REPORT_SETTINGS.FIELDS;
     const [reportDetailsColumns] = useOnyx(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
@@ -64,7 +68,8 @@ function ReportDetailsColumnsPage() {
 
     // The vendor column only exists for workspaces with the vendor feature, so hide it when this report's workspace lacks it.
     const isVendorColumnAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
-    const isColumnAvailable = (column: SearchCustomColumnIds) => isVendorColumnAvailable || column !== CONST.SEARCH.TABLE_COLUMNS.VENDOR;
+    const isColumnAvailable = (column: SearchCustomColumnIds) =>
+        (!isExpenseView || column !== CONST.SEARCH.TABLE_COLUMNS.RECEIPT) && (isVendorColumnAvailable || column !== CONST.SEARCH.TABLE_COLUMNS.VENDOR);
 
     // Wait for transactions to load before rendering. ColumnsSettingsList snapshots
     // currentColumns in useState on mount and does not sync prop updates, so we must
@@ -81,7 +86,7 @@ function ReportDetailsColumnsPage() {
         }
 
         if (!reportTransactions?.length) {
-            return REPORT_DETAILS_DEFAULT_COLUMNS;
+            return isExpenseView ? EXPENSE_DEFAULT_FIELDS : REPORT_DETAILS_DEFAULT_COLUMNS;
         }
 
         const visibleColumns = getColumnsToShow({
@@ -96,11 +101,13 @@ function ReportDetailsColumnsPage() {
             isPolicyTaxEnabled: isPolicyTaxEnabled(policy),
         });
 
-        // Filter to only columns available in the custom columns list (drops RECEIPT/TYPE/COMMENTS etc.)
-        return visibleColumns.filter(isReportDetailsCustomColumn);
-    }, [reportDetailsColumns, reportTransactions, currentUserDetails?.accountID, report, policy]);
+        // The untouched expense editor has its own field order. Opening and saving the picker
+        // without changes must not hide its editors or overwrite the shared table preference.
+        const columns = isExpenseView ? getMoneyRequestViewFields(visibleColumns) : visibleColumns;
+        return columns.filter(isReportDetailsCustomColumn);
+    }, [reportDetailsColumns, reportTransactions, currentUserDetails?.accountID, report, policy, isExpenseView]);
 
-    const allColumns = ALL_REPORT_DETAILS_CUSTOM_COLUMNS.filter(isColumnAvailable);
+    const allColumns = (isExpenseView ? ALL_EXPENSE_FIELDS : ALL_REPORT_DETAILS_CUSTOM_COLUMNS).filter(isColumnAvailable);
     const currentColumns = effectiveColumns.filter(isColumnAvailable);
     const requiredColumns = new Set<SearchCustomColumnIds>([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
 
@@ -108,7 +115,17 @@ function ReportDetailsColumnsPage() {
         // Skip saving if columns haven't changed from the effective state, to avoid
         // switching from the default path to the custom path in getColumnsToShow unnecessarily.
         if (!arraysEqual(selectedColumnIds, currentColumns)) {
-            setReportDetailsColumns(selectedColumnIds, reportDetailsColumns);
+            const columnsToSave = [...selectedColumnIds];
+            if (isExpenseView) {
+                // Receipts have a separate panel in the expense view. Editing fields must not
+                // change whether or where the receipt column appears in the report table.
+                const savedColumns = (reportDetailsColumns ?? []).filter(isReportDetailsCustomColumn);
+                const receiptIndex = savedColumns.length ? savedColumns.indexOf(CONST.SEARCH.TABLE_COLUMNS.RECEIPT) : 0;
+                if (receiptIndex !== -1) {
+                    columnsToSave.splice(Math.min(receiptIndex, columnsToSave.length), 0, CONST.SEARCH.TABLE_COLUMNS.RECEIPT);
+                }
+            }
+            setReportDetailsColumns(columnsToSave, reportDetailsColumns);
         }
         Navigation.goBack();
     };
@@ -119,8 +136,9 @@ function ReportDetailsColumnsPage() {
 
     return (
         <ColumnsSettingsList
+            titleKey={isExpenseView ? 'search.customizeFields' : 'search.columns'}
             allColumns={allColumns}
-            defaultSelectedColumns={REPORT_DETAILS_DEFAULT_COLUMNS}
+            defaultSelectedColumns={isExpenseView ? EXPENSE_DEFAULT_FIELDS : REPORT_DETAILS_DEFAULT_COLUMNS}
             currentColumns={currentColumns}
             requiredColumns={requiredColumns}
             onSave={handleSave}

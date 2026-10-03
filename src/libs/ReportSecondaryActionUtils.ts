@@ -1215,6 +1215,10 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER);
     }
 
+    if (isExpenseReportUtils(report) && reportTransactions.length === 1) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.CUSTOMIZE_FIELDS);
+    }
+
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
 
     if (isDeleteAction(report, reportTransactions, currentUserAccountID, rules, reportActions ?? [], policy, true)) {
@@ -1349,6 +1353,10 @@ function getSecondaryTransactionThreadActions({
         if (!isSelfDMExpenseSplit || hasWorkspaceToSubmitTo) {
             options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_EMPLOYER);
         }
+    }
+
+    if (isExpenseReportUtils(parentReport)) {
+        options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.CUSTOMIZE_FIELDS);
     }
 
     options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS);
