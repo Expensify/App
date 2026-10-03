@@ -28,6 +28,12 @@ type OpenReportParams = {
     includePartiallySetupBankAccounts?: boolean;
     useLastUnreadReportAction?: boolean;
     includeLockedBankAccounts?: boolean;
+
+    /** The policy of the client's last full policy snapshot, sent together with fullPolicySnapshotLastModified */
+    fullPolicySnapshotPolicyID?: string;
+
+    /** The fullPolicySnapshotLastModified of that snapshot, so the server can leave out the policy collections the client already has */
+    fullPolicySnapshotLastModified?: number;
 };
 
 export default OpenReportParams;

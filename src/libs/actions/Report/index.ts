@@ -385,6 +385,9 @@ type OpenReportActionParams = {
 
     /** The Concierge chat report used to build the guided setup onboarding data */
     conciergeChat: OnyxEntry<Report>;
+
+    /** The report policy's last full policy snapshot, so the server can leave out the members, tags and categories the client already has */
+    fullPolicySnapshot?: {policyID: string; lastModified: number};
 };
 
 type PregeneratedResponseParams = {
@@ -1704,6 +1707,7 @@ function openReport(params: OpenReportActionParams) {
         hasOnceLoadedReportActions = true,
         shouldMarkAsRead = true,
         conciergeChat,
+        fullPolicySnapshot,
     } = params;
     if (!reportID) {
         return;
@@ -1838,6 +1842,8 @@ function openReport(params: OpenReportActionParams) {
         includePartiallySetupBankAccounts: true,
         useLastUnreadReportAction: shouldMarkAsRead ? true : undefined,
         includeLockedBankAccounts: true,
+        fullPolicySnapshotPolicyID: fullPolicySnapshot?.policyID,
+        fullPolicySnapshotLastModified: fullPolicySnapshot?.lastModified,
     };
 
     if (optimisticSelfDMReport) {
