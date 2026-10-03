@@ -6,7 +6,12 @@ import type {ValueOf} from 'type-fest';
 type BulkActionState = ValueOf<typeof CONST.BULK_ACTION.STATE>;
 
 /** Bulk actions from Search "Select all" that run on the backend */
-type BulkActionType = typeof CONST.SEARCH.BULK_ACTION_TYPES.APPROVE | typeof CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT | typeof CONST.SEARCH.BULK_ACTION_TYPES.PAY;
+type BulkActionType =
+    | typeof CONST.SEARCH.BULK_ACTION_TYPES.APPROVE
+    | typeof CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT
+    | typeof CONST.SEARCH.BULK_ACTION_TYPES.PAY
+    | typeof CONST.SEARCH.BULK_ACTION_TYPES.HOLD
+    | typeof CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD;
 
 /** Model of a bulk action started from Search "Select all" */
 type BulkAction = {
