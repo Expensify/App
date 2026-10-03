@@ -123,15 +123,29 @@ function ConfirmationReceiptThumbnail({
     const {translate} = useLocalize();
     const [isReceiptLoaded, setIsReceiptLoaded] = useState(false);
 
-    // Stitching replaces the receipt, so drop the loaded flag or the badge sits on the spinner.
-    if (isLoadingReceipt && isReceiptLoaded) {
+    // A local PDF has no server pageCount until it is uploaded, so we read it from the rendered document.
+    // The count is stamped with the source it was measured from, so a replaced receipt never inherits it.
+    const [detectedPDF, setDetectedPDF] = useState<{source: string | undefined; pageCount: number}>({source: undefined, pageCount: 0});
+    if (detectedPDF.source !== resolvedReceiptImage) {
+        setDetectedPDF({source: resolvedReceiptImage, pageCount: 0});
+    }
+
+    // Stitching replaces the receipt, so drop the loaded flag and detected count or the badge sits on the spinner.
+    if (isLoadingReceipt && (isReceiptLoaded || detectedPDF.pageCount > 0)) {
         setIsReceiptLoaded(false);
+        setDetectedPDF({source: resolvedReceiptImage, pageCount: 0});
     }
 
     const receiptContainerStyle = isCompactMode && compactReceiptContainerStyle ? compactReceiptContainerStyle : styles.expenseViewImageSmall;
     const receiptThumbnailStyle = [styles.h100, styles.flex1];
     const isPDF = isLocalFile && Str.isPDF(receiptFilename);
-    const shouldShowReceiptPageCount = receiptPageCount > 1 && Str.isPDF(receiptFilename) && !isLoadingReceipt && isReceiptLoaded;
+    const effectiveReceiptPageCount = receiptPageCount || (detectedPDF.source === resolvedReceiptImage ? detectedPDF.pageCount : 0);
+    const shouldShowReceiptPageCount = effectiveReceiptPageCount > 1 && Str.isPDF(receiptFilename) && !isLoadingReceipt && isReceiptLoaded;
+
+    const resetDetectedPDF = () => {
+        setIsReceiptLoaded(false);
+        setDetectedPDF({source: resolvedReceiptImage, pageCount: 0});
+    };
 
     const navigateToReceipt = () => {
         if (!transactionID) {
@@ -163,10 +177,17 @@ function ConfirmationReceiptThumbnail({
                             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style -- resolvedReceiptImage is guaranteed string when isLocalFile + PDF
                             previewSourceURL={resolvedReceiptImage as string}
                             style={styles.h100}
-                            onLoadError={onPDFLoadError}
-                            onPassword={onPDFPassword}
-                            onLoadSuccess={() => {
+                            onLoadError={() => {
+                                resetDetectedPDF();
+                                onPDFLoadError?.();
+                            }}
+                            onPassword={() => {
+                                resetDetectedPDF();
+                                onPDFPassword?.();
+                            }}
+                            onLoadSuccess={(pageCount) => {
                                 setIsReceiptLoaded(true);
+                                setDetectedPDF({source: resolvedReceiptImage, pageCount: pageCount ?? 0});
                                 onPDFLoadSuccess?.();
                             }}
                         />
@@ -199,7 +220,7 @@ function ConfirmationReceiptThumbnail({
                 ))}
             {shouldShowReceiptPageCount && (
                 <Badge
-                    text={translate('receipt.pageCount', {pageCount: receiptPageCount})}
+                    text={translate('receipt.pageCount', {pageCount: effectiveReceiptPageCount})}
                     badgeStyles={[styles.receiptPageCountBadge, styles.pointerEventsNone]}
                 />
             )}
