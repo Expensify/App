@@ -4449,6 +4449,14 @@ type NavigateToConciergeChatParams = {
     /** Whether the user has already viewed the self tour. */
     isSelfTourViewed: boolean | undefined;
 
+    /**
+     * Whether the user has completed the guided setup (onboarding) flow. Only read on the branch where
+     * `conciergeReportID` is undefined — the one that has to find or create the Concierge chat — where it decides
+     * whether a still-pending onboarding OpenReport is enqueued. When the report ID is already known this function
+     * only navigates, so the value is unused there.
+     */
+    hasCompletedGuidedSetupFlow: boolean | undefined;
+
     /** Whether to dismiss the current modal instead of navigating on top of it. */
     shouldDismissModal?: boolean;
 
@@ -4480,6 +4488,7 @@ function navigateToConciergeChat({
     introSelected,
     currentUserAccountID,
     isSelfTourViewed,
+    hasCompletedGuidedSetupFlow,
     shouldDismissModal = false,
     checkIfCurrentPageActive = () => true,
     linkToOptions,
@@ -4507,8 +4516,7 @@ function navigateToConciergeChat({
                 // The Concierge chat does not exist yet on this path (it is being created here), so there is no report to thread.
                 conciergeChat: undefined,
                 isSelfTourViewed,
-                // TODO: Pass the correct hasCompletedGuidedSetupFlow from Onyx data in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
-                hasCompletedGuidedSetupFlow: undefined,
+                hasCompletedGuidedSetupFlow,
                 // Not gated: this is the Concierge fallback, not the Start chat flow. Concierge is a core report reached while
                 // simply navigating around, so blocking it for support agents would pop the denied modal during plain navigation.
                 isSupportalSession: false,
@@ -4996,6 +5004,8 @@ function navigateToConciergeChatAndDeleteReport(
         introSelected,
         currentUserAccountID,
         isSelfTourViewed,
+        // TODO: Thread hasCompletedGuidedSetupFlow through this wrapper in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
+        hasCompletedGuidedSetupFlow: undefined,
         shouldDismissModal: false,
         linkToOptions: {afterTransition: () => deleteReport(reportID, shouldDeleteChildReports)},
         personalDetails,
@@ -5304,7 +5314,16 @@ function navigateToMostRecentReport(
             Navigation.goBack();
         }
 
-        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, shouldDismissModal: false, linkToOptions: {forceReplace: true}});
+        // TODO: Thread hasCompletedGuidedSetupFlow through this wrapper in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
+        navigateToConciergeChat({
+            conciergeReportID,
+            introSelected,
+            currentUserAccountID,
+            isSelfTourViewed,
+            hasCompletedGuidedSetupFlow: undefined,
+            shouldDismissModal: false,
+            linkToOptions: {forceReplace: true},
+        });
     }
 }
 

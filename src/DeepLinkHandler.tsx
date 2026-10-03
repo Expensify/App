@@ -128,6 +128,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                         conciergeReportID,
                         introSelected,
                         guidedSetupAndTourStatus?.isSelfTourViewed,
+                        guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                         session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                         reportNameValuePairsRef.current,
                     );
@@ -171,6 +172,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                 conciergeReportID,
                 introSelected,
                 guidedSetupAndTourStatus?.isSelfTourViewed,
+                guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                 session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 reportNameValuePairsRef.current,
             );

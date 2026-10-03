@@ -54,7 +54,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {StyleProp, TextStyle} from 'react-native';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
@@ -88,7 +88,9 @@ function SubscriptionSettings() {
     const defaultCard = useMemo(() => Object.values(fundList ?? {}).find((card) => card.accountData?.additionalData?.isBillingCard), [fundList]);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
 
     const {isSecretPromoCode, promoDiscountValue} = getPrivatePromoDiscountInfo(privatePromoDiscount, isAnnual);
 
@@ -355,7 +357,7 @@ function SubscriptionSettings() {
                     <MenuItemSectionRoot
                         onPress={() => {
                             requestTaxExempt();
-                            navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, shouldDismissModal: false});
+                            navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow, shouldDismissModal: false});
                         }}
                     >
                         <MenuItem.Row>

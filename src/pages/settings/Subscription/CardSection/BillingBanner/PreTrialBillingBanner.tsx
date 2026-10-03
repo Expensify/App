@@ -13,6 +13,7 @@ import {getChatUsedForOnboarding} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
+import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -26,13 +27,14 @@ function PreTrialBillingBanner() {
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const isSelfTourViewed = onboarding?.selfTourViewed;
+    const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboarding);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const navigateToChat = () => {
         const reportUsedForOnboarding = getChatUsedForOnboarding(onboarding, conciergeReportID);
 
         if (!reportUsedForOnboarding) {
-            navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, shouldDismissModal: false});
+            navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow, shouldDismissModal: false});
             return;
         }
 

@@ -36,7 +36,7 @@ import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import type {ComponentRef} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
@@ -75,7 +75,9 @@ function AboutPage() {
     const aboutIllustration = useAboutSectionIllustration();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const menuItems = useMemo(() => {
@@ -119,7 +121,7 @@ function AboutPage() {
                 icon: icons.Bug,
                 sentryLabel: CONST.SENTRY_LABEL.SETTINGS_ABOUT.REPORT_A_BUG,
                 action: waitForNavigate(() => {
-                    navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, shouldDismissModal: false});
+                    navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow, shouldDismissModal: false});
                 }),
             },
         ];
@@ -146,7 +148,7 @@ function AboutPage() {
             wrapperStyle: [styles.sectionMenuItemTopDescription],
             sentryLabel,
         }));
-    }, [icons, styles, translate, waitForNavigate, conciergeReportID, introSelected, isSelfTourViewed, currentUserAccountID]);
+    }, [icons, styles, translate, waitForNavigate, conciergeReportID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, currentUserAccountID]);
 
     const overlayContent = useCallback(
         () => (

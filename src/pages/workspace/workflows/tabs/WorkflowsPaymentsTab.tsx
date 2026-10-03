@@ -46,7 +46,7 @@ import ROUTES from '@src/ROUTES';
 
 import type {TupleToUnion} from 'type-fest';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 
@@ -72,9 +72,11 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
-        selector: hasSeenTourSelector,
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: guidedSetupAndTourStatusSelector,
     });
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
 
     const delegateAccountID = useDelegateAccountID();
     const {accountID: currentUserAccountID, login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
@@ -226,7 +228,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                 return;
             }
             pressLockedBankAccount(bankAccountID, translate, conciergeReportID ?? undefined, delegateAccountID, initiatingBankAccountUnlock);
-            navigateToConciergeChat({conciergeReportID: conciergeReportID ?? undefined, introSelected, currentUserAccountID, isSelfTourViewed});
+            navigateToConciergeChat({conciergeReportID: conciergeReportID ?? undefined, introSelected, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow});
             return;
         }
 
