@@ -7,7 +7,7 @@ import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import {getAll as getAllPersistedRequests} from '@libs/actions/PersistedRequests';
 import {initReconnect} from '@libs/actions/Reconnect';
 import * as SignInRedirect from '@libs/actions/SignInRedirect';
-import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
 import buildOldDotURL from '@libs/buildOldDotURL';
 import getPlatform from '@libs/getPlatform';
@@ -807,6 +807,7 @@ describe('Session', () => {
 
     describe('validateTwoFactorAuth', () => {
         test('forced onboarding path updates auth token before clearing Onyx without openApp', async () => {
+            // Given a user completing forced-onboarding 2FA while the success screen remains open.
             const makeRequestSpy = jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue({
                 authToken: 'newAuthToken',
                 encryptedAuthToken: 'newEncryptedAuthToken',
@@ -816,9 +817,11 @@ describe('Session', () => {
             const clearSpy = jest.spyOn(Onyx, 'clear').mockResolvedValue(undefined);
             const writeWithNoDuplicatesSpy = jest.spyOn(API, 'writeWithNoDuplicatesConflictAction').mockResolvedValue(undefined);
 
+            // When the 2FA validation succeeds.
             SessionUtil.validateTwoFactorAuth('123456', false, {shouldKeepTwoFactorAuthFlowOpen: true});
             await waitForBatchedUpdates();
 
+            // Then the next authenticated state is seeded before Onyx is cleared without entering the global loading state.
             expect(makeRequestSpy).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.TWO_FACTOR_AUTH_VALIDATE, {twoFactorAuthCode: '123456'}, expect.any(Object));
             expect(setAuthTokenSpy).toHaveBeenCalledWith('newAuthToken');
             expect(setAuthTokenSpy.mock.invocationCallOrder.at(0)).toBeLessThan(multiSetSpy.mock.invocationCallOrder.at(0) ?? Number.MAX_SAFE_INTEGER);
@@ -833,6 +836,7 @@ describe('Session', () => {
                     [ONYXKEYS.NVP_ONBOARDING]: {
                         hasCompletedGuidedSetupFlow: false,
                     },
+                    [ONYXKEYS.IS_LOADING_APP]: false,
                 }),
             );
             expect(clearSpy).toHaveBeenCalled();
@@ -887,7 +891,7 @@ describe('Session', () => {
                 callback: (val) => (session = val),
             });
 
-            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true);
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, undefined, undefined);
             await waitForBatchedUpdates();
 
             expect(session?.signedInWithSAML).toBe(true);
@@ -900,20 +904,56 @@ describe('Session', () => {
                 callback: (val) => (session = val),
             });
 
-            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', false);
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', false, undefined, undefined);
             await waitForBatchedUpdates();
 
             expect(session?.signedInWithSAML).toBe(false);
         });
 
+        test('signInWithShortLivedAuthToken sends the token to the API with the SAML auth method', async () => {
+            const readSpy = jest.spyOn(API, 'read').mockImplementation(() => {});
+
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, undefined, undefined);
+            await waitForBatchedUpdates();
+
+            const call = readSpy.mock.calls.at(0);
+            expect(call?.at(0)).toBe(READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN);
+            expect(call?.at(1)).toEqual(expect.objectContaining({authToken: 'testAuthToken', authMethod: CONST.AUTH_METHOD.SAML, skipReauthentication: true}));
+
+            readSpy.mockRestore();
+        });
+
+        test('signInWithShortLivedAuthToken sends the token to the API with the short-lived-token auth method when it is not a SAML sign in', async () => {
+            const readSpy = jest.spyOn(API, 'read').mockImplementation(() => {});
+
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', false, undefined, undefined);
+            await waitForBatchedUpdates();
+
+            expect(readSpy.mock.calls.at(0)?.at(1)).toEqual(expect.objectContaining({authToken: 'testAuthToken', authMethod: CONST.AUTH_METHOD.SHORT_LIVED_AUTH_TOKEN}));
+
+            readSpy.mockRestore();
+        });
+
+        test('signInWithShortLivedAuthToken does not wait on navigation when no exitTo is passed', async () => {
+            const waitForProtectedRoutesSpy = jest.spyOn(Navigation, 'waitForProtectedRoutes').mockResolvedValue(undefined);
+            const resetRootSpy = jest.spyOn(navigationRef, 'resetRoot').mockImplementation(() => {});
+
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, undefined, 'user@saml.example.com');
+            await waitForBatchedUpdates();
+
+            expect(waitForProtectedRoutesSpy).not.toHaveBeenCalled();
+            expect(resetRootSpy).not.toHaveBeenCalled();
+            jest.restoreAllMocks();
+        });
+
         test('signInWithShortLivedAuthToken rebuilds navigation from exitTo once the same login is signed in', async () => {
-            await Onyx.merge(ONYXKEYS.CREDENTIALS, {login: 'user@saml.example.com'});
+            // CREDENTIALS is empty (cleared in beforeEach), so the restore firing proves the login comes from the param, not the module cache.
             await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'testAuthToken', email: 'User@saml.example.com'});
             await waitForBatchedUpdates();
             jest.spyOn(Navigation, 'waitForProtectedRoutes').mockResolvedValue(undefined);
             const resetRootSpy = jest.spyOn(navigationRef, 'resetRoot').mockImplementation(() => {});
 
-            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, '/search?q=status:outstanding');
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, '/search?q=status:outstanding', 'user@saml.example.com');
             await waitForBatchedUpdates();
 
             expect(resetRootSpy).toHaveBeenCalledTimes(1);
@@ -924,12 +964,14 @@ describe('Session', () => {
         });
 
         test('signInWithShortLivedAuthToken does not navigate to exitTo without a login to compare', async () => {
+            // A login present in the CREDENTIALS Onyx cache must not be used as a fallback when no login is passed.
+            await Onyx.merge(ONYXKEYS.CREDENTIALS, {login: 'user@saml.example.com'});
             await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'testAuthToken', email: 'user@saml.example.com'});
             await waitForBatchedUpdates();
             jest.spyOn(Navigation, 'waitForProtectedRoutes').mockResolvedValue(undefined);
             const resetRootSpy = jest.spyOn(navigationRef, 'resetRoot').mockImplementation(() => {});
 
-            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, '/search?q=status:outstanding');
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, '/search?q=status:outstanding', undefined);
             await waitForBatchedUpdates();
 
             expect(resetRootSpy).not.toHaveBeenCalled();
@@ -937,13 +979,12 @@ describe('Session', () => {
         });
 
         test('signInWithShortLivedAuthToken does not navigate to exitTo when another login signs in', async () => {
-            await Onyx.merge(ONYXKEYS.CREDENTIALS, {login: 'user@saml.example.com'});
             await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'testAuthToken', email: 'other@example.com'});
             await waitForBatchedUpdates();
             jest.spyOn(Navigation, 'waitForProtectedRoutes').mockResolvedValue(undefined);
             const resetRootSpy = jest.spyOn(navigationRef, 'resetRoot').mockImplementation(() => {});
 
-            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, '/search?q=status:outstanding');
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, '/search?q=status:outstanding', 'user@saml.example.com');
             await waitForBatchedUpdates();
 
             expect(resetRootSpy).not.toHaveBeenCalled();

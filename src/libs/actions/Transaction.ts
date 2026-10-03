@@ -59,7 +59,6 @@ import {
     isManualDistanceRequest,
     isOdometerDistanceRequest,
     isOnHold,
-    isSplitContainerTransaction,
     shouldClearConvertedAmount,
     waypointHasValidAddress,
 } from '@libs/TransactionUtils';
@@ -92,12 +91,10 @@ import type TransactionState from '@src/types/utils/TransactionStateType';
 
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 
-import {originalTransactionIDSelector} from '@selectors/Transaction';
 import {getUnixTime} from 'date-fns';
 import lodashClone from 'lodash/clone';
 import Onyx from 'react-native-onyx';
 
-import {getAllTransactions} from './IOU';
 import {getSearchOnyxUpdate} from './IOU/SearchUpdate';
 
 type SaveWaypointProps = {
@@ -737,11 +734,9 @@ function clearError(transactionID: string) {
  * Clears a transaction's error and, when it is a split child whose original is still the hidden split
  * container (`SPLIT_REPORT_ID`), clears the original's error too
  */
-function clearErrorWithOriginalTransactionError(transactionID: string) {
+function clearErrorWithOriginalTransactionError(transactionID: string, originalTransactionID: string | undefined, isOriginalTransactionSplitContainer: boolean | undefined) {
     clearError(transactionID);
-    const transactions = getAllTransactions();
-    const originalTransactionID = originalTransactionIDSelector(transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]);
-    if (!originalTransactionID || !isSplitContainerTransaction(transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`])) {
+    if (!originalTransactionID || !isOriginalTransactionSplitContainer) {
         return;
     }
     clearError(originalTransactionID);

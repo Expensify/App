@@ -19,7 +19,7 @@ import type {
     Transaction,
     TravelSettings,
 } from '@src/types/onyx';
-import type {ApprovalWorkflowFilter, ApprovalWorkflowFilterComparison, ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
+import type {ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
     Account,
@@ -38,6 +38,7 @@ import type {
 } from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type Rule from '@src/types/onyx/Rule';
+import type {RuleFilterComparison, RuleFilterNode} from '@src/types/onyx/RuleFilters';
 import type {TransactionCommentVendor} from '@src/types/onyx/Transaction';
 import type {WorkspaceTravelSettings} from '@src/types/onyx/TravelSettings';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -61,6 +62,7 @@ import {isAnyRecruitingConnected} from './merge/RecruitingUtils';
 import Navigation from './Navigation/Navigation';
 import {getIsOffline} from './NetworkState';
 import {getAccountIDsByLogins, getKnownAccountIDByLogin, getPersonalDetailByEmail} from './PersonalDetailsUtils';
+import {isApprovalWorkflowRule, isRuleFilterComparison} from './RuleUtils';
 import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
 import {generateAccountID} from './UserUtils';
 import {isPublicDomain, isValidAccountRoute} from './ValidationUtils';
@@ -355,11 +357,10 @@ function hasPolicyCategoriesError(policyCategories: OnyxEntry<PolicyCategories>)
 /**
  * Check if the policy has any errors within the rules.
  */
-function hasPolicyRulesError(policy: OnyxEntry<Policy>): boolean {
-    const codingRules = Object.values(policy?.rules?.codingRules ?? {});
+function hasPolicyRulesError(policy: OnyxEntry<Policy>, hasMerchantRuleErrors: boolean): boolean {
     const agentRules = Object.values(policy?.rules?.agentRules ?? {});
 
-    return codingRules.some((rule) => rule && Object.keys(rule.errors ?? {}).length > 0) || agentRules.some((rule) => rule && Object.keys(rule.errors ?? {}).length > 0);
+    return hasMerchantRuleErrors || agentRules.some((rule) => rule && Object.keys(rule.errors ?? {}).length > 0);
 }
 
 /**
@@ -815,6 +816,17 @@ function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | und
     const canPayOnPolicy = isAdmin || (!!currentUserLogin && canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
 
     return canPayOnPolicy && currentUserLogin === reimburserEmail;
+}
+
+/**
+ * Whether an admin/payments admin who isn't the designated workspace payer can still pay reports on the policy.
+ * Unlike `isPolicyPayer`/`isPayer`, this must not drive active prompting (badges, GBRs, next steps, pay to-dos), which stay payer-only.
+ */
+function canAdminPayReport(policy: OnyxInputOrEntry<Policy>, currentUserLogin: string): boolean {
+    const isReimbursementConfigured =
+        policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES || policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+
+    return isGroupPolicy(policy) && isReimbursementConfigured && canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
 }
 
 /** Check if the passed employee is an approver in the policy's employeeList */
@@ -1329,26 +1341,26 @@ function isMaxExpenseAmountSet(value: number | undefined): value is number {
 /**
  * Checks if a policy has any rules configured (structured rules, individual expense limits, or prohibited expenses).
  */
-function hasConfiguredRules(policy: OnyxEntry<Policy>, policyCategories?: PolicyCategories | null): boolean {
+function hasConfiguredRules(policy: OnyxEntry<Policy>, policyCategories: PolicyCategories | null | undefined, hasExpenseDefaultRules: boolean): boolean {
     if (!policy) {
         return false;
+    }
+
+    if (hasExpenseDefaultRules) {
+        return true;
     }
 
     if (!!policy.customRules && policy.customRules.trim().length > 0) {
         return true;
     }
 
-    const {rules} = policy;
-    if (!!rules?.approvalRules && rules.approvalRules.length > 0) {
+    const {rules: policyRules} = policy;
+    if (!!policyRules?.approvalRules && policyRules.approvalRules.length > 0) {
         return true;
     }
-    if (!!rules?.expenseRules && rules.expenseRules.length > 0) {
+    if (!!policyRules?.expenseRules && policyRules.expenseRules.length > 0) {
         return true;
     }
-    if (!!rules?.codingRules && Object.keys(rules.codingRules).length > 0) {
-        return true;
-    }
-
     if (!!policy.maxExpenseAmount && policy.maxExpenseAmount !== CONST.DISABLED_MAX_EXPENSE_VALUE && policy.maxExpenseAmount !== CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT) {
         return true;
     }
@@ -2102,20 +2114,13 @@ function getFirstRuleApprover(approvalRules: ApprovalRule[], expenseReport: Onyx
     return firstCategoryApprover || firstTagApprover;
 }
 
-/**
- * True when this node is a single comparison instead of a combination of two children.
- */
-function isApprovalWorkflowComparison(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison): node is ApprovalWorkflowFilterComparison {
-    return typeof node.left === 'string';
-}
-
-function matchesApprovalWorkflowEmailComparison(node: ApprovalWorkflowFilterComparison, email: string | undefined): boolean {
+function matchesApprovalWorkflowEmailComparison(node: RuleFilterComparison, email: string | undefined): boolean {
     const expectedEmails = (Array.isArray(node.right) ? node.right : [node.right]).map((value) => String(value).toLowerCase());
     const isMatch = !!email && expectedEmails.includes(email.toLowerCase());
     return node.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO ? !isMatch : isMatch;
 }
 
-function matchesApprovalWorkflowAmountComparison(node: ApprovalWorkflowFilterComparison, amount: number): boolean {
+function matchesApprovalWorkflowAmountComparison(node: RuleFilterComparison, amount: number): boolean {
     const expectedAmount = typeof node.right === 'number' ? node.right : Number(node.right);
     if (Number.isNaN(expectedAmount)) {
         return false;
@@ -2139,8 +2144,8 @@ function matchesApprovalWorkflowAmountComparison(node: ApprovalWorkflowFilterCom
     }
 }
 
-function evaluateApprovalWorkflowFilter(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison, context: ApprovalWorkflowContext): boolean {
-    if (!isApprovalWorkflowComparison(node)) {
+function evaluateApprovalWorkflowFilter(node: RuleFilterNode, context: ApprovalWorkflowContext): boolean {
+    if (!isRuleFilterComparison(node)) {
         const left = evaluateApprovalWorkflowFilter(node.left, context);
         const right = evaluateApprovalWorkflowFilter(node.right, context);
         return node.operator === CONST.SEARCH.SYNTAX_OPERATORS.OR ? left || right : left && right;
@@ -2177,7 +2182,7 @@ function getForwardsToFromRules(policy: OnyxEntry<Policy>, context: ApprovalWork
         return undefined;
     }
 
-    const trigger = context.currentApproverEmail ? CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE : CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT;
+    const trigger = context.currentApproverEmail ? CONST.RULES.TRIGGERS.REPORT_APPROVE : CONST.RULES.TRIGGERS.REPORT_SUBMIT;
 
     // Sort by Onyx key so the rule picked stays the same across evaluations when more than one matches (which should not happen).
     const ruleKeys = Object.keys(rules ?? {}).sort();
@@ -2186,14 +2191,14 @@ function getForwardsToFromRules(policy: OnyxEntry<Policy>, context: ApprovalWork
         if (!rule || rule.scope !== CONST.RULES.SCOPE.POLICY || rule.scopeID !== policy.id || rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             continue;
         }
-        if (!Object.values(rule.triggers ?? {}).includes(trigger)) {
+        if (!isApprovalWorkflowRule(rule) || !Object.values(rule.triggers ?? {}).includes(trigger)) {
             continue;
         }
         if (!evaluateApprovalWorkflowRule(rule, context)) {
             continue;
         }
 
-        return {forwardsTo: Object.values(rule.actions ?? {}).find((action) => action.name === CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO)?.approver};
+        return {forwardsTo: Object.values(rule.actions ?? {}).find((action) => action.name === CONST.RULES.ACTIONS.FORWARD_TO)?.approver};
     }
 
     return undefined;
@@ -2728,10 +2733,10 @@ function isXeroActiveMatchingSource(policy: OnyxEntry<Policy>): boolean {
  * the field.
  *
  * The `vendorMatching` beta only gates the integrations that haven't reached GA yet, so
- * `isVendorMatchingBetaEnabled` is consulted on every branch but QBO, Sage Intacct, Rillet, and DualEntry:
+ * `isVendorMatchingBetaEnabled` is consulted on every branch but QBO, Sage Intacct, Xero, Rillet, and DualEntry:
  *   - QBO (R1) with non-reimbursable export = Credit Card or Debit Card. GA, so no beta required
  *   - Sage Intacct (R2) with non-reimbursable export = Credit Card Charge. GA, so no beta required
- *   - Xero (R3) has no export destination enum, so a configured connection is enough. Beta required
+ *   - Xero (R3) has no export destination enum, so a configured connection is enough. GA, so no beta required
  *   - Rillet (R4) configured connection. GA, so no beta required
  *   - DualEntry configured connection. GA, so no beta required
  *   - Business Central configured connection. Beta required
@@ -2742,13 +2747,16 @@ function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled
     if (!policy) {
         return false;
     }
-    if (isQBOVendorMatchingActive(policy) || isIntacctVendorMatchingActive(policy) || isRilletVendorMatchingActive(policy) || isDualEntryVendorMatchingActive(policy)) {
+    if (
+        isQBOVendorMatchingActive(policy) ||
+        isIntacctVendorMatchingActive(policy) ||
+        isXeroVendorMatchingActive(policy) ||
+        isRilletVendorMatchingActive(policy) ||
+        isDualEntryVendorMatchingActive(policy)
+    ) {
         return true;
     }
-    return (
-        isVendorMatchingBetaEnabled &&
-        (isXeroVendorMatchingActive(policy) || isBusinessCentralVendorMatchingActive(policy) || isCampfireVendorMatchingActive(policy) || isCertiniaVendorMatchingActive(policy))
-    );
+    return isVendorMatchingBetaEnabled && (isBusinessCentralVendorMatchingActive(policy) || isCampfireVendorMatchingActive(policy) || isCertiniaVendorMatchingActive(policy));
 }
 
 /**
@@ -3748,6 +3756,7 @@ export {
     isPolicyMember,
     isMemberInHomeAndOfficeWorkspace,
     isPolicyPayer,
+    canAdminPayReport,
     getReimburserEmail,
     getOwnerChangePayerSuccessData,
     PAYER_ROLES,

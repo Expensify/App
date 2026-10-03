@@ -14,6 +14,7 @@ import type {Policy} from '@src/types/onyx';
 import type * as NativeNavigation from '@react-navigation/native';
 import type {PartialDeep} from 'type-fest';
 
+import escapeRegExp from 'lodash/escapeRegExp';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -98,10 +99,11 @@ jest.mock('@components/MenuItemWithTopDescription', () => {
     );
 });
 
-// Mock MenuItem (used for some fields like billable)
+// Mock the legacy MenuItem (used for some fields like billable), but keep the real compound parts the migrated rows render with
 jest.mock('@components/MenuItem', () => {
     const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string; children?: React.ReactNode}>>>('react-native');
-    return ({title}: {title?: string}) => <RN.Text testID={`menu-item-simple-${title}`}>{title}</RN.Text>;
+    const {default: actualMenuItem} = jest.requireActual<{default: Record<string, unknown>}>('@components/MenuItem');
+    return Object.assign(({title}: {title?: string}) => <RN.Text testID={`menu-item-simple-${title}`}>{title}</RN.Text>, {...actualMenuItem});
 });
 
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
@@ -119,6 +121,9 @@ jest.mock('@hooks/useCurrencyList', () => ({
 }));
 
 TestHelper.setupGlobalFetchMock();
+
+/** Matches the accessibility label a compound field row builds from its name, followed by its value when it has one */
+const fieldLabel = (name: string) => new RegExp(`^${escapeRegExp(name)}(,|$)`);
 
 const currentUserAccountID = 10;
 const currentUserEmail = 'test@test.com';
@@ -269,7 +274,7 @@ describe('MoneyRequestView edit fields', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(screen.getByTestId('menu-item-common.category')).toBeOnTheScreen();
+            expect(screen.getByLabelText(fieldLabel('common.category'))).toBeOnTheScreen();
             expect(screen.getByTestId('menu-item-Location')).toBeOnTheScreen();
         });
     });
@@ -298,7 +303,7 @@ describe('MoneyRequestView edit fields', () => {
         await waitFor(() => {
             expect(screen.getByTestId('menu-item-common.merchant')).toBeOnTheScreen();
         });
-        expect(screen.queryByTestId('menu-item-common.category')).not.toBeOnTheScreen();
+        expect(screen.queryByLabelText(fieldLabel('common.category'))).not.toBeOnTheScreen();
         expect(screen.queryByTestId('menu-item-Location')).not.toBeOnTheScreen();
     });
 
@@ -324,8 +329,8 @@ describe('MoneyRequestView edit fields', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(screen.getByTestId('menu-item-common.tax')).toBeOnTheScreen();
-            expect(screen.getByTestId('menu-item-iou.taxAmount')).toBeOnTheScreen();
+            expect(screen.getByLabelText(fieldLabel('common.tax'))).toBeOnTheScreen();
+            expect(screen.getByLabelText(fieldLabel('iou.taxAmount'))).toBeOnTheScreen();
         });
     });
 
@@ -343,8 +348,8 @@ describe('MoneyRequestView edit fields', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(screen.queryByTestId('menu-item-common.tax')).not.toBeOnTheScreen();
-            expect(screen.queryByTestId('menu-item-iou.taxAmount')).not.toBeOnTheScreen();
+            expect(screen.queryByLabelText(fieldLabel('common.tax'))).not.toBeOnTheScreen();
+            expect(screen.queryByLabelText(fieldLabel('iou.taxAmount'))).not.toBeOnTheScreen();
         });
     });
 
@@ -371,8 +376,8 @@ describe('MoneyRequestView edit fields', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(screen.queryByTestId('menu-item-common.tax')).not.toBeOnTheScreen();
-            expect(screen.queryByTestId('menu-item-iou.taxAmount')).not.toBeOnTheScreen();
+            expect(screen.queryByLabelText(fieldLabel('common.tax'))).not.toBeOnTheScreen();
+            expect(screen.queryByLabelText(fieldLabel('iou.taxAmount'))).not.toBeOnTheScreen();
         });
     });
 
@@ -435,7 +440,7 @@ describe('MoneyRequestView edit fields', () => {
         await waitFor(() => {
             expect(screen.getByTestId(/^menu-item-iou\.amount/)).toHaveTextContent('editable');
             expect(screen.getByTestId('menu-item-common.merchant')).toHaveTextContent('editable');
-            expect(screen.getByTestId('menu-item-common.date')).toHaveTextContent('editable');
+            expect(screen.getByRole('button', {name: fieldLabel('common.date')})).toBeOnTheScreen();
         });
     });
 
@@ -476,7 +481,8 @@ describe('MoneyRequestView edit fields', () => {
         await waitFor(() => {
             expect(screen.getByTestId(/^menu-item-iou\.amount/)).toHaveTextContent('readonly');
             expect(screen.getByTestId('menu-item-common.merchant')).toHaveTextContent('readonly');
-            expect(screen.getByTestId('menu-item-common.date')).toHaveTextContent('readonly');
+            expect(screen.getByLabelText(fieldLabel('common.date'))).toBeOnTheScreen();
+            expect(screen.queryByRole('button', {name: fieldLabel('common.date')})).not.toBeOnTheScreen();
         });
     });
 
@@ -623,7 +629,7 @@ describe('MoneyRequestView edit fields', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(screen.getByTestId(/^menu-item-iou\.taxAmount.*common\.converted/i)).toBeOnTheScreen();
+            expect(screen.getByLabelText(/^iou\.taxAmount.*common\.converted/i)).toBeOnTheScreen();
         });
     });
 
@@ -651,8 +657,8 @@ describe('MoneyRequestView edit fields', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(screen.getByTestId('menu-item-iou.taxAmount')).toBeOnTheScreen();
-            expect(screen.queryByTestId(/^menu-item-iou\.taxAmount.*common\.converted/i)).not.toBeOnTheScreen();
+            expect(screen.getByLabelText(fieldLabel('iou.taxAmount'))).toBeOnTheScreen();
+            expect(screen.queryByLabelText(/^iou\.taxAmount.*common\.converted/i)).not.toBeOnTheScreen();
         });
     });
 
@@ -680,8 +686,8 @@ describe('MoneyRequestView edit fields', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(screen.getByTestId('menu-item-iou.taxAmount')).toBeOnTheScreen();
-            expect(screen.queryByTestId(/^menu-item-iou\.taxAmount.*common\.converted/i)).not.toBeOnTheScreen();
+            expect(screen.getByLabelText(fieldLabel('iou.taxAmount'))).toBeOnTheScreen();
+            expect(screen.queryByLabelText(/^iou\.taxAmount.*common\.converted/i)).not.toBeOnTheScreen();
         });
     });
 
@@ -712,7 +718,7 @@ describe('MoneyRequestView edit fields', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(screen.getByTestId('menu-item-title-common.vendor')).toHaveTextContent('Acme Co');
+            expect(screen.getByLabelText(fieldLabel('common.vendor'))).toHaveTextContent(/Acme Co/);
         });
     });
 
@@ -744,11 +750,12 @@ describe('MoneyRequestView edit fields', () => {
 
         // Intacct keeps the "Vendor" label and shows the vendor's display name, which Intacct stores in `value`.
         await waitFor(() => {
-            expect(screen.getByTestId('menu-item-title-common.vendor')).toHaveTextContent('Acme Intacct');
+            expect(screen.getByLabelText(fieldLabel('common.vendor'))).toHaveTextContent(/Acme Intacct/);
         });
     });
 
-    it('hides the vendor row on Xero without the vendorMatching beta because Xero (R3) is still pre-GA', async () => {
+    it('shows the supplier row on Xero without the vendorMatching beta because Xero (R3) is generally available', async () => {
+        // Given a non-reimbursable expense whose vendor is one of the synced Xero contacts
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
             parentReportID: expenseReportID,
@@ -764,6 +771,7 @@ describe('MoneyRequestView edit fields', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
+        // When the expense renders on a configured Xero workspace without the vendorMatching beta
         renderMoneyRequestView(threadReport, {
             connections: {
                 [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
@@ -774,9 +782,57 @@ describe('MoneyRequestView edit fields', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
+        // Then the row is shown with the Supplier label and the contact name because Xero does not depend on the beta
         await waitFor(() => {
-            expect(screen.queryByTestId('menu-item-common.supplier')).not.toBeOnTheScreen();
-            expect(screen.queryByTestId('menu-item-common.vendor')).not.toBeOnTheScreen();
+            expect(screen.getByLabelText(fieldLabel('common.supplier'))).toHaveTextContent(/Acme Xero/);
+        });
+        expect(screen.queryByTestId('menu-item-common.vendor')).not.toBeOnTheScreen();
+    });
+
+    it('hides the vendor row on Business Central without the vendorMatching beta because Business Central is still beta-gated', async () => {
+        // Given a non-reimbursable expense whose vendor is one of the synced Business Central vendors
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                reimbursable: false,
+                comment: {vendor: {externalID: 'bc-1', wasManuallySet: false}},
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the expense renders on a configured Business Central workspace without the vendorMatching beta
+        renderMoneyRequestView(threadReport, {
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                    config: {isConfigured: true},
+                    data: {
+                        vendors: [
+                            {
+                                id: 'bc-1',
+                                number: 'V00010',
+                                name: 'Contoso Supplies',
+                                email: 'ap@contoso.com',
+                                blocked: CONST.BUSINESS_CENTRAL_VENDOR_BLOCKED.NONE,
+                                expensifyVendorId: '',
+                                lastModifiedDateTime: '',
+                            },
+                        ],
+                    },
+                },
+            },
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then no vendor row is shown because Business Central still depends on the beta
+        await waitFor(() => {
+            expect(screen.queryByLabelText(fieldLabel('common.supplier'))).not.toBeOnTheScreen();
+            expect(screen.queryByLabelText(fieldLabel('common.vendor'))).not.toBeOnTheScreen();
         });
     });
 
@@ -808,9 +864,9 @@ describe('MoneyRequestView edit fields', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            const vendorTitle = screen.getByTestId('menu-item-title-common.vendor');
-            expect(vendorTitle).toHaveTextContent('stale-vendor-id');
-            expect(vendorTitle).not.toHaveTextContent('violations.inactiveVendor');
+            const vendorTitle = screen.getByLabelText(fieldLabel('common.vendor'));
+            expect(vendorTitle).toHaveTextContent(/stale-vendor-id/);
+            expect(vendorTitle).not.toHaveTextContent(/violations\.inactiveVendor/);
         });
     });
 
@@ -845,9 +901,9 @@ describe('MoneyRequestView edit fields', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            const vendorTitle = screen.getByTestId('menu-item-title-common.vendor');
-            expect(vendorTitle).toHaveTextContent('Amazon');
-            expect(vendorTitle).not.toHaveTextContent('stale-vendor-id');
+            const vendorTitle = screen.getByLabelText(fieldLabel('common.vendor'));
+            expect(vendorTitle).toHaveTextContent(/Amazon/);
+            expect(vendorTitle).not.toHaveTextContent(/stale-vendor-id/);
         });
     });
 
@@ -878,9 +934,9 @@ describe('MoneyRequestView edit fields', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            const vendorTitle = screen.getByTestId('menu-item-title-common.vendor');
-            expect(vendorTitle).toHaveTextContent('still-valid-vendor-id');
-            expect(vendorTitle).not.toHaveTextContent('violations.inactiveVendor');
+            const vendorTitle = screen.getByLabelText(fieldLabel('common.vendor'));
+            expect(vendorTitle).toHaveTextContent(/still-valid-vendor-id/);
+            expect(vendorTitle).not.toHaveTextContent(/violations\.inactiveVendor/);
         });
     });
 
@@ -915,9 +971,9 @@ describe('MoneyRequestView edit fields', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            const vendorTitle = screen.getByTestId('menu-item-title-common.vendor');
-            expect(vendorTitle).toHaveTextContent('Stale Intacct Vendor');
-            expect(vendorTitle).not.toHaveTextContent('violations.inactiveVendor');
+            const vendorTitle = screen.getByLabelText(fieldLabel('common.vendor'));
+            expect(vendorTitle).toHaveTextContent(/Stale Intacct Vendor/);
+            expect(vendorTitle).not.toHaveTextContent(/violations\.inactiveVendor/);
         });
     });
 
@@ -1009,7 +1065,7 @@ describe('MoneyRequestView edit fields', () => {
             await waitForBatchedUpdatesWithAct();
 
             await waitFor(() => {
-                expect(screen.getByTestId(`menu-item-${commuterDistanceDescription}`)).toBeOnTheScreen();
+                expect(screen.getByLabelText(fieldLabel(commuterDistanceDescription))).toBeOnTheScreen();
             });
         });
 
@@ -1089,10 +1145,10 @@ describe('MoneyRequestView edit fields', () => {
             await waitForBatchedUpdatesWithAct();
 
             await waitFor(() => {
-                expect(screen.getByTestId('menu-item-common.distance')).toBeOnTheScreen();
+                expect(screen.getByLabelText(fieldLabel('common.distance'))).toBeOnTheScreen();
                 expect(screen.getByTestId(/^menu-item-title-iou\.amount/)).toHaveTextContent('USD-268');
             });
-            expect(screen.queryByTestId(`menu-item-${commuterDistanceDescription}`)).not.toBeOnTheScreen();
+            expect(screen.queryByLabelText(fieldLabel(commuterDistanceDescription))).not.toBeOnTheScreen();
         });
     });
 });
