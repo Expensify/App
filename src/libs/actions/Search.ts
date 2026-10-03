@@ -673,9 +673,7 @@ function getPayActionCallback({
     const paymentPolicy = snapshotPolicy ?? policy;
 
     if (lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-        // One-tap pay here always funds the payment from the workspace bank account, so it's only valid for someone the
-        // account is actually shared with. Anyone else has to pay from an account of their own, so open the report and let
-        // them pick it instead of silently paying with (and reporting) the workspace one.
+        // One-tap pay requires access to the workspace bank account; otherwise, select another account in the report.
         if (!canAccessPolicyBankAccount(paymentPolicy, bankAccountList)) {
             goToItem();
             return;

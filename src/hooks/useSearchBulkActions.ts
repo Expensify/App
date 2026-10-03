@@ -1035,9 +1035,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const policyIDsWithVBBA = useMemo(() => {
         const result = [];
         for (const policy of Object.values(policies ?? {})) {
-            // Bulk pay funds from the workspace bank account when no account was picked in the menu, so a workspace only
-            // counts here if the workspace account is actually shared with the current user. Anyone else has to open the
-            // report and pick an account of their own. That includes a payer the account was never shared with.
+            // Only include a workspace in bulk pay when its bank account is shared with the current user.
+            // Otherwise, open the report to select another account.
             if (!policy || !canAccessPolicyBankAccount(policy, bankAccountList)) {
                 continue;
             }
