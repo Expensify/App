@@ -89,15 +89,19 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => ({accountID: 1}));
 jest.mock('@hooks/useDelegateAccountID', () => () => undefined);
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key, formatPhoneNumber: (value: string) => value}));
 jest.mock('@hooks/useOnyx', () => ({__esModule: true, default: (...args: unknown[]) => mockUseOnyx(...args)}));
+jest.mock('@hooks/usePersonalDetailByLogin', () => ({
+    __esModule: true,
+    default: (login?: string, selector?: (personalDetails: {accountID: number; login: string}) => unknown) => {
+        if (!login) {
+            return undefined;
+        }
+        const personalDetails = {accountID: login === 'approver@example.com' ? 3 : 2, login};
+        return selector ? selector(personalDetails) : personalDetails;
+    },
+}));
 jest.mock('@hooks/useThemeStyles', () => () => ({flex1: {}, flexGrow1: {}, overflowHidden: {}, ph5: {}, mb3: {}, mb6: {}, mhn5: {}}));
 jest.mock('@libs/Navigation/Navigation', () => ({__esModule: true, default: {goBack: jest.fn()}}));
 jest.mock('@libs/PersonalDetailsUtils', () => ({
-    getPersonalDetailByEmail: (email?: string) => {
-        if (!email) {
-            return undefined;
-        }
-        return {accountID: email === 'approver@example.com' ? 3 : 2, login: email};
-    },
     temporaryGetDisplayNameOrDefault: () => 'Submitter',
 }));
 jest.mock('@userActions/IOU/RejectMoneyRequest', () => ({rejectExpenseReport: jest.fn()}));
@@ -176,10 +180,13 @@ describe('RHP rejection reason inputs', () => {
     });
 
     it('keeps the optional previous-approver selector outside the measured report input', () => {
+        // Given a report forwarded by an approver distinct from its owner and the current user.
         mockReportData(true);
 
+        // When the rejection form renders using the current personal-details hooks.
         render(<RejectExpenseReportPage {...getReportPageProps()} />);
 
+        // Then the input receives the available height and the previous approver remains selectable.
         expect(mockInputWrapper.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({autoGrowHeight: true}));
         expectMeasuredHeightPropagation();
         expect(mockSelectionList).toHaveBeenCalledWith(expect.objectContaining({data: expect.arrayContaining([expect.objectContaining({accountID: 3})])}));
