@@ -150,7 +150,14 @@ The **Agents** tab holds Agent Rules, which are written in plain language and ru
 
 ## How to set rules for a single category
 
-Category-specific behavior is set as a rule on the **Rules** page, not on the category itself. Open a category to set its **Approver** and **Description hint**, and use the **Category rules** section at the bottom of the category to review the rules that already apply to it.
+- **Approver** – Assign a specific approver for expenses in this category.
+- **Default tax rate** – Set a default tax rate if Taxes enabled on the workspace). 
+- **Flag amounts over** - Set a spending cap for this category.
+- **Require receipts over** – Set a threshold for when receipts are required.
+- **Require itemized receipts over** – Require itemized receipts for expenses over a specific amount.
+- **Require fields** - Require specific fields be completed for this category. The options are:
+   - **Require description** - Force members to enter a reason when using the category.
+   - **Require attendees** - Force members to add additional attendees when using the category.
 
 A **Description hint** appears below the **Description** field on an expense once a member selects that category, both while creating and while editing the expense. [Learn how to add a Description hint to an expense category](/articles/new-expensify/workspaces/Create-expense-categories).
 
