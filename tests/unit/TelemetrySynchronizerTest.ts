@@ -224,6 +224,8 @@ describe('TelemetrySynchronizer', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(getGlobalSpanAttributes()[CONST.TELEMETRY.ATTRIBUTE_REPORTS_COUNT_RAW]).toBe(3);
+            // Then the tier tag rides along with the raw count, so dashboards can group by one and drill into the other
+            expect(Sentry.setTag).toHaveBeenCalledWith(CONST.TELEMETRY.TAGS.REPORTS_COUNT, CONST.TELEMETRY.SIZE_TIER.SMALL);
         });
 
         it('should register personal_details_count_raw when the personal details list changes', async () => {
@@ -233,6 +235,7 @@ describe('TelemetrySynchronizer', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(getGlobalSpanAttributes()[CONST.TELEMETRY.ATTRIBUTE_PERSONAL_DETAILS_COUNT_RAW]).toBe(2);
+            expect(Sentry.setTag).toHaveBeenCalledWith(CONST.TELEMETRY.TAGS.PERSONAL_DETAILS_COUNT, CONST.TELEMETRY.SIZE_TIER.SMALL);
         });
 
         it('should register transactions_count_raw when the transaction collection changes', async () => {
@@ -243,6 +246,7 @@ describe('TelemetrySynchronizer', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(getGlobalSpanAttributes()[CONST.TELEMETRY.ATTRIBUTE_TRANSACTIONS_COUNT_RAW]).toBe(2);
+            expect(Sentry.setTag).toHaveBeenCalledWith(CONST.TELEMETRY.TAGS.TRANSACTIONS_COUNT, CONST.TELEMETRY.SIZE_TIER.SMALL);
         });
 
         it('should register policies_count_raw with the active policies count', async () => {
@@ -264,6 +268,7 @@ describe('TelemetrySynchronizer', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(getGlobalSpanAttributes()[CONST.TELEMETRY.ATTRIBUTE_POLICIES_COUNT_RAW]).toBe(2);
+            expect(Sentry.setTag).toHaveBeenCalledWith(CONST.TELEMETRY.TAGS.POLICIES_COUNT, CONST.TELEMETRY.SIZE_TIER.MEDIUM);
         });
 
         it('clears the span attributes on sign-out without touching the Sentry tags', async () => {
