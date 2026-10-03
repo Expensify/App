@@ -64,7 +64,7 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxKey, OnyxUpdate} from '
 import lodashUnionBy from 'lodash/unionBy';
 import Onyx from 'react-native-onyx';
 
-import {getAllPolicyVendors, getAllReports, getAllTransactions, getAllTransactionViolations, getRecentAttendees} from '.';
+import {getAllReports, getAllTransactions, getAllTransactionViolations, getRecentAttendees} from '.';
 import {getUpdatedMoneyRequestReportData, mergePolicyRecentlyUsedCategories, mergePolicyRecentlyUsedCurrencies} from './MoneyRequestBuilder';
 
 type UpdateMoneyRequestData<TKey extends OnyxKey> = {
@@ -1456,6 +1456,7 @@ function updateMoneyRequestDescription({
     getCurrencySymbol,
     rules,
     isVendorMatchingBetaEnabled,
+    policyVendors,
 }: {
     isVendorMatchingBetaEnabled: boolean | undefined;
     transactionID: string;
@@ -1469,6 +1470,7 @@ function updateMoneyRequestDescription({
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
+    policyVendors?: OnyxEntry<OnyxTypes.PolicyVendors>;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     isASAPSubmitBetaEnabled: boolean;
@@ -1511,6 +1513,7 @@ function updateMoneyRequestDescription({
             policyTagList,
             reportPolicyTags,
             policyCategories,
+            policyVendors,
             currentUserAccountIDParam,
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
@@ -2395,7 +2398,6 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             );
         }
 
-        const policyVendors = policyVendorsParam ?? (policy?.id ? getAllPolicyVendors()?.[`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${policy.id}`] : undefined);
         const violationsOnyxData = ViolationsUtils.getViolationsOnyxData({
             updatedTransaction,
             transactionViolations: optimisticViolations,
@@ -2410,7 +2412,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             isFromExpenseReport,
             distanceOriginalPolicy,
             isVendorMatchingBetaEnabled,
-            policyVendors,
+            policyVendors: policyVendorsParam,
         });
         optimisticData.push(violationsOnyxData);
         failureData.push({

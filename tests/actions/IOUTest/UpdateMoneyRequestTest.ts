@@ -3177,17 +3177,18 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 showInReview: true,
             };
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThreadReport);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, fakeTransaction);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${policyID}`, {
+            const policyVendors = {
                 [vendorID]: {
                     id: vendorID,
                     name: 'Acme Disabled',
                     enabled: false,
                 },
-            });
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThreadReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, fakeTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${policyID}`, policyVendors);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, [inactiveVendorViolation]);
 
             updateMoneyRequestDescription({
@@ -3201,6 +3202,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 policy,
                 policyTagList: undefined,
                 policyCategories: undefined,
+                policyVendors,
                 reportPolicyTags: undefined,
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
@@ -3263,17 +3265,18 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 showInReview: true,
             };
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThreadReport);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, fakeTransaction);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${policyID}`, {
+            const policyVendors = {
                 [vendorID]: {
                     id: vendorID,
                     name: 'Acme Enabled',
                     enabled: true,
                 },
-            });
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThreadReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, fakeTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${policyID}`, policyVendors);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, [inactiveVendorViolation]);
 
             updateMoneyRequestDescription({
@@ -3287,6 +3290,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 policy,
                 policyTagList: undefined,
                 policyCategories: undefined,
+                policyVendors,
                 reportPolicyTags: undefined,
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,

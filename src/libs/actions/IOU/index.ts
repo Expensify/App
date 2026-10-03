@@ -58,14 +58,6 @@ Onyx.connect({
     },
 });
 
-let allPolicyVendors: OnyxCollection<OnyxTypes.PolicyVendors> = {};
-Onyx.connectWithoutView({
-    key: ONYXKEYS.COLLECTION.POLICY_VENDORS,
-    callback: (value) => {
-        allPolicyVendors = value ?? {};
-    },
-});
-
 let allReportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
@@ -193,10 +185,6 @@ function getSearchQueryByHash(): Record<string, string> {
     return searchQueryByHash;
 }
 
-function getAllPolicyVendors(): OnyxCollection<OnyxTypes.PolicyVendors> {
-    return allPolicyVendors;
-}
-
 export {
     getAllPersonalDetails,
     getAllTransactions,
@@ -211,5 +199,4 @@ export {
     getRecentAttendees,
     getAllSnapshots,
     getSearchQueryByHash,
-    getAllPolicyVendors,
 };
