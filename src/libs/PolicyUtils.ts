@@ -818,6 +818,17 @@ function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | und
     return canPayOnPolicy && currentUserLogin === reimburserEmail;
 }
 
+/**
+ * Whether an admin/payments admin who isn't the designated workspace payer can still pay reports on the policy.
+ * Unlike `isPolicyPayer`/`isPayer`, this must not drive active prompting (badges, GBRs, next steps, pay to-dos), which stay payer-only.
+ */
+function canAdminPayReport(policy: OnyxInputOrEntry<Policy>, currentUserLogin: string): boolean {
+    const isReimbursementConfigured =
+        policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES || policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+
+    return isGroupPolicy(policy) && isReimbursementConfigured && canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
+}
+
 /** Check if the passed employee is an approver in the policy's employeeList */
 function isPolicyApprover(policy: OnyxInputOrEntry<Policy>, employeeLogin: string) {
     if (policy?.approver === employeeLogin) {
@@ -1758,14 +1769,6 @@ function getCorrectedAutoReportingFrequency(policy: OnyxInputOrEntry<Policy>): V
  */
 function isSubmitAndClose(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL;
-}
-
-/**
- * Whether the policy has approvals turned on. False while the policy hasn't loaded yet (no `approvalMode`),
- * unlike `!isSubmitAndClose(policy)`, which reads an unresolved policy as approvals-enabled.
- */
-function areApprovalsEnabled(policy: OnyxInputOrEntry<Policy>): boolean {
-    return !!policy?.approvalMode && !isSubmitAndClose(policy);
 }
 
 /**
@@ -3706,6 +3709,7 @@ export {
     isPolicyMember,
     isMemberInHomeAndOfficeWorkspace,
     isPolicyPayer,
+    canAdminPayReport,
     getReimburserEmail,
     getOwnerChangePayerSuccessData,
     PAYER_ROLES,
@@ -3715,7 +3719,6 @@ export {
     getReimbursementChoice,
     isSubmitterAndApprover,
     isSubmitAndClose,
-    areApprovalsEnabled,
     isTaxTrackingEnabled,
     shouldShowPolicy,
     getActiveAdminWorkspaces,
