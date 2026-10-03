@@ -1,6 +1,7 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import MenuItem from '@components/MenuItem';
 import MenuItemTrailing from '@components/MenuItem/layout/MenuItemTrailing';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import Text from '@components/Text';
@@ -8,6 +9,8 @@ import Text from '@components/Text';
 import getPlatform from '@libs/getPlatform';
 
 import CONST from '@src/CONST';
+
+import type {StyleProp, TextStyle, ViewProps} from 'react-native';
 
 import React from 'react';
 
@@ -25,6 +28,27 @@ const pressEvent = {nativeEvent: {}};
 const NAME = 'Legal first name';
 const VALUE = 'John';
 
+type MockFormHelpMessageProps = {
+    message?: React.ReactNode;
+    messageStyle?: StyleProp<TextStyle>;
+    dataSet?: ViewProps['dataSet'];
+};
+
+const mockFormHelpMessage = jest.fn(({message, messageStyle}: MockFormHelpMessageProps) => {
+    const RN = jest.requireActual<
+        Record<
+            string,
+            React.ComponentType<{
+                children?: React.ReactNode;
+                style?: StyleProp<TextStyle>;
+            }>
+        >
+    >('react-native');
+    return <RN.Text style={messageStyle}>{message}</RN.Text>;
+});
+
+jest.mock('@components/FormHelpMessage', () => (props: MockFormHelpMessageProps) => mockFormHelpMessage(props));
+
 function Wrapper({children}: {children: React.ReactNode}) {
     return <LocaleContextProvider>{children}</LocaleContextProvider>;
 }
@@ -32,6 +56,7 @@ function Wrapper({children}: {children: React.ReactNode}) {
 describe('MenuItemField', () => {
     beforeEach(() => {
         mockedGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
+        mockFormHelpMessage.mockClear();
     });
 
     describe('filled shape', () => {
@@ -255,6 +280,51 @@ describe('MenuItemField', () => {
             expect(screen.queryByText(VALUE)).not.toBeOnTheScreen();
             // The name stands in for the missing value, so it is the whole announced label
             expect(await screen.findByLabelText(NAME)).toBeOnTheScreen();
+        });
+    });
+
+    describe('help text selection', () => {
+        it('excludes help text from selection and copied content when web value selection is enabled', () => {
+            // Given a help message inside a row with a selectable value
+            const helpMessage = 'Commuter deduction applied';
+
+            // When the row is rendered on web
+            render(
+                <Wrapper>
+                    <MenuItem.Root shouldAllowTextSelection>
+                        <MenuItem.HelpText message={helpMessage} />
+                    </MenuItem.Root>
+                </Wrapper>,
+            );
+
+            // Then the help message cannot be highlighted and is excluded by SelectionScraper
+            expect(screen.getByText(helpMessage)).toHaveStyle({userSelect: 'none'});
+            expect(mockFormHelpMessage.mock.calls.at(-1)?.[0].dataSet).toEqual(
+                expect.objectContaining({
+                    [CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true,
+                }),
+            );
+        });
+
+        it('does not change help text selection for an ordinary row', () => {
+            // Given a help message inside a row that does not enable value selection
+            const helpMessage = 'Validation failed';
+
+            // When the row is rendered
+            render(
+                <Wrapper>
+                    <MenuItem.Root>
+                        <MenuItem.HelpText
+                            isError
+                            message={helpMessage}
+                        />
+                    </MenuItem.Root>
+                </Wrapper>,
+            );
+
+            // Then no selection-specific style or scraper marker is added
+            expect(screen.getByText(helpMessage)).not.toHaveStyle({userSelect: 'none'});
+            expect(mockFormHelpMessage.mock.calls.at(-1)?.[0].dataSet).toBeUndefined();
         });
     });
 
