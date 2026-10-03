@@ -1215,7 +1215,7 @@ function MoneyRequestView({
                 <HighlightableMenuItemWithTopDescription
                     highlighted={hasDependentTags && shouldShow && !getTagForDisplay(transaction, index) && currentTagLength > previousTagLength}
                     description={name ?? translate('common.tag')}
-                    descriptionTextStyle={styles.userSelectNone}
+                    descriptionTextStyle={[styles.breakWord, styles.userSelectNone]}
                     title={tagForDisplay}
                     numberOfLinesTitle={2}
                     interactive={canEdit}
@@ -1309,7 +1309,7 @@ function MoneyRequestView({
                         shouldShowTitleIcon={shouldShowPaid}
                         titleIcon={icons.Checkmark}
                         description={amountDescription}
-                        descriptionTextStyle={styles.userSelectNone}
+                        descriptionTextStyle={[styles.breakWord, styles.userSelectNone]}
                         hintText={amountHintText}
                         hintTextStyle={styles.userSelectNone}
                         titleStyle={styles.textHeadlineH2}
@@ -1359,7 +1359,7 @@ function MoneyRequestView({
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('comment')}>
                         <MenuItemWithTopDescription
                             description={translate('common.description')}
-                            descriptionTextStyle={styles.userSelectNone}
+                            descriptionTextStyle={[styles.breakWord, styles.userSelectNone]}
                             shouldRenderAsHTML
                             title={updatedTransactionDescription ?? transactionDescription}
                             interactive={canEdit}
@@ -1389,7 +1389,7 @@ function MoneyRequestView({
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('merchant')}>
                         <MenuItemWithTopDescription
                             description={translate('common.merchant')}
-                            descriptionTextStyle={styles.userSelectNone}
+                            descriptionTextStyle={[styles.breakWord, styles.userSelectNone]}
                             title={updatedMerchantTitle}
                             interactive={canEditMerchant}
                             shouldShowRightIcon={canEditMerchant}
@@ -1779,7 +1779,7 @@ function MoneyRequestView({
                             shouldShowRightIcon={canEditReport}
                             title={reportNameToDisplay}
                             description={translate('common.report')}
-                            descriptionTextStyle={styles.userSelectNone}
+                            descriptionTextStyle={[styles.breakWord, styles.userSelectNone]}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() => {
