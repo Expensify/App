@@ -689,6 +689,7 @@ function updateSplitTransactions({
             formatPhoneNumber,
             getCurrencyDecimals,
             rules,
+            allReportActionsList,
         } as MoneyRequestInformationParams;
 
         if (isReverseSplitOperation) {
@@ -818,6 +819,7 @@ function updateSplitTransactions({
             formatPhoneNumber,
             getCurrencyDecimals,
             rules,
+            allReportActionsList,
         });
 
         let updateMoneyRequestParamsOnyxData: OnyxData<UpdateMoneyRequestDataKeys> = {};

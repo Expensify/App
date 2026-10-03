@@ -2884,6 +2884,7 @@ describe('actions/IOU/TrackExpense', () => {
                     isTrackIntentUser: false,
                     formatPhoneNumber,
                     rules: undefined,
+                    allReportActionsList: undefined,
                 });
             }).not.toThrow();
         });
@@ -2961,6 +2962,7 @@ describe('actions/IOU/TrackExpense', () => {
                     isTrackIntentUser: false,
                     formatPhoneNumber,
                     rules: undefined,
+                    allReportActionsList: undefined,
                 });
             }).not.toThrow();
         });
@@ -3008,6 +3010,7 @@ describe('actions/IOU/TrackExpense', () => {
                     isTrackIntentUser: false,
                     formatPhoneNumber,
                     rules: undefined,
+                    allReportActionsList: undefined,
                 });
             }).not.toThrow();
         });
@@ -3055,6 +3058,7 @@ describe('actions/IOU/TrackExpense', () => {
                     isTrackIntentUser: false,
                     formatPhoneNumber,
                     rules: undefined,
+                    allReportActionsList: undefined,
                 });
             }).not.toThrow();
         });

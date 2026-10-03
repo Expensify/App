@@ -1819,6 +1819,8 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         formatPhoneNumber,
         getCurrencyDecimals,
         rules,
+        // Refactor this call site to pass real report actions instead of undefined in https://github.com/Expensify/App/issues/66522
+        allReportActionsList: undefined,
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
@@ -2028,6 +2030,7 @@ function convertBulkTrackedExpensesToIOU({
     getCurrencyDecimals,
     rules,
     isVendorMatchingBetaEnabled,
+    allReportActionsList,
 }: {
     isVendorMatchingBetaEnabled: boolean | undefined;
     transactions: OnyxTypes.Transaction[];
@@ -2047,6 +2050,7 @@ function convertBulkTrackedExpensesToIOU({
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<OnyxTypes.Rule>;
+    allReportActionsList: OnyxCollection<OnyxTypes.ReportActions>;
 }) {
     const iouReportID = iouReport?.reportID;
 
@@ -2170,6 +2174,7 @@ function convertBulkTrackedExpensesToIOU({
             formatPhoneNumber,
             getCurrencyDecimals,
             rules,
+            allReportActionsList,
         });
 
         const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
