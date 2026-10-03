@@ -2682,28 +2682,35 @@ function formatMemberForList(member: SearchOptionData): MemberForList {
 /**
  * Helper method that returns the text to be used for the header's message and title (if any)
  */
-function getHeaderMessage(hasSelectableOptions: boolean, hasUserToInvite: boolean, searchValue: string, countryCode: number, hasMatchedParticipant = false): string {
+function getHeaderMessage(
+    translate: LocalizedTranslate,
+    hasSelectableOptions: boolean,
+    hasUserToInvite: boolean,
+    searchValue: string,
+    countryCode: number,
+    hasMatchedParticipant = false,
+): string {
     const isValidPhone = parsePhoneNumber(appendCountryCode(searchValue, countryCode)).possible;
 
     const isValidEmail = Str.isValidEmail(searchValue);
 
     if (searchValue && CONST.REGEX.DIGITS_AND_PLUS.test(searchValue) && !isValidPhone && !hasSelectableOptions) {
-        return translateLocal('messages.errorMessageInvalidPhone');
+        return translate('messages.errorMessageInvalidPhone');
     }
 
     // Without a search value, it would be very confusing to see a search validation message.
     // Therefore, this skips the validation when there is no search value.
     if (searchValue && !hasSelectableOptions && !hasUserToInvite) {
         if (/^\d+$/.test(searchValue) && !isValidPhone) {
-            return translateLocal('messages.errorMessageInvalidPhone');
+            return translate('messages.errorMessageInvalidPhone');
         }
         if (/@/.test(searchValue) && !isValidEmail) {
-            return translateLocal('messages.errorMessageInvalidEmail');
+            return translate('messages.errorMessageInvalidEmail');
         }
         if (hasMatchedParticipant && (isValidEmail || isValidPhone)) {
             return '';
         }
-        return translateLocal('common.noResultsFound');
+        return translate('common.noResultsFound');
     }
 
     return '';
