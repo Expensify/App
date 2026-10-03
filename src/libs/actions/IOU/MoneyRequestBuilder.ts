@@ -1702,16 +1702,12 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     if (reportPreviewAction) {
         reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, getCurrencyDecimals, false, comment, optimisticTransaction);
     } else {
-        reportPreviewAction = buildOptimisticReportPreview(
-            chatReport,
-            iouReport,
-            getCurrencyDecimals,
-            delegateAccountID,
-            comment,
-            optimisticTransaction,
-            undefined,
-            optimisticReportPreviewActionID,
-        );
+        // A report preview action belongs to one expense report. Reuse the caller's reserved ID while the expense stays
+        // on that report, including when an earlier optimistic write from this batch is not available in Onyx yet.
+        // If the expense landed on a different report, let buildOptimisticReportPreview generate a new action ID.
+        const isCallerReservedReport = !existingIOUReport || existingIOUReport.reportID === iouReport.reportID;
+        const reportPreviewActionID = isCallerReservedReport ? (existingIOUReport?.parentReportActionID ?? optimisticReportPreviewActionID) : undefined;
+        reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimals, delegateAccountID, comment, optimisticTransaction, undefined, reportPreviewActionID);
         chatReport.lastVisibleActionCreated = reportPreviewAction.created;
 
         // Generated ReportPreview action is a parent report action of the iou report.
