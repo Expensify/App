@@ -1,0 +1,52 @@
+# Posts the sticky `## Bundle size` comment for a pull request that `bundleSize.yml` has measured.
+#
+# It runs as a `workflow_run` follower rather than inside the measure workflow because a `pull_request` run
+# from a fork has a read-only token and cannot comment. The alternative, `pull_request_target`, would build a
+# fork's code with a write token in scope. Here the build happens with no write token and no secrets, and
+# this job holds the write token but only ever reads one JSON file and renders text from its own checkout of
+# the default branch. A fork contribution cannot choose what gets posted under the bot's name.
+#
+# The work itself is in the `postBundleSizeComment` composite action, because `workflow_run` only fires for
+# the copy of this file on the repository's default branch: this workflow cannot run from a feature branch,
+# so it cannot be tested from one. A composite action is resolved from whatever ref is checked out, so a job
+# on a branch can exercise the same steps.
+name: Bundle size comment
+
+on:
+  workflow_run:
+    workflows: ['Bundle size']
+    types: [completed]
+
+permissions:
+  actions: read # download the measurement artifacts, from this run and from the `main` run it compares against
+  contents: read # resolve the pull request's merge base through the compare API
+  pull-requests: write # post and edit the comment
+
+# One comment per pull request, edited in place, so a superseded run has nothing left to say. The head
+# repository is part of the key because branch names are not unique across forks: two pull requests from two
+# forks are routinely both called `main`, and grouping on the branch alone would let one cancel the other.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: true
+
+jobs:
+  comment:
+    name: Comment
+    # A `push` run measures `main` for later baselines and has no pull request to comment on.
+    if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success'
+    runs-on: ${{ github.repository_owner == 'Expensify' && 'blacksmith-2vcpu-ubuntu-2404' || 'ubuntu-latest' }}
+    timeout-minutes: 15
+    steps:
+      # No `ref`: this is deliberately the default branch's code, not the pull request's.
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Post the bundle size comment
+        uses: ./.github/actions/composite/postBundleSizeComment
+        with:
+          measurement-run-id: ${{ github.event.workflow_run.id }}
+          # From the event, never from the artifact: these decide which pull request gets commented on.
+          head-branch: ${{ github.event.workflow_run.head_branch }}
+          head-repository: ${{ github.event.workflow_run.head_repository.full_name }}
+          head-sha: ${{ github.event.workflow_run.head_sha }}
+          github-token: ${{ github.token }}

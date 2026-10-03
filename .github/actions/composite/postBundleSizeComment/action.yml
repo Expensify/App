@@ -1,0 +1,293 @@
+name: Post the bundle size comment
+description: |
+  Reads a `bundle-size` measurement, finds the `main` measurement to compare it against, renders the section
+  and posts it as a sticky pull request comment, editing the existing one when there is one.
+
+  This is the whole body of `bundleSizeComment.yml`, factored out because `workflow_run` only fires for the
+  copy of a workflow file on the repository's default branch, so the follower itself cannot run from a
+  feature branch. A composite action is resolved from whatever ref is checked out, so a job on a branch can
+  exercise these steps when this needs to be changed.
+
+  Callers must check out the repository first. Everything here reads: the only write is the comment itself.
+# cspell:ignore nvmrc
+inputs:
+  measurement-run-id:
+    description: The workflow run whose `bundle-size` artifact holds this pull request's measurement.
+    required: true
+  head-branch:
+    description: |
+      The branch the measured run was for, from the event payload rather than from the artifact. The pull
+      request is looked up by this, so it has to come from GitHub and not from anything a contributor writes.
+    required: true
+  head-repository:
+    description: The `owner/name` of the repository the measured run came from. A fork, for most pull requests.
+    required: true
+  head-sha:
+    description: The commit the measured run was for. The measurement has to agree with this or it is rejected.
+    required: true
+  github-token:
+    description: Token that can read actions and contents, and write pull requests.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    # `scripts/bundleSize.ts` is type-stripping-only TypeScript that imports nothing outside `node:`, so
+    # Node runs it directly and this needs no `npm ci`. The version matters: type stripping needs a Node
+    # newer than some runner images ship, and `.nvmrc` is well past it.
+    - name: Setup Node
+      # v6.1.0
+      uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f
+      with:
+        node-version-file: '.nvmrc'
+
+    # The measure workflow uploads nothing when the build or the measurement failed, so a missing artifact
+    # is an expected outcome, not an error. The comment says so rather than never appearing.
+    - name: Download this pull request's measurement
+      continue-on-error: true
+      # v7
+      uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+      with:
+        name: bundle-size
+        path: measure
+        run-id: ${{ inputs.measurement-run-id }}
+        github-token: ${{ inputs.github-token }}
+
+    - name: Resolve the baseline
+      id: baseline
+      uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+      env:
+        HEAD_BRANCH: ${{ inputs.head-branch }}
+        HEAD_REPOSITORY: ${{ inputs.head-repository }}
+        HEAD_SHA: ${{ inputs.head-sha }}
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          const fs = require('fs');
+          const {owner, repo} = context.repo;
+          const headBranch = process.env.HEAD_BRANCH;
+          const headRepository = process.env.HEAD_REPOSITORY;
+          const headSha = process.env.HEAD_SHA;
+
+          // Which pull request this is, resolved from the API rather than from the artifact.
+          //
+          // The measure workflow runs on `pull_request`, which means it runs the copy of the workflow file
+          // on the pull request's own branch: a fork decides what that file writes. Anything read out of the
+          // artifact is therefore a contributor's choice, and this job holds `pull-requests: write`, so a
+          // pull request number taken from the artifact would let one repository post a comment on another
+          // repository's pull request. Everything that decides WHERE the comment goes comes from here down.
+          //
+          // The lookup is by branch because `workflow_run.pull_requests` is empty for a fork-originated run,
+          // and neither `commits/{sha}/pulls` nor the search API indexes a fork's head commits. Expensify's
+          // contribution model is forks, so getting this wrong means the tool silently never comments on
+          // most pull requests.
+          const openOnBranch = await github.rest.pulls.list({
+            owner,
+            repo,
+            head: `${headRepository.split('/')[0]}:${headBranch}`,
+            state: 'open',
+            per_page: 100,
+          });
+          // A deleted fork leaves `head.repo` null, and there is then nothing left to check the run against.
+          const fromThisRun = openOnBranch.data.filter((candidate) => candidate.head.repo?.full_name === headRepository);
+          if (openOnBranch.data.length > 0 && fromThisRun.length === 0) {
+            throw new Error(`This run came from ${headRepository}, which no open pull request on \`${headBranch}\` belongs to. Refusing to comment.`);
+          }
+          // GitHub allows two open pull requests from one head branch when they target different bases. Only
+          // one gets a comment, and the log is where that becomes visible.
+          if (fromThisRun.length > 1) {
+            core.warning(`${fromThisRun.length} open pull requests share the head ${headRepository}:${headBranch} (${fromThisRun.map((candidate) => `#${candidate.number}`).join(', ')}). Only the first gets a comment.`);
+          }
+          const pullRequest = fromThisRun.at(0);
+          if (!pullRequest) {
+            core.info(`No open pull request for ${headRepository}:${headBranch}, so there is nothing to comment on.`);
+            return;
+          }
+          core.setOutput('pr-number', pullRequest.number);
+
+          // No measurement at all means the build or the measurement did not finish. The pull request is
+          // already resolved above, so the comment can still say that, which is more use to the author than
+          // silence.
+          if (!fs.existsSync('measure/bundle-size.json')) {
+            core.setOutput('measured', 'false');
+            core.setOutput('baseline-branch', pullRequest.base.ref);
+            core.info('No measurement for this run, so the comment will say it could not be measured.');
+            return;
+          }
+          // Both refusals below say "not measured" rather than throwing. The file is written by a fork's own
+          // copy of the measure workflow, so a fork can produce either at will; a red run in this repository's
+          // Actions list, for something a pull request author cannot act on, is the wrong answer to that.
+          const unusable = (reason) => {
+            core.warning(reason);
+            core.setOutput('measured', 'false');
+            core.setOutput('baseline-branch', pullRequest.base.ref);
+          };
+
+          let measuredSha;
+          try {
+            measuredSha = JSON.parse(fs.readFileSync('measure/bundle-size.json', 'utf8')).sha;
+          } catch (error) {
+            unusable(`The measurement is not readable JSON: ${error.message}`);
+            return;
+          }
+
+          // The measurement must be of the commit the event says was measured. A report naming some other
+          // commit is either a mix-up between runs or a fork writing whatever it liked; both are refused.
+          if (measuredSha !== headSha) {
+            unusable(`The measurement is for ${measuredSha}, but this run measured ${headSha}. Refusing to report one commit's sizes as another's.`);
+            return;
+          }
+          core.setOutput('measured', 'true');
+
+          // Baselines come from the branch this pull request is merging INTO, which is `main` for every
+          // ordinary pull request. Read from the pull request record rather than hardcoded, so the sentence
+          // stays true for one that targets a long-lived branch. Resolved before anything can fail, because
+          // the comment names it whatever else happens.
+          const baselineBranch = pullRequest.base.ref;
+          core.setOutput('baseline-branch', baselineBranch);
+          core.info(`resolving baselines from \`${baselineBranch}\``);
+
+          // `base.sha` is the base branch tip this head was tested against, not the merge base. Comparing
+          // against the tip would charge the pull request for every byte that landed on `main` after it
+          // forked, so ask the API for the actual merge base. A fork's head commit is reachable in this
+          // repository through the pull request ref, so one comparison covers both cases - but if it ever
+          // does not, no baseline is the honest answer, and it is louder than a wrong one.
+          let mergeBaseSha = '';
+          try {
+            const comparison = await github.rest.repos.compareCommitsWithBasehead({
+              owner,
+              repo,
+              basehead: `${pullRequest.base.sha}...${headSha}`,
+            });
+            mergeBaseSha = comparison.data.merge_base_commit.sha;
+            core.info(`merge base of ${headSha} and ${pullRequest.base.sha} is ${mergeBaseSha}`);
+          } catch (error) {
+            core.warning(`Could not resolve the merge base of ${headSha} and ${pullRequest.base.sha}: ${error.message}`);
+            return;
+          }
+          core.setOutput('merge-base-sha', mergeBaseSha);
+
+          // The merge base itself is the baseline, and normally has a measurement: the measure workflow is
+          // NOT path-filtered on the baseline branch, so every commit there is measured. What is left is a
+          // build that failed or has not finished. Every fallback is an ANCESTOR of the merge base, never
+          // the branch tip, so the comparison can only ever include commits this branch does not have, and
+          // the comment says when it did that. The merge base is listed first explicitly rather than relying
+          // on `listCommits` returning the commit it was asked about at index 0.
+          const ancestors = await github.rest.repos.listCommits({owner, repo, sha: mergeBaseSha, per_page: 100});
+          const candidates = [mergeBaseSha, ...ancestors.data.map((commit) => commit.sha).filter((sha) => sha !== mergeBaseSha)];
+
+          // Asked per candidate SHA rather than by listing recent runs on the branch. A single page of runs
+          // covers about three days of `main` at this repository's merge rate, and because every candidate is
+          // OLDER than the merge base, a merge base outside that page puts every fallback outside it too: a
+          // pull request open for a week would lose the comparison entirely rather than degrading to an
+          // ancestor. Asking by SHA makes the window the artifact retention instead, and costs one call in
+          // the normal case, where the merge base is measured and answers first.
+          //
+          // A retained artifact can still have expired, so confirm the file is really downloadable before
+          // settling on a run. Both caps below are ceilings on API calls: if the nearest few measured
+          // ancestors have all expired, the honest answer is no baseline rather than a walk back through
+          // months of history.
+          let checked = 0;
+          let asked = 0;
+          for (const sha of candidates) {
+            if (checked >= 5 || asked >= 25) {
+              break;
+            }
+            asked += 1;
+            // Newest run wins for a re-run of one commit, which is the order this returns them in.
+            const runs = await github.rest.actions.listWorkflowRuns({
+              owner,
+              repo,
+              workflow_id: 'bundleSize.yml',
+              head_sha: sha,
+              event: 'push',
+              status: 'success',
+              per_page: 1,
+            });
+            const runId = runs.data.workflow_runs.at(0)?.id;
+            if (!runId) {
+              continue;
+            }
+            checked += 1;
+            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({owner, repo, run_id: runId, per_page: 100});
+            if (!artifacts.data.artifacts.some((artifact) => artifact.name === 'bundle-size' && !artifact.expired)) {
+              core.info(`measurement for ${sha} (run ${runId}) has expired`);
+              continue;
+            }
+            core.setOutput('run-id', runId);
+            core.info(sha === mergeBaseSha ? `baseline is the merge base ${sha}` : `baseline is ${sha}, an ancestor of the merge base`);
+            return;
+          }
+          core.warning(`No \`${baselineBranch}\` measurement resolved for this pull request, so the comment will carry its own sizes only.`);
+
+    - name: Download the baseline measurement
+      if: steps.baseline.outputs.run-id != ''
+      # v7
+      uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+      with:
+        name: bundle-size
+        path: baseline
+        run-id: ${{ steps.baseline.outputs.run-id }}
+        github-token: ${{ inputs.github-token }}
+
+    # The script decides on the wording: it compares the baseline's own recorded SHA against the merge base
+    # it is handed, so the "this is not your merge base" sentence cannot drift out of step with the numbers.
+    # No pull request means a closed or deleted one, which the resolve step already explained. Rendering a
+    # comment with nowhere to post it would fail the run and look like the tool is broken.
+    - name: Render the comment
+      if: steps.baseline.outputs.pr-number != ''
+      shell: bash
+      env:
+        BASELINE_RUN_ID: ${{ steps.baseline.outputs.run-id }}
+        MERGE_BASE_SHA: ${{ steps.baseline.outputs.merge-base-sha }}
+        BASELINE_BRANCH: ${{ steps.baseline.outputs.baseline-branch }}
+        MEASURED: ${{ steps.baseline.outputs.measured }}
+        MEASUREMENT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ inputs.measurement-run-id }}
+      run: |
+        node ./scripts/bundleSize.ts --marker > marker.txt
+        if [ "$MEASURED" != 'true' ]; then
+          {
+            cat marker.txt
+            echo
+            echo '## Bundle size'
+            echo
+            echo "This pull request has no usable size measurement, so there is nothing to compare against \`$BASELINE_BRANCH\`. The [measurement run]($MEASUREMENT_RUN_URL) has the reason."
+          } > comment.md
+          cat comment.md >> "$GITHUB_STEP_SUMMARY"
+          exit 0
+        fi
+        if [ -n "$BASELINE_RUN_ID" ]; then
+          node ./scripts/bundleSize.ts --compare baseline/bundle-size.json measure/bundle-size.json --merge-base-sha "$MERGE_BASE_SHA" --baseline-branch "$BASELINE_BRANCH" > comment.md
+        else
+          node ./scripts/bundleSize.ts --no-baseline measure/bundle-size.json --baseline-branch "$BASELINE_BRANCH" > comment.md
+        fi
+        cat comment.md >> "$GITHUB_STEP_SUMMARY"
+
+    - name: Post or edit the comment
+      if: steps.baseline.outputs.pr-number != ''
+      uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+      env:
+        PR_NUMBER: ${{ steps.baseline.outputs.pr-number }}
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          const fs = require('fs');
+          const {owner, repo} = context.repo;
+          const issue_number = Number(process.env.PR_NUMBER);
+          if (!Number.isInteger(issue_number) || issue_number <= 0) {
+            throw new Error(`The resolved pull request number is unusable (got ${JSON.stringify(process.env.PR_NUMBER)}), so there is nothing to comment on.`);
+          }
+          const body = fs.readFileSync('comment.md', 'utf8');
+          const marker = fs.readFileSync('marker.txt', 'utf8').trim();
+
+          // The marker is a hidden HTML comment in the body, so the same comment is reused on every push
+          // instead of the pull request collecting one comment per commit.
+          const comments = await github.paginate(github.rest.issues.listComments, {owner, repo, issue_number, per_page: 100});
+          const existing = comments.find((comment) => comment.body?.includes(marker));
+          if (existing) {
+            await github.rest.issues.updateComment({owner, repo, comment_id: existing.id, body});
+            core.info(`edited comment ${existing.html_url}`);
+            return;
+          }
+          const created = await github.rest.issues.createComment({owner, repo, issue_number, body});
+          core.info(`posted comment ${created.data.html_url}`);
