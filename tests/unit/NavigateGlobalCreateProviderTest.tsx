@@ -9,7 +9,7 @@ import {NavigateGlobalCreateProvider, useNavigateGlobalCreate} from '@pages/iou/
 
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
-import type {Report} from '@src/types/onyx';
+import type {Report, Transaction} from '@src/types/onyx';
 
 import React, {useEffect} from 'react';
 
@@ -96,15 +96,13 @@ describe('NavigateGlobalCreateProvider', () => {
         expect(onMount).toHaveBeenCalledTimes(1);
     });
 
-    it('routes a track expense to the self DM confirmation instead of the recipient picker', async () => {
-        // Given the Manual tab already settled a submissions-disabled expense on the self DM, which flipped the shared route to TRACK
-        mockSelfDMReport = SELF_DM_REPORT;
-
+    async function captureTrackReceipt(transaction: Transaction) {
         function TrackProvider({children}: {children: React.ReactNode}) {
             return (
                 <NavigateGlobalCreateProvider
                     {...baseProps}
                     iouType={CONST.IOU.TYPE.TRACK}
+                    transaction={transaction}
                 >
                     {children}
                 </NavigateGlobalCreateProvider>
@@ -116,14 +114,33 @@ describe('NavigateGlobalCreateProvider', () => {
         await waitForBatchedUpdates();
         await waitForBatchedUpdates();
 
-        // When a receipt is captured on the Scan tab, after the Subscriber has published its navigate function
         act(() => result.current(['t1'], false));
         await waitForBatchedUpdates();
         await waitForBatchedUpdates();
+    }
+
+    it('routes a track expense to the self DM confirmation instead of the recipient picker', async () => {
+        // Given the Manual tab already settled a submissions-disabled global-create expense on the self DM, which flipped the shared route to TRACK
+        mockSelfDMReport = SELF_DM_REPORT;
+
+        // When a receipt is captured on the Scan tab, after the Subscriber has published its navigate function
+        await captureTrackReceipt({isFromGlobalCreate: true} as Transaction);
 
         // Then the scan opens the self DM confirmation, because the route type already resolved the destination
         expect(mockNavigateToParticipantPage).not.toHaveBeenCalled();
         expect(mockSetTransactionReport).toHaveBeenCalledWith('t1', {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
         expect(Navigation.navigate).toHaveBeenCalledWith(expect.stringContaining(`create/${CONST.IOU.TYPE.TRACK}/confirmation/t1/${SELF_DM_REPORT.reportID}`));
+    });
+
+    it('keeps the recipient picker for a track scan that did not start from global create', async () => {
+        // Given a track scan from a report, which still renders the global-create scan when that report is archived
+        mockSelfDMReport = SELF_DM_REPORT;
+
+        // When a receipt is captured
+        await captureTrackReceipt({isFromGlobalCreate: false} as Transaction);
+
+        // Then the recipient picker opens, since the route type was never resolved to the self DM by the Manual tab
+        expect(mockNavigateToParticipantPage).toHaveBeenCalledWith(CONST.IOU.TYPE.TRACK, 't1', '1');
+        expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 });

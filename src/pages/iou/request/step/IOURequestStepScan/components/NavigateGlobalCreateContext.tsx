@@ -98,7 +98,7 @@ function NavigateGlobalCreateSubscriber({fnRef, iouType, reportID, transactionID
         startScanProcessSpan(isMultiScanEnabled);
 
         // Manual's confirmation flips the shared route to TRACK once it lands on the self DM, so a later scan arrives already resolved.
-        const isSelfDMTrackExpense = iouType === CONST.IOU.TYPE.TRACK && !!selfDMReport;
+        const isSelfDMTrackExpense = iouType === CONST.IOU.TYPE.TRACK && !!transaction?.isFromGlobalCreate && !!selfDMReport;
 
         if (
             isSelfDMTrackExpense ||
