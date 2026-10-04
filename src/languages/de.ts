@@ -3430,8 +3430,8 @@ ${amount} für ${merchant} – ${date}`,
         },
         interestedFeatures: {
             title: 'An welchen Funktionen bist du interessiert?',
-            featuresAlreadyEnabled: 'Hier sind unsere beliebtesten Funktionen:',
-            featureYouMayBeInterestedIn: 'Zusätzliche Funktionen aktivieren:',
+            featuresAlreadyEnabled: 'Beliebte Funktionen',
+            featureYouMayBeInterestedIn: 'Zusätzliche Funktionen',
         },
         error: {
             requiredFirstName: 'Bitte gib deinen Vornamen ein, um fortzufahren',

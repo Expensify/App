@@ -134,6 +134,57 @@ describe('Onboarding interested features and accounting pages', () => {
         expect(mockCompleteOnboardingFlow).not.toHaveBeenCalled();
     });
 
+    it('exposes optional feature descriptions on the same checkbox tile', async () => {
+        // Given the interested features step with its default selections
+        renderInterestedFeaturesPage();
+
+        // When the localized feature tiles finish rendering
+        await waitForBatchedUpdatesWithAct();
+        const travelTitle = TestHelper.translateLocal('workspace.moreFeatures.travel.title');
+        const travelSubtitle = TestHelper.translateLocal('workspace.moreFeatures.travel.subtitle');
+
+        // Then the optional description is visible and part of the tile's accessible name
+        expect(screen.getAllByRole(CONST.ROLE.CHECKBOX)).toHaveLength(11);
+        expect(screen.getByText(travelSubtitle)).toBeOnTheScreen();
+        expect(screen.getByRole(CONST.ROLE.CHECKBOX, {name: `${travelTitle}. ${travelSubtitle}`})).toBeOnTheScreen();
+
+        // Then a default feature keeps its title-only checkbox name
+        expect(screen.getByRole(CONST.ROLE.CHECKBOX, {name: TestHelper.translateLocal('workspace.moreFeatures.connections.title')})).toBeOnTheScreen();
+    });
+
+    it('persists an optional tile selected through its visible description', async () => {
+        // Given the interested features step with Accounting selected by default
+        renderInterestedFeaturesPage();
+
+        // When the visible description inside one optional tile is pressed
+        await waitForBatchedUpdatesWithAct();
+        const travelTitle = TestHelper.translateLocal('workspace.moreFeatures.travel.title');
+        const travelSubtitle = TestHelper.translateLocal('workspace.moreFeatures.travel.subtitle');
+        const travelTile = screen.getByRole(CONST.ROLE.CHECKBOX, {name: `${travelTitle}. ${travelSubtitle}`});
+        expect(travelTile.props.accessibilityState).toMatchObject({checked: false});
+        fireEvent.press(screen.getByText(travelSubtitle));
+
+        // Then the tile checkbox receives the activation
+        expect(screen.getByRole(CONST.ROLE.CHECKBOX, {name: `${travelTitle}. ${travelSubtitle}`}).props.accessibilityState).toMatchObject({checked: true});
+
+        // When the selection is submitted
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
+
+        // Then Onyx receives Travel and the default Accounting feature as enabled
+        await TestHelper.getOnyxData({
+            key: ONYXKEYS.ONBOARDING_INTERESTED_FEATURES_MAP,
+            callback: (featuresMap) => {
+                expect(featuresMap).toEqual(
+                    expect.arrayContaining([
+                        expect.objectContaining({id: CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED, enabled: true}),
+                        expect.objectContaining({id: CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED, enabled: true}),
+                    ]),
+                );
+            },
+        });
+        expect(mockCompleteOnboardingFlow).not.toHaveBeenCalled();
+    });
+
     it('completes onboarding immediately when accounting is disabled', async () => {
         renderInterestedFeaturesPage();
 
