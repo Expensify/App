@@ -96,8 +96,15 @@ function NavigateGlobalCreateSubscriber({fnRef, iouType, reportID, transactionID
 
     const navigateGlobalCreate: NavigateGlobalCreateFn = (transactionIDs, isMultiScanEnabled) => {
         startScanProcessSpan(isMultiScanEnabled);
-        if (shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, currentUserPersonalDetails.accountID)) {
-            const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
+
+        // Manual's confirmation flips the shared route to TRACK once it lands on the self DM, so a later scan arrives already resolved.
+        const isSelfDMTrackExpense = iouType === CONST.IOU.TYPE.TRACK && !!transaction?.isFromGlobalCreate && !!selfDMReport;
+
+        if (
+            isSelfDMTrackExpense ||
+            shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, currentUserPersonalDetails.accountID)
+        ) {
+            const shouldAutoReport = !isSelfDMTrackExpense && (!!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting);
             const targetReport = shouldAutoReport ? getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id) : selfDMReport;
             const transactionReportID = isSelfDM(targetReport) ? CONST.REPORT.UNREPORTED_REPORT_ID : targetReport?.reportID;
             const iouTypeTrackOrSubmit = transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
