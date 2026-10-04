@@ -92,7 +92,6 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReport?.reportID)}`);
 
     const [sourceReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(sourceTransaction?.reportID)}`);
-    // Expenses already in the source report, used to tell if only one will be left after merging.
     const sourceReportTransactionsCollection = useReportTransactionsCollection(sourceTransaction?.reportID);
     const sourceIOUAction = sourceTransaction ? getIOUActionForTransactionID(Object.values(sourceReportActions ?? {}), sourceTransaction.transactionID) : undefined;
     const selfDMSourceIOUAction =

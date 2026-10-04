@@ -411,8 +411,6 @@ type MergeTransactionRequestParams = {
     targetTransaction: Transaction;
     allTransactionViolations: OnyxCollection<TransactionViolations>;
     sourceTransaction: Transaction;
-    // Expenses currently on whichever of targetTransaction/sourceTransaction's report is about to be left behind,
-    // used to tell if deleting it would empty that report. The caller resolves which one that is.
     transactionsOfDeletableReportCollection: Record<string, Transaction>;
     targetTransactionThreadReport: OnyxEntry<Report>;
     targetTransactionThreadParentReport: OnyxEntry<Report>;
