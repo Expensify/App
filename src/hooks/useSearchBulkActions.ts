@@ -2516,6 +2516,30 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             },
         };
 
+        const rejectOption: DropdownOption<SearchHeaderOptionValue> = {
+            icon: expensifyIcons.ThumbsDown,
+            text: translate('search.bulkActions.reject'),
+            value: CONST.SEARCH.BULK_ACTION_TYPES.REJECT,
+            shouldCloseModalOnSelect: true,
+            onSelected: () => {
+                if (isOffline) {
+                    setIsOfflineModalVisible(true);
+                    return;
+                }
+
+                if (isDelegateAccessRestricted) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
+
+                if (dismissedRejectUseExplanation) {
+                    Navigation.navigate(ROUTES.SEARCH_REJECT_REASON_RHP);
+                } else {
+                    setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
+                }
+            },
+        };
+
         const holdOption: DropdownOption<SearchHeaderOptionValue> = {
             icon: expensifyIcons.Stopwatch,
             text: translate('search.bulkActions.hold'),
@@ -2697,6 +2721,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             if (shouldShowPayOption) {
                 allMatchingOptions.push(payButtonOption);
             }
+            // The backend only rejects expenses on reports the user can reject, so one loaded item is enough to offer it.
+            if (queryJSON?.type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && !isOffline && selectedTransactionsKeys.some((id) => selectedTransactions[id].canReject)) {
+                allMatchingOptions.push(rejectOption);
+            }
             // The backend only acts on the matching expenses the user can hold or unhold, so one loaded item is enough to offer it.
             if (!isOffline && selectedTransactionsKeys.some((id) => selectedTransactions[id].canHold)) {
                 allMatchingOptions.push(holdOption);
@@ -2802,29 +2830,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             hasNoRejectedTransaction;
 
         if (shouldShowRejectOption) {
-            options.push({
-                icon: expensifyIcons.ThumbsDown,
-                text: translate('search.bulkActions.reject'),
-                value: CONST.SEARCH.BULK_ACTION_TYPES.REJECT,
-                shouldCloseModalOnSelect: true,
-                onSelected: () => {
-                    if (isOffline) {
-                        setIsOfflineModalVisible(true);
-                        return;
-                    }
-
-                    if (isDelegateAccessRestricted) {
-                        showDelegateNoAccessModal();
-                        return;
-                    }
-
-                    if (dismissedRejectUseExplanation) {
-                        Navigation.navigate(ROUTES.SEARCH_REJECT_REASON_RHP);
-                    } else {
-                        setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
-                    }
-                },
-            });
+            options.push(rejectOption);
         }
 
         const shouldShowChangeApproverOption =
