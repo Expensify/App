@@ -10,8 +10,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearMoneyRequestMerchant, setMoneyRequestMerchant} from '@libs/actions/IOU/MoneyRequest';
 import {isConfirmationMerchantMissing} from '@libs/MoneyRequestUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import Navigation from '@libs/Navigation/Navigation';
 import {hasAnyManuallyEnteredScanField} from '@libs/TransactionUtils';
 import {isUntypedPlaceholderMerchant, isValidInputLength} from '@libs/ValidationUtils';
 
@@ -19,7 +17,6 @@ import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
@@ -37,7 +34,7 @@ type MerchantFieldProps = {
 };
 
 function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}: MerchantFieldProps) {
-    const {transactionID, isReadOnly, didConfirm, isEditingSplitBill, canEnterScanFieldsManually, action, iouType, reportID, reportActionID} = useConfirmationFields();
+    const {transactionID, isReadOnly, didConfirm, isEditingSplitBill, canEnterScanFieldsManually} = useConfirmationFields();
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -153,14 +150,6 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}:
     // The row hides the label once it has a value, and an error replaces it
     const shouldShowRequiredLabel = !displayMerchantValue && !!isMerchantRequired && !shouldDisplayMerchantError;
 
-    const openMerchantPage = () => {
-        if (!transactionID) {
-            return;
-        }
-
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(action, iouType, transactionID, reportID, reportActionID)));
-    };
-
     // On the bordered form the editable merchant is a text input, so a locked one has to read as a disabled input
     // too rather than as a push row, or the same screen answers "this field can't be changed" two different ways.
     if (shouldUseDropdownRows) {
@@ -171,7 +160,9 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}:
                 numberOfLinesValue={2}
                 rightLabel={isMerchantRequired ? translate('common.required') : ''}
                 errorText={merchantErrorText}
-                onPress={openMerchantPage}
+                onPress={() => {
+                    // Read-only merchant rows never navigate.
+                }}
                 isDisabled={didConfirm}
                 isInteractive={false}
                 sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.MERCHANT_FIELD}
