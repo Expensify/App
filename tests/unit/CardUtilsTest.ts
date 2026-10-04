@@ -9,6 +9,7 @@ import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import IntlStore from '@src/languages/IntlStore';
 import type * as CardArtworkColorsModule from '@src/libs/CardArtworkColors';
 import {
+    canResolveTransactionCard,
     checkIfNewFeedConnected,
     doesCardFeedExist,
     feedHasCards,
@@ -106,6 +107,7 @@ import type {
     ExpensifyCardSettings,
     PersonalDetailsList,
     Policy,
+    Transaction,
     WorkspaceCardsList,
 } from '@src/types/onyx';
 import type {CardFeedWithNumber, CompanyFeeds} from '@src/types/onyx/CardFeeds';
@@ -5358,5 +5360,92 @@ describe('getWalletProviderNameKey', () => {
     it('capitalizes only the generic key, since the brand names already read correctly at the start of a sentence', () => {
         expect(getWalletProviderNameKey(undefined, true)).toBe('digitalWalletCapitalized');
         expect(getWalletProviderNameKey(CONST.EXPENSIFY_CARD.WALLET_PROVIDER.APPLE_PAY, true)).toBe('appleWallet');
+    });
+});
+
+describe('canResolveTransactionCard', () => {
+    const cardID = 4242;
+    const visibleCards: CardList = {[cardID]: createMock<Card>({cardID})};
+
+    function buildCardTransaction(values: Partial<Transaction>): Transaction {
+        return createMock<Transaction>({managedCard: true, cardID, ...values});
+    }
+
+    it('accepts a managed card expense whose card the mover can see', () => {
+        // Given a card the mover can see, so it is their own or on a feed they administer
+        const transaction = buildCardTransaction({});
+
+        // When checking whether the backend could resolve a destination
+        const canResolve = canResolveTransactionCard(transaction, visibleCards, true);
+
+        // Then it can
+        expect(canResolve).toBe(true);
+    });
+
+    it('rejects a managed card expense on a feed the mover does not administer', () => {
+        // Given a card absent from the mover's list. This is the regression in #101767, where the card sat on the
+        // submitter's own workspace feed and only the draft report was shared
+        const transaction = buildCardTransaction({cardID: 9999});
+
+        // When checking whether the backend could resolve a destination
+        const canResolve = canResolveTransactionCard(transaction, visibleCards, true);
+
+        // Then it cannot, so "Auto report" stays hidden rather than failing the whole batch
+        expect(canResolve).toBe(false);
+    });
+
+    it('rejects an expense that is not on a managed card', () => {
+        // Given an expense with no managed card, such as a manually created one
+        const transaction = buildCardTransaction({managedCard: false});
+
+        // When checking whether the backend could resolve a destination
+        const canResolve = canResolveTransactionCard(transaction, visibleCards, true);
+
+        // Then it cannot, having no card to resolve through
+        expect(canResolve).toBe(false);
+    });
+
+    it('rejects a managed card expense that carries no card ID', () => {
+        // Given a cardID that never reached the search snapshot, leaving nothing to look up
+        const transaction = buildCardTransaction({cardID: undefined});
+
+        // When checking whether the backend could resolve a destination
+        const canResolve = canResolveTransactionCard(transaction, visibleCards, true);
+
+        // Then it cannot: an unverifiable card fails closed
+        expect(canResolve).toBe(false);
+    });
+
+    it('rejects every expense once a complete list turns out to hold no cards', () => {
+        // Given a complete list that is empty, so the mover owns no card and administers no feed
+        const transaction = buildCardTransaction({});
+
+        // When checking whether the backend could resolve a destination
+        const canResolve = canResolveTransactionCard(transaction, undefined, true);
+
+        // Then it cannot, keeping the option hidden rather than offering a move that would fail
+        expect(canResolve).toBe(false);
+    });
+
+    it('accepts a card missing from a list that is still incomplete', () => {
+        // Given a card absent from a list Search has not finished loading, so absence says nothing about access
+        const transaction = buildCardTransaction({cardID: 9999});
+
+        // When checking whether the backend could resolve a destination
+        const canResolve = canResolveTransactionCard(transaction, visibleCards, false);
+
+        // Then it is allowed through, leaving the backend to refuse what it cannot resolve
+        expect(canResolve).toBe(true);
+    });
+
+    it('still rejects an expense off a managed card while the list is incomplete', () => {
+        // Given an expense with no card, which the transaction proves on its own
+        const transaction = buildCardTransaction({managedCard: false});
+
+        // When checking whether the backend could resolve a destination
+        const canResolve = canResolveTransactionCard(transaction, visibleCards, false);
+
+        // Then it cannot, having no card to resolve through whatever else loads
+        expect(canResolve).toBe(false);
     });
 });
