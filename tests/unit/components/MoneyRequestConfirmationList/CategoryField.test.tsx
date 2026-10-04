@@ -85,6 +85,21 @@ describe('CategoryField', () => {
         await waitForBatchedUpdates();
     }
 
+    async function givenScanExpense() {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
+            transactionID: TRANSACTION_ID,
+            reportID: REPORT_ID,
+            amount: 0,
+            currency: 'USD',
+            merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+            created: '2026-01-15',
+            category: 'Travel',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            receipt: {receiptID: 1, source: 'source', state: CONST.IOU.RECEIPT_STATE.SCAN_READY},
+        });
+        await waitForBatchedUpdates();
+    }
+
     it('does not promise an automatic category when the workspace turned auto-categorization off', async () => {
         // Given a manual expense on a workspace that will not categorize it
         await givenManualExpense();
@@ -127,18 +142,7 @@ describe('CategoryField', () => {
 
     it('does not promise an automatic category on a scan when auto-categorization is off', async () => {
         // Given a scan whose workspace will not categorize the receipt
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
-            transactionID: TRANSACTION_ID,
-            reportID: REPORT_ID,
-            amount: 0,
-            currency: 'USD',
-            merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
-            created: '2026-01-15',
-            category: 'Travel',
-            iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
-            receipt: {receiptID: 1, source: 'source', state: CONST.IOU.RECEIPT_STATE.SCAN_READY},
-        });
-        await waitForBatchedUpdates();
+        await givenScanExpense();
 
         // When the confirmation form renders the category row
         renderCategoryField(false, disabledPolicy);
@@ -160,6 +164,23 @@ describe('CategoryField', () => {
         // Then the row must not say Automatic, because invoices are never auto-categorized
         await waitFor(() => {
             expect(screen.getByText('Meals')).toBeOnTheScreen();
+        });
+        expect(screen.queryByText('common.automatic')).toBeNull();
+    });
+
+    it.each([
+        ['manual', givenManualExpense, 'Meals'],
+        ['scan', givenScanExpense, 'Travel'],
+    ])('does not promise an automatic category on a %s track expense without a workspace', async (_, givenExpense, category) => {
+        // Given a track expense that isn't tied to any workspace
+        await givenExpense();
+
+        // When the confirmation form renders the category row with no policy
+        renderCategoryField(false, undefined, CONST.IOU.TYPE.TRACK);
+
+        // Then the row must not say Automatic, because categorization only runs on a workspace
+        await waitFor(() => {
+            expect(screen.getByText(category)).toBeOnTheScreen();
         });
         expect(screen.queryByText('common.automatic')).toBeNull();
     });

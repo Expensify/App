@@ -65,8 +65,8 @@ function CategoryField({
     const isAutoFillFromReceipt = categoryState?.isAutoFillFromReceipt ?? false;
     const decodedCategoryName = getDecodedLeafCategoryName(iouCategory);
 
-    // The workspace setting defaults to on. Turning it off means nothing will pick a category, so the row must not promise one.
-    const isAutoCategorizationEnabled = policy?.autoCategorizeNewExpenses !== false;
+    // Categorization comes from the workspace, so there is nothing to promise without one. The setting itself defaults to on.
+    const isAutoCategorizationEnabled = !!policy && policy.autoCategorizeNewExpenses !== false;
     // Invoices are never auto-categorized, so the row must not promise a category it will never get.
     const isInvoice = iouType === CONST.IOU.TYPE.INVOICE;
     const shouldPromiseAutomaticCategory = isAutoCategorizationEnabled && !isInvoice && willAutoFill && (isAutoFillFromReceipt || !isCategoryRequired);
