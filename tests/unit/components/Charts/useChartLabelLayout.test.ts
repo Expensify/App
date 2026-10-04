@@ -60,7 +60,6 @@ describe('useChartLabelLayout', () => {
             firstLabelMaxWidth: Infinity,
             lastLabelMaxWidth: Infinity,
             ellipsisWidth: 0,
-            shouldUseHorizontalBars: false,
         };
 
         it('returns defaults when fontManager is null', () => {
@@ -117,75 +116,32 @@ describe('useChartLabelLayout', () => {
         });
     });
 
-    describe('horizontal bar fallback', () => {
-        // "AAAAAA" = 42px. At tickSpacing=20 both 0° (42+4=46 > 20) and 45° (29.7+4=33.7 > 20) overflow.
-        const crowdedConfig = {data: makeData('AAAAAA', 'BBBBBB'), fontManager: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 20, labelAreaWidth: 400};
+    describe('horizontal bar fallback signal', () => {
+        // The hook no longer owns the fallback decision. It exposes only the rotation, and bar-chart callers
+        // treat a 90° result as the signal to switch to horizontal bars. These assert the rotation contract callers rely on.
 
-        it('requests horizontal bars instead of 90° when labels do not fit at 45° and the fallback is allowed', () => {
-            // Given labels that overflow their ticks both side by side and at 45°, in a chart that can switch to horizontal bars
-            const config = {...crowdedConfig, canFallBackToHorizontalBars: true};
-
-            // When the label layout is computed
-            const {result} = renderLayout(config);
-
-            // Then it asks for horizontal bars, because rotating to 90° is what the bar chart must no longer do
-            expect(result.current.shouldUseHorizontalBars).toBe(true);
-        });
-
-        it('keeps the 90° fallback when horizontal bars are not allowed', () => {
-            // Given the same crowded labels in a chart that can't switch orientation (e.g. a line chart)
-            const config = crowdedConfig;
-
-            // When the label layout is computed
-            const {result} = renderLayout(config);
-
-            // Then it falls back to 90° as before, so charts that don't opt in are unaffected
+        it('reports 90° when labels overflow at every rotation, the signal to fall back to horizontal bars', () => {
+            // Given labels that overflow at 0° (46>20) and 45° (33.7>20)
+            // When laying out the labels
+            // Then the rotation stays 90°, which bar-chart callers read as "switch to horizontal bars"
+            const {result} = renderLayout({data: makeData('AAAAAA', 'BBBBBB'), fontManager: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 20, labelAreaWidth: 400});
             expect(result.current.labelRotation).toBe(90);
-            expect(result.current.shouldUseHorizontalBars).toBe(false);
         });
 
-        it('rotates to 45° rather than switching orientation when labels fit diagonally', () => {
-            // Given labels that overflow side by side (42+4=46 > 40) but fit at 45° (29.7+4 ≤ 40)
-            const config = {data: makeData('AAAAAA', 'BBBBBB'), fontManager: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 40, labelAreaWidth: 400, canFallBackToHorizontalBars: true};
-
-            // When the label layout is computed
-            const {result} = renderLayout(config);
-
-            // Then 45° is preferred, because horizontal bars are only the last resort
-            expect(result.current.labelRotation).toBe(45);
-            expect(result.current.shouldUseHorizontalBars).toBe(false);
-        });
-
-        it('keeps labels side by side when they fit, even when the fallback is allowed', () => {
-            // Given short labels that fit their ticks side by side ("AAA" = 21px, 21+4 ≤ 30)
-            const config = {data: makeData('AAA', 'BBB', 'CCC'), fontManager: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 30, labelAreaWidth: 90, canFallBackToHorizontalBars: true};
-
-            // When the label layout is computed
-            const {result} = renderLayout(config);
-
-            // Then the default horizontal labels are kept
+        it('reports 0° when labels fit horizontally, so callers keep vertical bars', () => {
+            // Given labels that fit at 0°
+            // When laying out the labels
+            // Then the rotation is 0° and no fallback is signaled
+            const {result} = renderLayout({data: makeData('AAA', 'BBB', 'CCC'), fontManager: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 30, labelAreaWidth: 90});
             expect(result.current.labelRotation).toBe(0);
-            expect(result.current.shouldUseHorizontalBars).toBe(false);
         });
 
-        it('requests horizontal bars when the edge space is too small for 45° labels', () => {
-            // Given labels that fit between ticks but whose first/last label can't fit at the chart edges even at 45°
-            const config = {
-                data: makeData('AAAAAA', 'BBBBBB'),
-                fontManager: mockFontMgr,
-                fontSize: FONT_SIZE,
-                tickSpacing: 50,
-                labelAreaWidth: 200,
-                firstTickLeftSpace: 5,
-                lastTickRightSpace: 5,
-                canFallBackToHorizontalBars: true,
-            };
-
-            // When the label layout is computed
-            const {result} = renderLayout(config);
-
-            // Then it switches to horizontal bars, because the edge labels would otherwise be clipped
-            expect(result.current.shouldUseHorizontalBars).toBe(true);
+        it('reports 45° when labels fit diagonally, so callers keep vertical bars', () => {
+            // Given labels that overflow at 0° but fit at 45°
+            // When laying out the labels
+            // Then the rotation is 45° and no fallback is signaled
+            const {result} = renderLayout({data: makeData('AAAAAA', 'BBBBBB'), fontManager: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 40, labelAreaWidth: 400});
+            expect(result.current.labelRotation).toBe(45);
         });
     });
 

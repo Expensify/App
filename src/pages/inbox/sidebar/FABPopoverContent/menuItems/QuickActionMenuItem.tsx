@@ -20,7 +20,7 @@ import {isGroupPolicy} from '@libs/PolicyUtils';
 import {getQuickActionIcon, getQuickActionTitle, isQuickActionAllowed} from '@libs/QuickActionUtils';
 import {getReportNameFromNames} from '@libs/ReportAttributesUtils';
 import {getReportName} from '@libs/ReportNameUtils';
-import {getDisplayNameForParticipant, getIcons, getWorkspaceChats, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {canCreateRequest, getDisplayNameForParticipant, getIcons, getWorkspaceChats, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
 import FABFocusableMenuItem from '@pages/inbox/sidebar/FABPopoverContent/FABFocusableMenuItem';
@@ -60,7 +60,6 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
     const [personalDetails] = useAllPersonalDetails();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -75,6 +74,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
     const isValidReport = !(isEmptyObject(quickActionReport) || isReportArchived);
 
     const policyChatForActivePolicy = !isEmptyObject(activePolicy) && isGroupPolicy(activePolicy) && policyChats.length > 0 ? policyChats.at(0) : undefined;
+    const isPolicyChatForActivePolicyArchived = useReportIsArchived(policyChatForActivePolicy?.reportID);
 
     const derivedNames = useDerivedReportNamesByReportIDs([quickActionReport?.reportID, policyChatForActivePolicy?.reportID]);
     const derivedQuickActionReportName = getReportNameFromNames(derivedNames, quickActionReport?.reportID);
@@ -92,9 +92,11 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
 
     const isVisible =
         (quickAction?.action && quickActionReport
-            ? isQuickActionAllowed(quickAction, quickActionReport, quickActionPolicy, isReportArchived, allBetas, rules, isRestrictedToPreferredPolicy)
+            ? isQuickActionAllowed(quickAction, quickActionReport, quickActionPolicy, isReportArchived, rules, isRestrictedToPreferredPolicy)
             : false) ||
-        (!quickAction?.action && !isEmptyObject(policyChatForActivePolicy));
+        (!quickAction?.action &&
+            !isEmptyObject(policyChatForActivePolicy) &&
+            canCreateRequest(policyChatForActivePolicy, policyChatForActivePolicyPolicy, CONST.IOU.TYPE.SUBMIT, isPolicyChatForActivePolicyArchived, rules, isRestrictedToPreferredPolicy));
 
     let quickActionAvatars: ReturnType<typeof getIcons> = [];
     if (isValidReport) {

@@ -892,7 +892,7 @@ function beginGoogleSignIn(token: string | null, preferredLocale: Locale | undef
  * Will create a temporary login for the user in the passed authenticate response which is used when
  * re-authenticating after an authToken expires.
  */
-function signInWithShortLivedAuthToken(authToken: string, isSAML = false, exitTo?: string) {
+function signInWithShortLivedAuthToken(authToken: string, isSAML: boolean, exitTo: string | undefined, login: string | undefined) {
     const {optimisticData, failureData, finallyData} = getShortLivedLoginParams(false, isSAML);
     const authMethod = isSAML ? CONST.AUTH_METHOD.SAML : CONST.AUTH_METHOD.SHORT_LIVED_AUTH_TOKEN;
     // Set the in-flight guard synchronously, before awaiting device info. optimisticData below (which also sets this key)
@@ -909,7 +909,6 @@ function signInWithShortLivedAuthToken(authToken: string, isSAML = false, exitTo
         return;
     }
 
-    const login = credentials.login;
     // waitForUserSignIn keeps a single resolver that openReportFromDeepLink may already hold, so wait on the routes instead.
     Navigation.waitForProtectedRoutes().then(() => {
         // A failed sign-in leaves this waiting, so a later sign-in by another account must not land on this page.
@@ -1510,6 +1509,9 @@ function validateTwoFactorAuth(twoFactorAuthCode: string, shouldClearData: boole
                 [ONYXKEYS.NVP_ONBOARDING]: {
                     hasCompletedGuidedSetupFlow: false,
                 },
+                // openApp() is intentionally deferred until the user dismisses the success screen,
+                // so this flow must remain outside the global loading state in the meantime.
+                [ONYXKEYS.IS_LOADING_APP]: false,
             });
             return;
         }
@@ -1599,7 +1601,11 @@ function waitForUserSignIn(): Promise<boolean> {
 function handleExitToNavigation(exitTo: Route) {
     waitForUserSignIn().then(() => {
         Navigation.waitForProtectedRoutes().then(() => {
-            Navigation.goBack(ROUTES.HOME, {waitForTransition: true});
+            if (navigationRef.canGoBack()) {
+                Navigation.pop(navigationRef.getRootState().key);
+            } else {
+                Navigation.goBack(ROUTES.HOME, {waitForTransition: true});
+            }
             Navigation.navigate(exitTo, {waitForTransition: true});
         });
     });

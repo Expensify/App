@@ -5,6 +5,7 @@
 import './src/polyfills/NitroFetch';
 import './src/polyfills/PromiseWithResolvers';
 import './src/polyfills/requestIdleCallback';
+import './src/polyfills/SymbolDispose';
 import {AppRegistry} from 'react-native';
 import App from './src/App';
 import Config from './src/CONFIG';

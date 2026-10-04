@@ -1,10 +1,7 @@
-import ActivityIndicator from '@components/ActivityIndicator';
-import BAR_INNER_PADDING from '@components/Charts/barChartConstants';
-import {ChartFontsProvider, useChartFontManager, useChartLabelFormats, useChartLabelLayout, useChartLabelMeasurements, useDynamicYDomain} from '@components/Charts/hooks';
-import {calculateMinDomainPadding, getVerticalBarPlotBounds, getYAxisLabelWidth} from '@components/Charts/utils';
-import {GLYPH_PADDING} from '@components/Charts/VictoryTheme';
-
-import useThemeStyles from '@hooks/useThemeStyles';
+import BAR_INNER_PADDING, {VERTICAL_BAR_DOMAIN_PADDING} from '@components/Charts/barChartConstants';
+import {ChartFontsProvider, useChartFontManager, useChartLabelFormats, useChartLabelLayout, useChartLabelMeasurements} from '@components/Charts/hooks';
+import {getVerticalBarLabelLayoutInputs, getVerticalBarPlotBounds, getYAxisLabelWidth} from '@components/Charts/utils';
+import {GLYPH_PADDING, LABEL_ROTATIONS} from '@components/Charts/VictoryTheme';
 
 import variables from '@styles/variables';
 
@@ -13,137 +10,60 @@ import type {LayoutChangeEvent} from 'react-native';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
-import type {CartesianChartProps, ChartDataPoint} from '..';
+import type {BarChartContentProps} from './types';
 
-import HorizontalBarChart from './HorizontalBarChart';
-import VerticalBarChart from './VerticalBarChart';
+import HorizontalBarChartContentBody from './HorizontalBarChartContent';
+import VerticalBarChartContentBody from './VerticalBarChartContent';
 
-/** Extra pixel spacing between the chart boundary and the data range, applied per side (Victory's `domainPadding` prop)
- * We need bottom: 1 for proper display of the bottom label
- */
-const BASE_DOMAIN_PADDING = {top: 32, bottom: 1, left: 0, right: 0};
-
-type BarChartProps = CartesianChartProps & {
-    onBarPress?: (dataPoint: ChartDataPoint, index: number) => void;
-
-    /** Color every bar is drawn in. Left out, each bar takes a different color from the palette by rank. */
-    color?: string;
-};
+const FONT_SIZE = variables.iconSizeExtraSmall;
 
 /**
- * Lays the category labels out under vertical bars — side by side, then rotated to 45° — and switches
- * to horizontal bars when they still don't fit, so the labels get room to render legibly.
+ * Resolves the bar chart orientation on every layout change and renders the matching body. Wide layouts pass
+ * `isHorizontal`. Narrow layouts predict the vertical chart's label fit from the container width, so the chart
+ * switches to horizontal bars when labels don't fit even at 45° and back to vertical when the container grows.
  */
-function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', color, onBarPress}: BarChartProps) {
-    const styles = useThemeStyles();
+function BarChartOrientationDispatcher({isHorizontal = false, canFallBackToHorizontalBars = false, ...props}: BarChartContentProps) {
     const fontManager = useChartFontManager();
-    const [chartWidth, setChartWidth] = useState(0);
+    const [containerWidth, setContainerWidth] = useState(0);
+    const {data, yAxisUnit, yAxisUnitPosition = 'left'} = props;
 
-    const yAxisDomain = useDynamicYDomain(data);
+    const {formatCompactValue} = useChartLabelFormats({data, unit: yAxisUnit, unitPosition: yAxisUnitPosition});
+    const measurements = useChartLabelMeasurements(data, fontManager, FONT_SIZE);
 
-    const handleBarPress = (index: number) => {
-        if (index < 0 || index >= data.length) {
-            return;
-        }
-        const dataPoint = data.at(index);
-        if (dataPoint && onBarPress) {
-            onBarPress(dataPoint, index);
-        }
-    };
+    // Predict the vertical chart's plot geometry from the container width so the fit decision matches what it would measure after mounting.
+    const yAxisLabelWidth = getYAxisLabelWidth(data, formatCompactValue, fontManager, FONT_SIZE, VERTICAL_BAR_DOMAIN_PADDING);
+    const plotBounds = getVerticalBarPlotBounds(containerWidth, yAxisLabelWidth + GLYPH_PADDING);
 
-    const handleLayout = (event: LayoutChangeEvent) => {
-        setChartWidth(event.nativeEvent.layout.width);
-    };
-
-    const domainPadding = (() => {
-        if (chartWidth === 0) {
-            return BASE_DOMAIN_PADDING;
-        }
-        const horizontalPadding = calculateMinDomainPadding(chartWidth, data.length, BAR_INNER_PADDING);
-        return {...BASE_DOMAIN_PADDING, left: horizontalPadding, right: horizontalPadding};
-    })();
-
-    const {formatValue} = useChartLabelFormats({
-        data,
-        unit: yAxisUnit,
-        unitPosition: yAxisUnitPosition,
-    });
-
-    const measurements = useChartLabelMeasurements(data, fontManager, variables.iconSizeExtraSmall);
-
-    // The label layout picks the orientation, so it's based on the vertical chart's plot bounds derived
-    // from the container width — they stay available while the horizontal chart is the one mounted.
-    const chartPaddingLeft = getYAxisLabelWidth(data, formatValue, fontManager, variables.iconSizeExtraSmall, BASE_DOMAIN_PADDING) + GLYPH_PADDING;
-    const plotBounds = getVerticalBarPlotBounds(chartWidth, chartPaddingLeft);
-    const totalDomainPadding = domainPadding.left + domainPadding.right;
-    const paddingScale = plotBounds.width > 0 ? plotBounds.width / (plotBounds.width + totalDomainPadding) : 0;
-
-    const labelLayout = useChartLabelLayout({
+    const {labelRotation} = useChartLabelLayout({
         data,
         fontManager,
-        fontSize: variables.iconSizeExtraSmall,
-        tickSpacing: plotBounds.width > 0 && data.length > 0 ? plotBounds.width / data.length : 0,
-        labelAreaWidth: plotBounds.width,
-        firstTickLeftSpace: plotBounds.left + domainPadding.left * paddingScale,
-        lastTickRightSpace: chartWidth > 0 ? chartWidth - plotBounds.right + domainPadding.right * paddingScale : 0,
+        fontSize: FONT_SIZE,
         measurements,
-        canFallBackToHorizontalBars: true,
+        ...getVerticalBarLabelLayoutInputs({
+            containerWidth,
+            plotLeft: plotBounds.left,
+            plotRight: plotBounds.right,
+            plotWidth: plotBounds.width,
+            dataLength: data.length,
+            innerPadding: BAR_INNER_PADDING,
+        }),
     });
 
-    if (isLoading || !fontManager) {
-        return (
-            <View style={styles.chartActivityIndicator}>
-                <ActivityIndicator size="large" />
-            </View>
-        );
-    }
+    const renderHorizontal = isHorizontal || (canFallBackToHorizontalBars && labelRotation === LABEL_ROTATIONS.VERTICAL);
 
-    if (data.length === 0) {
-        return null;
-    }
+    const handleLayout = (event: LayoutChangeEvent) => {
+        setContainerWidth(event.nativeEvent.layout.width);
+    };
 
-    if (labelLayout.shouldUseHorizontalBars) {
-        return (
-            <HorizontalBarChart
-                data={data}
-                chartWidth={chartWidth}
-                onLayout={handleLayout}
-                fontManager={fontManager}
-                formatValue={formatValue}
-                valueAxisDomain={yAxisDomain}
-                color={color}
-                onBarPress={handleBarPress}
-                labelWidths={measurements.labelWidths}
-                ellipsisWidth={measurements.ellipsisWidth}
-            />
-        );
-    }
-
-    return (
-        <VerticalBarChart
-            data={data}
-            chartWidth={chartWidth}
-            onLayout={handleLayout}
-            fontManager={fontManager}
-            formatValue={formatValue}
-            yAxisDomain={yAxisDomain}
-            color={color}
-            onBarPress={handleBarPress}
-            labelLayout={labelLayout}
-            labelWidths={measurements.labelWidths}
-            domainPadding={domainPadding}
-            chartPaddingLeft={chartPaddingLeft}
-        />
-    );
+    return <View onLayout={handleLayout}>{renderHorizontal ? <HorizontalBarChartContentBody {...props} /> : <VerticalBarChartContentBody {...props} />}</View>;
 }
 
-function BarChartContent(props: BarChartProps) {
+function BarChartContent(props: BarChartContentProps) {
     return (
         <ChartFontsProvider>
-            <BarChartContentBody {...props} />
+            <BarChartOrientationDispatcher {...props} />
         </ChartFontsProvider>
     );
 }
 
 export default BarChartContent;
-export type {BarChartProps};
