@@ -616,6 +616,8 @@ export type {default as QueueBulkSubmitReportsParams} from './QueueBulkSubmitRep
 export type {default as QueueBulkHoldExpensesParams} from './QueueBulkHoldExpensesParams';
 export type {default as QueueBulkUnholdExpensesParams} from './QueueBulkUnholdExpensesParams';
 export type {default as QueueBulkRejectExpensesParams} from './QueueBulkRejectExpensesParams';
+export type {default as QueueBulkDeleteReportsParams} from './QueueBulkDeleteReportsParams';
+export type {default as QueueBulkDeleteExpensesParams} from './QueueBulkDeleteExpensesParams';
 export type {default as QueueBulkMarkAsExportedParams} from './QueueBulkMarkAsExportedParams';
 export type {default as AssignReportToMeParams} from './AssignReportToMeParams';
 export type {default as AddReportApproverParams} from './AddReportApproverParams';

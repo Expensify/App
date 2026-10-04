@@ -617,6 +617,7 @@ const CONST = {
             DONE: 'done',
             FAILED: 'failed',
         },
+        DELETE_EXPENSES: 'deleteExpenses',
     },
 
     SECURE_DOWNLOAD_TYPE: {

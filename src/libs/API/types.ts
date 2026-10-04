@@ -621,6 +621,8 @@ const WRITE_COMMANDS = {
     QUEUE_BULK_HOLD_EXPENSES: 'QueueBulkHoldExpenses',
     QUEUE_BULK_UNHOLD_EXPENSES: 'QueueBulkUnholdExpenses',
     QUEUE_BULK_REJECT_EXPENSES: 'QueueBulkRejectExpenses',
+    QUEUE_BULK_DELETE_REPORTS: 'QueueBulkDeleteReports',
+    QUEUE_BULK_DELETE_EXPENSES: 'QueueBulkDeleteExpenses',
     QUEUE_BULK_MARK_AS_EXPORTED: 'QueueBulkMarkAsExported',
     CREATE_WORKSPACE_APPROVAL: 'CreateWorkspaceApproval',
     UPDATE_WORKSPACE_APPROVAL: 'UpdateWorkspaceApproval',
@@ -1422,6 +1424,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.QUEUE_BULK_HOLD_EXPENSES]: Parameters.QueueBulkHoldExpensesParams;
     [WRITE_COMMANDS.QUEUE_BULK_UNHOLD_EXPENSES]: Parameters.QueueBulkUnholdExpensesParams;
     [WRITE_COMMANDS.QUEUE_BULK_REJECT_EXPENSES]: Parameters.QueueBulkRejectExpensesParams;
+    [WRITE_COMMANDS.QUEUE_BULK_DELETE_REPORTS]: Parameters.QueueBulkDeleteReportsParams;
+    [WRITE_COMMANDS.QUEUE_BULK_DELETE_EXPENSES]: Parameters.QueueBulkDeleteExpensesParams;
     [WRITE_COMMANDS.QUEUE_BULK_MARK_AS_EXPORTED]: Parameters.QueueBulkMarkAsExportedParams;
     [WRITE_COMMANDS.EXPORT_REPORT_TO_CSV]: Parameters.ExportReportCSVParams;
     [WRITE_COMMANDS.CREATE_WORKSPACE_APPROVAL]: Parameters.CreateWorkspaceApprovalParams;

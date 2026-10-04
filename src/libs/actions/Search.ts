@@ -2206,6 +2206,18 @@ function queueBulkRejectExpenses(jsonQuery: string, comment: string, excludedTra
     write(WRITE_COMMANDS.QUEUE_BULK_REJECT_EXPENSES, {jsonQuery, comment: getParsedComment(comment), bulkActionID, excludedTransactionIDList: excludedTransactionIDList.join(',')}, onyxData);
 }
 
+/** Queues a delete for every report matching the search query that the user can delete. */
+function queueBulkDeleteReports(jsonQuery: string) {
+    const {bulkActionID, onyxData} = buildBulkActionOnyxData(CONST.SEARCH.BULK_ACTION_TYPES.DELETE);
+    write(WRITE_COMMANDS.QUEUE_BULK_DELETE_REPORTS, {jsonQuery, bulkActionID}, onyxData);
+}
+
+/** Queues a delete for every expense matching the search query that the user can delete. */
+function queueBulkDeleteExpenses(jsonQuery: string, excludedTransactionIDList: string[]) {
+    const {bulkActionID, onyxData} = buildBulkActionOnyxData(CONST.BULK_ACTION.DELETE_EXPENSES);
+    write(WRITE_COMMANDS.QUEUE_BULK_DELETE_EXPENSES, {jsonQuery, bulkActionID, excludedTransactionIDList: excludedTransactionIDList.join(',')}, onyxData);
+}
+
 /**
  * Queues a manual bulk "Mark as exported" for every report matching the given search query on the given connection.
  * The backend pages through all matches itself, so this covers reports beyond the currently loaded page(s) when
@@ -2657,6 +2669,8 @@ export {
     queueBulkHoldExpenses,
     queueBulkUnholdExpenses,
     queueBulkRejectExpenses,
+    queueBulkDeleteReports,
+    queueBulkDeleteExpenses,
     queueBulkMarkAsExported,
     updateAdvancedFilters,
     setSearchContext,
