@@ -13,7 +13,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-import {policyACHAccountNumberSelector} from '@selectors/Policy';
+import {policyPaymentAttributionSelector} from '@selectors/Policy';
 import React from 'react';
 
 type PaymentContentProps = {
@@ -24,7 +24,7 @@ type PaymentContentProps = {
 
 function PaymentContent({action, expectedDate, policyID}: PaymentContentProps) {
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [policyACHAccountNumber] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: policyACHAccountNumberSelector});
+    const [policyPaymentAttribution] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: policyPaymentAttributionSelector});
     const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const originalMessage = getOriginalMessage(action);
@@ -41,7 +41,13 @@ function PaymentContent({action, expectedDate, policyID}: PaymentContentProps) {
     }
 
     if (paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
-        const last4Digits = originalMessage.accountNumber?.slice(-4) ?? getBankAccountLastFourDigits(originalMessage.bankAccountID, bankAccountList, policyACHAccountNumber);
+        const last4Digits = getBankAccountLastFourDigits({
+            bankAccountID: originalMessage.bankAccountID,
+            bankAccountList,
+            policy: policyPaymentAttribution,
+            accountNumber: originalMessage.accountNumber,
+            payerAccountID: action.actorAccountID,
+        });
         const crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, convertToDisplayString, last4Digits);
         const paymentMessage = crossBorderMessage ?? translate(wasAutoPaid ? 'iou.automaticallyPaidWithBusinessBankAccount' : 'iou.businessBankAccount', '', last4Digits);
         const translation = getPaymentMessageWithExpectedDate(translate, dateFnsLocale, paymentMessage, expectedDate);
