@@ -25,6 +25,7 @@ import PDF from 'react-native-pdf';
 
 import type {PDFViewNativeProps} from './types';
 
+import isAllowedPDFLink from './isAllowedPDFLink';
 import PDFPasswordForm from './PDFPasswordForm';
 
 /**
@@ -139,6 +140,10 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
      */
     const handlePressLink = useCallback(
         (url: string) => {
+            if (!isAllowedPDFLink(url)) {
+                return;
+            }
+
             if (isTravelLink(url) && activePolicyID) {
                 const postLoginPath = getRelativeUrl(url);
                 openTravelDotLink(activePolicyID, postLoginPath);

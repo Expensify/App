@@ -22,7 +22,6 @@ import useOnyx from '@hooks/useOnyx';
 import {useReportPaymentContext} from '@hooks/usePaymentContext';
 import {useAllPersonalDetailsWithoutSnapshots} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useRowHighlightAnimation from '@hooks/useRowHighlightAnimation';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -244,7 +243,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         currentUserAccountID,
         currentUserLogin,
         introSelected,
-        betas,
         isASAPSubmitBetaEnabled,
         isSelfTourViewed,
         activePolicy,
@@ -253,6 +251,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         delegateEmail,
         delegateAccountID,
         conciergeChat,
+        bankAccountList,
     } = useReportPaymentContext({
         chatReportPolicyID: chatReport?.policyID,
     });
@@ -309,7 +308,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             currentUserAccountID,
             currentUserLogin,
             introSelected,
-            betas,
             isSelfTourViewed,
             activePolicy,
             chatReport,
@@ -325,6 +323,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             allViolations: liveViolationsForSnapshotTransactions,
             rules,
             conciergeChat,
+            bankAccountList,
         });
     }, [
         currentSearchHash,
@@ -359,7 +358,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         currentUserAccountID,
         currentUserLogin,
         introSelected,
-        betas,
         isSelfTourViewed,
         activePolicy,
         chatReportPolicy,
@@ -370,19 +368,20 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         liveViolationsForSnapshotTransactions,
         rules,
         conciergeChat,
+        bankAccountList,
         shouldShowMarkAsDoneCopy,
     ]);
 
-    const handleSelectionButtonPress = useCallback(() => {
-        onSelectionButtonPress?.(reportItem as unknown as TItem);
-    }, [onSelectionButtonPress, reportItem]);
+    const handleSelectionButtonPress = (shiftKey?: boolean) => {
+        onSelectionButtonPress?.(item, undefined, shiftKey);
+    };
 
     const listItemPressableStyle = useMemo(
         () => [
             styles.selectionListPressableItemWrapper,
             isLargeScreenWidth && styles.pv3,
             isLargeScreenWidth && styles.ph3,
-            // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
+            // Background is applied on the parent wrapper, so keep this transparent
             styles.bgTransparent,
             isSelected && styles.activeComponentBG,
             styles.mh0,
@@ -393,17 +392,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         ],
         [styles, isSelected, isLargeScreenWidth, isFirstItem, isLastItem, isPendingDelete, StyleUtils],
     );
-
-    // The animated style is applied inline, so the `borderRadius: 0` it carries wins over the static
-    // `tableTopRadius`/`tableBottomRadius` below and squares off the list's outer corners. Skip it for the first
-    // and last rows only, so every other row keeps its existing (already square) behavior.
-    const shouldApplyAnimatedBorderRadius = !isLargeScreenWidth && !isFirstItem && !isLastItem;
-    const animatedHighlightStyle = useRowHighlightAnimation({
-        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
-        isSelected,
-        borderRadius: 0,
-        shouldApplyOtherStyles: shouldApplyAnimatedBorderRadius,
-    });
 
     const shouldShowViolationDescription = isOpenExpenseReport(reportItem) || isProcessingReport(reportItem);
 
@@ -440,7 +428,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                         width={12}
                         height={12}
                     />
-                    <Text style={[isLargeScreenWidth ? styles.textMicro : styles.mutedNormalTextLabel, styles.textDanger]}>{translate('iou.rejectReport.rejectedReportMessage')}</Text>
+                    <Text style={[isLargeScreenWidth ? styles.textMicro : styles.mutedNormalTextLabel, {color: theme.textError}]}>{translate('iou.rejectReport.rejectedReportMessage')}</Text>
                 </View>
             );
         }
@@ -456,7 +444,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                     width={12}
                     height={12}
                 />
-                <Text style={[isLargeScreenWidth ? styles.textMicro : styles.mutedNormalTextLabel, styles.textDanger]}>
+                <Text style={[isLargeScreenWidth ? styles.textMicro : styles.mutedNormalTextLabel, {color: theme.textError}]}>
                     {translate('reportViolations.reportContainsExpensesWithViolations')}
                 </Text>
             </View>
@@ -471,10 +459,10 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         styles.mr1,
         styles.textMicro,
         styles.mutedNormalTextLabel,
-        styles.textDanger,
         isLargeScreenWidth,
         expensifyIcons.DotIndicator,
         theme.danger,
+        theme.textError,
         translate,
     ]);
 
@@ -501,7 +489,8 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             hoverStyle={isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[
                 styles.mh5,
-                animatedHighlightStyle,
+                StyleUtils.getSearchRowBackgroundStyle(isSelected),
+                !isLargeScreenWidth && styles.br0,
                 isPendingDelete && styles.cursorDisabled,
                 isLargeScreenWidth && isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
                 !isLargeScreenWidth && isFirstItem && styles.tableTopRadius,

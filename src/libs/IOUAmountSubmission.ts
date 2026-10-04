@@ -52,7 +52,17 @@ import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {isTaxTrackingEnabled} from './PolicyUtils';
 import {getPolicyExpenseChat, getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from './ReportUtils';
 import shouldUseDefaultExpensePolicy from './shouldUseDefaultExpensePolicy';
-import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue, hasReceipt, isExpenseUnreported} from './TransactionUtils';
+import {
+    calculateTaxAmount,
+    getAmount,
+    getCurrency,
+    getDefaultTaxCode,
+    getIsFromGlobalCreate,
+    getTaxValue,
+    hasReceipt,
+    isExpenseUnreported,
+    isFailedScanAmountPlaceholder,
+} from './TransactionUtils';
 
 type SubmitAmountArgs = {
     dateFnsLocale: DateFnsLocale | undefined;
@@ -102,7 +112,6 @@ type SubmitAmountArgs = {
     duplicateTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
     isTrackIntentUser: boolean | undefined;
     reportAttributesDerivedValue: OnyxEntry<ReportAttributesDerivedValue>;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
     isASAPSubmitBetaEnabled: boolean;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     onboarding: OnyxEntry<OnyxTypes.Onboarding>;
@@ -315,17 +324,16 @@ function submitSkipConfirmationPayment(args: SubmitAmountArgs, ctx: SubmitAmount
         getCurrencyDecimals,
     };
 
-    const executeSendMoneyWrite = (overrides?: {shouldDeferForSearch?: boolean}) => {
-        const mergedParams = {...sendMoneyParams, ...overrides};
+    const executeSendMoneyWrite = () => {
         if (paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-            sendMoneyWithWallet(mergedParams);
+            sendMoneyWithWallet(sendMoneyParams);
         } else {
-            sendMoneyElsewhere(mergedParams);
+            sendMoneyElsewhere(sendMoneyParams);
         }
     };
 
     submitWithDismissFirst({
-        executeWrite: () => executeSendMoneyWrite({shouldDeferForSearch: false}),
+        executeWrite: executeSendMoneyWrite,
         destinationReportID: chatReportID,
         telemetryContext: {
             scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.SEND_MONEY,
@@ -353,7 +361,6 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
         introSelected,
         isOffline,
         recentWaypoints,
-        betas,
         transactionViolations,
         transactionDrafts,
         storedTransaction,
@@ -407,7 +414,6 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 conciergeChat,
                 quickAction,
                 recentWaypoints,
-                betas,
                 draftTransactionIDs: draftTransactionIDsList,
                 isSelfTourViewed,
                 optimisticChatReportID,
@@ -651,7 +657,8 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
 
     // If the value hasn't changed, don't request to save changes on the server and just close the modal
     const transactionCurrency = getCurrency(currentTransaction);
-    if (newAmount === getAmount(currentTransaction, false, false, allowNegative, disableOppositeConversion) && selectedCurrency === transactionCurrency) {
+    const hasFailedScanAmountPlaceholder = isFailedScanAmountPlaceholder(currentTransaction);
+    if (!hasFailedScanAmountPlaceholder && newAmount === getAmount(currentTransaction, false, false, allowNegative, disableOppositeConversion) && selectedCurrency === transactionCurrency) {
         navigateBack();
         return;
     }

@@ -293,7 +293,6 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
         currentUserAccountID,
         currentUserLogin,
         introSelected,
-        betas,
         isASAPSubmitBetaEnabled,
         isSelfTourViewed,
         activePolicy,
@@ -302,6 +301,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
         delegateEmail,
         delegateAccountID,
         conciergeChat,
+        bankAccountList,
     } = useReportPaymentContext({
         chatReportPolicyID: chatReport?.policyID,
     });
@@ -344,7 +344,6 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             currentUserAccountID,
             currentUserLogin,
             introSelected,
-            betas,
             isSelfTourViewed,
             activePolicy,
             chatReport,
@@ -357,6 +356,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             allViolations,
             rules,
             conciergeChat,
+            bankAccountList,
         });
     };
     return !isLargeScreenWidth ? (

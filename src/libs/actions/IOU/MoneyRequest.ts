@@ -43,7 +43,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {
-    Beta,
     GpsDraftDetails,
     IntroSelected,
     LastSelectedDistanceRates,
@@ -95,7 +94,6 @@ type CreateTransactionParams = {
     reimbursable?: boolean;
     allTransactionDrafts: OnyxCollection<Transaction>;
     isSelfTourViewed: boolean;
-    betas: OnyxEntry<Beta[]>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
     optimisticTransactionIDs: string[];
@@ -147,7 +145,6 @@ function createTransaction({
     reimbursable = true,
     allTransactionDrafts,
     isSelfTourViewed,
-    betas,
     personalDetails,
     recentWaypoints,
     optimisticTransactionIDs,
@@ -216,7 +213,6 @@ function createTransaction({
                 conciergeChat,
                 quickAction,
                 recentWaypoints,
-                betas,
                 isSelfTourViewed,
                 optimisticChatReportID,
                 optimisticTransactionID,
@@ -344,6 +340,7 @@ type InitMoneyRequestParams = {
     report: OnyxEntry<Report>;
     parentReport: OnyxEntry<Report>;
     currentDate: string | undefined;
+    overrideCurrency?: string;
     lastSelectedDistanceRates?: OnyxEntry<LastSelectedDistanceRates>;
     isTrackDistanceExpense?: boolean;
     hasOnlyPersonalPolicies: boolean;
@@ -374,6 +371,7 @@ function initMoneyRequest({
     report,
     parentReport,
     currentDate,
+    overrideCurrency,
     lastSelectedDistanceRates,
     hasOnlyPersonalPolicies,
     draftTransactionIDs,
@@ -381,7 +379,7 @@ function initMoneyRequest({
 }: InitMoneyRequestParams) {
     // Generate a brand new transactionID
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
-    const currency = policy?.outputCurrency ?? personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;
+    const currency = overrideCurrency ?? policy?.outputCurrency ?? personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     const created = currentDate ?? format(new Date(), 'yyyy-MM-dd');
 
