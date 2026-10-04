@@ -363,7 +363,13 @@ function PaymentMethodList({
                         message: cardConnectionMessage,
                         actionText: cardConnectionStatusDisplay.actionKey ? translate(cardConnectionStatusDisplay.actionKey) : undefined,
                         onActionPress: cardConnectionStatusDisplay.shouldUsePersonalCardFix
-                            ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_FIX_CONNECTION.getRoute(String(card.cardID)))
+                            ? () =>
+                                  Navigation.navigate(
+                                      createDynamicRoute(
+                                          DYNAMIC_ROUTES.PERSONAL_CARD_FIX_CONNECTION.path,
+                                          createDynamicRoute(DYNAMIC_ROUTES.PERSONAL_CARD_DETAILS.getRoute(String(card.cardID))),
+                                      ),
+                                  )
                             : undefined,
                         onLinkPress:
                             cardConnectionStatusDisplay.shouldUseCompanyCardsLink && companyCardsRoute
@@ -397,7 +403,7 @@ function PaymentMethodList({
                     // Personal cards (including CSV imported) navigate to the personal card details page
                     // Company cards use the pressHandler callback (for 3-dot menu behavior)
                     const cardOnPress = isUserPersonalCard
-                        ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(String(card.cardID)))
+                        ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PERSONAL_CARD_DETAILS.getRoute(String(card.cardID))))
                         : (e: GestureResponderEvent | KeyboardEvent | undefined) =>
                               pressHandler({
                                   event: e,

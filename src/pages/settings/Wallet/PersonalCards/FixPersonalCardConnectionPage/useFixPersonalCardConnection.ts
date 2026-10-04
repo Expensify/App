@@ -1,3 +1,4 @@
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
@@ -9,7 +10,7 @@ import {getPersonalCardBankConnection} from '@userActions/getCompanyCardBankConn
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {CompanyCardFeed} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
@@ -17,6 +18,7 @@ import {useEffect} from 'react';
 
 function useFixPersonalCardConnection(cardID: string) {
     const {isOffline} = useNetwork();
+    const cardDetailsPath = useDynamicBackPath(DYNAMIC_ROUTES.PERSONAL_CARD_FIX_CONNECTION.path);
 
     const [cardList, cardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST);
     const card = cardList?.[cardID];
@@ -36,10 +38,10 @@ function useFixPersonalCardConnection(cardID: string) {
             return;
         }
         updatePersonalCardConnection(card.cardID.toString(), card.lastScrapeResult);
-        Navigation.goBack(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(cardID));
-    }, [isCardBroken, card, cardID, cardListMetadata, isPlaid]);
+        Navigation.goBack(cardDetailsPath);
+    }, [isCardBroken, card, cardDetailsPath, cardListMetadata, isPlaid]);
 
-    return {card, bankDisplayName, url, isCardBroken, isOffline, isPlaid, country};
+    return {card, bankDisplayName, url, isCardBroken, isOffline, isPlaid, country, cardDetailsPath};
 }
 
 export default useFixPersonalCardConnection;

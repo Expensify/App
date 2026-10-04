@@ -7,10 +7,12 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+
 import Navigation from '@navigation/Navigation';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
@@ -25,7 +27,7 @@ function CardSectionDataEmpty() {
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
     const openAddPaymentCardScreen = useCallback(() => {
-        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path));
     }, []);
     const handleAddPaymentCardPress = () => {
         if (isActingAsDelegate) {

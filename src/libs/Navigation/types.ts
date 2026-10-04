@@ -146,13 +146,13 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: {
         cardID: string;
     };
-    [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_DETAILS]: {
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_DETAILS]: {
         cardID: string;
     };
-    [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_EDIT_NAME]: {
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_EDIT_NAME]: {
         cardID: string;
     };
-    [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_EDIT_TRANSACTION_START_DATE]: {
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_EDIT_TRANSACTION_START_DATE]: {
         cardID: string;
     };
     [SCREENS.SETTINGS.WALLET.DOMAIN_CARD_CONFIRM_VALIDATE_CODE]: {
@@ -251,7 +251,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.TRAVEL_CVV]: undefined;
     [SCREENS.SETTINGS.WALLET.TRAVEL_CVV_VERIFY_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_ADD_NEW]: undefined;
-    [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_FIX_CONNECTION]: {
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_FIX_CONNECTION]: {
         cardID: string;
     };
     [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_WARNING]: undefined;
@@ -263,7 +263,7 @@ type SettingsNavigatorParamList = {
         subPage?: string;
         action?: 'edit';
     };
-    [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: {
+    [SCREENS.SETTINGS.DYNAMIC_ADD_US_BANK_ACCOUNT]: {
         subPage?: string;
 
         /** Whether the user is editing one of the sub pages */
@@ -679,7 +679,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.SUBSCRIPTION.EXPENSIFY_CODE]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.PAYMENT_HISTORY]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.SETTINGS_DETAILS]: undefined;
-    [SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD]: undefined;
+    [SCREENS.SETTINGS.SUBSCRIPTION.DYNAMIC_ADD_PAYMENT_CARD]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_BILLING_CURRENCY]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.DYNAMIC_PAYMENT_CARD_CURRENCY_SELECTOR]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.DYNAMIC_SUBSCRIPTION_DOWNGRADE_BLOCKED]: undefined;
@@ -1586,6 +1586,7 @@ type SettingsNavigatorParamList = {
         isFromDomainCardDetail?: string;
     };
     [SCREENS.SETTINGS.DYNAMIC_KEYBOARD_SHORTCUTS]: undefined;
+    [SCREENS.SETTINGS.DYNAMIC_APP_DOWNLOAD_LINKS]: undefined;
     [SCREENS.SETTINGS.DYNAMIC_BETA_OVERRIDES]: undefined;
     [SCREENS.WORKSPACE.TAX_CREATE]: {
         policyID: string;
@@ -2757,7 +2758,6 @@ type NewTaskNavigatorParamList = {
 
 type TeachersUniteNavigatorParamList = {
     [SCREENS.SAVE_THE_WORLD.ROOT]: undefined;
-    [SCREENS.SAVE_THE_WORLD.ADD_PAYMENT_CARD]: undefined;
     [SCREENS.I_KNOW_A_TEACHER]: undefined;
     [SCREENS.I_AM_A_TEACHER]: undefined;
 };
@@ -2830,7 +2830,7 @@ type ReimbursementAccountNavigatorParamList = {
 };
 
 type ReimbursementAccountEnterSignerInfoNavigatorParamList = {
-    [SCREENS.REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO]: {
+    [SCREENS.DYNAMIC_REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO]: {
         policyID: string;
         bankAccountID: string;
         isCompleted: string;

@@ -4,11 +4,12 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, getUpdateRoomDescriptionFragment, isMoneyRequestAction, isReimbursementDirectionInformationRequiredAction} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
 
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
@@ -71,7 +72,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
             return;
         }
 
-        Navigation.navigate(ROUTES.BANK_ACCOUNT_ENTER_SIGNER_INFO.getRoute(policyID, bankAccountID, isCompleted));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ENTER_SIGNER_INFO.getRoute(policyID, bankAccountID, isCompleted)));
     };
     if (isReimbursementDirectionInformationRequiredAction(action)) {
         const {bankAccountLastFour, currency, policyID, bankAccountID, completed} =

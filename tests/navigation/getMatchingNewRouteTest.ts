@@ -703,4 +703,35 @@ describe('getBestMatchingPath', () => {
         // A 5-segment waypoint URL (no pageIndex) is not a valid legacy waypoint route either.
         expect(getMatchingNewRoute('/create/submit/waypoint/123/456')).toBe(undefined);
     });
+
+    it('redirects the legacy wallet bank account and personal card edit links to their dynamic routes', () => {
+        // Given links saved before these screens became dynamic routes
+        // When they are opened
+        // Then they land on the dynamic route with the wallet as the base
+        expect(getMatchingNewRoute('/settings/wallet/add-us-bank-account')).toBe('/settings/wallet/us-bank-account');
+        expect(getMatchingNewRoute('/settings/wallet/personal-card/123/edit/name')).toBe('/settings/wallet/personal-card/123/edit-card-name');
+        expect(getMatchingNewRoute('/settings/wallet/personal-card/123/edit/transaction-start-date')).toBe('/settings/wallet/personal-card/123/edit-transaction-start-date');
+    });
+
+    it('redirects the legacy signer info link onto Home and keeps its query', () => {
+        // Given a signer info link that put Home under the form before it became a dynamic route
+        // When it is opened
+        // Then it keeps Home as the base, and the policy and bank account params survive
+        expect(getMatchingNewRoute('/bank-account/enter-signer-info?policyID=A&bankAccountID=2&isCompleted=false')).toBe(
+            '/home/enter-signer-info?policyID=A&bankAccountID=2&isCompleted=false',
+        );
+        expect(getMatchingNewRoute('/bank-account/enter-signer-info/job-title?policyID=A&bankAccountID=2&isCompleted=false')).toBe(
+            '/home/enter-signer-info/job-title?policyID=A&bankAccountID=2&isCompleted=false',
+        );
+    });
+
+    it('does not redirect the wallet bank account entry point or the new dynamic routes', () => {
+        // Given the static entry point, which shares the legacy prefix, and URLs already on the dynamic routes
+        // When they are matched against the legacy patterns
+        // Then none of them is rewritten
+        expect(getMatchingNewRoute('/settings/wallet/add-us-bank-account/entry-point')).toBe(undefined);
+        expect(getMatchingNewRoute('/settings/wallet/us-bank-account')).toBe(undefined);
+        expect(getMatchingNewRoute('/settings/wallet/personal-card/123/edit-card-name')).toBe(undefined);
+        expect(getMatchingNewRoute('/r/1/enter-signer-info/name?policyID=A')).toBe(undefined);
+    });
 });

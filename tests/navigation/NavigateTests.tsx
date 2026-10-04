@@ -4,13 +4,14 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import SidePanelActions from '@libs/actions/SidePanel';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import React from 'react';
@@ -414,7 +415,7 @@ describe('Navigate', () => {
 
             // When navigate to the page from the different split navigator
             act(() => {
-                Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path));
             });
 
             // Then push the RHP at root level
@@ -425,7 +426,8 @@ describe('Navigate', () => {
             expect(lastRootRoute?.state?.routes.at(-1)?.name).toBe(SCREENS.RIGHT_MODAL.SETTINGS);
         });
 
-        it('shows Subscription behind the payment-card RHP when navigating from Reports', () => {
+        it('shows Profile behind the display name RHP when navigating from Reports', () => {
+            // Given a report open in the Reports tab and Profile last seen in Settings
             render(
                 <TestNavigationContainer
                     initialState={{
@@ -462,10 +464,12 @@ describe('Navigate', () => {
                 />,
             );
 
+            // When a static settings RHP is opened, which still uses its relation to pick the page under it
             act(() => {
-                Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
+                Navigation.navigate(ROUTES.SETTINGS_DISPLAY_NAME);
             });
 
+            // Then the settings split opens behind the RHP with Profile, the page the display name belongs to
             const rootState = navigationRef.current?.getRootState();
             const lastRootRoute = rootState?.routes.at(-1);
             expect(lastRootRoute?.name).toBe(NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
@@ -474,7 +478,57 @@ describe('Navigate', () => {
             const tabState = rootState?.routes.at(0)?.state;
             const activeTab = tabState?.routes.at(tabState.index ?? 0);
             expect(activeTab?.name).toBe(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
-            expect(activeTab?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.SUBSCRIPTION.ROOT);
+            expect(activeTab?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.PROFILE.ROOT);
+        });
+
+        it.each([
+            ['add payment card', () => createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path)],
+            ['add US bank account', () => createDynamicRoute(DYNAMIC_ROUTES.ADD_US_BANK_ACCOUNT.getRoute())],
+            ['personal card details', () => createDynamicRoute(DYNAMIC_ROUTES.PERSONAL_CARD_DETAILS.getRoute('123'))],
+            ['enter signer info', () => createDynamicRoute(DYNAMIC_ROUTES.ENTER_SIGNER_INFO.getRoute('1', '2', false))],
+            ['app download links', () => createDynamicRoute(DYNAMIC_ROUTES.APP_DOWNLOAD_LINKS.path)],
+        ])('keeps Reports behind the %s RHP when opened in-app', (_label, getRoute) => {
+            // Given a report open in the Reports tab
+            render(
+                <TestNavigationContainer
+                    initialState={{
+                        index: 0,
+                        routes: [
+                            {
+                                name: NAVIGATORS.TAB_NAVIGATOR,
+                                state: {
+                                    index: 1,
+                                    routes: [
+                                        {name: SCREENS.HOME},
+                                        {
+                                            name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                                            state: {
+                                                index: 1,
+                                                routes: [{name: SCREENS.INBOX}, {name: SCREENS.REPORT, params: {reportID: '1'}}],
+                                            },
+                                        },
+                                        {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: SCREENS.INSIGHTS},
+                                        {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
+                                        {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
+                                    ],
+                                },
+                            },
+                        ],
+                    }}
+                />,
+            );
+
+            // When the RHP is opened from it
+            act(() => {
+                Navigation.navigate(getRoute());
+            });
+
+            // Then the RHP opens on top and Reports stays the active tab under it
+            const rootState = navigationRef.current?.getRootState();
+            expect(rootState?.routes.at(-1)?.name).toBe(NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
+            const tabState = rootState?.routes.at(0)?.state;
+            expect(tabState?.routes.at(tabState.index ?? 0)?.name).toBe(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
         });
 
         it('preserves report navigation history when opening a workspace from an RHP', () => {
@@ -575,7 +629,7 @@ describe('Navigate', () => {
 
             // When navigate to the page from the same split navigator
             act(() => {
-                Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path));
             });
 
             // Then push the RHP at root level

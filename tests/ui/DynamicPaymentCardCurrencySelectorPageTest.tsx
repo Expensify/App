@@ -7,6 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 
 import {setDraftValues} from '@libs/actions/FormActions';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
 import DynamicPaymentCardCurrencySelectorPage from '@pages/settings/Subscription/PaymentCard/DynamicPaymentCardCurrencySelectorPage';
@@ -14,6 +15,7 @@ import DynamicPaymentCardCurrencySelectorPage from '@pages/settings/Subscription
 import {setPaymentMethodCurrency} from '@userActions/PaymentMethods';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import React from 'react';
 
@@ -240,7 +242,7 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
     });
 
     it('shows the currency note when opened from a flow that does not already display it (e.g. add payment card)', () => {
-        mockUseDynamicBackPath.mockReturnValue('settings/subscription/add-payment-card');
+        mockUseDynamicBackPath.mockReturnValue(createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path, ROUTES.SETTINGS_SUBSCRIPTION.route));
 
         render(<DynamicPaymentCardCurrencySelectorPage />);
 

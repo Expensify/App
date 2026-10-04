@@ -25,7 +25,6 @@ import {addPersonalPlaidCard, openPlaidCompanyCardLogin} from '@userActions/Plai
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -35,7 +34,7 @@ import React, {useEffect, useRef, useState} from 'react';
 
 import useFixPersonalCardConnection from './useFixPersonalCardConnection';
 
-type FixPersonalCardConnectionPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.PERSONAL_CARD_FIX_CONNECTION>;
+type FixPersonalCardConnectionPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_FIX_CONNECTION>;
 
 let customWindow: Window | null = null;
 
@@ -44,7 +43,7 @@ function FixPersonalCardConnectionPage({route}: FixPersonalCardConnectionPagePro
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['PendingBank']);
-    const {card, bankDisplayName, url, isOffline, isPlaid, country} = useFixPersonalCardConnection(cardID);
+    const {card, bankDisplayName, url, isOffline, isPlaid, country, cardDetailsPath} = useFixPersonalCardConnection(cardID);
 
     const [plaidLinkToken] = useOnyx(ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN);
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
@@ -55,6 +54,10 @@ function FixPersonalCardConnectionPage({route}: FixPersonalCardConnectionPagePro
     useEffect(() => {
         lastScrapeResultRef.current = card?.lastScrapeResult;
     }, [card?.lastScrapeResult]);
+    const cardDetailsPathRef = useRef(cardDetailsPath);
+    useEffect(() => {
+        cardDetailsPathRef.current = cardDetailsPath;
+    }, [cardDetailsPath]);
     // Snapshot any stale Plaid token left over in Onyx from a previous Plaid flow.
     // We only open Plaid once we receive a token that differs from this snapshot — otherwise an
     // initial mount with the stale token starts a create/destroy cycle that leaves the SDK stuck.
@@ -144,7 +147,7 @@ function FixPersonalCardConnectionPage({route}: FixPersonalCardConnectionPagePro
                 // The non-Plaid flow relies on useFixPersonalCardConnection's effect, which
                 // doesn't fire here because we navigate away before isCardBroken flips.
                 updatePersonalCardConnection(cardID, lastScrapeResultRef.current);
-                Navigation.goBack(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(cardID));
+                Navigation.goBack(cardDetailsPathRef.current);
             },
             onExit: () => {
                 Navigation.goBack();
