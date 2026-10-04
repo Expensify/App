@@ -2,6 +2,9 @@ import {getSearchParamFromUrl} from '@libs/Url';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type MarketingAttribution from '@src/types/onyx/MarketingAttribution';
+import type Session from '@src/types/onyx/Session';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -21,11 +24,29 @@ const MARKETING_PARAM_KEYS: Array<keyof MarketingAttribution> = ['utm_source', '
  * into it, so values from different ad clicks (e.g. a Google gclid and later Reddit UTMs) never get
  * combined. A page load without any of the params keeps the stored attribution.
  */
-function captureMarketingAttribution() {
+function getSession(): Promise<OnyxEntry<Session>> {
+    return new Promise((resolve) => {
+        // Onyx.get isn't a public API. This one-shot read isn't tied to a view, so connectWithoutView is used, and it resolves once the stored value has loaded.
+        const connection = Onyx.connectWithoutView({
+            key: ONYXKEYS.SESSION,
+            callback: (value) => {
+                Onyx.disconnect(connection);
+                resolve(value);
+            },
+        });
+    });
+}
+
+/**
+ * Does nothing when the user already has a session, since attribution only matters for signup.
+ * The session is read asynchronously because this runs at startup, before the session has loaded from storage.
+ */
+async function captureMarketingAttribution() {
     if (typeof window === 'undefined' || !window.location) {
         return;
     }
 
+    // Read the URL first, synchronously, before the router can strip the query string
     const captured: MarketingAttribution = {};
     for (const key of MARKETING_PARAM_KEYS) {
         const value = getSearchParamFromUrl(window.location.href, key);
@@ -35,6 +56,11 @@ function captureMarketingAttribution() {
     }
 
     if (Object.keys(captured).length === 0) {
+        return;
+    }
+
+    const session = await getSession();
+    if (session?.authToken) {
         return;
     }
 

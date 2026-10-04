@@ -47,7 +47,7 @@ describe('captureMarketingAttribution', () => {
         );
 
         // When the attribution is captured
-        captureMarketingAttribution();
+        await captureMarketingAttribution();
         await waitForBatchedUpdates();
 
         // Then every param is stored under its request param name
@@ -70,7 +70,7 @@ describe('captureMarketingAttribution', () => {
         setLandingURL('?utm_source=reddit&exitTo=settings&fbclid=testFbclid');
 
         // When the attribution is captured
-        captureMarketingAttribution();
+        await captureMarketingAttribution();
         await waitForBatchedUpdates();
 
         // Then only the attribution param is stored
@@ -83,7 +83,7 @@ describe('captureMarketingAttribution', () => {
 
         // When the user lands again from a Reddit ad
         setLandingURL('?utm_source=reddit&utm_campaign=spring');
-        captureMarketingAttribution();
+        await captureMarketingAttribution();
         await waitForBatchedUpdates();
 
         // Then only the Reddit values are kept, so values from the two clicks are not combined
@@ -96,10 +96,35 @@ describe('captureMarketingAttribution', () => {
 
         // When the user comes back without any attribution params
         setLandingURL('');
-        captureMarketingAttribution();
+        await captureMarketingAttribution();
         await waitForBatchedUpdates();
 
         // Then the stored attribution is kept
         expect(await getStoredAttribution()).toEqual({utm_source: 'google', gclid: 'testGclid'});
+    });
+
+    it('does not store the attribution when the user already has a session', async () => {
+        // Given a signed-in user and a landing URL with UTM params
+        await Onyx.set(ONYXKEYS.SESSION, {authToken: 'testAuthToken', email: 'test@test.com'});
+        setLandingURL('?utm_source=google&utm_medium=cpc');
+
+        // When the attribution is captured
+        await captureMarketingAttribution();
+        await waitForBatchedUpdates();
+
+        // Then the key stays unset
+        expect(await getStoredAttribution()).toBeUndefined();
+    });
+
+    it('stores the attribution when the user has no session', async () => {
+        // Given no session and a landing URL with UTM params
+        setLandingURL('?utm_source=google&utm_medium=cpc');
+
+        // When the attribution is captured
+        await captureMarketingAttribution();
+        await waitForBatchedUpdates();
+
+        // Then the attribution is written
+        expect(await getStoredAttribution()).toEqual({utm_source: 'google', utm_medium: 'cpc'});
     });
 });
