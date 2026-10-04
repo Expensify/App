@@ -1331,8 +1331,15 @@ describe('split expense', () => {
         splitTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID}`);
         expect(splitTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.MANUAL);
 
-        mockFetch?.resume?.();
+        // When the CompleteSplitBill request fails
+        mockFetch?.fail?.();
+        await mockFetch?.resume?.();
         await waitForBatchedUpdates();
+
+        // Then the split goes back to being a scan request so the user can retry from the original state
+        splitTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID}`);
+        expect(splitTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.SCAN);
+        expect(splitTransaction?.errors).toBeTruthy();
     });
 
     it('should calculate proportional convertedAmount for split transactions with foreign currency', async () => {
