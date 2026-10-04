@@ -163,15 +163,11 @@ function ShippingAddressStep({policyID, stepNames, startStepIndex}: ShippingAddr
                                         value: CONST.EXPENSIFY_CARD.SHIPPING_ADDRESS_OPTION.PROMPT_CARDHOLDER,
                                         label: translate('workspace.card.issueNewCard.promptCardholder'),
                                         description: translate('workspace.card.issueNewCard.promptCardholderDescription'),
-                                        keyForList: CONST.EXPENSIFY_CARD.SHIPPING_ADDRESS_OPTION.PROMPT_CARDHOLDER,
-                                        isSelected: !isEnteringAddress,
                                     },
                                     {
                                         value: CONST.EXPENSIFY_CARD.SHIPPING_ADDRESS_OPTION.ENTER_ADDRESS,
                                         label: translate('workspace.card.issueNewCard.enterAddress'),
                                         description: translate('workspace.card.issueNewCard.enterAddressDescription'),
-                                        keyForList: CONST.EXPENSIFY_CARD.SHIPPING_ADDRESS_OPTION.ENTER_ADDRESS,
-                                        isSelected: isEnteringAddress,
                                     },
                                 ]}
                                 shouldShowModal={false}
