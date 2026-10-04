@@ -57,7 +57,7 @@ type ExpenseFieldRowProps = {
     hintText?: string;
 
     /** Opens the field's selector. The caret is cosmetic: the row opens the same page the push row opened */
-    onPress: () => void;
+    onPress?: () => void;
 
     /** Whether the row is pressed-through but visibly inert (e.g. while the expense is being confirmed) */
     isDisabled?: boolean;

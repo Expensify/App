@@ -160,9 +160,6 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}:
                 numberOfLinesValue={2}
                 rightLabel={isMerchantRequired ? translate('common.required') : ''}
                 errorText={merchantErrorText}
-                onPress={() => {
-                    // Read-only merchant rows never navigate.
-                }}
                 isDisabled={didConfirm}
                 isInteractive={false}
                 sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.MERCHANT_FIELD}
