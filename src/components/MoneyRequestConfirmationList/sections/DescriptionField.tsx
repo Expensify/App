@@ -106,16 +106,17 @@ function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, reportActionID)));
     };
 
-    const descriptionHTML = iouComment ? Parser.replace(iouComment, {disabledRules: !policy ? ['reportMentions'] : []}) : undefined;
+    // Only the read-only rows render HTML, so the editable input doesn't re-parse the description on every keystroke
+    const descriptionHTML = isReadOnly && iouComment ? Parser.replace(iouComment, {disabledRules: !policy ? ['reportMentions'] : []}) : undefined;
 
     // On the bordered form the editable description is a text input, so a locked one has to read as a disabled input
     // too rather than as a push row, or the same screen answers "this field can't be changed" two different ways.
     const readOnlyDescription = shouldUseDropdownRows ? (
         <ExpenseFieldRow
             name={translate('common.description')}
-            valueComponent={descriptionHTML ? <MenuItem.FieldValueHTML>{descriptionHTML}</MenuItem.FieldValueHTML> : undefined}
-            hasValueComponent={!!iouComment}
-            accessibilityLabel={`${translate('common.description')}, ${iouComment}`}
+            valueComponent={descriptionHTML ? <MenuItem.FieldValueHTML isMuted>{descriptionHTML}</MenuItem.FieldValueHTML> : undefined}
+            hasValueComponent={!!descriptionHTML}
+            accessibilityLabel={descriptionHTML ? `${translate('common.description')}, ${Parser.htmlToText(descriptionHTML)}` : undefined}
             rightLabel={isDescriptionRequired ? translate('common.required') : ''}
             onPress={openDescriptionPage}
             isDisabled={didConfirm}

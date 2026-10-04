@@ -16,25 +16,31 @@ type MenuItemFieldValueHTMLProps = {
 
     /** Cuts the rendered text down to this many characters, closing any tags left open */
     characterLimit?: number;
+
+    /**
+     * Whether the value belongs to a field the user cannot change, and so reads in the muted color a disabled
+     * text input gives its own value rather than at full contrast.
+     */
+    isMuted?: boolean;
 };
 
 /**
  * Value a field holds, given as HTML. A value with no markup renders as plain text, with its entities decoded,
  * so it is safe to pass values that are only sometimes HTML.
  */
-function MenuItemFieldValueHTML({children, characterLimit}: MenuItemFieldValueHTMLProps) {
+function MenuItemFieldValueHTML({children, characterLimit, isMuted = false}: MenuItemFieldValueHTMLProps) {
     const styles = useThemeStyles();
 
     // The row builds its label from text, so screen readers hear the content rather than the markup
     useMenuItemAccessibilityLabel('bottom', Parser.htmlToText(children));
 
     // Truncation needs the value wrapped in a tag, since truncateHTML returns nothing for markup-free input
-    const wrappedHTML = `<comment>${children}</comment>`;
+    const wrappedHTML = isMuted ? `<comment><muted-text>${children}</muted-text></comment>` : `<comment>${children}</comment>`;
     const html = characterLimit ? Parser.truncateHTML(wrappedHTML, characterLimit, {ellipsis: '...'}) : wrappedHTML;
 
     return (
         <View style={[styles.renderHTMLTitle, styles.textAlignLeft]}>
-            {Parser.isHTML(children) ? <RenderHTML html={html} /> : <Text style={styles.webViewStyles.baseFontStyle}>{convertToLTR(Parser.htmlToText(html))}</Text>}
+            {Parser.isHTML(children) ? <RenderHTML html={html} /> : <Text style={[styles.webViewStyles.baseFontStyle, isMuted && styles.colorMuted]}>{convertToLTR(Parser.htmlToText(html))}</Text>}
         </View>
     );
 }
