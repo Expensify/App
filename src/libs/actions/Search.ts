@@ -1781,6 +1781,8 @@ function rejectMoneyRequestInBulk(
     delegateAccountID: number | undefined,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     rules: OnyxCollection<Rule>,
+    // Expenses currently on reportID, used to tell if more than one expense remains after each rejection.
+    reportTransactionsCollection: Record<string, Transaction>,
     hash?: number,
 ) {
     const optimisticData: Array<RejectMoneyRequestData['optimisticData'][number] | OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
@@ -1812,6 +1814,7 @@ function rejectMoneyRequestInBulk(
             getCurrencyDecimals,
             rules,
             shouldUseBulkAction: true,
+            reportTransactionsCollection,
         });
         if (data) {
             optimisticData.push(...data.optimisticData);
@@ -1893,11 +1896,10 @@ function rejectMoneyRequestsOnSearch({
             Log.info('[BulkReject] Report is missing from live Onyx', false, {reportID});
         }
         const totalReportTransactions = report?.transactionCount ?? 0;
+        const reportTransactionsCollection = allReportsTransactionsAndViolations?.[reportID]?.transactions ?? {};
 
         // Subtract pending deletes to get accurate count when transactions are deleted offline
-        const pendingDeleteCount = Object.values(allReportsTransactionsAndViolations?.[reportID]?.transactions ?? {}).filter(
-            (transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-        ).length;
+        const pendingDeleteCount = Object.values(reportTransactionsCollection).filter((transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
         const effectiveTransactionCount = totalReportTransactions - pendingDeleteCount;
         const areAllExpensesSelected = selectedTransactionIDs.length === effectiveTransactionCount;
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
@@ -1914,6 +1916,7 @@ function rejectMoneyRequestsOnSearch({
                 delegateAccountID,
                 getCurrencyDecimals,
                 rules,
+                reportTransactionsCollection,
                 hash,
             );
         } else {
@@ -1931,6 +1934,7 @@ function rejectMoneyRequestsOnSearch({
                         existingRejectedReport,
                         setExistingRejectedReport,
                     },
+                    reportTransactionsCollection,
                 });
             }
         }

@@ -160,7 +160,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 true,
                 undefined,
                 getCurrencyDecimalsLocal,
-                {rules: undefined},
+                {rules: undefined, reportTransactionsCollection: {[transaction.transactionID]: transaction}},
             );
 
             // Then: Should return navigation route to chat report
@@ -179,6 +179,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             }
             rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, true, undefined, getCurrencyDecimalsLocal, {
                 rules: undefined,
+                reportTransactionsCollection: {[transaction.transactionID]: transaction},
             });
             await waitForBatchedUpdates();
 
@@ -237,6 +238,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             }
             rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, true, undefined, getCurrencyDecimalsLocal, {
                 rules: undefined,
+                reportTransactionsCollection: {[transaction.transactionID]: transaction, [secondTransaction.transactionID]: secondTransaction},
             });
             await waitForBatchedUpdates();
 
@@ -278,6 +280,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
 
             rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, true, undefined, getCurrencyDecimalsLocal, {
                 rules: undefined,
+                reportTransactionsCollection: {[transaction.transactionID]: transaction, [secondTransaction.transactionID]: secondTransaction},
                 options: {
                     sharedRejectedToReportID,
                     existingRejectedReport,
@@ -287,6 +290,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
 
             rejectMoneyRequest(secondTransaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, true, undefined, getCurrencyDecimalsLocal, {
                 rules: undefined,
+                reportTransactionsCollection: {[transaction.transactionID]: transaction, [secondTransaction.transactionID]: secondTransaction},
                 options: {
                     sharedRejectedToReportID,
                     existingRejectedReport,
@@ -339,6 +343,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 };
                 await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${secondTransaction.transactionID}`, secondTransaction);
                 await waitForBatchedUpdates();
+                return secondTransaction;
             }
 
             it('should not send a reject for an expense the server has already moved elsewhere', async () => {
@@ -361,7 +366,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                     true,
                     undefined,
                     getCurrencyDecimalsLocal,
-                    {rules: undefined},
+                    {rules: undefined, reportTransactionsCollection: {}},
                 );
 
                 await waitForBatchedUpdates();
@@ -377,12 +382,13 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 if (!transaction?.transactionID || !iouReport?.reportID) {
                     throw new Error('Required transaction or report data is missing');
                 }
-                await addSecondExpenseToReport();
+                const secondTransaction = await addSecondExpenseToReport();
 
                 // When: The server rejects the request
                 mockFetch?.fail?.();
                 rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, true, undefined, getCurrencyDecimalsLocal, {
                     rules: undefined,
+                    reportTransactionsCollection: {[transaction.transactionID]: transaction, [secondTransaction.transactionID]: secondTransaction},
                 });
                 await waitForBatchedUpdates();
 
@@ -398,12 +404,13 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 }
                 // Given: An expense report with delayed submission enabled, so rejecting moves the expense to another report
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, {...iouReport, type: CONST.REPORT.TYPE.EXPENSE});
-                await addSecondExpenseToReport();
+                const secondTransaction = await addSecondExpenseToReport();
 
                 // When: The expense is rejected while offline
                 mockFetch?.pause?.();
                 rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, true, undefined, getCurrencyDecimalsLocal, {
                     rules: undefined,
+                    reportTransactionsCollection: {[transaction.transactionID]: transaction, [secondTransaction.transactionID]: secondTransaction},
                 });
                 await waitForBatchedUpdates();
 
@@ -423,7 +430,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                     throw new Error('Required transaction or report data is missing');
                 }
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, {...iouReport, type: CONST.REPORT.TYPE.EXPENSE});
-                await addSecondExpenseToReport();
+                const secondTransaction = await addSecondExpenseToReport();
 
                 // Given: The server refuses the reject because another member has already moved the expense
                 mockFetch?.mockAPICommand?.(WRITE_COMMANDS.REJECT_MONEY_REQUEST, () => ({
@@ -441,6 +448,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 mockFetch?.pause?.();
                 rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, true, undefined, getCurrencyDecimalsLocal, {
                     rules: undefined,
+                    reportTransactionsCollection: {[transaction.transactionID]: transaction, [secondTransaction.transactionID]: secondTransaction},
                 });
                 await waitForBatchedUpdates();
                 await mockFetch?.resume?.();
@@ -462,7 +470,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 if (!transaction?.transactionID || !iouReport?.reportID) {
                     throw new Error('Required transaction or report data is missing');
                 }
-                await addSecondExpenseToReport();
+                const secondTransaction = await addSecondExpenseToReport();
 
                 // Given: The expense still shows the error left by an earlier failed reject
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, {
@@ -474,6 +482,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 // When: Rejecting it again
                 rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, true, undefined, getCurrencyDecimalsLocal, {
                     rules: undefined,
+                    reportTransactionsCollection: {[transaction.transactionID]: transaction, [secondTransaction.transactionID]: secondTransaction},
                 });
                 await waitForBatchedUpdates();
 
@@ -532,6 +541,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             }
             rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, true, undefined, getCurrencyDecimalsLocal, {
                 rules: undefined,
+                reportTransactionsCollection: {[transaction.transactionID]: transaction, [secondTransaction.transactionID]: secondTransaction},
             });
             await waitForBatchedUpdates();
 

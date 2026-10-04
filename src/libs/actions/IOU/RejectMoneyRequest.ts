@@ -23,7 +23,6 @@ import {
     getDisplayedReportID,
     getParsedComment,
     getReimbursableTotal,
-    getReportTransactions,
     hasOutstandingChildRequest,
     isIOUReport,
     isOpenReport,
@@ -87,6 +86,8 @@ type RejectMoneyRequestOptions = {
 type RejectMoneyRequestRulesAndOptions = {
     rules: OnyxCollection<OnyxTypes.Rule>;
     options?: RejectMoneyRequestOptions;
+    // Expenses currently on the report being rejected from, used to tell if more than one expense remains.
+    reportTransactionsCollection: Record<string, OnyxTypes.Transaction>;
 };
 
 function dismissRejectUseExplanation() {
@@ -130,6 +131,8 @@ type PrepareRejectMoneyRequestDataParams = {
     rules: OnyxCollection<OnyxTypes.Rule>;
     options?: RejectMoneyRequestOptions;
     shouldUseBulkAction?: boolean;
+    // Expenses currently on the report being rejected from, used to tell if more than one expense remains.
+    reportTransactionsCollection: Record<string, OnyxTypes.Transaction>;
 };
 
 function prepareRejectMoneyRequestData({
@@ -145,6 +148,7 @@ function prepareRejectMoneyRequestData({
     rules,
     options,
     shouldUseBulkAction,
+    reportTransactionsCollection,
 }: PrepareRejectMoneyRequestDataParams): RejectMoneyRequestData | undefined {
     const allTransactions = getAllTransactions();
     const allReports = getAllReports();
@@ -178,7 +182,7 @@ function prepareRejectMoneyRequestData({
     let createdIOUReportActionID;
     let expenseCreatedReportActionID;
 
-    const hasMultipleExpenses = getReportTransactions(reportID).length > 1;
+    const hasMultipleExpenses = Object.keys(reportTransactionsCollection ?? {}).length > 1;
 
     // A reject starts from a clean slate, dropping the error and the report pin left behind by an earlier failed one.
     const staleRejectErrorCleanup = {
@@ -972,7 +976,7 @@ function rejectMoneyRequest(
     isASAPSubmitBetaEnabled: boolean,
     delegateAccountID: number | undefined,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-    {rules, options}: RejectMoneyRequestRulesAndOptions,
+    {rules, options, reportTransactionsCollection}: RejectMoneyRequestRulesAndOptions,
 ): Route | undefined {
     const data = prepareRejectMoneyRequestData({
         transactionID,
@@ -986,6 +990,7 @@ function rejectMoneyRequest(
         getCurrencyDecimals,
         rules,
         options,
+        reportTransactionsCollection,
     });
     if (!data) {
         return;
