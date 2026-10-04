@@ -140,35 +140,38 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
             addBottomSafeAreaPadding
         >
             {controls}
-            {/* The gutter sits on the cards rather than the scroll view, so the filter pills above them can run edge to edge. */}
-            <View style={[styles.insightsDashboardLayout, styles.insightsCardGapStyle(shouldUseNarrowLayout), shouldUseNarrowLayout ? styles.ph3 : styles.ph5]}>
-                <InsightsChartWidget
-                    chart={headlineChart.chart}
-                    queryJSON={headlineChart.queryJSON}
-                    snapshot={headlineChart.snapshot}
-                    filters={filters}
-                    onRetry={onRetry}
-                    onGroupByChange={onGroupByChange}
-                />
-                <View style={[styles.insightsChartGrid, styles.insightsCardGapStyle(shouldUseNarrowLayout)]}>
-                    {columns.map((columnCharts, columnIndex) => (
-                        <View
-                            // eslint-disable-next-line react/no-array-index-key -- columns are fixed positions
-                            key={columnIndex}
-                            style={[styles.flex1, styles.insightsCardGapStyle(shouldUseNarrowLayout)]}
-                        >
-                            {columnCharts.map(({chart, queryJSON, snapshot}) => (
-                                <InsightsChartWidget
-                                    key={chart.graphKey}
-                                    chart={chart}
-                                    queryJSON={queryJSON}
-                                    snapshot={snapshot}
-                                    filters={filters}
-                                    onRetry={onRetry}
-                                />
-                            ))}
-                        </View>
-                    ))}
+            {/* The gutter sits outside the cards' own width limit, so the limit measures the cards rather than the
+                page, and so the filter pills above them can run edge to edge. */}
+            <View style={shouldUseNarrowLayout ? styles.ph3 : styles.ph5}>
+                <View style={[styles.insightsDashboardLayout, styles.insightsCardGapStyle(shouldUseNarrowLayout)]}>
+                    <InsightsChartWidget
+                        chart={headlineChart.chart}
+                        queryJSON={headlineChart.queryJSON}
+                        snapshot={headlineChart.snapshot}
+                        filters={filters}
+                        onRetry={onRetry}
+                        onGroupByChange={onGroupByChange}
+                    />
+                    <View style={[styles.insightsChartGrid, styles.insightsCardGapStyle(shouldUseNarrowLayout)]}>
+                        {columns.map((columnCharts, columnIndex) => (
+                            <View
+                                // eslint-disable-next-line react/no-array-index-key -- columns are fixed positions
+                                key={columnIndex}
+                                style={[styles.flex1, styles.insightsCardGapStyle(shouldUseNarrowLayout)]}
+                            >
+                                {columnCharts.map(({chart, queryJSON, snapshot}) => (
+                                    <InsightsChartWidget
+                                        key={chart.graphKey}
+                                        chart={chart}
+                                        queryJSON={queryJSON}
+                                        snapshot={snapshot}
+                                        filters={filters}
+                                        onRetry={onRetry}
+                                    />
+                                ))}
+                            </View>
+                        ))}
+                    </View>
                 </View>
             </View>
         </ScrollView>
