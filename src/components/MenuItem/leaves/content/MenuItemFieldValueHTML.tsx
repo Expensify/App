@@ -40,7 +40,11 @@ function MenuItemFieldValueHTML({children, characterLimit, isMuted = false}: Men
 
     return (
         <View style={[styles.renderHTMLTitle, styles.textAlignLeft]}>
-            {Parser.isHTML(children) ? <RenderHTML html={html} /> : <Text style={[styles.webViewStyles.baseFontStyle, isMuted && styles.colorMuted]}>{convertToLTR(Parser.htmlToText(html))}</Text>}
+            {Parser.isHTML(children) ? (
+                <RenderHTML html={html} />
+            ) : (
+                <Text style={[styles.webViewStyles.baseFontStyle, isMuted && styles.colorMuted]}>{convertToLTR(Parser.htmlToText(html))}</Text>
+            )}
         </View>
     );
 }
