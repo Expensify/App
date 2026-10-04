@@ -35,6 +35,8 @@ import {
     getTotalFormattedAmount,
     isCurrencySupportWalletBulkPay,
     queueBulkApproveReports,
+    queueBulkDeleteExpenses,
+    queueBulkDeleteReports,
     queueBulkMarkAsExported,
     queueBulkPayReports,
     queueBulkSubmitReports,
@@ -1413,6 +1415,22 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         if (result.action !== ModalActions.CONFIRM) {
             return;
         }
+        // "Select all" can cover more than is loaded, so hand the search query to the backend to delete every match.
+        if (areAllMatchingItemsSelected) {
+            const allMatchingQuery = queryJSON ? getAllMatchingExpenseActionQuery(queryJSON, excludedTransactions, currentSearchResults?.data) : undefined;
+            if (!allMatchingQuery) {
+                Log.info('[BulkDelete] Dropping bulk delete: an excluded row could not be resolved');
+                return;
+            }
+            if (isExpenseReportType) {
+                queueBulkDeleteReports(allMatchingQuery.jsonQuery);
+            } else {
+                queueBulkDeleteExpenses(allMatchingQuery.jsonQuery, allMatchingQuery.excludedTransactionIDList);
+            }
+            clearSelectedTransactions();
+            return;
+        }
+
         const validTransactions = Object.fromEntries(Object.entries(allTransactions ?? {}).filter((entry): entry is [string, Transaction] => entry[1] !== undefined));
         const searchData = searchResults?.data;
         if (isExpenseReportType) {
@@ -1496,7 +1514,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         showConfirmModal,
         deleteModalTitle,
         deleteModalPrompt,
-        queryJSON?.groupBy,
+        areAllMatchingItemsSelected,
+        queryJSON,
+        excludedTransactions,
+        currentSearchResults?.data,
         translate,
         allTransactions,
         allTransactionViolations,
@@ -2731,6 +2752,20 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
             if (!isOffline && selectedTransactionsKeys.some((id) => selectedTransactions[id].canUnhold)) {
                 allMatchingOptions.push(unholdOption);
+            }
+            // The backend only deletes what the user can delete, so one deletable loaded item is enough to offer it.
+            const hasLoadedDeletableItem =
+                selectedReports.length && isExpenseReportType
+                    ? selectedReports.some((report) => shouldShowDeleteOption(selectedTransactions, currentSearchResults?.data, accountID, rules, [report], queryJSON?.type))
+                    : selectedTransactionsKeys.some((id) => shouldShowDeleteOption({[id]: selectedTransactions[id]}, currentSearchResults?.data, accountID, rules, [], queryJSON?.type));
+            if (!isOffline && hasLoadedDeletableItem) {
+                allMatchingOptions.push({
+                    icon: expensifyIcons.Trashcan,
+                    text: translate('search.bulkActions.delete'),
+                    value: CONST.SEARCH.BULK_ACTION_TYPES.DELETE,
+                    shouldCloseModalOnSelect: true,
+                    onSelected: handleDeleteSelectedTransactions,
+                });
             }
             allMatchingOptions.push(exportButtonOption);
             if (isExpenseReportSearch) {
