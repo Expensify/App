@@ -34,8 +34,13 @@ import {
     getSearchPayOnyxData,
     getTotalFormattedAmount,
     isCurrencySupportWalletBulkPay,
+    queueBulkApproveReports,
+    queueBulkDeleteExpenses,
+    queueBulkDeleteReports,
     queueBulkMarkAsExported,
     queueBulkPayReports,
+    queueBulkSubmitReports,
+    queueBulkUnholdExpenses,
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
     resolveSearchPayPaymentMethod,
@@ -391,6 +396,21 @@ function getAllMatchingReportQuery(queryJSON: SearchQueryJSON, excludedTransacti
     });
 
     return buildSearchQueryJSON(buildSearchQueryString({...queryJSON, flatFilters}));
+}
+
+/** Builds the query and the deselected expenses to send to the backend for a "Select all" bulk action on expenses. */
+function getAllMatchingExpenseActionQuery(
+    queryJSON: SearchQueryJSON,
+    excludedTransactions: SelectedTransactions,
+    searchData: SearchResultDataType | undefined,
+): {jsonQuery: string; excludedTransactionIDList: string[]} | undefined {
+    if (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+        const reportQuery = getAllMatchingReportQuery(queryJSON, excludedTransactions);
+        return reportQuery ? {jsonQuery: serializeQueryJSONForBackend(reportQuery), excludedTransactionIDList: []} : undefined;
+    }
+
+    const expenseQuery = getAllMatchingExportQueryAndExclusions(queryJSON, excludedTransactions, searchData);
+    return expenseQuery ? {jsonQuery: serializeQueryJSONForBackend(expenseQuery.queryJSON), excludedTransactionIDList: expenseQuery.excludedTransactionIDList} : undefined;
 }
 
 const MERCHANT_GROUP_EXACT_MATCH_FILTER_KEYS = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
@@ -1245,6 +1265,19 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return;
         }
 
+        // "Select all" can cover more reports than are loaded, so hand the search query to the backend to approve every match.
+        if (areAllMatchingItemsSelected) {
+            const allMatchingQuery = isExpenseReportType && queryJSON ? getAllMatchingReportQuery(queryJSON, excludedTransactions) : queryJSON;
+            if (isExpenseReportType && !allMatchingQuery) {
+                Log.info('[BulkApprove] Dropping bulk approve: report exclusion has no reportID');
+                return;
+            }
+            const serializedQuery = allMatchingQuery ? serializeQueryJSONForBackend(allMatchingQuery) : JSON.stringify(allMatchingQuery);
+            queueBulkApproveReports(serializedQuery);
+            clearSelectedTransactions();
+            return;
+        }
+
         const reportIDList = !selectedReports.length
             ? Object.values(selectedTransactions).map((transaction) => transaction.reportID)
             : (selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? []);
@@ -1308,6 +1341,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         selectedReports,
         selectedTransactions,
         hash,
+        areAllMatchingItemsSelected,
+        queryJSON,
+        isExpenseReportType,
+        excludedTransactions,
         clearSelectedTransactions,
         userBillingGracePeriodEnds,
         ownerBillingGracePeriodEnd,
@@ -1378,6 +1415,22 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         if (result.action !== ModalActions.CONFIRM) {
             return;
         }
+        // "Select all" can cover more than is loaded, so hand the search query to the backend to delete every match.
+        if (areAllMatchingItemsSelected) {
+            const allMatchingQuery = queryJSON ? getAllMatchingExpenseActionQuery(queryJSON, excludedTransactions, currentSearchResults?.data) : undefined;
+            if (!allMatchingQuery) {
+                Log.info('[BulkDelete] Dropping bulk delete: an excluded row could not be resolved');
+                return;
+            }
+            if (isExpenseReportType) {
+                queueBulkDeleteReports(allMatchingQuery.jsonQuery);
+            } else {
+                queueBulkDeleteExpenses(allMatchingQuery.jsonQuery, allMatchingQuery.excludedTransactionIDList);
+            }
+            clearSelectedTransactions();
+            return;
+        }
+
         const validTransactions = Object.fromEntries(Object.entries(allTransactions ?? {}).filter((entry): entry is [string, Transaction] => entry[1] !== undefined));
         const searchData = searchResults?.data;
         if (isExpenseReportType) {
@@ -1461,7 +1514,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         showConfirmModal,
         deleteModalTitle,
         deleteModalPrompt,
-        queryJSON?.groupBy,
+        areAllMatchingItemsSelected,
+        queryJSON,
+        excludedTransactions,
+        currentSearchResults?.data,
         translate,
         allTransactions,
         allTransactionViolations,
@@ -1518,7 +1574,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 }
                 const serializedQuery = allMatchingQuery ? serializeQueryJSONForBackend(allMatchingQuery) : JSON.stringify(allMatchingQuery);
                 queueBulkPayReports(serializedQuery);
-                playSound(SOUNDS.SUCCESS);
                 clearSelectedTransactions();
                 return;
             }
@@ -2471,6 +2526,120 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             onSelected: () => onBulkPaySelected(undefined),
         };
 
+        const hasSubmitPolicyTransactions = areIncludedSubmitPolicyTransactions(selectedTransactions, selectedReports, policies);
+        const approveButtonOption: DropdownOption<SearchHeaderOptionValue> = {
+            icon: expensifyIcons.ThumbsUp,
+            text: translate('search.bulkActions.approve'),
+            value: CONST.SEARCH.BULK_ACTION_TYPES.APPROVE,
+            shouldCloseModalOnSelect: true,
+            onSelected: () => {
+                handleApproveWithDEWCheck();
+            },
+        };
+
+        const rejectOption: DropdownOption<SearchHeaderOptionValue> = {
+            icon: expensifyIcons.ThumbsDown,
+            text: translate('search.bulkActions.reject'),
+            value: CONST.SEARCH.BULK_ACTION_TYPES.REJECT,
+            shouldCloseModalOnSelect: true,
+            onSelected: () => {
+                if (isOffline) {
+                    setIsOfflineModalVisible(true);
+                    return;
+                }
+
+                if (isDelegateAccessRestricted) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
+
+                if (dismissedRejectUseExplanation) {
+                    Navigation.navigate(ROUTES.SEARCH_REJECT_REASON_RHP);
+                } else {
+                    setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
+                }
+            },
+        };
+
+        const holdOption: DropdownOption<SearchHeaderOptionValue> = {
+            icon: expensifyIcons.Stopwatch,
+            text: translate('search.bulkActions.hold'),
+            value: CONST.SEARCH.BULK_ACTION_TYPES.HOLD,
+            shouldCloseModalOnSelect: true,
+            onSelected: () => {
+                if (isOffline) {
+                    setIsOfflineModalVisible(true);
+                    return;
+                }
+
+                if (isDelegateAccessRestricted) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
+
+                const shouldShowHoldEducationalModal = areAllTransactionsFromSubmitter || areAllTransactionsFromDMReports;
+                const isDismissed = shouldShowHoldEducationalModal ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
+
+                if (isDismissed) {
+                    navigateToSearchRHP(ROUTES.TRANSACTION_HOLD_REASON_SEARCH, ROUTES.TRANSACTION_HOLD_REASON_RHP);
+                } else if (shouldShowHoldEducationalModal) {
+                    setIsHoldEducationalModalVisible(true);
+                } else {
+                    setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
+                }
+            },
+        };
+
+        const unholdOption: DropdownOption<SearchHeaderOptionValue> = {
+            icon: expensifyIcons.Stopwatch,
+            text: translate('search.bulkActions.unhold'),
+            value: CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD,
+            shouldCloseModalOnSelect: true,
+            onSelected: () => {
+                if (isOffline) {
+                    setIsOfflineModalVisible(true);
+                    return;
+                }
+
+                if (isDelegateAccessRestricted) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
+
+                if (areAllMatchingItemsSelected) {
+                    const allMatchingQuery = queryJSON ? getAllMatchingExpenseActionQuery(queryJSON, excludedTransactions, currentSearchResults?.data) : undefined;
+                    if (!allMatchingQuery) {
+                        Log.info('[BulkUnhold] Dropping bulk unhold: an excluded row could not be resolved');
+                        return;
+                    }
+                    queueBulkUnholdExpenses(allMatchingQuery.jsonQuery, allMatchingQuery.excludedTransactionIDList);
+                    clearSelectedTransactions();
+                    return;
+                }
+
+                for (const transactionID of selectedTransactionsKeys) {
+                    if (!selectedTransactions[transactionID].reportAction?.childReportID) {
+                        Log.info('[BulkUnhold] Skipping transaction: report action has no childReportID', false, {transactionID});
+                        continue;
+                    }
+                    const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+                    unholdRequest(
+                        transactionID,
+                        selectedTransactions[transactionID].reportAction?.childReportID,
+                        policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedTransactions[transactionID].policyID}`],
+                        isOffline,
+                        currentUserLogin ?? '',
+                        accountID,
+                        transactionViolations,
+                        isTrackIntentUser,
+                        delegateAccountID,
+                        rules,
+                    );
+                }
+                clearSelectedTransactions();
+            },
+        };
+
         const isExpenseReportSearch = isExpenseReportType || searchResults?.search.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
         const downloadPDFOption: DropdownOption<SearchHeaderOptionValue> = {
@@ -2519,13 +2688,84 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         };
 
         if (areAllMatchingItemsSelected) {
+            // The backend only approves the matching reports the user can approve, so one approvable loaded item is enough to offer it.
+            const hasLoadedApprovableItem = selectedReports.length
+                ? selectedReports.some((report) => report.canApprove)
+                : selectedTransactionsKeys.some((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.APPROVE);
+            const shouldShowApproveOptionForAllMatchingItems = !isOffline && !hasSubmitPolicyTransactions && hasLoadedApprovableItem;
+            // The backend only submits the matching reports the user can submit, so one submittable loaded item is enough to offer it.
+            // Submit plan workspaces pick an approver per report and Mark as done is a different action, so neither is sent to the backend.
+            const hasLoadedSubmittableItem = selectedReports.length
+                ? selectedReports.some((report) => report.canSubmit)
+                : selectedTransactionsKeys.some((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.SUBMIT);
+            const shouldShowSubmitOptionForAllMatchingItems = !isOffline && !doSelectedItemsBelongToSubmitPolicy && noReportsShouldMarkAsDone && hasLoadedSubmittableItem;
+            const submitAllMatchingItemsOption: DropdownOption<SearchHeaderOptionValue> = {
+                icon: expensifyIcons.Send,
+                text: translate('common.submit'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT,
+                shouldCloseModalOnSelect: true,
+                onSelected: () => {
+                    if (isOffline) {
+                        setIsOfflineModalVisible(true);
+                        return;
+                    }
+
+                    const itemList = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
+                    const restrictedPolicyID = getRestrictedPolicyID(itemList, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, policies, accountID);
+                    if (restrictedPolicyID) {
+                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedPolicyID));
+                        return;
+                    }
+
+                    const allMatchingQuery = isExpenseReportType && queryJSON ? getAllMatchingReportQuery(queryJSON, excludedTransactions) : queryJSON;
+                    if (isExpenseReportType && !allMatchingQuery) {
+                        Log.info('[BulkSubmit] Dropping bulk submit: report exclusion has no reportID');
+                        return;
+                    }
+                    const serializedQuery = allMatchingQuery ? serializeQueryJSONForBackend(allMatchingQuery) : JSON.stringify(allMatchingQuery);
+                    queueBulkSubmitReports(serializedQuery);
+                    clearSelectedTransactions();
+                },
+            };
+
             // Offer an all-matching move only when no rows are excluded and unloaded matches are unreported.
             // The backend rejects the entire move if any matching expense is invalid
             const isAllMatchingSelectionMovable = isEmptyObject(excludedTransactions) && (!hasUnloadedMatchingExpenses || isUnreportedOnlyQuery);
 
             const allMatchingOptions: Array<DropdownOption<SearchHeaderOptionValue>> = [];
+            if (shouldShowApproveOptionForAllMatchingItems) {
+                allMatchingOptions.push(approveButtonOption);
+            }
+            if (shouldShowSubmitOptionForAllMatchingItems) {
+                allMatchingOptions.push(submitAllMatchingItemsOption);
+            }
             if (shouldShowPayOption) {
                 allMatchingOptions.push(payButtonOption);
+            }
+            // The backend only rejects expenses on reports the user can reject, so one loaded item is enough to offer it.
+            if (queryJSON?.type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && !isOffline && selectedTransactionsKeys.some((id) => selectedTransactions[id].canReject)) {
+                allMatchingOptions.push(rejectOption);
+            }
+            // The backend only acts on the matching expenses the user can hold or unhold, so one loaded item is enough to offer it.
+            if (!isOffline && selectedTransactionsKeys.some((id) => selectedTransactions[id].canHold)) {
+                allMatchingOptions.push(holdOption);
+            }
+            if (!isOffline && selectedTransactionsKeys.some((id) => selectedTransactions[id].canUnhold)) {
+                allMatchingOptions.push(unholdOption);
+            }
+            // The backend only deletes what the user can delete, so one deletable loaded item is enough to offer it.
+            const hasLoadedDeletableItem =
+                selectedReports.length && isExpenseReportType
+                    ? selectedReports.some((report) => shouldShowDeleteOption(selectedTransactions, currentSearchResults?.data, accountID, rules, [report], queryJSON?.type))
+                    : selectedTransactionsKeys.some((id) => shouldShowDeleteOption({[id]: selectedTransactions[id]}, currentSearchResults?.data, accountID, rules, [], queryJSON?.type));
+            if (!isOffline && hasLoadedDeletableItem) {
+                allMatchingOptions.push({
+                    icon: expensifyIcons.Trashcan,
+                    text: translate('search.bulkActions.delete'),
+                    value: CONST.SEARCH.BULK_ACTION_TYPES.DELETE,
+                    shouldCloseModalOnSelect: true,
+                    onSelected: handleDeleteSelectedTransactions,
+                });
             }
             allMatchingOptions.push(exportButtonOption);
             if (isExpenseReportSearch) {
@@ -2600,7 +2840,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         const areSelectedTransactionsIncludedInReports = selectedTransactionsKeys.every((id) =>
             selectedTransactions[id].reportID ? selectedReportIDs.includes(selectedTransactions[id].reportID) : true,
         );
-        const hasSubmitPolicyTransactions = areIncludedSubmitPolicyTransactions(selectedTransactions, selectedReports, policies);
         const shouldShowApproveOption =
             !isOffline &&
             !isAnyTransactionOnHold &&
@@ -2611,15 +2850,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 : selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.APPROVE));
 
         if (shouldShowApproveOption) {
-            options.push({
-                icon: expensifyIcons.ThumbsUp,
-                text: translate('search.bulkActions.approve'),
-                value: CONST.SEARCH.BULK_ACTION_TYPES.APPROVE,
-                shouldCloseModalOnSelect: true,
-                onSelected: () => {
-                    handleApproveWithDEWCheck();
-                },
-            });
+            options.push(approveButtonOption);
         }
 
         const hasNoRejectedTransaction = selectedTransactionsKeys.every(
@@ -2634,29 +2865,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             hasNoRejectedTransaction;
 
         if (shouldShowRejectOption) {
-            options.push({
-                icon: expensifyIcons.ThumbsDown,
-                text: translate('search.bulkActions.reject'),
-                value: CONST.SEARCH.BULK_ACTION_TYPES.REJECT,
-                shouldCloseModalOnSelect: true,
-                onSelected: () => {
-                    if (isOffline) {
-                        setIsOfflineModalVisible(true);
-                        return;
-                    }
-
-                    if (isDelegateAccessRestricted) {
-                        showDelegateNoAccessModal();
-                        return;
-                    }
-
-                    if (dismissedRejectUseExplanation) {
-                        Navigation.navigate(ROUTES.SEARCH_REJECT_REASON_RHP);
-                    } else {
-                        setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
-                    }
-                },
-            });
+            options.push(rejectOption);
         }
 
         const shouldShowChangeApproverOption =
@@ -2930,77 +3139,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         const shouldShowHoldOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canHold);
 
         if (shouldShowHoldOption) {
-            options.push({
-                icon: expensifyIcons.Stopwatch,
-                text: translate('search.bulkActions.hold'),
-                value: CONST.SEARCH.BULK_ACTION_TYPES.HOLD,
-                shouldCloseModalOnSelect: true,
-                onSelected: () => {
-                    if (isOffline) {
-                        setIsOfflineModalVisible(true);
-                        return;
-                    }
-
-                    if (isDelegateAccessRestricted) {
-                        showDelegateNoAccessModal();
-                        return;
-                    }
-
-                    const shouldShowHoldEducationalModal = areAllTransactionsFromSubmitter || areAllTransactionsFromDMReports;
-                    const isDismissed = shouldShowHoldEducationalModal ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
-
-                    if (isDismissed) {
-                        navigateToSearchRHP(ROUTES.TRANSACTION_HOLD_REASON_SEARCH, ROUTES.TRANSACTION_HOLD_REASON_RHP);
-                    } else if (shouldShowHoldEducationalModal) {
-                        setIsHoldEducationalModalVisible(true);
-                    } else {
-                        setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
-                    }
-                },
-            });
+            options.push(holdOption);
         }
 
         const shouldShowUnholdOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canUnhold);
 
         if (shouldShowUnholdOption) {
-            options.push({
-                icon: expensifyIcons.Stopwatch,
-                text: translate('search.bulkActions.unhold'),
-                value: CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD,
-                shouldCloseModalOnSelect: true,
-                onSelected: () => {
-                    if (isOffline) {
-                        setIsOfflineModalVisible(true);
-                        return;
-                    }
-
-                    if (isDelegateAccessRestricted) {
-                        showDelegateNoAccessModal();
-                        return;
-                    }
-
-                    for (const transactionID of selectedTransactionsKeys) {
-                        if (!selectedTransactions[transactionID].reportAction?.childReportID) {
-                            Log.info('[BulkUnhold] Skipping transaction: report action has no childReportID', false, {transactionID});
-                            continue;
-                        }
-                        const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
-                        unholdRequest(
-                            transactionID,
-                            selectedTransactions[transactionID].reportAction?.childReportID,
-                            policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedTransactions[transactionID].policyID}`],
-                            isOffline,
-                            currentUserLogin ?? '',
-                            accountID,
-                            transactionViolations,
-                            isTrackIntentUser,
-                            delegateAccountID,
-                            rules,
-                        );
-                    }
-                    clearSelectedTransactions();
-                },
-            });
+            options.push(unholdOption);
         }
 
         if (selectedTransactionsKeys.length < 3 && searchResults?.search.type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && searchResults?.data) {
@@ -3322,5 +3467,5 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 }
 
 export default useSearchBulkActions;
-export {getFullyDeletedGroupKeysByTransactionID, getGroupKeysSelectedViaGroup, getSelectedGroupKeys, shouldShowBulkDuplicateOption};
+export {getAllMatchingExpenseActionQuery, getFullyDeletedGroupKeysByTransactionID, getGroupKeysSelectedViaGroup, getSelectedGroupKeys, shouldShowBulkDuplicateOption};
 export type {SearchHeaderOptionValue};

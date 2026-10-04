@@ -1,7 +1,7 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useAllReportsTransactionsAndViolations} from '@components/OnyxListItemProvider';
-import {useSearchQueryContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -9,9 +9,11 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {getAllMatchingExpenseActionQuery} from '@hooks/useSearchBulkActions';
 
 import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
-import {rejectMoneyRequestsOnSearch} from '@libs/actions/Search';
+import {queueBulkRejectExpenses, rejectMoneyRequestsOnSearch} from '@libs/actions/Search';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
@@ -33,8 +35,9 @@ type SearchRejectReasonPageProps =
     | PlatformStackScreenProps<SearchReportActionsParamList, typeof SCREENS.SEARCH.SEARCH_REJECT_REASON_RHP>;
 
 function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
-    const {selectedTransactionIDs, selectedTransactions} = useSearchSelectionContext();
-    const {currentSearchHash} = useSearchQueryContext();
+    const {selectedTransactionIDs, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {currentSearchHash, currentSearchQueryJSON} = useSearchQueryContext();
+    const {currentSearchResults} = useSearchResultsContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {reportID} = route.params ?? {};
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -64,6 +67,19 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
         ({comment}: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
             if (isDelegateAccessRestricted) {
                 showDelegateNoAccessModal();
+                return;
+            }
+
+            // "Select all" can cover more expenses than are loaded, so hand the search query to the backend to reject every match.
+            if (route.name === SCREENS.SEARCH.SEARCH_REJECT_REASON_RHP && areAllMatchingItemsSelected) {
+                const allMatchingQuery = currentSearchQueryJSON ? getAllMatchingExpenseActionQuery(currentSearchQueryJSON, excludedTransactions, currentSearchResults?.data) : undefined;
+                if (!allMatchingQuery) {
+                    Log.info('[BulkReject] Dropping bulk reject: an excluded row could not be resolved');
+                    return;
+                }
+                queueBulkRejectExpenses(allMatchingQuery.jsonQuery, comment, allMatchingQuery.excludedTransactionIDList);
+                clearSelectedTransactions();
+                Navigation.dismissToSuperWideRHP();
                 return;
             }
 
@@ -107,6 +123,10 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
             route.name,
             showDelegateNoAccessModal,
             clearSelectedTransactions,
+            areAllMatchingItemsSelected,
+            currentSearchQueryJSON,
+            excludedTransactions,
+            currentSearchResults?.data,
         ],
     );
 
