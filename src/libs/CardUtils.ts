@@ -345,11 +345,22 @@ function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, Workspac
  * administer. "Auto report" needs it because the backend resolves each destination through the card, and one
  * unresolvable card fails the whole batched move. The `managedCard` flag cannot answer it, carrying no feed or
  * workspace identity.
+ *
+ * Search opens with only a subset of those cards, so a missing card proves nothing until `isCardListComplete`. Until
+ * then it is allowed through, since hiding the flow for a card the viewer does administer is the worse error.
  */
-function canResolveTransactionCard(transaction: OnyxEntry<Pick<Transaction, 'managedCard' | 'cardID'>>, nonPersonalAndWorkspaceCards: OnyxEntry<CardList>): boolean {
+function canResolveTransactionCard(
+    transaction: OnyxEntry<Pick<Transaction, 'managedCard' | 'cardID'>>,
+    nonPersonalAndWorkspaceCards: OnyxEntry<CardList>,
+    isCardListComplete: boolean,
+): boolean {
     // Inlined rather than calling isManagedCardTransaction: TransactionUtils already imports this file.
     if (!transaction?.managedCard || !transaction.cardID) {
         return false;
+    }
+
+    if (!isCardListComplete) {
+        return true;
     }
 
     return !!nonPersonalAndWorkspaceCards?.[transaction.cardID];

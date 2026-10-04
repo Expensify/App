@@ -91,6 +91,8 @@ function SearchTransactionsChangeReport() {
     const hasUnreportedManagedCardTransactions = !!managedCardTransactionID;
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
+    // Set once Search has fetched every card the user administers. Before that, a missing card proves nothing.
+    const [isSearchCardListComplete = false] = useOnyx(ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED);
     const reports = useChangeTransactionsReportReports(transactions, undefined);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
@@ -151,7 +153,7 @@ function SearchTransactionsChangeReport() {
     const areAllManagedCardsResolvable =
         selectedTransactionsKeys.length > 0 &&
         transactions.length === selectedTransactionsKeys.length &&
-        transactions.every((transaction) => canResolveTransactionCard(transaction, nonPersonalAndWorkspaceCards));
+        transactions.every((transaction) => canResolveTransactionCard(transaction, nonPersonalAndWorkspaceCards, isSearchCardListComplete));
     const hasMultipleSubmitters = useMemo(() => {
         const ownerAccountIDs = new Set<number>();
 

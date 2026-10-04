@@ -34,6 +34,7 @@ import {
     getSearchPayOnyxData,
     getTotalFormattedAmount,
     isCurrencySupportWalletBulkPay,
+    openSearchCardFiltersPage,
     queueBulkMarkAsExported,
     queueBulkPayReports,
     queueExportSearchItemsToCSV,
@@ -633,6 +634,15 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
+    // Search opens with only a subset of the user's cards, so "Auto report" needs the rest before it can read a
+    // card's absence as no access. The request sets the flag in `finallyData`, so this fires once.
+    const [isSearchCardListComplete = false] = useOnyx(ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED);
+    useEffect(() => {
+        if (isOffline || isSearchCardListComplete) {
+            return;
+        }
+        openSearchCardFiltersPage();
+    }, [isOffline, isSearchCardListComplete]);
 
     const isExpenseReportType = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -2434,7 +2444,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             !moveHasUnknownOwner &&
             selectedTransactionsKeys.every((id) => {
                 const transaction = selectedTransactions[id]?.transaction ?? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
-                if (!canResolveTransactionCard(transaction, nonPersonalAndWorkspaceCards)) {
+                if (!canResolveTransactionCard(transaction, nonPersonalAndWorkspaceCards, isSearchCardListComplete)) {
                     return false;
                 }
                 return !(isPerDiemRequest(transaction) || isManualDistanceRequest(transaction) || isOdometerDistanceRequest(transaction));
@@ -3145,6 +3155,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         selectedTransactions,
         excludedTransactions,
         nonPersonalAndWorkspaceCards,
+        isSearchCardListComplete,
         queryJSON,
         expensifyIcons,
         translate,
