@@ -3,6 +3,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import DateUtils from '@libs/DateUtils';
 import {translate as translateWithLocale} from '@libs/Localize';
 import {doesMoneyRequestDraftHaveUserInput, shouldShowBrokenConnectionViolation, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
+import hasDistanceRouteErrors from '@libs/TransactionUtils/hasDistanceRouteErrors';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -433,6 +434,58 @@ describe('TransactionUtils', () => {
     });
 
     describe('getUpdatedTransaction', () => {
+        it('should preserve a confirmed zero Scan amount while another field edit is pending', () => {
+            // Given a submitted Scan whose explicit zero survived a cache reset without its draft flag
+            const transaction = generateTransaction({
+                amount: 0,
+                modifiedAmount: '',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                merchant: 'Zero Scan',
+                receipt: {source: 'https://example.com/receipt.jpg', state: CONST.IOU.RECEIPT_STATE.OPEN},
+            });
+
+            // When the merchant is edited and marked pending while offline
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: true,
+                transactionChanges: {merchant: 'Zero Scan edited'},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+            updatedTransaction.pendingFields = {merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
+
+            // Then the optimistic edit retains proof that zero is valid instead of showing a missing-amount error
+            expect(updatedTransaction.isAmountSet).toBe(true);
+            expect(TransactionUtils.isFailedScanAmountPlaceholder(updatedTransaction)).toBe(false);
+        });
+
+        it('should keep a genuinely missing failed Scan amount missing while another field edit is pending', () => {
+            // Given a failed Scan whose zero is still an unconfirmed placeholder
+            const transaction = generateTransaction({
+                amount: 0,
+                modifiedAmount: '',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                merchant: 'Failed Scan',
+                receipt: {source: 'https://example.com/receipt.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+            });
+
+            // When the merchant is edited and marked pending while offline
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: true,
+                transactionChanges: {merchant: 'Failed Scan edited'},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+            updatedTransaction.pendingFields = {merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
+
+            // Then the edit does not incorrectly confirm the missing amount
+            expect(updatedTransaction.isAmountSet).not.toBe(true);
+            expect(TransactionUtils.isFailedScanAmountPlaceholder(updatedTransaction)).toBe(true);
+        });
+
         it('should return updated category and tax when updating category with a category tax rules', () => {
             // Given a policy with tax expense rules associated with a category
             const category = 'Advertising';
@@ -1892,6 +1945,47 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('hasDistanceRouteErrors', () => {
+        it('returns false when the route is clean', () => {
+            expect(hasDistanceRouteErrors(generateTransaction())).toBe(false);
+            expect(hasDistanceRouteErrors(generateTransaction({errors: {}, errorFields: {}}))).toBe(false);
+        });
+
+        it('returns true for a route or waypoint error', () => {
+            expect(hasDistanceRouteErrors(generateTransaction({errorFields: {route: {someError: 'No route found'}}}))).toBe(true);
+            expect(hasDistanceRouteErrors(generateTransaction({errorFields: {waypoints: {someError: 'Bad waypoint'}}}))).toBe(true);
+        });
+
+        it('ignores errors that say nothing about the route, such as a failed payment', () => {
+            expect(hasDistanceRouteErrors(generateTransaction({errors: {someError: 'Something went wrong'}}))).toBe(false);
+        });
+    });
+
+    describe('isMapBasedDistanceRequest', () => {
+        const UPDATE = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+        const PDF_RECEIPT = {source: 'https://www.expensify.com/receipts/w_abc123.pdf', filename: 'w_abc123.pdf'};
+
+        function generateMapDistanceTransaction(values: Partial<Transaction> = {}): Transaction {
+            return generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, receipt: PDF_RECEIPT, ...values});
+        }
+
+        // New Expensify draws its own distance e-receipt for these, so the generated PDF beside them is never shown.
+        it('is true for a map distance expense whichever receipt it stores', () => {
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateMapDistanceTransaction())).toBe(true);
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateMapDistanceTransaction({receipt: undefined}))).toBe(true);
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateMapDistanceTransaction({pendingFields: {merchant: UPDATE}}))).toBe(true);
+        });
+
+        it('is true for a GPS distance expense, which also has a route to draw', () => {
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateMapDistanceTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS}))).toBe(true);
+        });
+
+        it('is false for odometer and non-distance expenses, which keep their own receipt', () => {
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateMapDistanceTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER}))).toBe(false);
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateTransaction({receipt: undefined}))).toBe(false);
+        });
+    });
+
     describe('calculateTaxAmount', () => {
         it('returns 0 for undefined percentage', () => {
             const result = TransactionUtils.calculateTaxAmount(undefined, 10000, 2);
@@ -2190,19 +2284,38 @@ describe('TransactionUtils', () => {
             expect(result).toBe(false);
         });
 
-        it('does not flag a zero amount on an unreported expense whose receipt scan failed', () => {
-            // Given a $0 unreported expense whose receipt scan failed
+        it('flags an unresolved failed-scan zero amount on an unreported expense', () => {
+            // Given an unreported failed Scan whose zero amount is still the scanning placeholder
             const transaction = generateTransaction({
                 reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                 amount: 0,
                 merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
                 receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
             });
 
             // When we check whether its required fields are empty
             const result = TransactionUtils.areRequiredFieldsEmpty(transaction, undefined);
 
-            // Then the amount is still not treated as missing, because being unreported is the only condition for allowing $0
+            // Then the amount is treated as missing until the user explicitly confirms it
+            expect(result).toBe(true);
+        });
+
+        it('does not flag a confirmed failed-scan zero amount on an unreported expense', () => {
+            // Given an unreported failed Scan whose zero amount has been explicitly confirmed
+            const transaction = generateTransaction({
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                amount: 0,
+                modifiedAmount: 0,
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+            });
+
+            // When we check whether its required fields are empty
+            const result = TransactionUtils.areRequiredFieldsEmpty(transaction, undefined);
+
+            // Then the confirmed zero remains valid in the Self DM
             expect(result).toBe(false);
         });
 
@@ -3352,6 +3465,30 @@ describe('TransactionUtils', () => {
             expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined)).toBe(true);
         });
 
+        it('should return false when auto-categorize new expenses is disabled on the policy', () => {
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
+            const policy = {...createRandomPolicy(0), autoCategorizeNewExpenses: false};
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined, policy)).toBe(false);
+        });
+
+        it('should return true when auto-categorize new expenses is enabled on the policy', () => {
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
+            const policy = {...createRandomPolicy(0), autoCategorizeNewExpenses: true};
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined, policy)).toBe(true);
+        });
+
         it('should return true when within auto-categorization grace period', () => {
             // Set pendingAutoCategorizationTime to 30 seconds ago (within 1 minute grace period)
             const thirtySecondsAgo = new Date(Date.now() - 30 * 1000);
@@ -3367,6 +3504,22 @@ describe('TransactionUtils', () => {
             });
 
             expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined)).toBe(true);
+        });
+
+        it('should return false during the grace period when auto-categorize new expenses is disabled', () => {
+            const thirtySecondsAgo = new Date(Date.now() - 30 * 1000);
+            const pendingAutoCategorizationTime = thirtySecondsAgo.toISOString().replace('T', ' ').replace('Z', '');
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                comment: {
+                    pendingAutoCategorizationTime,
+                },
+            });
+            const policy = {...createRandomPolicy(0), autoCategorizeNewExpenses: false};
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined, policy)).toBe(false);
         });
 
         it('should return false when auto-categorization grace period has passed', () => {
@@ -5837,6 +5990,67 @@ describe('hasAllManuallyEnteredScanFields', () => {
         const values = {isAmountSet: true, isMerchantSet: true, isCreatedSet: true};
         expect(TransactionUtils.hasAllManuallyEnteredScanFields(generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL, ...values}))).toBe(false);
         expect(TransactionUtils.hasAllManuallyEnteredScanFields(generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE, ...values}))).toBe(false);
+    });
+});
+
+describe('isFailedScanAmountPlaceholder for zero-amount Scans', () => {
+    const openScan = {
+        amount: 0,
+        iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+        modifiedAmount: '',
+        receipt: {source: 'https://example.com/receipt.jpg', state: CONST.IOU.RECEIPT_STATE.OPEN},
+    } as const;
+
+    it('shows an explicitly entered zero after the submitted transaction is reloaded without draft flags', () => {
+        const transaction = generateTransaction({...openScan, merchant: 'Test Merchant', created: '2026-09-17'});
+
+        expect(TransactionUtils.isFailedScanAmountPlaceholder(transaction)).toBe(false);
+        expect(TransactionUtils.isAmountMissing(transaction)).toBe(false);
+    });
+
+    it('still treats a failed Scan with no entered amount as missing', () => {
+        const transaction = generateTransaction({...openScan, receipt: {...openScan.receipt, state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED}});
+
+        expect(TransactionUtils.isFailedScanAmountPlaceholder(transaction)).toBe(true);
+    });
+
+    it('shows the zero amount after the report is settled', () => {
+        // Given a failed Scan whose zero amount is still represented as a placeholder on the transaction
+        const transaction = generateTransaction({...openScan, receipt: {...openScan.receipt, state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED}});
+
+        // When the transaction is rendered from a settled report
+        const result = TransactionUtils.isFailedScanAmountPlaceholder(transaction, true);
+
+        // Then the zero accepted by the backend is no longer hidden as a missing amount
+        expect(result).toBe(false);
+    });
+
+    it.each([
+        ['merchant', {modifiedMerchant: 'Updated Merchant'}],
+        ['created', {modifiedCreated: '2026-09-18'}],
+        ['currency', {modifiedCurrency: 'EUR'}],
+    ])('keeps an existing failed Scan missing while its %s edit makes the receipt OPEN', (field, changes) => {
+        const transaction = generateTransaction({...openScan, ...changes, pendingFields: {[field]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}});
+
+        expect(TransactionUtils.isFailedScanAmountPlaceholder(transaction)).toBe(true);
+    });
+
+    it('keeps an entered zero visible after a later merchant edit is confirmed', () => {
+        const transaction = generateTransaction({...openScan, modifiedMerchant: 'Updated Merchant'});
+
+        expect(TransactionUtils.isFailedScanAmountPlaceholder(transaction)).toBe(false);
+    });
+
+    it('keeps a partially filled Scan draft missing when the merchant is entered before the amount', () => {
+        const transaction = generateTransaction({...openScan, isMerchantSet: true});
+
+        expect(TransactionUtils.isFailedScanAmountPlaceholder(transaction)).toBe(true);
+    });
+
+    it('keeps a cleared Scan amount missing while its receipt is OPEN', () => {
+        const transaction = generateTransaction({...openScan, isAmountSet: false});
+
+        expect(TransactionUtils.isFailedScanAmountPlaceholder(transaction)).toBe(true);
     });
 });
 
