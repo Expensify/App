@@ -171,6 +171,7 @@ function useFlatNavigationBarVisualWidthStyle() {
 export {
     SEARCH_SIDEBAR_COLLAPSE_ANIMATION_DURATION_MS,
     getFlatNavigationBarWidth,
+    layoutTransitionStyle,
     useFlatNavigationBarAccountAvatarStyle,
     useFlatNavigationBarLayoutWidthStyle,
     useFlatNavigationBarPeekShadowStyle,
