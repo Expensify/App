@@ -33,6 +33,8 @@ const RUNNING_TITLES = {
     [CONST.SEARCH.BULK_ACTION_TYPES.HOLD]: 'bulkAction.holdingTitle',
     [CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD]: 'bulkAction.unholdingTitle',
     [CONST.SEARCH.BULK_ACTION_TYPES.REJECT]: 'bulkAction.rejectingTitle',
+    [CONST.SEARCH.BULK_ACTION_TYPES.DELETE]: 'bulkAction.deletingTitle',
+    [CONST.BULK_ACTION.DELETE_EXPENSES]: 'bulkAction.deletingExpensesTitle',
 } as const satisfies Record<BulkActionType, TranslationPaths>;
 
 const DONE_TITLES = {
@@ -42,6 +44,8 @@ const DONE_TITLES = {
     [CONST.SEARCH.BULK_ACTION_TYPES.HOLD]: 'bulkAction.heldTitle',
     [CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD]: 'bulkAction.unheldTitle',
     [CONST.SEARCH.BULK_ACTION_TYPES.REJECT]: 'bulkAction.rejectedTitle',
+    [CONST.SEARCH.BULK_ACTION_TYPES.DELETE]: 'bulkAction.deletedTitle',
+    [CONST.BULK_ACTION.DELETE_EXPENSES]: 'bulkAction.deletedExpensesTitle',
 } as const satisfies Record<BulkActionType, TranslationPaths>;
 
 type BulkActionStatusModalProps = {
