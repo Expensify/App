@@ -1,3 +1,5 @@
+import Button from '@components/Button';
+import FixedFooter from '@components/FixedFooter';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceMemberRoleList from '@components/WorkspaceMemberRoleList';
 import type {ListItemType} from '@components/WorkspaceMemberRoleList';
@@ -25,8 +27,9 @@ import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
-import React from 'react';
+import React, {useState} from 'react';
 
 type WorkspaceMemberDetailsRolePageProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> &
     PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE> & {
@@ -42,6 +45,7 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
     const member = policy?.employeeList?.[memberLogin];
+    const [selectedRole, setSelectedRole] = useState<ValueOf<typeof CONST.POLICY.ROLE>>();
     const canManageSelectedMemberRole = canMemberAssignRole(policy, currentUserLogin, member?.role);
     // The Authorized Payer (reimburser) must stay a valid payer, so restrict them to the roles that can pay (for example Admin or Payments Admin).
     const reimburserEmail = getReimburserEmail(policy);
@@ -65,14 +69,15 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
         });
         showConfirmModal({
             title: translate('workspace.people.approveOnlyRoleBlockedTitle'),
-            prompt: [translate('workspace.people.approveOnlyRoleBlockedDescription'), ...reasonLines].join('\n'),
+            prompt: [translate('workspace.people.approveOnlyRoleBlockedDescription'), '', ...reasonLines].join('\n'),
             confirmText: translate('workspace.people.approveOnlyRoleBlockedConfirm'),
             shouldShowCancelButton: false,
         });
     };
 
-    const changeRole = ({value}: ListItemType) => {
-        if (value === member?.role) {
+    const saveRole = () => {
+        const value = selectedRole ?? member?.role;
+        if (!value || value === member?.role) {
             return;
         }
         if (!canMemberAssignRole(policy, currentUserLogin, value)) {
@@ -113,12 +118,22 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <WorkspaceMemberRoleList
-                    role={member?.role}
+                    role={selectedRole ?? member?.role}
                     policy={policy}
-                    onSelectRole={changeRole}
+                    onSelectRole={(item: ListItemType) => setSelectedRole(item.value)}
                     allowedRoles={allowedRoles}
                     navigateBackTo={ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID)}
                 />
+                <FixedFooter addBottomSafeAreaPadding>
+                    <Button
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
+                        onPress={saveRole}
+                        isDisabled={!selectedRole || selectedRole === member?.role}
+                    >
+                        <Button.Text>{translate('common.save')}</Button.Text>
+                    </Button>
+                </FixedFooter>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
