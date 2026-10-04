@@ -27,8 +27,14 @@ function useCarouselTransactionIDs(): CarouselTransactionIDs {
         seededTransactionIDs.filter((transactionID) => {
             const key = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const;
 
+            // A live `null` means the expense was deleted, so don't let the stale snapshot copy bring it back.
+            const liveTransaction = allTransactions?.[key];
+            if (liveTransaction === null) {
+                return false;
+            }
+
             // A sibling that hasn't landed in the live collection yet (snapshot-backed flows) is read from the snapshot instead.
-            const transaction = allTransactions?.[key] ?? snapshot?.data?.[key];
+            const transaction = liveTransaction ?? snapshot?.data?.[key];
 
             if (!transaction) {
                 // Nothing to inspect, so keep the ID only while a descriptor still vouches for the sibling.
