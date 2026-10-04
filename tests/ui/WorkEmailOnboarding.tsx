@@ -418,7 +418,7 @@ describe('OnboardingWorkEmail Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute());
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute(), {forceReplace: true});
         });
 
         unmount();
@@ -539,7 +539,7 @@ describe('OnboardingWorkEmail Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute());
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute(), {forceReplace: true});
         });
 
         unmount();
@@ -857,6 +857,62 @@ describe('OnboardingWorkEmailValidation Page', () => {
 
         unmount();
         await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should ignore the header back button while the magic code is being submitted', async () => {
+        const goBack = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
+
+        // Given the validation screen with a merge request in flight. The request cannot be cancelled, so leaving now
+        // would let the work email screen consume its success and skip "Join a workspace".
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                shouldValidate: true,
+            });
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {
+                onboardingWorkEmail: workEmail,
+            });
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: true, loadingForm: CONST.FORMS.VALIDATE_CODE_FORM});
+        });
+
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, undefined);
+
+        await waitForBatchedUpdatesWithAct();
+
+        // When the header back button is pressed
+        fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('common.back')));
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the user stays on validation and `shouldValidate` is untouched, so the merge response routes as normal
+        expect(goBack).not.toHaveBeenCalled();
+        let shouldValidateWhileSubmitting: boolean | undefined;
+        await TestHelper.getOnyxData({
+            key: ONYXKEYS.NVP_ONBOARDING,
+            callback: (value) => {
+                shouldValidateWhileSubmitting = value?.shouldValidate;
+            },
+        });
+        expect(shouldValidateWhileSubmitting).toBe(true);
+
+        // When the request settles and the header back button is pressed again
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
+        });
+        fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('common.back')));
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it goes back to the work email screen, so the first press was blocked by the submit guard alone
+        await waitFor(() => {
+            expect(goBack).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORK_EMAIL.getRoute());
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+        goBack.mockRestore();
     });
 
     it('should redirect to classic when merging is completed and shouldRedirectToClassicAfterMerge is returned as `true` by the API', async () => {
