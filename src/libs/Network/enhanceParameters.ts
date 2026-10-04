@@ -1,6 +1,7 @@
 import {AUTHENTICATION_COMMAND} from '@libs/API/types';
 import * as Environment from '@libs/Environment/Environment';
 import getPlatform from '@libs/getPlatform';
+import Log from '@libs/Log';
 
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -8,7 +9,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import Onyx from 'react-native-onyx';
 
 import pkg from '../../../package.json';
-import {getAuthToken, getCurrentUserEmail} from './NetworkStore';
+import {getAuthToken, getCurrentUserEmail, getLastAuthTokenDrop} from './NetworkStore';
 
 // For all requests, we'll send the lastUpdateID that is applied to this client. This will
 // allow us to calculate previousUpdateID faster.
@@ -80,7 +81,18 @@ export default function enhanceParameters(command: string, parameters: Record<st
     const finalParameters: Record<string, unknown> = {...parameters, ...getBaseRequestParameters(parameters.email)};
 
     if (isAuthTokenRequired(command) && !parameters.authToken) {
-        finalParameters.authToken = getAuthToken() ?? null;
+        const authToken = getAuthToken();
+        if (!authToken) {
+            const lastDrop = getLastAuthTokenDrop();
+            Log.info('[enhanceParameters] Sending request without authToken', false, {
+                command,
+                authTokenState: authToken === undefined ? 'notHydrated' : 'empty',
+                lastDropSource: lastDrop?.source,
+                msSinceLastDrop: lastDrop ? Date.now() - lastDrop.droppedAt : undefined,
+                lastDropStack: lastDrop?.stack,
+            });
+        }
+        finalParameters.authToken = authToken ?? null;
     }
 
     finalParameters.clientUpdateID = lastUpdateIDAppliedToClient;
