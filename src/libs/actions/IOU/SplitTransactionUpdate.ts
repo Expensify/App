@@ -46,7 +46,6 @@ import {
     navigateBackOnDeleteTransaction,
     updateOptimisticParentReportAction,
 } from '@libs/ReportUtils';
-import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {isTracking, setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {
     getChildTransactions,
@@ -57,7 +56,6 @@ import {
 } from '@libs/TransactionUtils';
 
 import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
-import {mergeTransactionIdsHighlightOnSearchRoute} from '@userActions/Transaction';
 import {removeDraftSplitTransaction} from '@userActions/TransactionEdit';
 
 import CONST from '@src/CONST';
@@ -82,9 +80,10 @@ import type {BuildOnyxDataForMoneyRequestKeys, MoneyRequestInformationParams} fr
 import type {UpdateMoneyRequestDataKeys} from './UpdateMoneyRequest';
 
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
-import {getAllReports} from './index';
+import {getAllReports, getIOUAndChatReportForIOUAction} from './index';
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
 import {getMoneyRequestInformation, getReportPreviewReportAction} from './MoneyRequestBuilder';
+import signalExpenseAddedGrowl from './signalExpenseAddedGrowl';
 import {getDeleteTrackExpenseInformation} from './TrackExpense';
 import {getUpdateMoneyRequestParams} from './UpdateMoneyRequest';
 
@@ -1439,18 +1438,22 @@ function updateSplitTransactions({
             reportAction: currentReportAction,
             isChatReportArchived: undefined,
             currentUserAccountID: currentUserPersonalDetails.accountID,
+            transactionThread: allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${currentReportAction?.childReportID}`],
             transactionThreadReportActions: allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportAction?.childReportID}`],
             shouldRemoveIOUTransaction: isReportArchived || undeletedTransaction?.transactionID === forceDeleteSplitTransactionID,
         });
 
         // getDeleteTrackExpenseInformation only handles deleting the transaction report thread, so we need to update the report preview action here
         if (originalReportPreviewAction) {
+            const {iouReport: currentActionIOUReport, chatReport: currentActionChatReport} = getIOUAndChatReportForIOUAction(currentReportAction, allReportsList);
             const cleanUpTransactionThreadReportOnyxData = getCleanUpTransactionThreadReportOnyxData({
                 shouldDeleteTransactionThread: false,
                 reportAction: currentReportAction,
                 updatedReportPreviewAction: (updatedReportPreviewAction ?? originalReportPreviewAction) as OnyxTypes.ReportAction,
                 shouldAddUpdatedReportPreviewActionToOnyxData: false,
                 currentUserAccountID: currentUserPersonalDetails.accountID,
+                iouReport: currentActionIOUReport,
+                chatReport: currentActionChatReport,
                 // shouldDeleteTransactionThread is false, so the transaction-thread report actions are never read here.
                 transactionThreadReportActionsParam: undefined,
             });
@@ -1696,6 +1699,7 @@ function updateSplitTransactions({
                         },
                     }),
                 };
+                const {iouReport: iouActionIOUReport, chatReport: iouActionChatReport} = getIOUAndChatReportForIOUAction(iouActionToCleanUp, allReportsList);
 
                 const {optimisticData, successData, failureData} = getCleanUpTransactionThreadReportOnyxData({
                     transactionThreadID: iouActionToCleanUp.childReportID,
@@ -1703,6 +1707,9 @@ function updateSplitTransactions({
                     reportAction: iouActionToCleanUp,
                     updatedReportPreviewAction: updatedReportPreviewAction as OnyxTypes.ReportAction,
                     currentUserAccountID: currentUserPersonalDetails.accountID,
+                    transactionThread: allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${iouActionToCleanUp.childReportID}`],
+                    iouReport: iouActionIOUReport,
+                    chatReport: iouActionChatReport,
                     transactionThreadReportActionsParam: allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouActionToCleanUp.childReportID}`],
                 });
 
@@ -2134,34 +2141,13 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
 
     const targetReportID = params.expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
 
-    // Register newly created split transaction IDs so they briefly highlight on the Search/Spend page.
-    // The Search page reads TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE, which highlights matching rows
-    // optimistically without waiting for a server re-search. Unlike the auto-detect path in
-    // useSearchHighlightAndScroll (skipped while offline), this makes the highlight work offline too.
-    // Reverse splits create no new transactions, and existing children are already in the list, so both are skipped.
-    function registerSearchRouteHighlight() {
-        if (!isSearchPageTopmostFullScreenRoute || isReverseSplitOperation) {
-            return;
-        }
-        const currentSearchType = getCurrentSearchQueryJSON()?.type;
-        if (!currentSearchType) {
-            return;
-        }
-        const newTransactionIDsToHighlight: Record<string, boolean> = {};
-        for (const transactionID of getNewSplitTransactionIDs()) {
-            newTransactionIDsToHighlight[transactionID] = true;
-        }
-        if (isEmptyObject(newTransactionIDsToHighlight)) {
-            return;
-        }
-        mergeTransactionIdsHighlightOnSearchRoute(currentSearchType, newTransactionIDsToHighlight);
-    }
-
     if (isSearchPageTopmostFullScreenRoute || !params.transactionReport?.parentReportID) {
-        registerSearchRouteHighlight();
         // Returns to Search, not the expense report, so rail flags would sit unconsumed and highlight stale rows the
-        // next time that report is opened from the Inbox. registerSearchRouteHighlight above covers this page instead.
+        // next time that report is opened from the Inbox.
         updateSplitTransactions({...params, isFromSplitExpensesFlow: true, shouldSkipReportHighlightRail: true});
+        if (isSearchPageTopmostFullScreenRoute && !isReverseSplitOperation) {
+            signalExpenseAddedGrowl(getNewSplitTransactionIDs().at(-1), CONST.SEARCH.DATA_TYPES.EXPENSE);
+        }
 
         if (!isSelfDMSplit) {
             Navigation.navigateBackToLastSuperWideRHPScreen();
@@ -2205,11 +2191,16 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, targetReportID);
     }
 
+    // When the transaction thread is the topmost report (e.g. it was opened directly from the "Expense added" growl,
+    // without the expense report beneath it), replace it instead of removing it and pushing the expense report after the
+    // dismissal animation - otherwise the stack empties down to the chat report and it flashes into view in between.
+    const shouldReplaceTransactionThread = !!transactionThreadReportID && Navigation.getTopmostReportId() === transactionThreadReportID;
+
     popReportsSplitNavigatorToReport(targetReportID);
-    Navigation.dismissModalWithReport({reportID: targetReportID});
+    Navigation.dismissModalWithReport({reportID: targetReportID}, navigationRef, {forceReplace: shouldReplaceTransactionThread});
     requestAnimationFrame(() => {
         updateSplitTransactions({...params, isFromSplitExpensesFlow: true});
-        if (!transactionThreadReportScreen?.key) {
+        if (shouldReplaceTransactionThread || !transactionThreadReportScreen?.key) {
             return;
         }
         Navigation.removeScreenByKey(transactionThreadReportScreen.key);

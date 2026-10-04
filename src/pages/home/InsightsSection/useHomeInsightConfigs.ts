@@ -61,7 +61,7 @@ function useHomeInsightConfigs(): {configs: HomeInsightConfig[]; isResolved: boo
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const {defaultCardFeed, cardFeedsByPolicy} = useCardFeedsForDisplay();
     const {isBetaEnabled} = usePermissions();
-    const {filters, isResolved: areFiltersResolved} = useInsightsFilters();
+    const {filters, isResolved: areFiltersResolved} = useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND);
 
     if (!isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE)) {
         const {visibility, shouldShowExpensifyCard} = getSuggestedSearchesVisibility(session?.email, cardFeedsByPolicy, policies, defaultExpensifyCard, false, !!isTrackIntentUser);
