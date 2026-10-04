@@ -1,20 +1,11 @@
 import type {ReportHierarchyInfo} from '@userActions/ClearReportActionErrors';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
-import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
+import {reportsParentHierarchySelector} from '@src/selectors/Report';
 
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 
 import useOnyx from './useOnyx';
-
-const reportHierarchySelector = (report: OnyxEntry<Report>): OnyxEntry<ReportHierarchyInfo> =>
-    report && {
-        parentReportID: report.parentReportID,
-        parentReportActionID: report.parentReportActionID,
-    };
-
-const reportsParentHierarchySelector = (reports: OnyxCollection<Report>) => mapOnyxCollectionItems(reports, reportHierarchySelector);
 
 /**
  * Subscribes to the parent hierarchy links (`parentReportID`/`parentReportActionID`) of every report so callers

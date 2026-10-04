@@ -116,20 +116,18 @@ function clearReportActionErrors(reportAction: ReportAction, originalReportID: s
     });
 }
 
-/**
- *
-ignore: `undefined` means we want to check both parent and children report actions
-ignore: `parent` or `child` means we want to ignore checking parent or child report actions because they've been previously checked
- */
-function clearAllRelatedReportActionErrors(
-    reportID: string | undefined,
-    reportAction: ReportAction | null | undefined,
-    originalReportID: string | undefined,
-    isOffline: boolean,
-    ignore?: IgnoreDirection,
-    keys?: string[],
-    reports?: OnyxCollection<ReportHierarchyInfo>,
-) {
+type ClearAllRelatedReportActionErrorsParams = {
+    reportID: string | undefined;
+    reportAction: ReportAction | null | undefined;
+    originalReportID: string | undefined;
+    isOffline: boolean;
+    /** `undefined` checks both parent and child report actions; 'parent' or 'child' skips the side that has already been checked */
+    ignore?: IgnoreDirection;
+    keys?: string[];
+    reports?: OnyxCollection<ReportHierarchyInfo>;
+};
+
+function clearAllRelatedReportActionErrors({reportID, reportAction, originalReportID, isOffline, ignore, keys, reports}: ClearAllRelatedReportActionErrorsParams) {
     const errorKeys = keys ?? Object.keys(reportAction?.errors ?? {});
     if (!reportAction || errorKeys.length === 0 || !reportID) {
         return;
@@ -144,7 +142,15 @@ function clearAllRelatedReportActionErrors(
         const parentReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`] ?? {};
         const parentOriginalReportID = getOriginalReportID(report.parentReportID, parentReportAction, parentReportActions, isOffline);
 
-        clearAllRelatedReportActionErrors(report.parentReportID, parentReportAction, parentOriginalReportID, isOffline, 'child', parentErrorKeys, reports);
+        clearAllRelatedReportActionErrors({
+            reportID: report.parentReportID,
+            reportAction: parentReportAction,
+            originalReportID: parentOriginalReportID,
+            isOffline,
+            ignore: 'child',
+            keys: parentErrorKeys,
+            reports,
+        });
     }
 
     if (reportAction.childReportID && ignore !== 'child') {
@@ -152,7 +158,15 @@ function clearAllRelatedReportActionErrors(
         for (const action of Object.values(childActions)) {
             const childErrorKeys = Object.keys(action.errors ?? {}).filter((err) => errorKeys.includes(err));
             const childOriginalReportID = getOriginalReportID(reportAction.childReportID, action, childActions, isOffline);
-            clearAllRelatedReportActionErrors(reportAction.childReportID, action, childOriginalReportID, isOffline, 'parent', childErrorKeys, reports);
+            clearAllRelatedReportActionErrors({
+                reportID: reportAction.childReportID,
+                reportAction: action,
+                originalReportID: childOriginalReportID,
+                isOffline,
+                ignore: 'parent',
+                keys: childErrorKeys,
+                reports,
+            });
         }
     }
 }

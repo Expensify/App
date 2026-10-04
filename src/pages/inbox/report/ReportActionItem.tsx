@@ -293,7 +293,7 @@ function ReportActionItem({
         if (transactionIDToDismiss) {
             clearErrorWithOriginalTransactionError(transactionIDToDismiss, originalTransactionID, isOriginalTransactionSplitContainer);
         }
-        clearAllRelatedReportActionErrors(reportID, action, originalReportID, isOffline, undefined, undefined, reportsParentHierarchy);
+        clearAllRelatedReportActionErrors({reportID, reportAction: action, originalReportID, isOffline, reports: reportsParentHierarchy});
     };
 
     const showDismissReceiptErrorModal = async () => {

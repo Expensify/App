@@ -561,7 +561,7 @@ function MoneyRequestReceiptView({
                 return;
             }
             clearError(linkedTransactionID);
-            clearAllRelatedReportActionErrors(report.reportID, parentReportAction, originalReportID, isOffline, undefined, undefined, reportsParentHierarchy);
+            clearAllRelatedReportActionErrors({reportID: report.reportID, reportAction: parentReportAction, originalReportID, isOffline, reports: reportsParentHierarchy});
             return;
         }
         if (!isEmptyObject(transactionAndReportActionErrors)) {
@@ -569,7 +569,7 @@ function MoneyRequestReceiptView({
         }
         if (!isEmptyObject(errorsWithoutReportCreation)) {
             clearError(transaction.transactionID);
-            clearAllRelatedReportActionErrors(report.reportID, parentReportAction, originalReportID, isOffline, undefined, undefined, reportsParentHierarchy);
+            clearAllRelatedReportActionErrors({reportID: report.reportID, reportAction: parentReportAction, originalReportID, isOffline, reports: reportsParentHierarchy});
         }
         if (!isEmptyObject(reportCreationError)) {
             if (isInNarrowPaneModal) {
