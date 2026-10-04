@@ -149,7 +149,7 @@ export default {
     uploadViewMargin: 20,
     chooseFilesViewMargin: 8,
     sideBarWithLHBWidth: 260,
-    inboxSideBarWidth: 360,
+    inboxSideBarWidth: 340,
     superWideRHPLeftMargin: 360,
     // RHP panel width. Kept separate from sideBarWidth (the LHN) so the two can differ.
     rhpWidth: 440,

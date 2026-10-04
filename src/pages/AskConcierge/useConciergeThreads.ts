@@ -1,5 +1,7 @@
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 
+import {openReport} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getReportActionText, getTextFromHtml} from '@libs/ReportActionMessageUtils';
 import {isDeletedAction} from '@libs/ReportActionsUtils';
@@ -8,7 +10,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {useEffect, useRef} from 'react';
 
 type ConciergeThread = {
     /** The thread the question opened */
@@ -51,6 +55,37 @@ function getIsThreadUnread(reports: OnyxCollection<Report>, reportID: string, re
 }
 
 /**
+ * Fetches the thread reports the list has no copy of, so their names can be shown without opening each thread.
+ * Concierge writes a thread's name from the question, and that name lives on the thread's own report, which the
+ * app only holds once the thread has been opened.
+ */
+function useMissingThreadReports(threadReportIDs: string[], reports: OnyxCollection<Report>, conciergeChat: OnyxEntry<Report>) {
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const requestedReportIDs = useRef(new Set<string>());
+
+    const missingReportIDs = threadReportIDs.filter((reportID) => !reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]);
+    const missingReportIDsKey = missingReportIDs.join(',');
+
+    useEffect(() => {
+        if (!currentUserAccountID) {
+            return;
+        }
+
+        for (const reportID of missingReportIDsKey ? missingReportIDsKey.split(',') : []) {
+            if (requestedReportIDs.current.has(reportID)) {
+                continue;
+            }
+            requestedReportIDs.current.add(reportID);
+            // The user is looking at the list, not the conversation, so this must not mark anything read.
+            openReport({reportID, currentUserAccountID, hasReportActions: undefined, conciergeChat, introSelected, shouldMarkAsRead: false});
+        }
+        // conciergeChat only seeds onboarding data for a brand new chat, so a later copy of it would not change what is fetched.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [missingReportIDsKey, currentUserAccountID]);
+}
+
+/**
  * Lists the Concierge threads, newest first.
  *
  * The threads come from the Concierge chat's own actions rather than from the report collection: Onyx only holds
@@ -60,9 +95,16 @@ function getIsThreadUnread(reports: OnyxCollection<Report>, reportID: string, re
 function useConciergeThreads(conciergeReportID: string | undefined): ConciergeThread[] {
     const [conciergeActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(conciergeReportID)}`);
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const conciergeChat = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(conciergeReportID)}`];
 
     // A question whose comment was deleted has no text left to name its thread with, so it drops off the list.
     const threadActions = Object.values(conciergeActions ?? {}).filter((action) => !!action?.childReportID && !isDeletedAction(action));
+
+    useMissingThreadReports(
+        threadActions.flatMap((action) => (action.childReportID ? [action.childReportID] : [])),
+        reports,
+        conciergeChat,
+    );
 
     return threadActions
         .sort((first, second) => {
