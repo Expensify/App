@@ -70,6 +70,7 @@ function ConfirmationListLayout({transactionID, sections, listRef, listFooterCon
                 footerContent={footerContent}
                 listFooterContent={listFooterContent}
                 style={selectionListStyle}
+                keyboardShouldPersistTaps="handled"
                 disableKeyboardShortcuts
             />
         </MouseProvider>

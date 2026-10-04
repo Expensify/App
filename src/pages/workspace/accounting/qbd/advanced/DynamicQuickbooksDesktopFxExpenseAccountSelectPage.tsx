@@ -57,7 +57,7 @@ function DynamicQuickbooksDesktopFxExpenseAccountSelectPage({policy}: WithPolicy
         Navigation.goBack(backPath);
     };
 
-    const {searchableList, initiallyFocusedOptionKey, confirmButtonOptions} = buildList(accountOptions, expenseAccounts.length, saveSelectedAccount);
+    const {searchableList, initiallyFocusedOptionKey, confirmButtonOptions} = buildList(accountOptions, saveSelectedAccount);
     const {filteredData: listData, textInputOptions} = useSelectionListSearch(searchableList, translate('common.noResultsFound'));
 
     const listHeaderComponent = (

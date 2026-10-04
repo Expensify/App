@@ -883,7 +883,20 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     }),
                 )
                 .then(() => {
-                    putOnHold(transaction1.transactionID, 'comment', iouReport.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined, {rules: undefined, ancestors: []});
+                    putOnHold({
+                        transactionID: transaction1.transactionID,
+                        transaction: transaction1,
+                        comment: 'comment',
+                        initialReportID: iouReport.reportID,
+                        isOffline: false,
+                        currentUserLogin: RORY_EMAIL,
+                        currentUserAccountID: RORY_ACCOUNT_ID,
+                        transactionViolations: undefined,
+                        isTrackIntentUser: false,
+                        delegateAccountID: undefined,
+                        rules: undefined,
+                        ancestors: [],
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
