@@ -764,6 +764,7 @@ describe('MoneyRequest', () => {
             isVendorMatchingBetaEnabled: false,
             iouType: CONST.IOU.TYPE.CREATE,
             report: fakeReport,
+            moneyRequestReportTransactions: [],
             policy: fakePolicy,
             transaction: fakeTransaction,
             reportID: '1',

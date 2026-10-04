@@ -32,7 +32,6 @@ import {
     getReimbursableTotal,
     getReportNotificationPreference,
     getReportOrDraftReport,
-    getReportTransactions,
     getTransactionDetails,
     getUnheldReimbursableTotal,
     hasViolations as hasViolationsReportUtils,
@@ -162,6 +161,9 @@ type CreateDistanceRequestInformation = {
     writeBarrier?: WriteReadyBarrier;
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+
+    // Expenses currently on `report`, used to detect the 1→2 transaction transition for the pending-new-transaction highlight.
+    moneyRequestReportTransactions: OnyxTypes.Transaction[];
 };
 
 type CreateSplitsTransactionParams = BaseTransactionParams & {
@@ -2075,6 +2077,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         writeBarrier,
         rules,
         isVendorMatchingBetaEnabled,
+        moneyRequestReportTransactions,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
@@ -2366,7 +2369,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
 
     const activeReportID = isMoneyRequestReport && report?.reportID ? report.reportID : parameters.chatReportID;
 
-    if (isOneToTwoTransactionTransition(isMoneyRequestReport, getReportTransactions(moneyRequestReportID))) {
+    if (isOneToTwoTransactionTransition(isMoneyRequestReport, moneyRequestReportTransactions)) {
         addPendingNewTransactionIDs(activeReportID, parameters.transactionID);
     }
 

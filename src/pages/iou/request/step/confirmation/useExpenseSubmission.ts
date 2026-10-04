@@ -953,6 +953,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             getCurrencyDecimals,
             writeBarrier,
             report,
+            moneyRequestReportTransactions: reportTransactions,
             participants: selectedParticipantsForRequest,
             optimisticChatReportID,
             currentUserLogin: currentUserPersonalDetails.login ?? '',

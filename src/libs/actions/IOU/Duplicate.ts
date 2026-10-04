@@ -730,6 +730,9 @@ function createExpenseByType({
             const distanceParams: CreateDistanceRequestInformation = {
                 ...params,
                 participants,
+                // params.report is always the destination chat report here (both callers pass a policy expense chat,
+                // never an existing money request report), so there are no pre-existing expenses to report on.
+                moneyRequestReportTransactions: [],
                 currentUserLogin: params.currentUserEmailParam,
                 currentUserAccountID: params.currentUserAccountIDParam,
                 existingTransaction: {
