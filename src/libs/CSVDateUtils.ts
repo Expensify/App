@@ -20,6 +20,27 @@ const CSV_DATE_FORMATS = [
     'yyyyMMdd', // Compact: 20251102
 ];
 
+// Month and day bounds match what `new Date()` accepts, so values it rejected (such as 2026-13-01) are still rejected
+const ISO_DATE_ONLY_REGEX = /^(\d{4})-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+
+/**
+ * Parses a bare yyyy-MM-dd string in the local time zone. `new Date()` reads it as UTC midnight, which formats back to the
+ * previous day for anyone west of UTC. Days past the end of the month roll over the same way `new Date()` does.
+ */
+function parseISODateOnly(input: string): string | null {
+    const isoMatch = ISO_DATE_ONLY_REGEX.exec(input);
+    if (!isoMatch) {
+        return null;
+    }
+
+    const [, year, month, day] = isoMatch;
+
+    // setFullYear is used instead of the Date constructor, which maps years 0-99 to 1900-1999
+    const date = new Date(0, 0, 1);
+    date.setFullYear(Number(year), Number(month) - 1, Number(day));
+    return format(date, CONST.DATE.FNS_FORMAT_STRING);
+}
+
 /**
  * Parses a date string from various formats and returns it in yyyy-MM-dd format
  */
@@ -30,13 +51,9 @@ function parseCSVDate(input: string): string | null {
 
     const trimmedInput = input.trim();
 
-    // Try parsing with common date formats using date-fns first. These are parsed in the local time zone, while `new Date()`
-    // reads a bare yyyy-MM-dd string as UTC midnight, which formats back to the previous day for anyone west of UTC.
-    for (const dateFormat of CSV_DATE_FORMATS) {
-        const parsedDate = parse(trimmedInput, dateFormat, new Date());
-        if (isValid(parsedDate)) {
-            return format(parsedDate, CONST.DATE.FNS_FORMAT_STRING);
-        }
+    const isoDate = parseISODateOnly(trimmedInput);
+    if (isoDate) {
+        return isoDate;
     }
 
     // Convert 5-digit Excel serials before new Date() treats them as years. We subtract 2 because Excel counts from 1900-01-01 and treats 1900 as a leap year.
@@ -51,27 +68,39 @@ function parseCSVDate(input: string): string | null {
         }
     }
 
-    // Fall back to native Date parsing (handles ISO date-times and other formats not listed above)
+    // Native Date parsing runs before the date-fns formats because the `yyyy` token matches 1-4 digits, so date-fns would read
+    // 01/20/24 as the year 24. `new Date()` maps two-digit years to 19xx or 20xx instead.
     let date = new Date(trimmedInput);
     if (isValid(date) && !Number.isNaN(date.getTime())) {
         return format(date, CONST.DATE.FNS_FORMAT_STRING);
+    }
+
+    for (const dateFormat of CSV_DATE_FORMATS) {
+        const parsedDate = parse(trimmedInput, dateFormat, new Date());
+        if (isValid(parsedDate)) {
+            return format(parsedDate, CONST.DATE.FNS_FORMAT_STRING);
+        }
     }
 
     // If the date didn't parse, try taking just the first 10 characters
     if (trimmedInput.length > 10) {
         const shortInput = trimmedInput.substring(0, 10);
 
-        // Formats run before native parsing here for the same time zone reason as above
-        for (const dateFormat of CSV_DATE_FORMATS) {
-            const parsedDate = parse(shortInput, dateFormat, new Date());
-            if (isValid(parsedDate)) {
-                return format(parsedDate, CONST.DATE.FNS_FORMAT_STRING);
-            }
+        const shortISODate = parseISODateOnly(shortInput);
+        if (shortISODate) {
+            return shortISODate;
         }
 
         date = new Date(shortInput);
         if (isValid(date) && !Number.isNaN(date.getTime())) {
             return format(date, CONST.DATE.FNS_FORMAT_STRING);
+        }
+
+        for (const dateFormat of CSV_DATE_FORMATS) {
+            const parsedDate = parse(shortInput, dateFormat, new Date());
+            if (isValid(parsedDate)) {
+                return format(parsedDate, CONST.DATE.FNS_FORMAT_STRING);
+            }
         }
     }
 
