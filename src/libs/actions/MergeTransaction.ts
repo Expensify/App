@@ -23,7 +23,6 @@ import {getIOUActionForReportID, getReportAction, getTrackExpenseActionableWhisp
 import {
     buildOptimisticIOUReportAction,
     getReportOrDraftReport,
-    getReportTransactions,
     getTransactionDetails,
     isCurrentUserSubmitter,
     isMoneyRequestReportEligibleForMerge,
@@ -412,6 +411,9 @@ type MergeTransactionRequestParams = {
     targetTransaction: Transaction;
     allTransactionViolations: OnyxCollection<TransactionViolations>;
     sourceTransaction: Transaction;
+    // Expenses currently on whichever of targetTransaction/sourceTransaction's report is about to be left behind,
+    // used to tell if deleting it would empty that report. The caller resolves which one that is.
+    transactionsOfDeletableReportCollection: Record<string, Transaction>;
     targetTransactionThreadReport: OnyxEntry<Report>;
     targetTransactionThreadParentReport: OnyxEntry<Report>;
     iouReportOwnerLogin: string | undefined;
@@ -448,6 +450,7 @@ function mergeTransactionRequest({
     mergeTransaction,
     targetTransaction,
     sourceTransaction,
+    transactionsOfDeletableReportCollection,
     targetTransactionThreadReport,
     targetTransactionThreadParentReport,
     iouReportOwnerLogin,
@@ -550,7 +553,7 @@ function mergeTransactionRequest({
         };
 
         const transactionToDelete = mergeTransaction.reportID === targetTransaction.reportID ? sourceTransaction : targetTransaction;
-        const transactionsOfDeletableReport = getReportTransactions(transactionToDelete.reportID);
+        const transactionsOfDeletableReport = Object.values(transactionsOfDeletableReportCollection ?? {});
         const deletableReport = getReportOrDraftReport(transactionToDelete.reportID);
         const reportPreviewActionIDOfDeletableReport = deletableReport?.parentReportActionID;
         const optimisticReportDeletionData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> =
