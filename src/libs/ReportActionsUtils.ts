@@ -75,6 +75,7 @@ import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowup
 import {getOriginalMessage, getReportActionHtml, getReportActionMessage, getReportActionText, getTextFromHtml} from './ReportActionMessageUtils';
 import {isActionOfType, isDynamicExternalWorkflowApproveFailedAction, isModifiedExpenseAction, isMoneyRequestAction} from './ReportActionTypeGuards';
 import StringUtils from './StringUtils';
+import {getWorkArrangementLabel} from './WorkArrangementUtils';
 import {getReportFieldTypeTranslationKey} from './WorkspaceReportFieldUtils';
 import {getUnitTranslationKey, getWorkspaceAddressStreetLines} from './WorkspacesSettingsUtils';
 
@@ -210,9 +211,11 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
 
     // for report actions with this type we get an empty array as message by design
     if (
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER ||
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_CATEGORIZE_NEW_EXPENSES ||
         isCardIssuedAction(reportAction) ||
         isPolicyCopyReportAction(reportAction)
     ) {
@@ -1781,21 +1784,41 @@ function isOlderReportAction(a: ReportAction, b: ReportAction): boolean {
  * @param persistedReportActionIDs - IDs of the report actions stored in Onyx
  */
 function getLatestConciergeFeedbackActionID(sortedVisibleReportActions: ReportAction[], persistedReportActionIDs: string[]): string | undefined {
-    const latestConciergeComment = sortedVisibleReportActions.find(
-        (action) =>
-            isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) &&
-            action.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE &&
-            !isDeletedAction(action) &&
-            !isWhisperAction(action) &&
-            // A failed comment does not exist on the server, so a reaction on it cannot be saved
-            isEmptyObject(action.errors),
-    );
+    const latestConciergeComment = sortedVisibleReportActions.find(isConciergeFeedbackCandidate);
 
     if (!latestConciergeComment || !persistedReportActionIDs.includes(latestConciergeComment.reportActionID)) {
         return undefined;
     }
 
     return latestConciergeComment.reportActionID;
+}
+
+/** Whether the comment can carry the inline feedback prompt, which needs a Concierge comment the server knows about */
+function isConciergeFeedbackCandidate(action: ReportAction): boolean {
+    return (
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) &&
+        action.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE &&
+        !isDeletedAction(action) &&
+        !isWhisperAction(action) &&
+        // A failed comment does not exist on the server, so a reaction on it cannot be saved
+        isEmptyObject(action.errors)
+    );
+}
+
+/**
+ * Returns the ID of the newest Concierge comment in a report that can show the feedback prompt.
+ * Reading the report's own actions is what lets a thread decide about the message it hangs off, which lives in the parent report.
+ */
+function getLatestConciergeFeedbackActionIDFromReportActions(reportActions: OnyxEntry<ReportActions>): string | undefined {
+    let latestConciergeComment: ReportAction | undefined;
+
+    for (const action of Object.values(reportActions ?? {})) {
+        if (isConciergeFeedbackCandidate(action) && (!latestConciergeComment || action.created > latestConciergeComment.created)) {
+            latestConciergeComment = action;
+        }
+    }
+
+    return latestConciergeComment?.reportActionID;
 }
 
 /**
@@ -2768,6 +2791,25 @@ function getReportActionMessageText(reportAction: OnyxEntry<ReportAction>): stri
     // Sometime html can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     return reportAction?.message?.reduce((acc, curr) => `${acc}${getTextFromHtml(curr?.html || curr?.text)}`, '') ?? '';
+}
+
+function getAgentPromptUpdatedMessage(translate: LocalizedTranslate, reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED>): string {
+    const originalMessage = getOriginalMessage(reportAction);
+    return originalMessage ? translate('agentPromptUpdated', originalMessage) : getReportActionMessageText(reportAction);
+}
+
+function getAgentPromptUpdatedMessageHTML(translate: LocalizedTranslate, reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED>): string {
+    const originalMessage = getOriginalMessage(reportAction);
+    if (!originalMessage) {
+        return Str.htmlEncode(getReportActionMessageText(reportAction));
+    }
+
+    return translate('agentPromptUpdated', {
+        ...originalMessage,
+        updatedBy: `<mention-user accountID="${originalMessage.updatedByAccountID}"/>`,
+        previousPrompt: Str.htmlEncode(originalMessage.previousPrompt),
+        newPrompt: Str.htmlEncode(originalMessage.newPrompt),
+    });
 }
 
 function getDismissedViolationMessageText(translate: LocalizedTranslate, originalMessage: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION>['originalMessage']): string {
@@ -3762,6 +3804,15 @@ function getWorkspaceAttendeeTrackingUpdateMessage(translate: LocalizedTranslate
     return translate('workspaceActions.updatedAttendeeTracking', {enabled: !!enabled});
 }
 
+function getAutoCategorizeNewExpensesMessage(translate: LocalizedTranslate, action: ReportAction): string {
+    if (!isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_CATEGORIZE_NEW_EXPENSES)) {
+        return getReportActionText(action);
+    }
+
+    const {enabled} = getOriginalMessage(action) ?? {};
+    return translate('workspaceActions.updatedAutoCategorizeNewExpenses', {enabled: !!enabled});
+}
+
 function getRequiresCategoryMessage(translate: LocalizedTranslate, action: ReportAction): string {
     if (!isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_CATEGORY)) {
         return getReportActionText(action);
@@ -4600,6 +4651,27 @@ function getUpdatedCommuterExclusionsMessage(translate: LocalizedTranslate, repo
     return getReportActionText(reportAction);
 }
 
+function getUpdatedMemberWorkArrangementMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_WORK_ARRANGEMENT)) {
+        return getReportActionText(reportAction);
+    }
+    const {name, email, newValue, oldValue} = getOriginalMessage(reportAction) ?? {};
+
+    if (typeof newValue !== 'boolean' || typeof oldValue !== 'boolean') {
+        return getReportActionText(reportAction);
+    }
+
+    const newArrangement = getWorkArrangementLabel(translate, newValue);
+    const oldArrangement = getWorkArrangementLabel(translate, oldValue);
+
+    // Change logs without a named member describe the workspace default arrangement.
+    const displayName = name ?? (email ? formatPhoneNumber(email) : '');
+    if (!displayName) {
+        return translate('workspaceActions.updatedDefaultWorkArrangement', {newArrangement, oldArrangement});
+    }
+    return translate('workspaceActions.updatedMemberWorkArrangement', {displayName, newArrangement, oldArrangement});
+}
+
 function getUpdatedProhibitedExpensesMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>) {
     const {newProhibitedExpenses, oldProhibitedExpenses} =
         getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_PROHIBITED_EXPENSES>) ?? {};
@@ -5223,11 +5295,14 @@ export {
     isReportActionUnread,
     getHtmlWithAttachmentID,
     getActionableMentionWhisperMessage,
+    getAgentPromptUpdatedMessage,
+    getAgentPromptUpdatedMessageHTML,
     getAllReportActions,
     getCombinedReportActions,
     getDismissedViolationMessageText,
     getFirstVisibleReportActionID,
     getLatestConciergeFeedbackActionID,
+    getLatestConciergeFeedbackActionIDFromReportActions,
     getIOUActionForReportID,
     getIOUActionForTransactionID,
     getIOUReportIDFromReportActionPreview,
@@ -5388,6 +5463,7 @@ export {
     getRequiresCategoryMessage,
     getRequiresTagMessage,
     getCurrencyConversionFeeMessage,
+    getAutoCategorizeNewExpensesMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
     getCategoryTaxRateMessage,
@@ -5425,6 +5501,7 @@ export {
     getSendMoneyFlowAction,
     getUpdatedProhibitedExpensesMessage,
     getUpdatedCommuterExclusionsMessage,
+    getUpdatedMemberWorkArrangementMessage,
     getWorkspaceTagUpdateMessage,
     getWorkspaceReportFieldUpdateMessage,
     getWorkspaceReportFieldDeleteMessage,

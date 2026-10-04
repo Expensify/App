@@ -9,7 +9,7 @@ import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionAction
 import {getSearchGroupCountByKey} from '@components/Search/selectionBuilders';
 import type {BulkPaySelectionData, PaymentData, QueryFilterKey, SearchColumnType, SearchFilterKey, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 
-import {getAccountingIntegrationDisplayName, getExportLabelForConnection} from '@libs/AccountingUtils';
+import {getAccountingIntegrationDisplayName, getExportLabelForConnection, isIntuitEnterpriseSuiteConnection} from '@libs/AccountingUtils';
 import {getExpensifyCardStatementPDF} from '@libs/actions/CompanyCards';
 import {exportReceiptsToZip, exportReportsToPDF} from '@libs/actions/Export';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
@@ -34,6 +34,7 @@ import {
     getSearchPayOnyxData,
     getTotalFormattedAmount,
     isCurrencySupportWalletBulkPay,
+    queueBulkMarkAsExported,
     queueBulkPayReports,
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
@@ -52,6 +53,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import Parser from '@libs/Parser';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
+import {canAccessPolicyBankAccount} from '@libs/PolicyPaymentUtils';
 import {getConnectedIntegration, isAdminOfCardEnabledPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getReportAccountingExportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
@@ -787,6 +789,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             const chatReport = chatReportID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : undefined;
             const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
             const invoiceReceiverPolicy = invoiceReceiverPolicyID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`] : undefined;
+            const isChatReportArchived = isArchivedReport(chatReportID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReportID}`] : undefined);
             return (
                 report &&
                 !canIOUBePaid(
@@ -798,7 +801,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     currentUserPersonalDetails.accountID,
                     undefined,
                     false,
-                    undefined,
+                    isChatReportArchived,
                     invoiceReceiverPolicy,
                 ) &&
                 canIOUBePaid(
@@ -810,7 +813,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     currentUserPersonalDetails.accountID,
                     undefined,
                     true,
-                    undefined,
+                    isChatReportArchived,
                     invoiceReceiverPolicy,
                 )
             );
@@ -1032,7 +1035,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const policyIDsWithVBBA = useMemo(() => {
         const result = [];
         for (const policy of Object.values(policies ?? {})) {
-            if (!policy?.achAccount?.bankAccountID) {
+            // Bulk pay funds from the workspace bank account when no account was picked in the menu, so a workspace only
+            // counts here if the workspace account is actually shared with the current user. Anyone else has to open the
+            // report and pick an account of their own. That includes a payer the account was never shared with.
+            if (!policy || !canAccessPolicyBankAccount(policy, bankAccountList)) {
                 continue;
             }
 
@@ -1040,7 +1046,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         }
 
         return result;
-    }, [policies]);
+    }, [policies, bankAccountList]);
 
     const exportSearchData = searchResults?.data;
     const exportSearchType = searchResults?.search.type ?? queryJSON?.type;
@@ -2255,7 +2261,36 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     .map((report) => report.reportID)
                     .filter((reportID): reportID is string => reportID !== undefined);
                 if (reportIDsToMark.length > 0) {
-                    const handleMarkAction = buildIntegrationHandleExportAction(reportIDsToMark, integration, integrationGroupSize, false, connectionNameFriendly);
+                    // Under "select all matching", the loaded page can only ever hold a subset of the full matching
+                    // set, so the partial-export and export-again modals below (built from page-scoped counts) do
+                    // not apply. Send the query instead of the loaded IDs, the same way bulk pay does, so the
+                    // backend resolves and marks every matching report on this connection, not just this page.
+                    const handleMarkAllMatchingAction = () => {
+                        if (!hash || !queryJSON) {
+                            return;
+                        }
+                        if (isOffline) {
+                            setIsOfflineModalVisible(true);
+                            return;
+                        }
+                        clearSelectedTransactions();
+                        const qboIntegrationAlias =
+                            integration === CONST.POLICY.CONNECTIONS.NAME.QBO && isIntuitEnterpriseSuiteConnection(integrationPolicy)
+                                ? CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE
+                                : undefined;
+                        queueBulkMarkAsExported(serializeQueryJSONForBackend(queryJSON), integration, qboIntegrationAlias);
+                        playSound(SOUNDS.SUCCESS);
+                    };
+                    const handleMarkAction = areAllMatchingItemsSelected
+                        ? handleMarkAllMatchingAction
+                        : () =>
+                              buildIntegrationHandleExportAction(
+                                  reportIDsToMark,
+                                  integration,
+                                  integrationGroupSize,
+                                  false,
+                                  connectionNameFriendly,
+                              )(() => markAsManuallyExported(reportIDsToMark, integration, integrationPolicy));
                     exportOptions.push({
                         text: translate('workspace.common.markAsExported'),
                         value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
@@ -2263,7 +2298,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         // which screen readers can't announce. Append the integration name so assistive tech can distinguish them.
                         accessibilityLabel: `${translate('workspace.common.markAsExported')}, ${connectionNameFriendly}`,
                         icon: integrationIcon,
-                        onSelected: () => handleMarkAction(() => markAsManuallyExported(reportIDsToMark, integration, integrationPolicy)),
+                        onSelected: handleMarkAction,
                         shouldCloseModalOnSelect: true,
                         shouldCallAfterModalHide: true,
                         displayInDefaultIconColor: true,

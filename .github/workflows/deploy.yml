@@ -741,7 +741,16 @@ jobs:
 
       - name: Deploy to S3
         run: |
-          aws s3 cp --recursive --acl public-read "$GITHUB_WORKSPACE"/dist ${{ env.S3_BUCKET }}/
+          aws s3 cp --recursive --acl public-read --exclude "*.br" "$GITHUB_WORKSPACE"/dist ${{ env.S3_BUCKET }}/
+
+          for PAIR in js:text/javascript css:text/css html:text/html svg:image/svg+xml wasm:application/wasm ttf:font/ttf; do
+            EXT="${PAIR%%:*}"
+            CONTENT_TYPE="${PAIR#*:}"
+            aws s3 cp --recursive --acl public-read --exclude "*" --include "*.${EXT}.br" \
+              --content-encoding br --content-type "$CONTENT_TYPE" \
+              "$GITHUB_WORKSPACE"/dist ${{ env.S3_BUCKET }}/
+          done
+
           aws s3 cp --acl public-read --content-type 'application/json' --metadata-directive REPLACE ${{ env.S3_BUCKET }}/.well-known/apple-app-site-association ${{ env.S3_BUCKET }}/.well-known/apple-app-site-association
           aws s3 cp --acl public-read --content-type 'application/json' --metadata-directive REPLACE ${{ env.S3_BUCKET }}/.well-known/apple-app-site-association ${{ env.S3_BUCKET }}/apple-app-site-association
         env:
@@ -1142,18 +1151,19 @@ jobs:
   iosUploadSentry:
     name: Upload iOS build to Sentry for size analysis
     needs: [prep, iosBuild, checkDeploymentSuccess]
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    # sentry-cli only supports IPA uploads when running on Apple Silicon macOS
+    runs-on: blacksmith-6vcpu-macos-latest
     if: >-
       ${{ always()
           && needs.prep.outputs.DEPLOY_ENV == 'production'
           && fromJSON(needs.checkDeploymentSuccess.outputs.IS_RELEASE_READY) }}
     continue-on-error: true
-    timeout-minutes: 10
+    timeout-minutes: 20
     outputs:
       SENTRY_URL: ${{ steps.sentry-upload.outputs.SENTRY_URL }}
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Upload to Sentry for size analysis
         id: sentry-upload
