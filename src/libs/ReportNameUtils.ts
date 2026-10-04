@@ -163,8 +163,6 @@ import {
     getPolicyName,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
-    getPendingDeleteMemberAccountIDs,
-    getReportMetadata,
     getReportOrDraftReport,
     getTransactionReportName,
     getUnreportedTransactionMessage,
@@ -282,6 +280,9 @@ const customCollator = getCollator(CONST.LOCALES.EN);
 
 /**
  * Returns the report name if the report is a group chat
+ *
+ * Callers that pass a `report` must pass `pendingDeleteMemberAccountIDs` too (see pendingDeleteMemberAccountIDsSelector),
+ * otherwise members pending removal are still listed. Callers that pass `participants` instead don't need it.
  */
 function getGroupChatName(
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
@@ -297,10 +298,7 @@ function getGroupChatName(
         return report.reportName;
     }
 
-    // TODO: Remove the getReportMetadata fallback once https://github.com/Expensify/App/issues/66421 is done
-    const resolvedPendingDeleteMemberAccountIDs = pendingDeleteMemberAccountIDs ?? getPendingDeleteMemberAccountIDs(getReportMetadata(report?.reportID)?.pendingChatMembers);
-
-    const pendingMemberAccountIDs = new Set(resolvedPendingDeleteMemberAccountIDs);
+    const pendingMemberAccountIDs = new Set(pendingDeleteMemberAccountIDs);
     let participantAccountIDs =
         participants?.map((participant) => participant.accountID) ??
         Object.keys(report?.participants ?? {})
@@ -1238,7 +1236,7 @@ function computeReportName({
             convertToDisplayString,
             convertToDisplayStringWithoutCurrency,
             getCurrencySymbol,
-            // TODO: pass the true data in the next PR, issue https://github.com/Expensify/App/issues/66421
+            // Not forwarded: these belong to `report`, and `originalReport` is an expense report, never a group chat.
             pendingDeleteMemberAccountIDs: undefined,
             rules,
         });

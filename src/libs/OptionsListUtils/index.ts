@@ -598,6 +598,7 @@ type GetReportOptionParams = {
     localize: {translate: LocalizedTranslate; dateFnsLocale: DateFnsLocale | undefined; convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString']};
     rules: OnyxCollection<Rule>;
     policyTags?: OnyxCollection<PolicyTagLists>;
+    pendingDeleteMemberAccountIDs: string[] | undefined;
 };
 
 /**
@@ -615,6 +616,7 @@ function getReportOption({
     localize,
     rules,
     policyTags,
+    pendingDeleteMemberAccountIDs,
 }: GetReportOptionParams): OptionData {
     const {translate, dateFnsLocale, convertToDisplayString} = localize;
     const report = getReportOrDraftReport(participant.reportID, undefined, undefined, reportDraft);
@@ -642,6 +644,7 @@ function getReportOption({
         // consumers don't render `lastMessageText`, so we verified nothing in this flow depends on it and pass undefined instead of threading it from every caller.
         sortedActions: undefined,
         currentUserAccountID,
+        pendingDeleteMemberAccountIDs,
     });
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
@@ -686,6 +689,7 @@ type GetReportDisplayOptionParams = {
     policyTags?: OnyxEntry<PolicyTagLists>;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    pendingDeleteMemberAccountIDs: string[] | undefined;
 };
 
 /**
@@ -706,6 +710,7 @@ function getReportDisplayOption({
     reportAttributesDerived,
     policyTags,
     visibleReportActionsData = {},
+    pendingDeleteMemberAccountIDs,
 }: GetReportDisplayOptionParams): OptionData {
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
 
@@ -730,6 +735,7 @@ function getReportDisplayOption({
         // consumers don't render `lastMessageText`, so we verified nothing in this flow depends on it and pass undefined instead of threading it from every caller.
         sortedActions: undefined,
         currentUserAccountID,
+        pendingDeleteMemberAccountIDs,
     });
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
@@ -1388,6 +1394,7 @@ type CreateOptionFromReportParams = {
     isTrackIntentUser?: boolean;
     currentUserAccountID: number;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    pendingDeleteMemberAccountIDs: string[] | undefined;
 };
 
 function createOptionFromReport({
@@ -1406,6 +1413,7 @@ function createOptionFromReport({
     isTrackIntentUser,
     currentUserAccountID,
     convertToDisplayString,
+    pendingDeleteMemberAccountIDs,
 }: CreateOptionFromReportParams) {
     const accountIDs = getParticipantsAccountIDsForDisplay(report);
 
@@ -1428,6 +1436,7 @@ function createOptionFromReport({
             sortedActions,
             isTrackIntentUser,
             currentUserAccountID,
+            pendingDeleteMemberAccountIDs,
         }),
     };
 }
