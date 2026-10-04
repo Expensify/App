@@ -97,6 +97,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     const [chatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
     const [submitterLogin] = usePersonalDetail(moneyRequestReport?.ownerAccountID, loginSelector);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+
     // The "Received payment" handler awaits a confirmation modal (and the hold menu on top of it), so the collection captured when the
     // menu item was pressed can be out of date by the time the payment is actually recorded. Keep the latest collection in a ref so those
     // handlers read the violations as of the confirmation instead of the earlier render.
