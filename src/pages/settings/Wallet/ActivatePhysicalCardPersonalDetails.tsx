@@ -5,7 +5,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import FormHelpMessage from '@components/FormHelpMessage';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import StateSelector from '@components/StateSelector';
 import Text from '@components/Text';
@@ -112,7 +112,7 @@ function ActivatePhysicalCardPersonalDetails({card, lastFourDigits, onBackButton
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('privatePersonalDetails.personalDetails')}
                 onBackButtonPress={onBackButtonPress}
             />
