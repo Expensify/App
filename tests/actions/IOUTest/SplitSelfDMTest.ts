@@ -166,6 +166,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
@@ -256,6 +257,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
@@ -370,6 +372,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             allSnapshots,
@@ -467,6 +470,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
@@ -531,6 +535,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
@@ -624,6 +629,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
@@ -686,5 +692,163 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
 
         // No new IOU expense report should be created for selfDM splits
         expect(newIouReport).toBeUndefined();
+    });
+});
+
+describe('updateSplitTransactionsFromSplitExpensesFlow - report drafts', () => {
+    const DRAFT_ONLY_SELF_DM_ID = 'self-dm-draft-only';
+    const ORIGINAL_TRANSACTION_ID = 'orig-transaction-draft-selfDM';
+    const TRANSACTION_THREAD_ID = 'transaction-thread-draft-selfDM';
+
+    /**
+     * Builds a tracked expense whose transaction thread hangs off a selfDM report that is deliberately absent from
+     * the REPORT collection. `updateSplitTransactions` can then only recognize this as a selfDM split by reading
+     * the report out of the `reportDrafts` param, which makes that plumbing observable.
+     */
+    async function setupDraftOnlySelfDMTrackedExpense() {
+        const selfDMReport = {...createSelfDM(1, RORY_ACCOUNT_ID), reportID: DRAFT_ONLY_SELF_DM_ID};
+        const transactionThread: Report = {
+            reportID: TRANSACTION_THREAD_ID,
+            type: CONST.REPORT.TYPE.CHAT,
+            parentReportID: DRAFT_ONLY_SELF_DM_ID,
+        };
+
+        const originalTransaction = {
+            transactionID: ORIGINAL_TRANSACTION_ID,
+            reportID: DRAFT_ONLY_SELF_DM_ID,
+            amount: -2000,
+            currency: CONST.CURRENCY.USD,
+            created: DateUtils.getDBTime(),
+            merchant: 'Grocery Store',
+            comment: {comment: ''},
+        } as Transaction;
+
+        const trackIouAction = {
+            ...buildOptimisticIOUReportAction({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                amount: 2000,
+                currency: CONST.CURRENCY.USD,
+                comment: '',
+                participants: [{accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}],
+                transactionID: ORIGINAL_TRANSACTION_ID,
+                isPersonalTrackingExpense: true,
+            }),
+        } as ReportAction;
+
+        // The selfDM report is intentionally NOT written to ONYXKEYS.COLLECTION.REPORT
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TRANSACTION_THREAD_ID}`, transactionThread);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${ORIGINAL_TRANSACTION_ID}`, originalTransaction);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${DRAFT_ONLY_SELF_DM_ID}`, {
+            [trackIouAction.reportActionID]: trackIouAction,
+        });
+        await waitForBatchedUpdates();
+
+        return {selfDMReport, transactionThread, originalTransaction, trackIouAction};
+    }
+
+    async function splitWithReportDrafts(reportDrafts: OnyxCollection<Report>, transactionThread: Report, trackIouAction: ReportAction) {
+        let allTransactions: OnyxCollection<Transaction>;
+        let allReports: OnyxCollection<Report>;
+
+        await getOnyxData({
+            key: ONYXKEYS.COLLECTION.TRANSACTION,
+            callback: (value) => {
+                allTransactions = value;
+            },
+        });
+        await getOnyxData({
+            key: ONYXKEYS.COLLECTION.REPORT,
+            callback: (value) => {
+                allReports = value;
+            },
+        });
+
+        updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled: false,
+            rules: undefined,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
+            allTransactionsList: allTransactions,
+            allReportsList: allReports,
+            reportDrafts,
+            allReportActionsList: undefined,
+            allReportNameValuePairsList: undefined,
+            transactionData: {
+                reportID: DRAFT_ONLY_SELF_DM_ID,
+                originalTransactionID: ORIGINAL_TRANSACTION_ID,
+                splitExpenses: [
+                    {
+                        transactionID: 'split-transaction-1',
+                        amount: 1000,
+                        reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                        created: DateUtils.getDBTime(),
+                        merchant: 'Grocery Store',
+                    },
+                    {
+                        transactionID: 'split-transaction-2',
+                        amount: 1000,
+                        reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                        created: DateUtils.getDBTime(),
+                        merchant: 'Grocery Store',
+                    },
+                ],
+                splitExpensesTotal: 2000,
+            },
+            searchContext: {currentSearchHash: -2},
+            policyCategories: undefined,
+            policy: undefined,
+            policyRecentlyUsedCategories: [],
+            iouReport: undefined,
+            firstIOU: trackIouAction,
+            isASAPSubmitBetaEnabled: false,
+            currentUserPersonalDetails,
+            transactionViolations: {},
+            policyRecentlyUsedCurrencies: [],
+            quickAction: undefined,
+            allPolicyTags: {},
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            transactionReport: transactionThread,
+            expenseReport: undefined,
+            isOffline: false,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
+            formatPhoneNumber,
+        });
+
+        await waitForBatchedUpdates();
+        await waitForNetworkPromises();
+        await waitForBatchedUpdates();
+
+        const selfDMReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${DRAFT_ONLY_SELF_DM_ID}`);
+        return Object.values(selfDMReportActions ?? {}).filter(
+            (action): action is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => isMoneyRequestAction(action) && action.reportActionID !== trackIouAction.reportActionID,
+        );
+    }
+
+    it('routes splits to a selfDM chat that only exists in the drafts passed by the caller', async () => {
+        // Given a tracked expense whose selfDM parent chat lives only in the REPORT_DRAFT collection
+        const {selfDMReport, transactionThread, trackIouAction} = await setupDraftOnlySelfDMTrackedExpense();
+
+        // When the caller hands that draft collection to the split flow
+        const newSplitIouActions = await splitWithReportDrafts({[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${DRAFT_ONLY_SELF_DM_ID}`]: selfDMReport}, transactionThread, trackIouAction);
+
+        // Then the parent chat resolves from that draft, so the split is treated as a selfDM split and both new
+        // IOU actions land in the selfDM report instead of a freshly created expense report
+        expect(newSplitIouActions).toHaveLength(2);
+    });
+
+    it('does not fall back to the REPORT_DRAFT collection in Onyx when the caller passes no drafts', async () => {
+        // Given the same selfDM parent chat, this time reachable only through the deprecated Onyx.connect collection
+        const {selfDMReport, transactionThread, trackIouAction} = await setupDraftOnlySelfDMTrackedExpense();
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${DRAFT_ONLY_SELF_DM_ID}`, selfDMReport);
+        await waitForBatchedUpdates();
+
+        // When the caller passes an empty draft collection, which means "I checked, there is no draft"
+        const newSplitIouActions = await splitWithReportDrafts({}, transactionThread, trackIouAction);
+
+        // Then the parent chat stays unresolved and nothing is routed to the selfDM report, proving this flow no
+        // longer reads ONYXKEYS.COLLECTION.REPORT_DRAFT behind the caller's back (https://github.com/Expensify/App/issues/66414)
+        expect(newSplitIouActions).toHaveLength(0);
     });
 });

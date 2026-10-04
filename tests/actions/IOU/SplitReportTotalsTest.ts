@@ -704,6 +704,7 @@ describe('actions/IOU', () => {
                 getCurrencySymbol: getCurrencySymbolLocal,
                 allTransactionsList: {},
                 allReportsList: {},
+                reportDrafts: {},
                 allReportActionsList: {},
                 allReportNameValuePairsList: {},
                 transactionData: {
