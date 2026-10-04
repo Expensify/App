@@ -9,8 +9,8 @@ import type {ListItem} from '@components/SelectionList/ListItem/types';
 import variables from '@styles/variables';
 
 import type * as NativeNavigation from '@react-navigation/native';
-import type ReactNative from 'react-native';
 
+import {measureFirstChildLayout, measureItemLayout, measureParentSize} from '@shopify/flash-list/dist/recyclerview/utils/measureLayout';
 import React, {useState} from 'react';
 import {measureRenders} from 'reassure';
 
@@ -19,18 +19,16 @@ type SelectionListWrapperProps = {
     canSelectMultiple?: boolean;
 };
 
-// FlashList requires layout events to render items; mock it with FlatList for tests.
-jest.mock('@shopify/flash-list', () => {
-    const RN = jest.requireActual<typeof ReactNative>('react-native');
-    return {
-        FlashList: ({data, ...props}: React.ComponentProps<typeof RN.FlatList>) => (
-            <RN.FlatList
-                data={data}
-                {...props}
-                initialNumToRender={data?.length}
-            />
-        ),
-    };
+const ITEM_COUNT = 1000;
+const LIST_WIDTH = 100;
+const VIEWPORT_HEIGHT = variables.optionRowHeight * 5;
+
+// Jest has no layout engine, so FlashList reads row and viewport sizes from the measureLayout mock in
+// jest/setupAfterEnv.ts. Size them from variables here so the scroll event below matches what FlashList renders.
+beforeEach(() => {
+    jest.mocked(measureParentSize).mockImplementation(() => ({x: 0, y: 0, width: LIST_WIDTH, height: VIEWPORT_HEIGHT}));
+    jest.mocked(measureFirstChildLayout).mockImplementation(() => ({x: 0, y: 0, width: LIST_WIDTH, height: VIEWPORT_HEIGHT}));
+    jest.mocked(measureItemLayout).mockImplementation(() => ({x: 0, y: 0, width: LIST_WIDTH, height: variables.optionRowHeight}));
 });
 
 jest.mock('@hooks/useLocalize', () =>
@@ -82,7 +80,7 @@ jest.mock('@src/components/ConfirmedRoute.tsx');
 function SelectionListWrapper({canSelectMultiple}: SelectionListWrapperProps) {
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-    const data = Array.from({length: 1000}, (element, index) => ({
+    const data = Array.from({length: ITEM_COUNT}, (element, index) => ({
         text: `Item ${index}`,
         keyForList: `item-${index}`,
         isSelected: selectedIds.includes(`item-${index}`),
@@ -139,20 +137,21 @@ test('[SelectionList] should render multiple selection and select 3 items', asyn
 });
 
 test('[SelectionList] should scroll and select a few items', async () => {
+    // Scrolls 8 rows down, so the rendered window covers both Item 7 and Item 15.
     const eventData = {
         nativeEvent: {
             contentOffset: {
-                y: variables.optionRowHeight * 5,
+                y: variables.optionRowHeight * 8,
             },
             contentSize: {
                 // Dimensions of the scrollable content
-                height: variables.optionRowHeight * 10,
-                width: 100,
+                height: variables.optionRowHeight * ITEM_COUNT,
+                width: LIST_WIDTH,
             },
             layoutMeasurement: {
                 // Dimensions of the device
-                height: variables.optionRowHeight * 5,
-                width: 100,
+                height: VIEWPORT_HEIGHT,
+                width: LIST_WIDTH,
             },
         },
     };
