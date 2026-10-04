@@ -213,7 +213,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         });
     }, [selectedEmployees, policyMemberEmailsToAccountIDs, translate, policy, formatPhoneNumber, personalDetails, outstandingReportsForPolicy, privateIsArchivedMap]);
 
-    const shouldShowMemberBankAccounts = isPolicyAdmin(policy) && (arePaymentsEnabled(policy) || !!policy?.isCollectDepositAccountsEnabled);
+    const shouldShowMemberBankAccounts = isPolicyAdmin(policy) && arePaymentsEnabled(policy);
     const getWorkspaceMembersEvent = useEffectEvent(() => getWorkspaceMembers());
 
     // The bank accounts are only returned while the workspace shows them, so load the members again when that changes.
