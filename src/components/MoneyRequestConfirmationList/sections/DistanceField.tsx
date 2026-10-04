@@ -1,12 +1,14 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -27,7 +29,6 @@ type DistanceFieldProps = {
 
 function DistanceField({hasRoute, distance, unit, customUnit}: DistanceFieldProps) {
     const {shouldUseDropdownRows} = useExpenseFormLayout();
-    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm, isManualDistanceRequest, isOdometerDistanceRequest, isGPSDistanceRequest} =
         useConfirmationFields();
@@ -73,18 +74,19 @@ function DistanceField({hasRoute, distance, unit, customUnit}: DistanceFieldProp
     }
 
     return (
-        <MenuItemWithTopDescription
-            shouldShowRightIcon={isDistanceInteractive}
-            title={displayTitle}
-            description={distanceToDisplayDescription}
-            hintText={distanceToDisplayHintText}
-            style={[styles.moneyRequestMenuItem]}
-            titleStyle={styles.flex1}
-            onPress={openDistancePage}
-            disabled={didConfirm}
-            interactive={isDistanceInteractive}
+        <MenuItem.Root
+            onPress={isDistanceInteractive ? callFunctionIfActionIsAllowed(openDistancePage) : undefined}
+            isDisabled={didConfirm}
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DISTANCE_FIELD}
-        />
+        >
+            <MenuItemField.Row
+                name={distanceToDisplayDescription}
+                value={displayTitle}
+            >
+                {isDistanceInteractive && <MenuItem.Chevron />}
+            </MenuItemField.Row>
+            {!!distanceToDisplayHintText && <MenuItem.HelpText message={distanceToDisplayHintText} />}
+        </MenuItem.Root>
     );
 }
 

@@ -67,6 +67,9 @@ type Message = {
 
     /** Email the balance was transferred to, for a balance-transfer row */
     transferTo?: string;
+
+    /** Purchase ID of the bill a balance transfer was taken from */
+    fromPurchaseID?: number;
     cardSpendSurchargePercent?: number;
     cashBackAmount?: number;
     cashBackPercentage?: number;
