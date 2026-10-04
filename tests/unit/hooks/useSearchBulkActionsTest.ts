@@ -762,7 +762,7 @@ describe('useSearchBulkActions - Submit under Select all', () => {
     });
 });
 
-describe('useSearchBulkActions - Hold and Unhold under Select all', () => {
+describe('useSearchBulkActions - Hold, Unhold and Reject under Select all', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -820,6 +820,34 @@ describe('useSearchBulkActions - Hold and Unhold under Select all', () => {
         expect(queueBulkUnholdExpenses).toHaveBeenCalledTimes(1);
         expect(queueBulkUnholdExpenses).toHaveBeenCalledWith(expect.any(String), ['tx2']);
         expect(mockClearSelectedTransactions).toHaveBeenCalled();
+    });
+
+    it('offers Reject on an expenses search when one loaded expense can be rejected', async () => {
+        // Given "Select all" on an expenses search with one rejectable expense and one that is not, which hides Reject for a normal selection
+        mockSelectedTransactions = {tx1: makeSelectedTransaction({canReject: true}), tx2: makeSelectedTransaction({canReject: false})};
+
+        // When the bulk actions are built
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        // Then Reject is offered, because the backend only rejects expenses on reports the user can reject
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.REJECT)).toBe(true);
+        });
+    });
+
+    it('does not offer Reject on a reports search', async () => {
+        // Given "Select all" on a reports search with a rejectable expense loaded
+        mockSelectedTransactions = {tx1: makeSelectedTransaction({canReject: true})};
+
+        // When the bulk actions are built
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+
+        // Then Reject is not offered, the same as for a normal selection of reports
+        expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.REJECT)).toBe(false);
     });
 
     it('hides Hold and Unhold when no loaded expense can be held or unheld', async () => {
