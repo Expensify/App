@@ -3440,9 +3440,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** How the workspace pays reimbursable expenses. Can hold a deprecated value, so read it through `PolicyUtils.getReimbursementChoice`. */
         reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES> | ValueOf<typeof CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES>;
 
-        /** Whether the workspace collects members' deposit accounts for reimbursing them outside of Expensify */
-        isCollectDepositAccountsEnabled?: boolean;
-
         /** The set reimburser for the policy */
         reimburser?: string;
 
