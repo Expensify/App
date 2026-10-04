@@ -11,7 +11,8 @@ type BulkActionType =
     | typeof CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT
     | typeof CONST.SEARCH.BULK_ACTION_TYPES.PAY
     | typeof CONST.SEARCH.BULK_ACTION_TYPES.HOLD
-    | typeof CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD;
+    | typeof CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD
+    | typeof CONST.SEARCH.BULK_ACTION_TYPES.REJECT;
 
 /** Model of a bulk action started from Search "Select all" */
 type BulkAction = {

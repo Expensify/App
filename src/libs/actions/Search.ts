@@ -2200,6 +2200,12 @@ function queueBulkUnholdExpenses(jsonQuery: string, excludedTransactionIDList: s
     write(WRITE_COMMANDS.QUEUE_BULK_UNHOLD_EXPENSES, {jsonQuery, bulkActionID, excludedTransactionIDList: excludedTransactionIDList.join(',')}, onyxData);
 }
 
+/** Queues a rejection, with the given reason, for every expense matching the search query on reports the user can reject. */
+function queueBulkRejectExpenses(jsonQuery: string, comment: string, excludedTransactionIDList: string[]) {
+    const {bulkActionID, onyxData} = buildBulkActionOnyxData(CONST.SEARCH.BULK_ACTION_TYPES.REJECT);
+    write(WRITE_COMMANDS.QUEUE_BULK_REJECT_EXPENSES, {jsonQuery, comment: getParsedComment(comment), bulkActionID, excludedTransactionIDList: excludedTransactionIDList.join(',')}, onyxData);
+}
+
 /**
  * Queues a manual bulk "Mark as exported" for every report matching the given search query on the given connection.
  * The backend pages through all matches itself, so this covers reports beyond the currently loaded page(s) when
@@ -2650,6 +2656,7 @@ export {
     queueBulkSubmitReports,
     queueBulkHoldExpenses,
     queueBulkUnholdExpenses,
+    queueBulkRejectExpenses,
     queueBulkMarkAsExported,
     updateAdvancedFilters,
     setSearchContext,
