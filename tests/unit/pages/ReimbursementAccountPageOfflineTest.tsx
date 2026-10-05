@@ -83,11 +83,16 @@ const OFFLINE_TITLE = 'You appear to be offline.';
 
 type PageProps = PlatformStackScreenProps<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>;
 
-const route: PageProps['route'] = {
+const buildRoute = (params: PageProps['route']['params']): PageProps['route'] => ({
     key: 'reimbursement-account-root',
     name: SCREENS.REIMBURSEMENT_ACCOUNT_ROOT,
-    params: {policyID: POLICY_ID},
-};
+    params,
+});
+
+const WORKSPACE_ROUTE = buildRoute({policyID: POLICY_ID});
+
+// The Wallet entry points open the page with only a bankAccountID.
+const WALLET_ROUTE = buildRoute({bankAccountID: '1234'});
 
 // The page does not read the navigation prop. This inert double only satisfies the navigator-provided prop.
 const navigation = createMock<PageProps['navigation']>({});
@@ -105,7 +110,7 @@ const seedOnyx = async (account?: ReimbursementAccount) => {
     });
 };
 
-const renderPage = async () => {
+const renderPage = async (route = WORKSPACE_ROUTE) => {
     render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <ReimbursementAccountPage
@@ -177,6 +182,39 @@ describe('ReimbursementAccountPage offline', () => {
         await renderPage();
 
         // Then the other workspace's data is not shown as this workspace's account
+        expectOfflineViewOnly();
+    });
+
+    it('keeps the offline view when the cached account has no workspace', async () => {
+        // Given the cached account has no policyID, which hasInProgressVBBA also treats as another workspace's account
+        await seedOnyx({achData: buildAchData({policyID: undefined, state: CONST.BANK_ACCOUNT.STATE.SETUP}), isLoading: false});
+
+        // When this workspace's page is opened offline
+        await renderPage();
+
+        // Then the account is not shown as this workspace's account
+        expectOfflineViewOnly();
+    });
+
+    it('shows the entry point on the Wallet route for the cached bank account', async () => {
+        // Given the cached account is the one the Wallet route asks for
+        await seedOnyx({achData: buildAchData({bankAccountID: 1234, state: CONST.BANK_ACCOUNT.STATE.SETUP}), isLoading: false});
+
+        // When the page is opened offline from Wallet, with only a bankAccountID
+        await renderPage(WALLET_ROUTE);
+
+        // Then the cached account is trusted
+        expect(mockEntryPoint).toHaveBeenCalled();
+    });
+
+    it('keeps the offline view on the Wallet route when a different bank account is cached', async () => {
+        // Given the cached account is a different bank account than the one the Wallet route asks for
+        await seedOnyx({achData: buildAchData({bankAccountID: 5678, state: CONST.BANK_ACCOUNT.STATE.SETUP}), isLoading: false});
+
+        // When the page is opened offline from Wallet
+        await renderPage(WALLET_ROUTE);
+
+        // Then the other bank account's data is not shown
         expectOfflineViewOnly();
     });
 
