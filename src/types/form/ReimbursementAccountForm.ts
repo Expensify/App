@@ -458,7 +458,7 @@ type NonUSDReimbursementAccountAdditionalProps = {
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_STATEMENT]: FileObject[];
 };
 
-type ReimbursementAccountForm = ReimbursementAccountFormExtraProps &
+type ReimbursementAccountFormWithoutEditSnapshot = ReimbursementAccountFormExtraProps &
     Form<
         InputID,
         BeneficialOwnersStepBaseProps &
@@ -471,6 +471,13 @@ type ReimbursementAccountForm = ReimbursementAccountFormExtraProps &
             ReimbursementAccountProps &
             NonUSDReimbursementAccountAdditionalProps
     > & {currency?: string};
+
+type ReimbursementAccountEditDraftSnapshot = Partial<ReimbursementAccountFormWithoutEditSnapshot>;
+
+type ReimbursementAccountForm = ReimbursementAccountFormWithoutEditSnapshot & {
+    /** Values from before the current confirmation-page edit, used to cancel an unconfirmed edit */
+    editDraftSnapshot?: ReimbursementAccountEditDraftSnapshot | null;
+};
 
 export type {
     ReimbursementAccountForm,

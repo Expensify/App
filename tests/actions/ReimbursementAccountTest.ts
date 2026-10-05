@@ -1,14 +1,18 @@
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
+import {cancelReimbursementAccountEdit, clearReimbursementAccount, startReimbursementAccountEdit} from '@src/libs/actions/ReimbursementAccount';
 import resetNonUSDBankAccount from '@src/libs/actions/ReimbursementAccount/resetNonUSDBankAccount';
 import resetUSDBankAccount from '@src/libs/actions/ReimbursementAccount/resetUSDBankAccount';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReimbursementAccountForm} from '@src/types/form';
 import type {ACHAccount} from '@src/types/onyx/Policy';
 
 import Onyx from 'react-native-onyx';
 
 import type {MockFetch} from '../utils/TestHelper';
 
+import createMock from '../utils/createMock';
+import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -43,6 +47,28 @@ describe('ReimbursementAccount', () => {
         IntlStore.load(CONST.LOCALES.EN);
         return Onyx.clear().then(waitForBatchedUpdates);
     });
+
+    describe('confirmation-page edit', () => {
+        it('restores the previous draft when an edit is canceled after account state is cleared', async () => {
+            const originalDraft = createMock<ReimbursementAccountForm>({companyName: 'Original company'});
+            await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, originalDraft);
+
+            startReimbursementAccountEdit(originalDraft);
+            await Onyx.merge(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {companyName: 'Unconfirmed company'});
+            clearReimbursementAccount();
+            await waitForBatchedUpdates();
+
+            const draft = await getOnyxValue(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+            expect(draft?.companyName).toBe('Unconfirmed company');
+            expect(draft?.editDraftSnapshot).toEqual(originalDraft);
+
+            cancelReimbursementAccountEdit(draft?.editDraftSnapshot);
+            await waitForBatchedUpdates();
+
+            expect(await getOnyxValue(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT)).toEqual(originalDraft);
+        });
+    });
+
     describe('resetUSDBankAccount', () => {
         afterEach(() => {
             mockFetch?.resume?.();

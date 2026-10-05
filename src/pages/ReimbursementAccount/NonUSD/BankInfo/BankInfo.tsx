@@ -4,6 +4,7 @@ import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useReimbursementAccountConfirmationEdit from '@hooks/useReimbursementAccountConfirmationEdit';
 import useSubPage from '@hooks/useSubPage';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -111,9 +112,17 @@ function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames, backTo}: No
         buildRoute,
     });
 
+    const {moveToEditPage, submitEdit, cancelEdit} = useReimbursementAccountConfirmationEdit({
+        isEditing,
+        reimbursementAccountDraft,
+        nextPage,
+        moveTo,
+    });
+
     const handleBackButtonPress = () => {
         clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
         if (isEditing) {
+            cancelEdit();
             Navigation.goBack(buildRoute(SUB_PAGE_NAMES.CONFIRMATION));
             return;
         }
@@ -143,8 +152,8 @@ function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames, backTo}: No
         >
             <CurrentPage
                 isEditing={isEditing}
-                onNext={nextPage}
-                onMove={moveTo}
+                onNext={submitEdit}
+                onMove={moveToEditPage}
                 currentPageName={currentPageName}
                 corpayFields={corpayFields}
             />
