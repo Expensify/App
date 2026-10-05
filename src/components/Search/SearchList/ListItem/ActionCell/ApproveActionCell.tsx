@@ -8,6 +8,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -50,6 +51,7 @@ function ApproveActionCell({isLoading, reportID, policyID, hash, shouldDisablePo
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const activePolicy = usePolicy(activePolicyID);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
 
     const invoiceReceiverPolicyID = iouReport?.invoiceReceiver && 'policyID' in iouReport.invoiceReceiver ? iouReport.invoiceReceiver.policyID : undefined;
     const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
@@ -64,7 +66,7 @@ function ApproveActionCell({isLoading, reportID, policyID, hash, shouldDisablePo
         // Matches ApprovePrimaryAction so Spend and the report header show the same approval amounts.
         undefined,
         false,
-        undefined,
+        isChatReportArchived,
         invoiceReceiverPolicy,
     );
     const onlyShowPayElsewhere =
@@ -78,7 +80,7 @@ function ApproveActionCell({isLoading, reportID, policyID, hash, shouldDisablePo
             currentUserDetails.accountID,
             undefined,
             true,
-            undefined,
+            isChatReportArchived,
             invoiceReceiverPolicy,
         );
 
