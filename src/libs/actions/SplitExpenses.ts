@@ -24,7 +24,6 @@ import {
     getSplitReimbursable,
     initDraftSplitExpenseDataForEdit,
     initSplitExpenseItemData,
-    isUsableSplitRate,
     resolveSplitItemReportID,
     resolveSplitMileageRate,
     updateSplitExpenseDistanceFromAmount,
@@ -170,7 +169,7 @@ function initSplitExpense(
         const mileageRate = resolveSplitMileageRate({transaction, policy: effectivePolicy ?? undefined, isSelfDMSplit: isSelfDMReport, personalPolicyOutputCurrency});
         const {rate, unit, currency} = mileageRate;
 
-        if (rate === 0 && transaction?.comment?.customUnit) {
+        if (rate === 0 && !transactionDetailsAmount && transaction?.comment?.customUnit) {
             // Every split of a $0 expense is $0, so split the distance evenly instead, with the remainder on the last split
             const transactionCustomUnit = transaction.comment.customUnit;
             for (let i = 0; i < splitAmounts.length; i++) {
@@ -188,7 +187,9 @@ function initSplitExpense(
                 splitCustomUnits[i] = updatedCustomUnit;
                 splitMerchants[i] = merchant;
             }
-        } else if (isUsableSplitRate(rate) && transaction?.comment?.customUnit) {
+        } else if (rate && rate > 0 && transaction?.comment?.customUnit) {
+            // Each split's distance is derived from its amount. A $0 rate can't do that for a nonzero amount (an expense
+            // whose rate was changed to $0 after it was created), so those splits keep the expense's distance and merchant.
             for (let i = 0; i < splitAmounts.length; i++) {
                 if (splitAmounts.at(i)) {
                     const splitAmount = splitAmounts.at(i) ?? 0;

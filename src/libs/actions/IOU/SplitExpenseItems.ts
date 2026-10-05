@@ -184,10 +184,12 @@ function resolveSplitMileageRate({
         return baseMileageRate;
     }
     // Policy is present but the originally-stored rate was deleted/disabled — pick the policy's
-    // current default mileage rate so split surfaces use a real (enabled) rate.
+    // current default mileage rate so split surfaces use a real (enabled) rate. A $0 default rate
+    // can't reproduce a nonzero expense's amount, so it's only used as the fallback for a $0 expense.
     if (policy) {
         const fallbackMileageRate = DistanceRequestUtils.getDefaultMileageRate(policy);
-        if (fallbackMileageRate?.rate !== undefined) {
+        const isZeroRateFallbackForNonZeroExpense = fallbackMileageRate?.rate === 0 && !!getAmount(transaction);
+        if (fallbackMileageRate?.rate !== undefined && !isZeroRateFallbackForNonZeroExpense) {
             return fallbackMileageRate;
         }
     }
