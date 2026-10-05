@@ -1,4 +1,4 @@
-import {canSubmitAndIsAwaitingForCurrentUser, shouldCurrentUserSubmitReport} from '@libs/ReportUtils';
+import {canSubmitAndIsAwaitingForCurrentUser, canSubmitReport, shouldCurrentUserSubmitReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -129,5 +129,51 @@ describe('canSubmitAndIsAwaitingForCurrentUser', () => {
     it('returns true when all conditions are met', () => {
         const result = canSubmitAndIsAwaitingForCurrentUser(iouReport, chatReport, basePolicy, transactions, {}, 'user@test.com', CURRENT_USER_ACCOUNT_ID, undefined);
         expect(result).toBe(true);
+    });
+});
+
+describe('canSubmitReport reportOwnerLogin', () => {
+    const OWNER_LOGIN = 'threaded.owner@test.com';
+    const adminPolicy: Policy = {...basePolicy, role: CONST.POLICY.ROLE.ADMIN};
+
+    beforeAll(async () => {
+        Onyx.init({keys: ONYXKEYS});
+        await Onyx.set(ONYXKEYS.SESSION, {email: 'user@test.com', accountID: CURRENT_USER_ACCOUNT_ID});
+        return waitForBatchedUpdates();
+    });
+
+    it('honors a violation dismissal attributed to the owner login only when the login is passed', () => {
+        // Given an open expense report owned by another user and viewed by a workspace admin. Its only expense has a
+        // NO_ROUTE violation, which blocks submission, and the owner dismissed it. For a viewer who isn't the submitter,
+        // a dismissal only counts when it matches the owner login.
+        const report: Report = {
+            ...createExpenseReport(3),
+            ownerAccountID: OTHER_USER_ACCOUNT_ID,
+            managerID: OTHER_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+        const transaction: Transaction = {
+            transactionID: '2',
+            reportID: report.reportID,
+            amount: 1000,
+            currency: CONST.CURRENCY.USD,
+            created: '2024-01-01 12:00:00.000',
+            merchant: 'Test merchant',
+            status: CONST.TRANSACTION.STATUS.POSTED,
+            reimbursable: true,
+            comment: {dismissedViolations: {[CONST.VIOLATIONS.NO_ROUTE]: {[OWNER_LOGIN]: '2024-01-02 12:00:00.000'}}},
+        };
+        const violations: Record<string, TransactionViolations> = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [{name: CONST.VIOLATIONS.NO_ROUTE, type: 'violation'}],
+        };
+
+        // When we call canSubmitReport with and without the owner login
+        const withOwnerLogin = canSubmitReport(report, OWNER_LOGIN, adminPolicy, [transaction], violations, false, 'user@test.com', CURRENT_USER_ACCOUNT_ID);
+        const withoutOwnerLogin = canSubmitReport(report, undefined, adminPolicy, [transaction], violations, false, 'user@test.com', CURRENT_USER_ACCOUNT_ID);
+
+        // Then only the call with the login sees the dismissal, so only that call allows submitting
+        expect(withOwnerLogin).toBe(true);
+        expect(withoutOwnerLogin).toBe(false);
     });
 });

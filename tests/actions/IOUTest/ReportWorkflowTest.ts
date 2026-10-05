@@ -5262,6 +5262,8 @@ describe('actions/IOU/ReportWorkflow', () => {
         });
 
         it('should not return SUBMIT actionBadge when every transaction of the report was auto-rejected', async () => {
+            // Given an open expense report in the current user's own policy expense chat, owned and managed by the current user,
+            // whose only expense has the auto-rejected violation. An auto-rejected expense can't be submitted.
             const chatReportID = '400';
             const iouReportID = '401';
             const policyID = '402';
@@ -5322,6 +5324,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${fakeTransaction.transactionID}`, [{name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE, type: 'violation'}]);
             await waitForBatchedUpdates();
 
+            // When we get the chat's badge action, passing violations the same way the reportAttributes derived value does
             const result = getIOUReportActionWithBadge(
                 fakeChatReport,
                 fakePolicy,
@@ -5336,7 +5339,10 @@ describe('actions/IOU/ReportWorkflow', () => {
                 undefined,
                 undefined,
             );
+
+            // Then no report action gets a badge, since SUBMIT was the only candidate
             expect(result.reportAction).toBeUndefined();
+            // Then no badge is returned either
             expect(result.actionBadge).toBeUndefined();
 
             // Then the chat does not require attention either: the option list and unread count take this path and must see the same violations

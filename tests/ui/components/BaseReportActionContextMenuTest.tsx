@@ -406,6 +406,7 @@ describe('BaseReportActionContextMenu hold/unhold action', () => {
     });
 
     it('calls changeMoneyRequestHoldStatus with the money request policy when pressing the unhold action', async () => {
+        // Given an on-hold expense whose money request report belongs to policyID
         await seedOnyxData({isOnHold: true});
         mockChangeMoneyRequestHoldStatus.mockImplementationOnce(() => undefined);
 
@@ -418,11 +419,13 @@ describe('BaseReportActionContextMenu hold/unhold action', () => {
             />,
         );
 
+        // When the user presses Unhold
         const onPress = await getContextMenuItemOnPress(CONST.SENTRY_LABEL.CONTEXT_MENU.UNHOLD);
         await act(async () => {
             onPress({});
         });
 
+        // Then changeMoneyRequestHoldStatus receives the money request report's policy
         expect(mockChangeMoneyRequestHoldStatus).toHaveBeenCalledTimes(1);
         expect(mockChangeMoneyRequestHoldStatus).toHaveBeenCalledWith(
             expect.objectContaining({actionName: CONST.REPORT.ACTIONS.TYPE.IOU, childReportID}),
