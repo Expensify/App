@@ -172,7 +172,7 @@ describe('ReportFetchHandler', () => {
         await waitForBatchedUpdates();
 
         // Then it still loads, so the reveal is instant, but the read state waits for the user to actually see it
-        expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({reportID: REPORT_ID, shouldMarkAsRead: false, hasOnceLoadedReportActions: true}));
+        expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({reportID: REPORT_ID, shouldMarkAsRead: false, shouldKeepManualUnreadMarker: true}));
     });
 
     it('marks a visible report read when fetching it', async () => {
@@ -185,7 +185,7 @@ describe('ReportFetchHandler', () => {
         await waitForBatchedUpdates();
 
         // Then the fetch marks it read like opening any report does
-        expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({reportID: REPORT_ID, shouldMarkAsRead: true}));
+        expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({reportID: REPORT_ID, shouldMarkAsRead: true, shouldKeepManualUnreadMarker: false}));
     });
 
     it('calls openReport again once the pre-mount marker is cleared', async () => {
