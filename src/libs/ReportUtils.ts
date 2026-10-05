@@ -25,6 +25,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {
     BankAccountList,
+    CardList,
     GuideAccountIDsDerivedValue,
     IntroSelected,
     OnyxInputOrEntry,
@@ -273,7 +274,6 @@ import {
     hasReceipt as hasReceiptTransactionUtils,
     hasViolation,
     hasWarningTypeViolation,
-    isManagedCardTransaction as isCardTransactionTransactionUtils,
     isDeletedTransaction,
     isDemoTransaction,
     isDistanceRequest,
@@ -290,6 +290,7 @@ import {
     isScanning,
     isScanRequest as isScanRequestTransactionUtils,
     isTransactionPendingDelete,
+    isTransactionOwner,
 } from './TransactionUtils';
 import addTrailingForwardSlash from './UrlUtils';
 import {getDefaultAvatarURL} from './UserAvatarUtils';
@@ -3261,15 +3262,21 @@ function shouldCurrentUserSubmitReport(iouReport: OnyxEntry<Report>, chatReport:
     return isOwnReportAndRetracted || isWaitingForSubmissionFromCurrentUser(chatReport, policy);
 }
 
-/**
- * Checks whether the card transaction support deleting based on liability type
- */
-function canDeleteCardTransactionByLiabilityType(transaction: OnyxEntry<Transaction>): boolean {
-    const isCardTransaction = isCardTransactionTransactionUtils(transaction);
+function canDeleteCardTransaction(transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>, cardList: OnyxEntry<CardList>): boolean {
+    const isCardTransaction = isManagedCardTransaction(transaction);
     if (!isCardTransaction) {
         return true;
     }
-    return transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.ALLOW;
+
+    if (policy?.role === CONST.POLICY.ROLE.ADMIN) {
+        return true;
+    }
+
+    if (!cardList) {
+        return false;
+    }
+
+    return isTransactionOwner(transaction, cardList) && transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.ALLOW;
 }
 
 /**
@@ -3283,7 +3290,8 @@ function canDeleteMoneyRequestReport(
     reportActions: ReportAction[],
     currentUserAccountID: number,
     rules: OnyxCollection<Rule>,
-    policy?: Policy,
+    policy: OnyxEntry<Policy>,
+    cardList: OnyxEntry<CardList>,
     isReportLevelDelete = false,
 ): boolean {
     const isReportPolicyAdmin = isPolicyAdmin(policy);
@@ -3298,7 +3306,8 @@ function canDeleteMoneyRequestReport(
     }
 
     const isUnreported = isSelfDM(report) || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-    const canCardTransactionBeDeleted = canDeleteCardTransactionByLiabilityType(transaction);
+    const canCardTransactionBeDeleted = canDeleteCardTransaction(transaction, policy, cardList);
+
     if (isUnreported) {
         return isOwner && canCardTransactionBeDeleted;
     }
@@ -3321,14 +3330,18 @@ function canDeleteMoneyRequestReport(
     }
 
     if (isExpenseReport(report)) {
-        if (isSingleTransaction && !canCardTransactionBeDeleted) {
+        // TODO: Pass reportOwnerLogin in PR 4a, once canDeleteMoneyRequestReport takes it first.
+        // isAwaitingFirstLevelApproval falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
+        if (!isOpenReport(report) && !(isProcessingReport(report) && isAwaitingFirstLevelApproval(report, rules, undefined))) {
             return false;
         }
 
-        const isReportSubmitter = isCurrentUserSubmitter(report, currentUserAccountID);
-        // TODO: Pass reportOwnerLogin in PR 4a, once canDeleteMoneyRequestReport takes it first.
-        // isAwaitingFirstLevelApproval falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
-        return isReportSubmitter && (isOpenReport(report) || (isProcessingReport(report) && isAwaitingFirstLevelApproval(report, rules, undefined)));
+        const isSubmitterOrAdmin = isCurrentUserSubmitter(report, currentUserAccountID) || isPolicyAdmin(policy);
+        if (isSubmitterOrAdmin && isSingleTransaction && isManagedCardTransaction(transaction)) {
+            return canCardTransactionBeDeleted;
+        }
+
+        return isCurrentUserSubmitter(report, currentUserAccountID);
     }
 
     return false;
@@ -3346,17 +3359,18 @@ function canDeleteReportAction(
     childReportActions: OnyxCollection<ReportAction>,
     currentUserAccountID: number,
     rules: OnyxCollection<Rule>,
+    cardList: OnyxEntry<CardList>,
 ): boolean {
     const report = getReportOrDraftReport(reportID);
     const isActionOwner = reportAction?.actorAccountID === currentUserAccountID;
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`] ?? null;
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`] ?? undefined;
 
     if (isDemoTransaction(transaction)) {
         return true;
     }
 
     if (isMoneyRequestAction(reportAction)) {
-        const canCardTransactionBeDeleted = canDeleteCardTransactionByLiabilityType(transaction);
+        const canCardTransactionBeDeleted = canDeleteCardTransaction(transaction, policy, cardList);
         // For now, users cannot delete split actions
         const isSplitAction = getOriginalMessage(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
 
@@ -3382,7 +3396,8 @@ function canDeleteReportAction(
             Object.values(childReportActions ?? {}).filter((action): action is ReportAction => !!action),
             currentUserAccountID,
             rules,
-            policy ?? undefined,
+            policy,
+            cardList,
             true,
         );
     }
@@ -5564,7 +5579,7 @@ function canEditFieldOfMoneyRequest({
         return false;
     }
 
-    if ((fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT || fieldToEdit === CONST.EDIT_REQUEST_FIELD.CURRENCY) && isCardTransactionTransactionUtils(transaction)) {
+    if ((fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT || fieldToEdit === CONST.EDIT_REQUEST_FIELD.CURRENCY) && isManagedCardTransaction(transaction)) {
         return false;
     }
 
@@ -14690,7 +14705,7 @@ export {
     getRoom,
     getRootParentReport,
     getRouteFromLink,
-    canDeleteCardTransactionByLiabilityType,
+    canDeleteCardTransaction,
     isTeachersUniteReport,
     getTaskAssigneeChatOnyxData,
     getTransactionCommentObject,
