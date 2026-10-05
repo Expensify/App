@@ -60,7 +60,7 @@ function SupportTicketSurvey({action, report, reportID}: SupportTicketSurveyProp
 
     return (
         <View style={[styles.chatItemMessage, styles.flexRow, styles.alignItemsCenter]}>
-            <Text style={styles.textLabelSupporting}>How was your support experience?</Text>
+            <Text style={styles.textSupporting}>How was your support experience?</Text>
             {canRateSurvey && (
                 <ConciergeFeedbackPrompt
                     action={action}
