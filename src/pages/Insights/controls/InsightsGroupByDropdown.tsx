@@ -1,18 +1,13 @@
-import Button from '@components/Button';
-import CaretWrapper from '@components/CaretWrapper';
 import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
-import type {ButtonComponentProps, PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
-import FilterPopupButton from '@components/Search/FilterDropdowns/FilterPopupButton';
+import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
+import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
-import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 import DEFAULT_INSIGHTS_FILTERS, {INSIGHTS_GROUP_BY_OPTIONS} from '@pages/Insights/insightsFilters';
-
-import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
@@ -38,7 +33,6 @@ function InsightsGroupByDropdown({groupBy, onChange}: InsightsGroupByDropdownPro
     const selectedItem = items.find((item) => item.value === groupBy);
 
     const label = translate('search.display.groupBy');
-    const buttonText = `${label}: ${selectedItem?.text ?? ''}`;
 
     const groupByPopover = ({closeOverlay}: PopoverComponentProps) => (
         <SingleSelectPopup
@@ -51,37 +45,18 @@ function InsightsGroupByDropdown({groupBy, onChange}: InsightsGroupByDropdownPro
         />
     );
 
-    const groupByButton = ({ref, onPress, isExpanded}: ButtonComponentProps) => (
-        <Button
-            ref={ref}
-            size={CONST.BUTTON_SIZE.SMALL}
-            style={[styles.widgetHeaderGhostButtonWrapper, styles.flexShrink1]}
-            innerStyles={[styles.ph3, styles.bgTransparent, {maxWidth: variables.filterPillMaxWidth}, styles.flexShrink1, isExpanded && styles.widgetHeaderMenuButtonHovered]}
-            hoverStyles={styles.widgetHeaderMenuButtonHovered}
-            accessibilityLabel={buttonText}
-            sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_GROUP_BY}
-            onPress={onPress}
-        >
-            <CaretWrapper
-                style={[styles.flexShrink1, styles.mw100]}
-                isActive={isExpanded}
-            >
-                <Text
-                    numberOfLines={1}
-                    style={[styles.textMicroBold, styles.textSupporting, styles.flexShrink1]}
-                >
-                    {buttonText}
-                </Text>
-            </CaretWrapper>
-        </Button>
-    );
-
     return (
-        <FilterPopupButton
-            wrapperStyle={styles.flexShrink1}
+        <DropdownButton
+            label={label}
+            value={selectedItem?.text ?? null}
+            sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_GROUP_BY}
+            wrapperStyle={[styles.widgetHeaderGhostButtonWrapper, styles.flexShrink1]}
+            innerStyles={styles.bgTransparent}
+            hoverStyles={styles.widgetHeaderMenuButtonHovered}
+            expandedStyles={styles.widgetHeaderMenuButtonHovered}
+            labelStyle={styles.textSupporting}
             popoverAnchorAlignment={INSIGHTS_CONTROL_ANCHOR_ALIGNMENT}
             PopoverComponent={groupByPopover}
-            renderButton={groupByButton}
         />
     );
 }

@@ -4,6 +4,8 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
+import type {StyleProp, ViewStyle} from 'react-native';
+
 import React from 'react';
 
 import type {PopoverMenuItem} from './PopoverMenu';
@@ -19,8 +21,8 @@ type WidgetHeaderMenuProps = {
     /** Items shown in the popover opened by the three-dots trigger */
     menuItems: PopoverMenuItem[];
 
-    /** Whether to render the 28px Small Ghost trigger instead of the 40px Medium Ghost one */
-    isSmall?: boolean;
+    /** Overrides the default Medium Ghost trigger size and margins */
+    iconStyles?: StyleProp<ViewStyle>;
 
     testID?: string;
     sentryLabel?: string;
@@ -30,7 +32,7 @@ type WidgetHeaderMenuProps = {
  * Widget header three-dots menu: a Ghost trigger whose negative margins let it overflow the header
  * rather than grow it, so every card header keeps the same height. Built on `ThreeDotsMenu`.
  */
-function WidgetHeaderMenu({menuItems, isSmall = false, testID, sentryLabel}: WidgetHeaderMenuProps) {
+function WidgetHeaderMenu({menuItems, iconStyles, testID, sentryLabel}: WidgetHeaderMenuProps) {
     const styles = useThemeStyles();
 
     return (
@@ -38,7 +40,7 @@ function WidgetHeaderMenu({menuItems, isSmall = false, testID, sentryLabel}: Wid
             menuItems={menuItems}
             shouldSelfPosition
             anchorAlignment={ANCHOR_ALIGNMENT}
-            iconStyles={isSmall ? [styles.widgetHeaderMenuButtonSmall, styles.widgetHeaderMenuButtonSmallWrapper] : [styles.widgetHeaderMenuButton, styles.widgetHeaderMenuButtonWrapper]}
+            iconStyles={iconStyles ?? [styles.widgetHeaderMenuButton, styles.widgetHeaderMenuButtonWrapper]}
             iconHoverStyle={styles.widgetHeaderMenuButtonHovered}
             iconWidth={variables.iconSizeSmall}
             iconHeight={variables.iconSizeSmall}
