@@ -200,6 +200,7 @@ export default function WorkspaceTagsTable({
 
     return (
         <Table
+            key={isMultiLevelTags ? 'multi' : 'single'}
             data={tags}
             initialSortColumn={isMultiLevelTags ? undefined : 'name'}
             selectionEnabled={selectionEnabled}
