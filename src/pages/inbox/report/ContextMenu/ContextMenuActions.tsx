@@ -27,6 +27,7 @@ import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManag
 import stripFollowupListFromHtml from '@libs/ReportActionFollowupUtils/stripFollowupListFromHtml';
 import {
     getActionableCard3DSTransactionApprovalMessage,
+    getAgentPromptUpdatedMessage,
     getActionableCardFraudAlertMessage,
     getActionableMentionWhisperMessage,
     getAddedApprovalRuleMessage,
@@ -270,12 +271,12 @@ function getActionHtml(reportAction: OnyxInputOrEntry<ReportAction>): string {
 }
 
 /** Sets the HTML string to Clipboard */
-function setClipboardMessage(content: string | undefined) {
+function setClipboardMessage(content: string | undefined, reportIDToName?: Record<string, string>) {
     const strippedContent = stripFollowupListFromHtml(content);
     if (!strippedContent) {
         return;
     }
-    const clipboardText = getClipboardText(strippedContent);
+    const clipboardText = getClipboardText(strippedContent, reportIDToName);
     if (!Clipboard.canSetHtml()) {
         Clipboard.setString(clipboardText);
     } else {
@@ -284,12 +285,13 @@ function setClipboardMessage(content: string | undefined) {
 }
 
 /** Sets the HTML string to Clipboard after stripping the SMS domain from any user mentions */
-function setClipboardMessageWithCleanedMentions(value: string) {
+function setClipboardMessageWithCleanedMentions(value: string, reportIDToName?: Record<string, string>) {
     setClipboardMessage(
         value.replaceAll(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {
             const modifiedContent = Str.removeSMSDomain(innerContent) || '';
             return openTag + modifiedContent + closeTag || '';
         }),
+        reportIDToName,
     );
 }
 
@@ -381,6 +383,7 @@ type ContextMenuActionPayload = {
     reportAttributes: ReportAttributesDerivedValue['reports'] | undefined;
     memberChangeLogRoomReportName: string | undefined;
     rules: OnyxCollection<Rule>;
+    reportIDToName: Record<string, string>;
 };
 
 type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string) => void;
@@ -655,6 +658,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 conciergeChat,
                 isOffline,
                 personalDetails,
+                reportIDToName,
             },
         ) => {
             if (isMoneyRequestAction(reportAction) || isMoneyRequestAction(moneyRequestAction)) {
@@ -671,7 +675,13 @@ const ContextMenuActions: ContextMenuAction[] = [
                 return;
             }
             const editAction = () => {
-                saveReportActionDraft(originalReportID ?? reportID, reportAction, originalReportActions ?? reportActions, Parser.htmlToMarkdown(getActionHtml(reportAction)), isOffline);
+                saveReportActionDraft(
+                    originalReportID ?? reportID,
+                    reportAction,
+                    originalReportActions ?? reportActions,
+                    Parser.htmlToMarkdown(getActionHtml(reportAction), {reportIDToName}),
+                    isOffline,
+                );
             };
 
             if (closePopover) {
@@ -1035,6 +1045,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 memberChangeLogRoomReportName,
                 currentUserAccountID,
                 rules,
+                reportIDToName,
             },
         ) => {
             const isReportPreviewAction = isReportPreviewActionReportActionsUtils(reportAction);
@@ -1047,7 +1058,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 if (selection) {
                     // When the user has highlighted part of a message, always copy exactly what's selected,
                     // regardless of the report action type (including system messages like "marked as paid").
-                    setClipboardMessageWithCleanedMentions(selection);
+                    setClipboardMessageWithCleanedMentions(selection, reportIDToName);
                 } else if (isReportPreviewAction) {
                     const iouReportID = getIOUReportIDFromReportActionPreview(reportAction);
                     const displayMessage = getReportPreviewMessageForCopy({
@@ -1081,7 +1092,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const displayMessage = getReimbursementDeQueuedOrCanceledActionMessage(translate, reportAction, report?.ownerAccountID, convertToDisplayString);
                     Clipboard.setString(displayMessage);
                 } else if (isMoneyRequestAction(reportAction)) {
-                    const displayMessage = getIOUReportActionDisplayMessage(translate, reportAction, convertToDisplayString, policy?.achAccount?.accountNumber, transaction, bankAccountList);
+                    const displayMessage = getIOUReportActionDisplayMessage(translate, reportAction, convertToDisplayString, policy, transaction, bankAccountList);
                     if (displayMessage === Parser.htmlToText(displayMessage)) {
                         Clipboard.setString(displayMessage);
                     } else {
@@ -1230,6 +1241,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     );
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
                     Clipboard.setString(getMarkedReimbursedMessage(translate, reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED)) {
+                    Clipboard.setString(getAgentPromptUpdatedMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
                     Clipboard.setString(
                         getReimbursedMessage(
@@ -1509,7 +1522,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const missingFields = getOriginalMessage(reportAction)?.missingFields;
                     setClipboardMessage(translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction, currentUserAccountID), missingFields}));
                 } else if (content) {
-                    setClipboardMessageWithCleanedMentions(content);
+                    setClipboardMessageWithCleanedMentions(content, reportIDToName);
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED)) {
                     setClipboardMessage(getSettlementAccountLockedMessage(translate, reportAction));
                 } else if (messageText) {

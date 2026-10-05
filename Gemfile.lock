@@ -242,7 +242,7 @@ GEM
       concurrent-ruby (~> 1.0)
     jmespath (1.6.2)
     json (2.18.0)
-    jwt (2.10.2)
+    jwt (2.10.3)
       base64
     logger (1.7.0)
     mime-types (3.7.0)

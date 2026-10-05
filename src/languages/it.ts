@@ -513,6 +513,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Anno precedente',
         nextYear: "L'anno prossimo",
         avatar: 'Avatar',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} di ${total}`,
         editor: 'Editor',
         restrictions: 'Restrizioni',
         tryAgain: 'Riprova',
@@ -3149,6 +3150,8 @@ ${amount} per ${merchant} - ${date}`,
             updateAvatar: "Si è verificato un problema durante l'aggiornamento dell'avatar di questo agente",
         },
     },
+    agentPromptUpdated: ({updatedBy, previousPrompt, newPrompt}: {updatedBy: string; previousPrompt: string; newPrompt: string}) =>
+        `${updatedBy} ha aggiornato le istruzioni di questo agente.\nIstruzioni precedenti:\n${previousPrompt}\nNuove istruzioni:\n${newPrompt}`,
     newAgentPage: {
         title: 'Nuovo agente',
         buildCustomAgent: 'Crea un agente personalizzato',
@@ -4668,21 +4671,21 @@ ${amount} per ${merchant} - ${date}`,
         },
         nudge: {
             airfareManual:
-                'Sapevi che puoi prenotare e gestire i voli direttamente in Expensify? La prossima volta evita il fastidio di creare la spesa manualmente e prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Sapevi che puoi prenotare i voli direttamente in Expensify e continuare ad accumulare miglia con i tuoi programmi frequent flyer? La prossima volta evita la seccatura di creare la spesa manualmente e prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             airfareCard:
-                'Sapevi che puoi prenotare e gestire i voli direttamente in Expensify? E che carica automaticamente le ricevute per te? La prossima volta prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Lo sapevi che puoi prenotare i voli direttamente in Expensify e continuare a guadagnare miglia con i tuoi programmi frequent flyer? Carica automaticamente anche le ricevute per te. La prossima volta prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             hotelManual:
-                'Lo sapevi che puoi prenotare e gestire i soggiorni in hotel direttamente in Expensify? La prossima volta evita il fastidio di creare la tua spesa manualmente e prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Sapevi che puoi prenotare i soggiorni in hotel direttamente in Expensify e continuare a usare i tuoi programmi fedeltà degli hotel? La prossima volta evita la seccatura di creare manualmente la tua nota spese e prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             hotelCard:
-                'Lo sapevi che puoi prenotare e gestire i soggiorni in hotel direttamente in Expensify? La prossima volta prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Lo sapevi che puoi prenotare i soggiorni in hotel direttamente in Expensify e continuare a usare i tuoi programmi fedeltà degli hotel? La prossima volta ti basta prenotare tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             carManual:
-                'Sapevi che puoi prenotare e gestire il noleggio auto direttamente in Expensify? La prossima volta evita la seccatura di creare la tua spesa manualmente e prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+                'Lo sapevi che puoi prenotare il noleggio auto direttamente in Expensify e continuare a usare i tuoi programmi fedeltà per il noleggio? La prossima volta evita la seccatura di creare la spesa manualmente e prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             carCard:
-                'Lo sapevi che puoi prenotare e gestire il noleggio auto direttamente in Expensify? La prossima volta prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+                'Sapevi che puoi prenotare il noleggio auto direttamente in Expensify e continuare a usare i tuoi programmi fedeltà per il noleggio? La prossima volta ti basta prenotare tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             railManual:
-                'Sapevi che puoi prenotare e gestire i viaggi in treno direttamente in Expensify? La prossima volta evita la seccatura di creare la spesa manualmente e prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+                'Sapevi che puoi prenotare i viaggi in treno direttamente in Expensify continuando a usare i tuoi programmi fedeltà ferroviari e le tue railcard? La prossima volta evita la seccatura di creare la spesa manualmente e prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
-                'Sapevi che puoi prenotare e gestire i viaggi in treno direttamente in Expensify? E che le ricevute vengono caricate automaticamente per te? La prossima volta prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+                'Sapevi che puoi prenotare i viaggi in treno direttamente in Expensify e continuare a usare i tuoi programmi fedeltà ferroviari e le railcard? Carica automaticamente anche le ricevute per te. La prossima volta, prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             hotelBlockManual:
                 'Sapevi che puoi prenotare e gestire viaggi di gruppo come questo direttamente in Expensify? Evita lo stress la prossima volta e prova il nostro strumento <a href="https://help.expensify.com/travel/hubs/event-management/">Eventi di viaggio</a>.',
             hotelBlockCard:
@@ -5477,6 +5480,9 @@ ${amount} per ${merchant} - ${date}`,
             journalEntriesProvTaxPostingAccount: 'Conto di registrazione contabile dell’imposta provinciale',
             foreignCurrencyAmount: 'Esporta importo in valuta estera',
             exportToNextOpenPeriod: 'Esporta nel prossimo periodo aperto',
+            exportToNextOpenPeriodLockedSubtitle: "Per disattivare l'esportazione nel prossimo periodo aperto, disattiva prima la divisione delle esportazioni non rimborsabili per periodo.",
+            splitExportsByPostingPeriod: 'Dividi le esportazioni per periodo di registrazione',
+            splitExportsByPostingPeriodSubtitle: "Attiva l'esportazione nel prossimo periodo aperto per abilitare la divisione delle esportazioni non rimborsabili per periodo in NetSuite",
             nonReimbursableJournalPostingAccount: 'Conto di registrazione per spese non rimborsabili',
             reimbursableJournalPostingAccount: 'Conto di registrazione per rimborsabili',
             journalPostingPreference: {
@@ -8263,6 +8269,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 flagAmountsOver: 'Contrassegna importi superiori a',
                 flagAmountsOverDescription: (categoryName: string) => `Si applica alla categoria “${categoryName}”.`,
                 flagAmountsOverSubtitle: 'Questo sostituisce l’importo massimo per tutte le spese.',
+                expenseLimitType: 'Tipo di limite di spesa',
                 expenseLimitTypes: {
                     expense: 'Spesa individuale',
                     expenseSubtitle:
@@ -9957,6 +9964,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         noCategory: 'Nessuna categoria',
         noMerchant: 'Nessun esercente',
         noTag: 'Nessun tag',
+        noVendor: 'Nessun fornitore',
         expenseType: 'Tipo di spesa',
         receiptType: 'Tipo di ricevuta',
         receiptTypeValues: {
