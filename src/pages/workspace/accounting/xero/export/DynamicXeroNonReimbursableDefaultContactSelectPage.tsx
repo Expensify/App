@@ -82,7 +82,7 @@ function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicy
     const shouldShowTextInput = supplierOptions.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     // Pin the selected supplier to the top of the full list before filtering, so it stays pinned while searching.
-    const orderedSupplierOptions = useMemo(() => moveInitialSelectionToTop(supplierOptions, currentContactID ? [currentContactID] : []), [supplierOptions, currentContactID]);
+    const orderedSupplierOptions = moveInitialSelectionToTop(supplierOptions, currentContactID ? [currentContactID] : []);
 
     const filteredSupplierOptions = useMemo(
         () => (shouldShowTextInput ? tokenizedSearch(orderedSupplierOptions, searchText, (option) => [option.text ?? '']) : orderedSupplierOptions),
