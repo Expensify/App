@@ -16,12 +16,10 @@ import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
-// The container is a bottom sheet below this width, where none of the row's geometry applies. Most of these
-// tests are about the pop-over, so the layout defaults to wide and the viewport to a known height.
+// Below this width the container is a bottom sheet, so these tests default to a wide layout.
 let mockIsSmallScreenWidth = false;
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({isSmallScreenWidth: mockIsSmallScreenWidth, shouldUseNarrowLayout: mockIsSmallScreenWidth})));
-// Read lazily so a test can shrink the viewport, which is the only way to leave the row short of room on both
-// sides at once — the case where the container used to ask for more height than it had.
+// Read lazily so a test can shrink the viewport, leaving the row short of room on both sides at once.
 let mockWindowHeight = 800;
 jest.mock('@hooks/useWindowDimensions', () => jest.fn(() => ({windowWidth: 1280, windowHeight: mockWindowHeight})));
 
@@ -93,7 +91,7 @@ describe('ExpenseFieldDropdown', () => {
         renderField();
 
         // When the row has not been pressed
-        // Then the list has never been mounted, so a field nobody opens costs the form nothing
+        // Then the list was never mounted, so an untouched field costs the form nothing
         expect(renderCount).toBe(0);
     });
 
@@ -141,8 +139,7 @@ describe('ExpenseFieldDropdown', () => {
     });
 
     it('stops short of the header when it opens above the row', () => {
-        // Given a row with just enough room above it that a container ignoring the header would reach the top of
-        // the window, and too little room below it to open downwards
+        // Given a row with too little room below, and just enough above to reach the top of the window
         mockWindowHeight = 500;
         mockRowAt(304);
         renderField();
@@ -150,8 +147,8 @@ describe('ExpenseFieldDropdown', () => {
         // When the row is pressed
         act(() => pressRow());
 
-        // Then the container's top edge clears the page header, so it never covers the back button. Opening
-        // above is positioned from the container's bottom edge, so its top is that minus its height.
+        // Then its top edge clears the header, so it never covers the back button. Opening above is positioned
+        // from the bottom edge, so the top is that minus the height.
         expect(renderedProps?.shouldMeasureAnchorPositionFromTop).toBe(false);
         const containerTop = (renderedProps?.anchorPosition.vertical ?? 0) - (renderedProps?.popoverHeight ?? 0);
         expect(containerTop).toBeGreaterThanOrEqual(variables.contentHeaderHeight);
@@ -179,8 +176,7 @@ describe('ExpenseFieldDropdown', () => {
         // When the row is pressed
         act(() => pressRow());
 
-        // Then the container asks for at most the space that is actually there. Flooring this at a minimum was
-        // what let it run past the panel it was opened from.
+        // Then it asks for at most the space that is there. Flooring this at a minimum ran it past the panel.
         const openedBelow = renderedProps?.shouldMeasureAnchorPositionFromTop ?? true;
         const spaceUsed = openedBelow ? mockWindowHeight - (renderedProps?.anchorPosition.vertical ?? 0) : (renderedProps?.anchorPosition.vertical ?? 0);
         expect(renderedProps?.popoverHeight).toBeLessThanOrEqual(spaceUsed);
@@ -196,15 +192,14 @@ describe('ExpenseFieldDropdown', () => {
         // When the row is pressed
         act(() => pressRow());
 
-        // Then it opens the page rather than a container too short to hold anything. A container with no height
-        // to hold it to sizes itself to its content, and is then dragged back over the row to fit the window.
+        // Then it opens the page. A container with no height sizes itself to its content and is dragged back
+        // over the row to fit the window.
         expect(onPress).toHaveBeenCalledTimes(1);
         expect(renderCount).toBe(0);
     });
 
     it('opens the bottom sheet on a narrow layout however little room the row has', () => {
-        // Given a narrow layout, where the container is a bottom sheet, and a row with too little room on either
-        // side for a pop-over — a mid-form row on a phone in landscape, or with the keyboard up
+        // Given a narrow layout and a row with too little room either side for a pop-over
         const onPress = jest.fn();
         mockIsSmallScreenWidth = true;
         mockWindowHeight = 300;
@@ -214,8 +209,7 @@ describe('ExpenseFieldDropdown', () => {
         // When the row is pressed
         act(() => pressRow());
 
-        // Then the sheet opens anyway. It is placed and sized by the screen, so the room around the row has no
-        // bearing on whether it fits.
+        // Then the sheet opens anyway: it is placed and sized by the screen, not by the row
         expect(screen.getByText(DROPDOWN_TEXT)).toBeOnTheScreen();
         expect(onPress).not.toHaveBeenCalled();
     });

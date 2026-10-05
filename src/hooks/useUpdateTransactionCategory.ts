@@ -23,7 +23,7 @@ import usePermissions from './usePermissions';
 import {usePersonalDetail} from './usePersonalDetails';
 
 type UseUpdateTransactionCategoryParams = {
-    /** ID of the expense being written to. Also names the money request draft a not-yet-created expense lives in */
+    /** ID of the expense being written to, and of the draft a not-yet-created expense lives in */
     transactionID: string;
 
     /** Transaction whose category is being written */
@@ -49,22 +49,15 @@ type UseUpdateTransactionCategoryResult = {
     /** Writes `category` to whichever of the three stores backs the expense being edited */
     updateCategory: (category: string) => void;
 
-    /**
-     * Whether the write lands on the money request draft rather than on a saved expense. Callers that navigate
-     * differently for a draft (the category step forwards into confirmation when categorizing a fresh expense)
-     * read this instead of re-deriving which branch ran.
-     */
+    /** Whether the write landed on the money request draft rather than a saved expense, for callers that navigate differently for each. */
     isDraftUpdate: boolean;
 };
 
 /**
- * Writes a category onto an expense, from wherever the category is picked.
- *
- * The three stores an expense can live in, the split draft, a saved transaction, and the money request draft —
- * each take a different write, and each write needs the same wide set of policy and user data to recompute the
- * expense's violations. That is why this lives in one hook rather than in each surface that offers the list: the
- * full-page selector and the confirmation form's anchored dropdown both save through it, so a category picked in
- * the dropdown lands exactly where the same pick on the full page would.
+ * Writes a category onto an expense, from wherever it is picked. The three stores an expense can live in (split
+ * draft, saved transaction, money request draft) each take a different write, and each needs the same wide set of
+ * policy and user data to recompute violations. Both the full-page selector and the anchored dropdown save
+ * through here, so a pick in either lands in the same place.
  */
 function useUpdateTransactionCategory({
     transactionID,

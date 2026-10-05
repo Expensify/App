@@ -24,7 +24,9 @@ jest.mock('@hooks/useOnyx', () => jest.fn());
 jest.mock('@hooks/useAutoFocusInput', () => jest.fn(() => ({inputCallbackRef: jest.fn()})));
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
 jest.mock('@hooks/useThemeStyles', () => jest.fn(() => ({})));
-jest.mock('@hooks/useDebouncedState', () => jest.fn(() => ['', '', jest.fn()]));
+// Returns [searchValue, debouncedSearchValue, setter]. Lets a test stand the picker up mid-search.
+let mockDebouncedSearchValue = '';
+jest.mock('@hooks/useDebouncedState', () => jest.fn(() => [mockDebouncedSearchValue, mockDebouncedSearchValue, jest.fn()]));
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: (key: string) => key,
@@ -62,6 +64,7 @@ describe('CategoryPicker', () => {
     const mockedUseOnyxWithoutSnapshots = jest.mocked(useOnyxWithoutSnapshots);
 
     beforeEach(() => {
+        mockDebouncedSearchValue = '';
         jest.mocked(SelectionListWithSections).mockClear();
 
         // `@hooks/useOnyx` (snapshot-aware) provides the categories. GL codes live on the categories
@@ -153,9 +156,35 @@ describe('CategoryPicker', () => {
                 />,
             );
 
-            // Then it reports four rows, not three: the `Travel` parent takes a row of its own. Sizing a pop-over
-            // from the category count here left it a row short and hid an option behind a scroll.
+            // Then it reports four rows, not three: the `Travel` parent takes one. Sizing from the category
+            // count left the pop-over a row short and hid an option behind a scroll.
             expect(onRenderedRowCountChange).toHaveBeenLastCalledWith(4);
+        });
+
+        it('does not report a filtered count while the user is searching', () => {
+            // Given a search that narrows three categories down to one
+            mockedUseOnyxWithoutSnapshots.mockReturnValue([false, {status: 'loaded'}]);
+            mockedUseOnyx.mockImplementation((key) => {
+                if (key === `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`) {
+                    return [{Flights: makeCategory('Flights', ''), Hotels: makeCategory('Hotels', ''), Meals: makeCategory('Meals', '')}, {status: 'loaded'}];
+                }
+                return [undefined, {status: 'loaded'}];
+            });
+            mockDebouncedSearchValue = 'Fli';
+            const onRenderedRowCountChange = jest.fn();
+
+            // When the picker renders mid-search
+            render(
+                <CategoryPicker
+                    policyID={POLICY_ID}
+                    onSubmit={jest.fn()}
+                    onRenderedRowCountChange={onRenderedRowCountChange}
+                />,
+            );
+
+            // Then nothing is reported: resizing as results narrow slides the search input out from under the
+            // cursor, since a container opened above its row is pinned by its bottom edge.
+            expect(onRenderedRowCountChange).not.toHaveBeenCalled();
         });
     });
 

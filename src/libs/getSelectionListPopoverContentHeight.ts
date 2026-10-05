@@ -12,13 +12,9 @@ type SelectionListPopoverContentHeightParams = {
 };
 
 /**
- * Height a pop-over needs to show `optionCount` options of a selection list without scrolling.
- *
- * Estimated from the option count rather than measured, so a pop-over opens at its final size instead of
- * resizing once its list has laid out. `getSelectionListPopoverHeight` in the style utils estimates the same way
- * for the Spend filters, which carry a title, a header and an apply button this does not.
- *
- * Callers treat the result as what the list wants, and the space their anchor leaves as what it may have.
+ * Height a pop-over needs to show `optionCount` options without scrolling. Estimated rather than measured, so it
+ * opens at its final size instead of resizing after layout, the same way `getSelectionListPopoverHeight` does for
+ * the Spend filters, which also carry a title, header and apply button this does not.
  */
 function getSelectionListPopoverContentHeight({optionCount, isSearchable = true, optionHeight = variables.optionRowHeight}: SelectionListPopoverContentHeightParams): number {
     return optionCount * optionHeight + (isSearchable ? variables.popoverSearchInputHeight : 0) + variables.popoverVerticalPadding;

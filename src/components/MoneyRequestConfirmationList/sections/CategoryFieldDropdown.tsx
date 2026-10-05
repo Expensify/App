@@ -24,16 +24,14 @@ type CategoryFieldDropdownProps = ExpenseFieldDropdownRenderProps & {
     /** Policy the categories belong to */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
-    /** Category the expense already holds, so the list can mark it and a second tap on it can clear it */
+    /** Category the expense already holds, so the list can mark it */
     selectedCategory: string;
 };
 
 /**
- * The category list, in the container anchored to the expense form's category row.
- *
- * Mounted only once the row has been opened, which is what keeps the list's Onyx subscriptions and the option
- * building behind them off the form's first render. It saves through the same hook the full-page selector saves
- * through, so picking here and picking there leave the expense in the same state.
+ * The category list, in the container anchored to the expense form's category row. Mounted only once the row is
+ * opened, keeping its Onyx subscriptions off the form's first render, and saves through the same hook the
+ * full-page selector uses so both leave the expense in the same state.
  */
 function CategoryFieldDropdown({transactionID, policy, selectedCategory, onClose, ...popoverProps}: CategoryFieldDropdownProps) {
     const {reportID, isEditingSplitBill, action} = useConfirmationFields();
@@ -54,8 +52,7 @@ function CategoryFieldDropdown({transactionID, policy, selectedCategory, onClose
     });
 
     const handleSelected = (item: ListItem) => {
-        // `CategoryPickerModal` hands back an empty item when the selected category is tapped again, which is the
-        // same clearing the full-page selector does, so both land on an empty category here.
+        // `CategoryPickerModal` hands back an empty item when the selected category is tapped again, clearing it.
         updateCategory(item.searchText ?? '');
     };
 

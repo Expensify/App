@@ -41,10 +41,9 @@ type CategoryPickerProps = {
     shouldAutoFocusSearchInput?: boolean;
 
     /**
-     * Reports how many rows the list renders. A pop-over wrapper sizes itself from this rather than from the
-     * category count, which the rendered list does not match: a nested name adds a row for each parent it hangs
-     * off, a selected out-of-policy category gets a row of its own, and the `Recent` and `All` sections each add
-     * a heading. Reported from the built sections so the size can't drift from what is on screen.
+     * Reports how many rows the unfiltered list renders, for a pop-over wrapper to size itself from. The category
+     * count does not match: nested names add a row per parent, a selected out-of-policy category adds one, and
+     * the `Recent` and `All` headings add one each. Only reported unfiltered, so searching never resizes it.
      */
     onRenderedRowCountChange?: (rowCount: number) => void;
 };
@@ -122,12 +121,14 @@ function CategoryPicker({
         noneOption.length > 0 ? [...sections.slice(0, selectedCategorySectionIndex + 1), noneOptionSection, ...sections.slice(selectedCategorySectionIndex + 1)] : sections;
 
     const categoryData = sectionsWithNoneOption.flatMap((section) => section.data);
-    // A titled section draws a heading above its rows, so it takes a row's worth of space of its own.
     const renderedRowCount = sectionsWithNoneOption.reduce((total, section) => total + section.data.length + (section.title ? 1 : 0), 0);
 
     useEffect(() => {
+        if (debouncedSearchValue) {
+            return;
+        }
         onRenderedRowCountChange?.(renderedRowCount);
-    }, [renderedRowCount, onRenderedRowCountChange]);
+    }, [renderedRowCount, debouncedSearchValue, onRenderedRowCountChange]);
 
     const categoriesCount = getEnabledCategoriesCount(categories);
     const selectedOptionKey = categoryData.find((category) => category.searchText === selectedCategory)?.keyForList;

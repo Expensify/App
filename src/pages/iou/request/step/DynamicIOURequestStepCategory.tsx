@@ -168,9 +168,8 @@ function DynamicIOURequestStepCategory({
 
         updateTransactionCategory(updatedCategory);
 
-        // `action === CATEGORIZE` only ever occurs when categorizing a fresh tracked expense directly from a
-        // report (never from an existing Confirmation screen), so continue forward into Confirmation here. It
-        // is only reachable for an expense that is still a draft, which is what `isDraftUpdate` stands for.
+        // `action === CATEGORIZE` only occurs when categorizing a fresh tracked expense from a report, never from
+        // an existing Confirmation screen, so continue forward into Confirmation here.
         if (isDraftUpdate && action === CONST.IOU.ACTION.CATEGORIZE && !backPath.includes('/confirmation/')) {
             if (report?.reportID) {
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, report.reportID));

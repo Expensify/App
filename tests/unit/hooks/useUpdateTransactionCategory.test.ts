@@ -19,8 +19,7 @@ jest.mock('@libs/actions/IOU/MoneyRequest', () => ({setMoneyRequestCategory: jes
 jest.mock('@libs/actions/IOU/Split', () => ({setDraftSplitTransaction: jest.fn()}));
 jest.mock('@libs/actions/IOU/UpdateMoneyRequest', () => ({updateMoneyRequestCategory: jest.fn()}));
 
-// Peripheral data the writes are handed. None of it decides which branch runs, and all of it needs providers
-// this hook is never rendered inside here.
+// Peripheral data the writes are handed. None of it decides which branch runs.
 jest.mock('@hooks/useCurrencyList', () => ({useCurrencyListActions: jest.fn(() => ({getCurrencyDecimals: jest.fn(() => 2), getCurrencySymbol: jest.fn(() => '$')}))}));
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({accountID: 1, login: 'me@example.com'})));
 jest.mock('@hooks/useDelegateAccountID', () => jest.fn(() => undefined));
@@ -97,8 +96,8 @@ describe('useUpdateTransactionCategory', () => {
         // When a category is picked
         result.current.updateCategory(CATEGORY);
 
-        // Then it lands on the money request draft, and the caller is told so: the category step reads this to
-        // decide whether it may carry on forward into confirmation.
+        // Then it lands on the money request draft, and says so: the category step reads this to decide whether
+        // it may carry forward into confirmation.
         expect(setMoneyRequestCategory).toHaveBeenCalledTimes(1);
         expect(setMoneyRequestCategory).toHaveBeenCalledWith(TRANSACTION_ID, CATEGORY, policy, expect.any(Function));
         expect(setDraftSplitTransaction).not.toHaveBeenCalled();
@@ -113,8 +112,7 @@ describe('useUpdateTransactionCategory', () => {
         // When a category is picked
         result.current.updateCategory(CATEGORY);
 
-        // Then it writes the draft rather than calling the update with no report, which would have nothing to
-        // recompute the expense's violations against
+        // Then it writes the draft rather than updating with no report to recompute violations against
         expect(setMoneyRequestCategory).toHaveBeenCalledTimes(1);
         expect(updateMoneyRequestCategory).not.toHaveBeenCalled();
         expect(result.current.isDraftUpdate).toBe(true);

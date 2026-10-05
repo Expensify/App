@@ -59,14 +59,10 @@ type ExpenseFieldRowProps = {
     /** Opens the field's list, either in the container anchored to this row or on its own page */
     onPress: () => void;
 
-    /**
-     * Measured to position and size the container a dropdown field opens. It sits on the bordered box itself
-     * rather than on the outer wrapper, so the container lines up with the border the user sees rather than
-     * with the row's horizontal margins.
-     */
+    /** Measured to place the container a dropdown field opens. Sits on the bordered box, not the outer wrapper, so the container lines up with the border. */
     anchorRef?: RefObject<ComponentRef<typeof View> | null>;
 
-    /** Whether the row's list is currently open, which the row reports to assistive technology */
+    /** Whether the row's list is open. Reported to assistive technology. */
     isExpanded?: boolean;
 
     /** Whether the row is pressed-through but visibly inert (e.g. while the expense is being confirmed) */

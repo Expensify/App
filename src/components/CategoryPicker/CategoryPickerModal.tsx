@@ -44,18 +44,10 @@ type CategoryPickerModalProps = {
     /** Height of the pop-over. Defaults to the standard dropdown height, a caller short on room passes a smaller one */
     popoverHeight?: number;
 
-    /**
-     * Whether the pop-over shrinks to the height its list actually needs, treating `popoverHeight` as a ceiling
-     * rather than a fixed height. Opted into by the expense form's field rows, where a fixed height leaves a
-     * short list floating in an empty box that runs past the panel the row was opened from.
-     */
+    /** Whether the pop-over shrinks to the height its list needs, treating `popoverHeight` as a ceiling. */
     shouldFitContentHeight?: boolean;
 
-    /**
-     * Whether the pop-over may move itself to the other side of the anchor when it overflows. It shifts by a whole
-     * pop-over height when it does, so a caller that has already picked the side off its own measurements turns
-     * this off rather than have both decisions fight and land the list on top of its anchor.
-     */
+    /** Whether the pop-over may flip to the other side of the anchor when it overflows. It shifts by a whole pop-over height, so a caller that already picked the side turns this off. */
     shouldSwitchPositionIfOverflow?: boolean;
 } & Omit<PopoverWithMeasuredContentProps, 'anchorRef' | 'children' | 'onClose'>;
 
@@ -83,11 +75,6 @@ function CategoryPickerModal({
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`, {selector: getEnabledCategoriesCount});
     const [renderedRowCount, setRenderedRowCount] = useState<number>();
 
-    // The pop-over is sized from the rows the list reports it renders, not from the category count: a nested
-    // name adds a row for each parent it hangs off, so counting categories leaves the pop-over shorter than its
-    // own list and hides options behind a scroll with empty space below. Until the list has reported, the
-    // category count is the closest guess available. One row is the floor, so a one-row list is exactly as tall
-    // as its one row.
     const categoriesCount = policyCategories ?? 0;
     const isSearchable = categoriesCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const estimatedContentHeight = getSelectionListPopoverContentHeight({optionCount: Math.max(renderedRowCount ?? categoriesCount, 1), isSearchable});
@@ -114,7 +101,6 @@ function CategoryPickerModal({
             anchorPosition={anchorPosition}
             popoverDimensions={popoverDimensions}
             anchorAlignment={anchorAlignment}
-            // A bottom sheet spans the screen, so only the pop-over is held to the width it was given.
             innerContainerStyle={isSmallScreenWidth ? undefined : StyleUtils.getWidthStyle(popoverDimensions.width)}
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
             shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}

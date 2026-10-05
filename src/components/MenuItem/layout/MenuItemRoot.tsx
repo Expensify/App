@@ -47,11 +47,7 @@ type MenuItemRootProps = PropsWithChildren &
          */
         style?: StyleProp<ViewStyle>;
 
-        /**
-         * Accessibility state for the row, e.g. `{expanded}` for a row that opens its list in place. It belongs
-         * on the pressable rather than on anything wrapping it, since that is what a screen reader focuses and
-         * what carries the button role the state describes.
-         */
+        /** Accessibility state for the row, e.g. `{expanded}`. Lands on the pressable, which is what a screen reader focuses. */
         accessibilityState?: AccessibilityState;
     };
 

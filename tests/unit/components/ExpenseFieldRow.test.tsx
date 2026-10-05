@@ -161,8 +161,8 @@ describe('ExpenseFieldRow', () => {
             // When the row is read out
             const row = screen.getByTestId('category-row');
 
-            // Then the state sits on the pressable itself, which is what carries the button role and what the
-            // screen reader lands on. On a wrapper around it the state is never announced.
+            // Then the state sits on the pressable, which carries the button role and takes screen reader focus.
+            // On a wrapper around it the state is never announced.
             expect(row).toBeExpanded();
         });
 
