@@ -3477,9 +3477,9 @@ ${amount} για ${merchant} - ${date}`,
             otherAccountingSoftware: 'Όνομα λογισμικού',
         },
         interestedFeatures: {
-            title: 'Σε ποιες δυνατότητες ενδιαφέρεστε;',
-            featuresAlreadyEnabled: 'Αυτά είναι τα πιο δημοφιλή χαρακτηριστικά μας:',
-            featureYouMayBeInterestedIn: 'Ενεργοποιήστε πρόσθετες λειτουργίες:',
+            title: 'Επιλέξτε τις λειτουργίες που θέλετε',
+            featuresAlreadyEnabled: 'Ο χώρος εργασίας σας έχει ήδη ενεργοποιημένα τα εξής:',
+            featureYouMayBeInterestedIn: 'Ενεργοποιήστε πρόσθετες λειτουργίες που μπορεί να σας ενδιαφέρουν:',
         },
         error: {
             requiredFirstName: 'Παρακαλούμε εισαγάγετε το μικρό σας όνομα για να συνεχίσετε',
