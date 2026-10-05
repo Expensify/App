@@ -109,7 +109,7 @@ function ReportFooter() {
 
     if (shouldShowResolvedSupportTicketFooter) {
         return (
-            <View style={[styles.chatFooter, styles.mt4, shouldUseNarrowLayout && styles.mb5]}>
+            <View style={[styles.chatFooter, styles.mt4, styles.mb5]}>
                 <SupportTicketResolvedFooter
                     reportID={reportIDFromRoute}
                     isOffline={isOffline}
