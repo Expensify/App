@@ -21,7 +21,7 @@ type WidgetHeaderMenuProps = {
     /** Items shown in the popover opened by the three-dots trigger */
     menuItems: PopoverMenuItem[];
 
-    /** Overrides the default Medium Ghost trigger size and margins */
+    /** Styles for the trigger button, replacing its default size and margins */
     iconStyles?: StyleProp<ViewStyle>;
 
     testID?: string;
