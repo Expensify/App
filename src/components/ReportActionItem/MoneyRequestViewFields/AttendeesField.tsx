@@ -3,9 +3,14 @@ import UserPills from '@components/UserPills';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {enrichAndSortAttendees} from '@libs/AttendeeUtils';
-
 import CONST from '@src/CONST';
+
+type AttendeeWithAccountID = {
+    accountID?: string;
+    avatarUrl?: string | null;
+    displayName?: string | null;
+    email?: string | null;
+};
 
 import type {ComponentProps} from 'react';
 
@@ -15,7 +20,7 @@ import TextField from './TextField';
 
 type AttendeesFieldProps = Pick<ComponentProps<typeof TextField>, 'pendingAction' | 'onPress' | 'errorText' | 'copyValue'> & {
     /** Attendees enriched with their personal details and sorted for display. */
-    attendees: ReturnType<typeof enrichAndSortAttendees>;
+    attendees: AttendeeWithAccountID[] | undefined;
     /** Plain text summary used by assistive technology. */
     title: string;
     /** Formatted expense amount per attendee. */
