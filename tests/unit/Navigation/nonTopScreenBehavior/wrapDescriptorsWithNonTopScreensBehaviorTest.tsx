@@ -105,13 +105,13 @@ describe('wrapDescriptorsWithNonTopScreensBehavior', () => {
         const covered = renderWrapped(result[COVERED_KEY]);
         expect(covered.type).toBe(ScreenFreezeWrapper);
         expect(covered.props.isScreenBlurred).toBe(false);
-        // And it counts as preloaded, so it holds work like marking the report read until the user sees it
+        // And it is marked as a hidden pre-mount, so it holds work like marking the report read until the user sees it
         expect(getBoundary(covered)).toBeDefined();
         expect(getBoundary(covered)?.props.isHiddenPreMount).toBe(true);
         expect(getBoundary(renderWrapped(result[TOP_KEY]))?.props.isHiddenPreMount).toBe(false);
     });
 
-    it('stops counting a wide submit pre-mount as preloaded once it is the top screen, keeping the same tree', () => {
+    it('stops marking a wide submit pre-mount as hidden once it is the top screen, keeping the same tree', () => {
         // Given the live wide pre-mount that the reveal has just put on top
         setLiveWideTabPreMountRouteKey(TOP_KEY);
         const descriptors = {[COVERED_KEY]: buildDescriptor('Covered', 'freeze'), [TOP_KEY]: buildDescriptor('Top', 'freeze')};
@@ -120,7 +120,7 @@ describe('wrapDescriptorsWithNonTopScreensBehavior', () => {
         const result = wrapDescriptorsWithNonTopScreensBehavior(descriptors, buildState());
         setLiveWideTabPreMountRouteKey(undefined);
 
-        // Then it renders the same wrapper and boundary as before, so it is not remounted, but no longer counts as preloaded
+        // Then it renders the same wrapper and boundary as before, so it is not remounted, but it is no longer marked hidden
         const top = renderWrapped(result[TOP_KEY]);
         expect(top.type).toBe(ScreenFreezeWrapper);
         expect(getBoundary(top)).toBeDefined();

@@ -1,7 +1,7 @@
 import {isLiveWideTabPreMountRouteKey} from '@libs/Navigation/helpers/wideTabPreMountRouteKey';
 import type {CustomStateHookProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
-/** Limits the rendered routes to the visible ones: the last two screens on narrow, the sidebar and the last two central screens on wide. */
+/** Limits the rendered routes: the last two screens on narrow; on wide the sidebar, the last two central screens and a live pre-mount. */
 function getCustomSplitNavigatorState({state, shouldUseNarrowLayout}: Pick<CustomStateHookProps, 'state' | 'shouldUseNarrowLayout'>) {
     const sidebarScreenRoute = state.routes.at(0);
 

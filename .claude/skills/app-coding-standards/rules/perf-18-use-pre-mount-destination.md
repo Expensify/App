@@ -69,7 +69,7 @@ Set with the `destinationStrategy` option (`CONST.DESTINATION_STRATEGY`):
 **Other invariants:**
 
 - Only one component may own a pre-inserted route at a time. `reveal()` logs an alert if the global pre-insert flag is set by a different flow when it runs - a sign the previous owner didn't clean up.
-- On narrow layout, when the destination resolves to one of the app's root tabs (Home, Inbox, Search, Settings, or Workspaces), pre-insert switches to that tab instead of pushing (`[Tab(A), RHP] -> [Tab(B), RHP]`), with the original tab saved for restore-on-cancel. For any other destination, it pushes a new route between the origin and the RHP (`[origin, RHP] -> [origin, destination, RHP]`). Determined by the destination route, not caller-configured. On wide layout the destination is always pre-mounted as a whole `TAB_NAVIGATOR` under the current one.
+- On narrow layout, when the destination resolves to one of the app's root tabs (Home, Inbox, Search, Settings, or Workspaces), pre-insert switches to that tab instead of pushing (`[Tab(A), RHP] -> [Tab(B), RHP]`), with the original tab saved for restore-on-cancel. For any other destination, it pushes a new route between the origin and the RHP (`[origin, RHP] -> [origin, destination, RHP]`). Determined by the destination route, not caller-configured. On wide layout the destination screen is pre-mounted hidden inside the existing `TAB_NAVIGATOR` instead.
 - `shouldPreservePreInsertedRouteOnUnmount` has no effect on a wide-layout pre-mount. It is removed on unmount unless `reveal()` ran, because only a reveal can show it.
 
 **Caller responsibilities:**

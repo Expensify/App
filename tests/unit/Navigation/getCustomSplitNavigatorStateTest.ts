@@ -47,7 +47,7 @@ describe('getCustomSplitNavigatorState', () => {
         expect(renderedKeys).toEqual(['sidebar', 'b', PRE_MOUNT_KEY, 'c']);
     });
 
-    it('drops an old pre-mount key once it is no longer live', () => {
+    it('counts a pre-mount key that is no longer live as a regular central screen', () => {
         // Given a route whose key looks like a pre-mount, but the pre-mount was already revealed or cancelled
         // When the rendered routes are computed
         const renderedKeys = getRenderedKeys(['sidebar', 'a', 'b', PRE_MOUNT_KEY, 'c'], false);

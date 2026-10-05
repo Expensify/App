@@ -259,7 +259,7 @@ When dismissing an RHP reveals a **different** fullscreen destination (not the s
 
 `usePreMountDestination` (`src/hooks/usePreMountDestination`) centralizes this lifecycle. It has two strategies, set with `destinationStrategy`:
 
--   **`CONST.DESTINATION_STRATEGY.PRE_INSERT` (default):** on mount, waits for the RHP's open transition, then pre-mounts the destination at idle priority (`preInsertFullscreenUnderRHP`). By the time the user dismisses, the destination is already mounted, so dismissal just reveals it. Where it goes depends on the layout:
+-   **`CONST.DESTINATION_STRATEGY.PRE_INSERT` (default):** on mount, waits for the RHP's open transition, then pre-mounts the destination at idle priority (`preInsertFullscreenUnderRHP`). If it finishes before the user dismisses, dismissal just reveals the already mounted destination. Where it goes depends on the layout:
     -   **Narrow layout:** the destination route is inserted underneath the RHP.
     -   **Wide layout:** the destination is visible next to the RHP, so it can't go under it. Its screen is mounted hidden inside the current `TAB_NAVIGATOR` instead:
         -   **Destination in the focused tab:** directly under the current screen.
@@ -293,7 +293,7 @@ See `IOURequestStepConfirmation.tsx` for a reference implementation.
 > Only one component may own a pre-inserted route at a time. `reveal()` logs an alert if it runs while a *different* flow's pre-insert flag is still set - that's a sign the previous owner didn't clean up.
 
 > [!NOTE]
-> On narrow layout, when the destination resolves to one of the app's root tabs (Home, Inbox, Search, Settings, or Workspaces), pre-insert switches to that tab instead of pushing (`[Tab(A), RHP] -> [Tab(B), RHP]`), with the original tab saved for restore-on-cancel. For any other destination, it pushes a new route between the origin and the RHP instead (`[origin, RHP] -> [origin, destination, RHP]`). Which one happens is determined by the destination route, not by anything the caller configures. On wide layout, the destination is always pre-mounted as a whole `TAB_NAVIGATOR` (`[Tab(A), RHP] -> [Tab(B), Tab(A), RHP]`), with the other tabs copied from the current one so they survive the reveal.
+> On narrow layout, when the destination resolves to one of the app's root tabs (Home, Inbox, Search, Settings, or Workspaces), pre-insert switches to that tab instead of pushing (`[Tab(A), RHP] -> [Tab(B), RHP]`), with the original tab saved for restore-on-cancel. For any other destination, it pushes a new route between the origin and the RHP instead (`[origin, RHP] -> [origin, destination, RHP]`). Which one happens is determined by the destination route, not by anything the caller configures. On wide layout, the destination screen is pre-mounted hidden inside the existing `TAB_NAVIGATOR` instead, so the other tabs keep their state.
 
 > [!NOTE]
 > See [PERF-18](../.claude/skills/app-coding-standards/rules/perf-18-use-pre-mount-destination.md) for the AI-review checklist covering this hook.
