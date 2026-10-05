@@ -1548,6 +1548,7 @@ type OnyxFormDraftValuesMapping = {
 };
 
 type OnyxCollectionValuesMapping = {
+    [ONYXKEYS.COLLECTION.AGENT]: OnyxTypes.AgentPrompt;
     [ONYXKEYS.COLLECTION.ATTACHMENT]: OnyxTypes.Attachment;
     [ONYXKEYS.COLLECTION.DOMAIN]: OnyxTypes.Domain;
     [ONYXKEYS.COLLECTION.DOWNLOAD]: OnyxTypes.Download;
