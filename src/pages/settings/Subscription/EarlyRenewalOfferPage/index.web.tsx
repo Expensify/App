@@ -2,7 +2,7 @@
 import Badge from '@components/Badge';
 import FixedFooter from '@components/FixedFooter';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Icon from '@components/Icon';
 import ImageSVG from '@components/ImageSVG';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -73,7 +73,7 @@ function EarlyRenewalOfferPage() {
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('earlyRenewal.claim')}
                 onBackButtonPress={() => Navigation.goBack()}
             />

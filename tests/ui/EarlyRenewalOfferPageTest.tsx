@@ -58,7 +58,7 @@ jest.mock('@components/ScreenWrapper', () => {
     return MockScreenWrapper;
 });
 
-jest.mock('@components/HeaderWithBackButton', () => {
+jest.mock('@components/Header/composed/HeaderWithBackButtonAndTitle', () => {
     function MockHeader() {
         return null;
     }
