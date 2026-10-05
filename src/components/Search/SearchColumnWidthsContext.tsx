@@ -99,10 +99,11 @@ function useSearchColumnStyles(): (columnName: SearchColumnType, options?: GetRe
         // row, which is what the rows' own padding and chrome, spread across several differently shaped row
         // components, make impossible to predict to the pixel from here.
         //
-        // Shrinking is the same argument in the other direction, floored at the width below which the column stops
-        // being readable. `flex` is cleared because the base style sets it on exactly these columns, and leaving both
-        // it and the properties below would make which one wins depend on emission order.
-        return {...columnStyles, flex: undefined, flexGrow: 1, flexShrink: 1, flexBasis: sizing.width ?? 0, minWidth: sizing.minWidth, width: undefined};
+        // Shrinking is the same argument in the other direction, floored at what the column's own content needs, so
+        // the row scrolls rather than a column giving its room up to another one. `flex` is cleared because the base
+        // style sets it on exactly these columns, and leaving both it and the properties below would make which one
+        // wins depend on emission order.
+        return {...columnStyles, flex: undefined, flexGrow: 1, flexShrink: 1, flexBasis: sizing.width ?? 0, minWidth: sizing.contentWidth, width: undefined};
     };
 }
 

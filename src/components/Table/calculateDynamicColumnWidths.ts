@@ -5,9 +5,6 @@ type DynamicColumnConstraints = {
     /** Width the column needs to render its widest content and its header label in full, including non-text extras. */
     contentWidth: number;
 
-    /** Smallest width the column may be squeezed to, capped at `contentWidth`. Set to `contentWidth` to never truncate. */
-    minWidth: number;
-
     /** Largest width the column may claim. Content past it truncates instead of widening the column any further. */
     maxWidth: number;
 };
@@ -120,18 +117,16 @@ function distributeAvailableWidth(desiredWidths: number[], maxWidths: number[], 
 
 /**
  * Resolves the widths of a table's dynamically sized columns from what their content needs and how much room the table
- * has, implementing the three behaviors from https://github.com/Expensify/App/issues/96510:
+ * has, implementing the three behaviors from https://github.com/Expensify/App/issues/102104:
  *
  * 1. Every column's content fits inside an equal share of the available width, so the columns stay equal (`1fr`).
  * 2. The content fits overall but unevenly, so a column whose content can't fit an equal share takes exactly the width
  *    it needs, and the remaining columns split what's left equally. A column with long content grows only as far as its
  *    content, rather than also claiming the largest share of the slack. Columns that resolve wider than the row fall
  *    through to behavior 3.
- * 3. The columns need more room than the row has, so they are squeezed toward their minimum widths, in proportion to
- *    how much room each has to give up. Free-text columns truncate as they shrink; a column holding a known, short set
- *    of values has its content width as its minimum, so it keeps every value in full.
- * 4. Even the minimum widths don't fit, so the columns stop there and the table scrolls horizontally. Scrolling is
- *    reserved for a table with genuinely too many columns rather than one long value.
+ * 3. The columns need more room than the row has, so each one keeps the width its content needs and the table scrolls
+ *    horizontally. No column gives up width for another, and the only thing that ever truncates is content past a
+ *    column's own maximum.
  *
  * @param constraints - Sizing constraints per column, in column order.
  * @param availableWidth - Width the dynamic columns share, i.e. the row's width minus padding, gaps, and any
@@ -164,50 +159,24 @@ function calculateDynamicColumnWidths(constraints: DynamicColumnConstraints[], a
         if (sum(distributedWidths) <= availableWidth) {
             return {widths: distributedWidths, shouldScrollHorizontally: false};
         }
+
+        // A capped column grew into room a later one needs, so the columns are left on the widths their content asked
+        // for and only the row's leftover is handed out.
+        return {widths: roundWidths(desiredWidths, availableWidth, maxWidths), shouldScrollHorizontally: false};
     }
 
-    // 4. Even squeezed to their minimums the columns don't fit, so they stop there and the table scrolls. Rounding up
-    // rather than down, since a column a fraction of a px short would clip a character it is meant to show.
+    // 3. The columns need more room than the row has, so each one keeps exactly the width its content needs and the
+    // table scrolls them horizontally. Nothing is squeezed, so a long value in one column never costs another column
+    // the room to show its own. Rounding up rather than down, since a column a fraction of a px short would clip a
+    // character it is meant to show.
     //
     // A table whose fixed columns already need more room than it has lands here too, with a budget of zero or less for
     // the dynamic ones to share. Sizing them to their own content is what keeps an empty column narrow in that case,
     // rather than leaving every column an equal share of room the table never had. Whether the table has been measured
     // at all is the caller's question, answered before it works out a budget.
-    // Capped at the desired width, so the room a column has to give up can't come out negative.
-    const minWidths = constraints.map((constraint, index) => Math.min(constraint.minWidth, desiredWidths.at(index) ?? 0));
-    const totalMinWidth = sum(minWidths);
-    if (totalMinWidth >= availableWidth) {
-        return {
-            widths: minWidths.map((minWidth) => Math.ceil(minWidth)),
-            shouldScrollHorizontally: totalMinWidth > availableWidth,
-        };
-    }
-
-    // 3. The columns need more room than the row has, so every one of them gives up space in proportion to how much it
-    // has to give. A column whose minimum is its content width has nothing to give and keeps its content in full.
-    const totalSqueezableWidth = totalDesiredWidth - totalMinWidth;
-
-    // Nothing to squeeze, so there is no ratio to work out.
-    if (totalSqueezableWidth <= 0) {
-        return {
-            widths: minWidths.map((minWidth) => Math.ceil(minWidth)),
-            shouldScrollHorizontally: false,
-        };
-    }
-
-    const squeezeRatio = (availableWidth - totalMinWidth) / totalSqueezableWidth;
-
     return {
-        widths: roundWidths(
-            desiredWidths.map((desiredWidth, index) => {
-                const minWidth = minWidths.at(index) ?? 0;
-                // Reached with room to spare, the share exceeds what the column asked for, so a cap still applies.
-                return Math.min(minWidth + (desiredWidth - minWidth) * squeezeRatio, maxWidths.at(index) ?? 0);
-            }),
-            availableWidth,
-            maxWidths,
-        ),
-        shouldScrollHorizontally: false,
+        widths: desiredWidths.map((desiredWidth) => Math.ceil(desiredWidth)),
+        shouldScrollHorizontally: true,
     };
 }
 

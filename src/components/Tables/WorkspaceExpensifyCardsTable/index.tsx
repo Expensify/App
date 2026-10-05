@@ -142,7 +142,6 @@ export default function WorkspaceExpensifyCardsTable({
                 getContentToMeasure: (item) => [
                     {text: item.isVirtual ? translate('workspace.expensifyCard.virtual') : translate('workspace.expensifyCard.physical'), fontSize: fontScale.text},
                 ],
-                shouldFitContent: true,
             },
         },
         {
@@ -154,7 +153,6 @@ export default function WorkspaceExpensifyCardsTable({
             },
             dynamicSizing: {
                 getContentToMeasure: (item) => [{text: translate(getTranslationKeyForLimitType(item.limitType)), fontSize: fontScale.text}],
-                shouldFitContent: true,
             },
         },
         {
@@ -163,7 +161,6 @@ export default function WorkspaceExpensifyCardsTable({
             sortable: true,
             dynamicSizing: {
                 getContentToMeasure: (item) => [{text: item.lastFourPAN, fontSize: fontScale.text}],
-                shouldFitContent: true,
             },
         },
         {
@@ -178,7 +175,6 @@ export default function WorkspaceExpensifyCardsTable({
                     const statusTranslationKey = getTranslationKeyForCardStatus(item.card.state, item.isVirtual);
                     return statusTranslationKey ? [{text: translate(statusTranslationKey), fontSize: fontScale.text}] : [];
                 },
-                shouldFitContent: true,
             },
         },
         ...(shouldShowExportAccountColumn ? [getExportAccountColumn<WorkspaceExpensifyCardTableRowData>(translate('workspace.moreFeatures.companyCards.exportAccount'), styles)] : []),
@@ -191,7 +187,6 @@ export default function WorkspaceExpensifyCardsTable({
             },
             dynamicSizing: {
                 getContentToMeasure: (item) => [{text: convertToShortDisplayString(item.limit, item.currency), fontSize: fontScale.text}],
-                shouldFitContent: true,
             },
         },
         {
@@ -203,7 +198,6 @@ export default function WorkspaceExpensifyCardsTable({
             },
             dynamicSizing: {
                 getContentToMeasure: (item) => [{text: convertToShortDisplayString(item.remainingLimit, item.currency), fontSize: fontScale.text}],
-                shouldFitContent: true,
             },
         },
         {

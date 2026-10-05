@@ -26,9 +26,9 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-const {MIN_FREE_TEXT_COLUMN_WIDTH, MAX_FREE_TEXT_COLUMN_WIDTH} = CONST.TABLES.DYNAMIC_COLUMNS;
+const {MAX_COLUMN_WIDTH} = CONST.TABLES.DYNAMIC_COLUMNS;
 
-/** How wide a dynamically sized column was resolved to, and how far it may be squeezed before the table scrolls. */
+/** How wide a dynamically sized column was resolved to, and how narrow it may end up before the table scrolls. */
 type SearchColumnSizing = {
     /**
      * The width the column is laid out at, or `undefined` when every column fits an equal share and they all stay
@@ -36,10 +36,10 @@ type SearchColumnSizing = {
      */
     width: number | undefined;
 
-    /** Width the column is never squeezed below, so its header stays readable however narrow the table gets. */
-    minWidth: number;
-
-    /** Width the column's content wants, used to lay the columns out once the table has given up on fitting them. */
+    /**
+     * What the column's content needs, up to the width every column shares. Also the width it is never laid out
+     * below, since no column gives up room its own content needs.
+     */
     contentWidth: number;
 
     /** Whether the column is sized to its content exactly, rather than sharing the row's spare space with the others. */
@@ -92,8 +92,8 @@ type UseSearchColumnWidthsParams = {
  *
  * The widths come from `calculateDynamicColumnWidths`, the same resolver the Members table uses, so every dynamically
  * sized table in the app behaves identically: equal columns while everything fits, then a column that can't fit an
- * equal share taking exactly its content while the rest split the remainder equally, then a squeeze toward the
- * minimums, and only then a scroll. The per-table part is what to measure and what each column's minimum is.
+ * equal share taking exactly its content while the rest split the remainder equally, then a scroll once the columns
+ * need more room than the row has. The per-table part is what to measure and how wide each column may grow.
  *
  * Returns an empty map to leave the columns as they are: sizing is off, text can't be measured (native), or the table
  * hasn't been measured yet.
@@ -187,51 +187,36 @@ function useSearchColumnWidths({
 
         contentWidths.push(contentWidth);
 
-        // A column holding a fixed-size element is pinned to its content: it takes no share of the spare room and is
-        // never squeezed, so its three constraints are the same number and the resolver settles it there immediately.
+        // A column holding a fixed-size element is pinned to its content, so it takes no share of the spare room and
+        // the resolver settles it there immediately.
         if (HUGGED_SEARCH_COLUMNS.has(column)) {
-            constraints.push({contentWidth, minWidth: contentWidth, maxWidth: contentWidth});
+            constraints.push({contentWidth, maxWidth: contentWidth});
             continue;
         }
 
-        constraints.push({
-            contentWidth,
-            // Squeezed no further than a readable width, or its own content when that is narrower, so a short value
-            // isn't inflated to the minimum. Never below the header, which would leave the column unidentifiable.
-            minWidth: Math.max(Math.min(contentWidth, MIN_FREE_TEXT_COLUMN_WIDTH + extraWidth), headerLabelWidth),
-            // Uncapped while the table still fits, so a long value gets the room when the room is there instead of
-            // stopping at a cap and leaving the space unused. Capping is only for the scrolling case below.
-            maxWidth: Number.POSITIVE_INFINITY,
-        });
+        // Capped at the width every column shares, so the table scrolls rather than truncating until a value is long
+        // enough that showing it in full would push every column after it out of view.
+        constraints.push({contentWidth, maxWidth: MAX_COLUMN_WIDTH});
     }
 
-    const {widths, shouldScrollHorizontally} = calculateDynamicColumnWidths(constraints, availableWidth);
+    const {widths} = calculateDynamicColumnWidths(constraints, availableWidth);
 
     const columnSizing: Partial<Record<SearchColumnType, SearchColumnSizing>> = {};
 
     for (const [index, column] of dynamicColumns.entries()) {
         const constraint = constraints.at(index);
-        const contentWidth = contentWidths.at(index) ?? 0;
 
         if (!constraint) {
             continue;
         }
 
-        const shouldHug = HUGGED_SEARCH_COLUMNS.has(column);
-
-        // Past the point where the columns fit, a column is sized to its content but no wider than the cap: the table
-        // scrolls either way, and letting one unusually long value set the width would push every column after it out
-        // of view for the sake of a single row. Below the cap nothing is capped at all, which is why this is applied
-        // here rather than as the constraint the resolver sees.
-        const scrolledWidth = shouldHug ? contentWidth : Math.max(Math.min(contentWidth, MAX_FREE_TEXT_COLUMN_WIDTH + getSearchColumnExtraWidth(column)), constraint.minWidth);
-
         columnSizing[column] = {
-            shouldHug,
-            minWidth: constraint.minWidth,
-            contentWidth: shouldScrollHorizontally ? scrolledWidth : contentWidth,
+            shouldHug: HUGGED_SEARCH_COLUMNS.has(column),
+            // Anything past the cap is room the column is never going to be given, so it is not part of what it needs.
+            contentWidth: Math.min(contentWidths.at(index) ?? 0, constraint.maxWidth),
             // An empty result means every column fits an equal share, so they are left to divide the row equally, which
             // is state one of the model and exactly what the columns are already styled to do.
-            width: shouldScrollHorizontally ? scrolledWidth : widths.at(index),
+            width: widths.at(index),
         };
     }
 
