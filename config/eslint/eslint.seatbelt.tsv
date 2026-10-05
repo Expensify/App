@@ -147,6 +147,7 @@
 "../../src/components/DragAndDrop/Provider/index.tsx"	"react-hooks/refs"	6
 "../../src/components/DraggableList/SortableItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/DropZone/DropZoneWrapper.tsx"	"react-hooks/refs"	1
+"../../src/components/EditableCell/usePopoverEditState.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/EmojiPicker/CategoryShortcutButton.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/EmojiPicker/EmojiPicker.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/EmojiPicker/EmojiPicker.tsx"	"react-hooks/refs"	3
@@ -439,7 +440,6 @@
 "../../src/components/Tooltip/PopoverAnchorTooltip.tsx"	"react-hooks/refs"	7
 "../../src/components/TransactionItemRow/DataCells/ChatBubbleCell.tsx"	"rulesdir/no-raw-typography"	2
 "../../src/components/TransactionItemRow/DataCells/MerchantCell.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/TransactionItemRow/EditableCell/usePopoverEditState.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/UploadFile.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/UserInitialsAvatar.tsx"	"@typescript-eslint/no-deprecated/fontSize"	1
 "../../src/components/ValidateCodeInput.tsx"	"@typescript-eslint/no-deprecated/Gesture.Tap"	2
@@ -594,7 +594,7 @@
 "../../src/libs/actions/IOU/Duplicate.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/IOU/Hold.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/actions/IOU/Hold.ts"	"no-restricted-syntax"	2
-"../../src/libs/actions/IOU/index.ts"	"rulesdir/no-onyx-connect"	9
+"../../src/libs/actions/IOU/index.ts"	"rulesdir/no-onyx-connect"	7
 "../../src/libs/actions/IOU/MoneyRequest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/IOU/MoneyRequestBuilder.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	2
 "../../src/libs/actions/IOU/MoneyRequestBuilder.ts"	"@typescript-eslint/no-deprecated/translateLocal"	1
