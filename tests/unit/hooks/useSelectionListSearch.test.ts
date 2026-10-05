@@ -86,6 +86,20 @@ describe('useSelectionListSearch', () => {
         expect(result.current.filteredData.at(0)?.value).not.toBe('01');
     });
 
+    it('pins every pre-selected item to the top of a long multi-select list', () => {
+        // Given a long list with three pre-selected items scattered through it
+        const data = Array.from({length: 13}, (_, index) => {
+            const value = String(index + 1).padStart(2, '0');
+            return {value, text: `Item ${value}`, keyForList: value, isSelected: index === 2 || index === 6 || index === 10};
+        });
+
+        // When the hook orders the list
+        const {result} = renderHook(() => useSelectionListSearch(data));
+
+        // Then all three selected items move to the top (not just the first), keeping their relative order
+        expect(result.current.filteredData.slice(0, 3).map((item) => item.value)).toEqual(['03', '07', '11']);
+    });
+
     it('keeps the originally selected item pinned when the live selection changes (staged picker)', () => {
         // Given a long list that opened with the 7th item selected
         const {result, rerender} = renderHook((data: Item[]) => useSelectionListSearch(data), {initialProps: buildItems(13, 6)});

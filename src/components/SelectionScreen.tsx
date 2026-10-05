@@ -147,7 +147,10 @@ function SelectionScreen<T = string>({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const isConnectionEmpty = isEmpty(policy?.connections?.[connectionName]);
 
-    // Keep the pinned selection visible while searching. This Only applies to searchable selectors.
+    // Searchable selectors pin the selected option to the top upstream (in useSelectionListSearch or the caller's own
+    // search logic). These anti-jump list props keep that pinned row visible: mount-scroll is off because the pinned
+    // row is already at the top, and maintaining scroll position is disabled so clearing the search returns to the top.
+    // This only applies to searchable selectors.
     const isSearchableList = !!textInputOptions;
 
     return (

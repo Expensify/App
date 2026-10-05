@@ -5,8 +5,7 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 
 import CONST from '@src/CONST';
 
-import {useState} from 'react';
-
+import useInitialValue from './useInitialValue';
 import useLocalize from './useLocalize';
 import useSearchResults from './useSearchResults';
 
@@ -16,9 +15,10 @@ import useSearchResults from './useSearchResults';
  */
 function useSelectionListSearch<T extends ListItem & {value: string}>(data: T[], noResultsMessage?: string) {
     const {translate} = useLocalize();
-    // Keep the initially selected item pinned while staged selections change and search filters the list.
-    const [initialSelectedValue] = useState(() => data.find((item) => item.isSelected)?.value);
-    const orderedData = moveInitialSelectionToTop(data, initialSelectedValue !== undefined ? [initialSelectedValue] : []);
+    // Freeze the items selected when the list opened so they stay pinned while staged selections change and the search
+    // filters the list. All pre-selected values are kept so multi-select lists pin every one, not just the first.
+    const initialSelectedValues = useInitialValue(() => data.filter((item) => item.isSelected).map((item) => item.value));
+    const orderedData = moveInitialSelectionToTop(data, initialSelectedValues);
     const [searchValue, setSearchValue, filteredData] = useSearchResults(
         orderedData,
         (item, searchInput) => tokenizedSearch([item], searchInput, () => [item.text ?? '', item.value]).length > 0,

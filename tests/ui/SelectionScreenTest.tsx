@@ -43,10 +43,7 @@ type MockSelectionListProps = {
     disableMaintainingScrollPosition?: boolean;
 };
 
-/**
- * Build `count` options; the option at `selectedIndex` is the pre-selected one.
- * `value` and `keyForList` are intentionally different so a test can prove matching happens on `keyForList`.
- */
+/** Build `count` options; the option at `selectedIndex` is the pre-selected one. */
 function buildData(count: number, selectedIndex: number): Array<SelectorType<string>> {
     return Array.from({length: count}, (_, index) => {
         const suffix = String(index + 1).padStart(2, '0');
