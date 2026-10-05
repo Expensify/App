@@ -557,6 +557,7 @@ function setPolicyTaxCode(
         if (rule.tax?.field_id_TAX?.externalID !== oldTaxCode) {
             return rule;
         }
+
         // eslint-disable-next-line @typescript-eslint/naming-convention
         return {...rule, tax: {field_id_TAX: {...rule.tax.field_id_TAX, externalID: newTaxCode}}};
     });
