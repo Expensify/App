@@ -261,7 +261,11 @@ When dismissing an RHP reveals a **different** fullscreen destination (not the s
 
 -   **`CONST.DESTINATION_STRATEGY.PRE_INSERT` (default):** on mount, waits for the RHP's open transition, then pre-mounts the destination at idle priority (`preInsertFullscreenUnderRHP`). By the time the user dismisses, the destination is already mounted, so dismissal just reveals it. Where it goes depends on the layout:
     -   **Narrow layout:** the destination route is inserted underneath the RHP.
-    -   **Wide layout:** the destination is visible next to the RHP, so it can't go under the RHP. Its screen is mounted hidden inside the current `TAB_NAVIGATOR` instead: directly under the current screen when it belongs to the focused tab, or on top of its tab's stack (kept rendering while that tab is covered) otherwise. `reveal()` runs the regular replace and reuses that screen, so the stack, tab history and back navigation are the same as without the pre-mount, and visited tabs keep their state. This only happens when the outermost fullscreen route is the `TAB_NAVIGATOR`, and not for a destination inside the focused Search tab or for the screen that is already shown. Otherwise nothing is pre-mounted and `reveal()` falls back to the reveal-time path below.
+    -   **Wide layout:** the destination is visible next to the RHP, so it can't go under it. Its screen is mounted hidden inside the current `TAB_NAVIGATOR` instead:
+        -   **Destination in the focused tab:** directly under the current screen.
+        -   **Destination in another tab:** on top of that tab's stack. The covered tab keeps rendering it.
+        -   **On reveal:** `reveal()` runs the regular replace and reuses that screen, so the stack, tab history and back navigation are the same as without the pre-mount, and visited tabs keep their state.
+        -   **Skipped** when another fullscreen covers the `TAB_NAVIGATOR`, the destination is the screen already shown, or it is inside the focused Search tab. `reveal()` then falls back to the reveal-time path below.
 -   **`CONST.DESTINATION_STRATEGY.REVEAL`, or `PRE_INSERT` where the pre-mount hasn't finished or was skipped:** `reveal()` calls `Navigation.revealRouteBeforeDismissingModal` instead. It swaps in the destination and dismisses in one step, at reveal time rather than eagerly. Correctness is the same either way. Only the pre-mount path has the mount-ahead-of-time perf win.
 
 ```tsx
