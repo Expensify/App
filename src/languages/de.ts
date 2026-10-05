@@ -9497,8 +9497,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `„${prohibitedExpense}“ zu verbotenen Ausgaben hinzugefügt`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `„${prohibitedExpense}“ aus verbotenen Ausgaben entfernt`,
         workArrangement: {
-            officeBased: 'bürobasiert',
-            noRegularWorkplace: 'kein fester Arbeitsplatz',
             set: ({arrangement}: {arrangement: string}) => `Standard-Arbeitsmodell auf ${arrangement} festlegen`,
             changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
                 `hat die Standardarbeitsregelung in ${arrangement} geändert (zuvor ${previousArrangement})`,

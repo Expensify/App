@@ -9072,8 +9072,6 @@ ${reportName}`,
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `已将“${prohibitedExpense}”添加到禁止报销的费用中`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `已从禁用报销类别中移除“${prohibitedExpense}”`,
         workArrangement: {
-            officeBased: '办公室办公',
-            noRegularWorkplace: '没有固定工作地点',
             set: ({arrangement}: {arrangement: string}) => `将默认工作安排设置为 ${arrangement}`,
             changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) => `将默认工作安排更改为 ${arrangement}（之前为 ${previousArrangement}）`,
         },

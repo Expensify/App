@@ -4511,8 +4511,8 @@ describe('ReportActionsUtils', () => {
             }) as ReportAction;
 
         it.each([
-            [true, 'set the default work arrangement to office-based'],
-            [false, 'set the default work arrangement to no regular workplace'],
+            [true, 'set the default work arrangement to Office-based'],
+            [false, 'set the default work arrangement to Remote or mobile'],
         ])('reports only the new arrangement the first time it is set to %s', (newValue, expected) => {
             // Given a change log for the first time an admin picks a work arrangement, which has no previous value
             const action = buildWorkArrangementAction({newValue});
@@ -4525,8 +4525,8 @@ describe('ReportActionsUtils', () => {
         });
 
         it.each([
-            [true, false, 'changed the default work arrangement to office-based (previously no regular workplace)'],
-            [false, true, 'changed the default work arrangement to no regular workplace (previously office-based)'],
+            [true, false, 'changed the default work arrangement to Office-based (previously Remote or mobile)'],
+            [false, true, 'changed the default work arrangement to Remote or mobile (previously Office-based)'],
         ])('names both arrangements when changing to %s from %s', (newValue, oldValue, expected) => {
             // Given a change log for an admin switching an arrangement the workspace already had
             const action = buildWorkArrangementAction({newValue, oldValue});

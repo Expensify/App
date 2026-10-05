@@ -9448,8 +9448,6 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `ha aggiunto "${prohibitedExpense}" alle spese vietate`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `ha rimosso "${prohibitedExpense}" dalle spese vietate`,
         workArrangement: {
-            officeBased: 'in ufficio',
-            noRegularWorkplace: 'nessun luogo di lavoro fisso',
             set: ({arrangement}: {arrangement: string}) => `imposta la modalità di lavoro predefinita su ${arrangement}`,
             changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
                 `ha modificato l’organizzazione di lavoro predefinita in ${arrangement} (in precedenza ${previousArrangement})`,

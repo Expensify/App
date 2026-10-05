@@ -9625,8 +9625,6 @@ ${reportName}`,
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `προστέθηκε το "${prohibitedExpense}" στις απαγορευμένες δαπάνες`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `αφαιρέσατε το «${prohibitedExpense}» από τις απαγορευμένες δαπάνες`,
         workArrangement: {
-            officeBased: 'με φυσική παρουσία στο γραφείο',
-            noRegularWorkplace: 'κανένας σταθερός χώρος εργασίας',
             set: ({arrangement}: {arrangement: string}) => `ορίστε την προεπιλεγμένη εργασιακή ρύθμιση σε ${arrangement}`,
             changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
                 `άλλαξε την προεπιλεγμένη εργασιακή ρύθμιση σε ${arrangement} (προηγουμένως ${previousArrangement})`,

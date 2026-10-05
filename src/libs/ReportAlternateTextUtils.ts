@@ -99,6 +99,7 @@ import {
     getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getPolicyChangeLogUpdateEmployee,
+    getPolicyWorkArrangementMessage,
     getReimbursedMessage,
     getReimburserUpdateMessage,
     getRemovedCardFeedMessage,
@@ -811,6 +812,9 @@ function getLastMessageTextForReport({
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING)) {
         lastMessageTextFromReport = getUpdatedAutoHarvestingMessage(translate, lastReportAction);
+    }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_POLICY_WORK_ARRANGEMENT)) {
+        lastMessageTextFromReport = getPolicyWorkArrangementMessage(translate, lastReportAction);
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_WORK_ARRANGEMENT)) {
         lastMessageTextFromReport = getUpdatedMemberWorkArrangementMessage(translate, lastReportAction);

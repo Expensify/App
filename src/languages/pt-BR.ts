@@ -9417,8 +9417,6 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `adicionou "${prohibitedExpense}" às despesas proibidas`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `removeu "${prohibitedExpense}" das despesas proibidas`,
         workArrangement: {
-            officeBased: 'em escritório',
-            noRegularWorkplace: 'sem local de trabalho fixo',
             set: ({arrangement}: {arrangement: string}) => `definir o arranjo de trabalho padrão como ${arrangement}`,
             changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
                 `alterou o arranjo de trabalho padrão para ${arrangement} (antes ${previousArrangement})`,

@@ -9430,8 +9430,6 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `dodano „${prohibitedExpense}” do zabronionych wydatków`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `usunięto „${prohibitedExpense}” z wydatków zabronionych`,
         workArrangement: {
-            officeBased: 'stacjonarny w biurze',
-            noRegularWorkplace: 'brak stałego miejsca pracy',
             set: ({arrangement}: {arrangement: string}) => `ustaw domyślny tryb pracy na ${arrangement}`,
             changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
                 `zmienił domyślny tryb pracy na ${arrangement} (wcześniej ${previousArrangement})`,

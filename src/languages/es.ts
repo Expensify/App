@@ -9277,8 +9277,6 @@ ${reportName}`,
         addedProhibitedExpense: ({prohibitedExpense}) => `añadió "${prohibitedExpense}" a los gastos prohibidos`,
         removedProhibitedExpense: ({prohibitedExpense}) => `eliminó "${prohibitedExpense}" de los gastos prohibidos`,
         workArrangement: {
-            officeBased: 'en oficina',
-            noRegularWorkplace: 'ningún lugar de trabajo fijo',
             set: ({arrangement}: {arrangement: string}) => `establecer la modalidad de trabajo predeterminada en ${arrangement}`,
             changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
                 `cambió la modalidad de trabajo predeterminada a ${arrangement} (previamente ${previousArrangement})`,

@@ -9520,8 +9520,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `a ajouté « ${prohibitedExpense} » aux dépenses interdites`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `a supprimé « ${prohibitedExpense} » des dépenses interdites`,
         workArrangement: {
-            officeBased: 'au bureau',
-            noRegularWorkplace: 'pas de lieu de travail habituel',
             set: ({arrangement}: {arrangement: string}) => `définir l’organisation du travail par défaut sur ${arrangement}`,
             changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
                 `a modifié l’accord de travail par défaut en ${arrangement} (auparavant ${previousArrangement})`,

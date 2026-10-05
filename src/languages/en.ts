@@ -9606,8 +9606,6 @@ const translations = {
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `added "${prohibitedExpense}" to prohibited expenses`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `removed "${prohibitedExpense}" from prohibited expenses`,
         workArrangement: {
-            officeBased: 'office-based',
-            noRegularWorkplace: 'no regular workplace',
             set: ({arrangement}: {arrangement: string}) => `set the default work arrangement to ${arrangement}`,
             changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
                 `changed the default work arrangement to ${arrangement} (previously ${previousArrangement})`,

@@ -9314,8 +9314,6 @@ ${reportName}`,
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `禁止経費に「${prohibitedExpense}」を追加しました`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `禁止経費から「${prohibitedExpense}」を削除しました`,
         workArrangement: {
-            officeBased: 'オフィス勤務',
-            noRegularWorkplace: '通常の職場なし',
             set: ({arrangement}: {arrangement: string}) => `デフォルトの勤務形態を${arrangement}に設定します`,
             changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
                 `標準の勤務形態を${arrangement}（以前は${previousArrangement}）に変更しました`,

@@ -4596,13 +4596,13 @@ function getPolicyWorkArrangementMessage(translate: LocalizedTranslate, reportAc
         return getReportActionText(reportAction);
     }
 
-    const arrangement = translate(newValue ? 'workspaceActions.workArrangement.officeBased' : 'workspaceActions.workArrangement.noRegularWorkplace');
+    const arrangement = getWorkArrangementLabel(translate, newValue);
 
     if (typeof oldValue !== 'boolean') {
         return translate('workspaceActions.workArrangement.set', {arrangement});
     }
 
-    const previousArrangement = translate(oldValue ? 'workspaceActions.workArrangement.officeBased' : 'workspaceActions.workArrangement.noRegularWorkplace');
+    const previousArrangement = getWorkArrangementLabel(translate, oldValue);
     return translate('workspaceActions.workArrangement.changed', {arrangement, previousArrangement});
 }
 

@@ -9419,8 +9419,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `heeft ‘${prohibitedExpense}’ toegevoegd aan verboden uitgaven`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `heeft „${prohibitedExpense}” verwijderd uit verboden uitgaven`,
         workArrangement: {
-            officeBased: 'kantoorgebonden',
-            noRegularWorkplace: 'geen vaste werkplek',
             set: ({arrangement}: {arrangement: string}) => `stel de standaard werkregeling in op ${arrangement}`,
             changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
                 `heeft de standaardwerkafspraak gewijzigd naar ${arrangement} (voorheen ${previousArrangement})`,
