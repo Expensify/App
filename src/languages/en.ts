@@ -10035,7 +10035,7 @@ const translations = {
         saveView: 'Save view',
         saveEdits: {
             title: 'Save edits',
-            prompt: ({name}: {name: string}) => `Update changes to "${name}" or create a new one`,
+            prompt: ({name}: {name: string}) => `Update changes to "${name}" or create a new one?`,
             createNew: 'Create new',
             updateExisting: 'Update existing',
         },
