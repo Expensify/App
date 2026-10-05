@@ -21120,6 +21120,7 @@ describe('ReportUtils', () => {
         it('should return false if list report field has some options enabled', () => {
             const reportField = createMock<PolicyReportField>({
                 type: CONST.REPORT_FIELD_TYPES.LIST,
+                values: ['A', 'B', 'C'],
                 disabledOptions: [false, true, false],
             });
             expect(shouldHideSingleReportField(reportField)).toBe(false);
@@ -21127,8 +21128,45 @@ describe('ReportUtils', () => {
         it('should return false if all items in list report field are disabled', () => {
             const reportField = createMock<PolicyReportField>({
                 type: CONST.REPORT_FIELD_TYPES.LIST,
+                values: ['A', 'B', 'C'],
                 disabledOptions: [true, true, true],
             });
+            expect(shouldHideSingleReportField(reportField)).toBe(true);
+        });
+        it('should return false if list report field has values but an empty disabledOptions array', () => {
+            // Given a list field not created in NewDot, where the backend sends an empty disabledOptions array
+            const reportField = createMock<PolicyReportField>({
+                type: CONST.REPORT_FIELD_TYPES.LIST,
+                values: ['A', 'B'],
+                disabledOptions: [],
+            });
+
+            // When checking whether the field should be hidden
+            // Then it is visible, because values without a disabledOptions entry are treated as enabled
+            expect(shouldHideSingleReportField(reportField)).toBe(false);
+        });
+        it('should return false if disabledOptions is shorter than values and the missing entries are enabled', () => {
+            // Given a list field where only the first value has a disabledOptions entry
+            const reportField = createMock<PolicyReportField>({
+                type: CONST.REPORT_FIELD_TYPES.LIST,
+                values: ['A', 'B', 'C'],
+                disabledOptions: [true],
+            });
+
+            // When checking whether the field should be hidden
+            // Then it is visible, because the values without an entry are treated as enabled
+            expect(shouldHideSingleReportField(reportField)).toBe(false);
+        });
+        it('should return true if every value of a list report field is explicitly disabled', () => {
+            // Given a list field where every value is disabled
+            const reportField = createMock<PolicyReportField>({
+                type: CONST.REPORT_FIELD_TYPES.LIST,
+                values: ['A', 'B'],
+                disabledOptions: [true, true],
+            });
+
+            // When checking whether the field should be hidden
+            // Then it is hidden, because no value can be selected
             expect(shouldHideSingleReportField(reportField)).toBe(true);
         });
     });
