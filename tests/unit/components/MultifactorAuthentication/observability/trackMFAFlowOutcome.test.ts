@@ -73,7 +73,7 @@ describe('trackMFAFlowOutcome', () => {
     it('keeps the body out of the fallback log when reporting itself throws', () => {
         // The fallback logs the whole context, so the body has to be gone before the tracker's own
         // try block runs - otherwise a Sentry outage uploads card secrets to the application logs.
-        mockCaptureMessage.mockImplementation(() => {
+        mockCaptureMessage.mockImplementationOnce(() => {
             throw new Error('Sentry is down');
         });
 
