@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -15,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getDefaultCardName} from '@libs/CardUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {isPolicyFeatureEnabled} from '@libs/PolicyUtils';
+import StringUtils from '@libs/StringUtils';
 import {getFieldRequiredErrors, isValidInputLength} from '@libs/ValidationUtils';
 
 import {setIssueNewCardStepAndData} from '@userActions/Card';
@@ -35,7 +37,7 @@ type CardNameStepProps = {
 function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef} = useAutoFocusInput(true);
     const isInLandscapeMode = useIsInLandscapeMode();
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -108,27 +110,34 @@ function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) 
         >
             {!isInLandscapeMode && <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.giveItName')}</Text>}
             <FormProvider
+                submitFlexEnabled={false}
                 formID={ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM}
                 submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
-                onSubmit={submit}
-                validate={validate}
+                onSubmit={(values) => submit({...values, [INPUT_IDS.CARD_TITLE]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.CARD_TITLE])})}
+                validate={(values) => validate({...values, [INPUT_IDS.CARD_TITLE]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.CARD_TITLE])})}
                 style={[styles.mh5, styles.flexGrow1]}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
                 addBottomSafeAreaPadding
             >
                 {isInLandscapeMode && <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.card.issueNewCard.giveItName')}</Text>}
-                <InputWrapper
-                    InputComponent={TextInput}
-                    inputID={INPUT_IDS.CARD_TITLE}
-                    label={translate('workspace.card.issueNewCard.cardName')}
-                    hint={translate('workspace.card.issueNewCard.giveItNameInstruction')}
-                    aria-label={translate('workspace.card.issueNewCard.cardName')}
-                    role={CONST.ROLE.PRESENTATION}
-                    defaultValue={issueNewCard?.data?.cardTitle ?? defaultCardTitle}
-                    containerStyles={[styles.mb6]}
-                    ref={inputCallbackRef}
-                />
+                <AutoGrowHeightInputContainer>
+                    {(maxAutoGrowHeight) => (
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID={INPUT_IDS.CARD_TITLE}
+                            label={translate('workspace.card.issueNewCard.cardName')}
+                            hint={translate('workspace.card.issueNewCard.giveItNameInstruction')}
+                            aria-label={translate('workspace.card.issueNewCard.cardName')}
+                            role={CONST.ROLE.PRESENTATION}
+                            defaultValue={issueNewCard?.data?.cardTitle ?? defaultCardTitle}
+                            containerStyles={[styles.mb6]}
+                            ref={inputCallbackRef}
+                            maxAutoGrowHeight={maxAutoGrowHeight}
+                            autoGrowSingleLine
+                        />
+                    )}
+                </AutoGrowHeightInputContainer>
             </FormProvider>
         </InteractiveStepWrapper>
     );

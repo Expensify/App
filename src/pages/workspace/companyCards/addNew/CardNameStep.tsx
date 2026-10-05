@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -12,6 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {addErrorMessage} from '@libs/ErrorUtils';
+import StringUtils from '@libs/StringUtils';
 import {getFieldRequiredErrors, isValidInputLength} from '@libs/ValidationUtils';
 
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
@@ -25,7 +27,7 @@ import React from 'react';
 function CardNameStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef} = useAutoFocusInput(true);
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM> => {
@@ -66,25 +68,32 @@ function CardNameStep() {
             />
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.addNewCard.whatBankIssuesCard')}</Text>
             <FormProvider
+                submitFlexEnabled={false}
                 formID={ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM}
                 submitButtonText={translate('common.next')}
-                onSubmit={submit}
-                validate={validate}
+                onSubmit={(values) => submit({...values, [INPUT_IDS.CARD_TITLE]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.CARD_TITLE])})}
+                validate={(values) => validate({...values, [INPUT_IDS.CARD_TITLE]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.CARD_TITLE])})}
                 style={[styles.mh5, styles.flexGrow1]}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
                 addBottomSafeAreaPadding
                 shouldPreventDefaultFocusOnPressSubmit
             >
-                <InputWrapper
-                    InputComponent={TextInput}
-                    inputID={INPUT_IDS.CARD_TITLE}
-                    label={translate('workspace.companyCards.addNewCard.enterNameOfBank')}
-                    role={CONST.ROLE.PRESENTATION}
-                    defaultValue={addNewCard?.data?.bankName}
-                    containerStyles={[styles.mb6]}
-                    ref={inputCallbackRef}
-                />
+                <AutoGrowHeightInputContainer>
+                    {(maxAutoGrowHeight) => (
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID={INPUT_IDS.CARD_TITLE}
+                            label={translate('workspace.companyCards.addNewCard.enterNameOfBank')}
+                            role={CONST.ROLE.PRESENTATION}
+                            defaultValue={addNewCard?.data?.bankName}
+                            containerStyles={[styles.mb6]}
+                            ref={inputCallbackRef}
+                            maxAutoGrowHeight={maxAutoGrowHeight}
+                            autoGrowSingleLine
+                        />
+                    )}
+                </AutoGrowHeightInputContainer>
             </FormProvider>
         </ScreenWrapper>
     );

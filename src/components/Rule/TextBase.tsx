@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -8,9 +9,8 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import StringUtils from '@libs/StringUtils';
 import {isInvalidMerchantValue, isRequiredFulfilled, isValidInputLength} from '@libs/ValidationUtils';
-
-import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
@@ -18,7 +18,6 @@ import EXPENSE_RULE_INPUT_IDS from '@src/types/form/ExpenseRuleForm';
 import MERCHANT_RULE_INPUT_IDS from '@src/types/form/MerchantRuleForm';
 
 import React from 'react';
-import {View} from 'react-native';
 
 type TextBaseProps<TFormID extends OnyxFormKey> = {
     fieldID: string;
@@ -56,7 +55,15 @@ function TextBaseImpl({fieldID, hint, isRequired, title, label, onSubmit, formID
     const styles = useThemeStyles();
 
     const currentValue = (form as Record<string, unknown>)?.[fieldID] ?? '';
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef} = useAutoFocusInput(true);
+
+    const normalizeValues = (values: FormOnyxValues<OnyxFormKey>) => {
+        const fieldValue = (values as Record<string, unknown>)[fieldID];
+        if (isMarkdownEnabled || typeof fieldValue !== 'string') {
+            return values;
+        }
+        return {...values, [fieldID]: StringUtils.lineBreaksToSpaces(fieldValue)};
+    };
 
     const validate = (values: FormOnyxValues<OnyxFormKey>) => {
         const errors: FormInputErrors<OnyxFormKey> = {};
@@ -87,31 +94,35 @@ function TextBaseImpl({fieldID, hint, isRequired, title, label, onSubmit, formID
 
     return (
         <FormProvider
+            submitFlexEnabled={false}
             style={[styles.flex1, styles.ph5]}
             formID={formID}
-            validate={validate}
-            onSubmit={onSubmit}
+            validate={(values) => validate(normalizeValues(values))}
+            onSubmit={(values) => onSubmit(normalizeValues(values))}
             submitButtonText={translate('common.save')}
             enabledWhenOffline
             shouldUseStrictHtmlTagValidation
         >
-            <View style={styles.mb5}>
-                <InputWrapper
-                    hint={hint}
-                    InputComponent={TextInput}
-                    inputID={fieldID}
-                    name={fieldID}
-                    defaultValue={typeof currentValue === 'string' ? currentValue : undefined}
-                    label={label}
-                    accessibilityLabel={title}
-                    role={CONST.ROLE.PRESENTATION}
-                    ref={inputCallbackRef}
-                    type={isMarkdownEnabled ? 'markdown' : undefined}
-                    autoGrowHeight={isMarkdownEnabled}
-                    maxAutoGrowHeight={isMarkdownEnabled ? variables.textInputAutoGrowMaxHeight : undefined}
-                    shouldSubmitForm={isMarkdownEnabled}
-                />
-            </View>
+            <AutoGrowHeightInputContainer style={styles.mb5}>
+                {(maxAutoGrowHeight) => (
+                    <InputWrapper
+                        hint={hint}
+                        InputComponent={TextInput}
+                        inputID={fieldID}
+                        name={fieldID}
+                        defaultValue={typeof currentValue === 'string' ? currentValue : undefined}
+                        label={label}
+                        accessibilityLabel={title}
+                        role={CONST.ROLE.PRESENTATION}
+                        ref={inputCallbackRef}
+                        type={isMarkdownEnabled ? 'markdown' : undefined}
+                        autoGrowHeight={isMarkdownEnabled}
+                        autoGrowSingleLine={!isMarkdownEnabled}
+                        maxAutoGrowHeight={maxAutoGrowHeight}
+                        shouldSubmitForm={isMarkdownEnabled}
+                    />
+                )}
+            </AutoGrowHeightInputContainer>
         </FormProvider>
     );
 }

@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
@@ -24,7 +25,6 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/RulesCustomForm';
 
 import React, {useCallback, useState} from 'react';
-import {View} from 'react-native';
 
 type RulesCustomPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_CUSTOM>;
 
@@ -57,6 +57,7 @@ function RulesCustomPage({
             >
                 <HeaderWithBackButtonAndTitle title={translate('workspace.rules.customRules.title')} />
                 <FormProvider
+                    submitFlexEnabled={false}
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.RULES_CUSTOM_FORM}
                     onSubmit={({customRules}) => {
@@ -68,20 +69,23 @@ function RulesCustomPage({
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    <View style={styles.mb4}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.CUSTOM_RULES}
-                            label={translate('workspace.rules.customRules.title')}
-                            role={CONST.ROLE.PRESENTATION}
-                            value={customRulesValue}
-                            onChangeText={onChangeCustomRules}
-                            ref={inputCallbackRef}
-                            type="markdown"
-                            autoGrowHeight
-                            maxLength={CONST.DESCRIPTION_LIMIT}
-                        />
-                    </View>
+                    <AutoGrowHeightInputContainer style={styles.mb4}>
+                        {(maxAutoGrowHeight) => (
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                inputID={INPUT_IDS.CUSTOM_RULES}
+                                label={translate('workspace.rules.customRules.title')}
+                                role={CONST.ROLE.PRESENTATION}
+                                value={customRulesValue}
+                                onChangeText={onChangeCustomRules}
+                                ref={inputCallbackRef}
+                                type="markdown"
+                                autoGrowHeight
+                                maxLength={CONST.DESCRIPTION_LIMIT}
+                                maxAutoGrowHeight={maxAutoGrowHeight}
+                            />
+                        )}
+                    </AutoGrowHeightInputContainer>
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

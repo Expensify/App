@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -13,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type {PolicyFeature} from '@libs/PolicyUtils';
+import StringUtils from '@libs/StringUtils';
 import {validateReportFieldListValueName} from '@libs/WorkspaceReportFieldUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -42,7 +44,7 @@ type FieldsEditValuePageProps = {
 function FieldsEditValuePage({policy, policyID, valueIndex, featureName, policyFeature, testID}: FieldsEditValuePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef} = useAutoFocusInput(true);
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
     const {canWrite} = usePolicyFeatureWriteAccess(policy, policyFeature);
 
@@ -88,26 +90,33 @@ function FieldsEditValuePage({policy, policyID, valueIndex, featureName, policyF
                     onBackButtonPress={Navigation.goBack}
                 />
                 <FormProvider
+                    submitFlexEnabled={false}
                     formID={ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM}
-                    onSubmit={editValue}
+                    onSubmit={(values) => editValue({...values, [INPUT_IDS.NEW_VALUE_NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.NEW_VALUE_NAME])})}
                     submitButtonText={translate('common.save')}
-                    validate={validate}
+                    validate={(values) => validate({...values, [INPUT_IDS.NEW_VALUE_NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.NEW_VALUE_NAME])})}
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
                     isSubmitButtonVisible={canWrite}
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        defaultValue={currentValueName}
-                        label={translate('common.value')}
-                        accessibilityLabel={translate('common.value')}
-                        inputID={INPUT_IDS.NEW_VALUE_NAME}
-                        role={CONST.ROLE.PRESENTATION}
-                        ref={inputCallbackRef}
-                        disabled={!canWrite}
-                    />
+                    <AutoGrowHeightInputContainer>
+                        {(maxAutoGrowHeight) => (
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                defaultValue={currentValueName}
+                                label={translate('common.value')}
+                                accessibilityLabel={translate('common.value')}
+                                inputID={INPUT_IDS.NEW_VALUE_NAME}
+                                role={CONST.ROLE.PRESENTATION}
+                                ref={inputCallbackRef}
+                                disabled={!canWrite}
+                                maxAutoGrowHeight={maxAutoGrowHeight}
+                                autoGrowSingleLine
+                            />
+                        )}
+                    </AutoGrowHeightInputContainer>
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
