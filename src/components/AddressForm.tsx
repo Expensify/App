@@ -207,6 +207,7 @@ function AddressForm({
             submitButtonText={submitButtonText}
             enabledWhenOffline={enabledWhenOfflineProp}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+            shouldUseDraftValues={shouldSaveDraft}
         >
             <View>
                 <InputWrapper
