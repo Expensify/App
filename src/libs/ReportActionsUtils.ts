@@ -2803,11 +2803,15 @@ function getMentionedEmailsFromMessage(message: string) {
     return matches.map((match) => Str.removeSMSDomain(match[1].substring(1)));
 }
 
-function didMessageMentionCurrentUser(reportAction: OnyxInputOrEntry<ReportAction>, currentUserEmail: string) {
+function didMessageMentionCurrentUser(reportAction: OnyxInputOrEntry<ReportAction>, currentUserEmail: string, currentUserAccountID?: number) {
     const accountIDsFromMessage = getMentionedAccountIDsFromAction(reportAction);
     const message = getReportActionMessage(reportAction)?.html ?? '';
     const emailsFromMessage = getMentionedEmailsFromMessage(message);
-    return accountIDsFromMessage.includes(deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID) || emailsFromMessage.includes(currentUserEmail) || message.includes('<mention-here>');
+    return (
+        accountIDsFromMessage.includes(currentUserAccountID ?? deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID) ||
+        emailsFromMessage.includes(currentUserEmail) ||
+        message.includes('<mention-here>')
+    );
 }
 
 /**
@@ -3025,6 +3029,7 @@ function getExportIntegrationActionFragments(
                 case CONST.EXPORT_LABELS.INTACCT:
                 case CONST.EXPORT_LABELS.SAGE_INTACCT:
                 case CONST.EXPORT_LABELS.QBD:
+                case CONST.EXPORT_LABELS.BUSINESS_CENTRAL:
                     // These integrations store IDs, not URLs.
                     url = '';
                     break;
@@ -5440,7 +5445,6 @@ export {
     shouldHideNewMarker,
     shouldReportActionBeVisible,
     isReportActionVisible,
-    isReportActionVisibleAsLastAction,
     wasActionTakenByCurrentUser,
     isInviteOrRemovedAction,
     isActionableAddPaymentCard,

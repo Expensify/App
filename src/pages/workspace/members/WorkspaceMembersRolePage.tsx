@@ -30,7 +30,7 @@ import type {ValueOf} from 'type-fest';
 
 import React, {useEffect, useState} from 'react';
 
-type WorkspaceMembersRolePageProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS_ROLE>;
+type WorkspaceMembersRolePageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS_ROLE>;
 
 function WorkspaceMembersRolePage({policy, route}: WorkspaceMembersRolePageProps) {
     const policyID = route.params.policyID;
@@ -47,7 +47,7 @@ function WorkspaceMembersRolePage({policy, route}: WorkspaceMembersRolePageProps
 
     // Only offer a role as already picked when the whole selection shares it, so a mixed selection starts with nothing
     // selected and the member has to make a deliberate choice.
-    const sharedRole = memberRoles.every((role) => role === memberRoles.at(0)) ? memberRoles.at(0) : undefined;
+    const sharedRole = memberRoles.length > 0 ? Object.values(CONST.POLICY.ROLE).find((role) => memberRoles.every((memberRole) => memberRole === role)) : undefined;
     const [draftRole, setDraftRole] = useState<ValueOf<typeof CONST.POLICY.ROLE>>();
     const [hasError, setHasError] = useState(false);
     const selectedRole = draftRole ?? sharedRole;
