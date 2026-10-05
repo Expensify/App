@@ -7,22 +7,16 @@ import VerifyAccountPageBase from '@pages/settings/VerifyAccountPageBase';
 
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 
-import {useNavigationState} from '@react-navigation/native';
 import React from 'react';
 
 type DynamicReimbursementAccountVerifyAccountPageProps = PlatformStackScreenProps<ReimbursementAccountNavigatorParamList, typeof SCREENS.DYNAMIC_REIMBURSEMENT_ACCOUNT_VERIFY_ACCOUNT>;
 
-type ReimbursementAccountParams = ReimbursementAccountNavigatorParamList[typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT];
-
 function DynamicReimbursementAccountVerifyAccountPage({route}: DynamicReimbursementAccountVerifyAccountPageProps) {
-    const {policyID, setupType, isNonUSDSetup} = route.params ?? {};
+    // backTo is inherited from the entry screen's query params
+    const {policyID, backTo, setupType, isNonUSDSetup} = route.params ?? {};
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.BANK_ACCOUNT_VERIFY_ACCOUNT.path);
-    // backTo of the entry screen below, passed on like prepareNextStep does
-    const backTo = useNavigationState(
-        (state) => (state.routes.findLast((stackRoute) => stackRoute.name === SCREENS.REIMBURSEMENT_ACCOUNT)?.params as ReimbursementAccountParams | undefined)?.backTo,
-    );
 
     // Read from the route, not REIMBURSEMENT_ACCOUNT_OPTION_PRESSED: the entry point resets that key on validation
     let navigateForwardTo;

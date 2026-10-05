@@ -33,16 +33,7 @@ jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => 'bank-account/new'));
 const POLICY_ID = '1';
 const BACK_TO = ROUTES.WORKSPACE_WORKFLOWS.getRoute(POLICY_ID);
 
-// The modal stack registers the entry screen as REIMBURSEMENT_ACCOUNT with REIMBURSEMENT_ACCOUNT_ROOT params
-type TestParamList = ReimbursementAccountNavigatorParamList & {
-    [SCREENS.REIMBURSEMENT_ACCOUNT]: ReimbursementAccountNavigatorParamList[typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT];
-};
-
-const Stack = createPlatformStackNavigator<TestParamList>();
-
-function EntryScreen() {
-    return null;
-}
+const Stack = createPlatformStackNavigator<ReimbursementAccountNavigatorParamList>();
 
 function renderPage(setupType: ValueOf<typeof CONST.BANK_ACCOUNT.SETUP_TYPE> | undefined, isNonUSDSetup: string | undefined) {
     return render(
@@ -50,19 +41,14 @@ function renderPage(setupType: ValueOf<typeof CONST.BANK_ACCOUNT.SETUP_TYPE> | u
             <NavigationContainer
                 ref={navigationRef}
                 initialState={{
-                    index: 1,
+                    index: 0,
                     routes: [
-                        {name: SCREENS.REIMBURSEMENT_ACCOUNT, params: {policyID: POLICY_ID, backTo: BACK_TO}},
                         // Inherits the entry route's query params, as in the app
                         {name: SCREENS.DYNAMIC_REIMBURSEMENT_ACCOUNT_VERIFY_ACCOUNT, params: {policyID: POLICY_ID, backTo: BACK_TO, setupType, isNonUSDSetup}},
                     ],
                 }}
             >
                 <Stack.Navigator>
-                    <Stack.Screen
-                        name={SCREENS.REIMBURSEMENT_ACCOUNT}
-                        component={EntryScreen}
-                    />
                     <Stack.Screen
                         name={SCREENS.DYNAMIC_REIMBURSEMENT_ACCOUNT_VERIFY_ACCOUNT}
                         component={DynamicReimbursementAccountVerifyAccountPage}
