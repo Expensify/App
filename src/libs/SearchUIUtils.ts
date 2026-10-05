@@ -656,6 +656,7 @@ const SKIPPED_SEARCH_FILTERS = new Set([
     FILTER_KEYS.ACTION,
     FILTER_KEYS.COLUMNS,
     FILTER_KEYS.KEYWORD,
+    FILTER_KEYS.EXPORTER,
 ]);
 
 function doesSearchItemMatchSort(key: SearchKey, itemSortBy: string | undefined, itemSortOrder: string | undefined, currentSortBy: string | undefined, currentSortOrder: string | undefined) {
