@@ -11,7 +11,7 @@ const NEW_PARTNER_USER_ID_PREFIX = 'expensify.cash-';
 function isLoggingInAsNewUser(transitionURL?: string, sessionEmail?: string): boolean {
     // The OldDot mobile app does not URL encode the parameters, but OldDot web
     // does. We don't want to deploy OldDot mobile again, so as a work around we
-    // compare the session email to both the decoded and raw email from the transition link.
+    // fall back from URLSearchParams to a regex-based lookup if the email doesn't match.
     const params = new URLSearchParams(transitionURL);
     const paramsEmail = params.get('email');
     const delegatorEmail = params.get('delegatorEmail');
