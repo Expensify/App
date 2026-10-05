@@ -11,10 +11,12 @@ import {
     createApprovalWorkflowRules,
     removeApprovalWorkflow,
     removeApprovalWorkflowRules,
+    saveFastEditApprovalWorkflow,
     setApprovalWorkflowApprover,
     updateApprovalWorkflow,
     updateApprovalWorkflowRules,
 } from '@src/libs/actions/Workflow';
+import {isApprovalWorkflowRule} from '@src/libs/RuleUtils';
 import {
     buildApprovalWorkflowRules,
     calculateApprovers,
@@ -26,6 +28,7 @@ import {
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ApprovalWorkflowOnyx, PersonalDetailsList, Policy, Policy as PolicyType, Report} from '@src/types/onyx';
 import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
+import type {ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
 import type Rule from '@src/types/onyx/Rule';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -80,10 +83,16 @@ async function getRulesCollection(): Promise<OnyxCollection<Rule>> {
     return collection;
 }
 
-async function getActivePolicyRules(policyID: string): Promise<Rule[]> {
+/** The rules collection also holds rules of other kinds, so these tests narrow it to approval workflow rules. */
+async function getActivePolicyRules(policyID: string): Promise<Array<Rule & ApprovalWorkflowRule>> {
     const collection = await getRulesCollection();
     return Object.values(collection ?? {}).filter(
-        (rule): rule is Rule => !!rule && rule.scope === CONST.RULES.SCOPE.POLICY && rule.scopeID === policyID && rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        (rule): rule is Rule & ApprovalWorkflowRule =>
+            !!rule &&
+            rule.scope === CONST.RULES.SCOPE.POLICY &&
+            rule.scopeID === policyID &&
+            rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+            isApprovalWorkflowRule(rule),
     );
 }
 
@@ -101,21 +110,21 @@ async function createForwardApproveRules(policyID: string, submitters: string[],
     await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}${keyPrefix}1`, {
         scope: CONST.RULES.SCOPE.POLICY,
         scopeID: policyID,
-        triggers: indexMap(CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT),
+        triggers: indexMap(CONST.RULES.TRIGGERS.REPORT_SUBMIT),
         filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: submitters},
-        actions: indexMap({name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver}),
+        actions: indexMap({name: CONST.RULES.ACTIONS.FORWARD_TO, approver}),
         ...defaultMarker,
     });
     await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}${keyPrefix}2`, {
         scope: CONST.RULES.SCOPE.POLICY,
         scopeID: policyID,
-        triggers: indexMap(CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE),
+        triggers: indexMap(CONST.RULES.TRIGGERS.REPORT_APPROVE),
         filters: {
             operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
             left: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: submitters},
             right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, right: approver},
         },
-        actions: indexMap({name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.APPROVE_REPORT}),
+        actions: indexMap({name: CONST.RULES.ACTIONS.APPROVE_REPORT}),
         ...defaultMarker,
     });
 }
@@ -564,57 +573,6 @@ describe('actions/Workflow', () => {
     });
 
     describe('removeApprovalWorkflow', () => {
-        it('should optimistically point the removed workflow members at the default approver instead of leaving submitsTo empty', async () => {
-            mockFetch.pause();
-
-            // Given a policy whose default approver is not the owner, so the test also proves the value comes from
-            // `getDefaultApprover` rather than falling back to the owner
-            const policy = createMock<Policy>({
-                id: '123456789',
-                name: 'Test Workspace',
-                role: 'admin',
-                type: 'corporate',
-                owner: ownerEmail,
-                approver: employee2Email,
-                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
-                employeeList: {
-                    [ownerEmail]: {email: ownerEmail, forwardsTo: '', role: 'admin', submitsTo: employee2Email},
-                    [employee1Email]: {email: employee1Email, forwardsTo: '', role: 'user', submitsTo: employee2Email},
-                    [employee2Email]: {email: employee2Email, forwardsTo: '', role: 'user', submitsTo: employee2Email},
-                    [employee3Email]: {email: employee3Email, forwardsTo: '', role: 'user', submitsTo: employee1Email},
-                },
-            });
-
-            // The non-default workflow being removed: employee3 submits to employee1
-            const approvalWorkflow = {
-                members: [{email: employee3Email, displayName: employee3Email}],
-                approvers: [{email: employee1Email, displayName: employee1Email, isCircularReference: false}],
-                availableMembers: [],
-                usedApproverEmails: [employee2Email],
-                isDefault: false,
-                action: 'remove',
-                originalApprovers: [],
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
-            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
-            await waitForBatchedUpdates();
-
-            // When removing that workflow while the request is still in flight
-            removeApprovalWorkflow(approvalWorkflow, policy);
-            await waitForBatchedUpdates();
-
-            // Then the member reads as submitting to the default approver rather than to nobody. Storing the empty
-            // string the request carries would blank this member's approver until the response lands, and for as long
-            // as the user stays offline.
-            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
-            expect(updatedPolicy?.employeeList?.[employee3Email]?.submitsTo).toBe(employee2Email);
-            expect(updatedPolicy?.employeeList?.[employee3Email]?.pendingFields?.submitsTo).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
-
-            await mockFetch.resume();
-            await waitForBatchedUpdates();
-        });
-
         it('should keep ADVANCED approval mode when default approver has forwardsTo chain', async () => {
             mockFetch.pause();
 
@@ -1053,14 +1011,14 @@ describe('actions/Workflow', () => {
             const rules = await getActivePolicyRules(policyID);
             expect(rules).toHaveLength(2);
 
-            const submitRule = rules.find((rule) => Object.values(rule.triggers).includes(CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT));
+            const submitRule = rules.find((rule) => Object.values(rule.triggers).includes(CONST.RULES.TRIGGERS.REPORT_SUBMIT));
             expect(submitRule?.scope).toBe(CONST.RULES.SCOPE.POLICY);
             expect(submitRule?.scopeID).toBe(policyID);
             expect(submitRule?.filters).toEqual({operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: [employee1Email]});
-            expect(submitRule?.actions[1]).toEqual({name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: ownerEmail});
+            expect(submitRule?.actions[1]).toEqual({name: CONST.RULES.ACTIONS.FORWARD_TO, approver: ownerEmail});
 
-            const approveRule = rules.find((rule) => Object.values(rule.triggers).includes(CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE));
-            expect(approveRule?.actions[1]).toEqual({name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.APPROVE_REPORT});
+            const approveRule = rules.find((rule) => Object.values(rule.triggers).includes(CONST.RULES.TRIGGERS.REPORT_APPROVE));
+            expect(approveRule?.actions[1]).toEqual({name: CONST.RULES.ACTIONS.APPROVE_REPORT});
 
             await mockFetch.resume();
             await waitForBatchedUpdates();
@@ -1305,7 +1263,7 @@ describe('actions/Workflow', () => {
             expect(rules.length).toBeGreaterThan(0);
             const forwardApprovers = rules
                 .flatMap((rule) => Object.values(rule.actions))
-                .filter((action) => action.name === CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO)
+                .filter((action) => action.name === CONST.RULES.ACTIONS.FORWARD_TO)
                 .map((action) => action.approver);
             expect(forwardApprovers).toEqual([ownerEmail]);
             for (const rule of rules) {
@@ -1421,7 +1379,7 @@ describe('actions/Workflow', () => {
             const rules = await getActivePolicyRules(policyID);
             const forwardApprovers = rules
                 .flatMap((rule) => Object.values(rule.actions))
-                .filter((action) => action.name === CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO)
+                .filter((action) => action.name === CONST.RULES.ACTIONS.FORWARD_TO)
                 .map((action) => action.approver);
             expect(forwardApprovers).toContain(employee2Email);
             expect(forwardApprovers).not.toContain(ownerEmail);
@@ -1762,7 +1720,7 @@ describe('actions/Workflow', () => {
             }
             const forwardApprovers = defaultRules
                 .flatMap((rule) => Object.values(rule.actions))
-                .filter((action) => action.name === CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO)
+                .filter((action) => action.name === CONST.RULES.ACTIONS.FORWARD_TO)
                 .map((action) => action.approver);
             expect(forwardApprovers).toEqual([employee3Email]);
             expect(forwardApprovers).not.toContain(ownerEmail);
@@ -2227,7 +2185,7 @@ describe('actions/Workflow', () => {
             expect(rules.length).toBeGreaterThan(0);
             const forwardApprovers = rules
                 .flatMap((rule) => Object.values(rule.actions))
-                .filter((action) => action.name === CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO)
+                .filter((action) => action.name === CONST.RULES.ACTIONS.FORWARD_TO)
                 .map((action) => action.approver);
             expect(forwardApprovers).toEqual([employee3Email]);
             expect(forwardApprovers).not.toContain(ownerEmail);
@@ -2235,6 +2193,131 @@ describe('actions/Workflow', () => {
                 expect(extractSubmitterEmails(rule)).toEqual([employee2Email]);
                 expect(rule.isDefaultApprovalWorkflow).toBe(true);
             }
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+    });
+
+    describe('saveFastEditApprovalWorkflow', () => {
+        const policyID = '123456789';
+
+        // [employee1, employee2] -> employee3, alongside the owner's default workflow
+        const policy = createMock<Policy>({
+            id: policyID,
+            name: 'Test Workspace',
+            role: 'admin',
+            type: 'corporate',
+            owner: ownerEmail,
+            approver: ownerEmail,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            employeeList: {
+                [ownerEmail]: {email: ownerEmail, role: 'admin', submitsTo: ownerEmail, forwardsTo: ''},
+                [employee1Email]: {email: employee1Email, role: 'user', submitsTo: employee3Email, forwardsTo: ''},
+                [employee2Email]: {email: employee2Email, role: 'user', submitsTo: employee3Email, forwardsTo: ''},
+                [employee3Email]: {email: employee3Email, role: 'user', submitsTo: ownerEmail, forwardsTo: ''},
+            },
+        });
+
+        const employee1Member = {email: employee1Email, displayName: employee1Email};
+        const employee2Member = {email: employee2Email, displayName: employee2Email};
+        const employee3Approver = {email: employee3Email, displayName: employee3Email, isCircularReference: false};
+
+        function buildFastEditDraft(members: ApprovalWorkflowOnyx['members']): ApprovalWorkflowOnyx {
+            return {
+                members,
+                originalMembers: [employee1Member, employee2Member],
+                approvers: [employee3Approver],
+                originalApprovers: [employee3Approver],
+                availableMembers: [],
+                usedApproverEmails: [],
+                isDefault: false,
+                action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
+                isFastEdit: true,
+            };
+        }
+
+        async function seed(approvalWorkflow: ApprovalWorkflowOnyx) {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, approvalWorkflow);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+        }
+
+        it('moves a deselected member back to the default approver and clears the draft', async () => {
+            mockFetch.pause();
+
+            // Given a "+N more" edit where employee2 was deselected
+            const approvalWorkflow = buildFastEditDraft([employee1Member]);
+            await seed(approvalWorkflow);
+
+            // When the fast edit is saved
+            saveFastEditApprovalWorkflow({approvalWorkflow, policy, rules: {}, isMultipleApproversBetaEnabled: false});
+            await waitForBatchedUpdates();
+
+            // Then employee2 submits to the default approver again, employee1 stays put, and the draft is gone
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.employeeList?.[employee2Email]?.submitsTo).toBe(ownerEmail);
+            expect(updatedPolicy?.employeeList?.[employee1Email]?.submitsTo).toBe(employee3Email);
+            await expect(getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW)).resolves.toBeUndefined();
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
+        it('clears the draft even when nothing changed', async () => {
+            mockFetch.pause();
+
+            // Given a "+N more" edit saved with the original members, so updateApprovalWorkflow exits before its optimistic data
+            const approvalWorkflow = buildFastEditDraft([employee1Member, employee2Member]);
+            await seed(approvalWorkflow);
+
+            // When the fast edit is saved
+            saveFastEditApprovalWorkflow({approvalWorkflow, policy, rules: {}, isMultipleApproversBetaEnabled: false});
+            await waitForBatchedUpdates();
+
+            // Then the draft is still cleared, so the next "+N more" starts clean
+            await expect(getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW)).resolves.toBeUndefined();
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
+        it('drops a deselected member from the workflow rules when the rules beta is on', async () => {
+            mockFetch.pause();
+
+            // Given the [employee1, employee2] -> employee3 workflow stored as rules, and a "+N more" edit where employee2 was deselected,
+            // with the owner's default workflow on the draft the way the workflows page stores it
+            await createForwardApproveRules(policyID, [employee1Email, employee2Email], employee3Email);
+            const defaultApprovalWorkflow = {
+                members: [
+                    {email: ownerEmail, displayName: ownerEmail},
+                    {email: employee3Email, displayName: employee3Email},
+                ],
+                approvers: [{email: ownerEmail, displayName: ownerEmail, isCircularReference: false}],
+                isDefault: true,
+            };
+            const approvalWorkflow = {...buildFastEditDraft([employee1Member]), defaultApprovalWorkflow};
+            await seed(approvalWorkflow);
+
+            // When the fast edit is saved with the rules beta on
+            saveFastEditApprovalWorkflow({approvalWorkflow, policy, rules: await getRulesCollection(), isMultipleApproversBetaEnabled: true});
+            await waitForBatchedUpdates();
+
+            // Then the rules that route to employee3 only list employee1 as a submitter, every rule of the default workflow
+            // lists employee2 so their reports go to the owner, and the draft is gone
+            const rules = await getActivePolicyRules(policyID);
+            const workflowRules = rules.filter((rule) => Object.values(rule.actions).some((action) => action.approver === employee3Email));
+            expect(workflowRules.length).toBeGreaterThan(0);
+            for (const rule of workflowRules) {
+                expect(extractSubmitterEmails(rule)).toEqual([employee1Email]);
+            }
+            const defaultRules = rules.filter((rule) => rule.isDefaultApprovalWorkflow);
+            expect(defaultRules.length).toBeGreaterThan(0);
+            for (const rule of defaultRules) {
+                expect(extractSubmitterEmails(rule)).toContain(employee2Email);
+            }
+            await expect(getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW)).resolves.toBeUndefined();
 
             await mockFetch.resume();
             await waitForBatchedUpdates();

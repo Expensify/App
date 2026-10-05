@@ -3,9 +3,6 @@ import CONST from '@src/CONST';
 import type {ValueOf} from 'type-fest';
 
 type ShouldFollowActionBadgeTargetParams = {
-    /** Whether the app is running in production, where this auto-scroll behavior is gated off */
-    isProduction: boolean;
-
     /** The report action the badge currently targets (the oldest preview still requiring action) */
     actionTargetReportActionID: string | undefined;
 
@@ -34,14 +31,13 @@ type ShouldFollowActionBadgeTargetParams = {
  * it moves off a mention. Otherwise a user reading at the bottom of the chat would be pulled back up to the next task/expense.
  */
 function shouldFollowActionBadgeTarget({
-    isProduction,
     actionTargetReportActionID,
     prevActionTargetReportActionID,
     actionBadgeTargetIndex,
     prevActionBadgeTargetIndex,
     prevActionBadge,
 }: ShouldFollowActionBadgeTargetParams): boolean {
-    if (isProduction || !actionTargetReportActionID || !prevActionTargetReportActionID || actionTargetReportActionID === prevActionTargetReportActionID || actionBadgeTargetIndex < 0) {
+    if (!actionTargetReportActionID || !prevActionTargetReportActionID || actionTargetReportActionID === prevActionTargetReportActionID || actionBadgeTargetIndex < 0) {
         return false;
     }
     if (prevActionBadge === CONST.REPORT.ACTION_BADGE.MENTION) {

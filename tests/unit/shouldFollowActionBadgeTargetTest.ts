@@ -3,7 +3,6 @@ import shouldFollowActionBadgeTarget from '@pages/inbox/report/shouldFollowActio
 import CONST from '@src/CONST';
 
 const BASE_PARAMS = {
-    isProduction: false,
     actionTargetReportActionID: '200',
     prevActionTargetReportActionID: '100',
     actionBadgeTargetIndex: 2,
@@ -22,10 +21,6 @@ describe('shouldFollowActionBadgeTarget', () => {
 
     it('does not follow when the target index is unchanged', () => {
         expect(shouldFollowActionBadgeTarget({...BASE_PARAMS, actionBadgeTargetIndex: 5})).toBe(false);
-    });
-
-    it('does not follow in production', () => {
-        expect(shouldFollowActionBadgeTarget({...BASE_PARAMS, isProduction: true})).toBe(false);
     });
 
     it('does not follow when the target id did not change', () => {
