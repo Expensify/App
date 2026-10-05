@@ -207,7 +207,7 @@ function usePendingConciergeResponse(reportID: string | undefined) {
                 arrivedAtProgress: arrival?.progress,
                 arrivedAtElapsedMs: arrival?.elapsedMs,
             });
-            dispatch('completed', snapshotTokens.at(-1) ?? snapshotHtml);
+            dispatch('completed', snapshotHtml);
             // Don't reapply our older optimistic when the canonical is already there —
             // it would clobber server-added markup (follow-up buttons, deep-link
             // Pressables). `arrival` covers the accelerator path; the live ref read

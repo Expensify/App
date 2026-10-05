@@ -252,6 +252,52 @@ describe('ModifiedExpenseMessage', () => {
     });
 
     describe('getForAction', () => {
+        describe('when a receipt is added', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    transactionID: '1234',
+                    receiptAdded: true,
+                },
+            };
+
+            it('returns the correct text message', () => {
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
+                });
+
+                expect(result).toEqual('added a receipt');
+            });
+
+            it('takes precedence over the field fragments when other fields are also present', () => {
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction: {
+                        ...reportAction,
+                        originalMessage: {...reportAction.originalMessage, oldComment: 'old', newComment: 'new'},
+                    },
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
+                });
+
+                expect(result).toEqual('added a receipt');
+            });
+        });
+
         describe('when the amount is changed', () => {
             const reportAction = {
                 ...createRandomReportAction(1),
@@ -338,6 +384,37 @@ describe('ModifiedExpenseMessage', () => {
                     currentUserLogin: CURRENT_USER_LOGIN,
                     formatPhoneNumber,
                     movedFromReportName: undefined,
+                });
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when confirming a failed-scan placeholder amount (oldAmount and oldCurrency both absent)', () => {
+            // Matches the actual shape returned by the backend for this edit (see #98783): only amount/currency are
+            // persisted, oldAmount/oldCurrency are never included since there's no real previous value to report.
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    amount: 0,
+                    currency: CONST.CURRENCY.USD,
+                },
+            };
+
+            it('returns "set the amount" instead of falling back to the generic "changed the expense"', () => {
+                const expectedResult = 'set the amount to $0.00';
+
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    movedFromReportName: undefined,
+                    formatPhoneNumber,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1005,6 +1082,35 @@ describe('ModifiedExpenseMessage', () => {
                     formatPhoneNumber,
                     movedFromReportName: undefined,
                 });
+                expect(result).toEqual(expectedResult);
+            });
+
+            it('uses the current currency for the old amount when oldCurrency is missing', () => {
+                const reportActionWithoutOldCurrency = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        oldMerchant: '1.00 km @ €0.70 / km',
+                        merchant: '10.00 km @ €0.70 / km',
+                        oldAmount: 70,
+                        amount: 700,
+                        currency: CONST.CURRENCY.EUR,
+                    },
+                };
+                const expectedResult = `changed the distance to ${reportActionWithoutOldCurrency.originalMessage.merchant} (previously ${reportActionWithoutOldCurrency.originalMessage.oldMerchant}), which updated the amount to €7.00 (previously €0.70)`;
+
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction: reportActionWithoutOldCurrency,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    movedFromReportName: undefined,
+                    formatPhoneNumber,
+                });
+
                 expect(result).toEqual(expectedResult);
             });
         });
