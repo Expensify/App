@@ -9992,7 +9992,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         },
         saveEdits: {
             title: 'Salvar edições',
-            prompt: ({name}: {name: string}) => `Atualizar alterações em "${name}" ou criar um novo`,
+            prompt: ({name}: {name: string}) => `Atualizar as alterações em "${name}" ou criar um novo?`,
             createNew: 'Criar novo',
             updateExisting: 'Atualizar existente',
         },

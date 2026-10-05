@@ -10098,9 +10098,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         saveEdits: {
             title: 'Enregistrer les modifications',
-            prompt: ({name}: {name: string}) => `Mettre à jour les modifications pour « ${name} » ou en créer un nouveau`,
+            prompt: ({name}: {name: string}) => `Mettre à jour les modifications de « ${name} » ou en créer une nouvelle ?`,
             createNew: 'Créer nouveau',
-            updateExisting: "Mettre à jour l'existant",
+            updateExisting: 'Mettre à jour l’existant',
         },
         percentOfSpend: ({percent}: {percent: string}) => `${percent} des dépenses`,
     },

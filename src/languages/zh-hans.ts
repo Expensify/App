@@ -9612,7 +9612,7 @@ ${reportName}`,
             violationsBySubmitter: '提交人违规',
         },
         mergeReports: {title: '合并报表', description: '选择要保留的报表。所有费用都将移入该报表，其他报表将被删除。'},
-        saveEdits: {title: '保存编辑', prompt: ({name}: {name: string}) => `更新对“${name}”的更改或创建新项`, createNew: '新建', updateExisting: '更新现有项'},
+        saveEdits: {title: '保存编辑', prompt: ({name}: {name: string}) => `要更新对“${name}”的更改，还是创建一个新项？`, createNew: '新建', updateExisting: '更新现有内容'},
         percentOfSpend: ({percent}: {percent: string}) => `${percent} 的支出`,
     },
     genericErrorPage: {

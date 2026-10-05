@@ -9994,7 +9994,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         },
         saveEdits: {
             title: 'Wijzigingen opslaan',
-            prompt: ({name}: {name: string}) => `Wijzigingen bijwerken in ‘${name}’ of een nieuwe maken`,
+            prompt: ({name}: {name: string}) => `Wijzigingen aan "${name}" bijwerken of een nieuwe aanmaken?`,
             createNew: 'Nieuw aanmaken',
             updateExisting: 'Bestaande bijwerken',
         },

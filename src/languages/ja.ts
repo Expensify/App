@@ -9872,7 +9872,12 @@ ${reportName}`,
             violationsBySubmitter: '申請者による違反',
         },
         mergeReports: {title: 'レポートをマージする', description: '保持するレポートを選択してください。すべての経費はそのレポートに移動され、他のレポートは削除されます。'},
-        saveEdits: {title: '編集を保存', prompt: ({name}: {name: string}) => `「${name}」を更新するか、新しく作成します`, createNew: '新規作成', updateExisting: '既存のものを更新'},
+        saveEdits: {
+            title: '編集を保存',
+            prompt: ({name}: {name: string}) => `「${name}」を更新しますか、それとも新規作成しますか？`,
+            createNew: '新規作成',
+            updateExisting: '既存のものを更新',
+        },
         percentOfSpend: ({percent}: {percent: string}) => `支出の${percent}`,
     },
     genericErrorPage: {

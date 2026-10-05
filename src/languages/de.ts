@@ -10074,7 +10074,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         },
         saveEdits: {
             title: 'Änderungen speichern',
-            prompt: ({name}: {name: string}) => `Änderungen an „${name}“ aktualisieren oder eine neue erstellen`,
+            prompt: ({name}: {name: string}) => `Änderungen an „${name}“ aktualisieren oder eine neue erstellen?`,
             createNew: 'Neu erstellen',
             updateExisting: 'Vorhandene aktualisieren',
         },

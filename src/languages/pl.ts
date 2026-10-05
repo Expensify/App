@@ -10007,7 +10007,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         mergeReports: {title: 'Połącz raporty', description: 'Wybierz raport, który chcesz zachować. Wszystkie wydatki zostaną do niego przeniesione, a pozostałe raporty zostaną usunięte.'},
         saveEdits: {
             title: 'Zapisz zmiany',
-            prompt: ({name}: {name: string}) => `Zaktualizuj zmiany w „${name}” lub utwórz nowy`,
+            prompt: ({name}: {name: string}) => `Zaktualizować zmiany w „${name}” czy utworzyć nowy?`,
             createNew: 'Utwórz nowy',
             updateExisting: 'Zaktualizuj istniejące',
         },
