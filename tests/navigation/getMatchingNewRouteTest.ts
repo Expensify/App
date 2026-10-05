@@ -186,6 +186,9 @@ describe('getBestMatchingPath', () => {
     it('redirects old workspace tag routes to the new dynamic suffix shape', () => {
         expect(getMatchingNewRoute('/workspaces/p123/tags/settings')).toBe('/workspaces/p123/tags');
         expect(getMatchingNewRoute('/workspaces/p123/tags/tags-settings')).toBe('/workspaces/p123/tags');
+        // Nested sub-pages of the removed Settings page redirect to the list; the specific tag-edit redirect still wins by length.
+        expect(getMatchingNewRoute('/workspaces/p123/tags/tags-settings/workspace-edit-tags/10')).toBe('/workspaces/p123/tags');
+        expect(getMatchingNewRoute('/workspaces/p123/tags/tags-settings/edit/10')).toBe('/workspaces/p123/tags/workspace-edit-tags/10');
         expect(getMatchingNewRoute('/workspaces/p123/tags/new')).toBe('/workspaces/p123/tags/tag-create');
         expect(getMatchingNewRoute('/workspaces/p123/tag-list/0')).toBe('/workspaces/p123/tags/workspace-tag-list/0');
         expect(getMatchingNewRoute('/workspaces/p123/tags/import')).toBe('/workspaces/p123/tags/workspace-tags-import');
@@ -195,6 +198,13 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/workspaces/p123/tag/10/Meals/edit')).toBe('/workspaces/p123/tags/workspace-tag-settings/10/Meals/workspace-tag-edit');
         expect(getMatchingNewRoute('/workspaces/p123/tag/10/Meals/gl-code')).toBe('/workspaces/p123/tags/workspace-tag-settings/10/Meals/workspace-tag-gl-code');
         expect(getMatchingNewRoute('/workspaces/p123/tag/10/Meals/approver')).toBe('/workspaces/p123/tags/workspace-tag-settings/10/Meals/workspace-tag-approver');
+    });
+
+    it('redirects old category Settings deep links (including nested spend-category-selector) to the Categories list', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/categories/settings')).toBe('/workspaces/p123/categories');
+        expect(getMatchingNewRoute('/workspaces/p123/categories/categories-settings')).toBe('/workspaces/p123/categories');
+        expect(getMatchingNewRoute('/workspaces/p123/categories/categories-settings/spend-category-selector/airlines')).toBe('/workspaces/p123/categories');
+        expect(getMatchingNewRoute('/settings/p123/categories/manage-settings/spend-category-selector/airlines')).toBe('/settings/p123/categories');
     });
 
     it('preserves query params when redirecting old workspace tag routes', () => {
