@@ -1,6 +1,6 @@
 # Oxlint Migration: Current State
 
-Branch `feat/oxlint`, with `origin/main` merged at `901155d74da` (merge commit `c839d20eac5`). Tool
+Branch `feat/oxlint`, with `origin/main` merged at `d5d72859a1b` (merge commit `2fdaf3968ee`). Tool
 versions: oxlint 1.86.0, oxc-transform-react 0.152.0, oxlint-tsgolint 7.0.2003
 (`package.json:368-371`). These are the newest releases; 1.86.0 and 0.152.0 are inside the seven-day
 window `.npmrc`'s `min-release-age=7` would otherwise block, so the oxlint scopes are listed in
@@ -21,7 +21,7 @@ number below comes from it.
 
 One pipeline runs either linter. `scripts/lint/index.ts` runs both behind the same
 `Linter -> Processor[] -> Formatter` ports, each with its own seatbelt baseline. Oxlint passes its
-baseline over the whole repo in 37 seconds; ESLint takes 456 (section 3.1). The run is 4 JS-plugin
+baseline over the whole repo in 33 seconds; ESLint takes 375 (section 3.1). The run is 4 JS-plugin
 shards plus one type-aware process (section 2.2) and reports the same findings as a single process.
 
 Every rule ESLint enables is either enabled in Oxlint or has a written reason not to be, and config
@@ -48,9 +48,9 @@ Left to do:
 
 | check | command | result |
 | --- | --- | --- |
-| Oxlint, whole repo, through the pipeline | `npm run lint -- --linter=oxlint` | exit 0, nothing above baseline; the same pipeline run takes **37 s** in `compare-oxlint` |
+| Oxlint, whole repo, through the pipeline | `npm run lint -- --linter=oxlint` | exit 0, nothing above baseline; the same pipeline run takes **33 s** in `compare-oxlint` |
 | Types | `npm run typecheck` | **passed**, including `oxlint.config.mts` |
-| Tooling tests | `npm run test:bun` | **644 pass / 3 fail**, 48 files. The 3 are `SyncVersions.test.ts` git-fixture cases, failing identically at `HEAD` without any branch change and unrelated to linting |
+| Tooling tests | `npm run test:bun` | **645 pass / 3 fail**, 48 files. The 3 are `SyncVersions.test.ts` git-fixture cases, failing identically at `HEAD` without any branch change and unrelated to linting |
 | Per-rule parity, all batches | `npm run oxlint-rule-fixtures` | **306 entries: 305 identical, 1 pinned divergence** |
 | Whole-repo parity | `bash oxlint-migration/compareFullRepo.sh --fresh` | section 3 |
 | Sidecar rule evidence | `npm run oxlint-sidecar-coverage` | **193 / 193 covered** |
@@ -80,11 +80,11 @@ time. Exit codes are the process exits, not a reading of the output.
 
 | script | exit | result |
 | --- | --- | --- |
-| `lint -- --linter=oxlint` | **0** | the required gate: nothing above baseline, 36-40 s on a 14-core Mac |
-| `lint-oxlint` | **1** | raw `oxlint .`, no pipeline and no seatbelt, so it prints the whole baseline (4695 findings). Exit 1 is by design |
-| `compare-oxlint` (`--fresh`) | **0** | end to end at these pins: ESLint 3452, oxlint 4695. `set-state-in-effect` 120/120, `refs` 210/189, `purity` 0/35 (sections 3.3, 5.1, 5.3). Coverage eslint=483, oxlint=482, shared=475; no unexplained ESLint-only rules |
-| `compare-oxlint-warm` | **0** | measured at these pins: ESLint cold prime 408 s, warm 413 s, oxlint 92 s -- 4.49x warm, 4.43x cold. A second warm run read 4525 s under contention from a comparison running alongside; the script ratios on the fastest run |
-| `oxlint-parity-direction` | **0** | informational. 1804 (file, rule) pairs identical, +1274 added by oxlint, 31 hidden -- both sources explained in section 3.3.1 |
+| `lint -- --linter=oxlint` | **0** | the required gate: nothing above baseline, 33-39 s on a 14-core Mac |
+| `lint-oxlint` | **1** | raw `oxlint .`, no pipeline and no seatbelt, so it prints the whole baseline (4769 findings). Exit 1 is by design |
+| `compare-oxlint` (`--fresh`) | **0** | end to end at these pins: ESLint 3528, oxlint 4769. `set-state-in-effect` 120/120, `refs` 210/189, `purity` 0/35 (sections 3.3, 5.1, 5.3). Coverage eslint=483, oxlint=482, shared=475; no unexplained ESLint-only rules |
+| `compare-oxlint-warm` | **0** | measured at these pins: ESLint cold prime 381 s, warm run 412 s, oxlint 92 s -- 4.48x warm, 4.14x cold. One warm run; the script ratios on the fastest of however many `--runs` it gets, and anything else loaded on the machine moves a single run by minutes |
+| `oxlint-parity-direction` | **0** | informational. 1822 (file, rule) pairs identical, +1272 added by oxlint, 31 hidden -- both sources explained in section 3.3.1 |
 | `oxlint-config-drift` | **0** | 46 files, 29 rules differ, **0 open** |
 | `oxlint-eslint-directives` | **0** | all 22 directive cases match ESLint 9.36.0 |
 | `oxlint-jsx-uses-port` | **0** | `jsx-uses-react` and `jsx-uses-vars` behave the same on both tools |
@@ -157,7 +157,7 @@ was present, and the plan it was sized to. If the gate exits 2, keep stderr.
 | --- | --- | --- |
 | runner | `blacksmith-16vcpu-ubuntu-2404`, 64 GB | `blacksmith-8vcpu-ubuntu-2404`, 32 GB, `OXLINT_SHARDS: 4` |
 | why that size (not re-measured at this merge) | a cold cache loads a 12 GB type program into each of two workers (`lint.yml` `runs-on` comment) | one 9.3 GB type program plus 4 shards at 1.5 GB, about 15 GB |
-| whole repo, 14-core Mac, cold | 456 s (`ESLINT_CONCURRENCY=2`, 16 GB heap, no cache) | 37 s |
+| whole repo, 14-core Mac, cold | 375 s (`ESLINT_CONCURRENCY=2`, 16 GB heap, no cache) | 33 s |
 | CI lint step, clean (`079c53864`) | **51 s** warm cache, run 35079842668 | **54 s** whole repo, run 35079842842 |
 | CI lint step, other clean runs | | **55 s** (34956909673), **40 s** (34981309045) |
 | CI lint step, clean, cold ESLint cache (`9cd93254c01`, PR #101292, `feat/oxlint-clean`) | **462 s**, `Cache not found`, one pass, run 35869416143 | **54 s**, `OXLINT_SHARDS: 4`, no errors above baseline, run 35869416331 |
@@ -179,7 +179,8 @@ one error twice. Oxlint reported it once in 50 s on 8 vCPU, 400 vCPU-seconds, ab
 cheaper. The retry exists to paper over stale-cache false positives, a failure mode oxlint does not
 have, so retiring ESLint retires the retry with it.
 
-Findings match: 4695 messages from the 4-shard run and from a single process, the same multiset.
+Findings match: 4769 messages from the 4-shard run and from a single process (`OXLINT_SHARDS=1`), the
+same multiset.
 The ESLint leg needs `NODE_OPTIONS=--max_old_space_size=16384` and capped concurrency or its workers
 die with `ERR_WORKER_OUT_OF_MEMORY` even on a 48 GB machine.
 
@@ -214,49 +215,49 @@ uncaught. No tracking issue exists (TODO 3).
 
 ### 3.3 Findings per rule, whole repo
 
-ESLint 3452, Oxlint 4695. Both legs run through `scripts/lint/index.ts --format=json` with
+ESLint 3528, Oxlint 4769. Both legs run through `scripts/lint/index.ts --format=json` with
 `SEATBELT_DISABLE=1`, so both pass the same processors. A typescript-eslint extension rule is counted
-under the base rule oxlint runs, or one rule lands in two rows. Counted over 9887 tracked lintable
-files, with `origin/main` merged at `901155d74da` and oxlint 1.86.0 / oxc-transform-react 0.152.0 /
+under the base rule oxlint runs, or one rule lands in two rows. Counted over 9896 tracked lintable
+files, with `origin/main` merged at `d5d72859a1b` and oxlint 1.86.0 / oxc-transform-react 0.152.0 /
 oxlint-tsgolint 7.0.2003.
 
 | rule | eslint | oxlint | delta | reading |
 | --- | ---: | ---: | ---: | --- |
-| `@typescript-eslint/no-unsafe-type-assertion` | 1894 | 1947 | +53 | both enable it; tsgolint 7.0.2003 infers stricter than TS 6.0.2 -- separate triage before Phase 3 |
-| `@typescript-eslint/no-unnecessary-type-assertion` | 0 | 758 | +758 | both enable it; TS 6.0.2 and tsgo TS7 infer differently |
+| `@typescript-eslint/no-unsafe-type-assertion` | 1903 | 1956 | +53 | both enable it; tsgolint 7.0.2003 infers stricter than TS 6.0.2 -- separate triage before Phase 3 |
 | `no-restricted-imports` | 598 | 598 | 0 | parity, including the `HeaderWithBackButton`->`Header` migration ban and the `OnyxUtils` path ban, both of which oxlint spells differently -- see section 3.5 |
+| `@typescript-eslint/no-unnecessary-type-assertion` | 0 | 752 | +752 | both enable it; TS 6.0.2 and tsgo TS7 infer differently |
+| `@typescript-eslint/no-deprecated` | 259 | 461 | +202 | write-site strictness; tsgolint flags write sites typescript-eslint does not (typescript-eslint#10643). 82 of the 259 are the `Gesture` API the upstream gesture-handler 3.3 bump deprecated, and oxlint reports the same 82 |
 | `no-restricted-syntax` | 319 | 319 | 0 | parity |
-| `@typescript-eslint/no-deprecated` | 177 | 376 | +199 | write-site strictness; tsgolint flags write sites typescript-eslint does not (typescript-eslint#10643) |
 | `react-hooks/refs` | 210 | 189 | -21 | multiplicity, plus 3 locations (section 5.1) |
 | `react-hooks/set-state-in-effect` | 120 | 120 | 0 | exact, same locations |
 | `import/no-cycle` | 0 | 120 | +120 | both enable it; ESLint's copy is inert |
 | `rulesdir/no-raw-typography` | 44 | 44 | 0 | parity |
-| `rulesdir/no-onyx-connect` | 36 | 36 | 0 | parity |
+| `rulesdir/no-onyx-connect` | 32 | 32 | 0 | parity |
 | `react-hooks/preserve-manual-memoization` | 4 | 54 | +50 | over-reports through the bridge |
 | `rulesdir/no-default-id-values` | 21 | 21 | 0 | parity |
-| `rulesdir/no-direct-personal-details-list` | 20 | 20 | 0 | parity |
 | `react-hooks/purity` | 0 | 35 | +35 | `Date`-impure-during-render; kept intentionally (section 5.3) |
+| `rulesdir/no-direct-personal-details-list` | 9 | 9 | 0 | parity |
 | `import/no-named-as-default` | 0 | 13 | +13 | shared config, Oxlint finds more |
 | `react-hooks/immutability` | 6 | 7 | +1 | one extra through the bridge |
 | `@typescript-eslint/no-unsafe-return` | 0 | 8 | +8 | oxlint-only, tsgolint 7.0.2003 strictness -- separate triage before Phase 3 |
-| `react-hooks/static-components` | 2 | 2 | 0 | parity |
 | `no-unsafe-optional-chaining` | 0 | 4 | +4 | Oxlint-only finding |
 | `unicorn/prefer-at` | 0 | 4 | +4 | Oxlint-only, expected (default options, covers the type-free `x[x.length - N]` family) |
+| `react-hooks/static-components` | 2 | 2 | 0 | parity |
 | `import/no-duplicates` | 0 | 3 | +3 | Oxlint-only finding |
+| `react-hooks/globals` | 0 | 2 | +2 | Oxlint-only finding |
 | `@typescript-eslint/no-misused-promises` | 0 | 2 | +2 | Oxlint-only finding |
-| `@typescript-eslint/consistent-generic-constructors` | 0 | 2 | +2 | Oxlint-only finding |
 | `@typescript-eslint/no-unsafe-member-access` | 0 | 2 | +2 | Oxlint-only finding |
 | `no-empty-function` | 0 | 2 | +2 | Oxlint-only finding |
+| `@typescript-eslint/consistent-generic-constructors` | 0 | 2 | +2 | Oxlint-only finding |
 | `react-hooks/exhaustive-deps` | 1 | 1 | 0 | parity |
-| `react-hooks/globals` | 0 | 1 | +1 | Oxlint-only finding |
-| `no-redeclare` | 0 | 1 | +1 | Oxlint-only finding |
 | `import/export` | 0 | 1 | +1 | Oxlint-only finding |
-| `react/no-unstable-nested-components` | 0 | 1 | +1 | Oxlint-only finding |
 | `react/button-has-type` | 0 | 1 | +1 | Oxlint-only finding |
-| `react/jsx-key` | 0 | 1 | +1 | Oxlint-only finding |
 | `@typescript-eslint/no-unsafe-assignment` | 0 | 1 | +1 | Oxlint-only finding |
+| `react/jsx-key` | 0 | 1 | +1 | Oxlint-only finding |
+| `react/no-unstable-nested-components` | 0 | 1 | +1 | Oxlint-only finding |
 | `@typescript-eslint/no-unsafe-argument` | 0 | 1 | +1 | Oxlint-only finding |
-| **totals** | **3452** | **4695** | **+1243** | |
+| `no-redeclare` | 0 | 1 | +1 | Oxlint-only finding |
+| **totals** | **3528** | **4769** | **+1241** | |
 
 Every rule not listed reports 0 on both tools. Section 3.3.1 splits these deltas by which direction
 they risk. `refs` under-reports (section 5.1); `purity` reports 35 ESLint cannot see (section 5.3);
@@ -266,9 +267,9 @@ inferring stricter than typescript-eslint, and need triage before Phase 3.
 
 The React Compiler reports some diagnostics twice, same file, position and text. On these pins ESLint
 does it at 29 `refs` locations (45 extra copies) and no other compiler rule; the bridge at 14 `refs` and
-9 `preserve-manual-memoization` locations (22 and 27 extra copies). The seatbelt counts both copies on
-both sides, and the sharded merge keeps within-process duplicates so counts do not move with the shard
-plan. Not a defect to fix on the oxlint side.
+9 `preserve-manual-memoization` locations (22 and 27 extra copies), plus 2 `immutability` (2 extra). The
+seatbelt counts both copies on both sides, and the sharded merge keeps within-process duplicates so
+counts do not move with the shard plan. Not a defect to fix on the oxlint side.
 
 ### 3.3.1 Which way the error points
 
@@ -280,27 +281,27 @@ the seatbelt enforces -- file, rule, count. Columns do not enter a baseline row,
 at a different column is a different reading of the same check, not a lost one.
 
 ```
-(file, rule) pairs identical        1804 pairs, 3301 findings
-findings oxlint adds (safe)          +1274
+(file, rule) pairs identical        1822 pairs, 3377 findings
+findings oxlint adds (safe)          +1272
 findings oxlint hides (needs work)     31
 ```
 
-The arithmetic closes: 3452 + 1274 - 31 = 4695.
+The arithmetic closes: 3528 + 1272 - 31 = 4769.
 
 All 31 are accounted for and none of it blocks Phase 1:
 
 | hidden | where | why | blocks Phase 3? |
 | ---: | --- | --- | --- |
 | 25 | `react-hooks/refs`, 12 files | 22 of the 25 is duplicate collapsing -- ESLint emits the same diagnostic two to seven times at one location and the bridge emits it once (`DynamicConfirmationPage.tsx` 12 vs 7, `usePromptContent.ts` 10 vs 6). The other 3 are locations the bridge misses; only `AboutPage.tsx` loses the rule outright. Four oxlint-only findings elsewhere add 4 back, which is why section 3.3 calls the same rule -21: 25 hidden, 4 added (section 5.1) | no |
-| 6 | `@typescript-eslint/no-deprecated`, 5 files | all five are inside the deliberate 83-file override at `oxlint.config.mts:1212`, whose own comment prices this: "Costs 6 read-site findings ESLint reports in these files". Accepted cost | no |
+| 6 | `@typescript-eslint/no-deprecated`, 5 files | all five are inside the deliberate 83-file override at `oxlint.config.mts:1212`, whose own comment prices this: "Costs 6 read-site findings ESLint reports in these files". All 6 are reads of the deprecated `getReportTransactions`. Accepted cost | no |
 
 Two rules that look unsafe by total are safe by location: `preserve-manual-memoization` (4 vs 54) and
 `immutability` (6 vs 7) hide nothing -- every ESLint file+rule count is met, oxlint just reports more.
 `set-state-in-effect` and `purity` hide nothing either; both only add.
 
-So: 1804 pairs already agree exactly, oxlint is strictly stricter on 1274 more, and the 31 it hides are
+So: 1822 pairs already agree exactly, oxlint is strictly stricter on 1272 more, and the 31 it hides are
 one duplicate-report quirk (25) and one override already accepted in the config with its cost written
-down (6). Phase 1 is safe today -- the job is non-blocking and its own baseline is exact at 4695/4695.
+down (6). Phase 1 is safe today -- the job is non-blocking and its own baseline is exact at 4769/4769.
 
 ### 3.4 Seatbelt baselines
 
@@ -309,11 +310,14 @@ tools' counts on every CI run.
 
 | baseline | rows | grandfathered errors | live findings |
 | --- | ---: | ---: | ---: |
-| `config/eslint/eslint.seatbelt.tsv` | 1836 | 3452 | 3452 |
-| `config/oxlint/oxlint.seatbelt.tsv` | 2390 | 4695 | 4695 |
+| `config/eslint/eslint.seatbelt.tsv` | 1874 | 3528 | 3528 |
+| `config/oxlint/oxlint.seatbelt.tsv` | 2426 | 4769 | 4769 |
 
 Both baselines match their live counts, with no slack. The seatbelt tightens but never increases on its
-own, so every merge from `main` needs a manual `SEATBELT_INCREASE=all` pass (TODO 4).
+own, so every merge from `main` needs a manual `SEATBELT_INCREASE=all` pass (TODO 4). The last one came
+with the merge at `d5d72859a1b`: upstream's gesture-handler 3.3 bump brings 82 `Gesture` deprecations
+and `@typescript-eslint/no-deprecated` goes 177 to 259 on the ESLint side, so both baselines moved
+together and the row counts went 1836 to 1874 and 2390 to 2426.
 
 `tests/tooling/lintPipeline.test.ts` checks that every rule id in the oxlint baseline is one the
 enabled config still produces through `config/oxlint/ruleNames.mjs`. If oxlint renames a diagnostic
@@ -343,7 +347,9 @@ Second, the `scripts/**` and `.github/**` override that turns off the five
 `@typescript-eslint/no-unsafe-*` rules plus `no-throw-literal` carries weight: deleting it adds 695
 findings that ESLint reports 0 of. Oxlint's tsgolint port of that family is stricter than
 typescript-eslint's everywhere; the override only exposes it where the loosely typed GitHub Actions
-glue lives. (The 695 was not re-measured at this merge.)
+glue lives. Re-measured at this merge by deleting the block and linting those two scopes: 695 exactly,
+306 `no-unsafe-member-access`, 182 `no-unsafe-call`, 148 `no-unsafe-assignment`, 30 `no-unsafe-argument`,
+29 `no-unsafe-return`, and 0 `no-throw-literal`.
 
 Third, the drift comparison reads the `no-restricted-imports` options on its 46 probe files, so a ban
 that only fires on files outside that set slips through as "0 open". Both bans oxlint spells
@@ -446,7 +452,8 @@ red-green by emptying its fixtures and confirming every row flips to FAIL.
 ### 4.1 Tier B is deliberately not covered
 
 128 enabled core rules (unprefixed, no plugin) produce zero findings across the repo and have no
-fixture (not re-measured at this merge). Writing one each would cost:
+fixture (re-counted at this merge: 128, and the native Rust total beside them is 288). Writing one each
+would cost:
 
 - Oxlint fails loud on an unknown rule name (verified on 1.86.0), at root and inside an override
   (`Rule 'no-such-rule-fake' not found in plugin 'react'`), so a typo'd, renamed or dropped core rule
