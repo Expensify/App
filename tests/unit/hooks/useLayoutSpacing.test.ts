@@ -15,6 +15,7 @@ describe('useLayoutSpacing', () => {
         expect(result.current.values).toEqual({cardPadding: layoutSpacing.cardPadding.narrow, pageGutter: layoutSpacing.pageGutter.narrow, cardGap: layoutSpacing.cardGap.narrow});
         expect(result.current.cardPadding).toEqual({padding: layoutSpacing.cardPadding.narrow});
         expect(result.current.cardPaddingHorizontal).toEqual({paddingHorizontal: layoutSpacing.cardPadding.narrow});
+        expect(result.current.cardPaddingTop).toEqual({paddingTop: layoutSpacing.cardPadding.narrow});
         expect(result.current.cardEdgeToEdge).toEqual({marginHorizontal: -layoutSpacing.cardPadding.narrow});
         expect(result.current.cardMenuItemInset).toEqual({paddingHorizontal: layoutSpacing.cardPadding.narrow - 20});
         expect(result.current.cardPaddingBottom).toEqual({paddingBottom: layoutSpacing.cardPadding.narrow});
