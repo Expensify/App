@@ -1,8 +1,11 @@
+import RenderHTML from '@components/RenderHTML';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 
 import {
     getActionableCard3DSTransactionApprovalMessage,
+    getAgentPromptUpdatedMessageHTML,
     getDemotedFromWorkspaceMessage,
     getDismissedViolationMessageText,
     getMarkedReimbursedMessage,
@@ -30,6 +33,13 @@ function SimpleMessageContent({action}: SimpleMessageContentProps) {
     const {translate} = useLocalize();
     const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
 
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED)) {
+        return (
+            <ReportActionItemBasicMessage>
+                <RenderHTML html={`<comment><muted-text>${getAgentPromptUpdatedMessageHTML(translate, action)}</muted-text></comment>`} />
+            </ReportActionItemBasicMessage>
+        );
+    }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
         return <ReportActionItemBasicMessage message={getMarkedReimbursedMessage(translate, action)} />;
     }

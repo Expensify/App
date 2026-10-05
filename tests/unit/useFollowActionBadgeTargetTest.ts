@@ -49,7 +49,6 @@ describe('useFollowActionBadgeTarget', () => {
         const {rerender} = renderHook(
             ({actionTargetReportActionID, actionBadgeTargetIndex}: {actionTargetReportActionID: string; actionBadgeTargetIndex: number}) =>
                 useFollowActionBadgeTarget({
-                    isProduction: false,
                     reportID: REPORT_ID,
                     actionTargetReportActionID,
                     actionBadgeTargetIndex,

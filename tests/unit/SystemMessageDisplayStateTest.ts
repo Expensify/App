@@ -1,7 +1,14 @@
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 
-import {getSortedReportActions, getSystemMessageDisplayState, isCollapsibleSystemMessageAction, isSystemMessageAction, withDEWRoutedActionsArray} from '../../src/libs/ReportActionsUtils';
+import {
+    getSortedReportActions,
+    getSystemMessageDisplayState,
+    isCollapsibleSystemMessageAction,
+    isSimpleMessageAction,
+    isSystemMessageAction,
+    withDEWRoutedActionsArray,
+} from '../../src/libs/ReportActionsUtils';
 
 function makeAction(reportActionID: string, actionName: ReportAction['actionName'], overrides: Partial<ReportAction> = {}): ReportAction {
     return {
@@ -54,6 +61,17 @@ const NON_COLLAPSIBLE_OLD_DOT_SYSTEM_MESSAGE_ACTION_TYPES = [
 
 describe('system message presentation', () => {
     describe('classification', () => {
+        it('routes agent prompt updates through the shared simple message classifier', () => {
+            // Given an agent prompt update introduced by the upstream message renderer
+            const action = makeAction('1', CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED);
+
+            // When the router checks the shared classifier after the merge
+            const isSimpleMessage = isSimpleMessageAction(action);
+
+            // Then it retains the upstream renderer instead of falling through to generic content
+            expect(isSimpleMessage).toBe(true);
+        });
+
         it.each([
             CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
             CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
