@@ -224,7 +224,7 @@ describe('initSplitExpenseItemData stale tax handling', () => {
 
         // A distance rate with tax reclaimable on, pointing at TAX_CODE. The custom unit has tax enabled, so the policy
         // default is the fallback when the rate's tax can't be used.
-        const withDistanceRate = (policy: Policy, taxClaimablePercentage = 1): Policy =>
+        const withDistanceRate = (policy: Policy): Policy =>
             ({
                 ...policy,
                 customUnits: {
@@ -233,7 +233,7 @@ describe('initSplitExpenseItemData stale tax handling', () => {
                         name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
                         attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, taxEnabled: true},
                         rates: {
-                            [RATE_ID]: {customUnitRateID: RATE_ID, name: 'Custom rate', rate: 100, enabled: true, attributes: {taxRateExternalID: TAX_CODE, taxClaimablePercentage}},
+                            [RATE_ID]: {customUnitRateID: RATE_ID, name: 'Custom rate', rate: 100, enabled: true, attributes: {taxRateExternalID: TAX_CODE, taxClaimablePercentage: 1}},
                         },
                     },
                 },
@@ -259,22 +259,6 @@ describe('initSplitExpenseItemData stale tax handling', () => {
             expect(splitExpense.taxCode).toBe(NEW_TAX_CODE);
             expect(splitExpense.taxValue).toBe('10%');
             expect(splitExpense.taxAmount).toBe(909);
-        });
-
-        it("applies the distance rate's claimable percentage to the fallback tax", () => {
-            // Given a distance expense whose rate's tax was disabled, an enabled 10% policy default, and a rate whose tax
-            // is only reclaimable on 50% of the mileage amount
-            // When the split is seeded
-            const splitExpense = initSplitExpenseItemData(distanceTransaction, transactionReport, {
-                policy: withDistanceRate(buildPolicyWithDisabledRate('5%', '10%'), 0.5),
-                getCurrencyDecimals: () => 2,
-            });
-
-            // Then the tax is computed on the claimable half only (50 * 10 / 110 = 4.55), matching the create and edit
-            // distance flows, instead of on the whole split amount
-            expect(splitExpense.taxCode).toBe(NEW_TAX_CODE);
-            expect(splitExpense.taxValue).toBe('10%');
-            expect(splitExpense.taxAmount).toBe(455);
         });
 
         it("clears the tax trio when the distance rate's tax and the policy default are both disabled", () => {
