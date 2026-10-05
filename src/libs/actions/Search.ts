@@ -804,6 +804,12 @@ function getOnyxLoadingData(
     const isSearchRequest = isSearchAPI && !!queryJSON;
     const type = queryJSON?.type;
 
+    // Record the query string on the snapshot itself so IOU optimistic updates can later apply to every loaded
+    // snapshot whose query matches. Living on the snapshot means it is evicted together with it. It is written
+    // optimistically so snapshots first opened offline carry it, and again in finallyData because the SEARCH
+    // response can replace `snapshot.search`.
+    const inputQuery = isSearchRequest ? queryJSON.inputQuery : undefined;
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -812,6 +818,7 @@ function getOnyxLoadingData(
                 search: {
                     ...(isSearchAPI && shouldShowLoading && {isLoading: true}),
                     ...(isSearchRequest && {state: CONST.SEARCH.SNAPSHOT_STATE.LOADING}),
+                    ...(inputQuery && {inputQuery}),
                     ...(offset !== undefined ? {offset} : {}),
                     ...(shouldClearTotals ? {count: null, reportCount: null, total: null, currency: null} : {}),
                 },
@@ -828,14 +835,6 @@ function getOnyxLoadingData(
         },
     ];
 
-    // Side effect: record this query string under SEARCH_QUERY_BY_HASH so IOU optimistic updates
-    // can later fan to every loaded snapshot whose query matches. Done here (not via optimisticData)
-    // because this function's return type only allows snapshot keys; the matching eviction lives
-    // in the SNAPSHOT subscription in IOU/index.ts.
-    if (queryJSON?.inputQuery) {
-        Onyx.merge(ONYXKEYS.SEARCH_QUERY_BY_HASH, {[hash]: queryJSON.inputQuery});
-    }
-
     // finallyData runs for every HTTP response, including 460 responses that deliberately skip failureData.
     // It owns the terminal request state, while failureData separately records whether the request failed.
     const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
@@ -846,6 +845,7 @@ function getOnyxLoadingData(
                 search: {
                     ...(isSearchAPI && {isLoading: false}),
                     ...(isSearchRequest && {state: CONST.SEARCH.SNAPSHOT_STATE.LOADED, type, hash}),
+                    ...(inputQuery && {inputQuery}),
                 },
             },
         },
