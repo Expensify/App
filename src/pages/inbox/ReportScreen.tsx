@@ -26,6 +26,7 @@ import {PortalHost} from '@gorhom/portal';
 import React from 'react';
 import {View} from 'react-native';
 
+import ConciergeHistoryOverlay from '@pages/AskConcierge/ConciergeHistoryOverlay';
 import type ReportScreenNavigationProps from './types';
 
 import {ActionListContextProvider} from './ActionListContext';
@@ -127,6 +128,9 @@ function ReportScreen({route, navigation, shouldDeferReportActions = false}: Rep
                                     <ReportNavigateAwayHandler />
                                 </>
                             )}
+                            {/* Slides in over the whole screen, header included, where there is no room for the
+                                thread list beside the chat. Renders nothing while closed. */}
+                            <ConciergeHistoryOverlay />
                             <ReportNotFoundGuard>
                                 <LinkedActionNotFoundGuard>
                                     <ReportDragAndDropProvider>

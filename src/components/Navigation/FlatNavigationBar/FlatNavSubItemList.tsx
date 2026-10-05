@@ -1,3 +1,5 @@
+import {heightTransitionStyle} from '@components/Navigation/SearchSidebarCollapseStore';
+
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
@@ -27,6 +29,9 @@ type FlatNavSubItemListProps = {
     /** Row the marker rests on, or -1 when none of the rows is the current search */
     selectedIndex: number;
 
+    /** Whether the rows are showing. A collapsed bar has no room for them, so the list closes rather than unmounting. */
+    isExpanded?: boolean;
+
     /** The group's sub-rows */
     children: React.ReactNode;
 };
@@ -35,7 +40,7 @@ type FlatNavSubItemListProps = {
  * Wraps a group's sub-rows and owns the single marker that slides along their shared rule. One marker that moves
  * reads as the rule tracking the pointer; a marker per row would pop in and out instead.
  */
-function FlatNavSubItemList({selectedIndex, children}: FlatNavSubItemListProps) {
+function FlatNavSubItemList({selectedIndex, isExpanded = true, children}: FlatNavSubItemListProps) {
     const styles = useThemeStyles();
     const [hoveredIndex, setHoveredIndex] = useState<number | undefined>(undefined);
 
@@ -71,8 +76,12 @@ function FlatNavSubItemList({selectedIndex, children}: FlatNavSubItemListProps) 
         [],
     );
 
+    // Every sub-row is the same fixed height, so the open height is known without measuring and the list can
+    // animate from the first frame it is asked to open.
+    const expandedHeight = React.Children.count(children) * variables.flatNavigationBarItemHeight;
+
     return (
-        <View style={styles.pRelative}>
+        <View style={[styles.pRelative, styles.overflowHidden, heightTransitionStyle, {height: isExpanded ? expandedHeight : 0}]}>
             <FlatNavSubItemHoverContext.Provider value={hoverContextValue}>{children}</FlatNavSubItemHoverContext.Provider>
             <Animated.View
                 style={[styles.flatNavigationBarSubItemMarker, {top: MARKER_TOP_OFFSET}, markerStyle]}

@@ -1,6 +1,6 @@
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
-import {useSearchSidebarCollapseFadeStyle} from '@components/Navigation/SearchSidebarCollapseStore';
+import {fadeTransitionStyle, useSearchSidebarCollapseFadeStyle} from '@components/Navigation/SearchSidebarCollapseStore';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 
@@ -41,6 +41,10 @@ type FlatNavItemProps = {
 
     /** Small colored dot drawn on the icon when the row needs the user's attention */
     statusIndicatorColor?: string;
+
+    /** Whether a collapsed row stands in for a badge with a dot. Kept apart from the badge's own text, which
+     * changes as the group expands, so the dot can fade rather than blink. */
+    hasCollapsedStatusIndicator?: boolean;
 
     accessibilityLabel?: string;
 
@@ -96,6 +100,7 @@ function FlatNavItem({
     isSubItem = false,
     badgeText,
     statusIndicatorColor,
+    hasCollapsedStatusIndicator = false,
     accessibilityLabel,
     sentryLabel,
     additionalStyle,
@@ -114,7 +119,9 @@ function FlatNavItem({
     const subItemHover = useFlatNavSubItemHover();
 
     // Collapsed rows have nowhere to put a badge, so a row that has one shows the same green dot the Inbox uses.
-    const resolvedStatusIndicatorColor = statusIndicatorColor ?? (isCollapsed && !!badgeText ? theme.iconSuccessFill : undefined);
+    // The dot stays mounted either way and fades, rather than blinking in as the bar finishes narrowing.
+    const resolvedStatusIndicatorColor = statusIndicatorColor ?? (hasCollapsedStatusIndicator ? theme.iconSuccessFill : undefined);
+    const isStatusIndicatorVisible = !!statusIndicatorColor || (isCollapsed && hasCollapsedStatusIndicator);
 
     return (
         <PressableWithFeedback
@@ -160,6 +167,8 @@ function FlatNavItem({
                                         styles.statusIndicatorColor(resolvedStatusIndicatorColor),
                                         // The dot's stroke reads as a gap punched out of the row, so it has to track the row's background.
                                         getStatusIndicatorBorderStyle(isSelected, hovered, styles),
+                                        fadeTransitionStyle,
+                                        {opacity: isStatusIndicatorVisible ? 1 : 0},
                                     ]}
                                 />
                             )}

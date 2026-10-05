@@ -1,3 +1,5 @@
+import {isPolicyEligibleForSpendOverTime} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -6,21 +8,29 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {useOnyx} from 'react-native-onyx';
 
 /**
- * Whether any expense report the user can see belongs to somebody else.
+ * Whether the user sees anybody else's expenses.
  *
  * Navigation uses this to decide whether splitting a group into "all" and "mine" says anything: for someone who
  * only ever sees their own spend, the two searches return the same rows, so the group collapses to one entry.
  *
- * This reads what Onyx currently holds, so it can start false and turn true as reports load. That direction is
- * harmless — the nav gains an entry rather than losing one out from under the user.
+ * A workspace role answers this on its own, since an admin, auditor or approver sees what the workspace spends
+ * whether or not any of it has loaded yet. The reports are checked too, for someone who holds no such role but
+ * can still see a report of somebody else's. That check reads what Onyx currently holds, so it can start false
+ * and turn true as reports load. Either direction only ever adds the entry rather than taking it away.
  */
 function useHasOthersExpenses(): boolean {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const currentUserAccountID = session?.accountID;
 
     if (!currentUserAccountID) {
         return false;
+    }
+
+    const canSeeWorkspaceSpend = Object.values(allPolicies ?? {}).some((policy) => !!policy && isPolicyEligibleForSpendOverTime(policy, session?.email));
+    if (canSeeWorkspaceSpend) {
+        return true;
     }
 
     return Object.values(allReports ?? {}).some((report) => report?.type === CONST.REPORT.TYPE.EXPENSE && !!report.ownerAccountID && report.ownerAccountID !== currentUserAccountID);

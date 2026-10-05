@@ -182,6 +182,10 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const getParentBadgeText = (items: SearchTypeMenuItem[], rootItem: SearchTypeMenuItem | undefined, isExpanded: boolean) =>
         isExpanded && rootItem ? getItemBadgeText(rootItem.key, reportCounts) : getGroupBadgeText(items, isExpanded && !rootItem);
 
+    // The collapsed row's dot has to outlive the badge it stands in for: the badge's text changes as the group
+    // expands, and a dot that mounts with it would blink rather than fade.
+    const hasGroupBadge = (items: SearchTypeMenuItem[]) => !!getGroupBadgeText(items, false);
+
     const getSearchItemLabel = (item: SearchTypeMenuItem, isSubItem: boolean) =>
         translate(isSubItem ? getGroupedSearchTranslationPath(item.key, item.translationPath) : item.translationPath);
 
@@ -348,6 +352,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                             icon={navIcons.Receipt}
                                             isSelected={isSpendTabSelected && currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPENSES}
                                             badgeText={getParentBadgeText(expenses, expensesRoot, isExpensesGroupExpanded)}
+                                            hasCollapsedStatusIndicator={hasGroupBadge(expenses)}
                                             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.EXPENSES}
                                             onPress={() => {
                                                 if (!expensesRoot) {
@@ -357,8 +362,11 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                                 navigateToSearchItem(expensesRoot);
                                             }}
                                         />
-                                        {isExpensesGroupExpanded && (
-                                            <FlatNavSubItemList selectedIndex={expensesChildren.findIndex((item) => item.key === currentSearchKey)}>
+                                        {isExpensesGroupSelected && expensesChildren.length > 0 && (
+                                            <FlatNavSubItemList
+                                                isExpanded={isExpensesGroupExpanded}
+                                                selectedIndex={expensesChildren.findIndex((item) => item.key === currentSearchKey)}
+                                            >
                                                 {expensesChildren.map((item, index) => renderSearchItem(item, true, index, expensesChildren.length))}
                                             </FlatNavSubItemList>
                                         )}
@@ -373,6 +381,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                             icon={navIcons.Document}
                                             isSelected={isSpendTabSelected && currentSearchKey === CONST.SEARCH.SEARCH_KEYS.REPORTS}
                                             badgeText={getParentBadgeText(reports, reportsRoot, isReportsGroupExpanded)}
+                                            hasCollapsedStatusIndicator={hasGroupBadge(reports)}
                                             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
                                             onPress={() => {
                                                 if (!reportsRoot) {
@@ -382,8 +391,11 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                                 navigateToSearchItem(reportsRoot);
                                             }}
                                         />
-                                        {isReportsGroupExpanded && (
-                                            <FlatNavSubItemList selectedIndex={reportsChildren.findIndex((item) => item.key === currentSearchKey)}>
+                                        {isReportsGroupSelected && reportsChildren.length > 0 && (
+                                            <FlatNavSubItemList
+                                                isExpanded={isReportsGroupExpanded}
+                                                selectedIndex={reportsChildren.findIndex((item) => item.key === currentSearchKey)}
+                                            >
                                                 {reportsChildren.map((item, index) => renderSearchItem(item, true, index, reportsChildren.length))}
                                             </FlatNavSubItemList>
                                         )}
@@ -398,6 +410,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                             icon={navIcons.Connect}
                                             isSelected={isAccountingGroupSelected}
                                             badgeText={getGroupBadgeText(accounting, isAccountingGroupExpanded)}
+                                            hasCollapsedStatusIndicator={hasGroupBadge(accounting)}
                                             onPress={() => {
                                                 const firstAccounting = accounting.at(0);
                                                 if (!firstAccounting) {
@@ -407,8 +420,11 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                                 navigateToSearchItem(firstAccounting);
                                             }}
                                         />
-                                        {isAccountingGroupExpanded && (
-                                            <FlatNavSubItemList selectedIndex={accounting.findIndex((item) => item.key === currentSearchKey)}>
+                                        {isAccountingGroupSelected && (
+                                            <FlatNavSubItemList
+                                                isExpanded={isAccountingGroupExpanded}
+                                                selectedIndex={accounting.findIndex((item) => item.key === currentSearchKey)}
+                                            >
                                                 {accounting.map((item, index) => renderSearchItem(item, true, index, accounting.length))}
                                             </FlatNavSubItemList>
                                         )}
@@ -448,7 +464,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                             isSelected={isSavedGroupSelected}
                                             onPress={navigateToFirstSavedSearch}
                                         />
-                                        {isSavedGroupExpanded && <FlatNavSavedSearches />}
+                                        {isSavedGroupSelected && <FlatNavSavedSearches isExpanded={isSavedGroupExpanded} />}
                                     </>
                                 )}
 

@@ -39,8 +39,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import getReportRouteForCurrentContext from '@libs/Navigation/helpers/getReportRouteForCurrentContext';
-import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {getPersonalDetailsForAccountIDs} from '@libs/PersonalDetailsUtils';
 import {getHumanAgentAccountIDFromReportAction, getHumanAgentFirstName, isTransactionThread} from '@libs/ReportActionsUtils';
@@ -104,7 +102,7 @@ import {isPast} from 'date-fns';
 import React, {useMemo} from 'react';
 import {Keyboard, View} from 'react-native';
 
-import {useConciergeSessionActions} from './ConciergeSessionContext';
+import {openConciergeHistory} from '@pages/AskConcierge/ConciergeHistoryStore';
 
 type HeaderViewProps = {
     /** Toggles the navigationMenu open and closed */
@@ -117,7 +115,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const parentReportAction = useParentReportAction(report);
 
-    const icons = useMemoizedLazyExpensifyIcons(['BackArrow', 'Close', 'DotIndicator', 'Plus']);
+    const icons = useMemoizedLazyExpensifyIcons(['BackArrow', 'Close', 'DotIndicator', 'History', 'Plus']);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const isInSidePanel = useIsInSidePanel();
@@ -157,9 +155,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
     const isInAskConcierge = useIsInAskConcierge();
     const {isBetaEnabled} = usePermissions();
-    const {resetSession: resetConciergeSession} = useConciergeSessionActions();
     const isAskConciergeEnabled = isBetaEnabled(CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD) && !isInSidePanel;
-    const isConciergeThread = !!conciergeReportID && report?.parentReportID === conciergeReportID;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const allParticipants = getParticipantsAccountIDsForDisplay(report, false, true, undefined, reportMetadata);
@@ -305,19 +301,25 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         </Button>
     );
 
-    const startNewConciergeChat = () => {
-        resetConciergeSession();
-        Navigation.navigate(getReportRouteForCurrentContext({reportID: conciergeReportID}));
-    };
+    // The Concierge chat opens on its own in the side panel and on narrow layouts, with no list beside it, so the
+    // header opens the list over the chat rather than navigating away from it.
+    const shouldShowConciergeHistoryButton = isBetaEnabled(CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD) && isConciergeChat && (shouldUseNarrowLayout || isInSidePanel);
 
-    const newConciergeChatButton = (
-        <Button
-            variant={CONST.BUTTON_VARIANT.SUCCESS}
-            onPress={startNewConciergeChat}
-        >
-            <Button.Icon src={icons.Plus} />
-            <Button.Text>{translate('common.concierge.newChat')}</Button.Text>
-        </Button>
+    const conciergeHistoryButton = (
+        <Tooltip text={translate('common.concierge.viewChatHistory')}>
+            <PressableWithoutFeedback
+                onPress={openConciergeHistory}
+                style={[styles.touchableButtonImage]}
+                role={CONST.ROLE.BUTTON}
+                accessibilityLabel={translate('common.concierge.viewChatHistory')}
+                sentryLabel="HeaderView-ConciergeHistory"
+            >
+                <Icon
+                    src={icons.History}
+                    fill={theme.icon}
+                />
+            </PressableWithoutFeedback>
+        </Tooltip>
     );
 
     const renderAdditionalText = () => {
@@ -501,7 +503,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                     )}
                                 </PressableWithoutFeedback>
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                                    {isAskConciergeEnabled && isConciergeThread && newConciergeChatButton}
+                                    {shouldShowConciergeHistoryButton && conciergeHistoryButton}
                                     {shouldShowBookCall && !shouldStackBookCall && bookCallButton}
                                     {shouldShowOnBoardingHelpDropdownButton && !shouldUseNarrowLayout && onboardingHelpDropdownButton}
                                     {!shouldUseNarrowLayout && !shouldShowDiscount && isChatUsedForOnboarding && (

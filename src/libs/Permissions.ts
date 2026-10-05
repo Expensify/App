@@ -29,9 +29,9 @@ function canUseLinkPreviews(): boolean {
     return false;
 }
 
-// TODO: the navigation redesign shows Insights to everyone reviewing it, whatever their account is on. Remove
+// TODO: the navigation redesign shows these to everyone reviewing it, whatever their account is on. Remove
 // this with the rest of the design branch.
-const FORCED_ON_BETAS = new Set<Beta>([CONST.BETAS.INSIGHTS_PAGE]);
+const FORCED_ON_BETAS = new Set<Beta>([CONST.BETAS.INSIGHTS_PAGE, CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD]);
 
 /** The configuration and the overrides are required so that no call site can skip them by accident. */
 function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>, betaConfiguration: OnyxEntry<BetaConfiguration>, betaOverrides: OnyxEntry<BetaOverrides>): boolean {

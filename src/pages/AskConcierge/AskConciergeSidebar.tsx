@@ -40,6 +40,9 @@ type AskConciergeSidebarProps = {
     onAskNewQuestion: () => void;
 
     onSelectThread: (reportID: string) => void;
+
+    /** Shown as a back arrow in the header, for the layouts where the list is a page of its own */
+    onBackButtonPress?: () => void;
 };
 
 // A thinking thread breathes its dot rather than animating anything else in the row.
@@ -131,7 +134,7 @@ function AskConciergeRow({label, icon, reportID, isSelected, isUnread, onPress}:
     );
 }
 
-function AskConciergeSidebar({threads, selectedReportID, onAskNewQuestion, onSelectThread}: AskConciergeSidebarProps) {
+function AskConciergeSidebar({threads, selectedReportID, onAskNewQuestion, onSelectThread, onBackButtonPress}: AskConciergeSidebarProps) {
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'DotIndicator', 'DotIndicatorUnfilled']);
     const illustrations = useMemoizedLazyIllustrations(['CommentBubblesBlue']);
@@ -142,6 +145,7 @@ function AskConciergeSidebar({threads, selectedReportID, onAskNewQuestion, onSel
             <TopBarWithLoadingBar
                 breadcrumbLabel="Concierge"
                 shouldDisplaySearch={false}
+                onBackButtonPress={onBackButtonPress}
             >
                 {/* The top bar keeps a 12px right margin of its own, so 8px here lands the button 20px from the edge. */}
                 <View style={styles.mr2}>

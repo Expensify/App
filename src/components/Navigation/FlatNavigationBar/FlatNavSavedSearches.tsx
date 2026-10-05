@@ -33,13 +33,18 @@ import React from 'react';
 import FlatNavItem from './FlatNavItem';
 import FlatNavSubItemList from './FlatNavSubItemList';
 
+type FlatNavSavedSearchesProps = {
+    /** Whether the rows are showing. A collapsed bar has no room for them, so the list closes rather than unmounting. */
+    isExpanded: boolean;
+};
+
 /**
  * Child rows of the flat navigation bar's "Saved" group.
  *
- * Resolving a saved search's display title needs a wide slice of Onyx, so this only mounts while the group is
- * expanded. Everything above it just needs to know whether any saved searches exist.
+ * Resolving a saved search's display title needs a wide slice of Onyx, so this only mounts while the group is the
+ * current one. Everything above it just needs to know whether any saved searches exist.
  */
-function FlatNavSavedSearches() {
+function FlatNavSavedSearches({isExpanded}: FlatNavSavedSearchesProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
 
@@ -93,7 +98,10 @@ function FlatNavSavedSearches() {
         .sort((a, b) => localeCompare(a.title, b.title));
 
     return (
-        <FlatNavSubItemList selectedIndex={items.findIndex((item) => currentSearchKey === item.searchKey)}>
+        <FlatNavSubItemList
+            isExpanded={isExpanded}
+            selectedIndex={items.findIndex((item) => currentSearchKey === item.searchKey)}
+        >
             {items.map((item, index) => (
                 <FlatNavItem
                     key={item.key}

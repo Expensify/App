@@ -17,6 +17,7 @@ const TOGGLE_BUTTON_COLLAPSED_TRANSLATE_X = -10;
 
 const layoutTransitionStyle: ViewStyle =
     Platform.OS === 'web' ? {transition: `width ${SEARCH_SIDEBAR_COLLAPSE_ANIMATION_DURATION_MS}ms ease, margin-left ${SEARCH_SIDEBAR_COLLAPSE_ANIMATION_DURATION_MS}ms ease`} : {};
+const heightTransitionStyle: ViewStyle = Platform.OS === 'web' ? {transition: `height ${SEARCH_SIDEBAR_COLLAPSE_ANIMATION_DURATION_MS}ms ease`} : {};
 const fadeTransitionStyle: ViewStyle =
     Platform.OS === 'web' ? {transition: `opacity ${SEARCH_SIDEBAR_COLLAPSE_ANIMATION_DURATION_MS}ms ease, transform ${SEARCH_SIDEBAR_COLLAPSE_ANIMATION_DURATION_MS}ms ease`} : {};
 
@@ -170,7 +171,9 @@ function useFlatNavigationBarVisualWidthStyle() {
 
 export {
     SEARCH_SIDEBAR_COLLAPSE_ANIMATION_DURATION_MS,
+    fadeTransitionStyle,
     getFlatNavigationBarWidth,
+    heightTransitionStyle,
     layoutTransitionStyle,
     useFlatNavigationBarAccountAvatarStyle,
     useFlatNavigationBarLayoutWidthStyle,
