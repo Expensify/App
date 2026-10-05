@@ -4,17 +4,17 @@ import CONST from '@src/CONST';
 
 import type {ConfirmationPageButtonProps} from './ConfirmationPageButtonBase';
 
-import ConfirmationPageButton from './ConfirmationPageButtonBase';
+import ConfirmationPageButtonBase from './ConfirmationPageButtonBase';
 
 function ConfirmationPagePrimaryButton(props: ConfirmationPageButtonProps) {
     return (
-        <ConfirmationPageButton
+        <ConfirmationPageButtonBase
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             testID="confirmation-primary-button"
             {...props}
         >
             <Button.KeyboardShortcut />
-        </ConfirmationPageButton>
+        </ConfirmationPageButtonBase>
     );
 }
 

@@ -1,14 +1,14 @@
 import type {ConfirmationPageButtonProps} from './ConfirmationPageButtonBase';
 
-import ConfirmationPageButton from './ConfirmationPageButtonBase';
+import ConfirmationPageButtonBase from './ConfirmationPageButtonBase';
 
-function ConfirmationPageButtonSecondary(props: ConfirmationPageButtonProps) {
+function ConfirmationPageSecondaryButton(props: ConfirmationPageButtonProps) {
     return (
-        <ConfirmationPageButton
+        <ConfirmationPageButtonBase
             testID="confirmation-secondary-button"
             {...props}
         />
     );
 }
 
-export default ConfirmationPageButtonSecondary;
+export default ConfirmationPageSecondaryButton;

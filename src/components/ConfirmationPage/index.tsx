@@ -1,5 +1,5 @@
 /**
- * ConfirmationPage – a confirmation/illustration screen built with composition API.
+ * ConfirmationPage: a confirmation/illustration screen built with composition API.
  *
  * Instead of a large flat props list (illustration, heading, description, shouldShowButton, …),
  * sub-components are composed as children:

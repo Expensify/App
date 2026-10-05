@@ -15,7 +15,7 @@ type ConfirmationPageButtonBaseProps = ConfirmationPageButtonProps &
         children?: React.ReactNode;
     };
 
-function ConfirmationPageButton({text, onPress = () => {}, isDisabled, isLoading, testID, variant, children}: ConfirmationPageButtonBaseProps) {
+function ConfirmationPageButtonBase({text, onPress = () => {}, isDisabled, isLoading, testID, variant, children}: ConfirmationPageButtonBaseProps) {
     const styles = useThemeStyles();
 
     return (
@@ -34,5 +34,5 @@ function ConfirmationPageButton({text, onPress = () => {}, isDisabled, isLoading
     );
 }
 
-export default ConfirmationPageButton;
+export default ConfirmationPageButtonBase;
 export type {ConfirmationPageButtonProps};
