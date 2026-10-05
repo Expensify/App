@@ -9773,6 +9773,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             `Bonjour, je suis ${supportRep} et je travaillerai avec vous jusqu’à ce que tout soit entièrement résolu. Si vous nous avez déjà transmis des détails, je les examinerai avant de répondre afin que vous n’ayez pas à vous répéter. S’il s’agit d’un nouveau problème, dites-moi ce pour quoi vous avez besoin d’aide.`,
         checkboxTooltip: 'Votre représentant de l’assistance cochera cette case lorsque le ticket sera résolu.',
         genericCreateSupportTicketFailureMessage: 'Nous n’avons pas pu créer ce ticket d’assistance. Fermez cette erreur et réessayez.',
+        noSupportRepAvailable: 'Aucun représentant de l’assistance n’est disponible pour le moment. Vous pouvez toujours envoyer un message à Concierge pour obtenir de l’aide.',
         fallbackTitle: 'Ticket d’assistance',
     },
     statementPage: {

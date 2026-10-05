@@ -4,7 +4,7 @@ import getReportRouteForCurrentContext from '@libs/Navigation/helpers/getReportR
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID} from '@libs/ReportUtils';
 
-import {openSupportTicket} from '@userActions/Report';
+import {isNoSupportRepAvailableResponse, openSupportTicket} from '@userActions/Report';
 
 import CONST from '@src/CONST';
 
@@ -51,5 +51,21 @@ describe('actions/Report', () => {
 
         // And the request does not navigate a second time after the server has created the report
         expect(mockNavigate).toHaveBeenCalledTimes(1);
+    });
+
+    it('recognizes the no-rep response', () => {
+        // Given the exact error returned when the backend cannot assign a support rep
+        const response = {jsonCode: CONST.JSON_CODE.EXP_ERROR, message: 'No support rep is available to take this ticket.'};
+
+        // Then the App can show the Concierge fallback instead of leaving the pending ticket open
+        expect(isNoSupportRepAvailableResponse(response)).toBe(true);
+    });
+
+    it.each([
+        {jsonCode: CONST.JSON_CODE.EXP_ERROR, message: 'We could not create this support ticket.'},
+        {jsonCode: CONST.JSON_CODE.BAD_REQUEST, message: 'No support rep is available to take this ticket.'},
+        {jsonCode: CONST.JSON_CODE.EXP_ERROR, message: undefined},
+    ])('does not mistake other failures for the no-rep response', (response) => {
+        expect(isNoSupportRepAvailableResponse(response)).toBe(false);
     });
 });

@@ -9577,6 +9577,7 @@ ${reportName}`,
             `Hola, soy ${supportRep} y trabajaré contigo hasta que esto se resuelva por completo. Si ya compartiste detalles con nosotros, los revisaré antes de responder para que no tengas que repetirlos. Si se trata de un problema nuevo, cuéntame con qué necesitas ayuda.`,
         checkboxTooltip: 'Tu representante de soporte marcará esto cuando se resuelva.',
         genericCreateSupportTicketFailureMessage: 'No pudimos crear este ticket de soporte. Descarta este error e inténtalo de nuevo.',
+        noSupportRepAvailable: 'No hay representantes de soporte disponibles en este momento. Aún puedes enviar un mensaje a Concierge para obtener ayuda.',
         fallbackTitle: 'Ticket de soporte',
     },
     statementPage: {

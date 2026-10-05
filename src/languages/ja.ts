@@ -9564,6 +9564,7 @@ ${reportName}`,
             `こんにちは、${supportRep}です。完全に解決するまで対応します。すでに詳細をお知らせいただいている場合は、同じ内容を繰り返していただく必要がないよう、返信前に確認します。新しい問題の場合は、必要なサポートをお知らせください。`,
         checkboxTooltip: '解決時にサポート担当者がこれをチェックします。',
         genericCreateSupportTicketFailureMessage: 'このサポートチケットを作成できませんでした。このエラーを閉じて、もう一度お試しください。',
+        noSupportRepAvailable: '現在対応可能なサポート担当者はいません。Concierge にメッセージを送ってサポートを受けることはできます。',
         fallbackTitle: 'サポートチケット',
     },
     statementPage: {

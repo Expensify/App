@@ -9681,6 +9681,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             `Cześć, jestem ${supportRep} i będę z Tobą pracować, aż sprawa zostanie w pełni rozwiązana. Jeśli już przekazano nam szczegóły, przejrzę je przed odpowiedzią, aby nie trzeba było ich powtarzać. Jeśli to nowy problem, daj mi znać, w czym potrzebujesz pomocy.`,
         checkboxTooltip: 'Pracownik pomocy technicznej zaznaczy to po rozwiązaniu sprawy.',
         genericCreateSupportTicketFailureMessage: 'Nie udało się utworzyć tego zgłoszenia. Zamknij ten błąd i spróbuj ponownie.',
+        noSupportRepAvailable: 'Obecnie nie ma dostępnych pracowników pomocy technicznej. Nadal możesz wysłać wiadomość do Concierge, aby uzyskać pomoc.',
         fallbackTitle: 'Zgłoszenie do pomocy technicznej',
     },
     statementPage: {

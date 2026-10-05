@@ -9704,6 +9704,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             `Ciao, sono ${supportRep} e lavorerò con te finché questo non sarà completamente risolto. Se hai già condiviso dei dettagli con noi, li esaminerò prima di rispondere così non dovrai ripeterti. Se si tratta di un nuovo problema, fammi sapere di cosa hai bisogno.`,
         checkboxTooltip: 'Il tuo rappresentante dell’assistenza lo selezionerà quando sarà risolto.',
         genericCreateSupportTicketFailureMessage: 'Non siamo riusciti a creare questo ticket di assistenza. Chiudi questo errore e riprova.',
+        noSupportRepAvailable: 'Al momento non sono disponibili rappresentanti dell’assistenza. Puoi comunque inviare un messaggio a Concierge per ricevere aiuto.',
         fallbackTitle: 'Ticket di assistenza',
     },
     statementPage: {

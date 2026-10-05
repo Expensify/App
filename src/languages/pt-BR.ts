@@ -9669,6 +9669,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             `Olá, eu sou ${supportRep} e vou trabalhar com você até que isso seja totalmente resolvido. Se você já compartilhou detalhes conosco, vou analisá-los antes de responder para que não precise se repetir. Se este for um problema novo, diga-me com o que você precisa de ajuda.`,
         checkboxTooltip: 'Seu representante de suporte marcará isto quando for resolvido.',
         genericCreateSupportTicketFailureMessage: 'Não foi possível criar este chamado de suporte. Feche este erro e tente novamente.',
+        noSupportRepAvailable: 'Não há representantes de suporte disponíveis no momento. Você ainda pode enviar uma mensagem para a Concierge para obter ajuda.',
         fallbackTitle: 'Chamado de suporte',
     },
     statementPage: {

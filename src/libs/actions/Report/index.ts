@@ -4852,6 +4852,12 @@ function createNewReport(
     return {...optimisticReportData, reportPreviewReportActionID};
 }
 
+const NO_SUPPORT_REP_AVAILABLE_MESSAGE = 'No support rep is available to take this ticket.';
+
+function isNoSupportRepAvailableResponse(response: {jsonCode?: number | string; message?: string} | void): boolean {
+    return response?.jsonCode === CONST.JSON_CODE.EXP_ERROR && response.message === NO_SUPPORT_REP_AVAILABLE_MESSAGE;
+}
+
 function openSupportTicket(resolvedSupportTicketReportID?: string) {
     const newSupportTicketReportID = generateReportID();
     const parameters: CreateSupportTicketParams = {
@@ -4862,7 +4868,7 @@ function openSupportTicket(resolvedSupportTicketReportID?: string) {
     Navigation.navigate(getReportRouteForCurrentContext({reportID: newSupportTicketReportID, isPendingCreation: true}));
 
     // eslint-disable-next-line rulesdir/no-api-side-effects-method -- this command creates the report under the client-generated ID used by the pending route.
-    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_SUPPORT_TICKET, parameters).then(() => undefined);
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_SUPPORT_TICKET, parameters);
 }
 
 function dismissFailedSupportTicket(supportTicketReportID: string, parentReportID: string, parentReportActionID: string) {
@@ -9023,6 +9029,7 @@ export {
     extractRHPVariantFromResponse,
     createNewReport,
     openSupportTicket,
+    isNoSupportRepAvailableResponse,
     dismissFailedSupportTicket,
     clearAllReportActionDrafts,
     deleteReportComment,

@@ -21,7 +21,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openHelpPage} from '@libs/actions/Help';
 import {openExternalLink} from '@libs/actions/Link';
-import {navigateToAndOpenReportWithAccountIDs, openSupportTicket} from '@libs/actions/Report';
+import {isNoSupportRepAvailableResponse, navigateToAndOpenReportWithAccountIDs, openSupportTicket} from '@libs/actions/Report';
+import Growl from '@libs/Growl';
 import Navigation from '@libs/Navigation/Navigation';
 
 import colors from '@styles/theme/colors';
@@ -64,6 +65,19 @@ function HelpPage() {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {openConciergeAnywhere} = useOpenConciergeAnywhere();
     const {isBetaEnabled} = usePermissions();
+
+    const openSupportTicketOrConcierge = () => {
+        openSupportTicket()
+            .then((response) => {
+                if (!isNoSupportRepAvailableResponse(response)) {
+                    return;
+                }
+
+                Growl.error(translate('supportTicket.noSupportRepAvailable'));
+                Navigation.goBack(undefined, {afterTransition: () => openConciergeAnywhere({forceConcierge: true})});
+            })
+            .catch(() => undefined);
+    };
 
     // Remove the row's accessibility grouping so native (iOS/Android) screen readers can announce the nested
     // Book a call button as its own element; on web this prop is a no-op and the button is reached via keyboard Tab instead
@@ -203,7 +217,7 @@ function HelpPage() {
               description: translate('initialSettingsPage.helpPage.talkToAHumanDescription'),
               icon: icons.ChatBubbles,
               iconType: CONST.ICON_TYPE_ICON,
-              onPress: () => openSupportTicket().catch(() => undefined),
+              onPress: openSupportTicketOrConcierge,
               shouldShowRightIcon: true,
               wrapperStyle: [styles.sectionMenuItemTopDescription],
               sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.SUPPORT_TICKET,

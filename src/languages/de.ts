@@ -9748,6 +9748,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             `Hallo, ich bin ${supportRep} und begleite dich, bis das vollständig gelöst ist. Wenn du uns bereits Details mitgeteilt hast, prüfe ich sie vor meiner Antwort, damit du dich nicht wiederholen musst. Wenn dies ein neues Problem ist, lass mich wissen, wobei du Hilfe brauchst.`,
         checkboxTooltip: 'Dein Support-Mitarbeiter markiert dies als erledigt.',
         genericCreateSupportTicketFailureMessage: 'Dieses Support-Ticket konnte nicht erstellt werden. Bitte schließe diesen Fehler und versuche es erneut.',
+        noSupportRepAvailable: 'Derzeit sind keine Support-Mitarbeiter verfügbar. Du kannst Concierge trotzdem um Hilfe bitten.',
         fallbackTitle: 'Support-Ticket',
     },
     statementPage: {
