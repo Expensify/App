@@ -171,6 +171,7 @@ function OptionRowLHNData({
         movedToReport,
         currentUserAccountID,
         reportAttributesDerived,
+        visibleReportActionsData,
         policyTags,
         currentUserLogin: login ?? '',
         isTrackIntentUser,
