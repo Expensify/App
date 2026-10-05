@@ -4,10 +4,12 @@ import type {RenderAPI} from '@testing-library/react-native';
 import {bulkDuplicateExpenses, bulkDuplicateReports, duplicateExpenseTransaction, duplicateReport, mergeDuplicates, resolveDuplicates} from '@libs/actions/IOU/Duplicate';
 import type {BulkDuplicateReportsParams, DuplicateReportParams} from '@libs/actions/IOU/Duplicate';
 import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilder';
+import signalExpenseAddedGrowl from '@libs/actions/IOU/signalExpenseAddedGrowl';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {addComment, openReport} from '@libs/actions/Report';
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, getReportAction} from '@libs/ReportActionsUtils';
@@ -40,6 +42,8 @@ import initCurrencyListContext from '../../utils/initCurrencyListContext';
 import {formatPhoneNumber, getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
 import {isObject} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
+
+jest.mock('@libs/actions/IOU/signalExpenseAddedGrowl', () => jest.fn());
 
 const topMostReportID = '23423423';
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -3808,6 +3812,8 @@ describe('actions/Duplicate', () => {
         });
 
         it('should create a single IOU report for multiple bulk-duplicated expenses', async () => {
+            // Given bulk duplication is initiated from Spend
+            jest.mocked(isSearchTopmostFullScreenRoute).mockReturnValue(true);
             const tx1: Transaction = {
                 ...createRandomTransaction(1),
                 transactionID: 'bulk_1',
@@ -3832,6 +3838,7 @@ describe('actions/Duplicate', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}bulk_3`]: tx3,
             };
 
+            // When the selected expenses are duplicated
             bulkDuplicateExpenses({
                 isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
@@ -3869,9 +3876,15 @@ describe('actions/Duplicate', () => {
 
             const iouReportIDs = new Set(requestMoneyCalls.map((call) => call[1].iouReportID));
             expect(iouReportIDs.size).toBe(1);
+
+            // Then the expense-added growl is signaled
+            expect(signalExpenseAddedGrowl).toHaveBeenCalledTimes(1);
+            expect(jest.mocked(signalExpenseAddedGrowl).mock.calls.at(0)?.at(1)).toBe(CONST.SEARCH.DATA_TYPES.EXPENSE);
         });
 
-        it('should not defer auto submit when the last selected expense is unreported', async () => {
+        it('should not defer auto submit or signal the growl outside Spend when the last selected expense is unreported', async () => {
+            // Given bulk duplication is initiated outside Spend
+            jest.mocked(isSearchTopmostFullScreenRoute).mockReturnValue(false);
             const reportedTransaction: Transaction = {
                 ...createRandomTransaction(1),
                 transactionID: 'bulk_reported',
@@ -3890,6 +3903,7 @@ describe('actions/Duplicate', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}bulk_unreported`]: unreportedTransaction,
             };
 
+            // When the selected expenses are duplicated
             bulkDuplicateExpenses({
                 isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
@@ -3927,6 +3941,9 @@ describe('actions/Duplicate', () => {
             expect(requestMoneyCalls).toHaveLength(1);
             expect(trackExpenseCalls).toHaveLength(1);
             expect(requestMoneyCalls.at(0)?.[1].shouldDeferAutoSubmit).toBeFalsy();
+
+            // Then the expense-added growl is not signaled
+            expect(signalExpenseAddedGrowl).not.toHaveBeenCalled();
         });
     });
 

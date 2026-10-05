@@ -1,0 +1,270 @@
+import {act, renderHook} from '@testing-library/react-native';
+
+import useReportTransactionShiftRange from '@components/MoneyRequestReportView/useReportTransactionShiftRange';
+
+import CONST from '@src/CONST';
+import type * as OnyxTypes from '@src/types/onyx';
+
+import createRandomTransaction from '../utils/collections/transaction';
+
+const REPORT_ID = '777';
+
+/** Errors the backend records are keyed by when they happened, and the latest one is the one read. */
+const REJECTED_AT = '1700000000000';
+
+function buildTransaction(transactionID: string, overrides: Partial<OnyxTypes.Transaction> = {}): OnyxTypes.Transaction {
+    return {...createRandomTransaction(Number(transactionID)), transactionID, reportID: REPORT_ID, ...overrides};
+}
+
+const rows = [buildTransaction('1'), buildTransaction('2'), buildTransaction('3'), buildTransaction('4')];
+
+/** Drives the hook the way the list does, holding the selection the component reads from context. */
+function renderShiftRange(initialTransactions: OnyxTypes.Transaction[] = rows) {
+    const state = {selectedTransactionIDs: [] as string[], transactions: initialTransactions, reportID: REPORT_ID};
+    const setSelectedTransactions = jest.fn((transactionIDs: string[]) => {
+        state.selectedTransactionIDs = transactionIDs;
+    });
+    const clearSelectedTransactions = jest.fn(() => {
+        state.selectedTransactionIDs = [];
+    });
+
+    const rendered = renderHook(() =>
+        useReportTransactionShiftRange({
+            reportID: state.reportID,
+            transactions: state.transactions,
+            selectedTransactionIDs: state.selectedTransactionIDs,
+            setSelectedTransactions,
+            clearSelectedTransactions,
+        }),
+    );
+
+    /** The hook reads the selection from its params, so a commit has to be handed back before the next gesture. */
+    const settle = () => rendered.rerender({});
+
+    return {...rendered, state, settle, setSelectedTransactions, clearSelectedTransactions};
+}
+
+describe('MoneyRequestReport shift+click', () => {
+    it('selects the rows between the clicked one and the last one clicked plainly', () => {
+        // Given the second row clicked plainly, which is the anchor the next click ranges from
+        const {result, state, settle} = renderShiftRange();
+        act(() => result.current.toggleTransaction('2'));
+        settle();
+
+        // When a shift+click lands two rows down
+        act(() => result.current.toggleTransaction('4', true));
+
+        // Then the rows between them come with it, which is the whole gesture
+        expect(state.selectedTransactionIDs).toEqual(['2', '3', '4']);
+    });
+
+    it('gives back the rows a shrinking range no longer covers', () => {
+        // Given a range painted from the first row to the fourth
+        const {result, state, settle} = renderShiftRange();
+        act(() => result.current.toggleTransaction('1'));
+        settle();
+        act(() => result.current.toggleTransaction('4', true));
+        settle();
+
+        // When the endpoint is pulled back to the second
+        act(() => result.current.toggleTransaction('2', true));
+
+        // Then the rows it no longer covers are given back, so an overshoot takes one click to undo
+        expect(state.selectedTransactionIDs).toEqual(['1', '2']);
+    });
+
+    it('leaves a row being deleted out of the range it spans', () => {
+        // Given a list whose middle row is on its way out
+        const withDeleted = [rows.at(0), buildTransaction('2', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}), rows.at(2)].filter((row) => !!row);
+        const {result, state, settle} = renderShiftRange(withDeleted);
+
+        // When a range spans across it
+        act(() => result.current.toggleTransaction('1'));
+        settle();
+        act(() => result.current.toggleTransaction('3', true));
+
+        // Then it is skipped, since its own checkbox is disabled
+        expect(state.selectedTransactionIDs).toEqual(['1', '3']);
+    });
+
+    it('leaves a row the backend rejected out of the range it spans, since its checkbox is disabled too', () => {
+        // Given a list whose middle row carries a reject the backend recorded against it
+        const withRejected = [rows.at(0), buildTransaction('2', {errorFields: {reject: {[REJECTED_AT]: 'iou.rejectReport.couldNotRejectExpense'}}}), rows.at(2)].filter((row) => !!row);
+        const {result, state, settle} = renderShiftRange(withRejected);
+
+        // When a range spans across it
+        act(() => result.current.toggleTransaction('1'));
+        settle();
+        act(() => result.current.toggleTransaction('3', true));
+
+        // Then it is skipped, rather than a range checking what a click cannot
+        expect(state.selectedTransactionIDs).toEqual(['1', '3']);
+    });
+
+    it('runs a cold shift+click from the top of the list, since nothing is selected for it to anchor on', () => {
+        // Given nothing selected and no row clicked yet
+        const {result, state} = renderShiftRange();
+
+        // When the first gesture of all is a shift+click
+        act(() => result.current.toggleTransaction('3', true));
+
+        // Then it ranges from the first selectable row, which is what Excel, Sheets and Finder do
+        expect(state.selectedTransactionIDs).toEqual(['1', '2', '3']);
+    });
+
+    it('toggles one row off without disturbing the rest', () => {
+        // Given a range painted across three rows
+        const {result, state, settle} = renderShiftRange();
+        act(() => result.current.toggleTransaction('1'));
+        settle();
+        act(() => result.current.toggleTransaction('3', true));
+        settle();
+
+        // When one of them is clicked plainly
+        act(() => result.current.toggleTransaction('2'));
+
+        // Then only that row changes, since a plain click is a toggle and not a range
+        expect(state.selectedTransactionIDs).toEqual(['1', '3']);
+    });
+
+    it('narrows a group selected from its header, since the header records it as a block', () => {
+        // Given a group selected from its header, which records those rows as one block
+        const {result, state, settle} = renderShiftRange();
+        act(() => result.current.toggleGroup(['1', '2', '3']));
+        settle();
+        expect(state.selectedTransactionIDs).toEqual(['1', '2', '3']);
+
+        // When a shift+click lands inside it
+        act(() => result.current.toggleTransaction('2', true));
+
+        // Then the block narrows onto the span, rather than the click only ever adding
+        expect(state.selectedTransactionIDs).toEqual(['1', '2']);
+    });
+
+    it('drops the block when a group is deselected, so a later shift+click cannot collapse onto it', () => {
+        // Given a group selected from its header and then deselected again
+        const {result, state, settle} = renderShiftRange();
+        act(() => result.current.toggleGroup(['1', '2', '3']));
+        settle();
+        act(() => result.current.toggleGroup(['1', '2', '3']));
+        settle();
+        expect(state.selectedTransactionIDs).toEqual([]);
+
+        // When the next shift+click lands
+        act(() => result.current.toggleTransaction('3', true));
+
+        // Then it runs from the top, since deselecting a group paints no block for a later click to collapse onto
+        expect(state.selectedTransactionIDs).toEqual(['1', '2', '3']);
+    });
+
+    it('writes nothing for a group with no row it can act on, and leaves the block a later shift+click narrows', () => {
+        const {result, state, settle, setSelectedTransactions} = renderShiftRange();
+
+        // Given a Select All, which seeds the block the next shift+click collapses
+        act(() => result.current.toggleAll(['1', '2', '3', '4']));
+        settle();
+        setSelectedTransactions.mockClear();
+
+        // When a group header is pressed whose rows are all unselectable
+        act(() => result.current.toggleGroup([]));
+        settle();
+
+        // Then nothing is written, rather than a new list of the same rows re-rendering every row
+        expect(setSelectedTransactions).not.toHaveBeenCalled();
+
+        // And the Select All block is still what the next shift+click narrows
+        act(() => result.current.toggleTransaction('2', true));
+
+        expect(state.selectedTransactionIDs).toEqual(['1', '2']);
+    });
+
+    it('collapses a Select All onto the span the next shift+click lands in', () => {
+        // Given Select All, which records the whole list as the block to narrow
+        const {result, state, settle} = renderShiftRange();
+        act(() => result.current.toggleAll(['1', '2', '3', '4']));
+        settle();
+        expect(state.selectedTransactionIDs).toEqual(['1', '2', '3', '4']);
+
+        // When a shift+click lands on the second row
+        act(() => result.current.toggleTransaction('2', true));
+
+        // Then the selection narrows onto it, which is what makes an overshoot recoverable in one click
+        expect(state.selectedTransactionIDs).toEqual(['1', '2']);
+    });
+
+    it('clears through the clearing action rather than an empty write, and forgets the session with it', () => {
+        // Given every row selected
+        const {result, state, settle, clearSelectedTransactions} = renderShiftRange();
+        act(() => result.current.toggleAll(['1', '2', '3', '4']));
+        settle();
+
+        // When Select All is pressed again
+        act(() => result.current.toggleAll(['1', '2', '3', '4']));
+        settle();
+
+        // Then it clears through the action that owns clearing, rather than writing an empty list past it
+        expect(clearSelectedTransactions).toHaveBeenCalledWith(true);
+
+        // The full-list block went with it, so the next click runs from the top rather than collapsing onto itself
+        act(() => result.current.toggleTransaction('3', true));
+
+        expect(state.selectedTransactionIDs).toEqual(['1', '2', '3']);
+    });
+
+    it('forgets the session when the list is reused for the next report, so a range cannot shrink across the change', () => {
+        const {result, state, settle, rerender} = renderShiftRange();
+
+        // Given a range painted across every row, which is what a shrink would give back
+        act(() => result.current.toggleTransaction('1'));
+        settle();
+        act(() => result.current.toggleTransaction('4', true));
+        settle();
+        expect(state.selectedTransactionIDs).toEqual(['1', '2', '3', '4']);
+
+        // When the list is handed the next report
+        state.reportID = '888';
+        rerender({});
+
+        // Then the click that would have shrunk that range keeps every row, since the session it would shrink is gone
+        act(() => result.current.toggleTransaction('2', true));
+
+        expect(state.selectedTransactionIDs).toEqual(['1', '2', '3', '4']);
+    });
+
+    it('forgets the session when the selection is cleared from outside the list, as the toolbar and bulk actions do', () => {
+        const {result, state, settle, rerender} = renderShiftRange();
+
+        // Given the last row clicked plainly, which becomes the anchor
+        act(() => result.current.toggleTransaction('3'));
+        settle();
+
+        // When something outside the hook clears the selection
+        state.selectedTransactionIDs = [];
+        rerender({});
+
+        // Then a shift+click runs from the top of the list, rather than from the row clicked before the clear
+        act(() => result.current.toggleTransaction('1', true));
+
+        expect(state.selectedTransactionIDs).toEqual(['1']);
+    });
+
+    it('gives nothing back when the selection was written from somewhere else, such as the toolbar’s Select All', () => {
+        const {result, state, settle, rerender} = renderShiftRange();
+
+        // Given a range this session painted across the first three rows
+        act(() => result.current.toggleTransaction('1'));
+        settle();
+        act(() => result.current.toggleTransaction('3', true));
+        settle();
+        expect(state.selectedTransactionIDs).toEqual(['1', '2', '3']);
+
+        // When something outside the list replaces the selection, here by selecting every row
+        state.selectedTransactionIDs = ['1', '2', '3', '4'];
+        rerender({});
+
+        // Then the next shift+click keeps every row, rather than giving back rows the session painted before that write
+        act(() => result.current.toggleTransaction('2', true));
+
+        expect(state.selectedTransactionIDs).toEqual(['1', '2', '3', '4']);
+    });
+});
