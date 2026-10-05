@@ -333,26 +333,23 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         [route.params.policyID],
     );
 
-    const changeMemberRole = useCallback(
-        (login: string, accountID: number, currentRole: string | undefined, newRole: ValueOf<typeof CONST.POLICY.ROLE>) => {
-            if (newRole === currentRole || !canMemberAssignRole(policy, currentUserLogin ?? '', newRole)) {
-                return;
-            }
+    const changeMemberRole = (login: string, accountID: number, currentRole: string | undefined, newRole: ValueOf<typeof CONST.POLICY.ROLE>) => {
+        if (newRole === currentRole || !canMemberAssignRole(policy, currentUserLogin ?? '', newRole)) {
+            return;
+        }
 
-            // A reimburser must stay a valid payer, so reject any role that cannot pay.
-            if (getReimburserEmail(policy) === login && !canRolePay(newRole)) {
-                return;
-            }
+        // A reimburser must stay a valid payer, so reject any role that cannot pay.
+        if (getReimburserEmail(policy) === login && !canRolePay(newRole)) {
+            return;
+        }
 
-            if (newRole !== CONST.POLICY.ROLE.ADMIN && isRuleBotEnforcingRules(accountID, policy)) {
-                showRuleBotGuardModal('changeRole', policyID);
-                return;
-            }
+        if (newRole !== CONST.POLICY.ROLE.ADMIN && isRuleBotEnforcingRules(accountID, policy)) {
+            showRuleBotGuardModal('changeRole', policyID);
+            return;
+        }
 
-            updateMemberRoleInline(policy, login, accountID, currentRole, newRole);
-        },
-        [currentUserLogin, policy, policyID, showRuleBotGuardModal],
-    );
+        updateMemberRoleInline(policy, login, accountID, currentRole, newRole);
+    };
 
     const policyOwner = policy?.owner;
     const canAssignElevatedRoles = canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES);
