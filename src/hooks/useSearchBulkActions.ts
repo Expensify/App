@@ -2764,30 +2764,78 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         );
 
                         if (snapshotReport) {
-                            openSearchReportSubmitToPopover(reportIDForSubmit, {
-                                onSubmitWithManagerEmail: (managerEmail, managerAccountID, shouldResolveViolations) => {
-                                    submitMoneyRequestOnSearch({
-                                        hash,
-                                        reportList: [snapshotReport],
-                                        policy: [policyForSubmit],
-                                        submitterLogin: getLoginByAccountID(snapshotReport.ownerAccountID, personalDetails),
-                                        getCurrencyDecimals,
-                                        rules,
-                                        currentSearchKey,
-                                        managerEmail,
-                                        managerAccountID,
-                                        shouldResolveAcknowledgedViolations: shouldResolveViolations,
-                                    });
-                                    refreshSearchAfterReportAction({
-                                        currentSearchQueryJSON,
-                                        currentSearchKey,
-                                        shouldCalculateTotals: shouldCalculateTotalsOnRefresh,
-                                        isOffline,
-                                        isLoading: !!currentSearchResults?.search?.isLoading,
-                                    });
-                                    clearSelectedTransactions();
-                                },
-                            });
+                            const openPopoverForSubmit = (shouldResolveViolations?: boolean) => {
+                                openSearchReportSubmitToPopover(reportIDForSubmit, {
+                                    shouldResolveAcknowledgedViolations: shouldResolveViolations,
+                                    onSubmitWithManagerEmail: (managerEmail, managerAccountID, shouldResolveManagerEmailViolations) => {
+                                        submitMoneyRequestOnSearch({
+                                            hash,
+                                            reportList: [snapshotReport],
+                                            policy: [policyForSubmit],
+                                            submitterLogin: getLoginByAccountID(snapshotReport.ownerAccountID, personalDetails),
+                                            getCurrencyDecimals,
+                                            rules,
+                                            currentSearchKey,
+                                            managerEmail,
+                                            managerAccountID,
+                                            shouldResolveAcknowledgedViolations: shouldResolveManagerEmailViolations,
+                                        });
+                                        refreshSearchAfterReportAction({
+                                            currentSearchQueryJSON,
+                                            currentSearchKey,
+                                            shouldCalculateTotals: shouldCalculateTotalsOnRefresh,
+                                            isOffline,
+                                            isLoading: !!currentSearchResults?.search?.isLoading,
+                                        });
+                                        clearSelectedTransactions();
+                                    },
+                                });
+                            };
+
+                            // iOS can't present the violations modal while this popover is still open, so resolve
+                            // violations first and open the popover afterwards instead of letting
+                            // ReportSubmitToContent check them itself.
+                            const reportOwnerLoginForSubmit = getLoginByAccountID(snapshotReport.ownerAccountID, personalDetails);
+                            const reportTransactionsForSubmit = transactionsByReportID.get(reportIDForSubmit) ?? [];
+                            const reportViolationsCollectionForSubmit: OnyxCollection<TransactionViolations> = {};
+                            for (const transaction of reportTransactionsForSubmit) {
+                                const violationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`;
+                                reportViolationsCollectionForSubmit[violationsKey] =
+                                    getTransactionViolations(transaction, allTransactionViolations, email ?? '', accountID, snapshotReport, reportOwnerLoginForSubmit, policyForSubmit) ?? [];
+                            }
+                            const summaryForSubmit = getReportSubmitViolationSummary(
+                                reportTransactionsForSubmit,
+                                reportViolationsCollectionForSubmit,
+                                snapshotReport,
+                                policyForSubmit,
+                                email ?? '',
+                                accountID,
+                            );
+
+                            if (!hasAnySubmitViolation(summaryForSubmit)) {
+                                openPopoverForSubmit();
+                            } else {
+                                showSubmitViolationsConfirmModal({
+                                    summary: summaryForSubmit,
+                                    showConfirmModal,
+                                    translate,
+                                    dateFnsLocale,
+                                    convertToDisplayString,
+                                    shouldShowMarkAsDoneCopy: allReportsShouldMarkAsDone,
+                                }).then((result) => {
+                                    if (result.action !== ModalActions.CONFIRM) {
+                                        return;
+                                    }
+                                    if (summaryForSubmit.hasPendingCardMatch) {
+                                        markPendingRTERTransactionsAsCash(
+                                            reportTransactionsForSubmit,
+                                            reportViolationsCollectionForSubmit,
+                                            Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDForSubmit}`] ?? {}),
+                                        );
+                                    }
+                                    openPopoverForSubmit(shouldResolveAcknowledgedViolations(summaryForSubmit));
+                                });
+                            }
                         }
                         return;
                     }

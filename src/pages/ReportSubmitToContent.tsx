@@ -6,7 +6,6 @@ import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMembe
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
-import useConfirmSubmitReportViolations from '@hooks/useConfirmSubmitReportViolations';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -29,7 +28,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getSearchValueForPhoneOrEmail, getUserToInviteOption} from '@libs/OptionsListUtils';
 import {getKnownAccountIDByLogin, getLoginByAccountID, getPersonalDetailsByID} from '@libs/PersonalDetailsUtils';
 import {getAccountIDForSubmitManagerEmail, getMemberAccountIDsForWorkspace, getSubmitToEmail} from '@libs/PolicyUtils';
-import {hasViolations as hasViolationsReportUtils, isExpenseReport, isMoneyRequestReportPendingDeletion, shouldShowMarkAsDone} from '@libs/ReportUtils';
+import {hasViolations as hasViolationsReportUtils, isExpenseReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
 import sortAlphabetically from '@libs/sortAlphabetically';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
@@ -68,6 +67,11 @@ type ReportSubmitToContentProps = {
     onSubmitWithManagerEmail?: (managerEmail: string, managerAccountID?: number, shouldResolveAcknowledgedViolations?: boolean) => void;
     /** When set, blocks submit after the popover is dismissed (prevents stale confirm / click-through). */
     canSubmitRef?: RefObject<boolean>;
+    /**
+     * Resolved by the caller's own `confirmSubmitReportViolations` call before this popover opened (iOS can't present
+     * the violations modal while this popover is still open), so this component must not run that check itself.
+     */
+    shouldResolveAcknowledgedViolations?: boolean;
 };
 
 function ReportSubmitToContent({
@@ -79,6 +83,7 @@ function ReportSubmitToContent({
     shouldDismissRHPAfterSubmit = true,
     onSubmitWithManagerEmail,
     canSubmitRef,
+    shouldResolveAcknowledgedViolations,
 }: ReportSubmitToContentProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare, dateFnsLocale} = useLocalize();
@@ -109,18 +114,6 @@ function ReportSubmitToContent({
     const lazyIllustrations = useMemoizedLazyIllustrations(['PaperAirplane']);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
-    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
-        policy,
-        report,
-        isTrackIntentUser,
-        rules,
-    });
-    const confirmSubmitReportViolations = useConfirmSubmitReportViolations({
-        reportID: report?.reportID,
-        report,
-        policy,
-        shouldShowMarkAsDoneCopy,
-    });
 
     const prepopulatedEmail = getSubmitToEmail(policy, report, submitterLogin, rules);
 
@@ -309,9 +302,45 @@ function ReportSubmitToContent({
 
         const resolvedManagerAccountID = selectedSubmitToMember?.accountID ?? getAccountIDForSubmitManagerEmail(trimmed, policy?.employeeList);
 
-        confirmSubmitReportViolations((shouldResolveAcknowledgedViolations) => {
-            if (onSubmitWithManagerEmail) {
-                onSubmitWithManagerEmail(trimmed, resolvedManagerAccountID, shouldResolveAcknowledgedViolations);
+        if (onSubmitWithManagerEmail) {
+            onSubmitWithManagerEmail(trimmed, resolvedManagerAccountID, shouldResolveAcknowledgedViolations);
+            if (currentSearchQueryJSON && !isOffline) {
+                search({
+                    searchKey: currentSearchKey,
+                    shouldCalculateTotals,
+                    offset: 0,
+                    queryJSON: currentSearchQueryJSON,
+                    isLoading: !!currentSearchResults?.search?.isLoading,
+                });
+            }
+            onDismiss();
+            onSubmitSuccess?.();
+            if (shouldDismissRHPAfterSubmit) {
+                Navigation.dismissToPreviousRHP();
+            }
+            return;
+        }
+
+        submitReport({
+            getCurrencyDecimals,
+            expenseReport: report,
+            policy,
+            rules,
+            currentUserAccountIDParam: currentUserDetails.accountID,
+            currentUserEmailParam: currentUserDetails.email ?? '',
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+            userBillingGracePeriodEnds,
+            amountOwed,
+            shouldResolveAcknowledgedViolations,
+            ownerBillingGracePeriodEnd,
+            delegateEmail,
+            delegateAccountID,
+            submitterLogin,
+            managerEmail: trimmed,
+            managerAccountID: resolvedManagerAccountID,
+            isTrackIntentUser,
+            onSubmitted: () => {
                 if (currentSearchQueryJSON && !isOffline) {
                     search({
                         searchKey: currentSearchKey,
@@ -321,50 +350,12 @@ function ReportSubmitToContent({
                         isLoading: !!currentSearchResults?.search?.isLoading,
                     });
                 }
-                onDismiss();
                 onSubmitSuccess?.();
+                onDismiss();
                 if (shouldDismissRHPAfterSubmit) {
                     Navigation.dismissToPreviousRHP();
                 }
-                return;
-            }
-
-            submitReport({
-                getCurrencyDecimals,
-                expenseReport: report,
-                policy,
-                rules,
-                currentUserAccountIDParam: currentUserDetails.accountID,
-                currentUserEmailParam: currentUserDetails.email ?? '',
-                hasViolations,
-                isASAPSubmitBetaEnabled,
-                userBillingGracePeriodEnds,
-                amountOwed,
-                shouldResolveAcknowledgedViolations,
-                ownerBillingGracePeriodEnd,
-                delegateEmail,
-                delegateAccountID,
-                submitterLogin,
-                managerEmail: trimmed,
-                managerAccountID: resolvedManagerAccountID,
-                isTrackIntentUser,
-                onSubmitted: () => {
-                    if (currentSearchQueryJSON && !isOffline) {
-                        search({
-                            searchKey: currentSearchKey,
-                            shouldCalculateTotals,
-                            offset: 0,
-                            queryJSON: currentSearchQueryJSON,
-                            isLoading: !!currentSearchResults?.search?.isLoading,
-                        });
-                    }
-                    onSubmitSuccess?.();
-                    onDismiss();
-                    if (shouldDismissRHPAfterSubmit) {
-                        Navigation.dismissToPreviousRHP();
-                    }
-                },
-            });
+            },
         });
     }, [
         hasSelectedSubmitToMember,
@@ -395,7 +386,7 @@ function ReportSubmitToContent({
         isTrackIntentUser,
         getCurrencyDecimals,
         rules,
-        confirmSubmitReportViolations,
+        shouldResolveAcknowledgedViolations,
     ]);
 
     const onSelectMember = useCallback(

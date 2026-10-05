@@ -45,6 +45,11 @@ type ReportSubmitToPopoverOpenOptions = {
     onSubmitSuccess?: () => void;
     /** When provided, called with the selected submit-to email instead of `submitReport`. */
     onSubmitWithManagerEmail?: (managerEmail: string, managerAccountID?: number, shouldResolveAcknowledgedViolations?: boolean) => void;
+    /**
+     * Resolved by the caller's own `confirmSubmitReportViolations` call before opening the popover (iOS can't present
+     * the violations modal while this popover is still open), then forwarded once the user picks a submit-to member.
+     */
+    shouldResolveAcknowledgedViolations?: boolean;
 };
 
 type UseReportSubmitToPopoverParams = {
@@ -81,6 +86,8 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
     const anchorRef = useRef<ComponentRef<typeof View>>(null);
     const oneShotOnSubmitSuccessRef = useRef<(() => void) | undefined>(undefined);
     const onSubmitWithManagerEmailRef = useRef<ReportSubmitToPopoverOpenOptions['onSubmitWithManagerEmail']>(undefined);
+    // State (not a ref) because it's read directly during render to build the `ReportSubmitToContent` prop below.
+    const [shouldResolveViolationsOnOpen, setShouldResolveViolationsOnOpen] = useState<boolean | undefined>(undefined);
     const canSubmitRef = useRef(true);
     const ignoreNextSearchSubmitPressRef = useRef(false);
     const pendingSearchSubmitOpenOptionsRef = useRef<ReportSubmitToPopoverOpenOptions | undefined>(undefined);
@@ -132,6 +139,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
     const closeReportSubmitToPopover = useCallback(() => {
         canSubmitRef.current = false;
         onSubmitWithManagerEmailRef.current = undefined;
+        setShouldResolveViolationsOnOpen(undefined);
         oneShotOnSubmitSuccessRef.current = undefined;
         pendingSearchSubmitOpenOptionsRef.current = undefined;
         setIsSearchSubmitFlow(false);
@@ -181,6 +189,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
             clearDismissGuard();
             oneShotOnSubmitSuccessRef.current = options?.onSubmitSuccess;
             onSubmitWithManagerEmailRef.current = options?.onSubmitWithManagerEmail;
+            setShouldResolveViolationsOnOpen(options?.shouldResolveAcknowledgedViolations);
             setIsSearchSubmitFlow(!!options?.onSubmitWithManagerEmail);
             const anchorToMeasure = getAnchorRef?.() ?? anchorRef;
             calculatePopoverPosition(anchorToMeasure, anchorAlignment)
@@ -290,6 +299,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
                         onDismiss={closeReportSubmitToPopover}
                         onSubmitSuccess={handleCombinedSubmitSuccess}
                         onSubmitWithManagerEmail={isSearchSubmitFlow ? handleSearchSubmitWithManagerEmail : undefined}
+                        shouldResolveAcknowledgedViolations={shouldResolveViolationsOnOpen}
                         canSubmitRef={canSubmitRef}
                         shouldDismissRHPAfterSubmit={false}
                     />
@@ -318,6 +328,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
         handleCombinedSubmitSuccess,
         isSearchSubmitFlow,
         handleSearchSubmitWithManagerEmail,
+        shouldResolveViolationsOnOpen,
     ]);
 
     return {
