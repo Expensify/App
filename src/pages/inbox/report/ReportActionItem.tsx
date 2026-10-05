@@ -219,7 +219,7 @@ function ReportActionItem({
     const [threadProcessingAgentIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(action.childReportID)}`, {
         selector: agentZeroProcessingAgentIDsSelector,
     });
-    const isAgentProcessingInThread = !!action.childReportID && (threadProcessingAgentIDs?.length ?? 0) > 0;
+    const isAgentProcessingInThread = !isOffline && !!action.childReportID && (threadProcessingAgentIDs?.length ?? 0) > 0;
 
     const {editingMessage, editingReportAction} = useReportActionActiveEdit();
 
