@@ -37,6 +37,21 @@ jest.mock('@hooks/useThemeStyles', () =>
 
 jest.mock('@hooks/useThemeIllustrations', () => jest.fn(() => ({})));
 
+let mockEligibility: {canClaim: boolean} | undefined = {canClaim: true};
+jest.mock('@hooks/useOnyx', () => jest.fn(() => [mockEligibility, {status: 'loaded'}]));
+
+let mockIsIncentivizedPeriod = true;
+jest.mock('@hooks/useEarlyRenewalPeriod', () => jest.fn(() => ({isNonIncentivizedPeriod: false, isIncentivizedPeriod: mockIsIncentivizedPeriod})));
+
+jest.mock('@components/BlockingViews/FullPageNotFoundView', () => {
+    // eslint-disable-next-line @typescript-eslint/consistent-type-imports
+    const {Text: MockText} = jest.requireActual<typeof import('react-native')>('react-native');
+    function MockNotFound({shouldShow, children}: {shouldShow: boolean; children: React.ReactNode}) {
+        return shouldShow ? <MockText>NotFound</MockText> : children;
+    }
+    return MockNotFound;
+});
+
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyIllustrations: jest.fn(() => ({})),
     useMemoizedLazyExpensifyIcons: jest.fn(() => ({})),
@@ -91,6 +106,8 @@ describe('EarlyRenewalOfferPage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         capturedSubmitButtonProps = undefined;
+        mockEligibility = {canClaim: true};
+        mockIsIncentivizedPeriod = true;
     });
 
     it('asks the billing owner to choose an option before renewing', async () => {
@@ -123,5 +140,21 @@ describe('EarlyRenewalOfferPage', () => {
         // Then only that offer is queued for Auth and the picker closes, since any failure shows on the banner instead
         expect(acceptEarlyRenewalOffer).toHaveBeenCalledWith(CONST.SUBSCRIPTION.EARLY_RENEWAL.OFFER_ID.INCENTIVIZED_TWO_YEARS);
         expect(Navigation.goBack).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([
+        ['cannot claim the offer', () => (mockEligibility = {canClaim: false})],
+        ['has no offer', () => (mockEligibility = undefined)],
+        ['opens it outside the incentivized period', () => (mockIsIncentivizedPeriod = false)],
+    ])('shows Not Found when the user %s', (_case, setUp) => {
+        // Given someone who Auth would refuse an incentivized renewal, reaching the picker by URL
+        setUp();
+
+        // When the picker renders
+        render(<EarlyRenewalOfferPage />);
+
+        // Then they see Not Found instead of discounts they can't claim
+        expect(screen.getByText('NotFound')).toBeOnTheScreen();
+        expect(capturedSubmitButtonProps).toBeUndefined();
     });
 });
