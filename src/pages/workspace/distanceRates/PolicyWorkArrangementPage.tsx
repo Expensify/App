@@ -25,7 +25,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
-import {View} from 'react-native';
 
 type PolicyWorkArrangementPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATES_WORK_ARRANGEMENT>;
 
@@ -78,12 +77,10 @@ function PolicyWorkArrangementPage({route}: PolicyWorkArrangementPageProps) {
                         contentContainerStyle={styles.flexGrow1}
                         addBottomSafeAreaPadding
                     >
-                        <View style={styles.ph5}>
-                            <WorkArrangementSelector
-                                isOffice={policyData?.isOfficeWorkArrangement}
-                                onSelect={onSelect}
-                            />
-                        </View>
+                        <WorkArrangementSelector
+                            isOffice={policyData?.isOfficeWorkArrangement}
+                            onSelect={onSelect}
+                        />
                     </ScrollView>
                 </OfflineWithFeedback>
             </ScreenWrapper>
