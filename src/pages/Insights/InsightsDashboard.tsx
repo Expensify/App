@@ -127,7 +127,7 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
             contentContainerStyle={[styles.flexGrow1, pageGutter, styles.pb5]}
             addBottomSafeAreaPadding
         >
-            <View style={styles.insightsDashboardLayout}>
+            <View style={styles.insightsDashboardLayout(shouldUseNarrowLayout)}>
                 <InsightsChartWidget
                     chart={headlineChart.chart}
                     queryJSON={headlineChart.queryJSON}
@@ -136,12 +136,12 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
                     onRetry={onRetry}
                     onGroupByChange={onGroupByChange}
                 />
-                <View style={styles.insightsChartGrid}>
+                <View style={styles.insightsChartGrid(shouldUseNarrowLayout)}>
                     {columns.map((columnCharts, columnIndex) => (
                         <View
                             // eslint-disable-next-line react/no-array-index-key -- columns are fixed positions
                             key={columnIndex}
-                            style={[styles.flex1, styles.insightsChartColumn]}
+                            style={[styles.flex1, styles.insightsChartColumn(shouldUseNarrowLayout)]}
                         >
                             {columnCharts.map(({chart, queryJSON, snapshot}) => (
                                 <InsightsChartWidget

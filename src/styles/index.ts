@@ -7547,12 +7547,13 @@ const plainStyles = (theme: ThemeColors) =>
 
         homePageRightColumn: {flex: 5, flexBasis: '41.667%', flexDirection: 'column', gap: 20} satisfies ViewStyle,
 
-        insightsDashboardLayout: {
-            width: '100%',
-            maxWidth: variables.centeredContentMaxWidth,
-            alignSelf: 'center',
-            gap: variables.insightsCardGap,
-        } satisfies ViewStyle,
+        insightsDashboardLayout: (shouldUseNarrowLayout: boolean) =>
+            ({
+                width: '100%',
+                maxWidth: variables.centeredContentMaxWidth,
+                alignSelf: 'center',
+                gap: shouldUseNarrowLayout ? layoutSpacing.cardGap.narrow : layoutSpacing.cardGap.wide,
+            }) satisfies ViewStyle,
 
         insightsDashboardScrollView: {
             ...scrollbarGutterStable,
@@ -7563,15 +7564,17 @@ const plainStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
-        insightsChartGrid: {
-            flexDirection: 'row',
-            alignItems: 'flex-start',
-            gap: variables.insightsCardGap,
-        } satisfies ViewStyle,
+        insightsChartGrid: (shouldUseNarrowLayout: boolean) =>
+            ({
+                flexDirection: 'row',
+                alignItems: 'flex-start',
+                gap: shouldUseNarrowLayout ? layoutSpacing.cardGap.narrow : layoutSpacing.cardGap.wide,
+            }) satisfies ViewStyle,
 
-        insightsChartColumn: {
-            gap: variables.insightsCardGap,
-        } satisfies ViewStyle,
+        insightsChartColumn: (shouldUseNarrowLayout: boolean) =>
+            ({
+                gap: shouldUseNarrowLayout ? layoutSpacing.cardGap.narrow : layoutSpacing.cardGap.wide,
+            }) satisfies ViewStyle,
 
         insightsEmptyStateIllustration: {
             width: variables.insightsEmptyStateIllustrationSize,
