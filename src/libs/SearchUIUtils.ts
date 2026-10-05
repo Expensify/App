@@ -92,7 +92,6 @@ import type {
     SearchYearGroup,
 } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
-import arraysEqual from '@src/utils/arraysEqual';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {TextStyle, ViewStyle} from 'react-native';
@@ -686,6 +685,10 @@ function isPolicyEligibleForTopSpenders(policy: OnyxTypes.Policy, currentUserEma
     return isPolicyEligibleForSpendOverTime(policy, currentUserEmail) && Object.keys(policy.employeeList ?? {}).length >= 2;
 }
 
+function isPolicyEligibleForTopCategories(policy: OnyxTypes.Policy): boolean {
+    return isGroupPolicy(policy) && policy.areCategoriesEnabled === true;
+}
+
 /**
  * `hasReportAwaitingApproval` seeds the approve suggestion so a user who is the manager of a report awaiting their
  * approval sees it even when they are not part of the policy's approval workflow (e.g. an approver chosen manually on
@@ -760,7 +763,7 @@ function getSuggestedSearchesVisibility(
         const isEligibleForReimbursementsSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isPaymentEnabled && hasVBBA && hasReimburser;
         const memberCount = Object.keys(policy.employeeList ?? {}).length;
         const isEligibleForTopSpendersSuggestion = isPolicyEligibleForTopSpenders(policy, currentUserEmail);
-        const isEligibleForTopCategoriesSuggestion = isGroupPolicyEligible && policy.areCategoriesEnabled === true;
+        const isEligibleForTopCategoriesSuggestion = isPolicyEligibleForTopCategories(policy);
         const isEligibleForTopMerchantsSuggestion = isGroupPolicyEligible;
         const isEligibleForViolationsBySubmitterSuggestion =
             isControlPolicy(policy) &&
@@ -853,9 +856,6 @@ function getTransactionItemCommonFormattedProperties(
     };
 }
 
-/**
- * @private
- */
 function isReportEntry(key: string): key is ReportKey {
     return key.startsWith(ONYXKEYS.COLLECTION.REPORT);
 }
@@ -878,9 +878,6 @@ function isReportActionEntry(key: string): key is ReportActionKey {
     return key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
 }
 
-/**
- * @private
- */
 function isTransactionEntry(key: string): key is TransactionKey {
     return key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION);
 }
@@ -2181,7 +2178,7 @@ function getActions(
 
     const reportNVP = getReportNameValuePairsFromKey(data, report);
 
-    const chatReportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`] ?? undefined;
+    const isChatReportArchived = isArchivedReport(data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`]);
 
     // Submit/Approve/Pay can only be taken on transactions if the transaction is the only one on the report, otherwise `View` is the only option.
     // If this condition is not met, return early for performance reasons
@@ -2195,7 +2192,18 @@ function getActions(
             : undefined;
 
     const chatReport = getChatReport(data, report);
-    const canBePaid = canIOUBePaid(report, chatReport, policy, bankAccountList, currentUserLogin, currentUserAccountID, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy);
+    const canBePaid = canIOUBePaid(
+        report,
+        chatReport,
+        policy,
+        bankAccountList,
+        currentUserLogin,
+        currentUserAccountID,
+        allReportTransactions,
+        false,
+        isChatReportArchived,
+        invoiceReceiverPolicy,
+    );
     const canOnlyBePaidElsewhere = canIOUBePaid(
         report,
         chatReport,
@@ -2205,7 +2213,7 @@ function getActions(
         currentUserAccountID,
         allReportTransactions,
         true,
-        chatReportRNVP,
+        isChatReportArchived,
         invoiceReceiverPolicy,
     );
     const shouldOnlyShowElsewhere = !canBePaid && canOnlyBePaidElsewhere;
@@ -2430,9 +2438,6 @@ type CreateAndOpenSearchTransactionThreadParams = {
     currentUserLogin: string;
     currentUserAccountID: number;
 
-    /** Beta features list */
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
-
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
 
     /** The personal details of the participants */
@@ -2440,6 +2445,8 @@ type CreateAndOpenSearchTransactionThreadParams = {
 
     isSelfTourViewed: boolean | undefined;
     hasCompletedGuidedSetupFlow: boolean | undefined;
+
+    delegateAccountID: number | undefined;
 
     /** Existing transaction thread report ID (childReportID), if any */
     IOUTransactionID?: string;
@@ -2461,24 +2468,30 @@ function createAndOpenSearchTransactionThread({
     backTo,
     currentUserLogin,
     currentUserAccountID,
-    betas,
     personalDetails,
     isSelfTourViewed,
     hasCompletedGuidedSetupFlow,
+    delegateAccountID,
     IOUTransactionID,
     transactionPreviewData,
     shouldNavigate = true,
     getCurrencyDecimals,
     conciergeChat,
 }: CreateAndOpenSearchTransactionThreadParams): string | undefined {
-    const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    const isUnreportedTransaction = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isDeleted = isDeletedTransaction(item);
-    const iouReportAction = getIOUActionForReportID(isFromSelfDM ? findSelfDMReportID() : item.reportID, item.transactionID);
+    const iouReportAction = getIOUActionForReportID(isUnreportedTransaction ? findSelfDMReportID() : item.reportID, item.transactionID);
+    const expenseOwnerAccountID = (iouReportAction ?? item.reportAction)?.actorAccountID;
+    if (isUnreportedTransaction && expenseOwnerAccountID !== currentUserAccountID) {
+        return;
+    }
+
+    const isFromSelfDM = isUnreportedTransaction;
     const moneyRequestReportActionID = item.reportAction?.reportActionID ?? undefined;
     const previewData = transactionPreviewData
         ? {...transactionPreviewData, hasTransactionThreadReport: true}
         : {hasTransaction: false, hasParentReport: false, hasParentReportAction: false, hasTransactionThreadReport: true};
-    setOptimisticDataForTransactionThreadPreview(item, previewData, getCurrencyDecimals, IOUTransactionID);
+    setOptimisticDataForTransactionThreadPreview(item, previewData, getCurrencyDecimals, delegateAccountID, IOUTransactionID);
 
     const hasActualTransactionThread = iouReportAction?.childReportID && iouReportAction?.childReportID !== CONST.FAKE_REPORT_ID;
     let transactionThreadReport;
@@ -2502,7 +2515,6 @@ function createAndOpenSearchTransactionThread({
             conciergeChat,
             currentUserLogin: currentUserLogin ?? '',
             currentUserAccountID,
-            betas,
             iouReport: getReportOrDraftReport(item.reportID) ?? item.report,
             iouReportAction: reportActionToPass,
             transaction,
@@ -4638,7 +4650,7 @@ function getOverflowMenu(
  *
  * A filter can also be stored as a string, which is a legacy format, so it's treated as if there is no last query.
  */
-function getLastSearchQuery(searchFilters: OnyxEntry<OnyxTypes.SearchFilters>, searchKey: SearchKey): string | undefined {
+function getLastSearchQuery(searchFilters: OnyxEntry<OnyxTypes.SearchFilters>, searchKey: SearchKey | OnyxTypes.InsightsSearchKey): string | undefined {
     const searchFilter = searchFilters?.[searchKey];
     return typeof searchFilter === 'object' ? searchFilter.query : undefined;
 }
@@ -4967,7 +4979,7 @@ function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON:
     const hasResolved = searchResults?.data != null || searchResults?.errors != null || isTerminal;
     const hasResponseSortMetadata = searchResults?.search?.sortBy !== undefined && searchResults.search.sortOrder !== undefined;
     const hasMatchingRequestedHash = searchResults?.search?.hash === queryJSON?.hash;
-    // finallyData stores the requested hash when the request settles, so it remains authoritative even when cached data or old sort metadata remain.
+    // Search's finallyData and GetInsights' successData store the requested hash on response, so it remains authoritative even when cached data or old sort metadata remain.
     const canUseRequestedHash = isTerminal || !hasResponseSortMetadata;
     const hasMatchingHash = (canUseRequestedHash && hasMatchingRequestedHash) || searchResults?.search?.hash === responseAdjustedQueryHash;
 
@@ -5601,6 +5613,10 @@ const FILTER_VIEW_MAP = {
         labelKey: 'common.tag',
         icon: 'Tag',
     },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR]: {
+        labelKey: 'common.vendor',
+        icon: 'Building',
+    },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE]: {
         labelKey: 'workspace.taxes.taxRate',
         icon: 'Percent',
@@ -5832,6 +5848,13 @@ function getDisplayValue(
         return form[key]
             ?.sort((a, b) => sortOptionsWithEmptyValue(a, b, localeCompare))
             .map(mapFn)
+            .join(', ');
+    }
+
+    if (key === FILTER_KEYS.VENDOR || key === FILTER_KEYS.VENDOR_NOT) {
+        return form[key]
+            ?.sort((a, b) => sortOptionsWithEmptyValue(a, b, localeCompare))
+            .map((value) => (value === CONST.SEARCH.VENDOR_EMPTY_VALUE ? translate('search.noVendor') : value))
             .join(', ');
     }
 
@@ -6552,8 +6575,11 @@ function getColumnsToShow({
     const allowedColumns: string[] = isExpenseReportView ? Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS) : Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE);
     // The saved list outlives the vendor feature, so Vendor is dropped once no workspace has the feature anymore.
     const filteredVisibleColumns = visibleColumns.filter((column) => allowedColumns.includes(column) && (isVendorColumnAvailable || column !== CONST.SEARCH.TABLE_COLUMNS.VENDOR));
-    const isDefaultExpenseColumnSelection = arraysEqual(Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE), filteredVisibleColumns);
-    const shouldUseCustomResult = !isDefaultExpenseColumnSelection && filteredVisibleColumns.length > 0;
+
+    // An explicit selection always wins, even when it happens to match the default set. Treating a
+    // default-looking selection as "no selection" would hand control back to the data-driven fallback
+    // below, which re-adds columns the user just turned off (e.g. Description on any expense that has one).
+    const shouldUseCustomResult = filteredVisibleColumns.length > 0;
 
     let customResult: SearchColumnType[] | undefined;
 
@@ -7096,6 +7122,7 @@ function shouldShowDeleteOption(
     currentSearchResults: SearchResults['data'] | undefined,
     currentUserAccountID: number,
     rules: OnyxCollection<OnyxTypes.Rule>,
+    cardList: OnyxEntry<OnyxTypes.CardList>,
     selectedReports: SelectedReports[] = [],
     searchDataType?: SearchDataTypes,
 ) {
@@ -7121,7 +7148,7 @@ function shouldShowDeleteOption(
                   }
               }
               const reportPolicy = currentSearchResults?.[`${ONYXKEYS.COLLECTION.POLICY}${fullReport.policyID}`];
-              return canDeleteMoneyRequestReport(fullReport, reportTransactions, reportActionsArray, currentUserAccountID, rules, reportPolicy, true);
+              return canDeleteMoneyRequestReport(fullReport, reportTransactions, reportActionsArray, currentUserAccountID, rules, reportPolicy, cardList, true);
           })
         : selectedTransactionsKeys.every((id) => {
               const transaction = currentSearchResults?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] ?? selectedTransactions[id]?.transaction;
@@ -7136,7 +7163,7 @@ function shouldShowDeleteOption(
                   selectedTransactions[id].reportAction;
 
               const parentReportPolicy = currentSearchResults?.[`${ONYXKEYS.COLLECTION.POLICY}${parentReport?.policyID}`];
-              return canDeleteMoneyRequestReport(parentReport, [transaction], parentReportAction ? [parentReportAction] : [], currentUserAccountID, rules, parentReportPolicy);
+              return canDeleteMoneyRequestReport(parentReport, [transaction], parentReportAction ? [parentReportAction] : [], currentUserAccountID, rules, parentReportPolicy, cardList);
           });
 }
 
@@ -7254,6 +7281,8 @@ export {
     isTransactionQuarterGroupListItemType,
     isGroupedItemArray,
     isGroupEntry,
+    isReportEntry,
+    isTransactionEntry,
     isSearchResultsEmpty,
     isTransactionListItemType,
     isReportActionListItemType,
@@ -7340,6 +7369,7 @@ export {
     doesSearchItemMatchSort,
     isPolicyEligibleForSpendOverTime,
     isPolicyEligibleForTopSpenders,
+    isPolicyEligibleForTopCategories,
     hasFlexColumn,
     isTransactionSearchType,
     splitGroupsIntoPairs,

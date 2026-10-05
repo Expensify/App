@@ -137,6 +137,19 @@ describe('SearchAutocompleteUtils', () => {
             expect(result).toEqual([]);
         });
 
+        it('should highlight VENDOR filter with a typed vendor name', () => {
+            // Given a typed vendor filter, whose names are matched by text on the server
+            const input = 'vendor:"Acme Tools"';
+
+            // When the input is parsed for highlighting
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+
+            // Then the vendor value is highlighted like other free-text filters
+            expect(result).toEqual([
+                {start: 7, type: 'mention-user', length: 12}, // vendor:"Acme Tools"
+            ]);
+        });
+
         it('should highlight EXPORTED_TO filter when value is in predefined integrations or custom template list', () => {
             const input = 'exported-to:Xero';
 

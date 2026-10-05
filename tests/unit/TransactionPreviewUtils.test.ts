@@ -259,6 +259,35 @@ describe('TransactionPreviewUtils', () => {
             expect(result.displayAmountText.translationPath).toEqual('iou.receiptStatusTitle');
         });
 
+        it('blanks the displayed amount for a failed-scan amount placeholder', () => {
+            const functionArgs = {
+                ...basicProps,
+                transaction: {
+                    ...basicProps.transaction,
+                    amount: 0,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                    receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+                },
+                originalTransaction: undefined,
+            };
+            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+            expect(result.displayAmountText.text).toEqual('');
+        });
+
+        it('does not blank a legitimate manual $0.00 amount', () => {
+            const functionArgs = {
+                ...basicProps,
+                transaction: {
+                    ...basicProps.transaction,
+                    amount: 0,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                },
+                originalTransaction: undefined,
+            };
+            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+            expect(result.displayAmountText.text).toEqual('$0.00');
+        });
+
         it('handles currency and amount display correctly for scan split bill manually completed', () => {
             const modifiedAmount = 300;
             const currency = 'EUR';
@@ -985,6 +1014,17 @@ describe('TransactionPreviewUtils', () => {
         it('should return true for a transaction with violation-type violations', () => {
             const violations = [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}];
             expect(transactionHasRBR(basicProps.transaction, violations, rbrEmail, rbrAccountID, rbrReport, undefined, rbrPolicy)).toBe(true);
+        });
+
+        it('should return false for a duplicated transaction violation on an IOU report', () => {
+            const violations = [{name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}];
+            expect(transactionHasRBR(basicProps.transaction, violations, rbrEmail, rbrAccountID, rbrReport, undefined, rbrPolicy)).toBe(false);
+        });
+
+        it('should return true for a duplicated transaction violation on an expense report', () => {
+            const expenseReport = {...basicProps.iouReport, type: CONST.REPORT.TYPE.EXPENSE};
+            const violations = [{name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}];
+            expect(transactionHasRBR(basicProps.transaction, violations, rbrEmail, rbrAccountID, expenseReport, undefined, rbrPolicy)).toBe(true);
         });
 
         it('should return true for a transaction with warning-type violations', () => {

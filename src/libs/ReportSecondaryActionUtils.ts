@@ -2,6 +2,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     BankAccountList,
+    CardList,
     OutstandingReportsByPolicyIDDerivedValue,
     Policy,
     Report,
@@ -17,8 +18,10 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
+import {wasPaidWithPolicyBankAccount} from './PolicyPaymentUtils';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
+    canAdminPayReport,
     canMemberWrite,
     getConnectedIntegration,
     getCorrectedAutoReportingFrequency,
@@ -82,6 +85,7 @@ import {
     isProcessingReport as isProcessingReportUtils,
     isReportApproved as isReportApprovedUtils,
     isReportManager as isReportManagerUtils,
+    isReportOwner as isReportOwnerUtils,
     isSelfDM as isSelfDMReportUtils,
     isSettled,
     isTrackExpenseReportNew,
@@ -122,6 +126,7 @@ function isSplitAction(
     currentUserLogin: string,
     currentUserAccountID: number,
     rules: OnyxCollection<Rule>,
+    reportOwnerLogin: string | undefined,
     policy?: OnyxEntry<Policy>,
     parentReport?: OnyxEntry<Report>,
 ): boolean {
@@ -188,7 +193,7 @@ function isSplitAction(
     }
 
     // Hide split option for the submitter if the report is forwarded
-    return (isSubmitter && isAwaitingFirstLevelApproval(report, rules)) || isAdmin || isManager;
+    return (isSubmitter && isAwaitingFirstLevelApproval(report, rules, reportOwnerLogin)) || isAdmin || isManager;
 }
 
 function isSubmitAction({
@@ -443,6 +448,20 @@ function getPayActionPaymentType(action: ReportAction | undefined): string | und
     return originalMessage && 'paymentType' in originalMessage ? originalMessage.paymentType : undefined;
 }
 
+// The bank account a payment was funded from. A paying admin picks the account and the pay action records it as
+// `bankAccountID`. Automatic and older payments don't name one.
+function getPayActionBankAccountID(action: ReportAction | undefined, policy: OnyxEntry<Policy>): number | undefined {
+    const originalMessage = action ? getOriginalMessage(action) : undefined;
+    const actionBankAccountID = originalMessage && 'bankAccountID' in originalMessage ? originalMessage.bankAccountID : undefined;
+
+    if (actionBankAccountID) {
+        return actionBankAccountID;
+    }
+
+    // Only assume the workspace account for a payment the designated payer made, same rule as the paid-with messages.
+    return wasPaidWithPolicyBankAccount(policy, action?.actorAccountID) ? policy?.achAccount?.bankAccountID : undefined;
+}
+
 function isCancelPaymentAction(
     currentAccountID: number,
     currentUserEmail: string,
@@ -476,22 +495,23 @@ function isCancelPaymentAction(
         return everyPayActionHasPaymentType(payActions, (paymentType) => paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY);
     }
 
-    // Mirror the pay gate (canIOUBePaid.canPay): whoever could mark the report paid can cancel it, no admin requirement.
-    const canCancelPayment =
-        isPayer ||
-        (getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL &&
-            canMemberWrite(policy, currentUserEmail, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
-
-    if (!canCancelPayment) {
-        return false;
-    }
-
     const payActions = getReportPayActions(report.reportID);
     const latestPayAction = getLatestPayAction(payActions);
     const latestPaymentType = getPayActionPaymentType(latestPayAction);
 
     // An undetermined payment type (no pay action) is treated as paid elsewhere below so we still surface Cancel.
     const isPaidViaBankAccount = !!latestPaymentType && latestPaymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
+
+    // Mirror the pay gate (canIOUBePaid.canPay): whoever could mark the report paid can cancel it, no admin requirement.
+    // A non-payer admin can always cancel a manual (paid elsewhere) payment, but a bank payment only when the account
+    // it was funded from is shared with them. This matches Classic, since cancelling reverses a debit on that account.
+    const paymentBankAccountID = isPaidViaBankAccount ? getPayActionBankAccountID(latestPayAction, policy) : undefined;
+    const canAccessPaymentBankAccount = !!paymentBankAccountID && !!bankAccountList?.[paymentBankAccountID];
+    const canCancelPayment = isPayer || (canAdminPayReport(policy, currentUserEmail) && (!isPaidViaBankAccount || canAccessPaymentBankAccount));
+
+    if (!canCancelPayment) {
+        return false;
+    }
 
     // For reports marked as paid elsewhere or when we can't determine payment type, show cancel button
     if (report.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED && !isPaidViaBankAccount) {
@@ -728,11 +748,12 @@ function isDeleteAction(
     reportTransactions: Transaction[],
     currentUserAccountID: number,
     rules: OnyxCollection<Rule>,
+    policy: OnyxEntry<Policy>,
+    cardList: OnyxEntry<CardList>,
     reportActions?: ReportAction[],
-    policy?: Policy,
     isReportLevelDelete = false,
 ): boolean {
-    return canDeleteMoneyRequestReport(report, reportTransactions, reportActions ?? [], currentUserAccountID, rules, policy, isReportLevelDelete);
+    return canDeleteMoneyRequestReport(report, reportTransactions, reportActions ?? [], currentUserAccountID, rules, policy, cardList, isReportLevelDelete);
 }
 
 function shouldShowEditSplitInDeleteAction(
@@ -741,7 +762,9 @@ function shouldShowEditSplitInDeleteAction(
     reportActions: ReportAction[] | undefined,
     originalTransaction: OnyxEntry<Transaction>,
     currentUserAccountID: number,
+    policy: OnyxEntry<Policy>,
     rules: OnyxCollection<Rule>,
+    cardList: OnyxEntry<CardList>,
 ): boolean {
     if (reportTransactions.length !== 1) {
         return false;
@@ -755,7 +778,7 @@ function shouldShowEditSplitInDeleteAction(
     const isSelfDMSplit = isSelfDMReportUtils(report);
     return (
         shouldRedirectDeleteToSplitExpenseEdit(reportTransaction, originalTransaction, isSelfDMSplit) &&
-        isDeleteAction(report, reportTransactions, currentUserAccountID, rules, reportActions)
+        isDeleteAction(report, reportTransactions, currentUserAccountID, rules, policy, cardList, reportActions)
     );
 }
 
@@ -976,6 +999,18 @@ function isDuplicateAction(report: Report, reportTransactions: Transaction[]): b
     return true;
 }
 
+function isDownloadPDFAction(report: Report, currentUserAccountID: number): boolean {
+    // An open report has no finalized report on the backend, and `ExportReportToPDF` re-runs its access check against the
+    // report's current owner/manager. After a rejection the report goes back to open and is owned by the submitter again,
+    // so anyone else (e.g. the approver who rejected it, or their vacation delegate) gets a 404 instead of a PDF.
+    // The owner can still export their own draft, so only hide the action for everyone else.
+    if (isOpenReportUtils(report) && !isReportOwnerUtils(report, currentUserAccountID)) {
+        return false;
+    }
+
+    return true;
+}
+
 function getSecondaryReportActions({
     currentUserLogin,
     currentUserAccountID,
@@ -996,6 +1031,7 @@ function getSecondaryReportActions({
     parentReport,
     isOffline,
     rules,
+    cardList,
 }: {
     currentUserLogin: string;
     currentUserAccountID: number;
@@ -1018,6 +1054,7 @@ function getSecondaryReportActions({
     /** TODO: Should be a required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
     isOffline?: boolean;
     rules: OnyxCollection<Rule>;
+    cardList: OnyxEntry<CardList>;
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
     const reportNameValuePairs = moveExpenseReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
@@ -1122,8 +1159,8 @@ function getSecondaryReportActions({
     }
 
     if (
-        isSplitAction(report, reportTransactions, originalTransaction, currentUserLogin, currentUserAccountID, rules, policy, parentReport) &&
-        !shouldShowEditSplitInDeleteAction(report, reportTransactions, reportActions, originalTransaction, currentUserAccountID, rules)
+        isSplitAction(report, reportTransactions, originalTransaction, currentUserLogin, currentUserAccountID, rules, submitterLogin, policy, parentReport) &&
+        !shouldShowEditSplitInDeleteAction(report, reportTransactions, reportActions, originalTransaction, currentUserAccountID, policy, rules, cardList)
     ) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
     }
@@ -1142,7 +1179,9 @@ function getSecondaryReportActions({
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.EXPORT);
 
-    options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
+    if (isDownloadPDFAction(report, currentUserAccountID)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
+    }
 
     if (reportTransactions.some(hasReceiptTransactionUtils)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS);
@@ -1184,7 +1223,7 @@ function getSecondaryReportActions({
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
 
-    if (isDeleteAction(report, reportTransactions, currentUserAccountID, rules, reportActions ?? [], policy, true)) {
+    if (isDeleteAction(report, reportTransactions, currentUserAccountID, rules, policy, cardList, reportActions ?? [], true)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);
     }
 
@@ -1218,6 +1257,7 @@ function getSecondaryTransactionThreadActions({
     currentUserLogin,
     currentUserAccountID,
     parentReport,
+    parentReportOwnerLogin,
     reportTransaction,
     reportAction,
     originalTransaction,
@@ -1229,10 +1269,17 @@ function getSecondaryTransactionThreadActions({
     grandParentReport,
     hasWorkspaceToSubmitTo = false,
     rules,
+    cardList,
 }: {
     currentUserLogin: string;
     currentUserAccountID: number;
     parentReport: Report;
+    /**
+     * Login of the parent report owner. Optional so the existing test callers keep compiling, because
+     * isAwaitingFirstLevelApproval still falls back to the personal details store when it is omitted.
+     * See https://github.com/Expensify/App/issues/66413.
+     */
+    parentReportOwnerLogin?: string;
     reportTransaction: Transaction;
     reportAction: ReportAction | undefined;
     originalTransaction: OnyxEntry<Transaction>;
@@ -1245,6 +1292,7 @@ function getSecondaryTransactionThreadActions({
     /** Whether the user belongs to a workspace they can submit an expense to (self-DM split expenses can only be submitted to a workspace). */
     hasWorkspaceToSubmitTo?: boolean;
     rules: OnyxCollection<Rule>;
+    cardList: OnyxEntry<CardList>;
 }): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
 
@@ -1261,8 +1309,8 @@ function getSecondaryTransactionThreadActions({
     }
 
     if (
-        isSplitAction(parentReport, [reportTransaction], originalTransaction, currentUserLogin, currentUserAccountID, rules, policy, grandParentReport) &&
-        !shouldShowEditSplitInDeleteAction(parentReport, [reportTransaction], reportAction ? [reportAction] : [], originalTransaction, currentUserAccountID, rules)
+        isSplitAction(parentReport, [reportTransaction], originalTransaction, currentUserLogin, currentUserAccountID, rules, parentReportOwnerLogin, policy, grandParentReport) &&
+        !shouldShowEditSplitInDeleteAction(parentReport, [reportTransaction], reportAction ? [reportAction] : [], originalTransaction, currentUserAccountID, policy, rules, cardList)
     ) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT);
     }
@@ -1313,7 +1361,7 @@ function getSecondaryTransactionThreadActions({
 
     options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS);
 
-    if (isDeleteAction(parentReport, [reportTransaction], currentUserAccountID, rules, reportAction ? [reportAction] : [], policy)) {
+    if (isDeleteAction(parentReport, [reportTransaction], currentUserAccountID, rules, policy, cardList, reportAction ? [reportAction] : [])) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE);
     }
 

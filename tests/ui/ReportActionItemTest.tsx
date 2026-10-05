@@ -8,6 +8,8 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import {openLink} from '@libs/actions/Link';
 import DateUtils from '@libs/DateUtils';
 import {setHasRadio} from '@libs/NetworkState';
@@ -15,6 +17,7 @@ import Parser from '@libs/Parser';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import type * as UrlType from '@libs/Url';
 
+import PaymentContent from '@pages/inbox/report/actionContents/PaymentContent';
 import ReportActionItem from '@pages/inbox/report/ReportActionItem';
 import ReportActionItemMessage from '@pages/inbox/report/ReportActionItemMessage';
 
@@ -33,6 +36,7 @@ import type ReportActionName from '@src/types/onyx/ReportActionName';
 import {PortalProvider} from '@gorhom/portal';
 import * as NativeNavigation from '@react-navigation/native';
 import React from 'react';
+import {StyleSheet} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
@@ -1302,6 +1306,27 @@ describe('ReportActionItem', () => {
             expect(textElement).toHaveStyle({color: colors.productDark800});
         });
 
+        it('AGENT_PROMPT_UPDATED action shows the modifier and prompt diff', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED, {
+                previousPrompt: 'Categorize coffee as Meals.',
+                newPrompt: 'Categorize coffee as Meals and taxi trips as Travel.',
+                updatedByAccountID: ACTOR_ACCOUNT_ID,
+                updatedBy: actorEmail,
+            });
+            action.message = [];
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByTestId('mention-user')).toHaveTextContent(`@${actorEmail}`);
+            const promptDiff = ` updated this agent's instructions.\nPrevious instructions:\nCategorize coffee as Meals.\nNew instructions:\nCategorize coffee as Meals and taxi trips as Travel.`;
+            expect(screen.getByText(promptDiff)).toBeOnTheScreen();
+            expect(
+                screen.getByLabelText(
+                    /test@test\.com updated this agent's instructions\.[\s\S]*Previous instructions:[\s\S]*Categorize coffee as Meals\.[\s\S]*New instructions:[\s\S]*taxi trips as Travel\./,
+                ),
+            ).toBeOnTheScreen();
+        });
+
         it('DELETED_TRANSACTION action shows deleted transaction message', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION, {
                 amount: 1500,
@@ -1312,6 +1337,16 @@ describe('ReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(/deleted/i)).toBeOnTheScreen();
+        });
+
+        it('UNDELETED_TRANSACTION action shows undeleted transaction message', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.UNDELETED_TRANSACTION, {
+                fromReportID: '123',
+            });
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/undeleted/i)).toBeOnTheScreen();
         });
 
         it('MARKED_REIMBURSED action from OldDot shows reimbursement message', async () => {
@@ -1628,6 +1663,52 @@ describe('ReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(/QuickBooks Online/)).toBeOnTheScreen();
+        });
+
+        it('INTEGRATION_SYNC_FAILED action lets an unbreakable token in the error wrap instead of overflowing', async () => {
+            // Given a sync failure whose error names an address long enough to exceed the RHP message column
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED, {
+                label: 'QuickBooks Online',
+                errorMessage: 'We were unable to find a vendor/supplier for applausetester+bp3108od@applause.expensifail.com',
+            });
+            let renderHTMLStyle: ReturnType<typeof useThemeStyles>['renderHTML'] | undefined;
+            function StyleProbe() {
+                renderHTMLStyle = useThemeStyles().renderHTML;
+                return null;
+            }
+
+            // When the action renders through the children branch of ReportActionItemBasicMessage
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <StyleProbe />
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={{reportID: 'testReport', policyID: 'pol123'}}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Then a wrapper carries the wrapping styles, which the children branch gets from nowhere else.
+            // `styles.renderHTML` also holds wordBreak/whiteSpace, but both resolve to {} under the native
+            // style variants Jest loads, so the width constraint is all that is observable here.
+            const ancestorStyles: unknown[] = [];
+            let ancestor = screen.getByText(/there was a problem syncing with/).parent;
+            while (ancestor) {
+                ancestorStyles.push(StyleSheet.flatten(ancestor.props.style));
+                ancestor = ancestor.parent;
+            }
+            expect(ancestorStyles).toEqual(expect.arrayContaining([StyleSheet.flatten(renderHTMLStyle)]));
         });
 
         it('INTEGRATION_SYNC_FAILED action keeps the stored IES label after switching to QBO', async () => {
@@ -2069,6 +2150,161 @@ describe('ReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(/paid with bank account/i)).toBeOnTheScreen();
+        });
+
+        it('IOU PAY VBBA renders a past expected reimbursement date', async () => {
+            // Given an ACH payment action with an expected reimbursement date in the past
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                automaticAction: false,
+                accountNumber: 'XXXX1111',
+                expectedDate: '2024-01-15',
+            });
+
+            // When the payment action is rendered
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={undefined}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the expected date is visible and included in the accessibility label
+            expect(screen.getByText(/Waiting for payment to complete by Jan 15, 2024/i)).toBeOnTheScreen();
+            expect(screen.getByLabelText(/Waiting for payment to complete by Jan 15, 2024/i)).toBeOnTheScreen();
+        });
+
+        it('IOU PAY VBBA omits the payment status when the expected date is invalid', async () => {
+            // Given an ACH payment action with the backend's unknown-date sentinel
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                automaticAction: false,
+                accountNumber: 'XXXX1111',
+                expectedDate: '???',
+            });
+
+            // When the payment action is rendered
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={undefined}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the payment message remains visible without an incomplete status sentence
+            expect(screen.getByText(/paid with bank account/i)).toBeOnTheScreen();
+            expect(screen.queryByText(/Waiting for payment to complete/i)).toBeNull();
+        });
+
+        it('IOU PAY VBBA reads the expected date from an existing reimbursed action', async () => {
+            // Given an ACH payment whose expected date only exists on the preceding reimbursed action
+            const reportID = 'testReport';
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                automaticAction: false,
+                accountNumber: 'XXXX1111',
+            });
+            const reimbursedAction = createReportAction(CONST.REPORT.ACTIONS.TYPE.REIMBURSED, {
+                expectedDate: '2024-01-15',
+            });
+            reimbursedAction.reportActionID = 'reimbursed';
+            reimbursedAction.created = '2025-07-12 09:03:16.653';
+            const earlierReimbursedAction = createReportAction(CONST.REPORT.ACTIONS.TYPE.REIMBURSED, {
+                expectedDate: '2024-01-14',
+            });
+            earlierReimbursedAction.reportActionID = 'earlierReimbursed';
+            earlierReimbursedAction.created = '2025-07-12 09:03:15.653';
+            const laterReimbursedAction = createReportAction(CONST.REPORT.ACTIONS.TYPE.REIMBURSED, {
+                expectedDate: '2024-01-16',
+            });
+            laterReimbursedAction.reportActionID = 'laterReimbursed';
+            laterReimbursedAction.created = '2025-07-12 09:03:18.653';
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                    [reimbursedAction.reportActionID]: reimbursedAction,
+                    [earlierReimbursedAction.reportActionID]: earlierReimbursedAction,
+                    [laterReimbursedAction.reportActionID]: laterReimbursedAction,
+                    [action.reportActionID]: action,
+                });
+            });
+
+            // When the payment action is rendered
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={createMock<Report>({reportID})}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the payment uses the preceding reimbursement date instead of an earlier or later action
+            expect(screen.getByText(/Waiting for payment to complete by Jan 15, 2024/i)).toBeOnTheScreen();
+        });
+
+        it('IOU PAY with no original message renders nothing', async () => {
+            // Given a payment action without an original message
+            const action = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>({
+                reportActionID: '12345',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: '2025-07-12 09:03:17.653',
+                message: [],
+            });
+
+            // When the payment content is rendered
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <PaymentContent
+                        action={action}
+                        expectedDate={undefined}
+                        policyID={undefined}
+                    />
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Then no payment message is shown
+            expect(screen.queryByText(/paid/i)).toBeNull();
         });
 
         it('IOU PAY VBBA manual prefers originalMessage accountNumber over current policy account', async () => {

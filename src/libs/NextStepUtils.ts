@@ -371,11 +371,12 @@ function getReportNextStep({
 
 /**
  * Whether to show the DEW approve-error next step.
- * Only manual approve failures (`automaticAction` false/absent) for the current approver should show it.
- * Auto-approval blocks keep the normal workflow next step.
+ * Only manual approve failures (`automaticAction` false/absent) should show it. Auto-approval blocks keep the normal
+ * workflow next step. The approver check is not repeated here: `hasDEWApproveFailed` comes from the
+ * `HAS_DEW_APPROVE_FAILED` reason, which is already gated on the current user being the report manager.
  */
-function shouldShowDynamicExternalWorkflowApproveErrorNextStep(reportAction: OnyxEntry<ReportAction>, hasDEWApproveFailed: boolean, isCurrentUserTheApprover: boolean): boolean {
-    if (!hasDEWApproveFailed || !isCurrentUserTheApprover || !isDynamicExternalWorkflowApproveFailedAction(reportAction)) {
+function shouldShowDynamicExternalWorkflowApproveErrorNextStep(reportAction: OnyxEntry<ReportAction>, hasDEWApproveFailed: boolean): boolean {
+    if (!hasDEWApproveFailed || !isDynamicExternalWorkflowApproveFailedAction(reportAction)) {
         return false;
     }
 

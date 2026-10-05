@@ -22,8 +22,14 @@ function usePersonalDetail<TReturn>(accountID: number | undefined, selector?: (p
     return useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailSelector});
 }
 
-function usePersonalDetailsByIDs(accountIDs: Array<number | undefined> | undefined): UseOnyxResult<PersonalDetailsList> {
-    return useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsListSelector(accountIDs)});
+function usePersonalDetailsByIDs(accountIDs: Array<number | undefined> | undefined): UseOnyxResult<PersonalDetailsList>;
+function usePersonalDetailsByIDs<TReturn>(accountIDs: Array<number | undefined> | undefined, selector: (personalDetails: PersonalDetailsList) => TReturn): UseOnyxResult<TReturn>;
+function usePersonalDetailsByIDs<TReturn>(accountIDs: Array<number | undefined> | undefined, selector?: (personalDetails: PersonalDetailsList) => TReturn) {
+    const personalDetailsByIDsSelector = (personalDetailsList: OnyxEntry<PersonalDetailsList>) => {
+        const personalDetails = personalDetailsListSelector(accountIDs)(personalDetailsList);
+        return selector ? selector(personalDetails) : personalDetails;
+    };
+    return useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsByIDsSelector});
 }
 
 // Re-renders on any account change, prefer usePersonalDetail/usePersonalDetailsByIDs when the accounts are known

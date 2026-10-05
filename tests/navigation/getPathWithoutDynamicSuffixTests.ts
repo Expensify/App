@@ -73,6 +73,24 @@ describe('getPathWithoutDynamicSuffix', () => {
         expect(result).toBe('');
     });
 
+    describe('tag GL code routes preserve parentTagsFilter on the settings path', () => {
+        it('preserves parentTagsFilter when stripping workspace-tag-gl-code', () => {
+            const result = getPathWithoutDynamicSuffix('/workspaces/p123/tags/workspace-tag-settings/1/North/workspace-tag-gl-code?parentTagsFilter=%5EFlorida%24', 'workspace-tag-gl-code');
+
+            expect(result).toBe('/workspaces/p123/tags/workspace-tag-settings/1/North?parentTagsFilter=%5EFlorida%24');
+        });
+
+        it('preserves parentTagsFilter when stripping settings gl-code suffix', () => {
+            const result = getPathWithoutDynamicSuffix(
+                '/settings/p123/tags/tag-settings/1/North/gl-code/1/North?parentTagsFilter=%5EFlorida%24',
+                'gl-code/1/North',
+                'gl-code/:orderWeight/:tagName',
+            );
+
+            expect(result).toBe('/settings/p123/tags/tag-settings/1/North?parentTagsFilter=%5EFlorida%24');
+        });
+    });
+
     describe('actualSuffix shorter than registered pattern (optional absent)', () => {
         it('strips only the actualSuffix length when trailing optional is absent', () => {
             const result = getPathWithoutDynamicSuffix('/r/123/opt-page', 'opt-page', 'opt-page/:id?');
