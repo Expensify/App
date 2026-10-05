@@ -1,5 +1,7 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -7,6 +9,8 @@ import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import convertToLTR from '@libs/convertToLTR';
+import {containsCustomEmoji, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {
@@ -27,6 +31,8 @@ import {
     shouldDisableRename as shouldDisableRenameUtil,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
+
+import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
 
 import {clearPolicyRoomNameErrors} from '@userActions/Report';
 
@@ -85,6 +91,18 @@ function ReportDetailsNameSectionContent({report}: ReportDetailsNameSectionConte
     }
 
     const shouldDisplayGroupWorkspaceAsPushRow = !isThread && (isGroupChat || isUserCreatedPolicyRoomUtil(report) || isDefaultRoomUtil(report));
+    const title = StringUtils.lineBreaksToSpaces(reportName);
+    const furtherDetails = chatRoomSubtitle && !isGroupChat && !shouldDisplayGroupWorkspaceAsPushRow ? additionalRoomDetails : '';
+    const titleStyle = [
+        styles.flexShrink1,
+        styles.popoverMenuText,
+        styles.preWrap,
+        styles.ltr,
+        styles.breakWord,
+        styles.mw100,
+        styles.newKansasLarge,
+        !shouldDisplayGroupWorkspaceAsPushRow && styles.textAlignCenter,
+    ];
 
     return (
         <OfflineWithFeedback
@@ -94,31 +112,57 @@ function ReportDetailsNameSectionContent({report}: ReportDetailsNameSectionConte
             onClose={() => clearPolicyRoomNameErrors(report.reportID)}
         >
             <View style={[styles.flex1, !shouldDisableRename && styles.mt3]}>
-                <MenuItemWithTopDescription
-                    shouldShowRightIcon={!shouldDisableRename}
-                    interactive={!shouldDisableRename}
-                    title={StringUtils.lineBreaksToSpaces(reportName)}
-                    titleStyle={[styles.newKansasLarge, !shouldDisplayGroupWorkspaceAsPushRow && styles.textAlignCenter]}
-                    titleContainerStyle={!shouldDisplayGroupWorkspaceAsPushRow && styles.alignItemsCenter}
-                    shouldCheckActionAllowedOnPress={false}
-                    description={shouldDisplayGroupWorkspaceAsPushRow ? roomDescription : ''}
-                    furtherDetails={chatRoomSubtitle && !isGroupChat && !shouldDisplayGroupWorkspaceAsPushRow ? additionalRoomDetails : ''}
-                    furtherDetailsNumberOfLines={isWorkspaceChat ? 0 : undefined}
-                    furtherDetailsStyle={isWorkspaceChat ? [styles.textAlignCenter, styles.breakWord] : undefined}
-                    onPress={() => {
-                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_SETTINGS_NAME.path));
-                    }}
-                    numberOfLinesTitle={isThread ? 2 : 0}
-                    shouldBreakWord
-                />
+                <MenuItem.Root
+                    onPress={shouldDisableRename ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_SETTINGS_NAME.path))}
+                    accessibilityLabel={shouldDisplayGroupWorkspaceAsPushRow ? `${roomDescription}, ${title}` : title}
+                >
+                    <MenuItem.Row>
+                        <MenuItem.Content>
+                            {shouldDisplayGroupWorkspaceAsPushRow && <MenuItem.FieldName>{roomDescription}</MenuItem.FieldName>}
+                            {/* Extends under the Row gap so a centered title centers against the chevron's edge, not the gap's */}
+                            <View
+                                style={[
+                                    styles.gap1,
+                                    !shouldDisplayGroupWorkspaceAsPushRow && styles.alignItemsCenter,
+                                    !shouldDisplayGroupWorkspaceAsPushRow && !shouldDisableRename && styles.mrn3,
+                                ]}
+                            >
+                                <Text
+                                    style={titleStyle}
+                                    numberOfLines={isThread ? 2 : undefined}
+                                >
+                                    {containsCustomEmoji(title) && !containsOnlyCustomEmoji(title) ? (
+                                        <TextWithEmojiFragment
+                                            message={convertToLTR(title)}
+                                            style={titleStyle}
+                                            alignCustomEmoji
+                                        />
+                                    ) : (
+                                        convertToLTR(title)
+                                    )}
+                                </Text>
+                                {!!furtherDetails && (
+                                    <Text
+                                        style={[styles.textLabelSupporting, isWorkspaceChat && [styles.textAlignCenter, styles.breakWord]]}
+                                        numberOfLines={isWorkspaceChat ? 0 : 2}
+                                    >
+                                        {furtherDetails}
+                                    </Text>
+                                )}
+                            </View>
+                        </MenuItem.Content>
+                        {!shouldDisableRename && (
+                            <MenuItem.Trailing>
+                                <MenuItem.Chevron />
+                            </MenuItem.Trailing>
+                        )}
+                    </MenuItem.Row>
+                </MenuItem.Root>
                 {shouldDisplayGroupWorkspaceAsPushRow && !isGroupChat && (
-                    <MenuItemWithTopDescription
-                        shouldShowRightIcon={false}
-                        interactive={false}
-                        description={translate('workspace.common.workspace')}
-                        title={getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')})}
-                        numberOfLinesTitle={2}
-                        shouldBreakWord
+                    <MenuItemField
+                        name={translate('workspace.common.workspace')}
+                        value={getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')})}
+                        numberOfLinesValue={2}
                     />
                 )}
             </View>
