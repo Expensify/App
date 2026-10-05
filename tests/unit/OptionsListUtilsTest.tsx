@@ -1385,7 +1385,7 @@ describe('OptionsListUtils', () => {
             const approveOnlyPolicyID = 'APPROVEONLYPOLICY1';
             const approveOnlyChatReportID = '901';
 
-            const buildPolicyWithRole = (role: string): Policy => ({
+            const buildPolicyWithRole = (role: Policy['role']): Policy => ({
                 id: approveOnlyPolicyID,
                 name: 'Approve Only Workspace',
                 role,

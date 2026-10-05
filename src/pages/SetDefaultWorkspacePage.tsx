@@ -84,7 +84,7 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
         searchTerm: debouncedSearchTerm,
         localeCompare,
         // Approve-only members cannot create expenses, so their workspaces cannot be the default expense destination.
-        additionalFilter: (newPolicy) => isGroupPolicy(newPolicy) && canRoleCreateExpenses(newPolicy.role),
+        additionalFilter: (newPolicy) => isGroupPolicy(newPolicy) && canRoleCreateExpenses(newPolicy?.role),
     });
 
     const confirmButtonOptions = {

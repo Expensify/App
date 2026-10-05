@@ -2009,7 +2009,7 @@ describe('PolicyUtils', () => {
 
             const newPolicy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                role: undefined,
+                role: CONST.POLICY.ROLE.APPROVE_ONLY,
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
                 employeeList: {
                     [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.APPROVE_ONLY},

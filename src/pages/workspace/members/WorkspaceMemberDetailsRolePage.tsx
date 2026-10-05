@@ -76,7 +76,8 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
     };
 
     const saveRole = () => {
-        const value = selectedRole ?? member?.role;
+        // The save button stays disabled until a different role is picked, so selectedRole is always set here.
+        const value = selectedRole;
         if (!value || value === member?.role) {
             return;
         }
