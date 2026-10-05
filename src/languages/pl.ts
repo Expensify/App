@@ -3179,6 +3179,8 @@ ${amount} dla ${merchant} - ${date}`,
             updateAvatar: 'Wystąpił problem z aktualizacją awatara tego agenta',
         },
     },
+    agentPromptUpdated: ({updatedBy, previousPrompt, newPrompt}: {updatedBy: string; previousPrompt: string; newPrompt: string}) =>
+        `${updatedBy} zaktualizował(-a) instrukcje tego agenta.\nPoprzednie instrukcje:\n${previousPrompt}\nNowe instrukcje:\n${newPrompt}`,
     newAgentPage: {
         title: 'Nowy agent',
         buildCustomAgent: 'Utwórz własnego agenta',
@@ -4697,21 +4699,21 @@ ${amount} dla ${merchant} - ${date}`,
         },
         nudge: {
             airfareManual:
-                'Czy wiesz, że możesz rezerwować i zarządzać lotami bezpośrednio w Expensify? Następnym razem uniknij kłopotu ręcznego tworzenia wydatku i po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Wiesz, że możesz rezerwować loty bezpośrednio w Expensify i nadal zbierać mile w swoich programach lojalnościowych dla często podróżujących? Następnym razem uniknij kłopotu ręcznego tworzenia wydatku i po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             airfareCard:
-                'Wiesz, że możesz rezerwować i zarządzać lotami bezpośrednio w Expensify? I że paragony są automatycznie przesyłane za ciebie? Następnym razem po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Wiesz, że możesz rezerwować loty bezpośrednio w Expensify i nadal zbierać mile w swoich programach lojalnościowych linii lotniczych? Paragony też są automatycznie przesyłane za Ciebie. Następnym razem po prostu zarezerwuj lot przez <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             hotelManual:
-                'Czy wiesz, że możesz rezerwować i zarządzać pobytami w hotelach bezpośrednio w Expensify? Następnym razem uniknij kłopotu ręcznego tworzenia wydatku i po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Wiesz, że możesz rezerwować pobyty w hotelach bezpośrednio w Expensify i nadal korzystać ze swoich programów lojalnościowych hoteli? Następnym razem uniknij kłopotu z ręcznym tworzeniem wydatku i po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             hotelCard:
-                'Wiesz, że możesz rezerwować i zarządzać pobytami w hotelach bezpośrednio w Expensify? Następnym razem po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Wiesz, że możesz rezerwować pobyty w hotelach bezpośrednio w Expensify i nadal korzystać ze swoich programów lojalnościowych hoteli? Następnym razem po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             carManual:
-                'Wiesz, że możesz rezerwować i zarządzać wynajmem samochodów bezpośrednio w Expensify? Następnym razem uniknij kłopotu ręcznego tworzenia wydatku i po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+                'Wiesz, że możesz rezerwować wynajem samochodów bezpośrednio w Expensify i nadal korzystać ze swoich programów lojalnościowych wypożyczalni? Następnym razem uniknij kłopotu z ręcznym tworzeniem wydatku i po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             carCard:
-                'Wiesz, że możesz rezerwować i zarządzać wynajmem samochodów bezpośrednio w Expensify? Następnym razem po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+                'Wiesz, że możesz rezerwować samochody w Expensify i nadal korzystać ze swoich programów lojalnościowych wypożyczalni? Następnym razem po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             railManual:
-                'Wiesz, że możesz rezerwować i zarządzać przejazdami pociągiem bezpośrednio w Expensify? Następnym razem uniknij kłopotu z ręcznym tworzeniem wydatku i po prostu zarezerwuj przejazd przez <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+                'Wiesz, że możesz rezerwować przejazdy pociągiem bezpośrednio w Expensify i nadal korzystać ze swoich programów lojalnościowych kolei oraz kart zniżkowych? Następnym razem uniknij kłopotu ręcznego tworzenia wydatku i po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
-                'Wiesz, że możesz rezerwować i zarządzać przejazdami pociągiem bezpośrednio w Expensify? I że paragony są automatycznie przesyłane za Ciebie? Następnym razem po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a>',
+                'Wiesz, że możesz rezerwować przejazdy pociągiem bezpośrednio w Expensify i wciąż korzystać ze swoich programów lojalnościowych kolei oraz kart zniżkowych? Paragony też są automatycznie przesyłane za ciebie. Następnym razem po prostu zarezerwuj podróż przez <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             hotelBlockManual:
                 'Wiesz, że możesz rezerwować i zarządzać takimi wyjazdami grupowymi bezpośrednio w Expensify? Oszczędź sobie zachodu następnym razem i wypróbuj nasze narzędzie <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a>.',
             hotelBlockCard:
@@ -5505,6 +5507,9 @@ ${amount} dla ${merchant} - ${date}`,
             journalEntriesProvTaxPostingAccount: 'Konto księgowania prowincjonalnego podatku w dzienniku',
             foreignCurrencyAmount: 'Eksportuj kwotę w walucie obcej',
             exportToNextOpenPeriod: 'Eksportuj do następnego otwartego okresu',
+            exportToNextOpenPeriodLockedSubtitle: 'Aby wyłączyć eksport do następnego otwartego okresu, najpierw wyłącz dzielenie eksportów niepodlegających zwrotowi według okresu.',
+            splitExportsByPostingPeriod: 'Podziel eksporty według okresu księgowego',
+            splitExportsByPostingPeriodSubtitle: 'Włącz eksport do następnego otwartego okresu, aby włączyć dzielenie eksportów niepodlegających zwrotowi według okresu w NetSuite',
             nonReimbursableJournalPostingAccount: 'Konto księgowania nierozliczanych wydatków',
             reimbursableJournalPostingAccount: 'Konto księgowe dla zwrotów kosztów',
             journalPostingPreference: {
