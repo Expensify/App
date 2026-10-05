@@ -8,6 +8,10 @@ on:
       - ios/**
       - 'package.json'
       - 'package-lock.json'
+      - 'patches/react-native-nitro-sqlite/**'
+      - '.github/scripts/verifyNitroSQLiteDatabaseLocation.sh'
+      - '.github/scripts/nitroSQLiteDatabaseLocation/**'
+      - '.github/workflows/verifyPodfile.yml'
 
 jobs:
   verify:
@@ -20,6 +24,9 @@ jobs:
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
+
+      - name: Verify native NitroSQLite database location
+        run: bash ./.github/scripts/verifyNitroSQLiteDatabaseLocation.sh
 
       - name: Verify podfile
         run: ./.github/scripts/verifyPodfile.sh
