@@ -116,6 +116,21 @@ function popFocusedRoute(state: State): State | undefined {
 }
 
 /**
+ * Checks if the focused route of the state is a dynamic route that the given suffix pattern extends,
+ * e.g. `two-factor-auth` for `two-factor-auth/verify`.
+ *
+ * @private - Internal helper. Do not export or use outside this file.
+ */
+function isFocusedDynamicRouteExtendedBy(state: State, suffixPattern: string): boolean {
+    const screenName = findFocusedRouteWithOnyxTabGuard(state)?.name;
+    if (!screenName || !isScreen(screenName) || !isDynamicRouteScreen(screenName)) {
+        return false;
+    }
+    const pattern = normalizedConfigs[screenName]?.path;
+    return !!pattern && suffixPattern.startsWith(`${pattern}/`);
+}
+
+/**
  * Builds a URL path for a dynamic route screen.
  * Recursively peels off dynamic suffixes and resolves the base path underneath.
  *
@@ -149,7 +164,13 @@ function getPathFromStateWithDynamicRoute(state: State): string {
         }
     }
 
-    const reducedState = popFocusedRoute(state);
+    let reducedState = popFocusedRoute(state);
+
+    // A dynamic route can extend the suffix of another one (`two-factor-auth/verify` extends `two-factor-auth`). Both attach to the
+    // same base page, so when the longer one is pushed on top of the shorter one, the shorter suffix must not be added a second time.
+    while (reducedState && isFocusedDynamicRouteExtendedBy(reducedState, suffixPattern)) {
+        reducedState = popFocusedRoute(reducedState);
+    }
 
     if (!reducedState) {
         return `/${actualSuffix}`;

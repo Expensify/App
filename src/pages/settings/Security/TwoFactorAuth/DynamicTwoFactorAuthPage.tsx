@@ -19,7 +19,7 @@ import Clipboard from '@libs/Clipboard';
 import getPlatform from '@libs/getPlatform';
 import localFileDownload from '@libs/localFileDownload';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 
 import {toggleTwoFactorAuth} from '@userActions/Session';
 import {quitAndNavigateBack, setCodesAreCopied} from '@userActions/TwoFactorAuthActions';
@@ -30,7 +30,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
@@ -67,16 +67,28 @@ function DynamicTwoFactorAuthPage() {
 
     const recoveryCodes = account?.recoveryCodes;
 
-    // Once 2FA is enabled this page is only reachable by navigating back into it, so the effect below leaves the flow
-    // and the recovery codes stay hidden so they don't flash first. The forced-onboarding post-verify handoff is the
-    // exception: it sets requiresTwoFactorAuth before Got it clears the setup progress, so the redirect must stay off.
-    const shouldLeaveEnabledSetup = is2FAEnabled && !is2FASetupInProgress;
-
-    // In that handoff the Onyx reset after validation drops the recovery codes, so this page has nothing to show, and
-    // leaving the flow would skip the handoff that only the success page runs. Send the user back to the success page.
-    const shouldResumeForcedSetupHandoff = is2FAEnabled && is2FASetupInProgress && !recoveryCodes;
+    // On web, Download codes pushes the verify page, so this page stays in the stack and in the browser history while 2FA gets
+    // enabled. Once it has been open with 2FA off, a later focus with 2FA on can only be browser Back.
+    const wasOpenBefore2FAEnabledRef = useRef(false);
+    const hasLeftFlowRef = useRef(false);
 
     useEffect(() => {
+        if (is2FAEnabled && wasOpenBefore2FAEnabledRef.current) {
+            // Go back once more, so browser Back from the success or enabled page leaves the flow as it does on main, where this
+            // page is not in the history. `backPath` still holds the path of the page that was on top, so it cannot be used here.
+            // This check comes first because the forced-onboarding handoff resets the account data while this page is still
+            // mounted, and the checks below must not start another step from that state.
+            if (isFocused && !hasLeftFlowRef.current) {
+                hasLeftFlowRef.current = true;
+                Navigation.isNavigationReady().then(() => Navigation.goBack());
+            }
+            return;
+        }
+
+        if (!isLoadingOnyxValue(accountMetadata) && !is2FAEnabled) {
+            wasOpenBefore2FAEnabledRef.current = true;
+        }
+
         if (!isUserValidated) {
             Navigation.isNavigationReady().then(() => {
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY_ACCOUNT.path, backPath), {forceReplace: true});
@@ -86,27 +98,9 @@ function DynamicTwoFactorAuthPage() {
 
         // Skip redirect to the enabled page while setup is still in progress (e.g. post-verify handoff
         // during forced onboarding, when requiresTwoFactorAuth becomes true before Got it clears progress).
-        if (isFocused && shouldLeaveEnabledSetup) {
+        if (isFocused && is2FAEnabled && !is2FASetupInProgress) {
             Navigation.isNavigationReady().then(() => {
-                // Pressing browser Back from the success page on web lands here with 2FA already enabled (the
-                // recovery-codes page stays in history because Download codes uses PUSH). Go back out of the flow
-                // instead of forwarding to the enabled page, which would loop the user straight back to the success page.
-                if (navigationRef.current?.canGoBack()) {
-                    Navigation.goBack();
-                    return;
-                }
-
-                // A direct link or a reload can also mount this page with 2FA enabled and nothing to pop. goBack()
-                // would then reset to the app root, so open the enabled page instead.
                 Navigation.navigate(ROUTES.SETTINGS_2FA_ENABLED, {forceReplace: true});
-            });
-            return;
-        }
-
-        if (isFocused && shouldResumeForcedSetupHandoff) {
-            Navigation.isNavigationReady().then(() => {
-                // REPLACE, so the next browser Back leaves the flow instead of bouncing between the two pages.
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_SUCCESS.path, backPath), {forceReplace: true});
             });
             return;
         }
@@ -143,7 +137,7 @@ function DynamicTwoFactorAuthPage() {
             onBackButtonPress={() => quitAndNavigateBack(backPath)}
         >
             <ScrollView contentContainerStyle={styles.flexGrow1}>
-                {!!isUserValidated && !shouldLeaveEnabledSetup && !shouldResumeForcedSetupHandoff && (
+                {!!isUserValidated && !is2FAEnabled && (
                     <Section
                         title={translate('twoFactorAuth.keepCodesSafe')}
                         containerStyles={[styles.twoFactorAuthSection]}
@@ -218,7 +212,7 @@ function DynamicTwoFactorAuthPage() {
                             style={[styles.mb3]}
                         />
                     )}
-                    {!!recoveryCodes && !shouldLeaveEnabledSetup && (
+                    {!!recoveryCodes && !is2FAEnabled && (
                         <Button
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             size={CONST.BUTTON_SIZE.LARGE}
