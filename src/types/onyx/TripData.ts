@@ -84,7 +84,7 @@ type PnrData = {
     version: number;
 
     /** List of travelers associated with the PNR. */
-    travelers: Array<{
+    travelers?: Array<{
         travelerPersonalInfo: {
             /** Loyalty information for the traveler. */
             loyaltyInfos: unknown[];
