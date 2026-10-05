@@ -279,7 +279,6 @@ function formatViolationDate(date: string | undefined, dateFnsLocale: DateFnsLoc
     return DateUtils.formatWithUTCTimeZone(date, CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale);
 }
 
-const RULE_VIOLATION_FALLBACK_MESSAGE = 'Violates expense policy';
 const RULE_VIOLATION_FILTER_ORDER = ['expenseType', 'billable', 'reimbursable', 'category', 'merchant', 'vendor', 'amount', 'tag', 'currency', 'purchaseCurrency', 'has', 'mcc'];
 
 function isRuleViolationFilter(value: unknown): value is RuleFilterNode {
@@ -309,14 +308,19 @@ function normalizeRuleViolationFilterValues(value: RuleFilterNode['right']): str
     return (Array.isArray(value) ? value : [value]).map(String);
 }
 
-function buildRuleViolationMessage(filters: RuleFilterNode | undefined, currency: string, convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString']): string {
+function buildRuleViolationMessage(
+    filters: RuleFilterNode | undefined,
+    currency: string,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
+    translate: LocaleContextProps['translate'],
+): string {
     if (!filters || !isRuleViolationFilter(filters)) {
-        return RULE_VIOLATION_FALLBACK_MESSAGE;
+        return translate('violations.ruleViolation.fallback');
     }
 
     const filtersByName = new Map<string, RuleFilterNode>();
     if (!flattenRuleViolationAndFilters(filters, filtersByName)) {
-        return RULE_VIOLATION_FALLBACK_MESSAGE;
+        return translate('violations.ruleViolation.fallback');
     }
 
     const adjectives: string[] = [];
@@ -337,16 +341,16 @@ function buildRuleViolationMessage(filters: RuleFilterNode | undefined, currency
 
         const firstValue = values.at(0) ?? '';
         const hasSingleValue = values.length === 1;
-        const filterValuesString = values.join(' or ');
+        const filterValuesString = values.join(` ${translate('common.or')} `);
         const op = filter.operator;
 
         if (filterName === 'expenseType') {
-            const expenseTypesString = values.map((value) => (value === 'perDiem' ? 'per diem' : value)).join(' or ');
+            const expenseTypesString = values.map((value) => (value === 'perDiem' ? translate('violations.ruleViolation.perDiem') : value)).join(` ${translate('common.or')} `);
             const capitalizedExpenseTypesString = `${expenseTypesString.charAt(0).toUpperCase()}${expenseTypesString.slice(1)}`;
             if (op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
                 adjectives.push(capitalizedExpenseTypesString);
             } else if (op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
-                phrases.push(`not a ${capitalizedExpenseTypesString}`);
+                phrases.push(translate('violations.ruleViolation.notExpenseType', capitalizedExpenseTypesString));
             }
         } else if (filterName === 'billable' || filterName === 'reimbursable') {
             if (op !== CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && op !== CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
@@ -354,15 +358,18 @@ function buildRuleViolationMessage(filters: RuleFilterNode | undefined, currency
             }
 
             const isTrue = (firstValue === 'yes') !== (op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO);
-            const titleCaseLabel = `${filterName.charAt(0).toUpperCase()}${filterName.slice(1)}`;
-            adjectives.push(isTrue ? titleCaseLabel : `Non-${filterName}`);
+            if (filterName === 'billable') {
+                adjectives.push(translate(isTrue ? 'violations.ruleViolation.billable.enabled' : 'violations.ruleViolation.billable.disabled'));
+            } else {
+                adjectives.push(translate(isTrue ? 'violations.ruleViolation.reimbursable.enabled' : 'violations.ruleViolation.reimbursable.disabled'));
+            }
         } else if (filterName === 'category') {
             if (op !== CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
                 continue;
             }
 
             if (hasSingleValue && (firstValue === CONST.SEARCH.CATEGORY_EMPTY_VALUE || firstValue === CONST.SEARCH.CATEGORY_DEFAULT_VALUE)) {
-                phrases.push('without a category');
+                phrases.push(translate('violations.ruleViolation.withoutCategory'));
             } else {
                 adjectives.push(filterValuesString);
             }
@@ -370,50 +377,56 @@ function buildRuleViolationMessage(filters: RuleFilterNode | undefined, currency
             if (op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && hasSingleValue && firstValue === '.') {
                 isAnyExpense = true;
             } else if (op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
-                phrases.push(`from ${filterValuesString}`);
+                phrases.push(translate('violations.ruleViolation.fromMerchant', filterValuesString));
                 hasMerchant = true;
             } else if (op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
-                phrases.push(`not from ${filterValuesString}`);
+                phrases.push(translate('violations.ruleViolation.notFromMerchant', filterValuesString));
                 hasMerchant = true;
             } else if (op === CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS) {
-                phrases.push(`from merchants containing ${filterValuesString}`);
+                phrases.push(translate('violations.ruleViolation.fromMerchantsContaining', filterValuesString));
                 hasMerchant = true;
             } else if (op === 'notContains') {
-                phrases.push(`not from merchants containing ${filterValuesString}`);
+                phrases.push(translate('violations.ruleViolation.notFromMerchantsContaining', filterValuesString));
                 hasMerchant = true;
             }
         } else if (filterName === 'vendor') {
             if (op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
-                phrases.push(`${hasMerchant ? 'with vendor' : 'from'} ${filterValuesString}`);
+                const vendorTranslationKey = hasMerchant ? 'violations.ruleViolation.withVendor' : 'violations.ruleViolation.fromVendor';
+                phrases.push(translate(vendorTranslationKey, filterValuesString));
             } else if (op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
-                phrases.push(`${hasMerchant ? 'without vendor' : 'not from'} ${filterValuesString}`);
+                const vendorTranslationKey = hasMerchant ? 'violations.ruleViolation.withoutVendor' : 'violations.ruleViolation.notFromVendor';
+                phrases.push(translate(vendorTranslationKey, filterValuesString));
             }
         } else if (filterName === 'amount') {
-            const formattedAmountsString = values.map((value) => convertToDisplayString(Math.abs(Number(value)), currency)).join(' or ');
+            const formattedAmountsString = values.map((value) => convertToDisplayString(Math.abs(Number(value)), currency)).join(` ${translate('common.or')} `);
             if (op === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN) {
-                phrases.push(`over ${formattedAmountsString}`);
+                phrases.push(translate('violations.ruleViolation.overAmount', formattedAmountsString));
             } else if (op === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO) {
-                phrases.push(`${formattedAmountsString} or more`);
+                phrases.push(translate('violations.ruleViolation.amountOrMore', formattedAmountsString));
             } else if (op === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN) {
-                phrases.push(`under ${formattedAmountsString}`);
+                phrases.push(translate('violations.ruleViolation.underAmount', formattedAmountsString));
             } else if (op === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO) {
-                phrases.push(`${formattedAmountsString} or less`);
+                phrases.push(translate('violations.ruleViolation.amountOrLess', formattedAmountsString));
             }
         } else if (filterName === 'tag') {
             if (op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
-                phrases.push(hasSingleValue && firstValue === CONST.SEARCH.TAG_EMPTY_VALUE ? 'without a tag' : `tagged ${filterValuesString}`);
+                phrases.push(
+                    hasSingleValue && firstValue === CONST.SEARCH.TAG_EMPTY_VALUE
+                        ? translate('violations.ruleViolation.withoutTag')
+                        : translate('violations.ruleViolation.tagged', filterValuesString),
+                );
             }
         } else if (filterName === 'currency') {
             if (op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
-                phrases.push(`in ${filterValuesString}`);
+                phrases.push(translate('violations.ruleViolation.inCurrency', filterValuesString));
             } else if (op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
-                phrases.push(`not in ${filterValuesString}`);
+                phrases.push(translate('violations.ruleViolation.notInCurrency', filterValuesString));
             }
         } else if (filterName === 'purchaseCurrency') {
             if (op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
-                phrases.push(`paid in ${filterValuesString}`);
+                phrases.push(translate('violations.ruleViolation.paidInCurrency', filterValuesString));
             } else if (op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
-                phrases.push(`not paid in ${filterValuesString}`);
+                phrases.push(translate('violations.ruleViolation.notPaidInCurrency', filterValuesString));
             }
         } else if (filterName === 'has') {
             const isNegated = op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO || op === 'notContains';
@@ -421,19 +434,22 @@ function buildRuleViolationMessage(filters: RuleFilterNode | undefined, currency
                 continue;
             }
 
-            const attributes = values.map((value) => (value === 'attachment' ? 'an attachment' : `a ${value}`));
-            phrases.push(`${isNegated ? 'without' : 'with'} ${attributes.join(' or ')}`);
+            const attributes = values.map((value) => (value === 'attachment' ? translate('violations.ruleViolation.attachment') : translate('violations.ruleViolation.attribute', value)));
+            const attributesTranslationKey = isNegated ? 'violations.ruleViolation.withoutAttributes' : 'violations.ruleViolation.withAttributes';
+            phrases.push(translate(attributesTranslationKey, attributes.join(` ${translate('common.or')} `)));
         } else if (filterName === 'mcc' && op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
-            phrases.push(`at ${values.map((value) => `MCC ${value}`).join(' or ')}`);
+            phrases.push(
+                translate('violations.ruleViolation.atMerchantCode', values.map((value) => translate('violations.ruleViolation.merchantCode', value)).join(` ${translate('common.or')} `)),
+            );
         }
     }
 
     if (adjectives.length === 0 && phrases.length === 0) {
-        return isAnyExpense ? 'Any expense' : RULE_VIOLATION_FALLBACK_MESSAGE;
+        return isAnyExpense ? translate('violations.ruleViolation.anyExpense') : translate('violations.ruleViolation.fallback');
     }
 
-    const message = adjectives.length === 0 ? 'Expense' : `${adjectives.join(' ')} expense`;
-    return phrases.length === 0 ? message : `${message} ${phrases.join(' ')}`;
+    const message = translate('violations.ruleViolation.expense', adjectives.join(' '));
+    return translate('violations.ruleViolation.message', message, phrases.join(' '));
 }
 
 /**
@@ -1234,7 +1250,7 @@ const ViolationsUtils = {
             case 'customRules':
                 return translate('violations.customRules', message);
             case 'ruleViolation':
-                return buildRuleViolationMessage(violation.data?.filters, currency, convertToDisplayString);
+                return buildRuleViolationMessage(violation.data?.filters, currency, convertToDisplayString, translate);
             case 'rter': {
                 let isPersonalCardViolation = false;
                 if (cardID !== undefined && cardID !== null && card) {
