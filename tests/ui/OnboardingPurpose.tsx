@@ -166,6 +166,41 @@ describe('OnboardingPurpose Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should navigate to the workspace list only once when Join Workspace is pressed twice', async () => {
+        const testEmail = 'test@user.com';
+        await TestHelper.signInWithTestUser();
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {
+                isFromPublicDomain: false,
+                hasAccessibleDomainPolicies: true,
+            });
+            await Onyx.merge(ONYXKEYS.LOGINS, {
+                [`1_${testEmail}`]: {
+                    partnerID: 1,
+                    partnerUserID: testEmail,
+                    validatedDate: 'fake-validatedDate',
+                },
+            });
+        });
+
+        const {unmount} = renderOnboardingPurposePage(SCREENS.ONBOARDING.PURPOSE, {backTo: ''});
+        await waitForBatchedUpdatesWithAct();
+        navigate.mockClear();
+
+        const user = userEvent.setup();
+        const joinWorkspaceOption = screen.getByLabelText(translatePurpose(CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE));
+        await user.press(joinWorkspaceOption);
+        await user.press(joinWorkspaceOption);
+
+        await waitFor(() => {
+            expect(navigate).toHaveBeenCalledTimes(1);
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORKSPACES.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()));
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should navigate to personal details page when user selects EMPLOYER and is from public domain', async () => {
         await TestHelper.signInWithTestUser();
 

@@ -39,7 +39,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {useIsFocused} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {PUBLIC_DOMAINS_SET} from 'expensify-common';
-import React, {useCallback, useImperativeHandle, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 
@@ -96,6 +96,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const {isBetaEnabled} = usePermissions();
     const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
     const autoCreateTrackWorkspace = useAutoCreateTrackWorkspace();
+    const isJoinWorkspaceNavigationPending = useRef(false);
     const paddingHorizontal = onboardingIsMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5;
 
     const [customChoices = getEmptyArray<OnboardingPurpose>()] = useOnyx(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES);
@@ -116,6 +117,13 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
             numberOfLinesTitle: 0,
             sentryLabel: CONST.SENTRY_LABEL.ONBOARDING.PURPOSE_ITEM,
             onPress: () => {
+                if (choice === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE && isJoinWorkspaceNavigationPending.current) {
+                    return;
+                }
+                if (choice === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE) {
+                    isJoinWorkspaceNavigationPending.current = true;
+                }
+
                 setOnboardingPurposeSelected(choice);
                 setOnboardingErrorMessage(null);
 
@@ -194,6 +202,13 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
         };
     });
     const isFocused = useIsFocused();
+
+    useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
+        isJoinWorkspaceNavigationPending.current = false;
+    }, [isFocused]);
 
     const handleOuterClick = useCallback(() => {
         setOnboardingErrorMessage('onboarding.errorSelection');
