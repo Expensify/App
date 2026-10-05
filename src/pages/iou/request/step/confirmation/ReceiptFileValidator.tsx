@@ -113,7 +113,8 @@ function ReceiptFileValidator({
                         // A scan whose amount / merchant / date the user filled in themselves is submitted the same way
                         // as a manual expense with an attached receipt: `open` keeps SmartScan from re-reading the receipt
                         // and overwriting what the user typed.
-                        const shouldSkipSmartScan = requestType === CONST.IOU.REQUEST_TYPE.MANUAL || (canEnterScanFieldsManually && hasAllManuallyEnteredScanFields(item, isPolicyExpenseChat));
+                        const shouldSkipSmartScan =
+                            requestType === CONST.IOU.REQUEST_TYPE.MANUAL || (canEnterScanFieldsManually && hasAllManuallyEnteredScanFields(item, isPolicyExpenseChat));
                         receipt.state = file && shouldSkipSmartScan ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCAN_READY;
                     }
 
@@ -157,7 +158,21 @@ function ReceiptFileValidator({
             ignore = true;
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- draftTransactionIDs is intentionally excluded to avoid re-running on draft changes
-    }, [requestType, iouType, initialTransactionID, reportID, action, backToReport, report, transactions, participants, isReceiptReady, canEnterScanFieldsManually, isPolicyExpenseChat, onReceiptFilesChange]);
+    }, [
+        requestType,
+        iouType,
+        initialTransactionID,
+        reportID,
+        action,
+        backToReport,
+        report,
+        transactions,
+        participants,
+        isReceiptReady,
+        canEnterScanFieldsManually,
+        isPolicyExpenseChat,
+        onReceiptFilesChange,
+    ]);
 
     return null;
 }
