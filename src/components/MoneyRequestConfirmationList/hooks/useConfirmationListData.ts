@@ -244,6 +244,7 @@ function useConfirmationListDataWithPolicy({
         isTimeRequest,
         routeError,
         canEnterScanFieldsManually,
+        isPolicyExpenseChat,
         partiallyManuallyFilledScanID,
         isReadOnly,
         shouldShowDate,

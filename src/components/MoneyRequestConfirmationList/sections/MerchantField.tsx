@@ -32,7 +32,7 @@ type MerchantFieldProps = {
 };
 
 function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}: MerchantFieldProps) {
-    const {transactionID, isReadOnly, didConfirm, isEditingSplitBill, canEnterScanFieldsManually} = useConfirmationFields();
+    const {transactionID, isReadOnly, didConfirm, isEditingSplitBill, canEnterScanFieldsManually, isPolicyExpenseChat} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -83,7 +83,7 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}:
 
         // `common.error.fieldRequired` is shared with the amount and date fields, so only surface it here when the
         // merchant is the one that is missing.
-        if (formError === 'common.error.fieldRequired' && (isConfirmationMerchantMissing(merchantState, canEnterScanFieldsManually) || (isMerchantRequired && !displayMerchantValue))) {
+        if (formError === 'common.error.fieldRequired' && (isConfirmationMerchantMissing(merchantState, canEnterScanFieldsManually, isPolicyExpenseChat) || (isMerchantRequired && !displayMerchantValue))) {
             return translate('common.error.fieldRequired');
         }
 

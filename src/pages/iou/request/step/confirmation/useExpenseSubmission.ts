@@ -435,7 +435,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (!receipt || !canEnterScanFieldsManually || receipt.isTestReceipt || receipt.isTestDriveReceipt || !isScanRequestTransactionUtils(item)) {
             return undefined;
         }
-        return hasAllManuallyEnteredScanFields(item) ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCAN_READY;
+        return hasAllManuallyEnteredScanFields(item, isPolicyExpenseChat) ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCAN_READY;
     }
 
     /**
