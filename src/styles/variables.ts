@@ -108,24 +108,24 @@ export default {
     iconSizeMegaLarge: 105,
     iconSizeMenuItem: 32,
     iconBottomBar: 24,
-    /** Glyph size in the floating tab bar, smaller than the side bar's so each item keeps padding above and below it. */
+    /** Glyph size in the floating tab bar. */
     iconFloatingTabBar: 20,
-    /** Account avatar size in the floating tab bar. A circle reads smaller than a glyph of the same box, so it is larger. */
+    /** Account avatar size in the floating tab bar. */
     avatarFloatingTabBar: avatarSizes.avatarSizeXSmall,
-    /** Glyph size in the iOS native tab bar. UITabBar gives each item more room than the JS bar, so its glyphs are larger. */
+    /** Glyph size in the iOS native tab bar. */
     iconNativeTabBarIOS: 22,
-    /** Account avatar size in the iOS native tab bar, larger than its glyphs by the same amount as on the JS bar. */
+    /** Account avatar size in the iOS native tab bar. */
     avatarNativeTabBarIOS: 26,
     /** Radius of the status dot drawn into an iOS native tab bar icon. */
     nativeTabIconDotRadius: 4,
-    // Gap between the glyph and the label baked under it, matching the spacing the JS bar uses.
+    /** Gap between the glyph and the label drawn under it in an iOS native tab bar icon. */
     nativeTabIconLabelGap: 6,
     /** Material's BottomNavigationView row, without the gesture inset under it. */
     androidNativeTabBarHeight,
     /** Material's bar row plus the 16 dp Material keeps between a FAB and the bar. */
     androidNativeTabBarFloatingButtonsBottom: androidNativeTabBarHeight + 16,
-    /** UITabBar with the home indicator inset under it, plus a 12 pt gap to the floating buttons. */
-    iosNativeTabBarFloatingButtonsBottom: 84,
+    /** UITabBar's row above the home indicator inset, plus the gap to the floating buttons. */
+    iosNativeTabBarFloatingButtonsBottom: 50,
     iconHeader: 48,
     iconSection: 68,
     iouAmountTextSize: 40,

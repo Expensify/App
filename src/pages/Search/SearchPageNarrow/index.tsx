@@ -187,6 +187,8 @@ function SearchPageNarrow({
     });
     const [isInteractive, setIsInteractive] = useState(!useStaticRendering);
     const [isHeaderInteractive, setIsHeaderInteractive] = useState(!useStaticRendering);
+    // A page mounted in the background, as native tabs mount Spend, keeps its skeleton still until it is first shown.
+    const [hasBeenFocused, setHasBeenFocused] = useState(!useStaticRendering);
     const isHeaderInteractiveRef = useRef(isHeaderInteractive);
     const [, startTransition] = useTransition();
     useEffect(() => {
@@ -209,6 +211,7 @@ function SearchPageNarrow({
     // useFocusEffect avoids the extra re-renders that useIsFocused causes on every focus change.
     useFocusEffect(
         useCallback(() => {
+            setHasBeenFocused(true);
             if (isInteractive) {
                 return;
             }
@@ -344,7 +347,7 @@ function SearchPageNarrow({
                                     )}
                                     {!isInteractive && !searchOverlayContent && (
                                         <SearchRowSkeleton
-                                            shouldAnimate
+                                            shouldAnimate={hasBeenFocused}
                                             containerStyle={styles.searchListContentContainerStyles(hasFilterBars)}
                                         />
                                     )}

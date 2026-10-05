@@ -13,7 +13,8 @@ import type {NativeBottomTabNavigationOptions} from '@react-navigation/bottom-ta
 
 import type NativeTabBarOptionsParams from './types';
 
-const getFloatingButtonsBottom = () => variables.iosNativeTabBarFloatingButtonsBottom;
+/** UITabBar sits above the home indicator inset, so the floating buttons clear both. */
+const getFloatingButtonsBottom = (bottomInset: number) => variables.iosNativeTabBarFloatingButtonsBottom + bottomInset;
 
 const TAB_ICON_LAYOUT: TabIconLayout = {
     glyphSize: variables.iconNativeTabBarIOS,

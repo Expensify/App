@@ -1,13 +1,14 @@
 diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm b/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
 --- a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
 +++ b/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
-@@ -244,7 +244,8 @@
+@@ -244,7 +244,9 @@
      _tabBarHidden = newComponentProps.tabBarHidden;
  #if RNS_IPHONE_OS_VERSION_AVAILABLE(18_0)
      if (@available(iOS 18.0, *)) {
 -      [_controller setTabBarHidden:_tabBarHidden animated:NO];
-+      // Animated so the bar slides out with the screen that hid it instead of blinking away.
-+      [_controller setTabBarHidden:_tabBarHidden animated:YES];
++      // Animated so the bar slides out with the screen that hid it instead of blinking away, except before the bar
++      // is on screen, where the first render would animate it out.
++      [_controller setTabBarHidden:_tabBarHidden animated:[[_controller tabBar] window] != nil];
      } else
  #endif // RNS_IPHONE_OS_VERSION_AVAILABLE(18_0)
      {
