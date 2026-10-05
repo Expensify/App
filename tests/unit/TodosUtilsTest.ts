@@ -5,6 +5,7 @@ import createTodosReportsAndTransactions, {buildTransactionsByReportID, getTodoR
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {Connections} from '@src/types/onyx/Policy';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
 import Onyx from 'react-native-onyx';
@@ -674,17 +675,17 @@ describe('TodosUtils export bucket', () => {
 
     // Each integration keeps its exporter in a different place, so the rule has to read all of them.
     const EXPORTER_BUILDERS: Array<[string, (exporter: string) => Policy['connections']]> = [
-        [CONST.POLICY.CONNECTIONS.NAME.QBO, (exporter) => ({quickbooksOnline: {lastSync: LAST_SYNC, config: {export: {exporter}}}}) as Policy['connections']],
-        [CONST.POLICY.CONNECTIONS.NAME.NETSUITE, (exporter) => ({netsuite: {options: {config: {exporter}}}}) as Policy['connections']],
-        [CONST.POLICY.CONNECTIONS.NAME.XERO, (exporter) => ({xero: {lastSync: LAST_SYNC, config: {export: {exporter}}}}) as Policy['connections']],
-        [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, (exporter) => ({intacct: {lastSync: LAST_SYNC, config: {export: {exporter}}}}) as Policy['connections']],
-        [CONST.POLICY.CONNECTIONS.NAME.QBD, (exporter) => ({quickbooksDesktop: {lastSync: LAST_SYNC, config: {export: {exporter}}}}) as Policy['connections']],
-        [CONST.POLICY.CONNECTIONS.NAME.RILLET, (exporter) => ({rillet: {lastSync: LAST_SYNC, config: {export: {exporter}}}}) as Policy['connections']],
-        [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY, (exporter) => ({dualEntry: {lastSync: LAST_SYNC, config: {export: {exporter}}}}) as Policy['connections']],
-        [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE, (exporter) => ({campfire: {lastSync: LAST_SYNC, config: {export: {exporter}}}}) as Policy['connections']],
+        [CONST.POLICY.CONNECTIONS.NAME.QBO, (exporter) => createMock<Connections>({quickbooksOnline: {lastSync: LAST_SYNC, config: {export: {exporter}}}})],
+        [CONST.POLICY.CONNECTIONS.NAME.NETSUITE, (exporter) => createMock<Connections>({netsuite: {options: {config: {exporter}}}})],
+        [CONST.POLICY.CONNECTIONS.NAME.XERO, (exporter) => createMock<Connections>({xero: {lastSync: LAST_SYNC, config: {export: {exporter}}}})],
+        [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, (exporter) => createMock<Connections>({intacct: {lastSync: LAST_SYNC, config: {export: {exporter}}}})],
+        [CONST.POLICY.CONNECTIONS.NAME.QBD, (exporter) => createMock<Connections>({quickbooksDesktop: {lastSync: LAST_SYNC, config: {export: {exporter}}}})],
+        [CONST.POLICY.CONNECTIONS.NAME.RILLET, (exporter) => createMock<Connections>({rillet: {lastSync: LAST_SYNC, config: {export: {exporter}}}})],
+        [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY, (exporter) => createMock<Connections>({dualEntry: {lastSync: LAST_SYNC, config: {export: {exporter}}}})],
+        [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE, (exporter) => createMock<Connections>({campfire: {lastSync: LAST_SYNC, config: {export: {exporter}}}})],
         [
             CONST.POLICY.CONNECTIONS.NAME.CERTINIA,
-            (exporter) => ({financialforce: {lastSync: LAST_SYNC, config: {credentials: {enterpriseUrl: 'https://example.my.salesforce.com'}, export: {exporter}}}}) as Policy['connections'],
+            (exporter) => createMock<Connections>({financialforce: {lastSync: LAST_SYNC, config: {credentials: {enterpriseUrl: 'https://example.my.salesforce.com'}, export: {exporter}}}}),
         ],
     ];
 
@@ -804,14 +805,12 @@ describe('TodosUtils export bucket', () => {
                 created: '2024-06-01 00:00:00.000',
             });
 
-            expect(getExportedReportIDs(createExportPolicy(), createApprovedReport(), {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${EXPORT_REPORT_ID}`]: {queued_action: queuedAction}})).toEqual(
-                [],
-            );
+            expect(getExportedReportIDs(createExportPolicy(), createApprovedReport(), {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${EXPORT_REPORT_ID}`]: {queuedAction}})).toEqual([]);
         });
 
         it('excludes an archived report', () => {
-            // The to-do reads the archive flag from the report's chat, which is where it lives
-            const archivedNVPs = {[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}chat_${EXPORT_REPORT_ID}`]: {private_isArchived: '2024-01-01 00:00:00'}};
+            // The server reads the archive flag from the expense report itself, not from its chat
+            const archivedNVPs = {[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${EXPORT_REPORT_ID}`]: {private_isArchived: '2024-01-01 00:00:00'}};
 
             expect(getExportedReportIDs(createExportPolicy(), createApprovedReport(), undefined, archivedNVPs)).toEqual([]);
         });
@@ -826,9 +825,9 @@ describe('TodosUtils export bucket', () => {
         it('excludes a report whose only connection is unverified', () => {
             const policy = createMock<Policy>({
                 ...createMockPolicy(EXPORT_POLICY_ID, {role: CONST.POLICY.ROLE.ADMIN, exporter: ''}),
-                connections: {
+                connections: createMock<Connections>({
                     [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {verified: false, options: {config: {exporter: CURRENT_USER_EMAIL}}},
-                } as Policy['connections'],
+                }),
             });
 
             expect(getExportedReportIDs(policy)).toEqual([]);
