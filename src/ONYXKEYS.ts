@@ -925,6 +925,7 @@ const ONYXKEYS = {
 
     /** Collection Keys */
     COLLECTION: {
+        AGENT: 'agent_',
         ATTACHMENT: 'attachment_',
         DOMAIN: 'domain_',
         DOWNLOAD: 'download_',
