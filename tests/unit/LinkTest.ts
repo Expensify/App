@@ -374,6 +374,14 @@ describe('Link.openLink', () => {
         expect(Navigation.navigate).toHaveBeenCalledWith('/home/verify-account?isJoinWorkspaceTask=true');
     });
 
+    it('does not treat an unrelated query value as a join-workspace task marker', () => {
+        mockedNavigationRef.getRootState.mockReturnValue(buildRootState({isRHPOpen: true}));
+
+        openLink(`${CONST.NEW_EXPENSIFY_URL}/onboarding/work-email?foo=isJoinWorkspaceTask=true`, environmentURL);
+
+        expect(Navigation.closeRHPFlow).toHaveBeenCalled();
+    });
+
     it('closes the RHP for ordinary onboarding links', () => {
         mockedNavigationRef.getRootState.mockReturnValue(buildRootState({isRHPOpen: true}));
 

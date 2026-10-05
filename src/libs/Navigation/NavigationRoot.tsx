@@ -32,7 +32,7 @@ import type {NavigationState} from '@react-navigation/native';
 import {findFocusedRoute, NavigationContainer} from '@react-navigation/native';
 import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import * as Sentry from '@sentry/react-native';
-import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 
 import AppNavigator from './AppNavigator';
 import {cleanPreservedNavigatorStates, clearPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
@@ -42,6 +42,7 @@ import getActiveTabName from './helpers/getActiveTabName';
 import getAdaptedStateFromPath from './helpers/getAdaptedStateFromPath';
 import getPathFromState from './helpers/getPathFromState';
 import getStateToResetAfterLogout from './helpers/getStateToResetAfterLogout';
+import isJoinWorkspaceTaskPath, {isOnboardingPath} from './helpers/isJoinWorkspaceTaskPath';
 import {isSplitNavigatorName} from './helpers/isNavigatorName';
 import {saveSettingsTabPathToSessionStorage, saveWorkspacesTabPathToSessionStorage} from './helpers/lastVisitedTabPathUtils';
 import {linkingConfig} from './linkingConfig';
@@ -61,8 +62,6 @@ type NavigationRootProps = {
 };
 
 let previousFullstoryPath: string | undefined;
-
-const JOIN_WORKSPACE_TASK_INITIAL_PATHS = [ROUTES.ONBOARDING_WORK_EMAIL.getRoute(), ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute(), ROUTES.ONBOARDING_WORKSPACES.getRoute()];
 
 function trackFullstoryPageView(state: NavigationState) {
     const currentPath = getPathFromState(state);
@@ -152,11 +151,10 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
     const previousAuthenticated = usePrevious(authenticated);
 
-    const initialState = useMemo(() => {
+    const [initialState] = useState(() => {
         const path = initialUrl ? getPathFromURL(initialUrl) : null;
-        const isOnboardingPath = path?.startsWith('onboarding/');
-        const isJoinWorkspaceTaskPath = path?.includes('isJoinWorkspaceTask=true') && JOIN_WORKSPACE_TASK_INITIAL_PATHS.some((route) => path.startsWith(route));
-        if (isOnboardingCompleted && isOnboardingPath && !isJoinWorkspaceTaskPath) {
+        const shouldRedirectCompletedUser = !!path && isOnboardingPath(path) && !isJoinWorkspaceTaskPath(path);
+        if (isOnboardingCompleted && shouldRedirectCompletedUser) {
             return getAdaptedStateFromPath(ROUTES.HOME);
         }
 
@@ -194,10 +192,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
         // Default behavior - let React Navigation handle the initial state
         return undefined;
-
-        // The initialState value is relevant only on the first render.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    });
 
     // https://reactnavigation.org/docs/themes
     const navigationTheme = useMemo(() => {
