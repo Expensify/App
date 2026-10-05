@@ -1224,7 +1224,7 @@ function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransiti
                       options?.afterTransition?.();
                       return;
                   }
-                  // The write and Search flush re-render the revealed screen, so they wait until the RHP left the DOM.
+                  // The write and Search flush re-render the revealed screen, so they are deferred past the RHP removal.
                   runAfterClosingScreenUnmount(() => {
                       releasePendingSearchWriteFlush();
                       options?.afterTransition?.();

@@ -350,7 +350,7 @@ function SubmitExpenseOrchestrator({
             return;
         }
 
-        // Search refocuses mid slide. Its write re-renders the whole list, so it waits until the closing RHP left the DOM.
+        // Search refocuses mid slide and its write re-renders the whole list, so the release is deferred until the RHP closed.
         holdPendingSearchWriteFlush();
         Navigation.dismissModal({
             afterTransition: () => {
