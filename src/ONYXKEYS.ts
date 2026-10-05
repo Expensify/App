@@ -482,6 +482,10 @@ const ONYXKEYS = {
 
     IS_LOADING_APP: 'isLoadingApp',
 
+    /** Set when we are switching to a delegator */
+    IS_SWITCHING_TO_DELEGATOR: 'isSwitchingToDelegator',
+
+    /** Is loading policy rules preview? */
     IS_LOADING_POLICY_CODING_RULES_PREVIEW: 'isLoadingPolicyCodingRulesPreview',
 
     /** Is loading agent rule suggestions for the add-rule Suggestions tab? */
@@ -758,7 +762,7 @@ const ONYXKEYS = {
     /** Caches converted footer-total amounts (by transaction and by whole-search query, nested by currency) for the Search footer currency picker */
     SEARCH_FOOTER_CONVERSION: 'searchFooterConversion',
 
-    /** Maps each loaded search snapshot's hash to its original query string, used to fan optimistic IOU updates to every matching snapshot */
+    /** @deprecated Use `search.inputQuery` on the snapshot. Only read by the MoveSearchQueryByHashToSnapshots migration. */
     SEARCH_QUERY_BY_HASH: 'searchQueryByHash',
 
     /** Stores recently used currencies */
@@ -865,6 +869,10 @@ const ONYXKEYS = {
 
     /** List of transaction IDs used when navigating to prev/next transaction when viewing it in RHP */
     TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS: 'transactionThreadNavigationTransactionIDs',
+
+    /** Hash of the search snapshot that holds the transactions referenced by TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS.
+     * Used to fall back to snapshot data when the live transaction collection hasn't loaded those transactions yet (e.g. opening an expense from the Spend page as an approver). */
+    TRANSACTION_THREAD_NAVIGATION_SNAPSHOT_HASH: 'transactionThreadNavigationSnapshotHash',
 
     /** Optional map of transactionID -> sibling descriptor for prev/next navigation in snapshot-backed flows (e.g. Home "Recently added"), where siblings may be absent from the main Onyx collections. When set, navigation resolves (and lazily creates) each sibling's thread on demand from its descriptor. */
     TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS: 'transactionThreadNavigationThreadReportIDs',
@@ -1640,6 +1648,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_HAS_SEEDED_MY_EXPENSES_SEARCH]: boolean;
     [ONYXKEYS.SEARCH_CONTEXT]: OnyxTypes.SearchContext;
     [ONYXKEYS.SEARCH_FOOTER_CONVERSION]: OnyxTypes.SearchFooterConversion;
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- the key stays typed while the migration still reads it
     [ONYXKEYS.SEARCH_QUERY_BY_HASH]: Record<string, string>;
     [ONYXKEYS.RECENTLY_USED_CURRENCIES]: string[];
     [ONYXKEYS.ACTIVE_CLIENTS]: string[];
@@ -1772,6 +1781,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_PENDING_UPDATE_PERSONAL_KARMA]: boolean;
     [ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN]: boolean;
     [ONYXKEYS.IS_LOADING_APP]: boolean;
+    [ONYXKEYS.IS_SWITCHING_TO_DELEGATOR]: boolean;
     [ONYXKEYS.ARE_AGENTS_LOADED]: boolean;
     [ONYXKEYS.AGENT_NEW_AVATAR_DRAFT]: OnyxTypes.AgentNewAvatarDraft;
     [ONYXKEYS.POLICY_ROOMS_METADATA]: Record<string, OnyxTypes.PolicyRoomsMetadata>;
@@ -1910,6 +1920,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY]: OnyxTypes.LastSearchParams;
     [ONYXKEYS.NVP_LAST_ANDROID_LOGIN]: string;
     [ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS]: string[];
+    [ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_SNAPSHOT_HASH]: number;
     [ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS]: Record<string, TransactionThreadNavigationDescriptor>;
     [ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES]: OnyxTypes.ExportTemplate[];
     [ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION]: OnboardingAccounting;
