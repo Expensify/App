@@ -19,6 +19,7 @@ import {
     getMCCForDisplay,
     getOriginalAmountForDisplay,
     getOriginalCurrencyForDisplay,
+    getReimbursable,
     getTag,
     isPerDiemRequest,
     isTimeRequest,
@@ -49,6 +50,12 @@ function MoneyRequestViewAdditionalField({column, transaction, report, policy, p
     let value: string | undefined;
 
     switch (column) {
+        case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
+            value = translate(getReimbursable(transaction) ? 'common.yes' : 'common.no');
+            break;
+        case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
+            value = translate(transaction.billable ? 'common.yes' : 'common.no');
+            break;
         case CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE:
             value = getCategoryGLCode(policyCategories, getCategory(transaction));
             break;

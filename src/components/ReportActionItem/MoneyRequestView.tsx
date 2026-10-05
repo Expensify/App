@@ -1704,6 +1704,9 @@ function MoneyRequestView({
                     )
                 );
             case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
+                if (!shouldShowReimbursable && savedColumns.includes(column)) {
+                    break;
+                }
                 return (
                     shouldShowReimbursable && (
                         <OfflineWithFeedback
@@ -1728,6 +1731,9 @@ function MoneyRequestView({
                     )
                 );
             case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
+                if (!shouldShowBillable && savedColumns.includes(column)) {
+                    break;
+                }
                 return (
                     shouldShowBillable && (
                         <OfflineWithFeedback
@@ -1766,18 +1772,20 @@ function MoneyRequestView({
                     )
                 );
             default:
-                return (
-                    <MoneyRequestViewAdditionalField
-                        column={column}
-                        transaction={transaction}
-                        report={parentReport}
-                        policy={policy}
-                        policyCategories={policyCategories}
-                        policyTagLists={policyTagList}
-                        attendeeCount={transactionAttendees?.length ?? 0}
-                    />
-                );
+                break;
         }
+
+        return (
+            <MoneyRequestViewAdditionalField
+                column={column}
+                transaction={transaction}
+                report={parentReport}
+                policy={policy}
+                policyCategories={policyCategories}
+                policyTagLists={policyTagList}
+                attendeeCount={transactionAttendees?.length ?? 0}
+            />
+        );
     };
 
     return (
