@@ -35,7 +35,7 @@ describe('getSubmittedAnswers', () => {
         expect(answers).toEqual(values);
     });
 
-    it('leaves out list choices the options no longer offer', () => {
+    it('sends list choices as chosen, leaving a choice no longer offered to validation', () => {
         // Given industries whose options depend on the business type, holding a retail choice from before the type changed to services
         const fields: DynamicFormField[] = [
             {key: 'industries', type: 'multiselect', required: true, dependsOn: {key: 'businessType', valuesBy: {RETAIL: [{key: 'CLOTHING'}], SERVICES: [{key: 'CONSULTING'}]}}},
@@ -45,8 +45,8 @@ describe('getSubmittedAnswers', () => {
         // When the answers are collected
         const answers = getSubmittedAnswers(fields, values);
 
-        // Then only the offered choice is sent, as the list inputs only show offered choices
-        expect(answers).toEqual({industries: ['CONSULTING']});
+        // Then both choices are sent as they are, since validation flags the stale one before the form can be submitted
+        expect(answers).toEqual({industries: ['CLOTHING', 'CONSULTING']});
     });
 
     it('drops a field hidden by an answer on another page', () => {

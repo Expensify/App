@@ -20,6 +20,9 @@ type ListFieldAdapterProps = Pick<ComponentProps<typeof ListField>, 'addTitle' |
     onInputChange?: (value: DynamicFormListItem[]) => void;
     errorText?: string;
 
+    /** Titles the modal editor of an entry whose answers give it no name */
+    label: string;
+
     /** The fields of one entry, which name and describe its row */
     itemFields: DynamicFormField[];
 
@@ -34,12 +37,16 @@ type ListFieldAdapterProps = Pick<ComponentProps<typeof ListField>, 'addTitle' |
 };
 
 /** The entries of a list field as rows. Removing one updates FormProvider's value; adding and editing open the flow's editor page, or a modal outside the flow. */
-function ListFieldAdapter({value, onInputChange = () => {}, errorText, itemFields, maxItems, addTitle, addDescription, onAdd, onEdit, renderFields}: ListFieldAdapterProps) {
+function ListFieldAdapter({value, onInputChange = () => {}, errorText, label, itemFields, maxItems, addTitle, addDescription, onAdd, onEdit, renderFields}: ListFieldAdapterProps) {
     const {translate} = useLocalize();
     const [editingID, setEditingID] = useState<string>();
     const items = Array.isArray(value) ? value : [];
     const editingItem = items.find((item) => item.id === editingID);
     const editingTitle = editingItem ? summarizeListItem(editingItem, itemFields, translate).title : '';
+    let modalTitle = addTitle;
+    if (editingItem) {
+        modalTitle = editingTitle === '' ? label : editingTitle;
+    }
     const sensitiveKeys = new Set(itemFields.filter(isSensitiveField).map((field) => field.key));
 
     // Sensitive answers are not drafted, so the modal shows them blank and a blank one keeps the stored answer
@@ -72,7 +79,7 @@ function ListFieldAdapter({value, onInputChange = () => {}, errorText, itemField
             {!onAdd && (
                 <DynamicFormListItemModal
                     isVisible={!!editingID}
-                    title={editingTitle === '' ? addTitle : editingTitle}
+                    title={modalTitle}
                     itemFields={itemFields}
                     keptAnswers={Object.fromEntries(Object.entries(editingItem ?? {}).filter(([key]) => sensitiveKeys.has(key)))}
                     renderFields={renderFields}

@@ -10,7 +10,7 @@ function saveDraftAnswers(formID: OnyxFormKey, answers: DynamicFormValues) {
     Onyx.merge(`${formID}Draft`, answers);
 }
 
-function saveSensitiveAnswers(formID: OnyxFormKey, answers: Record<string, string>) {
+function saveSensitiveAnswers(formID: OnyxFormKey, answers: DynamicFormValues) {
     Onyx.merge(ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS, {[formID]: answers});
 }
 

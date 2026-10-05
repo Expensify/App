@@ -261,16 +261,20 @@ describe('DynamicFormFields', () => {
         expect(rendered.get('industries')).toMatchObject({canSelectMultiple: true, valueType: 'stringList', optionsList: {RETAIL: 'Retail'}});
     });
 
-    it('allows several files by default and names the field above the upload button', () => {
-        // Given a file field with no file limit, alone in the list like the source of funds page
+    it('takes one file unless the schema allows more, and names the field above the upload button', () => {
+        // Given a file field with no file limit, alone in the list like the source of funds page, and one allowing three files
         const proofOfFunds: DynamicFormField = {key: 'proofOfFunds', label: 'Source of funds document', type: 'file', required: true};
+        const idDocument: DynamicFormField = {key: 'idDocument', type: 'file', required: true, maxFiles: 3};
 
-        // When it renders
+        // When each renders
         const rendered = renderFields([proofOfFunds]);
+        const isLabelShown = screen.queryByText('Source of funds document') !== null;
+        const severalFiles = renderFields([idDocument]);
 
-        // Then the upload takes up to the App's attachment limit, and the label stays visible as a heading
-        expect(rendered.get('proofOfFunds')).toMatchObject({valueType: 'files', fileLimit: CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT});
-        expect(screen.getByText('Source of funds document')).toBeOnTheScreen();
+        // Then the first takes a single file and the second up to its limit, and the label stays visible as a heading
+        expect(rendered.get('proofOfFunds')).toMatchObject({valueType: 'files', fileLimit: 1, buttonText: 'common.chooseFile'});
+        expect(severalFiles.get('idDocument')).toMatchObject({fileLimit: 3, buttonText: 'common.chooseFiles'});
+        expect(isLabelShown).toBe(true);
     });
 
     it('prices an amount in the currency the user picked, falling back to the screen currency', () => {
@@ -297,6 +301,19 @@ describe('DynamicFormFields', () => {
         // Then the user sees and can correct every part, each stored under the field key
         expect([...rendered.keys()]).toEqual(['homeAddress', 'homeAddress.city', 'homeAddress.state', 'homeAddress.zipCode', 'homeAddress.country']);
         expect(screen.getByText('Home address')).toBeOnTheScreen();
+    });
+
+    it('opens the numeric keyboard for a text field whose regex takes digits only', () => {
+        // Given a sort code that must be six digits, and a reference that takes letters too
+        const sortCode: DynamicFormField = {key: 'sortCode', type: 'text', required: true, regex: '^\\d{6}$'};
+        const reference: DynamicFormField = {key: 'reference', type: 'text', required: true, regex: '^[A-Z0-9]+$'};
+
+        // When they render
+        const rendered = renderFields([sortCode, reference]);
+
+        // Then only the sort code opens the numeric keyboard, since its regex accepts nothing else
+        expect(rendered.get('sortCode')?.inputMode).toBe(CONST.INPUT_MODE.NUMERIC);
+        expect(rendered.get('reference')?.inputMode).toBeUndefined();
     });
 
     it('opens the phone keyboard for a phone field', () => {

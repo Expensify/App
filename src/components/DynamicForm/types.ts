@@ -32,11 +32,11 @@ type DynamicFormFlowProps = Pick<DynamicFormFieldsProps, 'currency' | 'onRefresh
 
     shouldReplaceRoute?: UseSubPageProps<SubPageProps>['shouldReplaceRoute'];
 
-    /** Receives the answers to every visible field, sensitive ones included. Call clearSensitiveAnswers once the submission succeeds. */
+    /** Receives the answers to every visible field, sensitive ones included. The flow drops sensitive answers once `isSubmitting` turns false without `submitError`, or right away when `isSubmitting` is not passed. */
     onSubmit: (answers: DynamicFormValues) => void;
 
-    /** Receives a page's visible answers when the user leaves it with Next, for flows that save each page */
-    onGroupSubmit?: (group: DynamicFormGroup, answers: DynamicFormValues) => void;
+    /** Receives a page and the values its form submitted when the user leaves it with Next, for flows that save each page */
+    onPageSubmit?: (page: DynamicFormGroup, values: DynamicFormValues) => void;
 
     /** Leaves the flow from its first page */
     onBack: () => void;
@@ -61,7 +61,7 @@ type DynamicFormSubPageProps = SubPageProps &
         /** Draft answers merged with the sensitive answers kept in memory */
         values: DynamicFormValues;
 
-        onGroupSubmit: NonNullable<DynamicFormFlowProps['onGroupSubmit']>;
+        onGroupSubmit: NonNullable<DynamicFormFlowProps['onPageSubmit']>;
 
         onOpenListItemEditor: NonNullable<DynamicFormFieldsProps['onOpenListItemEditor']>;
 

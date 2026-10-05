@@ -14,7 +14,7 @@ import type {DynamicFormListField, DynamicFormListItem} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {Str} from 'expensify-common';
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 
 import type {DynamicFormFlowProps, DynamicFormSubPageProps, DynamicFormValues} from './types';
 import type {DynamicFormGroup} from './utils/groupFieldsIntoPages';
@@ -24,7 +24,7 @@ import DynamicFormFields from './components/DynamicFormFields';
 import DynamicFormGroupPage from './components/DynamicFormGroupPage';
 import DynamicFormListItemPage from './components/DynamicFormListItemPage';
 import DynamicFormShell from './components/DynamicFormShell';
-import getDynamicFieldErrors, {isAnswered} from './utils/getDynamicFieldErrors';
+import getDynamicFieldErrors from './utils/getDynamicFieldErrors';
 import getSubmittedAnswers from './utils/getSubmittedAnswers';
 import getVisibleFields from './utils/getVisibleFields';
 import groupFieldsIntoPages, {CONFIRMATION_PAGE_SLUG, getGroupTitle} from './utils/groupFieldsIntoPages';
@@ -34,6 +34,11 @@ import {getListItemPageName, getListItems, getListItemSensitiveKey, getRemovedLi
 import toDynamicFormValues from './utils/toDynamicFormValues';
 
 const CONFIRMATION_MIN_PAGES = 5;
+
+/** An answer the user gave, including `false`, which counts as progress when deciding where a visit resumes */
+function hasDraftAnswer(answer: DynamicFormValues[string]): boolean {
+    return answer !== undefined && answer !== '' && !(Array.isArray(answer) && answer.length === 0);
+}
 
 /** Flows shorter than this read as one form, so `auto` gives them no step indicator */
 const STEP_INDICATOR_MIN_PAGES = 3;
@@ -48,7 +53,7 @@ function DynamicFormFlow({
     buildRoute,
     shouldReplaceRoute,
     onSubmit,
-    onGroupSubmit,
+    onPageSubmit,
     onBack,
     currency,
     onRefreshRequirements,
@@ -69,8 +74,10 @@ function DynamicFormFlow({
     const listFields = fields.filter((field): field is DynamicFormListField => field.type === 'list');
     const shownGroups = groups.filter((group) => getVisibleFields(group.fields, values, fields).length > 0);
 
-    // A form with nothing to ask still needs a page to submit from
-    const hasConfirmationPage = (hasConfirmation ?? groups.length > CONFIRMATION_MIN_PAGES) || shownGroups.length === 0;
+    const hasPageToShow = shownGroups.length > 0;
+
+    // useSubPage needs at least one page, so a form without groups gets the confirmation page
+    const hasConfirmationPage = groups.length === 0 || (hasConfirmation ?? groups.length > CONFIRMATION_MIN_PAGES);
 
     // Entry editors come after the confirmation page and are skipped by Next and Back, so only an entry's Add, Edit or row opens them
     const listItemPageNames = listFields.flatMap((field) => [getListItemPageName(field.key), ...getListItems(values[field.key]).map((item) => getListItemPageName(field.key, item.id))]);
@@ -79,7 +86,9 @@ function DynamicFormFlow({
         ...(hasConfirmationPage ? [{pageName: CONFIRMATION_PAGE_SLUG, component: DynamicFormConfirmationPage}] : []),
         ...listItemPageNames.map((pageName) => ({pageName, component: DynamicFormListItemPage})),
     ];
-    const skipPages = [...groups.filter((group) => !shownGroups.includes(group)).map((group) => group.slug), ...listItemPageNames];
+    // While nothing is shown no group is skipped, since useSubPage needs a page that is not skipped
+    const skippedGroups = hasPageToShow ? groups.filter((group) => !shownGroups.includes(group)) : [];
+    const skipPages = [...skippedGroups.map((group) => group.slug), ...listItemPageNames];
     const firstShownPageIndex = pages.findIndex((page) => !skipPages.includes(page.pageName));
     const lastShownPageIndex = findLastPageIndex<DynamicFormSubPageProps>(pages, skipPages);
     const getFirstIncompleteGroupIndex = (answers: DynamicFormValues) => groups.findIndex((group) => Object.keys(getDynamicFieldErrors(group.fields, answers, translate, fields)).length > 0);
@@ -88,7 +97,7 @@ function DynamicFormFlow({
     let startFrom = firstShownPageIndex;
     if (isDraftLoading) {
         startFrom = -1;
-    } else if (Object.values(draftValues).some((value) => isAnswered(value))) {
+    } else if (fields.some((field) => hasDraftAnswer(draftValues[field.key]))) {
         const firstIncompleteIndex = getFirstIncompleteGroupIndex(draftValues);
         startFrom = firstIncompleteIndex === -1 ? lastShownPageIndex : firstIncompleteIndex;
     }
@@ -111,7 +120,11 @@ function DynamicFormFlow({
             resetToPage(incompleteGroup.slug);
             return;
         }
-        onSubmit(getSubmittedAnswers(fields, answers));
+        const submittedAnswers = getSubmittedAnswers(fields, answers);
+        if (isSubmitting === undefined) {
+            clearSensitiveAnswers(formID);
+        }
+        onSubmit(submittedAnswers);
     }
 
     const listItemPage = parseListItemPageName(currentPageName);
@@ -126,13 +139,31 @@ function DynamicFormFlow({
         clearSensitiveAnswers(formID);
     }, [isRedirecting, formID]);
 
-    // A stale link, or a page the answers now skip, opens where a new visit would start
+    // A submission that finishes without an error drops the sensitive answers
+    const wasSubmittingRef = useRef(false);
     useEffect(() => {
-        if (!isOnUnavailablePage) {
+        if (isSubmitting) {
+            wasSubmittingRef.current = true;
             return;
         }
-        resetToPage(pages.at(startFrom)?.pageName);
-    }, [isOnUnavailablePage, resetToPage, pages, startFrom]);
+        if (!wasSubmittingRef.current || submitError) {
+            return;
+        }
+        wasSubmittingRef.current = false;
+        clearSensitiveAnswers(formID);
+    }, [isSubmitting, submitError, formID]);
+
+    // A page the answers now skip moves on to the next shown page, or back to the previous one. A stale link opens where a new visit would start.
+    const pageNames = pages.map((page) => page.pageName);
+    const nextShownPageName = pageNames.find((pageName, index) => index > pageIndex && !skipPages.includes(pageName));
+    const previousShownPageName = pageNames.findLast((pageName, index) => index < pageIndex && !skipPages.includes(pageName));
+    const unavailablePageTarget = isOnSkippedGroupPage ? (nextShownPageName ?? previousShownPageName) : pages.at(startFrom)?.pageName;
+    useEffect(() => {
+        if (!isOnUnavailablePage || !unavailablePageTarget) {
+            return;
+        }
+        resetToPage(unavailablePageTarget);
+    }, [isOnUnavailablePage, resetToPage, unavailablePageTarget]);
 
     /** Typed answers are drafted as FormProvider cleaned them and inputs left untouched are drafted with their defaults, so the draft matches what the page validated. Lists are drafted as they change, and their submitted entries carry sensitive answers, so they are left out. */
     const handleGroupSubmit = (group: DynamicFormGroup, pageValues: DynamicFormValues) => {
@@ -141,9 +172,9 @@ function DynamicFormFlow({
         const sensitiveKeys = new Set(group.fields.filter(isSensitiveField).map((field) => field.key));
         const listKeys = new Set(listFields.map((field) => field.key));
         const draftAnswers: DynamicFormValues = {};
-        const sensitiveAnswers: Record<string, string> = {};
+        const sensitiveAnswers: DynamicFormValues = {};
         for (const [key, answer] of Object.entries(answers)) {
-            if (sensitiveKeys.has(key) && typeof answer === 'string') {
+            if (sensitiveKeys.has(key)) {
                 sensitiveAnswers[key] = answer;
             } else if (!listKeys.has(key)) {
                 draftAnswers[key] = answer;
@@ -157,7 +188,7 @@ function DynamicFormFlow({
         if (removedSensitiveKeys.length > 0) {
             forgetSensitiveAnswers(formID, removedSensitiveKeys);
         }
-        onGroupSubmit?.(group, answers);
+        onPageSubmit?.(group, pageValues);
     };
 
     const returnTo = (pageName: string) => {
@@ -189,9 +220,9 @@ function DynamicFormFlow({
         const id = itemID ?? Str.guid();
         const sensitiveKeys = new Set(listField.itemFields.filter(isSensitiveField).map((field) => field.key));
         const item: DynamicFormListItem = {id};
-        const sensitiveAnswers: Record<string, string> = {};
+        const sensitiveAnswers: DynamicFormValues = {};
         for (const [key, answer] of Object.entries(getSubmittedAnswers(listField.itemFields, itemValues))) {
-            if (sensitiveKeys.has(key) && typeof answer === 'string') {
+            if (sensitiveKeys.has(key)) {
                 sensitiveAnswers[getListItemSensitiveKey(listKey, id, key)] = answer;
             } else {
                 item[key] = answer;
@@ -237,7 +268,7 @@ function DynamicFormFlow({
             stepIndex={stepIndex}
             shouldShowStepIndicator={isStepIndicatorAsked && stepNames.length > 1}
         >
-            {isDraftLoading || isRedirecting || isOnUnavailablePage ? (
+            {isDraftLoading || isRedirecting || isOnUnavailablePage || !hasPageToShow ? (
                 <FullscreenLoadingIndicator />
             ) : (
                 <CurrentPage

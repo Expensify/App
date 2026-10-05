@@ -18,10 +18,6 @@ function formatAddress(fieldKey: string, values: DynamicFormValues): string {
     return [getPart(addressKeys.street), getPart(addressKeys.street2), getPart(addressKeys.city), stateAndZip].filter(Boolean).join(', ');
 }
 
-function getFileNames(files: unknown[]): string[] {
-    return files.flatMap((file) => (typeof file === 'object' && file !== null && 'name' in file && typeof file.name === 'string' ? [file.name] : []));
-}
-
 /** An answer as the user reads it, for rows that show a value instead of an input */
 function formatDynamicFieldValue(field: DynamicFormField, values: DynamicFormValues, translate: LocalizedTranslate): string {
     const answer = values[field.key];
@@ -31,7 +27,7 @@ function formatDynamicFieldValue(field: DynamicFormField, values: DynamicFormVal
     if (Array.isArray(answer)) {
         const items: unknown[] = answer;
         if (field.type === 'file') {
-            return getFileNames(items).join(', ');
+            return String(items.length);
         }
         if (field.type !== 'multiselect' && field.type !== 'countryMultiselect') {
             return '';

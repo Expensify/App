@@ -46,6 +46,7 @@ function renderAdapter(value: DynamicFormListItem[], onInputChange: (items: Dyna
             onInputChange={onInputChange}
             itemFields={isInFlow ? itemFields : [...itemFields, {key: 'ssn', type: 'text', required: false, sensitive: true}]}
             maxItems={maxItems}
+            label="Directors"
             addTitle="Add director"
             onAdd={isInFlow ? jest.fn() : undefined}
             onEdit={isInFlow ? jest.fn() : undefined}

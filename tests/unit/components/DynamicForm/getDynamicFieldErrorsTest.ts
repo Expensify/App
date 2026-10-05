@@ -210,7 +210,23 @@ describe('getDynamicFieldErrors', () => {
         });
     });
 
-    it('treats a multiselect as unanswered when it holds no option still offered', () => {
+    it('accepts a percent from 1 to 100', () => {
+        // Given an ownership percentage
+        const ownership: DynamicFormField = {key: 'ownership', type: 'percent', required: true};
+
+        // When it is 0, 50 and 101
+        const zeroErrors = getDynamicFieldErrors([ownership], {ownership: '0'}, translateLocal);
+        const validErrors = getDynamicFieldErrors([ownership], {ownership: '50'}, translateLocal);
+        const tooHighErrors = getDynamicFieldErrors([ownership], {ownership: '101'}, translateLocal);
+
+        // Then only 50 passes, since an owner with no share or more than the whole company is a typo
+        const outOfRange = translateLocal('dynamicForm.error.outOfRange', {min: 1, max: 100});
+        expect(zeroErrors).toEqual({ownership: outOfRange});
+        expect(validErrors).toEqual({});
+        expect(tooHighErrors).toEqual({ownership: outOfRange});
+    });
+
+    it('flags a multiselect choice the options no longer offer', () => {
         // Given a required multiselect whose options depend on the business type
         const industries: DynamicFormField = {
             key: 'industries',
@@ -219,15 +235,15 @@ describe('getDynamicFieldErrors', () => {
             dependsOn: {key: 'businessType', valuesBy: {RETAIL: [{key: 'CLOTHING'}], SERVICES: [{key: 'CONSULTING'}]}},
         };
 
-        // When it is left empty, when it keeps only a retail choice after the business type changed to services, and when it also has a services choice
+        // When it is left empty, when it keeps a retail choice after the business type changed to services, and when it holds only a services choice
         const emptyErrors = getDynamicFieldErrors([industries], {businessType: 'RETAIL', industries: []}, translateLocal);
-        const staleErrors = getDynamicFieldErrors([industries], {businessType: 'SERVICES', industries: ['CLOTHING']}, translateLocal);
-        const mixedErrors = getDynamicFieldErrors([industries], {businessType: 'SERVICES', industries: ['CLOTHING', 'CONSULTING']}, translateLocal);
+        const staleErrors = getDynamicFieldErrors([industries], {businessType: 'SERVICES', industries: ['CLOTHING', 'CONSULTING']}, translateLocal);
+        const validErrors = getDynamicFieldErrors([industries], {businessType: 'SERVICES', industries: ['CONSULTING']}, translateLocal);
 
-        // Then the list inputs show no stale choice the user could clear, so a list of only stale choices is flagged as required, like an empty one
+        // Then an empty list is required, a stale choice asks the user to pick from the available options, and a valid list passes
         expect(emptyErrors).toEqual({industries: translateLocal('common.error.fieldRequired')});
-        expect(staleErrors).toEqual({industries: translateLocal('common.error.fieldRequired')});
-        expect(mixedErrors).toEqual({});
+        expect(staleErrors).toEqual({industries: translateLocal('dynamicForm.error.invalidOption')});
+        expect(validErrors).toEqual({});
     });
 
     it('flags each missing part of a required address on its own input', () => {

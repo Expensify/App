@@ -50,12 +50,10 @@ function InlineSelectionListAdapter(props: InlineSelectionListAdapterProps) {
     const {items, errorText = '', isSearchable = false, searchInputLabel} = props;
     const styles = useThemeStyles();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const isOffered = (key: string) => items.some((item) => item.value === key);
 
     let selectedKeys: string[] = [];
     if (props.canSelectMultiple) {
-        // A key the options no longer offer could not be unchecked, so it is dropped
-        selectedKeys = Array.isArray(props.value) ? props.value.filter(isOffered) : [];
+        selectedKeys = Array.isArray(props.value) ? props.value : [];
     } else if (props.value) {
         selectedKeys = [props.value];
     }

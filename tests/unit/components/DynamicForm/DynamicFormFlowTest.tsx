@@ -73,6 +73,7 @@ type RenderFlowOptions = {
     isRedirecting?: boolean;
     hasConfirmation?: boolean;
     layout?: DynamicFormLayout;
+    isSubmitting?: boolean;
 };
 
 async function renderFlow({
@@ -84,6 +85,7 @@ async function renderFlow({
     isRedirecting = false,
     hasConfirmation,
     layout,
+    isSubmitting,
 }: RenderFlowOptions = {}) {
     await Onyx.set(`${FORM_ID}Draft`, draft);
     await Onyx.set(ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS, {[FORM_ID]: sensitiveAnswers});
@@ -101,8 +103,8 @@ async function renderFlow({
     });
     const onSubmit = jest.fn();
     const onBack = jest.fn();
-    const onGroupSubmit = jest.fn();
-    render(
+    const onPageSubmit = jest.fn();
+    const renderWith = (submitting?: boolean) => (
         <DynamicFormFlow
             fields={flowFields}
             formID={FORM_ID}
@@ -112,18 +114,24 @@ async function renderFlow({
             buildRoute={buildRoute}
             onSubmit={onSubmit}
             onBack={onBack}
-            onGroupSubmit={onGroupSubmit}
+            onPageSubmit={onPageSubmit}
             hasConfirmation={hasConfirmation}
             layout={layout}
-        />,
+            isSubmitting={submitting}
+        />
     );
+    const {rerender} = render(renderWith(isSubmitting));
+    const setSubmitting = async (submitting?: boolean) => {
+        rerender(renderWith(submitting));
+        await waitForBatchedUpdatesWithAct();
+    };
     await waitForBatchedUpdatesWithAct();
     const subPageOptions = jest.mocked(useSubPage<DynamicFormSubPageProps>).mock.lastCall?.[0];
     if (!subPageOptions) {
         throw new Error('useSubPage was not called');
     }
     const pageProps = mockCurrentPage.mock.lastCall?.[0];
-    return {subPageOptions, onSubmit, onBack, onGroupSubmit, pageProps: hasDynamicFormProps(pageProps) ? pageProps : undefined};
+    return {subPageOptions, setSubmitting, onSubmit, onBack, onPageSubmit, pageProps: hasDynamicFormProps(pageProps) ? pageProps : undefined};
 }
 
 describe('DynamicFormFlow', () => {
@@ -242,18 +250,18 @@ describe('DynamicFormFlow', () => {
         expect(subPageOptions.startFrom).toBe(0);
     });
 
-    it('moves a URL naming a skipped page to where a new visit starts', async () => {
-        // Given a private recipient, so the company page has nothing to ask
+    it('moves a URL naming a skipped page on to the next shown page', async () => {
+        // Given a private recipient, so the company page has nothing to ask, and a confirmation page after it
         // When the URL names the company page
-        await renderFlow({draft: {legalType: 'PRIVATE'}, currentPageName: 'company'});
+        await renderFlow({draft: {legalType: 'PRIVATE'}, currentPageName: 'company', pageIndex: 2, hasConfirmation: true});
 
-        // Then the flow moves to the first page instead of showing an empty one
-        expect(mockResetToPage).toHaveBeenCalledWith('personal-details');
+        // Then the flow moves on to the confirmation page instead of showing an empty one
+        expect(mockResetToPage).toHaveBeenCalledWith('confirm');
     });
 
-    it('drafts the page answers, keeps sensitive ones in memory, and hands the screen only this page', async () => {
+    it('drafts the page answers, keeps sensitive ones in memory, and hands the screen the page values', async () => {
         // Given the first page
-        const {pageProps, onGroupSubmit} = await renderFlow();
+        const {pageProps, onPageSubmit} = await renderFlow();
         const group = pageProps?.groups.at(0);
         if (!pageProps || !group) {
             throw new Error('No first page');
@@ -262,10 +270,10 @@ describe('DynamicFormFlow', () => {
         // When the user leaves it with Next, with FormProvider's values also holding another page's answer
         pageProps.onGroupSubmit(group, {firstName: 'Jane', ssn: '123456789', legalType: 'PRIVATE'});
 
-        // Then the name is drafted as submitted, the SSN goes to memory only, and the screen gets this page's answers alone
+        // Then only this page's name is drafted, the SSN goes to memory only, and the screen gets the values the page's form submitted
         expect(saveDraftAnswers).toHaveBeenCalledWith(FORM_ID, {firstName: 'Jane'});
         expect(saveSensitiveAnswers).toHaveBeenCalledWith(FORM_ID, {ssn: '123456789'});
-        expect(onGroupSubmit).toHaveBeenCalledWith(group, {firstName: 'Jane', ssn: '123456789'});
+        expect(onPageSubmit).toHaveBeenCalledWith(group, {firstName: 'Jane', ssn: '123456789', legalType: 'PRIVATE'});
     });
 
     it('submits the visible answers, sensitive ones included, from the confirmation page', async () => {
@@ -277,6 +285,40 @@ describe('DynamicFormFlow', () => {
 
         // Then the answers include the SSN from memory and leave out the hidden company number
         expect(onSubmit).toHaveBeenCalledWith({firstName: 'Jane', legalType: 'PRIVATE', ssn: '123456789'});
+    });
+
+    it('drops sensitive answers once they are submitted', async () => {
+        // Given a complete form with an SSN in memory, once submitted by a screen that reports no progress and once by one that does
+        const draft = {firstName: 'Jane', legalType: 'PRIVATE'};
+        const sensitiveAnswers = {ssn: '123456789'};
+        const untracked = await renderFlow({draft, sensitiveAnswers});
+
+        // When the user confirms on each
+        untracked.subPageOptions.onFinished();
+        const clearedWithoutTracking = jest.mocked(clearSensitiveAnswers).mock.calls.length;
+        jest.mocked(clearSensitiveAnswers).mockClear();
+        const tracked = await renderFlow({draft, sensitiveAnswers, isSubmitting: false});
+        tracked.subPageOptions.onFinished();
+        const clearedBeforeTheRequestEnds = jest.mocked(clearSensitiveAnswers).mock.calls.length;
+        await tracked.setSubmitting(true);
+        await tracked.setSubmitting(false);
+
+        // Then the first drops the SSN right away, and the second only once its request ends without an error, so a retry still has it
+        expect(clearedWithoutTracking).toBe(1);
+        expect(clearedBeforeTheRequestEnds).toBe(0);
+        expect(clearSensitiveAnswers).toHaveBeenCalledWith(FORM_ID);
+    });
+
+    it('shows no page and submits nothing while every field is hidden', async () => {
+        // Given a form whose only field is shown for business recipients, and a private recipient
+        const flowFields: DynamicFormField[] = [{key: 'companyNumber', type: 'text', required: true, group: 'Company', showWhen: {key: 'legalType', equals: ['BUSINESS']}}];
+
+        // When the flow renders
+        const {subPageOptions} = await renderFlow({flowFields, draft: {legalType: 'PRIVATE'}, currentPageName: 'company'});
+
+        // Then no page is drawn and the hidden page is not skipped, since useSubPage needs a page to stay on
+        expect(mockCurrentPage).not.toHaveBeenCalled();
+        expect(subPageOptions.skipPages).toEqual([]);
     });
 
     it('sends the user to the incomplete page instead of submitting', async () => {

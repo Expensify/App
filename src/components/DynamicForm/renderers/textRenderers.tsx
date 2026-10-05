@@ -20,6 +20,19 @@ import {View} from 'react-native';
 
 import type {DynamicFieldContext, DynamicFieldInput, DynamicFieldInputProps, DynamicFieldRendererMap} from './types';
 
+/** A regex of digits only, such as `^\d{6}$`, asks for a number, so it gets the numeric keyboard */
+const DIGITS_ONLY_REGEX = /^\^?(?:\\d|\[0-9\])(?:\{\d+(?:,\d*)?\}|[+*])?\$?$/;
+
+function getTextInputMode(field: DynamicFormTextField): InputModeOptions | undefined {
+    if (field.keyboard) {
+        return field.keyboard;
+    }
+    if (field.rule === 'phone') {
+        return CONST.INPUT_MODE.TEL;
+    }
+    return field.regex && DIGITS_ONLY_REGEX.test(field.regex) ? CONST.INPUT_MODE.NUMERIC : undefined;
+}
+
 function getTextHint(field: DynamicFormTextField | DynamicFormNumberField, translate: LocalizedTranslate): string | undefined {
     const description = getLocalizedText(translate, field.descriptionKey, field.description);
     if (description || !field.example) {
@@ -63,7 +76,7 @@ function renderTextInput(
 
 /** Fields the user types or picks a single value for */
 const TEXT_RENDERERS: Pick<DynamicFieldRendererMap, 'text' | 'number' | 'date' | 'amount' | 'percent'> = {
-    text: (field, context, inputProps) => renderTextInput(field, context, inputProps, field.keyboard ?? (field.rule === 'phone' ? CONST.INPUT_MODE.TEL : undefined), field.multiline),
+    text: (field, context, inputProps) => renderTextInput(field, context, inputProps, getTextInputMode(field), field.multiline),
     number: (field, context, inputProps) => renderTextInput(field, context, inputProps, CONST.INPUT_MODE.NUMERIC),
     date: (field, {translate}, inputProps) => ({
         isMenuRow: false,

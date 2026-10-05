@@ -1,8 +1,8 @@
-import type {DynamicFormField, DynamicFormNumberField, DynamicFormTextField} from '@src/types/onyx';
+import type {DynamicFormField} from '@src/types/onyx';
 
-/** A sensitive answer stays out of the form draft, so only typed answers, which the flow keeps in memory instead, can be sensitive */
-function isSensitiveField(field: DynamicFormField): field is DynamicFormTextField | DynamicFormNumberField {
-    return (field.type === 'text' || field.type === 'number') && !!field.sensitive;
+/** A sensitive answer stays out of the form draft, and the flow keeps it in memory instead */
+function isSensitiveField(field: DynamicFormField): boolean {
+    return !!field.sensitive;
 }
 
 export default isSensitiveField;

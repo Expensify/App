@@ -31,7 +31,7 @@ import DynamicFormFlow from "@components/DynamicForm";
 - `hasConfirmation` decides whether a confirmation page follows the last page. By default only a form with more than five pages gets one; on the others the last page's Confirm button submits.
 - `layout` decides the step indicator: `auto` shows it at three or more shown pages, `stepper` always, `pages` never.
 - Answers are saved to the form draft as the user types, and again, cleaned, when they leave a page with Next.
-- `onGroupSubmit` receives each page's visible answers, for flows that save page by page.
+- `onPageSubmit` receives each page and the values its form submitted, for flows that save page by page.
 - `onSubmit` receives the answers to every visible field. Answers left on fields that were hidden later are not sent.
 - `onRefreshRequirements` is called when a field marked `refreshOnChange` changes, so the screen can fetch the schema again. Typed fields call it when the user leaves the input, not on every keystroke.
 
@@ -60,20 +60,20 @@ Pass `inputValues` from the render prop, so `showWhen` and `dependsOn` react to 
 
 | Type                 | Input                                                                                                                                   | Type-specific properties                                                                                           |
 | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `text`               | `TextInput`                                                                                                                             | `regex`, `minLength`, `maxLength`, `example`, `keyboard`, `multiline`, `rule: 'legalName' \| 'phone'`, `sensitive` |
-| `number`             | `TextInput` with the numeric keyboard                                                                                                   | `regex`, `minLength`, `maxLength`, `example`, `sensitive`                                                          |
-| `select`             | `ValuePicker`, or `PushRowWithModal` above `CONST.STANDARD_LIST_ITEM_LIMIT` options                                                     | `values`, `dependsOn`, `presentation: 'tabs'`                                                                      |
+| `text`               | `TextInput`                                                                                                                             | `regex`, `minLength`, `maxLength`, `example`, `keyboard`, `multiline`, `rule: 'legalName' \| 'phone'`              |
+| `number`             | `TextInput` with the numeric keyboard                                                                                                   | `regex`, `minLength`, `maxLength`, `example`                                                                       |
+| `select`             | `ValuePicker`, or `PushRowWithModal` above 8 options                                                                                    | `values`, `dependsOn`, `presentation: 'tabs'`                                                                      |
 | `radio`              | `RadioButtons`                                                                                                                          | `values`, `dependsOn`, `presentation: 'tabs'`                                                                      |
 | `multiselect`        | `PushRowWithModal` with checkboxes and a Save button                                                                                    | `values`, `dependsOn`                                                                                              |
 | `date`               | `DatePicker`                                                                                                                            | `rule: 'dateOfBirth'`                                                                                              |
-| `boolean`            | `CheckboxWithLabel`, which must be ticked when required. Alone on its page, Yes and No radio buttons, where No is an answer.            | `presentation: 'yesNo'`                                                                                            |
+| `boolean`            | `CheckboxWithLabel`, which must be ticked when required. Alone on its page, Yes and No radio buttons, where No is an answer.            |                                                                                                                    |
 | `country`            | `CountryPicker`                                                                                                                         |                                                                                                                    |
 | `countryMultiselect` | `PushRowWithModal` with every country                                                                                                   |                                                                                                                    |
 | `currency`           | `CurrencyPicker`                                                                                                                        |                                                                                                                    |
 | `address`            | The standard address form. The street is the field's value; the other parts are stored under `<key>.city`, `<key>.zipCode` and so on.   | `rule: 'zipCode'`                                                                                                  |
-| `file`               | `UploadFile`, allowing several files unless `maxFiles` says otherwise                                                                   | `maxFiles`                                                                                                         |
+| `file`               | `UploadFile`, taking one file unless `maxFiles` allows more                                                                             | `maxFiles`                                                                                                         |
 | `amount`             | `AmountForm`. With `currencyKey`, a `CurrencyPicker` above it saves the currency under that key.                                        | `currencyKey`                                                                                                      |
-| `percent`            | `PercentageForm`                                                                                                                        |                                                                                                                    |
+| `percent`            | `PercentageForm`, from 1 to 100                                                                                                         |                                                                                                                    |
 | `list`               | Rows with Add, Edit and Remove. Each entry is edited on its own page in the flow, or in a modal outside it.                             | `itemFields`, `itemLabel`, `addItemDescription`, `minItems`, `maxItems`                                            |
 
 Every type also takes:
@@ -81,6 +81,7 @@ Every type also takes:
 - `label` or `labelKey`, and the same pair for `description`, `section` and `group`. A `*Key` is our translation and wins over the server's wording.
 - `required`
 - `readonly`: shown as a row with its value, never edited or validated
+- `sensitive`: kept out of the form draft, see below
 - `group`: the page the field is asked on in `DynamicFormFlow`
 - `section`: consecutive fields sharing it render under one title
 - `showWhen`: shown only while another answer is one of the listed values. A list answer counts when any chosen value matches. A field whose controlling field is hidden stays hidden.
@@ -92,10 +93,10 @@ The server can send a type this App version does not know. The schema is typed `
 
 ## Sensitive answers
 
-`sensitive` text and number answers, such as SSNs, never reach the form draft. `DynamicFormFlow` keeps them in memory, in the RAM-only `ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS`, for one visit:
+`sensitive` answers, such as SSNs, never reach the form draft. `DynamicFormFlow` keeps them in memory, in the RAM-only `ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS`, for one visit:
 
 - They are cleared when a new visit opens without a page in the route, and when the user leaves from the first page.
-- Call `clearSensitiveAnswers(formID)` once the submission succeeds.
+- They are cleared once `isSubmitting` turns false without `submitError`, or right after `onSubmit` when the screen passes no `isSubmitting`.
 - The confirmation page shows them in full, so the user can check them, and masks them from session recording.
 
 ## List fields

@@ -17,11 +17,9 @@ import {
 import type {
     DynamicFormAddressField,
     DynamicFormChoiceField,
-    DynamicFormCountryField,
     DynamicFormField,
     DynamicFormFieldType,
     DynamicFormListField,
-    DynamicFormMultiChoiceField,
     DynamicFormNumberField,
     DynamicFormSchemaField,
     DynamicFormTextField,
@@ -67,12 +65,6 @@ function getStringListAnswer(field: DynamicFormField, values: DynamicFormValues)
     return items.filter((item): item is string => typeof item === 'string');
 }
 
-/** The chosen keys the field still offers. Options change with the answer they depend on, and a key no longer offered is dropped. */
-function getOfferedChoices(field: DynamicFormMultiChoiceField | DynamicFormCountryField, values: DynamicFormValues): string[] {
-    const offeredKeys = new Set(getFieldOptions(field, values).map((option) => option.key));
-    return getStringListAnswer(field, values).filter((key) => offeredKeys.has(key));
-}
-
 function matchesRegex(value: string, pattern: string, fieldKey: string): boolean {
     try {
         return new RegExp(pattern).test(value);
@@ -103,9 +95,10 @@ function getChoiceErrors(field: DynamicFormChoiceField, values: DynamicFormValue
     return isOffered ? [] : [translate('dynamicForm.error.invalidOption')];
 }
 
-/** The list inputs only show offered options, so a list holding nothing but keys no longer offered reads as empty */
+/** Options change with the answer they depend on, so a chosen key can stop being offered */
 function getMultiChoiceErrors(field: DynamicFormFieldOfType<'multiselect' | 'countryMultiselect'>, values: DynamicFormValues, translate: LocalizedTranslate): string[] {
-    return field.required && getOfferedChoices(field, values).length === 0 ? [translate('common.error.fieldRequired')] : [];
+    const offeredKeys = new Set(getFieldOptions(field, values).map((option) => option.key));
+    return getStringListAnswer(field, values).every((key) => offeredKeys.has(key)) ? [] : [translate('dynamicForm.error.invalidOption')];
 }
 
 /** The list shows one error, so the first entry with a problem names it. Sensitive answers live outside the entries, so only drafted answers are checked. */
@@ -126,8 +119,11 @@ function getListErrors(field: DynamicFormListField, values: DynamicFormValues, t
     return messages;
 }
 
-/** For inputs that only accept valid answers: UploadFile checks type, size and count, AmountForm and PercentageForm reject invalid typing */
+/** For inputs that only accept valid answers: UploadFile checks type and count, AmountForm rejects invalid typing */
 const noChecks = () => [];
+
+const PERCENT_MIN = 1;
+const PERCENT_MAX = 100;
 
 const VALIDATORS: {[TType in DynamicFormFieldType]: FieldValidator<TType>} = {
     text: (field, values, translate) => {
@@ -172,7 +168,10 @@ const VALIDATORS: {[TType in DynamicFormFieldType]: FieldValidator<TType>} = {
     currency: noChecks,
     file: noChecks,
     amount: noChecks,
-    percent: noChecks,
+    percent: (field, values, translate) => {
+        const percent = Number(getStringAnswer(field, values));
+        return Number.isFinite(percent) && percent >= PERCENT_MIN && percent <= PERCENT_MAX ? [] : [translate('dynamicForm.error.outOfRange', {min: PERCENT_MIN, max: PERCENT_MAX})];
+    },
     list: getListErrors,
 };
 
@@ -238,4 +237,4 @@ function getDynamicFieldErrors(
 }
 
 export default getDynamicFieldErrors;
-export {getOfferedChoices, isAnswered};
+export {isAnswered};

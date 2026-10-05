@@ -38,6 +38,9 @@ type DynamicFormFieldBase = {
 
     required: boolean;
 
+    /** Never written to the form draft, for SSNs and account numbers */
+    sensitive?: boolean;
+
     /** Shown as a plain row with its prefilled value, never edited or validated */
     readonly?: boolean;
 
@@ -67,13 +70,10 @@ type DynamicFormTextField = DynamicFormFieldBase & {
     multiline?: boolean;
 
     rule?: 'legalName' | 'phone';
-
-    /** Never written to the form draft, for SSNs and account numbers */
-    sensitive?: boolean;
 };
 
 /** Text that must parse as a finite number, typed on the numeric keyboard */
-type DynamicFormNumberField = DynamicFormFieldBase & Pick<DynamicFormTextField, 'regex' | 'minLength' | 'maxLength' | 'example' | 'sensitive'> & {type: 'number'};
+type DynamicFormNumberField = DynamicFormFieldBase & Pick<DynamicFormTextField, 'regex' | 'minLength' | 'maxLength' | 'example'> & {type: 'number'};
 
 /** One answer out of a list of options */
 type DynamicFormChoiceField = DynamicFormFieldBase & {
@@ -180,7 +180,7 @@ type DynamicFormListItem = {
 type DynamicFormSchemaField = DynamicFormField | (DynamicFormFieldBase & {type: string});
 
 /** Answers to sensitive fields, keyed by form ID, then by field key. Kept in memory only, never in a draft. */
-type DynamicFormSensitiveAnswers = Partial<Record<OnyxFormKey, Record<string, string>>>;
+type DynamicFormSensitiveAnswers = Partial<Record<OnyxFormKey, Partial<Record<string, FormValue>>>>;
 
 /** Every type the renderer and validator handle */
 type DynamicFormFieldType = DynamicFormField['type'];

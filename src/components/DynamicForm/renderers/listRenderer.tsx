@@ -1,5 +1,5 @@
 import ListFieldAdapter from '@components/DynamicForm/adapters/ListFieldAdapter';
-import getLocalizedText from '@components/DynamicForm/utils/getLocalizedText';
+import getLocalizedText, {getFieldLabel} from '@components/DynamicForm/utils/getLocalizedText';
 import isSensitiveField from '@components/DynamicForm/utils/isSensitiveField';
 import InputWrapper from '@components/Form/InputWrapper';
 
@@ -19,6 +19,7 @@ const renderList: DynamicFieldRenderer<'list'> = (field, {translate, isLoneField
                 // Outside the flow sensitive entry answers stay in the list value, which must not reach the draft
                 shouldSaveDraft={inputProps.shouldSaveDraft && (!!onOpenListItemEditor || !field.itemFields.some(isSensitiveField))}
                 valueType="listItems"
+                label={getFieldLabel(field, translate)}
                 itemFields={field.itemFields}
                 maxItems={field.maxItems}
                 addTitle={itemLabel ? translate('dynamicForm.addItem', {item: itemLabel}) : translate('common.add')}

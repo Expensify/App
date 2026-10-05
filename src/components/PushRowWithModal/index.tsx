@@ -63,8 +63,8 @@ function PushRowWithModal(props: PushRowWithModalProps) {
 
     let selection: string[] = [];
     if (props.canSelectMultiple) {
-        // A form value can start as '' when no list valueType is set, and a key the options no longer offer could not be unchecked
-        selection = Array.isArray(props.value) ? props.value.filter((key) => Object.hasOwn(optionsList, key)) : [];
+        // A form value can start as '' when no list valueType is set
+        selection = Array.isArray(props.value) ? props.value : [];
     } else if (props.value) {
         selection = [props.value];
     }
