@@ -33,7 +33,7 @@ import {isRecruitingAdvancedMode} from '@libs/merge/RecruitingUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
-import {hasDynamicExternalWorkflow, isControlPolicy, isSubmitPolicy, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
+import {getApprovalWorkflow, hasDynamicExternalWorkflow, isControlPolicy, isGroupPolicy, isSubmitPolicy, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import {
     convertApprovalWorkflowRulesToWorkflows,
@@ -296,6 +296,10 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
     const hiddenWorkflowsCount = searchFilteredWorkflows.length - displayedWorkflows.length;
 
     const isDEWEnabled = hasDynamicExternalWorkflow(policy);
+    // A loaded non-Submit group workspace with no stored mode uses the app's ADVANCED default. Keep this separate from
+    // isActive because legacy modes can be configured even though this toggle intentionally displays them as off.
+    const hasConfiguredApprovalWorkflow = isGroupPolicy(policy) && !isSubmitPolicyWorkspace && getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    const isApprovalsLockedBySmartLimit = isSmartLimitEnabled && (hasConfiguredApprovalWorkflow || isDEWEnabled || isWorkflowFromIntegration);
     // A Dynamic External Workflow can be configured to keep the approval workflow out of the customer's hands entirely.
     // The info banner below still explains why the section is empty, but nothing else about the workflows is rendered.
     const shouldHideApprovalWorkflows = shouldHideDynamicExternalWorkflowPeople(policy);
@@ -317,7 +321,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
         );
     }, [isWorkflowFromIntegration, workflowSourceName, navigateToWorkflowSourceSettings, styles.lh20, styles.mr5, styles.mt1, styles.textLabelSupportingEmptyValue, translate]);
 
-    const approvalOptionSubtitle = isWorkflowFromIntegration || !isSmartLimitEnabled ? approvalSubtitle : translate('workspace.moreFeatures.workflows.disableApprovalPrompt');
+    const approvalOptionSubtitle = isWorkflowFromIntegration || !isApprovalsLockedBySmartLimit ? approvalSubtitle : translate('workspace.moreFeatures.workflows.disableApprovalPrompt');
     const hasApprovalError = !!policy?.errorFields?.approvalMode;
 
     const getAddApprovalsToggleDisabledAction = () => {
@@ -331,7 +335,9 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
         <WorkflowsSectionCard
             title={translate('workflowsPage.addApprovalsTitle')}
             subtitle={approvalOptionSubtitle}
-            switchAccessibilityLabel={isSmartLimitEnabled ? translate('workspace.moreFeatures.workflows.disableApprovalPrompt') : translate('workflowsPage.addApprovalsDescription')}
+            switchAccessibilityLabel={
+                isApprovalsLockedBySmartLimit ? translate('workspace.moreFeatures.workflows.disableApprovalPrompt') : translate('workflowsPage.addApprovalsDescription')
+            }
             onToggle={(isEnabled: boolean) => {
                 if (!canWriteApprovals) {
                     showReadOnlyModal();
@@ -480,7 +486,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
                     )}
                 </>
             }
-            disabled={!canWriteApprovals || isSmartLimitEnabled || isDEWEnabled || isWorkflowFromIntegration}
+            disabled={!canWriteApprovals || isApprovalsLockedBySmartLimit || isDEWEnabled || isWorkflowFromIntegration}
             disabledAction={withApprovalsReadOnlyFallback(getAddApprovalsToggleDisabledAction())}
             showLockIcon={!canWriteApprovals}
             // Submit2026 workspaces have approval mode set to Advanced, but we want to show it here as off because configuring the advanced approvals is a paid feature.
