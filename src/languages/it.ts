@@ -513,6 +513,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Anno precedente',
         nextYear: "L'anno prossimo",
         avatar: 'Avatar',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} di ${total}`,
         editor: 'Editor',
         restrictions: 'Restrizioni',
         tryAgain: 'Riprova',
@@ -1915,6 +1916,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Abilita le etichette nello spazio di lavoro per modificare i dettagli della spesa o eliminare l’etichetta da questa spesa.',
             confirmText: 'Elimina tag',
         },
+        undeletedExpense: 'ha ripristinato questa spesa',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `tariffe chilometriche aggiornate per il nuovo spazio di lavoro - ${policyName}`,
     },
     transactionMerge: {
@@ -6637,7 +6639,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 corporate: 'Limita l’eliminazione delle transazioni',
                 personal: 'Consenti l’eliminazione delle transazioni',
                 setFeedNameDescription: 'Dai al feed della carta un nome univoco così potrai distinguerlo dagli altri',
-                setTransactionLiabilityDescription: 'Quando è abilitato, i titolari della carta possono eliminare le transazioni della carta. Le nuove transazioni seguiranno questa regola.',
+                setTransactionLiabilityDescription: 'I titolari di carta possono eliminare le transazioni. Si applica solo alle nuove transazioni.',
                 emptyAddedFeedTitle: 'Nessuna carta in questo feed',
                 emptyAddedFeedDescription: 'Assicurati che ci siano carte nel flusso di carte della tua banca.',
                 pendingFeedTitle: `Stiamo esaminando la tua richiesta...`,
@@ -8281,6 +8283,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 flagAmountsOver: 'Contrassegna importi superiori a',
                 flagAmountsOverDescription: (categoryName: string) => `Si applica alla categoria “${categoryName}”.`,
                 flagAmountsOverSubtitle: 'Questo sostituisce l’importo massimo per tutte le spese.',
+                expenseLimitType: 'Tipo di limite di spesa',
                 expenseLimitTypes: {
                     expense: 'Spesa individuale',
                     expenseSubtitle:
@@ -9975,6 +9978,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         noCategory: 'Nessuna categoria',
         noMerchant: 'Nessun esercente',
         noTag: 'Nessun tag',
+        noVendor: 'Nessun fornitore',
         expenseType: 'Tipo di spesa',
         receiptType: 'Tipo di ricevuta',
         receiptTypeValues: {

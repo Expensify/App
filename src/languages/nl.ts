@@ -513,6 +513,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Vorig jaar',
         nextYear: 'Volgend jaar',
         avatar: 'Avatar',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} van ${total}`,
         editor: 'Editor',
         restrictions: 'Beperkingen',
         tryAgain: 'Probeer het opnieuw',
@@ -1913,6 +1914,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Schakel tags in op de werkruimte om de onkostendetails te bewerken of de tag uit deze onkosten te verwijderen.',
             confirmText: 'Label verwijderen',
         },
+        undeletedExpense: 'heeft deze uitgave teruggezet',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `kilometervergoedingen bijgewerkt voor de nieuwe workspace - ${policyName}`,
     },
     transactionMerge: {
@@ -6623,7 +6625,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 corporate: 'Beperken van het verwijderen van transacties',
                 personal: 'Verwijderen van transacties toestaan',
                 setFeedNameDescription: 'Geef de kaartfeed een unieke naam zodat je deze van de andere kunt onderscheiden',
-                setTransactionLiabilityDescription: 'Indien ingeschakeld kunnen kaarthouders kaarttransacties verwijderen. Nieuwe transacties zullen deze regel volgen.',
+                setTransactionLiabilityDescription: 'Kaarthouders kunnen transacties verwijderen. Geldt alleen voor nieuwe transacties.',
                 emptyAddedFeedTitle: 'Geen kaarten in deze feed',
                 emptyAddedFeedDescription: 'Controleer of er kaarten in de kaartfeed van je bank staan.',
                 pendingFeedTitle: `We beoordelen je aanvraag...`,
@@ -8256,6 +8258,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 flagAmountsOver: 'Markeer bedragen boven',
                 flagAmountsOverDescription: (categoryName: string) => `Is van toepassing op de categorie “${categoryName}”.`,
                 flagAmountsOverSubtitle: 'Dit overschrijft het maximale bedrag voor alle onkosten.',
+                expenseLimitType: 'Type onkostenlimiet',
                 expenseLimitTypes: {
                     expense: 'Individuele uitgave',
                     expenseSubtitle:
@@ -9928,6 +9931,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         noCategory: 'Geen categorie',
         noMerchant: 'Geen handelaar',
         noTag: 'Geen tag',
+        noVendor: 'Geen leverancier',
         expenseType: 'Onkostentype',
         receiptType: 'Bontype',
         receiptTypeValues: {

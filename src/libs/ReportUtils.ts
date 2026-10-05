@@ -25,6 +25,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {
     BankAccountList,
+    CardList,
     GuideAccountIDsDerivedValue,
     IntroSelected,
     OnyxInputOrEntry,
@@ -100,7 +101,6 @@ import type {AddCommentOrAttachmentParams} from './API/parameters';
 import type {FormulaContext, compute as computeFormula, computeWithMetadata as computeFormulaWithMetadata} from './Formula';
 import type {MoneyRequestNavigatorParamList, ReportsSplitNavigatorParamList} from './Navigation/types';
 import type {PersonalDetailsOnyxUpdate} from './PersonalDetailsUtils';
-import type {PolicyPaymentAttribution} from './PolicyPaymentUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
 import type {AvatarSource} from './UserAvatarUtils';
 
@@ -136,7 +136,7 @@ import {rand64} from './NumberUtils';
 import {isTrackOnboardingChoice} from './OnboardingUtils';
 import Parser from './Parser';
 import {getParsedMessageWithShortMentions} from './ParsingUtils';
-import {getAllPersonalDetails, getPersonalDetail} from './PersonalDetailsStore';
+import {getAllPersonalDetailLogins, getAllPersonalDetails, getPersonalDetail} from './PersonalDetailsStore';
 import {buildPersonalDetailsUpdate, getAccountIDsByLogins, getLoginByAccountID, getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {
     canMemberWrite as canMemberWritePolicyUtils,
@@ -234,7 +234,6 @@ import {
 // ReportNameUtils imports helper functions from ReportUtils, and ReportUtils imports name generation functions from ReportNameUtils.
 // eslint-disable-next-line import/no-cycle
 import {getGroupChatName, getInvoicePayerName, getInvoiceReportName, getReportName} from './ReportNameUtils';
-import {getAllPersonalDetailLogins} from './ShortMentionLogins';
 import {isTaskCompleted} from './TaskUtils';
 import {
     getAttendees,
@@ -276,7 +275,6 @@ import {
     hasReceipt as hasReceiptTransactionUtils,
     hasViolation,
     hasWarningTypeViolation,
-    isManagedCardTransaction as isCardTransactionTransactionUtils,
     isDeletedTransaction,
     isDemoTransaction,
     isDistanceRequest,
@@ -293,6 +291,7 @@ import {
     isScanning,
     isScanRequest as isScanRequestTransactionUtils,
     isTransactionPendingDelete,
+    isTransactionOwner,
 } from './TransactionUtils';
 import addTrailingForwardSlash from './UrlUtils';
 import {getDefaultAvatarURL} from './UserAvatarUtils';
@@ -439,12 +438,6 @@ type BuildOptimisticIOUReportActionParams = {
     linkedExpenseReportAction?: OnyxEntry<ReportAction>;
     payAsBusiness?: boolean;
     bankAccountID?: number | undefined;
-    /**
-     * Masked number of the bank account the report was actually paid with. Stored on the action so every viewer sees
-     * the same account, since the payer's account is not present in every viewer's `bankAccountList` and the policy's
-     * ACH account can belong to a different bank account than the one used to pay.
-     */
-    accountNumber?: string;
     isPersonalTrackingExpense?: boolean;
     reportActionID?: string;
     // TODO: delegateAccountIDParam will be made required when all callers pass the value (https://github.com/Expensify/App/issues/66425)
@@ -3270,15 +3263,21 @@ function shouldCurrentUserSubmitReport(iouReport: OnyxEntry<Report>, chatReport:
     return isOwnReportAndRetracted || isWaitingForSubmissionFromCurrentUser(chatReport, policy);
 }
 
-/**
- * Checks whether the card transaction support deleting based on liability type
- */
-function canDeleteCardTransactionByLiabilityType(transaction: OnyxEntry<Transaction>): boolean {
-    const isCardTransaction = isCardTransactionTransactionUtils(transaction);
+function canDeleteCardTransaction(transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>, cardList: OnyxEntry<CardList>): boolean {
+    const isCardTransaction = isManagedCardTransaction(transaction);
     if (!isCardTransaction) {
         return true;
     }
-    return transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.ALLOW;
+
+    if (policy?.role === CONST.POLICY.ROLE.ADMIN) {
+        return true;
+    }
+
+    if (!cardList) {
+        return false;
+    }
+
+    return isTransactionOwner(transaction, cardList) && transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.ALLOW;
 }
 
 /**
@@ -3292,7 +3291,8 @@ function canDeleteMoneyRequestReport(
     reportActions: ReportAction[],
     currentUserAccountID: number,
     rules: OnyxCollection<Rule>,
-    policy?: Policy,
+    policy: OnyxEntry<Policy>,
+    cardList: OnyxEntry<CardList>,
     isReportLevelDelete = false,
 ): boolean {
     const isReportPolicyAdmin = isPolicyAdmin(policy);
@@ -3307,7 +3307,8 @@ function canDeleteMoneyRequestReport(
     }
 
     const isUnreported = isSelfDM(report) || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-    const canCardTransactionBeDeleted = canDeleteCardTransactionByLiabilityType(transaction);
+    const canCardTransactionBeDeleted = canDeleteCardTransaction(transaction, policy, cardList);
+
     if (isUnreported) {
         return isOwner && canCardTransactionBeDeleted;
     }
@@ -3330,14 +3331,18 @@ function canDeleteMoneyRequestReport(
     }
 
     if (isExpenseReport(report)) {
-        if (isSingleTransaction && !canCardTransactionBeDeleted) {
+        // TODO: Pass reportOwnerLogin in PR 4a, once canDeleteMoneyRequestReport takes it first.
+        // isAwaitingFirstLevelApproval falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
+        if (!isOpenReport(report) && !(isProcessingReport(report) && isAwaitingFirstLevelApproval(report, rules, undefined))) {
             return false;
         }
 
-        const isReportSubmitter = isCurrentUserSubmitter(report, currentUserAccountID);
-        // TODO: Pass reportOwnerLogin in PR 4a, once canDeleteMoneyRequestReport takes it first.
-        // isAwaitingFirstLevelApproval falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
-        return isReportSubmitter && (isOpenReport(report) || (isProcessingReport(report) && isAwaitingFirstLevelApproval(report, rules, undefined)));
+        const isSubmitterOrAdmin = isCurrentUserSubmitter(report, currentUserAccountID) || isPolicyAdmin(policy);
+        if (isSubmitterOrAdmin && isSingleTransaction && isManagedCardTransaction(transaction)) {
+            return canCardTransactionBeDeleted;
+        }
+
+        return isCurrentUserSubmitter(report, currentUserAccountID);
     }
 
     return false;
@@ -3355,17 +3360,18 @@ function canDeleteReportAction(
     childReportActions: OnyxCollection<ReportAction>,
     currentUserAccountID: number,
     rules: OnyxCollection<Rule>,
+    cardList: OnyxEntry<CardList>,
 ): boolean {
     const report = getReportOrDraftReport(reportID);
     const isActionOwner = reportAction?.actorAccountID === currentUserAccountID;
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`] ?? null;
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`] ?? undefined;
 
     if (isDemoTransaction(transaction)) {
         return true;
     }
 
     if (isMoneyRequestAction(reportAction)) {
-        const canCardTransactionBeDeleted = canDeleteCardTransactionByLiabilityType(transaction);
+        const canCardTransactionBeDeleted = canDeleteCardTransaction(transaction, policy, cardList);
         // For now, users cannot delete split actions
         const isSplitAction = getOriginalMessage(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
 
@@ -3391,7 +3397,8 @@ function canDeleteReportAction(
             Object.values(childReportActions ?? {}).filter((action): action is ReportAction => !!action),
             currentUserAccountID,
             rules,
-            policy ?? undefined,
+            policy,
+            cardList,
             true,
         );
     }
@@ -5573,7 +5580,7 @@ function canEditFieldOfMoneyRequest({
         return false;
     }
 
-    if ((fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT || fieldToEdit === CONST.EDIT_REQUEST_FIELD.CURRENCY) && isCardTransactionTransactionUtils(transaction)) {
+    if ((fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT || fieldToEdit === CONST.EDIT_REQUEST_FIELD.CURRENCY) && isManagedCardTransaction(transaction)) {
         return false;
     }
 
@@ -6029,8 +6036,6 @@ type GetReportPreviewMessageBaseParams = {
     isForListPreview?: boolean;
     /** This can be either a report preview action or the IOU action. This will be the original report preview action in cases where `iouReportAction` was unwrapped from a report preview action. Otherwise, it will be the same as `iouReportAction`. */
     originalReportAction?: OnyxInputOrEntry<ReportAction>;
-    /** The current user's bank accounts, used to name the account a report was paid with. */
-    bankAccountList?: OnyxEntry<BankAccountList>;
 };
 
 /**
@@ -6065,15 +6070,7 @@ function getReportPreviewMessage(
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     params: GetReportPreviewMessageBaseParams,
 ): string {
-    const {
-        reportOrID,
-        iouReportAction = null,
-        shouldConsiderScanningReceiptOrPendingRoute = false,
-        isPreviewMessageForParentChatReport = false,
-        policy,
-        isForListPreview = false,
-        bankAccountList,
-    } = params;
+    const {reportOrID, iouReportAction = null, shouldConsiderScanningReceiptOrPendingRoute = false, isPreviewMessageForParentChatReport = false, policy, isForListPreview = false} = params;
     const originalReportAction = params.originalReportAction ?? iouReportAction;
     const report = typeof reportOrID === 'string' ? getReport(reportOrID, deprecatedAllReports) : reportOrID;
     const reportActionMessage = getReportActionHtml(iouReportAction);
@@ -6195,10 +6192,7 @@ function getReportPreviewMessage(
             report.isWaitingOnBankAccount
         ) {
             translatePhraseKey = 'iou.paidWithExpensify';
-
-            // A paying admin can record `bankAccountID` on a workspace payment too, so the report type is what says
-            // whether this was an invoice, matching `getIOUReportActionDisplayMessage`.
-            const isFromInvoice = isInvoiceReport(report) && !!originalMessage?.bankAccountID;
+            const isFromInvoice = !!originalMessage?.bankAccountID;
             if (originalMessage?.automaticAction) {
                 translatePhraseKey = 'iou.automaticallyPaidWithExpensify';
             }
@@ -6228,13 +6222,7 @@ function getReportPreviewMessage(
         actualPayerName = actualPayerName && isForListPreview && !isPreviewMessageForParentChatReport ? `${actualPayerName}:` : actualPayerName;
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
         if (translatePhraseKey === 'iou.businessBankAccount') {
-            const last4Digits = getBankAccountLastFourDigits({
-                bankAccountID: originalMessage?.bankAccountID,
-                bankAccountList,
-                policy: policy ?? undefined,
-                accountNumber: originalMessage?.accountNumber,
-                payerAccountID,
-            });
+            const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? policy?.achAccount?.accountNumber?.slice(-4) ?? '';
             const crossBorderMessage = originalMessage ? getCrossBorderReimbursedMessage(translate, originalMessage, convertToDisplayString, last4Digits) : undefined;
             if (crossBorderMessage) {
                 return crossBorderMessage;
@@ -6325,15 +6313,7 @@ function getReportPreviewReportActionMessage(
     params: Omit<GetReportPreviewMessageBaseParams, 'policy'> & {policy?: OnyxInputOrEntry<Policy>},
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
 ): string {
-    const {
-        reportOrID,
-        iouReportAction = null,
-        shouldConsiderScanningReceiptOrPendingRoute = false,
-        isPreviewMessageForParentChatReport = false,
-        policy,
-        isForListPreview = false,
-        bankAccountList,
-    } = params;
+    const {reportOrID, iouReportAction = null, shouldConsiderScanningReceiptOrPendingRoute = false, isPreviewMessageForParentChatReport = false, policy, isForListPreview = false} = params;
     const originalReportAction = params.originalReportAction ?? iouReportAction;
     const report = typeof reportOrID === 'string' ? getReport(reportOrID, deprecatedAllReports) : reportOrID;
     const reportActionMessage = getReportActionHtml(iouReportAction);
@@ -6449,9 +6429,7 @@ function getReportPreviewReportActionMessage(
             report.isWaitingOnBankAccount
         ) {
             translatePhraseKey = 'iou.paidWithExpensify';
-            // A paying admin can record `bankAccountID` on a workspace payment too, so the report type is what says
-            // whether this was an invoice, matching `getIOUReportActionDisplayMessage`.
-            const isFromInvoice = isInvoiceReport(report) && !!originalMessage?.bankAccountID;
+            const isFromInvoice = !!originalMessage?.bankAccountID;
             if (originalMessage?.automaticAction) {
                 translatePhraseKey = 'iou.automaticallyPaidWithExpensify';
             }
@@ -6476,13 +6454,7 @@ function getReportPreviewReportActionMessage(
         actualPayerName = actualPayerName && isForListPreview && !isPreviewMessageForParentChatReport ? `${actualPayerName}:` : actualPayerName;
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
         if (translatePhraseKey === 'iou.businessBankAccount') {
-            const last4Digits = getBankAccountLastFourDigits({
-                bankAccountID: originalMessage?.bankAccountID,
-                bankAccountList,
-                policy: reportPolicy,
-                accountNumber: originalMessage?.accountNumber,
-                payerAccountID,
-            });
+            const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '';
 
             // This variant returns raw English to match the surrounding non-localized preview strings.
             if (originalMessage?.creditedAmount && originalMessage.creditedCurrency) {
@@ -8041,7 +8013,6 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
         isPersonalTrackingExpense = false,
         payAsBusiness,
         bankAccountID,
-        accountNumber,
         reportActionID,
         delegateAccountIDParam,
         isSubmitterMarkedPaymentReceived,
@@ -8082,11 +8053,6 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
 
         if (isSubmitterMarkedPaymentReceived) {
             originalMessage.isSubmitterMarkedPaymentReceived = true;
-        }
-
-        // Persist the masked account used to pay so every viewer resolves the same account (see `accountNumber` above).
-        if (accountNumber) {
-            originalMessage.accountNumber = accountNumber;
         }
     }
 
@@ -11715,7 +11681,7 @@ function getIOUReportActionDisplayMessage(
     translate: LocalizedTranslate,
     reportAction: OnyxEntry<ReportAction>,
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
-    policy: OnyxEntry<PolicyPaymentAttribution>,
+    policyACHAccountNumber: string | undefined,
     transaction?: OnyxEntry<Transaction>,
     bankAccountList?: OnyxEntry<BankAccountList>,
 ): string {
@@ -11730,13 +11696,7 @@ function getIOUReportActionDisplayMessage(
 
     let translationKey: TranslationPaths;
     if (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
-        const last4Digits = getBankAccountLastFourDigits({
-            bankAccountID: originalMessage?.bankAccountID,
-            bankAccountList,
-            policy,
-            accountNumber: originalMessage?.accountNumber,
-            payerAccountID: reportAction?.actorAccountID,
-        });
+        const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? getBankAccountLastFourDigits(originalMessage?.bankAccountID, bankAccountList, policyACHAccountNumber);
         const crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, convertToDisplayString, last4Digits);
 
         switch (originalMessage.paymentType) {
@@ -14755,7 +14715,7 @@ export {
     getRoom,
     getRootParentReport,
     getRouteFromLink,
-    canDeleteCardTransactionByLiabilityType,
+    canDeleteCardTransaction,
     isTeachersUniteReport,
     getTaskAssigneeChatOnyxData,
     getTransactionCommentObject,
