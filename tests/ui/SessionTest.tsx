@@ -126,7 +126,7 @@ describe('Deep linking', () => {
                 },
                 [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]: 'randomID',
             });
-            return originalSignInWithShortLivedAuthToken(TEST_AUTH_TOKEN_1, undefined, undefined);
+            return originalSignInWithShortLivedAuthToken(TEST_AUTH_TOKEN_1, undefined, false, undefined, undefined);
         });
 
         // Set the keys the app needs to finish loading rather than going through

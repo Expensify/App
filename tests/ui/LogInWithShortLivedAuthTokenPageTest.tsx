@@ -83,7 +83,7 @@ describe('LogInWithShortLivedAuthTokenPage', () => {
         renderPage({shortLivedAuthToken: 'token', isSAML: true, shouldForceLogin: ''});
         await waitForBatchedUpdatesWithAct();
 
-        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', true, '/search?q=status:outstanding', 'user@saml.example.com');
+        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', undefined, true, '/search?q=status:outstanding', 'user@saml.example.com');
     });
 
     it('signs in with SAML without a landing page when nothing was kept', async () => {

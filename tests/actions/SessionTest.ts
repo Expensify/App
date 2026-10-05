@@ -7,7 +7,7 @@ import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import {getAll as getAllPersistedRequests} from '@libs/actions/PersistedRequests';
 import {initReconnect} from '@libs/actions/Reconnect';
 import * as SignInRedirect from '@libs/actions/SignInRedirect';
-import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
 import buildOldDotURL from '@libs/buildOldDotURL';
 import getPlatform from '@libs/getPlatform';
@@ -911,34 +911,34 @@ describe('Session', () => {
         });
 
         test('signInWithShortLivedAuthToken sends the token to the API with the SAML auth method', async () => {
-            const readSpy = jest.spyOn(API, 'read').mockImplementation(() => {});
+            const makeRequestSpy = jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue(undefined);
 
-            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, undefined, undefined);
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', undefined, true, undefined, undefined);
             await waitForBatchedUpdates();
 
-            const call = readSpy.mock.calls.at(0);
-            expect(call?.at(0)).toBe(READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN);
+            const call = makeRequestSpy.mock.calls.at(0);
+            expect(call?.at(0)).toBe(SIDE_EFFECT_REQUEST_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN);
             expect(call?.at(1)).toEqual(expect.objectContaining({authToken: 'testAuthToken', authMethod: CONST.AUTH_METHOD.SAML, skipReauthentication: true}));
 
-            readSpy.mockRestore();
+            makeRequestSpy.mockRestore();
         });
 
         test('signInWithShortLivedAuthToken sends the token to the API with the short-lived-token auth method when it is not a SAML sign in', async () => {
-            const readSpy = jest.spyOn(API, 'read').mockImplementation(() => {});
+            const makeRequestSpy = jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue(undefined);
 
-            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', false, undefined, undefined);
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', undefined, false, undefined, undefined);
             await waitForBatchedUpdates();
 
-            expect(readSpy.mock.calls.at(0)?.at(1)).toEqual(expect.objectContaining({authToken: 'testAuthToken', authMethod: CONST.AUTH_METHOD.SHORT_LIVED_AUTH_TOKEN}));
+            expect(makeRequestSpy.mock.calls.at(0)?.at(1)).toEqual(expect.objectContaining({authToken: 'testAuthToken', authMethod: CONST.AUTH_METHOD.SHORT_LIVED_AUTH_TOKEN}));
 
-            readSpy.mockRestore();
+            makeRequestSpy.mockRestore();
         });
 
         test('signInWithShortLivedAuthToken does not wait on navigation when no exitTo is passed', async () => {
             const waitForProtectedRoutesSpy = jest.spyOn(Navigation, 'waitForProtectedRoutes').mockResolvedValue(undefined);
             const resetRootSpy = jest.spyOn(navigationRef, 'resetRoot').mockImplementation(() => {});
 
-            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, undefined, 'user@saml.example.com');
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', undefined, true, undefined, 'user@saml.example.com');
             await waitForBatchedUpdates();
 
             expect(waitForProtectedRoutesSpy).not.toHaveBeenCalled();
