@@ -69,6 +69,7 @@ import {
     getUpdateACHAccountMessage,
     getUpdatedAutoHarvestingMessage,
     getUpdatedCommuterExclusionsMessage,
+    getUpdatedMemberWorkArrangementMessage,
     getUpdatedCardFeedLiabilityMessage,
     getUpdatedCardFeedStatementPeriodMessage,
     hasNextActionMadeBySameActor,
@@ -2921,7 +2922,46 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe(expected);
         });
     });
+
+    describe('getAgentPromptUpdatedMessageHTML', () => {
+        it('renders the modifier as a mention and escapes the prompts', () => {
+            const action = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED>>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED,
+                reportActionID: '1',
+                originalMessage: {
+                    previousPrompt: '<strong>Review every expense</strong>',
+                    newPrompt: 'Review expenses over $100',
+                    updatedByAccountID: 1,
+                    updatedBy: 'owner@expensify.com',
+                },
+            });
+
+            const message = ReportActionsUtils.getAgentPromptUpdatedMessageHTML(translateLocal, action);
+
+            expect(message).toContain('<mention-user accountID="1"/>');
+            expect(message).toContain('&lt;strong&gt;Review every expense&lt;/strong&gt;');
+            expect(message).not.toContain('<strong>');
+        });
+    });
+
     describe('isDeletedAction', () => {
+        it('should keep an agent prompt update with an empty message visible', () => {
+            const action = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED>>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED,
+                reportActionID: '1',
+                message: [],
+                originalMessage: {
+                    previousPrompt: 'Review every expense',
+                    newPrompt: 'Review expenses over $100',
+                    updatedByAccountID: 1,
+                    updatedBy: 'owner@expensify.com',
+                },
+            });
+
+            expect(ReportActionsUtils.isDeletedAction(action)).toBe(false);
+            expect(ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID, true)).toBe(true);
+        });
+
         it('should return false if the action is a hold or unhold action', () => {
             const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.HOLD | typeof CONST.REPORT.ACTIONS.TYPE.UNHOLD> = {
                 ...createRandomReportAction(0),
@@ -4495,6 +4535,65 @@ describe('ReportActionsUtils', () => {
             [CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE, undefined, 'changed exclude commutes to a fixed distance per claim (previously do not exclude commutes)'],
         ])('names both the new and the previous method for %s from %s', (newValue, oldValue, expected) => {
             expect(getUpdatedCommuterExclusionsMessage(translateLocal, buildMethodChangeAction(newValue, oldValue))).toBe(expected);
+        });
+    });
+
+    describe('getUpdatedMemberWorkArrangementMessage', () => {
+        const buildAction = (originalMessage: Record<string, unknown>, actionName: ReportAction['actionName'] = CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_WORK_ARRANGEMENT) =>
+            ({
+                actionName,
+                reportActionID: '1',
+                created: '',
+                originalMessage,
+                message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, text: 'fallback message', html: 'fallback message'}],
+            }) as ReportAction;
+
+        it('falls back to the report action text for another action type', () => {
+            const action = buildAction({newValue: true, oldValue: false}, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING);
+
+            expect(getUpdatedMemberWorkArrangementMessage(translateLocal, action)).toBe(ReportActionsUtils.getReportActionText(action));
+        });
+
+        it('falls back to the report action text when arrangement values are not booleans', () => {
+            const action = buildAction({newValue: 'office', oldValue: false});
+
+            expect(getUpdatedMemberWorkArrangementMessage(translateLocal, action)).toBe(ReportActionsUtils.getReportActionText(action));
+        });
+
+        it('uses the member name when available', () => {
+            const action = buildAction({name: 'Member One', newValue: true, oldValue: false});
+
+            expect(getUpdatedMemberWorkArrangementMessage(translateLocal, action)).toBe(
+                translateLocal('workspaceActions.updatedMemberWorkArrangement', {
+                    displayName: 'Member One',
+                    newArrangement: translateLocal('workspace.people.officeBased'),
+                    oldArrangement: translateLocal('workspace.people.noRegularWorkspace'),
+                }),
+            );
+        });
+
+        it('formats the email when a member name is missing', () => {
+            const email = '+919383833920@expensify.sms';
+            const action = buildAction({email, newValue: true, oldValue: false});
+
+            expect(getUpdatedMemberWorkArrangementMessage(translateLocal, action)).toBe(
+                translateLocal('workspaceActions.updatedMemberWorkArrangement', {
+                    displayName: formatPhoneNumber(email),
+                    newArrangement: translateLocal('workspace.people.officeBased'),
+                    oldArrangement: translateLocal('workspace.people.noRegularWorkspace'),
+                }),
+            );
+        });
+
+        it('uses the default arrangement message when no member name or email is present', () => {
+            const action = buildAction({name: '', newValue: true, oldValue: false});
+
+            expect(getUpdatedMemberWorkArrangementMessage(translateLocal, action)).toBe(
+                translateLocal('workspaceActions.updatedDefaultWorkArrangement', {
+                    newArrangement: translateLocal('workspace.people.officeBased'),
+                    oldArrangement: translateLocal('workspace.people.noRegularWorkspace'),
+                }),
+            );
         });
     });
 
@@ -7354,6 +7453,23 @@ describe('ReportActionsUtils', () => {
             const real = conciergeComment('200', '2026-09-02 00:00:00.000');
             const sorted = [failed, real];
             expect(ReportActionsUtils.getLatestConciergeFeedbackActionID(sorted, persisted(sorted))).toBe('200');
+        });
+
+        it('picks the newest Concierge comment out of a report actions collection', () => {
+            const older = conciergeComment('100', '2026-09-01 00:00:00.000');
+            const newer = conciergeComment('200', '2026-09-02 00:00:00.000');
+            const userComment = conciergeComment('300', '2026-09-03 00:00:00.000', {actorAccountID: 12345});
+            const collection = {[older.reportActionID]: older, [newer.reportActionID]: newer, [userComment.reportActionID]: userComment};
+
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionIDFromReportActions(collection)).toBe('200');
+        });
+
+        it('returns undefined when the collection holds no Concierge comment to rate', () => {
+            const whisper = conciergeComment('400', '2026-09-05 00:00:00.000', {originalMessage: {html: 'w', whisperedTo: [1]}} as Partial<ReportAction>);
+            const failed = conciergeComment('500', '2026-09-06 00:00:00.000', {errors: {someError: 'error'}});
+
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionIDFromReportActions({[whisper.reportActionID]: whisper, [failed.reportActionID]: failed})).toBeUndefined();
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionIDFromReportActions(undefined)).toBeUndefined();
         });
 
         it('returns undefined for an empty report', () => {

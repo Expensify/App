@@ -19,6 +19,8 @@ const mockGetRootState = jest.fn<{routes: Array<{name: string}>}, []>(() => ({ro
 // Declared but assigned after jest.mock hoisting - use require() to access the mock in tests
 let mockSetPendingSubmitFollowUpAction: jest.MockedFunction<typeof setPendingSubmitFollowUpAction>;
 const mockGetCurrentSearchQueryJSON = jest.fn<ReturnType<typeof getCurrentSearchQueryJSON>, Parameters<typeof getCurrentSearchQueryJSON>>();
+const mockGetCurrentRoute = jest.fn<{params?: Record<string, unknown>} | undefined, []>();
+const mockGetFocusedReportId = jest.fn<string | undefined, []>();
 
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => () => mockIsReportTopmostSplitNavigator());
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => () => mockIsSearchTopmostFullScreenRoute());
@@ -37,6 +39,9 @@ jest.mock('@libs/SearchQueryUtils', () => ({
     buildCannedSearchQuery: jest.fn(({type}: {type: string}) => `type:${type}`),
     getCurrentSearchQueryJSON: mockGetCurrentSearchQueryJSON,
 }));
+jest.mock('@libs/actions/TransactionThreadNavigation', () => ({
+    setActiveTransactionIDs: jest.fn(() => Promise.resolve()),
+}));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     dismissModal: jest.fn(),
@@ -44,6 +49,8 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     dismissModalWithReport: jest.fn(),
     pop: jest.fn(),
     navigate: jest.fn(),
+    getActiveRoute: jest.fn(() => ''),
+    getFocusedReportId: () => mockGetFocusedReportId(),
     revealRouteBeforeDismissingModal: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
     getIsFullscreenPreInsertedUnderRHP: jest.fn(() => false),
@@ -51,6 +58,9 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     navigationRef: {
         getRootState: () => mockGetRootState(),
         isReady: jest.fn(() => true),
+        current: {
+            getCurrentRoute: () => mockGetCurrentRoute(),
+        },
     },
 }));
 
@@ -70,6 +80,8 @@ describe('navigateAfterExpenseCreate', () => {
         mockGetTrackingState.mockReturnValue(false);
         mockGetRootState.mockReturnValue({routes: []});
         mockGetCurrentSearchQueryJSON.mockReturnValue(undefined);
+        mockGetCurrentRoute.mockReturnValue(undefined);
+        mockGetFocusedReportId.mockReturnValue(undefined);
     });
 
     it('should dismiss to report when not from global create', () => {
