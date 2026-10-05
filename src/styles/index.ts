@@ -6867,8 +6867,9 @@ const staticStyles = (theme: ThemeColors) =>
         },
         chartInlineTableDot: {
             borderRadius: '50%',
-            width: 20,
-            height: 20,
+            width: 16,
+            height: 16,
+            margin: 2,
         },
         chartInlineTableAvatarBorder: {
             borderWidth: 2,
