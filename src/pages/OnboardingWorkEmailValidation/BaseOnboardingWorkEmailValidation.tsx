@@ -28,9 +28,8 @@ import {getValidateEmailTaskDescription} from '@libs/ReportUtils';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 
 import {getAccessiblePolicies} from '@userActions/Policy/Policy';
-import {updateDescription} from '@userActions/Report';
 import {MergeIntoAccountAndLogin} from '@userActions/Session';
-import {completeTask, completeTaskAfterSuccessfulSideEffect} from '@userActions/Task';
+import {completeTask, completeTaskAfterSuccessfulSideEffect, editTask} from '@userActions/Task';
 import {resendValidateCode} from '@userActions/User';
 
 import CONST from '@src/CONST';
@@ -49,7 +48,6 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const currentUserAccountID = session?.accountID;
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [onboardingEmail] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM);
@@ -208,8 +206,12 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
             return;
         }
         const taskWorkEmail = workEmail ?? '';
-        if (validateEmailTaskReport && currentUserAccountID) {
-            updateDescription(validateEmailTaskReport, getValidateEmailTaskDescription(taskWorkEmail, validateEmailTaskReport.parentReportID, true), currentUserAccountID);
+        if (validateEmailTaskReport) {
+            editTask(
+                validateEmailTaskReport,
+                {description: getValidateEmailTaskDescription(taskWorkEmail, validateEmailTaskReport.parentReportID, true)},
+                account?.delegatedAccess?.delegate,
+            );
         }
         const validateEmailTaskReportID =
             validateEmailTaskReport?.reportID ??
@@ -223,7 +225,16 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
             return;
         }
         returnToOriginReport();
-    }, [conciergeChat, currentUserAccountID, delegateAccountID, isConciergeTaskFlow, onboardingValues?.isMergingAccountBlocked, returnToOriginReport, validateEmailTaskReport, workEmail]);
+    }, [
+        account?.delegatedAccess?.delegate,
+        conciergeChat,
+        delegateAccountID,
+        isConciergeTaskFlow,
+        onboardingValues?.isMergingAccountBlocked,
+        returnToOriginReport,
+        validateEmailTaskReport,
+        workEmail,
+    ]);
 
     return (
         <ScreenWrapper

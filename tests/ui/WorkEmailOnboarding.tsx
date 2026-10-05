@@ -25,7 +25,7 @@ import OnboardingWorkEmail from '@pages/OnboardingWorkEmail';
 import OnboardingWorkEmailValidation from '@pages/OnboardingWorkEmailValidation';
 
 import * as PolicyActions from '@userActions/Policy/Policy';
-import {completeOnboarding, updateDescription} from '@userActions/Report';
+import {completeOnboarding} from '@userActions/Report';
 import * as WelcomeActions from '@userActions/Welcome';
 
 import CONST from '@src/CONST';
@@ -60,7 +60,6 @@ jest.mock('@userActions/Report', () => {
     return {
         ...actual,
         completeOnboarding: jest.fn().mockResolvedValue(undefined),
-        updateDescription: jest.fn(),
     };
 });
 
@@ -146,7 +145,6 @@ const renderOnboardingPrivateDomainPage = (
 
 const navigate = jest.spyOn(Navigation, 'navigate');
 const mockCompleteOnboarding = jest.mocked(completeOnboarding);
-const mockUpdateDescription = jest.mocked(updateDescription);
 
 function MergeIntoAccountAndLoginBlockMerge() {
     const originalXhr = HttpUtils.xhr;
@@ -1047,6 +1045,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
             type: CONST.REPORT.TYPE.TASK,
             description: 'Enter the code we sent to employee@acme.com',
         });
+        const editTask = jest.spyOn(TaskActions, 'editTask').mockImplementation(() => {});
         const createJoinWorkspaceOnboardingContent = jest.spyOn(WelcomeActions, 'createJoinWorkspaceOnboardingContent');
         await TestHelper.signInWithTestUser(1, 'test@gmail.com');
 
@@ -1069,9 +1068,13 @@ describe('OnboardingWorkEmailValidation Page', () => {
 
         fireEvent.press(screen.getByText(TestHelper.translateLocal('common.skip')));
 
-        expect(mockUpdateDescription).toHaveBeenCalledWith(validateTaskReport, expect.stringContaining('someone@acme.com'), 1);
+        const editTaskArgs = editTask.mock.calls.at(-1);
+        expect(editTaskArgs?.[0]).toBe(validateTaskReport);
+        expect(editTaskArgs?.[1].description).toContain('someone@acme.com');
+        expect(editTaskArgs?.[2]).toBeUndefined();
         expect(createJoinWorkspaceOnboardingContent).not.toHaveBeenCalled();
 
+        editTask.mockRestore();
         createJoinWorkspaceOnboardingContent.mockRestore();
         unmount();
         await waitForBatchedUpdatesWithAct();
