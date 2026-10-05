@@ -151,6 +151,27 @@ describe('useSubPage hook', () => {
             expect(mockSetParams).toHaveBeenCalledWith({subPage: 'page3'});
         });
 
+        it('restores edit mode with the starting page', () => {
+            // Given a saved edit route without a subPage in the current URL
+            const pages = createMockPages();
+            const buildRoute = createBuildRoute();
+
+            // When the saved page and action initialize the flow
+            const {result} = renderHook(() =>
+                useSubPage({
+                    pages,
+                    onFinished: mockOnFinished,
+                    startFrom: 1,
+                    startAction: 'edit',
+                    buildRoute,
+                }),
+            );
+
+            // Then both route parts are restored and the page renders its Confirm variant
+            expect(mockSetParams).toHaveBeenCalledWith({subPage: 'page2', action: 'edit'});
+            expect(result.current.isEditing).toBe(true);
+        });
+
         it('returns isRedirecting true when no subPage param is present in URL', () => {
             const pages = createMockPages();
             const buildRoute = createBuildRoute();

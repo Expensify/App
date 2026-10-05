@@ -5,6 +5,7 @@ import ActionableItemButtons from '@components/ReportActionItem/ActionableItemBu
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalBankAccountSetup from '@hooks/usePersonalBankAccountSetup';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -46,6 +47,7 @@ function ReimbursementQueuedContent({action, report, iouReport}: ReimbursementQu
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector});
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
+    const personalBankAccountSetup = usePersonalBankAccountSetup();
 
     const targetReport = isChatThread(report) ? parentReport : report;
     const [submitterDisplayName = ''] = usePersonalDetail(targetReport?.ownerAccountID, displayNameOrDefaultSelector(translate, formatPhoneNumber));
@@ -59,7 +61,17 @@ function ReimbursementQueuedContent({action, report, iouReport}: ReimbursementQu
                     <ActionableItemButtons layout="horizontal">
                         <Button
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
-                            onPress={() => openPersonalBankAccountSetupView({exitReportID: targetReport?.reportID, isUserValidated})}
+                            isDisabled={personalBankAccountSetup.isLoading}
+                            onPress={() =>
+                                openPersonalBankAccountSetupView({
+                                    exitReportID: targetReport?.reportID,
+                                    isUserValidated,
+                                    resumeState: {
+                                        personalBankAccount: personalBankAccountSetup.personalBankAccount,
+                                        personalDraft: personalBankAccountSetup.personalDraft,
+                                    },
+                                })
+                            }
                         >
                             <Button.KeyboardShortcut />
                             <Button.Text>{translate('bankAccount.addBankAccount')}</Button.Text>

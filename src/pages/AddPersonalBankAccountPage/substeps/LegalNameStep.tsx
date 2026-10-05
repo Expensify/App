@@ -21,10 +21,11 @@ type LegalNameStepProps = SubPageProps & {
 function LegalNameStep({onNext, onMove, isEditing, enabledWhenOffline}: LegalNameStepProps) {
     const {translate} = useLocalize();
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [bankAccountPersonalDetails] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
 
     const getDefaultValues = () => ({
-        firstName: privatePersonalDetails?.legalFirstName ?? '',
-        lastName: privatePersonalDetails?.legalLastName ?? '',
+        firstName: bankAccountPersonalDetails?.legalFirstName ?? privatePersonalDetails?.legalFirstName ?? '',
+        lastName: bankAccountPersonalDetails?.legalLastName ?? privatePersonalDetails?.legalLastName ?? '',
     });
 
     const handleSubmit = usePersonalBankAccountDetailsFormSubmit({

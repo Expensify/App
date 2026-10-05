@@ -75,6 +75,11 @@ Onyx.connectWithoutView({
 
 type AccountFormValues = typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM | typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM;
 
+type PersonalBankAccountResumeState = {
+    personalBankAccount: OnyxEntry<PersonalBankAccount>;
+    personalDraft: OnyxEntry<Partial<Pick<PersonalBankAccountForm, 'setupType'>>>;
+};
+
 type OpenPersonalBankAccountSetupViewProps = {
     /** The reportID of the report to redirect to once the flow is finished */
     exitReportID?: string;
@@ -86,8 +91,18 @@ type OpenPersonalBankAccountSetupViewProps = {
     shouldSetUpUSBankAccount?: boolean;
     isUserValidated?: boolean;
 
+    /** Hydrated state used to determine whether an unfinished setup can be resumed */
+    resumeState?: PersonalBankAccountResumeState;
+
     /** Route to navigate to after adding a bank account when the KYC flow should continue */
     onSuccessFallbackRoute?: Route;
+};
+
+type OpenWalletPersonalBankAccountSetupProps = {
+    personalBankAccount: OnyxEntry<PersonalBankAccount>;
+    personalDraft: OnyxEntry<Partial<Pick<PersonalBankAccountForm, 'setupType'>>>;
+    internationalDraft: OnyxEntry<InternationalBankAccountForm>;
+    isUserValidated?: boolean;
 };
 
 type VBBAOnyxKey =
@@ -118,10 +133,9 @@ function setPlaidEvent(eventName: string | null) {
 }
 
 /**
- * Opens the personal bank account setup flow and resets PERSONAL_BANK_ACCOUNT state before navigation.
- * Any existing PERSONAL_BANK_ACCOUNT data is fully replaced with only the fields passed to this function,
- * so callers that pass no parameters (e.g. Wallet > Add bank account) clear all existing data including
- * a leftover onSuccessFallbackRoute from a previous flow.
+ * Opens the personal bank-account setup flow.
+ * A compatible unfinished reimbursement setup is resumed; otherwise, existing setup state is replaced with
+ * only the supplied entry context so stale data from another flow cannot leak into the new setup.
  */
 function openPersonalBankAccountSetupView({
     exitReportID,
@@ -129,8 +143,33 @@ function openPersonalBankAccountSetupView({
     source,
     shouldSetUpUSBankAccount = false,
     isUserValidated = true,
+    resumeState,
     onSuccessFallbackRoute,
 }: OpenPersonalBankAccountSetupViewProps) {
+    const resumablePersonalBankAccount = resumeState?.personalBankAccount;
+    if (
+        !!exitReportID &&
+        !!resumablePersonalBankAccount &&
+        resumablePersonalBankAccount.exitReportID === exitReportID &&
+        !resumablePersonalBankAccount.shouldShowSuccess &&
+        !!resumeState?.personalDraft?.setupType
+    ) {
+        const setPersonalBankAccount = Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
+            exitReportID,
+            currentPage: resumablePersonalBankAccount.currentPage,
+            currentPageAction: resumablePersonalBankAccount.currentPageAction,
+            ...(resumablePersonalBankAccount.editDraftSnapshot ? {editDraftSnapshot: resumablePersonalBankAccount.editDraftSnapshot} : {}),
+        });
+
+        if (!isUserValidated) {
+            setPersonalBankAccount.then(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.getRoute(true, true))));
+            return;
+        }
+
+        setPersonalBankAccount.then(() => Navigation.navigate(ROUTES.BANK_ACCOUNT_PERSONAL.getRoute()));
+        return;
+    }
+
     clearInternationalBankAccount().then(() => {
         const personalBankAccountState: Partial<PersonalBankAccount> = {};
 
@@ -162,6 +201,40 @@ function openPersonalBankAccountSetupView({
         }
         Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(Navigation.getActiveRoute()));
     });
+}
+
+/** Opens a new Wallet-owned personal setup or resumes a compatible unfinished setup after its Onyx state has hydrated. */
+function openWalletPersonalBankAccountSetup({personalBankAccount, personalDraft, internationalDraft, isUserValidated = true}: OpenWalletPersonalBankAccountSetupProps) {
+    const hasPersonalProgress = !!personalDraft?.setupType;
+    const hasInternationalProgress = !!internationalDraft?.bankCountry;
+    const shouldResume = personalBankAccount?.source === CONST.BANK_ACCOUNT.SOURCE.WALLET && !personalBankAccount.shouldShowSuccess && (hasPersonalProgress || hasInternationalProgress);
+
+    if (!shouldResume) {
+        Onyx.set(ONYXKEYS.FORMS.HOME_ADDRESS_FORM_DRAFT, null);
+        openPersonalBankAccountSetupView({isUserValidated, source: CONST.BANK_ACCOUNT.SOURCE.WALLET});
+        return;
+    }
+
+    // Replace entry-specific metadata from another flow while retaining only the Wallet resume location.
+    const setPersonalBankAccount = Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
+        source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+        currentPage: personalBankAccount.currentPage,
+        currentPageAction: personalBankAccount.currentPageAction,
+        ...(personalBankAccount.editDraftSnapshot ? {editDraftSnapshot: personalBankAccount.editDraftSnapshot} : {}),
+    });
+
+    if (!isUserValidated) {
+        setPersonalBankAccount.then(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.getRoute(true, hasPersonalProgress))));
+        return;
+    }
+
+    if (personalDraft?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL || personalDraft?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
+        setPersonalBankAccount.then(() => Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute()));
+        return;
+    }
+
+    const backTo = Navigation.getActiveRoute();
+    setPersonalBankAccount.then(() => Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(backTo)));
 }
 
 /**
@@ -329,6 +402,26 @@ function clearPersonalBankAccount(preservedData?: Partial<PersonalBankAccount>) 
     clearPersonalBankAccountSetupType();
 }
 
+/** Clears setup progress while retaining the context needed to return to the flow that opened bank account setup. */
+function clearPersonalBankAccountPreservingEntryContext(personalBankAccount: OnyxEntry<PersonalBankAccount>) {
+    const preservedData: Partial<PersonalBankAccount> = {};
+
+    if (personalBankAccount?.exitReportID) {
+        preservedData.exitReportID = personalBankAccount.exitReportID;
+    }
+    if (personalBankAccount?.policyID) {
+        preservedData.policyID = personalBankAccount.policyID;
+    }
+    if (personalBankAccount?.source) {
+        preservedData.source = personalBankAccount.source;
+    }
+    if (personalBankAccount?.onSuccessFallbackRoute) {
+        preservedData.onSuccessFallbackRoute = personalBankAccount.onSuccessFallbackRoute;
+    }
+
+    clearPersonalBankAccount(Object.keys(preservedData).length > 0 ? preservedData : undefined);
+}
+
 /** Resets state and seeds drafts via Onyx.set to avoid set/merge races. */
 function resetPersonalBankAccountForUpdate(bankAccountID: number, personalBankAccountDraft?: Partial<PersonalBankAccountForm>, homeAddressDraft?: Record<string, string | undefined>) {
     clearPlaid();
@@ -344,6 +437,42 @@ function clearOnfidoToken() {
 
 function updateAddPersonalBankAccountDraft(bankData: Partial<PersonalBankAccountForm>) {
     Onyx.merge(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, bankData);
+}
+
+function finishPersonalBankAccountEdit(currentPage: string) {
+    Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
+        currentPage,
+        currentPageAction: null,
+        editDraftSnapshot: null,
+    });
+}
+
+function startPersonalBankAccountEdit(currentPage: string, editDraftSnapshot: NonNullable<PersonalBankAccount['editDraftSnapshot']>) {
+    Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
+        currentPage,
+        currentPageAction: 'edit',
+        editDraftSnapshot,
+    });
+}
+
+function cancelPersonalBankAccountEdit(editDraftSnapshot: PersonalBankAccount['editDraftSnapshot'], currentPage: string) {
+    if (editDraftSnapshot) {
+        if (editDraftSnapshot.personalBankAccountDraft !== undefined) {
+            Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, editDraftSnapshot.personalBankAccountDraft);
+        }
+        if (editDraftSnapshot.homeAddressDraft !== undefined) {
+            Onyx.set(ONYXKEYS.FORMS.HOME_ADDRESS_FORM_DRAFT, editDraftSnapshot.homeAddressDraft);
+        }
+        if (editDraftSnapshot.internationalBankAccountDraft !== undefined) {
+            Onyx.set(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT, editDraftSnapshot.internationalBankAccountDraft);
+        }
+    }
+
+    finishPersonalBankAccountEdit(currentPage);
+}
+
+function updatePersonalBankAccountCurrentPage(currentPage: string, currentPageAction?: 'edit') {
+    Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {currentPage, currentPageAction: currentPageAction ?? null});
 }
 
 /**
@@ -849,6 +978,8 @@ function getCorpayBankAccountFields(country: string, currency: string) {
                 value: {
                     isLoading: false,
                     isSuccess: true,
+                    isWithdrawal: true,
+                    isBusinessBankAccount: true,
                 },
             },
         ],
@@ -1228,6 +1359,10 @@ function clearCorpayBankAccountFields() {
     Onyx.set(ONYXKEYS.CORPAY_FIELDS, null);
 }
 
+function clearCorpayFieldsError() {
+    Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {corpayFieldsError: null});
+}
+
 function clearReimbursementAccountBankCreation() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isCreateCorpayBankAccount: null, isSuccess: null, isLoading: null});
 }
@@ -1477,8 +1612,8 @@ function validatePlaidSelection(values: FormOnyxValues<AccountFormValues>, trans
     return errorFields;
 }
 
-function fetchCorpayFields(bankCountry: string, bankCurrency?: string, isWithdrawal?: boolean, isBusinessBankAccount?: boolean) {
-    API.write(
+function fetchCorpayFields(bankCountry: string, bankCurrency?: string, isWithdrawal?: boolean, isBusinessBankAccount?: boolean, options: {preserveExistingDraft?: boolean} = {}) {
+    return API.write(
         WRITE_COMMANDS.GET_CORPAY_BANK_ACCOUNT_FIELDS,
         {countryISO: bankCountry, currency: bankCurrency, isWithdrawal, isBusinessBankAccount},
         {
@@ -1488,10 +1623,11 @@ function fetchCorpayFields(bankCountry: string, bankCurrency?: string, isWithdra
                     key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                     value: {
                         isLoading: true,
+                        corpayFieldsError: null,
                     },
                 },
                 {
-                    onyxMethod: Onyx.METHOD.SET,
+                    onyxMethod: options.preserveExistingDraft ? Onyx.METHOD.MERGE : Onyx.METHOD.SET,
                     key: ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT,
                     value: {
                         bankCountry,
@@ -1505,6 +1641,33 @@ function fetchCorpayFields(bankCountry: string, bankCurrency?: string, isWithdra
                     key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                     value: {
                         isLoading: false,
+                    },
+                },
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
+                    value: {
+                        isLoading: false,
+                        corpayFieldsError: 'common.genericErrorMessage',
+                    },
+                },
+            ],
+            successData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
+                    value: {
+                        corpayFieldsError: null,
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.CORPAY_FIELDS,
+                    value: {
+                        isWithdrawal: !!isWithdrawal,
+                        isBusinessBankAccount: !!isBusinessBankAccount,
                     },
                 },
             ],
@@ -1580,7 +1743,7 @@ function createCorpayBankAccountForWalletFlow(data: InternationalBankAccountForm
         inputs: JSON.stringify(inputData),
     };
 
-    const onyxData: OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT> = {
+    const onyxData: OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT | typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1601,6 +1764,11 @@ function createCorpayBankAccountForWalletFlow(data: InternationalBankAccountForm
                     errors: null,
                     isSuccess: true,
                 },
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT,
+                value: null,
             },
         ],
         failureData: [
@@ -1900,6 +2068,8 @@ export {
     addPersonalBankAccount,
     clearOnfidoToken,
     clearPersonalBankAccount,
+    clearPersonalBankAccountPreservingEntryContext,
+    clearInternationalBankAccount,
     setPersonalBankAccountContinueKYCOnSuccess,
     resetPersonalBankAccountForUpdate,
     setPlaidEvent,
@@ -1910,6 +2080,7 @@ export {
     deletePaymentBankAccount,
     handlePlaidError,
     openPersonalBankAccountSetupView,
+    openWalletPersonalBankAccountSetup,
     openReimbursementAccountPage,
     updateBeneficialOwnersForBankAccount,
     updateCompanyInformationForBankAccount,
@@ -1919,7 +2090,11 @@ export {
     verifyIdentityForBankAccount,
     setReimbursementAccountLoading,
     openPersonalBankAccountSetupWithPlaid,
+    cancelPersonalBankAccountEdit,
+    finishPersonalBankAccountEdit,
+    startPersonalBankAccountEdit,
     updateAddPersonalBankAccountDraft,
+    updatePersonalBankAccountCurrentPage,
     clearPersonalBankAccountSetupType,
     validatePlaidSelection,
     fetchCorpayFields,
@@ -1939,6 +2114,7 @@ export {
     clearReimbursementAccountSaveCorpayOnboardingBeneficialOwners,
     clearReimbursementAccountSaveCorpayOnboardingDirectorInformation,
     clearCorpayBankAccountFields,
+    clearCorpayFieldsError,
     finishCorpayBankAccountOnboarding,
     shareBankAccountAndSetPayer,
     clearReimbursementAccountFinishCorpayBankAccountOnboarding,

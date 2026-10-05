@@ -1,14 +1,18 @@
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
+import {cancelReimbursementAccountEdit, clearReimbursementAccount, finishReimbursementAccountEdit, startReimbursementAccountEdit} from '@src/libs/actions/ReimbursementAccount';
 import resetNonUSDBankAccount from '@src/libs/actions/ReimbursementAccount/resetNonUSDBankAccount';
 import resetUSDBankAccount from '@src/libs/actions/ReimbursementAccount/resetUSDBankAccount';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReimbursementAccountForm} from '@src/types/form';
 import type {ACHAccount} from '@src/types/onyx/Policy';
 
 import Onyx from 'react-native-onyx';
 
 import type {MockFetch} from '../utils/TestHelper';
 
+import createMock from '../utils/createMock';
+import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -43,6 +47,67 @@ describe('ReimbursementAccount', () => {
         IntlStore.load(CONST.LOCALES.EN);
         return Onyx.clear().then(waitForBatchedUpdates);
     });
+
+    describe('confirmation-page edit', () => {
+        it('restores the previous draft when an edit is canceled', async () => {
+            // Given a confirmed draft was snapshotted before entering edit mode
+            const originalDraft = createMock<ReimbursementAccountForm>({companyName: 'Original company'});
+            await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, originalDraft);
+
+            // When an unconfirmed value is entered and the edit is canceled
+            startReimbursementAccountEdit(originalDraft);
+            await Onyx.merge(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {companyName: 'Unconfirmed company'});
+            await waitForBatchedUpdates();
+
+            const draft = await getOnyxValue(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+            cancelReimbursementAccountEdit(draft?.editDraftSnapshot);
+            await waitForBatchedUpdates();
+
+            // Then the original draft is restored without retaining edit metadata
+            expect(await getOnyxValue(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT)).toEqual(originalDraft);
+            expect((await getOnyxValue(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT))?.editDraftSnapshot).toBeUndefined();
+        });
+
+        it('keeps the edited draft when an edit is confirmed', async () => {
+            // Given a confirmed draft was snapshotted before entering edit mode
+            const originalDraft = createMock<ReimbursementAccountForm>({companyName: 'Original company'});
+            const editedDraft = {companyName: 'Confirmed company'};
+            await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, originalDraft);
+
+            // When the edited value is confirmed
+            startReimbursementAccountEdit(originalDraft);
+            await Onyx.merge(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, editedDraft);
+            finishReimbursementAccountEdit();
+            await waitForBatchedUpdates();
+
+            // Then the edited value remains and the cancellation snapshot is cleared
+            expect(await getOnyxValue(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT)).toEqual(editedDraft);
+            expect((await getOnyxValue(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT))?.editDraftSnapshot).toBeUndefined();
+        });
+
+        it('restores the previous draft after the account state is cleared during dismissal', async () => {
+            // Given an edit has both a confirmed snapshot and an unconfirmed persisted value
+            const originalDraft = createMock<ReimbursementAccountForm>({firstName: 'Alberta 1', lastName: 'Charleson'});
+            await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, originalDraft);
+
+            // When the surrounding account state is cleared during dismissal and the reopened edit is canceled
+            startReimbursementAccountEdit(originalDraft);
+            await Onyx.merge(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {firstName: 'Alberta'});
+            clearReimbursementAccount();
+            await waitForBatchedUpdates();
+
+            const reopenedDraft = await getOnyxValue(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+            expect(reopenedDraft?.firstName).toBe('Alberta');
+            expect(reopenedDraft?.editDraftSnapshot).toEqual(originalDraft);
+
+            cancelReimbursementAccountEdit(reopenedDraft?.editDraftSnapshot);
+            await waitForBatchedUpdates();
+
+            // Then the confirmed values from before the edit are restored
+            expect(await getOnyxValue(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT)).toEqual(originalDraft);
+        });
+    });
+
     describe('resetUSDBankAccount', () => {
         afterEach(() => {
             mockFetch?.resume?.();

@@ -1,3 +1,5 @@
+import FormDraftPersistenceContext from '@components/Form/FormDraftPersistenceContext';
+
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -5,13 +7,16 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/types';
 
+import {setDraftValues} from '@userActions/FormActions';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-import React, {useCallback, useMemo} from 'react';
+import {useIsFocused} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 
 import type NonUSDPageProps from './types';
@@ -65,11 +70,25 @@ function NonUSDVerifiedBankAccountFlowPage({route}: NonUSDVerifiedBankAccountFlo
     const policyID = route.params?.policyID;
     const currentPage = route.params?.page;
     const currentSubPage = route.params?.subPage;
+    const currentPageAction = route.params?.action;
     const backTo = route.params?.backTo;
+    const isFocused = useIsFocused();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const isComingFromExpensifyCard = reimbursementAccountDraft?.isComingFromExpensifyCard;
+
+    useEffect(() => {
+        if (!isFocused || backTo !== ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE || !currentPage) {
+            return;
+        }
+
+        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {
+            currentPage,
+            currentSubPage: currentSubPage ?? null,
+            currentPageAction: currentPageAction ?? null,
+        });
+    }, [backTo, currentPage, currentPageAction, currentSubPage, isFocused]);
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const currency = policy?.outputCurrency ?? reimbursementAccountDraft?.currency ?? CONST.BBA_COUNTRY_CURRENCY_MAP[reimbursementAccount?.achData?.country ?? ''] ?? '';
@@ -127,16 +146,18 @@ function NonUSDVerifiedBankAccountFlowPage({route}: NonUSDVerifiedBankAccountFlo
 
     return (
         <View style={[styles.flex1, styles.appBG]}>
-            <CurrentPage
-                onSubmit={onSubmit}
-                onBackButtonPress={onBackButtonPress}
-                policyID={policyID}
-                currency={currency}
-                stepNames={stepNames}
-                currentSubPage={currentSubPage}
-                isComingFromExpensifyCard={isComingFromExpensifyCard}
-                backTo={backTo}
-            />
+            <FormDraftPersistenceContext.Provider value={backTo === ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE && currentPageAction === 'edit'}>
+                <CurrentPage
+                    onSubmit={onSubmit}
+                    onBackButtonPress={onBackButtonPress}
+                    policyID={policyID}
+                    currency={currency}
+                    stepNames={stepNames}
+                    currentSubPage={currentSubPage}
+                    isComingFromExpensifyCard={isComingFromExpensifyCard}
+                    backTo={backTo}
+                />
+            </FormDraftPersistenceContext.Provider>
         </View>
     );
 }

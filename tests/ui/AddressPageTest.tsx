@@ -61,6 +61,14 @@ describe('AddressPageTest', () => {
         });
         await waitForBatchedUpdatesWithAct();
     });
+
+    afterEach(async () => {
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.FORMS.HOME_ADDRESS_FORM_DRAFT, null);
+        });
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should not reset state', async () => {
         await TestHelper.signInWithTestUser();
         await act(async () => {
@@ -83,8 +91,10 @@ describe('AddressPageTest', () => {
         await waitForBatchedUpdatesWithAct();
         const stateInput = screen.getByLabelText('State / Province');
         expect(stateInput.props.value).toEqual('Test');
-        Navigation.setParams({
-            country: 'VN',
+        act(() => {
+            Navigation.setParams({
+                country: 'VN',
+            });
         });
         await waitForBatchedUpdatesWithAct();
         const stateInputAfterParams = screen.getByLabelText('State / Province');
@@ -112,6 +122,33 @@ describe('AddressPageTest', () => {
 
         await waitForBatchedUpdatesWithAct();
         expect(screen.getByDisplayValue('Suite 500')).toBeDefined();
+    });
+
+    it('should ignore stale address line 2 draft values when drafts are not enabled', async () => {
+        await TestHelper.signInWithTestUser();
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.FORMS.HOME_ADDRESS_FORM_DRAFT, {
+                addressLine2: 'Bank test 123',
+            });
+            await Onyx.merge(`${ONYXKEYS.PRIVATE_PERSONAL_DETAILS}`, {
+                addresses: [
+                    {
+                        country: 'US',
+                        street: '123 Main St',
+                        street2: 'Suite 500',
+                    },
+                ],
+            });
+            await Onyx.merge(`${ONYXKEYS.IS_LOADING_APP}`, false);
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
+        renderPage(SCREENS.SETTINGS.PROFILE.ADDRESS);
+
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByDisplayValue('Suite 500')).toBeDefined();
+        expect(screen.queryByDisplayValue('Bank test 123')).toBeNull();
     });
 
     it('should prefill address line 2 from legacy newline when street2 is missing', async () => {
