@@ -115,10 +115,13 @@ jest.mock('@libs/ReportUtils', () => {
     };
 });
 
-// The violations confirmation gate is exercised by its own tests; here it just proceeds straight to the submission.
+// The violations confirmation gate itself is exercised by its own tests; here it just proceeds straight to the
+// submission. The mock is still spied on so a test can assert which violations collection reached it, since it must
+// agree with the strict-policy-rules gate below on which violations are dismissed.
+const mockedUseConfirmSubmitReportViolations = jest.fn((_params: unknown) => (proceed: (shouldResolveAcknowledgedViolations?: boolean) => void) => proceed());
 jest.mock('@hooks/useConfirmSubmitReportViolations', () => ({
     __esModule: true,
-    default: jest.fn(() => (proceed: (shouldResolveAcknowledgedViolations?: boolean) => void) => proceed()),
+    default: (params: unknown) => mockedUseConfirmSubmitReportViolations(params),
 }));
 
 // SubmitActionButton reads from context instead of props; these mock-prefixed objects back the mocked slice hooks.
@@ -281,14 +284,12 @@ describe('SubmitActionButton', () => {
         // Then the filter ran with the full context the report header's filter uses, and the gate received the filtered
         // collection instead of the raw context slice, so the two Submit buttons cannot disagree on dismissed violations
         expect(mockedGetTransactionViolations).toHaveBeenCalledWith(reportTransactions.at(0), reportViolations, TEST_EMAIL, TEST_ACCOUNT_ID, iouReport, undefined, undefined);
-        expect(mockedShouldBlockSubmitDueToStrictPolicyRules).toHaveBeenCalledWith(
-            TEST_IOU_REPORT_ID,
-            {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TEST_TRANSACTION_ID}`]: []},
-            true,
-            TEST_ACCOUNT_ID,
-            TEST_EMAIL,
-            reportTransactions,
-        );
+        const filteredViolationsCollection = {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TEST_TRANSACTION_ID}`]: []};
+        expect(mockedShouldBlockSubmitDueToStrictPolicyRules).toHaveBeenCalledWith(TEST_IOU_REPORT_ID, filteredViolationsCollection, true, TEST_ACCOUNT_ID, TEST_EMAIL, reportTransactions);
+
+        // Then the violations-confirmation gate received the exact same filtered collection, so the two gates cannot
+        // disagree on which violations the submitter has already dismissed
+        expect(mockedUseConfirmSubmitReportViolations).toHaveBeenCalledWith(expect.objectContaining({violationsCollection: filteredViolationsCollection}));
     });
 
     it('does not open the submit-to popover on a submit policy when strict policy rules block the report', () => {

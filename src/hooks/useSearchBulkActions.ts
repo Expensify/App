@@ -64,7 +64,6 @@ import {
     getPolicyExpenseChat,
     getReportOrDraftReport,
     hasOnlyHeldExpenses,
-    hasReportBeenRejectedToSubmitter,
     hasViolations as hasViolationsReportUtils,
     isArchivedReport,
     isBusinessInvoiceRoom,
@@ -110,12 +109,15 @@ import {
     isManualDistanceRequest,
     isOdometerDistanceRequest,
     isPending,
-    isPendingRTERViolation,
     isPerDiemRequest,
     isScanning,
-    shouldShowViolation,
 } from '@libs/TransactionUtils';
-import {getReportSubmitViolationSummary, hasAnySubmitViolation, shouldResolveAcknowledged} from '@libs/Violations/getReportSubmitViolationSummary';
+import {
+    getReportSubmitViolationSummary,
+    hasAnySubmitViolation,
+    mergeReportSubmitViolationSummaries,
+    shouldResolveAcknowledgedViolations,
+} from '@libs/Violations/getReportSubmitViolationSummary';
 import showSubmitViolationsConfirmModal from '@libs/Violations/showSubmitViolationsConfirmModal';
 
 import variables from '@styles/variables';
@@ -2764,20 +2766,18 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         if (snapshotReport) {
                             openSearchReportSubmitToPopover(reportIDForSubmit, {
                                 onSubmitWithManagerEmail: (managerEmail, managerAccountID, shouldResolveAcknowledgedViolations) => {
-                                    submitMoneyRequestOnSearch(
+                                    submitMoneyRequestOnSearch({
                                         hash,
-                                        [snapshotReport],
-                                        [policyForSubmit],
-                                        getLoginByAccountID(snapshotReport.ownerAccountID, personalDetails),
+                                        reportList: [snapshotReport],
+                                        policy: [policyForSubmit],
+                                        submitterLogin: getLoginByAccountID(snapshotReport.ownerAccountID, personalDetails),
                                         getCurrencyDecimals,
                                         rules,
                                         currentSearchKey,
                                         managerEmail,
                                         managerAccountID,
-                                        undefined,
-                                        undefined,
                                         shouldResolveAcknowledgedViolations,
-                                    );
+                                    });
                                     refreshSearchAfterReportAction({
                                         currentSearchQueryJSON,
                                         currentSearchKey,
@@ -2797,54 +2797,45 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
                     // Filtered per report (rather than the raw allTransactionViolations collection) so a violation the
                     // current user already dismissed does not reappear here and disagree with the row-level Submit
-                    // buttons, which apply the same filter for the same reason.
+                    // buttons, which apply the same filter for the same reason. Kept across every report (rather than
+                    // scoped per report below) because markPendingRTERTransactionsAsCash needs it later for every report.
                     const filteredViolationsCollection: OnyxCollection<TransactionViolations> = {};
-                    // A whole-report rejection is a report-level state (nextStep), not a TransactionViolations entry, so
-                    // it can't be picked up by getReportSubmitViolationSummary's transaction loop below - checked per
-                    // report here instead, same as the single-report call sites do by passing their report in directly.
-                    let hasAnyReportBeenRejectedToSubmitter = false;
-                    for (const reportID of reportIDsToSubmit) {
+
+                    // One summary per report, each with that report's own report/policy so getReportSubmitViolationSummary
+                    // can apply its usual shouldShowViolation filtering and whole-report-rejection check itself, merged
+                    // afterwards into a single summary for one modal covering every report being submitted.
+                    const perReportSummaries = [...reportIDsToSubmit].map((reportID) => {
                         const reportForViolations = getReportFromSearchSnapshot(reportID, searchResults?.data, allReports);
                         const policyForViolations = reportForViolations?.policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportForViolations.policyID}`] : undefined;
                         const reportOwnerLogin = getLoginByAccountID(reportForViolations?.ownerAccountID, personalDetails);
-                        if (hasReportBeenRejectedToSubmitter(reportForViolations)) {
-                            hasAnyReportBeenRejectedToSubmitter = true;
-                        }
-                        for (const transaction of transactionsByReportID.get(reportID) ?? []) {
+                        const reportTransactions = transactionsByReportID.get(reportID) ?? [];
+                        const reportViolationsCollection: OnyxCollection<TransactionViolations> = {};
+
+                        for (const transaction of reportTransactions) {
+                            const violationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`;
                             const transactionViolationsForReport =
                                 getTransactionViolations(transaction, allTransactionViolations, email ?? '', accountID, reportForViolations, reportOwnerLogin, policyForViolations) ?? [];
-                            // Each report has its own policy, so this filter (unlike the dismissal filter above) can't be
-                            // delegated to getReportSubmitViolationSummary - it's called once across every selected report.
-                            // AUTO_REPORTED_REJECTED_EXPENSE and a pending RTER card-match are kept regardless of
-                            // shouldShowViolation, same as getReportSubmitViolationSummary's own loop - it checks for
-                            // their raw presence (hasTransactionBeenRejected/hasPendingRTERViolation) before any filtering.
-                            filteredViolationsCollection[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] = transactionViolationsForReport.filter(
-                                (violation) =>
-                                    violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE ||
-                                    isPendingRTERViolation(violation) ||
-                                    shouldShowViolation(reportForViolations, policyForViolations, violation.name, email ?? '', accountID, true, transaction),
-                            );
+                            reportViolationsCollection[violationsKey] = transactionViolationsForReport;
+                            filteredViolationsCollection[violationsKey] = transactionViolationsForReport;
                         }
-                    }
+
+                        return getReportSubmitViolationSummary(reportTransactions, reportViolationsCollection, reportForViolations, policyForViolations, email ?? '', accountID);
+                    });
+                    const summary = mergeReportSubmitViolationSummaries(perReportSummaries);
 
                     const runSubmit = (shouldResolveAcknowledgedViolations?: boolean) => {
                         for (const item of itemsToSubmit) {
                             const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
                             if (policy) {
-                                submitMoneyRequestOnSearch(
+                                submitMoneyRequestOnSearch({
                                     hash,
-                                    [item as Report],
-                                    [policy],
-                                    getLoginByAccountID(item.ownerAccountID, personalDetails),
+                                    reportList: [item as Report],
+                                    policy: [policy],
+                                    submitterLogin: getLoginByAccountID(item.ownerAccountID, personalDetails),
                                     getCurrencyDecimals,
                                     rules,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
                                     shouldResolveAcknowledgedViolations,
-                                );
+                                });
                             } else {
                                 Log.info('[BulkSubmit] Skipping report: policy not found in Onyx', false, {reportID: item?.reportID, policyID: item?.policyID});
                             }
@@ -2886,14 +2877,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         clearSelectedTransactions();
                     };
 
-                    // Consolidate unique violations across every report being submitted, so the modal lists each
-                    // violation once even if it appears on multiple selected reports.
-                    const submitTransactions = [...reportIDsToSubmit].flatMap((reportID) => transactionsByReportID.get(reportID) ?? []);
-                    const summary = getReportSubmitViolationSummary(submitTransactions, filteredViolationsCollection, undefined, undefined, email ?? '', accountID);
-                    if (hasAnyReportBeenRejectedToSubmitter) {
-                        summary.hasReportBeenRejected = true;
-                    }
-
                     if (!hasAnySubmitViolation(summary)) {
                         runSubmit();
                         return;
@@ -2919,7 +2902,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                                 );
                             }
                         }
-                        runSubmit(shouldResolveAcknowledged(summary));
+                        runSubmit(shouldResolveAcknowledgedViolations(summary));
                     });
                 },
             });

@@ -1,4 +1,5 @@
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -15,6 +16,9 @@ type SubmitViolationsListProps = {
     violations: string[];
 };
 
+// Centers the fixed-size dot icon against the first line of the (possibly wrapped) label text next to it.
+const dotColumnStyle = {width: variables.iconSizeExtraSmall, marginTop: (variables.lineHeightNormal - variables.iconSizeExtraSmall) / 2};
+
 /**
  * Renders each violation next to a dot icon instead of a plain unicode bullet character. The dot column has
  * a fixed width and is vertically centered against the label, and the label sits in a flex1 column so
@@ -22,6 +26,7 @@ type SubmitViolationsListProps = {
  */
 function SubmitViolationsList({violations}: SubmitViolationsListProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
 
@@ -32,7 +37,7 @@ function SubmitViolationsList({violations}: SubmitViolationsListProps) {
                     key={violation}
                     style={[styles.flexRow, styles.ph4]}
                 >
-                    <View style={[styles.alignItemsCenter, {width: variables.iconSizeExtraSmall, marginTop: (variables.lineHeightNormal - variables.iconSizeExtraSmall) / 2}]}>
+                    <View style={[styles.alignItemsCenter, dotColumnStyle]}>
                         <Icon
                             src={icons.DotIndicator}
                             fill={theme.danger}
@@ -40,7 +45,7 @@ function SubmitViolationsList({violations}: SubmitViolationsListProps) {
                             width={variables.iconSizeExtraSmall}
                         />
                     </View>
-                    <Text style={[styles.flex1, styles.ml2, styles.textLabel, {color: theme.textError}]}>{violation}</Text>
+                    <Text style={[styles.flex1, styles.ml2, styles.textLabel, StyleUtils.getColorStyle(theme.textError)]}>{violation}</Text>
                 </View>
             ))}
         </View>

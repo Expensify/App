@@ -166,7 +166,12 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
         rules,
     });
 
-    const confirmSubmitReportViolations = useConfirmSubmitReportViolations(transactions, violations, reportActions, moneyRequestReport, policy, shouldShowMarkAsDoneCopy);
+    const confirmSubmitReportViolations = useConfirmSubmitReportViolations({
+        reportID: moneyRequestReport?.reportID,
+        report: moneyRequestReport,
+        policy,
+        shouldShowMarkAsDoneCopy,
+    });
 
     const onApprove = (isFullApproval: boolean, skipAnimation = false) => {
         if (isDelegateAccessRestricted) {

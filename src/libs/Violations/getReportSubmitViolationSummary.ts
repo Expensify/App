@@ -25,8 +25,9 @@ type ReportSubmitViolationSummary = {
 };
 
 /**
- * Classifies a report's transaction violations into the three buckets shown by the "Submit report?"
- * confirmation modal: a rejected expense, a pending RTER/card-match, or everything else (informational only).
+ * Classifies a report's transaction violations into the four buckets shown by the "Submit report?" confirmation
+ * modal: a rejected expense, a whole-report rejection, a pending RTER/card-match, or everything else (informational
+ * only).
  */
 function getReportSubmitViolationSummary(
     transactions: Array<OnyxEntry<Transaction>>,
@@ -69,9 +70,8 @@ function getReportSubmitViolationSummary(
             }
 
             // Mirrors the filtering expense rows already apply, so the modal never lists a violation that's
-            // hidden from (or stale for) the current user elsewhere in the app. Skipped when there's no single
-            // report (bulk submit spans multiple reports/policies) - that caller pre-filters per report instead.
-            if (report && !shouldShowViolation(report, policy, violation.name, currentUserEmail, currentUserAccountID, true, transaction)) {
+            // hidden from (or stale for) the current user elsewhere in the app.
+            if (!shouldShowViolation(report, policy, violation.name, currentUserEmail, currentUserAccountID, true, transaction)) {
                 continue;
             }
 
@@ -122,9 +122,33 @@ function hasAnySubmitViolation(summary: ReportSubmitViolationSummary): boolean {
     return summary.hasRejectedExpense || summary.hasReportBeenRejected || summary.hasPendingCardMatch || summary.otherViolations.size > 0;
 }
 
-/** Whether confirming the modal should tell the backend to resolve the violations the submitter acknowledged. */
-function shouldResolveAcknowledged(summary: ReportSubmitViolationSummary): boolean {
+/** The shouldResolveAcknowledgedViolations flag to submit with, once the user has confirmed the modal. */
+function shouldResolveAcknowledgedViolations(summary: ReportSubmitViolationSummary): boolean {
     return summary.hasRejectedExpense || summary.hasPendingCardMatch;
 }
 
-export {getReportSubmitViolationSummary, buildSubmitViolationBullets, hasAnySubmitViolation, shouldResolveAcknowledged};
+/**
+ * Combines the per-report summaries of a multi-report (bulk) submit into one, so a single modal can list every
+ * violation across the whole selection without repeating one that appears on more than one report.
+ */
+function mergeReportSubmitViolationSummaries(summaries: ReportSubmitViolationSummary[]): ReportSubmitViolationSummary {
+    const otherViolations = new Map<ValueOf<typeof CONST.VIOLATIONS>, TransactionViolation>();
+    let hasRejectedExpense = false;
+    let hasReportBeenRejected = false;
+    let hasPendingCardMatch = false;
+
+    for (const summary of summaries) {
+        hasRejectedExpense ||= summary.hasRejectedExpense;
+        hasReportBeenRejected ||= summary.hasReportBeenRejected;
+        hasPendingCardMatch ||= summary.hasPendingCardMatch;
+        for (const [violationName, violation] of summary.otherViolations) {
+            if (!otherViolations.has(violationName)) {
+                otherViolations.set(violationName, violation);
+            }
+        }
+    }
+
+    return {hasRejectedExpense, hasReportBeenRejected, hasPendingCardMatch, otherViolations};
+}
+
+export {getReportSubmitViolationSummary, buildSubmitViolationBullets, hasAnySubmitViolation, shouldResolveAcknowledgedViolations, mergeReportSubmitViolationSummaries};

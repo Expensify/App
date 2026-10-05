@@ -22,7 +22,6 @@ import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import {search} from '@libs/actions/Search';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -110,23 +109,18 @@ function ReportSubmitToContent({
     const lazyIllustrations = useMemoizedLazyIllustrations(['PaperAirplane']);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`);
-    const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(report?.reportID);
-    const reportSubmitTransactions = useMemo(() => Object.values(reportTransactions), [reportTransactions]);
     const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         policy,
         report,
         isTrackIntentUser,
         rules,
     });
-    const confirmSubmitReportViolations = useConfirmSubmitReportViolations(
-        reportSubmitTransactions,
-        violations,
-        Object.values(reportActions ?? {}),
+    const confirmSubmitReportViolations = useConfirmSubmitReportViolations({
+        reportID: report?.reportID,
         report,
         policy,
         shouldShowMarkAsDoneCopy,
-    );
+    });
 
     const prepopulatedEmail = getSubmitToEmail(policy, report, submitterLogin, rules);
 

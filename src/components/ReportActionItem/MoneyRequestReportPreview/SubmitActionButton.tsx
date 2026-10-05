@@ -106,14 +106,15 @@ function SubmitActionButtonContent() {
         rules,
     });
 
-    const confirmSubmitReportViolations = useConfirmSubmitReportViolations(
-        transactions,
-        filteredTransactionViolations,
-        Object.values(reportActions ?? {}),
-        iouReport,
+    const confirmSubmitReportViolations = useConfirmSubmitReportViolations({
+        reportID: iouReportID,
+        report: iouReport,
         policy,
         shouldShowMarkAsDoneCopy,
-    );
+        transactions,
+        violationsCollection: filteredTransactionViolations,
+        reportActions: Object.values(reportActions ?? {}),
+    });
 
     const isBlockSubmitDueToPreventSelfApproval = shouldBlockSubmitDueToPreventSelfApproval(iouReport, policy, rules);
     const isBlockSubmitDueToStrictPolicyRules = shouldBlockSubmitDueToStrictPolicyRules(

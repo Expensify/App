@@ -1421,8 +1421,8 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmSubmitReportViolations: {
             title: 'Invia il rapporto?',
             description: 'Questo rapporto presenta violazioni delle norme. Sei sicuro di volerlo inviare senza apportare modifiche?',
-            titleMarkAsDone: 'Contrassegnare come completata?',
-            descriptionMarkAsDone: 'Questo rapporto presenta violazioni delle norme. Sei sicuro di volerlo contrassegnare come completato senza apportare modifiche?',
+            titleMarkAsDone: 'Segnare come completata?',
+            descriptionMarkAsDone: 'Questo rapporto presenta violazioni delle norme. Sei sicuro di volerlo segnare come completata senza apportare modifiche?',
             rejectedExpense: 'Spesa rifiutata non contrassegnata come risolta',
             reportRejected: 'Rapporto precedentemente rifiutato',
             pendingCardMatch: 'Spesa in attesa di un possibile abbinamento con una transazione della carta',

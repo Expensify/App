@@ -368,7 +368,7 @@ describe('useSearchBulkActions - bulk submit with blocked reports', () => {
         await waitFor(() => {
             expect(mockSubmitMoneyRequestOnSearch).toHaveBeenCalledTimes(1);
         });
-        expect(mockSubmitMoneyRequestOnSearch.mock.calls.at(0)?.at(1)).toEqual([expect.objectContaining({reportID: REPORT_B_ID})]);
+        expect(mockSubmitMoneyRequestOnSearch).toHaveBeenCalledWith(expect.objectContaining({reportList: [expect.objectContaining({reportID: REPORT_B_ID})]}));
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
         expect(mockShowConfirmModal).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -392,7 +392,7 @@ describe('useSearchBulkActions - bulk submit with blocked reports', () => {
         await waitFor(() => {
             expect(mockSubmitMoneyRequestOnSearch).toHaveBeenCalledTimes(1);
         });
-        expect(mockSubmitMoneyRequestOnSearch.mock.calls.at(0)?.at(1)).toEqual([expect.objectContaining({reportID: REPORT_C_ID})]);
+        expect(mockSubmitMoneyRequestOnSearch).toHaveBeenCalledWith(expect.objectContaining({reportList: [expect.objectContaining({reportID: REPORT_C_ID})]}));
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- this specific prompt (blocked-reports list) is always a plain string, unlike the violations modal's ReactNode prompt
         expect((mockShowConfirmModal.mock.calls.at(0)?.at(0)?.prompt as string | undefined)?.split('\n').sort()).toEqual([
@@ -471,8 +471,8 @@ describe('useSearchBulkActions - bulk submit with blocked reports', () => {
             expect(mockSubmitMoneyRequestOnSearch).toHaveBeenCalledTimes(2);
         });
         // An "other" violation (e.g. over category limit) has nothing for the backend to resolve.
-        expect(mockSubmitMoneyRequestOnSearch.mock.calls.at(0)?.at(11)).toBe(false);
-        expect(mockSubmitMoneyRequestOnSearch.mock.calls.at(1)?.at(11)).toBe(false);
+        expect(mockSubmitMoneyRequestOnSearch.mock.calls.at(0)?.at(0)?.shouldResolveAcknowledgedViolations).toBe(false);
+        expect(mockSubmitMoneyRequestOnSearch.mock.calls.at(1)?.at(0)?.shouldResolveAcknowledgedViolations).toBe(false);
     });
 
     it('marks the rejected report as resolved with the backend when the user confirms the violations modal', async () => {
@@ -492,7 +492,7 @@ describe('useSearchBulkActions - bulk submit with blocked reports', () => {
         await waitFor(() => {
             expect(mockSubmitMoneyRequestOnSearch).toHaveBeenCalledTimes(1);
         });
-        expect(mockSubmitMoneyRequestOnSearch.mock.calls.at(0)?.at(11)).toBe(true);
+        expect(mockSubmitMoneyRequestOnSearch.mock.calls.at(0)?.at(0)?.shouldResolveAcknowledgedViolations).toBe(true);
     });
 
     it('does not submit when the user cancels the violations confirmation modal', async () => {

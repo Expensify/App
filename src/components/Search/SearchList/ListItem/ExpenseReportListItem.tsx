@@ -18,7 +18,6 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHoldMenuModal from '@hooks/useHoldMenuModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLiveReportActionsForViolations from '@hooks/useLiveReportActionsForViolations';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useReportPaymentContext} from '@hooks/usePaymentContext';
@@ -220,15 +219,14 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const {shouldDisableSearchSubmitPress, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
     const {transactions: reportTransactions, violations: reportViolations} = useTransactionsAndViolationsForReport(reportItem.reportID);
     const liveReportTransactions = useMemo(() => Object.values(reportTransactions), [reportTransactions]);
-    const liveReportActionsForViolations = useLiveReportActionsForViolations(reportItem.reportID);
-    const confirmSubmitReportViolations = useConfirmSubmitReportViolations(
-        liveReportTransactions,
-        reportViolations,
-        liveReportActionsForViolations,
-        reportForViolations,
-        policyForViolations,
+    const confirmSubmitReportViolations = useConfirmSubmitReportViolations({
+        reportID: reportItem.reportID,
+        report: reportForViolations,
+        policy: policyForViolations,
         shouldShowMarkAsDoneCopy,
-    );
+        transactions: liveReportTransactions,
+        violationsCollection: reportViolations,
+    });
 
     // Recompute the violations badge from live data at the row, replacing the screen-level
     // violations merge that getSections previously did. Policy comes from the live `policyForViolations`

@@ -105,7 +105,7 @@ jest.mock('@libs/PolicyUtils', () => ({
 jest.mock('@libs/ReportUtils', () => ({
     hasViolations: jest.fn(() => false),
     isExpenseReport: jest.fn(() => true),
-    isManuallyRejectedReport: jest.fn(() => false),
+    hasReportBeenRejectedToSubmitter: jest.fn(() => false),
     isMoneyRequestReportPendingDeletion: jest.fn(() => false),
     shouldShowMarkAsDone: jest.fn(() => false),
 }));
