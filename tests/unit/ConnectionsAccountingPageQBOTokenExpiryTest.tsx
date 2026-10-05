@@ -8,7 +8,7 @@ import type TextComponent from '@components/Text';
 
 import DateUtils from '@libs/DateUtils';
 
-import PolicyAccountingPage from '@pages/workspace/accounting/PolicyAccountingPage';
+import ConnectionsAccountingPage from '@pages/workspace/connections/ConnectionsAccountingPage';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -79,19 +79,19 @@ jest.mock('@components/ScrollView', () => ({
     default: ({children}: {children: React.ReactNode}) => children,
 }));
 
-jest.mock('@components/HeaderWithBackButton', () => ({__esModule: true, default: () => null}));
 jest.mock('@components/MenuItemList', () => ({__esModule: true, default: () => null}));
 jest.mock('@components/Section', () => ({__esModule: true, default: ({children}: {children: React.ReactNode}) => children}));
 jest.mock('@components/CollapsibleSection', () => ({__esModule: true, default: () => null}));
 jest.mock('@components/ActivityIndicator', () => ({__esModule: true, default: () => null}));
 
-// The real menu only renders its entries inside a popover once pressed. Rendering their labels inline lets the tests
+// The header's three-dot menu only renders its entries inside a popover once pressed. Rendering their labels inline lets the tests
 // read which credentials entry the page offers without driving the popover.
-jest.mock('@components/ThreeDotsMenu', () => {
+jest.mock('@components/HeaderWithBackButton', () => {
     const {default: MockText} = jest.requireActual<{default: typeof TextComponent}>('@components/Text');
     return {
         __esModule: true,
-        default: ({menuItems}: {menuItems: PopoverMenuItem[]}) => menuItems.map((menuItem) => <MockText key={menuItem.text}>{`${OVERFLOW_MENU_ITEM_PREFIX}${menuItem.text}`}</MockText>),
+        default: ({threeDotsMenuItems, shouldShowThreeDotsButton}: {threeDotsMenuItems?: PopoverMenuItem[]; shouldShowThreeDotsButton?: boolean}) =>
+            shouldShowThreeDotsButton ? threeDotsMenuItems?.map((menuItem) => <MockText key={menuItem.text}>{`${OVERFLOW_MENU_ITEM_PREFIX}${menuItem.text}`}</MockText>) : null,
     };
 });
 
@@ -103,7 +103,7 @@ jest.mock('@hooks/usePolicyFeatureWriteAccess', () => ({
 // The real `withPolicyConnections` HOC reads `policy` from Onyx and strips it from the component's public props. It is
 // mocked to an identity wrapper above, so the component under test takes `policy` directly.
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only: the HOC that would inject `policy` is mocked out, so it is passed as a prop here
-const PolicyAccountingPageUnderTest = PolicyAccountingPage as unknown as React.ComponentType<{policy: Policy}>;
+const ConnectionsAccountingPageUnderTest = ConnectionsAccountingPage as unknown as React.ComponentType<{policy: Policy}>;
 
 /**
  * A healthy QBO connection (synced, no error) whose refresh token expires at the given time. `data` is populated so the
@@ -141,13 +141,13 @@ function formatExpiryDate(expiryDate: Date): string {
 async function renderPage(policy: Policy) {
     render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <PolicyAccountingPageUnderTest policy={policy} />
+            <ConnectionsAccountingPageUnderTest policy={policy} />
         </ComposeProviders>,
     );
     await waitForBatchedUpdates();
 }
 
-describe('PolicyAccountingPage QBO refresh token expiry warning', () => {
+describe('ConnectionsAccountingPage QBO refresh token expiry warning', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
         IntlStore.load(CONST.LOCALES.EN);

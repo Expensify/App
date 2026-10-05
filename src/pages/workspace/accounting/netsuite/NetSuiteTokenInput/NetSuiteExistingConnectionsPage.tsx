@@ -2,6 +2,7 @@ import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemList from '@components/MenuItemList';
 
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useReusablePoliciesConnectedTo from '@hooks/useReusablePoliciesConnectedTo';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -10,8 +11,9 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
+import {getAccountingConnectionsRoute} from '@pages/workspace/connections/utils';
+
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
@@ -23,6 +25,8 @@ function NetSuiteExistingConnectionsPage({route}: ExistingConnectionsPageProps) 
     const {translate, datetimeToRelative} = useLocalize();
     const styles = useThemeStyles();
     const policyID: string = route.params.policyID;
+    const {isBetaEnabled} = usePermissions();
+    const accountingConnectionsRoute = getAccountingConnectionsRoute(isBetaEnabled(CONST.BETAS.UNIFIED_CONNECTIONS), policyID);
     const {reusablePoliciesConnectedTo: reusablePoliciesConnectedToNetSuite} = useReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.NETSUITE, policyID);
 
     const menuItems = reusablePoliciesConnectedToNetSuite.map((policy) => {
@@ -37,7 +41,7 @@ function NetSuiteExistingConnectionsPage({route}: ExistingConnectionsPageProps) 
             description: date ? translate('workspace.common.lastSyncDate', CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.netsuite, date) : translate('workspace.accounting.netsuite'),
             onPress: () => {
                 copyExistingPolicyConnection(policy.id, policyID, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
-                Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID));
+                Navigation.goBack(accountingConnectionsRoute);
             },
         };
     });
@@ -53,7 +57,7 @@ function NetSuiteExistingConnectionsPage({route}: ExistingConnectionsPageProps) 
             titleStyle={styles.ph5}
             shouldLoadForEmptyConnection
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID))}
+            onBackButtonPress={() => Navigation.goBack(accountingConnectionsRoute)}
         >
             <View style={[styles.flex1]}>
                 <MenuItemList

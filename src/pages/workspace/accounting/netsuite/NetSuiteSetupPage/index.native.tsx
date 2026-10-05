@@ -1,10 +1,13 @@
+import usePermissions from '@hooks/usePermissions';
+
 import {getNetSuiteSetupLink} from '@libs/actions/connections/NetSuiteCommands';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import AccountingSetupWebViewPage from '@pages/workspace/accounting/AccountingSetupWebViewPage';
+import {getAccountingConnectionsRoute} from '@pages/workspace/connections/utils';
 
-import ROUTES from '@src/ROUTES';
+import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
@@ -14,6 +17,7 @@ type NetSuiteSetupPageProps = PlatformStackScreenProps<SettingsNavigatorParamLis
 function NetSuiteSetupPage({route}: NetSuiteSetupPageProps) {
     const policyID = route.params.policyID;
     const accountID = route.params.accountID;
+    const {isBetaEnabled} = usePermissions();
 
     if (!accountID) {
         return null;
@@ -24,7 +28,7 @@ function NetSuiteSetupPage({route}: NetSuiteSetupPageProps) {
             uri={getNetSuiteSetupLink(policyID, accountID)}
             testID="NetSuiteSetupPage"
             shouldAppendShortLivedAuthToken
-            backTo={ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID)}
+            backTo={getAccountingConnectionsRoute(isBetaEnabled(CONST.BETAS.UNIFIED_CONNECTIONS), policyID)}
         />
     );
 }

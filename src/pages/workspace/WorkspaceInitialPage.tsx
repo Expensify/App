@@ -48,6 +48,7 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {LayoutChangeEvent} from 'react-native';
+import type {TupleToUnion} from 'type-fest';
 
 import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigationState} from '@react-navigation/native';
 import {createHasExpenseDefaultRuleErrorsSelector} from '@selectors/Rule';
@@ -113,7 +114,9 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         'Gear',
         'Hashtag',
         'InvoiceGeneric',
+        'Receipt',
         'Briefcase',
+        'Sync',
         'Connect',
         'Tag',
         'Users',
@@ -121,6 +124,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         'LuggageWithLines',
         'Clock',
         'Bolt',
+        'Bot',
+        'UserPlus',
     ]);
 
     const policyName = policy?.name ?? '';
@@ -195,6 +200,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         shouldShowEnterCredentialsError,
         shouldShowRBR,
         isVendorMatchingBetaEnabled: isBetaEnabled(CONST.BETAS.VENDOR_MATCHING),
+        isRecruitingBetaEnabled: isBetaEnabled(CONST.BETAS.MERGE_ATS),
+        isUnifiedConnectionsBetaEnabled: isBetaEnabled(CONST.BETAS.UNIFIED_CONNECTIONS),
         convertToDisplayString,
     }).map((item) => ({
         ...item,
@@ -229,7 +236,9 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         </View>
     );
     // Close RHP if we land on a route that no longer exists in the menu
-    const canAccessRoute = activeRoute && (workspaceMenuItems.some((item) => item.screenName === activeRoute) || activeRoute === SCREENS.WORKSPACE.INITIAL);
+    const getItemScreenNames = (item: TupleToUnion<typeof workspaceMenuItems>) => [item.screenName, ...(item.aliasScreenNames ?? [])];
+    const canAccessRoute =
+        activeRoute && (workspaceMenuItems.some((item) => getItemScreenNames(item).some((screenName) => screenName === activeRoute)) || activeRoute === SCREENS.WORKSPACE.INITIAL);
     useEffect(() => {
         if (!shouldShowNotFoundPage && canAccessRoute) {
             return;
@@ -315,7 +324,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                 return (
                                     <HighlightableMenuItem
                                         key={item.translationKey}
-                                        disabled={hasPolicyCreationError || (isExecuting && !(item.screenName && activeRoute?.startsWith(item.screenName)))}
+                                        disabled={hasPolicyCreationError || (isExecuting && !getItemScreenNames(item).some((screenName) => activeRoute?.startsWith(screenName)))}
                                         interactive={!hasPolicyCreationError}
                                         title={translate(item.translationKey)}
                                         icon={item.icon}
@@ -323,7 +332,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                         brickRoadIndicator={item.brickRoadIndicator}
                                         wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
                                         highlighted={!!item?.highlighted}
-                                        focused={!!(item.screenName && activeRoute?.startsWith(item.screenName))}
+                                        focused={getItemScreenNames(item).some((screenName) => activeRoute?.startsWith(screenName))}
                                         role={CONST.ROLE.TAB}
                                         badgeText={item.badgeText}
                                         shouldIconUseAutoWidthStyle

@@ -5,9 +5,9 @@ import ROUTES from '@src/ROUTES';
 import {useEffect, useRef} from 'react';
 
 /**
- * Sends a visit to a connection's settings panel back to the Connections page when that connection isn't set up, so old
- * links to the Accounting, HR, and Receipt partners pages keep working. Only the first loaded state is checked, so
- * disconnecting from inside the panel keeps its own navigation.
+ * Sends a visit to a connection's settings panel back to the Connections page when that connection isn't set up, so a
+ * stale link to a panel still lands somewhere useful. Only the first loaded state is checked, so disconnecting from
+ * inside the panel keeps its own navigation.
  */
 function useRedirectUnconnectedPanelToConnections(policyID: string | undefined, isDataReady: boolean, isConnected: boolean) {
     const hasCheckedRef = useRef(false);

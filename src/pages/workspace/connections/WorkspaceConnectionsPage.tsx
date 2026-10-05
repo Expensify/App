@@ -368,11 +368,14 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
 }
 
 function WorkspaceConnectionsPageWrapper(props: WithPolicyConnectionsProps) {
+    const {isBetaEnabled} = usePermissions();
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={props.policy?.id}
             policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
+            shouldBeBlocked={!isBetaEnabled(CONST.BETAS.UNIFIED_CONNECTIONS)}
         >
             <AccountingContextProvider policy={props.policy}>
                 <WorkspaceConnectionsPage {...props} />

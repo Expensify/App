@@ -203,7 +203,9 @@ const workspaceIcons = {
     Users: mockIcon,
     Hashtag: mockIcon,
     Document: mockIcon,
+    Sync: mockIcon,
     Connect: mockIcon,
+    Receipt: mockIcon,
     Briefcase: mockIcon,
     Folder: mockIcon,
     Tag: mockIcon,
@@ -219,6 +221,8 @@ const workspaceIcons = {
     InvoiceGeneric: mockIcon,
     Gear: mockIcon,
     Bolt: mockIcon,
+    Bot: mockIcon,
+    UserPlus: mockIcon,
 };
 
 function createWorkspacePolicy(id: string, name: string, overrides: Partial<Policy> = {}): Policy {
@@ -701,7 +705,7 @@ describe('Workspace Search Router navigation source', () => {
         jest.clearAllMocks();
     });
 
-    const buildItems = (policies: Policy[], isOffline = false) =>
+    const buildItems = (policies: Policy[], isOffline = false, isUnifiedConnectionsBetaEnabled = false) =>
         buildWorkspaceNavigationItems({
             policies: Object.fromEntries(policies.map((policy) => [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy])),
             policyCategories: undefined,
@@ -709,6 +713,8 @@ describe('Workspace Search Router navigation source', () => {
             icons: workspaceIcons,
             isOffline,
             isVendorMatchingBetaEnabled: false,
+            isRecruitingBetaEnabled: false,
+            isUnifiedConnectionsBetaEnabled,
             shouldUseNarrowLayout: false,
             convertToDisplayString: () => '$0.00',
             getItemText: (item) => {
@@ -745,24 +751,24 @@ describe('Workspace Search Router navigation source', () => {
         expect(items.some((item) => item.keyForList === `workspace_1_${SCREENS.WORKSPACE.WORKFLOWS}`)).toBe(false);
     });
 
-    it('matches the Connections row by the name of an integration category it replaced', () => {
-        // Given a workspace, since HR no longer has its own row
-        const items = buildItems([createWorkspacePolicy('1', 'Alpha Workspace')]);
+    it('supports the short HR query and alphabetizes equal-priority Workspace rows', () => {
+        const items = buildItems([createWorkspacePolicy('1', 'Beta Workspace', {isHREnabled: true}), createWorkspacePolicy('2', 'Alpha Workspace', {isHREnabled: true})]);
+
+        expect(buildNavigationSuggestions('hr', [items], localeCompare).map((item) => item.keyForList)).toEqual([
+            `workspace_2_${SCREENS.WORKSPACE.HR}`,
+            `workspace_1_${SCREENS.WORKSPACE.HR}`,
+        ]);
+    });
+
+    it('matches the Connections row by the name of a page it replaced when the unified Connections beta is on', () => {
+        // Given a workspace with the HR feature on, viewed with the beta on so HR has no row of its own
+        const items = buildItems([createWorkspacePolicy('1', 'Alpha Workspace', {isHREnabled: true})], false, true);
 
         // When searching for the old HR page by its short name
         const suggestions = buildNavigationSuggestions('hr', [items], localeCompare);
 
         // Then the Connections row is suggested, because HR moved onto the Connections page
         expect(suggestions.map((item) => item.keyForList)).toEqual([`workspace_1_${SCREENS.WORKSPACE.CONNECTIONS}`]);
-    });
-
-    it('alphabetizes equal-priority Workspace rows', () => {
-        const items = buildItems([createWorkspacePolicy('1', 'Beta Workspace'), createWorkspacePolicy('2', 'Alpha Workspace')]);
-
-        expect(buildNavigationSuggestions('connections', [items], localeCompare).map((item) => item.keyForList)).toEqual([
-            `workspace_2_${SCREENS.WORKSPACE.CONNECTIONS}`,
-            `workspace_1_${SCREENS.WORKSPACE.CONNECTIONS}`,
-        ]);
     });
 
     it('includes workspace identity and navigates through the Workspace synchronization helper', () => {
@@ -839,9 +845,11 @@ describe('Workspace Search Router navigation source', () => {
             expect.objectContaining({
                 policy: activePolicy,
                 isVendorMatchingBetaEnabled: true,
+                isRecruitingBetaEnabled: true,
             }),
         );
         expect(mockIsBetaEnabled).toHaveBeenCalledWith(CONST.BETAS.VENDOR_MATCHING);
+        expect(mockIsBetaEnabled).toHaveBeenCalledWith(CONST.BETAS.MERGE_ATS);
     });
 });
 

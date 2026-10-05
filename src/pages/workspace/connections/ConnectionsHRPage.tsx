@@ -5,10 +5,9 @@ import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePolicy from '@hooks/usePolicy';
 
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
-import withUnifiedConnectionsBeta from '@pages/workspace/connections/withUnifiedConnectionsBeta';
-import MergeConnectionsPageBase from '@pages/workspace/merge/MergeConnectionsPageBase';
+import {getHRCards} from '@pages/workspace/hr/utils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -16,15 +15,15 @@ import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
 
-import {getHRCards} from './utils';
+import ConnectionsMergePageBase from './ConnectionsMergePageBase';
 
-type WorkspaceHRPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.HR>;
+type ConnectionsHRPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CONNECTIONS_HR>;
 
-function WorkspaceHRPage({
+function ConnectionsHRPage({
     route: {
         params: {policyID},
     },
-}: WorkspaceHRPageProps) {
+}: ConnectionsHRPageProps) {
     const {translate, getLocalDateFromDatetime, formatPhoneNumber} = useLocalize();
     const policy = usePolicy(policyID);
     const policyEmployeePersonalDetails = usePersonalDetailsByLogins([...Object.keys(policy?.employeeList ?? {})]);
@@ -44,7 +43,7 @@ function WorkspaceHRPage({
     });
 
     return (
-        <MergeConnectionsPageBase
+        <ConnectionsMergePageBase
             policyID={policyID}
             category={CONST.POLICY.CONNECTIONS.CATEGORY.HR}
             cards={cards}
@@ -52,4 +51,4 @@ function WorkspaceHRPage({
     );
 }
 
-export default withUnifiedConnectionsBeta(WorkspaceHRPage);
+export default ConnectionsHRPage;

@@ -691,11 +691,16 @@ const DYNAMIC_ROUTES = {
     },
     SAGE_INTACCT_PREREQUISITES: {
         path: 'sage-intacct/prerequisites',
-        entryScreens: [SCREENS.WORKSPACE.CONNECTIONS, SCREENS.WORKSPACE.ACCOUNTING.EXISTING_SAGE_INTACCT_CONNECTIONS],
+        entryScreens: [
+            SCREENS.WORKSPACE.ACCOUNTING.ROOT,
+            SCREENS.WORKSPACE.CONNECTIONS_ACCOUNTING,
+            SCREENS.WORKSPACE.CONNECTIONS,
+            SCREENS.WORKSPACE.ACCOUNTING.EXISTING_SAGE_INTACCT_CONNECTIONS,
+        ],
     },
     POLICY_ACCOUNTING_CERTINIA_EXPORT: {
         path: 'certinia/export',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT],
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.CONNECTIONS_ACCOUNTING],
     },
     POLICY_ACCOUNTING_CERTINIA_PREFERRED_EXPORTER: {
         path: 'certinia-preferred-exporter/select',
@@ -715,7 +720,7 @@ const DYNAMIC_ROUTES = {
     },
     POLICY_ACCOUNTING_CERTINIA_ADVANCED: {
         path: 'certinia/advanced',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT],
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.CONNECTIONS_ACCOUNTING],
     },
     POLICY_ACCOUNTING_CERTINIA_FX_EXPENSE_ACCOUNT: {
         path: 'certinia-fx-expense-account/select',
@@ -727,7 +732,7 @@ const DYNAMIC_ROUTES = {
     },
     POLICY_ACCOUNTING_CERTINIA_COMPANY_SELECTOR: {
         path: 'certinia/company',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT],
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.CONNECTIONS_ACCOUNTING],
     },
     POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT: {
         path: 'vendor/select',
@@ -743,7 +748,7 @@ const DYNAMIC_ROUTES = {
     },
     POLICY_ACCOUNTING_NETSUITE_EXPORT: {
         path: 'connections/netsuite/export',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT],
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.CONNECTIONS_ACCOUNTING, SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT],
     },
     POLICY_ACCOUNTING_NETSUITE_RECEIVABLE_ACCOUNT_SELECT: {
         path: 'receivable-account/select',
@@ -796,7 +801,7 @@ const DYNAMIC_ROUTES = {
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT: {
         path: 'quickbooks-online/export',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT],
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.CONNECTIONS_ACCOUNTING, SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT],
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT: {
         path: 'company-card-expense-account',
@@ -812,7 +817,7 @@ const DYNAMIC_ROUTES = {
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT: {
         path: 'quickbooks-desktop/export',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT],
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.CONNECTIONS_ACCOUNTING, SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT],
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT: {
         path: 'qbd-company-card-expense-account',
@@ -902,7 +907,7 @@ const DYNAMIC_ROUTES = {
     },
     POLICY_ACCOUNTING_XERO_EXPORT: {
         path: 'xero/export',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT],
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.CONNECTIONS_ACCOUNTING, SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT],
     },
     POLICY_ACCOUNTING_XERO_PREFERRED_EXPORTER_SELECT: {
         path: 'xero-preferred-exporter/select',
@@ -938,7 +943,7 @@ const DYNAMIC_ROUTES = {
     },
     WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED: {
         path: 'quickbooks-desktop/advanced',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT],
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.CONNECTIONS_ACCOUNTING],
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_FX_EXPENSE_ACCOUNT_SELECT: {
         path: 'qbd-fx-expense-account-select',
@@ -1158,7 +1163,7 @@ const DYNAMIC_ROUTES = {
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT: {
         path: 'sage-intacct/export',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT],
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.CONNECTIONS_ACCOUNTING, SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT],
     },
     WORKSPACE_OVERVIEW_PLAN: {
         path: 'plan',
@@ -1283,14 +1288,14 @@ const DYNAMIC_ROUTES = {
         // suffix inherits their `:policyID` (same as WORKSPACE_INVITE above).
         path: 'hr-sync-results',
         // The results screen opens automatically when an HR sync finishes, and a sync can complete
-        // while the user is on the HR settings, the Connections page, or the members list.
-        entryScreens: [SCREENS.WORKSPACE.HR, SCREENS.WORKSPACE.CONNECTIONS, SCREENS.WORKSPACE.MEMBERS],
+        // while the user is on the HR page, the Connections page or its HR panel, or the members list.
+        entryScreens: [SCREENS.WORKSPACE.HR, SCREENS.WORKSPACE.CONNECTIONS, SCREENS.WORKSPACE.CONNECTIONS_HR, SCREENS.WORKSPACE.MEMBERS],
     },
     WORKSPACE_RECRUITING_SYNC_RESULTS: {
         // The results screen opens automatically when a recruiting sync finishes, and a sync can complete
-        // while the user is on the recruiting settings, the Connections page, or the members list.
+        // while the user is on the recruiting page, the Connections page or its recruiting panel, or the members list.
         path: 'recruiting-sync-results',
-        entryScreens: [SCREENS.WORKSPACE.RECRUITING, SCREENS.WORKSPACE.CONNECTIONS, SCREENS.WORKSPACE.MEMBERS],
+        entryScreens: [SCREENS.WORKSPACE.RECRUITING, SCREENS.WORKSPACE.CONNECTIONS, SCREENS.WORKSPACE.CONNECTIONS_RECRUITING, SCREENS.WORKSPACE.MEMBERS],
     },
     WORKSPACE_OWNER_CHANGE_CHECK: {
         path: 'change-owner/:policyID/:accountID/:error',
@@ -1313,12 +1318,12 @@ const DYNAMIC_ROUTES = {
     },
     WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT: {
         path: ':integration/invite/edit',
-        entryScreens: [SCREENS.WORKSPACE.RECEIPT_PARTNERS],
+        entryScreens: [SCREENS.WORKSPACE.RECEIPT_PARTNERS, SCREENS.WORKSPACE.CONNECTIONS_RECEIPT_PARTNERS],
         getRoute: (integration: string) => `${integration}/invite/edit` as const,
     },
     WORKSPACE_RECEIPT_PARTNERS_INVITE: {
         path: ':integration/invite',
-        entryScreens: [SCREENS.WORKSPACE.RECEIPT_PARTNERS],
+        entryScreens: [SCREENS.WORKSPACE.RECEIPT_PARTNERS, SCREENS.WORKSPACE.CONNECTIONS_RECEIPT_PARTNERS],
         getRoute: (integration: string) => `${integration}/invite` as const,
     },
     EXPENSIFY_CARD_DETAILS: {
@@ -3412,11 +3417,31 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING: {
         route: 'workspaces/:policyID/accounting',
-        getRoute: (policyID: string | undefined) => {
+        getRoute: (
+            policyID: string | undefined,
+            newConnectionName?: ConnectionName,
+            integrationToDisconnect?: ConnectionName,
+            shouldDisconnectIntegrationBeforeConnecting?: boolean,
+            isIntuitEnterpriseSuite?: boolean,
+        ) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING route');
             }
-            return `workspaces/${policyID}/accounting` as const;
+
+            let queryParams = '';
+            if (newConnectionName) {
+                queryParams += `?newConnectionName=${newConnectionName}`;
+                if (integrationToDisconnect) {
+                    queryParams += `&integrationToDisconnect=${integrationToDisconnect}`;
+                }
+                if (shouldDisconnectIntegrationBeforeConnecting !== undefined) {
+                    queryParams += `&shouldDisconnectIntegrationBeforeConnecting=${shouldDisconnectIntegrationBeforeConnecting}`;
+                }
+                if (isIntuitEnterpriseSuite !== undefined) {
+                    queryParams += `&isIntuitEnterpriseSuite=${isIntuitEnterpriseSuite}`;
+                }
+            }
+            return `workspaces/${policyID}/accounting${queryParams}` as const;
         },
     },
     WORKSPACE_CONNECTIONS: {
@@ -3446,6 +3471,42 @@ const ROUTES = {
                 }
             }
             return `workspaces/${policyID}/connections${queryParams}` as const;
+        },
+    },
+    WORKSPACE_CONNECTIONS_ACCOUNTING: {
+        route: 'workspaces/:policyID/connections/accounting',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_CONNECTIONS_ACCOUNTING route');
+            }
+            return `workspaces/${policyID}/connections/accounting` as const;
+        },
+    },
+    WORKSPACE_CONNECTIONS_HR: {
+        route: 'workspaces/:policyID/connections/hr',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_CONNECTIONS_HR route');
+            }
+            return `workspaces/${policyID}/connections/hr` as const;
+        },
+    },
+    WORKSPACE_CONNECTIONS_RECRUITING: {
+        route: 'workspaces/:policyID/connections/recruiting',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_CONNECTIONS_RECRUITING route');
+            }
+            return `workspaces/${policyID}/connections/recruiting` as const;
+        },
+    },
+    WORKSPACE_CONNECTIONS_RECEIPT_PARTNERS: {
+        route: 'workspaces/:policyID/connections/receipt-partners',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_CONNECTIONS_RECEIPT_PARTNERS route');
+            }
+            return `workspaces/${policyID}/connections/receipt-partners` as const;
         },
     },
     WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED: {
@@ -3981,6 +4042,15 @@ const ROUTES = {
     POLICY_COPY_SETTINGS_CONFIRM: {
         route: 'policy/:policyID/copy-settings/confirm',
         getRoute: (policyID: string) => `policy/${policyID}/copy-settings/confirm` as const,
+    },
+    WORKSPACE_MCP: {
+        route: 'workspaces/:policyID/mcp',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_MCP route');
+            }
+            return `workspaces/${policyID}/mcp` as const;
+        },
     },
     WORKSPACE_RECEIPT_PARTNERS: {
         route: 'workspaces/:policyID/receipt-partners',

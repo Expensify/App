@@ -4,6 +4,7 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 import type {ConnectionListing, ConnectionsTab} from './types';
 
@@ -42,4 +43,12 @@ function getListingsForTab(listings: ConnectionListing[], tab: ConnectionsTab): 
     return listings.filter((listing) => listing.category === tab);
 }
 
-export {MCP_CONNECTOR, getSyncStatusMessage, getListingsForTab};
+/** The page listing the workspace's accounting integrations, which is Connections while the unified Connections beta is on */
+function getAccountingConnectionsRoute(isUnifiedConnectionsBetaEnabled: boolean, ...params: Parameters<typeof ROUTES.POLICY_ACCOUNTING.getRoute>) {
+    if (isUnifiedConnectionsBetaEnabled) {
+        return ROUTES.WORKSPACE_CONNECTIONS.getRoute(...params);
+    }
+    return ROUTES.POLICY_ACCOUNTING.getRoute(...params);
+}
+
+export {MCP_CONNECTOR, getSyncStatusMessage, getListingsForTab, getAccountingConnectionsRoute};

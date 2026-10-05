@@ -141,6 +141,7 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
             undefined,
             undefined,
             isIntuitEnterpriseSuite,
+            isBetaEnabled(CONST.BETAS.UNIFIED_CONNECTIONS),
         );
         if (!integrationData) {
             return [];
@@ -161,7 +162,7 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
                     ? {onPress: canWrite ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CLAIM_OFFER.getRoute(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO)) : undefined}
                     : undefined,
             onConnect: () => connect(name, isIntuitEnterpriseSuite),
-            onConfigure: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID)),
+            onConfigure: () => Navigation.navigate(ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID)),
             registerConnectButton: (button) => {
                 const anchorRef = popoverAnchorRefs?.current?.[key];
                 if (!anchorRef) {

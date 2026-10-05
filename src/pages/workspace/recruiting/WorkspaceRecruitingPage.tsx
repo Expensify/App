@@ -1,22 +1,28 @@
+import RenderHTML from '@components/RenderHTML';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOpenConciergeAnywhere from '@hooks/useOpenConciergeAnywhere';
 import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePolicy from '@hooks/usePolicy';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 
+import withUnifiedConnectionsBeta from '@pages/workspace/connections/withUnifiedConnectionsBeta';
 import MergeConnectionsPageBase from '@pages/workspace/merge/MergeConnectionsPageBase';
 
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
+import {View} from 'react-native';
 
 import {getRecruitingCards} from './utils';
 
-type WorkspaceRecruitingPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RECRUITING>;
+type WorkspaceRecruitingPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.RECRUITING>;
 
 function WorkspaceRecruitingPage({
     route: {
@@ -24,9 +30,11 @@ function WorkspaceRecruitingPage({
     },
 }: WorkspaceRecruitingPageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
+    const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Download']);
     const policy = usePolicy(policyID);
     const policyEmployeePersonalDetails = usePersonalDetailsByLogins([...Object.keys(policy?.employeeList ?? {})]);
+    const {openConciergeAnywhere} = useOpenConciergeAnywhere();
     const {isBetaEnabled} = usePermissions();
 
     const cards = getRecruitingCards({policy, policyEmployeePersonalDetails, policyID, icons, translate, formatPhoneNumber});
@@ -37,8 +45,16 @@ function WorkspaceRecruitingPage({
             category={CONST.POLICY.CONNECTIONS.CATEGORY.RECRUITING}
             cards={cards}
             shouldBeBlocked={!isBetaEnabled(CONST.BETAS.MERGE_ATS)}
+            footer={
+                <View style={[styles.mt3, styles.renderHTML]}>
+                    <RenderHTML
+                        html={translate('workspace.recruiting.dontSeeYourATS')}
+                        onLinkPress={() => openConciergeAnywhere()}
+                    />
+                </View>
+            }
         />
     );
 }
 
-export default WorkspaceRecruitingPage;
+export default withUnifiedConnectionsBeta(WorkspaceRecruitingPage);

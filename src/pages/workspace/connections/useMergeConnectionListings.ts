@@ -37,13 +37,13 @@ const CATEGORY_CONFIG = {
         featureName: CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
         upgradeAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.alias,
         enableFeature: enablePolicyHR,
-        getConfigureRoute: ROUTES.WORKSPACE_HR.getRoute,
+        getConfigureRoute: ROUTES.WORKSPACE_CONNECTIONS_HR.getRoute,
     },
     [CONST.POLICY.CONNECTIONS.CATEGORY.RECRUITING]: {
         featureName: CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED,
         upgradeAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.recruiting.alias,
         enableFeature: enablePolicyRecruiting,
-        getConfigureRoute: ROUTES.WORKSPACE_RECRUITING.getRoute,
+        getConfigureRoute: ROUTES.WORKSPACE_CONNECTIONS_RECRUITING.getRoute,
     },
 } as const;
 

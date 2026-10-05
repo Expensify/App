@@ -37,7 +37,10 @@ function useReceiptPartnerConnectionListings(policy: OnyxEntry<Policy>): Connect
             return;
         }
         Navigation.navigate(
-            createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE.getRoute(CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER), ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID)),
+            createDynamicRoute(
+                DYNAMIC_ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE.getRoute(CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER),
+                ROUTES.WORKSPACE_CONNECTIONS_RECEIPT_PARTNERS.getRoute(policyID),
+            ),
         );
     }, [prevIsUberConnected, isUberConnected, policyID, canWrite]);
 
@@ -81,7 +84,7 @@ function useReceiptPartnerConnectionListings(policy: OnyxEntry<Policy>): Connect
                 : {onPress: canWrite ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CLAIM_OFFER.getRoute(policyID, CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER)) : undefined},
             onConnect: connectUber,
             isLoading: !policy?.receiptPartners?.uber && !isOffline && !!policy?.isLoadingReceiptPartners,
-            onConfigure: () => Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID)),
+            onConfigure: () => Navigation.navigate(ROUTES.WORKSPACE_CONNECTIONS_RECEIPT_PARTNERS.getRoute(policyID)),
         },
     ];
 }

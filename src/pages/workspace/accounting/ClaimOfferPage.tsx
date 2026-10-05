@@ -12,6 +12,7 @@ import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIn
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openExternalLink} from '@libs/actions/Link';
@@ -30,6 +31,7 @@ import {enablePolicyReceiptPartners} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
@@ -45,6 +47,7 @@ type IntegrationConfig = {
     claimOfferLink?: string;
     connectButtonText: string;
     connectionName: string;
+    featureName: PolicyFeatureName;
     onConnect: () => void;
 };
 
@@ -58,6 +61,8 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['TreasureChestGreenWithSparkle']);
     const integrations = policy?.receiptPartners;
     const {isUberConnected} = useGetReceiptPartnersIntegrationData(policyID);
+    const {isBetaEnabled} = usePermissions();
+    const isUnifiedConnectionsBetaEnabled = isBetaEnabled(CONST.BETAS.UNIFIED_CONNECTIONS);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
 
     const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
@@ -82,6 +87,7 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
             claimOfferLink: CONST.XERO_PARTNER_LINK,
             connectButtonText: translate('workspace.accounting.claimOffer.xero.connectButton'),
             connectionName: CONST.POLICY.CONNECTIONS.NAME.XERO,
+            featureName: CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED,
             onConnect: () => {
                 startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.XERO});
             },
@@ -92,9 +98,10 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
             descriptionHtml: translate('workspace.accounting.claimOffer.uber.description'),
             connectButtonText: translate('workspace.accounting.claimOffer.uber.connectButton'),
             connectionName: CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER,
+            featureName: CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED,
             onConnect: () => {
-                // Offers open from Connections, where Receipt partners only turns on once a partner is connected
-                if (!policy?.receiptPartners?.enabled) {
+                // Connections offers Uber before Receipt partners is on, so the feature is turned on as Uber connects
+                if (isUnifiedConnectionsBetaEnabled && !policy?.receiptPartners?.enabled) {
                     enablePolicyReceiptPartners(policyID, true, false);
                 }
                 openExternalLink(`${CONST.UBER_CONNECT_URL}?${integrations?.uber?.connectFormData}`);
@@ -146,7 +153,9 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
-            policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
+            // Connections shows offers whether or not their feature is on, so only the write access check applies there
+            featureName={isUnifiedConnectionsBetaEnabled ? undefined : config.featureName}
+            policyFeature={isUnifiedConnectionsBetaEnabled ? CONST.POLICY.POLICY_FEATURE.MORE_FEATURES : undefined}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
             shouldBeBlocked={!config}
         >
