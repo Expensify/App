@@ -114,7 +114,8 @@ function MergeATSApprovalModePage({
         // Leaving custom replaces the approval routing the admin set up by hand. In every mode but custom the recruiting
         // provider's syncs set the approvers, so the backend also deletes the workspace's approval workflow rules. Those
         // are the only changes worth warning about.
-        const shouldDeleteApprovalWorkflowRules = hasApprovalWorkflowRules(rules, policyID) && selectedApprovalMode !== CONST.MERGE.APPROVAL_MODE.CUSTOM;
+        const shouldDeleteApprovalWorkflowRules =
+            hasApprovalWorkflowRules(rules, policyID) && selectedApprovalMode !== currentApprovalMode && selectedApprovalMode !== CONST.MERGE.APPROVAL_MODE.CUSTOM;
         const shouldConfirm = shouldDeleteApprovalWorkflowRules || (currentApprovalMode === CONST.MERGE.APPROVAL_MODE.CUSTOM && selectedApprovalMode !== CONST.MERGE.APPROVAL_MODE.CUSTOM);
         if (!shouldConfirm) {
             saveApprovalMode();
