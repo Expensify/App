@@ -10,7 +10,6 @@ import type {FinalizeOutcomeInput} from '@components/MultifactorAuthentication/m
 import {clearDraftValues} from '@libs/actions/FormActions';
 import type {MFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import {createLocalMFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
-import type {MultifactorAuthenticationCallbackResponse} from '@libs/MultifactorAuthentication/shared/types';
 import Navigation from '@libs/Navigation/Navigation';
 import {setRevealedPhysicalCardPin, setRevealedVirtualCardDetails} from '@libs/RevealedCardSecretsStore';
 
@@ -73,184 +72,46 @@ const PERSONAL_DETAILS = {
 const SUCCESS_RESPONSE: MultifactorAuthenticationScenarioResponse = {httpStatusCode: 200, reason: undefined, message: undefined};
 const CANCELED_ERROR = createLocalMFAError(REASON.LOCAL_ERRORS.CANCELED, 'user canceled');
 
-type ScenarioCallbackCase = {
-    /** Test name, and the `it` block's description. */
-    name: string;
-    scenarioName: MultifactorAuthenticationScenario;
-    scenarioResponse: MultifactorAuthenticationScenarioResponse | undefined;
-    error: MFAError | undefined;
-    payload: MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario> | undefined;
-    expectedCallbackResponse: MultifactorAuthenticationCallbackResponse;
-
-    /** Everything the callback is expected to have done - and, where it matters, not done. */
-    verifySideEffects: () => void;
+type RunScenarioOptions = {
+    scenarioResponse?: MultifactorAuthenticationScenarioResponse;
+    error?: MFAError;
+    payload?: MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario>;
 };
 
-const cases: ScenarioCallbackCase[] = [
-    {
-        name: 'BIOMETRICS_TEST shows the outcome screen and touches nothing else',
-        scenarioName: SCENARIO.BIOMETRICS_TEST,
-        scenarioResponse: SUCCESS_RESPONSE,
-        error: undefined,
-        payload: undefined,
-        expectedCallbackResponse: CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN,
-        verifySideEffects: () => {
-            expect(Navigation.navigate).not.toHaveBeenCalled();
-            expect(Navigation.goBack).not.toHaveBeenCalled();
-            expect(setRevealedPhysicalCardPin).not.toHaveBeenCalled();
-            expect(fireAndForgetDenyTransaction).not.toHaveBeenCalled();
-        },
-    },
-    {
-        name: 'REVEAL_PIN stores the revealed PIN and skips the outcome screen',
-        scenarioName: SCENARIO.REVEAL_PIN,
-        scenarioResponse: {...SUCCESS_RESPONSE, body: {pin: REVEALED_PIN}},
-        error: undefined,
-        payload: {cardID: CARD_ID},
-        expectedCallbackResponse: CALLBACK_RESPONSE.SKIP_OUTCOME_SCREEN,
-        verifySideEffects: () => {
-            expect(setRevealedPhysicalCardPin).toHaveBeenCalledWith(CARD_ID, REVEALED_PIN);
-        },
-    },
-    {
-        name: 'REVEAL_PIN stores nothing and shows the outcome screen on failure',
-        scenarioName: SCENARIO.REVEAL_PIN,
-        scenarioResponse: undefined,
-        error: CANCELED_ERROR,
-        payload: {cardID: CARD_ID},
-        expectedCallbackResponse: CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN,
-        verifySideEffects: () => {
-            expect(setRevealedPhysicalCardPin).not.toHaveBeenCalled();
-        },
-    },
-    {
-        name: 'SET_PERSONAL_DETAILS_AND_REVEAL_CARD_DETAILS stores the card secrets, leaves the details form, and skips the outcome screen',
-        scenarioName: SCENARIO.SET_PERSONAL_DETAILS_AND_REVEAL_CARD_DETAILS,
-        scenarioResponse: {...SUCCESS_RESPONSE, body: {...REVEALED_CARD_DETAILS}},
-        error: undefined,
-        payload: {...PERSONAL_DETAILS, addressState: '', cardID: CARD_ID, isFromMissingDetailsFlow: true},
-        expectedCallbackResponse: CALLBACK_RESPONSE.SKIP_OUTCOME_SCREEN,
-        verifySideEffects: () => {
-            expect(setRevealedVirtualCardDetails).toHaveBeenCalledWith(CARD_ID, REVEALED_CARD_DETAILS);
-            expect(clearDraftValues).toHaveBeenCalledWith(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
-            expect(Navigation.closeRHPFlow).toHaveBeenCalled();
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(CARD_ID));
-        },
-    },
-    {
-        name: 'SET_PERSONAL_DETAILS_AND_REVEAL_CARD_DETAILS stays put when the reveal was not entered from the missing-details form',
-        scenarioName: SCENARIO.SET_PERSONAL_DETAILS_AND_REVEAL_CARD_DETAILS,
-        scenarioResponse: {...SUCCESS_RESPONSE, body: {...REVEALED_CARD_DETAILS}},
-        error: undefined,
-        payload: {...PERSONAL_DETAILS, addressState: '', cardID: CARD_ID},
-        expectedCallbackResponse: CALLBACK_RESPONSE.SKIP_OUTCOME_SCREEN,
-        verifySideEffects: () => {
-            expect(setRevealedVirtualCardDetails).toHaveBeenCalledWith(CARD_ID, REVEALED_CARD_DETAILS);
-            expect(Navigation.closeRHPFlow).not.toHaveBeenCalled();
-            expect(Navigation.navigate).not.toHaveBeenCalled();
-        },
-    },
-    {
-        name: 'SET_PERSONAL_DETAILS_AND_REVEAL_CARD_DETAILS stores nothing and shows the outcome screen on failure',
-        scenarioName: SCENARIO.SET_PERSONAL_DETAILS_AND_REVEAL_CARD_DETAILS,
-        scenarioResponse: undefined,
-        error: CANCELED_ERROR,
-        payload: {...PERSONAL_DETAILS, addressState: '', cardID: CARD_ID, isFromMissingDetailsFlow: true},
-        expectedCallbackResponse: CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN,
-        verifySideEffects: () => {
-            expect(setRevealedVirtualCardDetails).not.toHaveBeenCalled();
-            expect(Navigation.navigate).not.toHaveBeenCalled();
-        },
-    },
-    {
-        name: 'SET_PIN_ORDER_CARD lands the user on the card page and skips the outcome screen',
-        scenarioName: SCENARIO.SET_PIN_ORDER_CARD,
-        scenarioResponse: SUCCESS_RESPONSE,
-        error: undefined,
-        payload: {...PERSONAL_DETAILS, pin: '5739', cardID: CARD_ID},
-        expectedCallbackResponse: CALLBACK_RESPONSE.SKIP_OUTCOME_SCREEN,
-        verifySideEffects: () => {
-            expect(clearDraftValues).toHaveBeenCalledWith(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
-            expect(Navigation.closeRHPFlow).toHaveBeenCalled();
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(CARD_ID));
-        },
-    },
-    {
-        name: 'SET_PIN_ORDER_CARD keeps the user in place and shows the outcome screen on failure',
-        scenarioName: SCENARIO.SET_PIN_ORDER_CARD,
-        scenarioResponse: undefined,
-        error: CANCELED_ERROR,
-        payload: {...PERSONAL_DETAILS, pin: '5739', cardID: CARD_ID},
-        expectedCallbackResponse: CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN,
-        verifySideEffects: () => {
-            expect(clearDraftValues).not.toHaveBeenCalled();
-            expect(Navigation.navigate).not.toHaveBeenCalled();
-        },
-    },
-    {
-        name: 'CHANGE_PIN pops the set-PIN screen before the outcome screen is shown',
-        scenarioName: SCENARIO.CHANGE_PIN,
-        scenarioResponse: SUCCESS_RESPONSE,
-        error: undefined,
-        payload: {pin: '1234', cardID: CARD_ID},
-        expectedCallbackResponse: CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN,
-        verifySideEffects: () => {
-            expect(Navigation.goBack).toHaveBeenCalled();
-        },
-    },
-    {
-        name: 'CHANGE_PIN pops the set-PIN screen on failure too, so the failure screen is not stacked on it',
-        scenarioName: SCENARIO.CHANGE_PIN,
-        scenarioResponse: undefined,
-        error: CANCELED_ERROR,
-        payload: {pin: '1234', cardID: CARD_ID},
-        expectedCallbackResponse: CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN,
-        verifySideEffects: () => {
-            expect(Navigation.goBack).toHaveBeenCalled();
-        },
-    },
-    {
-        name: 'AUTHORIZE_TRANSACTION leaves an approved transaction alone and shows the outcome screen',
-        scenarioName: SCENARIO.AUTHORIZE_TRANSACTION,
-        scenarioResponse: SUCCESS_RESPONSE,
-        error: undefined,
-        payload: {transactionID: TRANSACTION_ID},
-        expectedCallbackResponse: CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN,
-        verifySideEffects: () => {
-            expect(fireAndForgetDenyTransaction).not.toHaveBeenCalled();
-        },
-    },
-    {
-        name: 'AUTHORIZE_TRANSACTION denies the transaction on failure so it cannot be approved elsewhere',
-        scenarioName: SCENARIO.AUTHORIZE_TRANSACTION,
-        scenarioResponse: undefined,
-        error: CANCELED_ERROR,
-        payload: {transactionID: TRANSACTION_ID},
-        expectedCallbackResponse: CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN,
-        verifySideEffects: () => {
-            expect(fireAndForgetDenyTransaction).toHaveBeenCalledWith({transactionID: TRANSACTION_ID});
-        },
-    },
-];
-
 /**
- * Builds the finalize-outcome input for one case: the raw flow results the machine forwards from
- * context. Success and the callback input are derived from `scenarioResponse` and `error` by the actor
- * itself, which `machine/finalizeOutcomeActor.test.ts` pins.
+ * Runs the real finalize-outcome actor with the scenario's resolved callback and returns its output. The
+ * input carries the raw flow results the machine forwards from context; success and the callback input
+ * are derived by the actor itself, which `machine/finalizeOutcomeActor.test.ts` pins.
  */
-function buildInput(testCase: ScenarioCallbackCase): FinalizeOutcomeInput {
-    return {
-        callback: getScenarioConfig(testCase.scenarioName).callback,
-        payload: testCase.payload,
+async function runScenario(scenarioName: MultifactorAuthenticationScenario, {scenarioResponse, error, payload}: RunScenarioOptions) {
+    const input: FinalizeOutcomeInput = {
+        callback: getScenarioConfig(scenarioName).callback,
+        payload,
         accountID: ACCOUNT_ID,
-        scenarioName: testCase.scenarioName,
-        scenarioResponse: testCase.scenarioResponse,
-        error: testCase.error,
+        scenarioName,
+        scenarioResponse,
+        error,
         authenticationMethod: undefined,
         isRegistrationComplete: false,
         softPromptApproved: false,
         registrationStateAtStart: undefined,
     };
+    const {finalizeOutcome} = createActors();
+    const actorRef = createActor(finalizeOutcome, {input});
+
+    actorRef.start();
+    await waitFor(actorRef, (snapshot) => snapshot.status !== 'active');
+
+    return actorRef.getSnapshot().output;
+}
+
+// Jest runs `describe` bodies while collecting tests, so this set is complete before the coverage test runs.
+const describedScenarios = new Set<MultifactorAuthenticationScenario>();
+
+/** A `describe` block for one scenario that also registers it for the coverage test. */
+function describeScenario(scenarioName: MultifactorAuthenticationScenario, body: () => void) {
+    describedScenarios.add(scenarioName);
+    describe(scenarioName, body);
 }
 
 describe('MFA scenario callbacks through the finalize-outcome actor', () => {
@@ -259,17 +120,137 @@ describe('MFA scenario callbacks through the finalize-outcome actor', () => {
     });
 
     it('covers every scenario the app can run', () => {
-        expect(new Set(cases.map((testCase) => testCase.scenarioName))).toEqual(new Set(Object.values(SCENARIO)));
+        expect(describedScenarios).toEqual(new Set(Object.values(SCENARIO)));
     });
 
-    it.each(cases)('$name', async (testCase) => {
-        const {finalizeOutcome} = createActors();
-        const actorRef = createActor(finalizeOutcome, {input: buildInput(testCase)});
+    describeScenario(SCENARIO.BIOMETRICS_TEST, () => {
+        it('shows the outcome screen and touches nothing else on success', async () => {
+            const output = await runScenario(SCENARIO.BIOMETRICS_TEST, {scenarioResponse: SUCCESS_RESPONSE});
 
-        actorRef.start();
-        await waitFor(actorRef, (snapshot) => snapshot.status !== 'active');
+            expect(output).toEqual({callbackResponse: CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN});
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+            expect(Navigation.goBack).not.toHaveBeenCalled();
+            expect(setRevealedPhysicalCardPin).not.toHaveBeenCalled();
+            expect(fireAndForgetDenyTransaction).not.toHaveBeenCalled();
+        });
+    });
 
-        expect(actorRef.getSnapshot().output).toEqual({callbackResponse: testCase.expectedCallbackResponse});
-        testCase.verifySideEffects();
+    describeScenario(SCENARIO.REVEAL_PIN, () => {
+        it('stores the revealed PIN and skips the outcome screen on success', async () => {
+            const output = await runScenario(SCENARIO.REVEAL_PIN, {
+                scenarioResponse: {...SUCCESS_RESPONSE, body: {pin: REVEALED_PIN}},
+                payload: {cardID: CARD_ID},
+            });
+
+            expect(output).toEqual({callbackResponse: CALLBACK_RESPONSE.SKIP_OUTCOME_SCREEN});
+            expect(setRevealedPhysicalCardPin).toHaveBeenCalledWith(CARD_ID, REVEALED_PIN);
+        });
+
+        it('stores nothing and shows the outcome screen on failure', async () => {
+            const output = await runScenario(SCENARIO.REVEAL_PIN, {
+                error: CANCELED_ERROR,
+                payload: {cardID: CARD_ID},
+            });
+
+            expect(output).toEqual({callbackResponse: CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN});
+            expect(setRevealedPhysicalCardPin).not.toHaveBeenCalled();
+        });
+    });
+
+    describeScenario(SCENARIO.SET_PERSONAL_DETAILS_AND_REVEAL_CARD_DETAILS, () => {
+        const payload = {...PERSONAL_DETAILS, addressState: '', cardID: CARD_ID};
+
+        it('stores the card secrets, leaves the details form, and skips the outcome screen when entered from the missing-details form', async () => {
+            const output = await runScenario(SCENARIO.SET_PERSONAL_DETAILS_AND_REVEAL_CARD_DETAILS, {
+                scenarioResponse: {...SUCCESS_RESPONSE, body: {...REVEALED_CARD_DETAILS}},
+                payload: {...payload, isFromMissingDetailsFlow: true},
+            });
+
+            expect(output).toEqual({callbackResponse: CALLBACK_RESPONSE.SKIP_OUTCOME_SCREEN});
+            expect(setRevealedVirtualCardDetails).toHaveBeenCalledWith(CARD_ID, REVEALED_CARD_DETAILS);
+            expect(clearDraftValues).toHaveBeenCalledWith(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
+            expect(Navigation.closeRHPFlow).toHaveBeenCalled();
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(CARD_ID));
+        });
+
+        it('stores the card secrets and stays put when the reveal was not entered from the missing-details form', async () => {
+            const output = await runScenario(SCENARIO.SET_PERSONAL_DETAILS_AND_REVEAL_CARD_DETAILS, {
+                scenarioResponse: {...SUCCESS_RESPONSE, body: {...REVEALED_CARD_DETAILS}},
+                payload,
+            });
+
+            expect(output).toEqual({callbackResponse: CALLBACK_RESPONSE.SKIP_OUTCOME_SCREEN});
+            expect(setRevealedVirtualCardDetails).toHaveBeenCalledWith(CARD_ID, REVEALED_CARD_DETAILS);
+            expect(Navigation.closeRHPFlow).not.toHaveBeenCalled();
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
+        it('stores nothing and shows the outcome screen on failure', async () => {
+            const output = await runScenario(SCENARIO.SET_PERSONAL_DETAILS_AND_REVEAL_CARD_DETAILS, {
+                error: CANCELED_ERROR,
+                payload: {...payload, isFromMissingDetailsFlow: true},
+            });
+
+            expect(output).toEqual({callbackResponse: CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN});
+            expect(setRevealedVirtualCardDetails).not.toHaveBeenCalled();
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+    });
+
+    describeScenario(SCENARIO.SET_PIN_ORDER_CARD, () => {
+        const payload = {...PERSONAL_DETAILS, pin: '5739', cardID: CARD_ID};
+
+        it('lands the user on the card page and skips the outcome screen on success', async () => {
+            const output = await runScenario(SCENARIO.SET_PIN_ORDER_CARD, {scenarioResponse: SUCCESS_RESPONSE, payload});
+
+            expect(output).toEqual({callbackResponse: CALLBACK_RESPONSE.SKIP_OUTCOME_SCREEN});
+            expect(clearDraftValues).toHaveBeenCalledWith(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
+            expect(Navigation.closeRHPFlow).toHaveBeenCalled();
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(CARD_ID));
+        });
+
+        it('keeps the user in place and shows the outcome screen on failure', async () => {
+            const output = await runScenario(SCENARIO.SET_PIN_ORDER_CARD, {error: CANCELED_ERROR, payload});
+
+            expect(output).toEqual({callbackResponse: CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN});
+            expect(clearDraftValues).not.toHaveBeenCalled();
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+    });
+
+    describeScenario(SCENARIO.CHANGE_PIN, () => {
+        const payload = {pin: '1234', cardID: CARD_ID};
+
+        it('pops the set-PIN screen before the outcome screen is shown on success', async () => {
+            const output = await runScenario(SCENARIO.CHANGE_PIN, {scenarioResponse: SUCCESS_RESPONSE, payload});
+
+            expect(output).toEqual({callbackResponse: CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN});
+            expect(Navigation.goBack).toHaveBeenCalled();
+        });
+
+        it('pops the set-PIN screen on failure too, so the failure screen is not stacked on it', async () => {
+            const output = await runScenario(SCENARIO.CHANGE_PIN, {error: CANCELED_ERROR, payload});
+
+            expect(output).toEqual({callbackResponse: CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN});
+            expect(Navigation.goBack).toHaveBeenCalled();
+        });
+    });
+
+    describeScenario(SCENARIO.AUTHORIZE_TRANSACTION, () => {
+        const payload = {transactionID: TRANSACTION_ID};
+
+        it('leaves an approved transaction alone and shows the outcome screen on success', async () => {
+            const output = await runScenario(SCENARIO.AUTHORIZE_TRANSACTION, {scenarioResponse: SUCCESS_RESPONSE, payload});
+
+            expect(output).toEqual({callbackResponse: CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN});
+            expect(fireAndForgetDenyTransaction).not.toHaveBeenCalled();
+        });
+
+        it('denies the transaction on failure so it cannot be approved elsewhere', async () => {
+            const output = await runScenario(SCENARIO.AUTHORIZE_TRANSACTION, {error: CANCELED_ERROR, payload});
+
+            expect(output).toEqual({callbackResponse: CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN});
+            expect(fireAndForgetDenyTransaction).toHaveBeenCalledWith({transactionID: TRANSACTION_ID});
+        });
     });
 });
