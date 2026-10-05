@@ -5039,7 +5039,7 @@ ${amount} voor ${merchant} - ${date}`,
                 autoSyncDescription: 'Expensify synchroniseert elke dag automatisch met QuickBooks Desktop.',
                 createEntities: 'Entiteiten automatisch aanmaken',
                 createEntitiesDescription: 'Expensify maakt automatisch leveranciers aan in QuickBooks Desktop als ze nog niet bestaan.',
-                fxExpenseAccount: 'Rekening voor valutawisselkosten',
+                fxExpenseAccount: 'Rekening voor valutaomrekeningskosten',
                 fxExpenseAccountDescription:
                     'Wanneer je bedrijf de kosten voor valutaconversie dekt bij een terugbetaling die in het buitenland wordt betaald, voegen we deze toe aan de export als een extra regel die aan deze rekening wordt gekoppeld.',
             },
