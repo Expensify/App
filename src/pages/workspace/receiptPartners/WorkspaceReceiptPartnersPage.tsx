@@ -1,4 +1,7 @@
+import UserAvatar from '@components/Avatar/UserAvatar';
+import Badge from '@components/Badge';
 import Button from '@components/Button';
+import FormHelpMessage from '@components/FormHelpMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
@@ -29,7 +32,6 @@ import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import type {MenuItemData} from '@pages/workspace/accounting/types';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import {openExternalLink} from '@userActions/Link';
@@ -187,86 +189,108 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
         [icons.Key, icons.NewWindow, icons.Trashcan, shouldShowEnterCredentialsError, translate, isOffline, startIntegrationFlow, showConfirmModal, disconnectPartner],
     );
 
-    const connectionsMenuItems: MenuItemData[] = useMemo(() => {
+    const connectionRows = useMemo(() => {
         if (policyID) {
-            return receiptPartnerIntegrations
-                .map((integration) => {
-                    const integrationData = getReceiptPartnersIntegrationData(integration);
-                    if (!integrationData) {
-                        return undefined;
-                    }
-                    const overflowMenu = canWriteMoreFeatures ? getOverflowMenu(integration) : [];
+            return receiptPartnerIntegrations.map((integration) => {
+                const integrationData = getReceiptPartnersIntegrationData(integration);
+                if (!integrationData) {
+                    return null;
+                }
+                const overflowMenu = canWriteMoreFeatures ? getOverflowMenu(integration) : [];
 
-                    const iconProps = integrationData?.icon
-                        ? {
-                              icon: integrationData.icon,
-                              iconType: CONST.ICON_TYPE_AVATAR,
-                          }
-                        : {};
-
-                    const isUber = integration === CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER;
-                    let rightComponent: React.ReactNode;
-                    if (canWriteMoreFeatures && (isUberConnected || shouldShowEnterCredentialsError)) {
-                        rightComponent = (
-                            <View ref={threeDotsMenuContainerRef}>
-                                <ThreeDotsMenu
-                                    getAnchorPosition={calculateAndSetThreeDotsMenuPosition}
-                                    menuItems={overflowMenu}
-                                    anchorAlignment={{
-                                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                                    }}
-                                />
-                            </View>
-                        );
-                    } else {
-                        rightComponent = (
-                            <Button
-                                onPress={() => {
-                                    if (!canWriteMoreFeatures) {
-                                        showReadOnlyModal();
-                                        return;
-                                    }
-                                    startIntegrationFlow({name: integration});
+                const isUber = integration === CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER;
+                let rightComponent: React.ReactNode;
+                if (canWriteMoreFeatures && (isUberConnected || shouldShowEnterCredentialsError)) {
+                    rightComponent = (
+                        <View ref={threeDotsMenuContainerRef}>
+                            <ThreeDotsMenu
+                                getAnchorPosition={calculateAndSetThreeDotsMenuPosition}
+                                menuItems={overflowMenu}
+                                anchorAlignment={{
+                                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                                 }}
-                                style={styles.justifyContentCenter}
-                                innerStyles={!canWriteMoreFeatures ? styles.buttonOpacityDisabled : undefined}
-                                hoverStyles={!canWriteMoreFeatures ? styles.buttonOpacityDisabled : undefined}
-                                size={CONST.BUTTON_SIZE.SMALL}
-                                isLoading={!policy?.receiptPartners?.uber && !isOffline && !!policy?.isLoadingReceiptPartners}
-                                isDisabled={canWriteMoreFeatures && isOffline}
-                            >
-                                <Button.Text>{translate('workspace.accounting.setup')}</Button.Text>
-                            </Button>
-                        );
-                    }
+                            />
+                        </View>
+                    );
+                } else {
+                    rightComponent = (
+                        <Button
+                            onPress={() => {
+                                if (!canWriteMoreFeatures) {
+                                    showReadOnlyModal();
+                                    return;
+                                }
+                                startIntegrationFlow({name: integration});
+                            }}
+                            style={styles.justifyContentCenter}
+                            innerStyles={!canWriteMoreFeatures ? styles.buttonOpacityDisabled : undefined}
+                            hoverStyles={!canWriteMoreFeatures ? styles.buttonOpacityDisabled : undefined}
+                            size={CONST.BUTTON_SIZE.SMALL}
+                            isLoading={!policy?.receiptPartners?.uber && !isOffline && !!policy?.isLoadingReceiptPartners}
+                            isDisabled={canWriteMoreFeatures && isOffline}
+                        >
+                            <Button.Text>{translate('workspace.accounting.setup')}</Button.Text>
+                        </Button>
+                    );
+                }
 
-                    return {
-                        ...iconProps,
-                        ...integrationData,
-                        interactive: false,
-                        errorText: shouldShowEnterCredentialsError ? getSynchronizationErrorMessage(integrationData.title, translate, styles) : undefined,
-                        wrapperStyle: [styles.sectionMenuItemTopDescription],
-                        shouldShowRightComponent: !!rightComponent,
-                        title: integrationData?.title,
-                        badgeText: isUber ? translate('workspace.accounting.claimOffer.badgeText') : undefined,
-                        onBadgePress:
-                            isUber && canWriteMoreFeatures
-                                ? () => {
-                                      Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CLAIM_OFFER.getRoute(policyID, CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER));
-                                  }
-                                : undefined,
-                        badgeStyle: styles.mr3,
-                        isBadgeSuccess: isUber,
-                        shouldShowBadgeInSeparateRow: shouldUseNarrowLayout,
-                        numberOfLinesDescription: 5,
-                        titleContainerStyle: [styles.pr2],
-                        description: integrationData?.description,
-                        brickRoadIndicator: !!integrationData?.errorFields || shouldShowEnterCredentialsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                        rightComponent,
-                    };
-                })
-                .filter(Boolean) as MenuItemData[];
+                const errorText = shouldShowEnterCredentialsError ? getSynchronizationErrorMessage(integrationData.title, translate, styles) : undefined;
+                const brickRoadIndicator = !!integrationData.errorFields || shouldShowEnterCredentialsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
+                const onBadgePress =
+                    isUber && canWriteMoreFeatures
+                        ? () => {
+                              Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CLAIM_OFFER.getRoute(policyID, CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER));
+                          }
+                        : undefined;
+                const badge = isUber && (
+                    <Badge
+                        text={translate('workspace.accounting.claimOffer.badgeText')}
+                        success
+                        onPress={onBadgePress}
+                        pressable={!!onBadgePress}
+                        badgeStyles={shouldUseNarrowLayout ? [styles.alignSelfStart, styles.ml13, styles.mt2] : [styles.ml0, !!brickRoadIndicator && styles.mr1]}
+                    />
+                );
+
+                return (
+                    <OfflineWithFeedback
+                        key={integration}
+                        shouldDisableStrikeThrough
+                    >
+                        <MenuItemSectionRoot>
+                            <MenuItem.Row>
+                                {!!integrationData.icon && (
+                                    <MenuItem.Leading>
+                                        <UserAvatar
+                                            source={integrationData.icon}
+                                            accountID={CONST.DEFAULT_NUMBER_ID}
+                                        />
+                                    </MenuItem.Leading>
+                                )}
+                                <MenuItem.Content>
+                                    <MenuItem.Title>{integrationData.title}</MenuItem.Title>
+                                    <MenuItem.Description numberOfLines={5}>{integrationData.description}</MenuItem.Description>
+                                </MenuItem.Content>
+                                <MenuItem.Trailing>
+                                    {!shouldUseNarrowLayout && badge}
+                                    {!!brickRoadIndicator && <MenuItem.BrickRoadIndicator status={brickRoadIndicator} />}
+                                    {rightComponent}
+                                </MenuItem.Trailing>
+                            </MenuItem.Row>
+                            {shouldUseNarrowLayout && badge}
+                            {!!errorText && (
+                                <FormHelpMessage
+                                    isError
+                                    shouldShowRedDotIndicator={false}
+                                    message={errorText}
+                                    style={[styles.menuItemError, styles.mt3]}
+                                />
+                            )}
+                        </MenuItemSectionRoot>
+                    </OfflineWithFeedback>
+                );
+            });
         }
 
         return [];
@@ -325,20 +349,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                 titleStyles={styles.accountSettingsSectionTitle}
                                 childrenStyles={styles.pt5}
                             >
-                                {connectionsMenuItems.map((menuItem) => (
-                                    <OfflineWithFeedback
-                                        pendingAction={menuItem.pendingAction}
-                                        key={menuItem.title}
-                                        shouldDisableStrikeThrough
-                                    >
-                                        <MenuItem
-                                            errorTextStyle={styles.mt3}
-                                            brickRoadIndicator={menuItem.brickRoadIndicator}
-                                            key={menuItem.title}
-                                            {...menuItem}
-                                        />
-                                    </OfflineWithFeedback>
-                                ))}
+                                {connectionRows}
                                 {isUberConnected && (
                                     <>
                                         <OfflineWithFeedback pendingAction={integrations?.uber?.pendingFields?.autoInvite}>
