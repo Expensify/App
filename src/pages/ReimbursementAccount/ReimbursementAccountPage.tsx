@@ -619,7 +619,13 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const shouldShowPolicyName = topmostFullScreenRoute?.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR;
     const policyNameToDisplay = shouldShowPolicyName ? policyName : '';
 
-    if (isOffline && !hasLoadedData) {
+    // hasLoadedData only proves the account differs from DEFAULT_DATA. Offline, the failed mount fetch can leave the `{}` shell
+    // that setBankAccountSubStep(null) creates, DEFAULT_DATA's `{state: 'SETUP'}` next to an unrelated top-level change,
+    // or another workspace's persisted account. None of those was loaded for this page.
+    const hasAchDataForThisPage =
+        !isEmptyObject(achData) && !deepEqual(achData, CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA.achData) && !(!!policyIDParam && !!achData?.policyID && achData.policyID !== policyIDParam);
+
+    if (isOffline && (!hasLoadedData || !hasAchDataForThisPage)) {
         return (
             <ScreenWrapper testID="ReimbursementAccountPage">
                 <HeaderWithBackButton
