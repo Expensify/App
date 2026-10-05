@@ -95,6 +95,15 @@ const typescriptRestrictedImportPatterns = [
     },
 ];
 
+// `HeaderWithBackButton` is being migrated to the composed `Header` (`@components/Header`).
+// Two patterns for what ESLint writes as one: ESLint matches with gitignore semantics, where a bare
+// directory name also covers everything under it, and oxlint matches the path exactly. The second
+// entry is what catches `.../HeaderWithBackButton/types`.
+const restrictedHeaderImportPatterns = [
+    {group: ['**/HeaderWithBackButton'], message: 'HeaderWithBackButton is being migrated to the composed Header. Please use `@components/Header` instead for new usages.'},
+    {group: ['**/HeaderWithBackButton/**'], message: 'HeaderWithBackButton is being migrated to the composed Header. Please use `@components/Header` instead for new usages.'},
+];
+
 // Headless CLI cannot use useTheme; email charts always render with the light theme.
 const victoryChartRendererRestrictedImportPaths = restrictedImportPaths.filter((entry) => entry.name !== '@styles/theme');
 const victoryChartRendererRestrictedImportPatterns = typescriptRestrictedImportPatterns.filter((entry) => !entry.group.includes('@styles/theme/themes/**'));
@@ -1042,7 +1051,7 @@ export default defineConfig({
         {
             files: ['**/*.{ts,tsx}'],
             rules: {
-                'no-restricted-imports': ['error', {paths: restrictedImportPaths, patterns: typescriptRestrictedImportPatterns}],
+                'no-restricted-imports': ['error', {paths: restrictedImportPaths, patterns: [...typescriptRestrictedImportPatterns, ...restrictedHeaderImportPatterns]}],
                 // Overrides are last-wins, so this block's position is load-bearing twice: this rule
                 // has to stay above the 83-file block near the end of `overrides` that switches it
                 // off, and `no-restricted-imports` above has to stay above the two blocks that re-set
