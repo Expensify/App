@@ -16,7 +16,6 @@ import type SingleSelectListItem from './ListItem/SingleSelectListItem';
 import type SingleSelectWithAvatarListItem from './ListItem/SingleSelectWithAvatarListItem';
 import type SpendCategorySelectorListItem from './ListItem/SpendCategorySelectorListItem';
 import type SplitListItem from './ListItem/SplitListItem';
-import type TravelDomainListItem from './ListItem/TravelDomainListItem';
 import type {ListItem} from './ListItem/types';
 import type UserListItem from './ListItem/UserListItem';
 import type UserSelectionListItem from './ListItem/UserSelectionListItem';
@@ -30,7 +29,6 @@ type ValidListItem =
     | typeof SingleSelectWithAvatarListItem
     | typeof SpendCategorySelectorListItem
     | typeof SplitListItem
-    | typeof TravelDomainListItem
     | typeof BareUserListItem
     | typeof UserListItem
     | typeof UserSelectionListItem;

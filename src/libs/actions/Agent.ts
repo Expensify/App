@@ -65,6 +65,7 @@ function createAgent(
         isOptimisticPersonalDetail: true,
         ...(avatarURI ? {avatar: avatarURI, avatarThumbnail: avatarURI} : {}),
     };
+    const optimisticPersonalDetailPromise = Onyx.update([buildPersonalDetailsUpdate({[optimisticAccountID]: optimisticPersonalDetail})]);
 
     // Generate the DM report ID client-side so it can be written to Onyx and opened immediately.
     const optimisticReportID = generateReportID();
@@ -83,7 +84,6 @@ function createAgent(
     });
 
     const optimisticData: AnyOnyxUpdate[] = [
-        buildPersonalDetailsUpdate({[optimisticAccountID]: optimisticPersonalDetail}),
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`,
@@ -157,7 +157,7 @@ function createAgent(
         {optimisticData, successData, failureData},
     );
 
-    return {optimisticAccountID, avatarURI, optimisticReportID};
+    return {optimisticAccountID, avatarURI, optimisticReportID, optimisticPersonalDetailPromise};
 }
 
 /**

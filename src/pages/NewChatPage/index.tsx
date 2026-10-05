@@ -174,7 +174,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         !!userToInvite,
         debouncedSearchTerm.trim(),
         countryCode,
-        selectedOptions.some((participant) => doesPersonalDetailMatchSearchTerm(participant, currentUserAccountID, cleanSearchTerm)),
+        selectedOptions.some((participant) => doesPersonalDetailMatchSearchTerm(participant, currentUserAccountID, cleanSearchTerm, translate)),
     );
 
     // Selected rows are marked in place by the hook (isSelected), so the checkmark stays with the row instead of jumping to the top.
@@ -189,7 +189,9 @@ function NewChatPage({ref}: NewChatPageProps) {
     // to keep them visible and easy to deselect. The one already shown as the current invite row is excluded to avoid a duplicate.
     const selectedSection = selectedOptions.filter(
         (option) =>
-            !!option.isOptimisticAccount && !(userToInvite && option.login === userToInvite.login) && doesPersonalDetailMatchSearchTerm(option, currentUserAccountID, cleanSearchTerm),
+            !!option.isOptimisticAccount &&
+            !(userToInvite && option.login === userToInvite.login) &&
+            doesPersonalDetailMatchSearchTerm(option, currentUserAccountID, cleanSearchTerm, translate),
     );
 
     if (selectedSection.length) {
