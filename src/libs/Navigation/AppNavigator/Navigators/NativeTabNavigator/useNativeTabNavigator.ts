@@ -54,7 +54,7 @@ function useNativeTabNavigator() {
     const {indicatorColor: accountIndicatorColor, status: accountIndicatorStatus} = useAccountTabIndicatorStatus();
     const navigation = useNavigation();
     const parentNavigation = navigation.getParent();
-    const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
+    const isFocusedRouteTabRoot = useNavigationState((state) => TAB_ROOT_SCREENS_WITHOUT_GESTURE.has(findFocusedRoute(state)?.name ?? ''));
     const route = useRoute();
     // The Tab.Navigator's own state lives at `parentState.routes[i].state`. We can't read it via
     // `useNavigationState((s) => s)` here because the navigator's body runs before <Tab.Navigator>
@@ -88,9 +88,8 @@ function useNativeTabNavigator() {
         if (!shouldUseNarrowLayout || !parentNavigation) {
             return;
         }
-        const isRootScreen = TAB_ROOT_SCREENS_WITHOUT_GESTURE.has(focusedRouteName ?? '');
-        parentNavigation.setOptions({gestureEnabled: !isRootScreen});
-    }, [focusedRouteName, shouldUseNarrowLayout, parentNavigation]);
+        parentNavigation.setOptions({gestureEnabled: !isFocusedRouteTabRoot});
+    }, [isFocusedRouteTabRoot, shouldUseNarrowLayout, parentNavigation]);
 
     useEffect(() => {
         if (!isRealizedNavigationState(tabState)) {

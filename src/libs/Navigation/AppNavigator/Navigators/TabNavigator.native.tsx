@@ -10,6 +10,7 @@ import SCREENS from '@src/SCREENS';
 import {createNativeBottomTabNavigator} from '@react-navigation/bottom-tabs/unstable';
 import React from 'react';
 
+import type {NativeTabName} from './NativeTabNavigator/NATIVE_TAB_GLYPHS';
 import type {NativeTabLayoutProps} from './NativeTabNavigator/NativeTabLayout';
 
 import NativeTabLayout from './NativeTabNavigator/NativeTabLayout';
@@ -29,11 +30,15 @@ import WorkspaceNavigator from './WorkspaceNavigator';
  */
 const Tab = createNativeBottomTabNavigator<TabNavigatorParamList>();
 
+const HIDDEN_TAB_OPTIONS = {tabBarItemHidden: true};
+
 const renderNativeTabLayout = (props: NativeTabLayoutProps) => <NativeTabLayout {...props} />;
 
 function TabNavigator() {
     const {shouldShowNativeTabBar, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride} = useNativeTabNavigator();
     const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, dotColors, tabLabels});
+    // A tab with no bar item draws no icon.
+    const getOptions = (name: NativeTabName) => (name === tabWithoutBarItem ? HIDDEN_TAB_OPTIONS : getTabOptions(name));
 
     return (
         <Tab.Navigator
@@ -47,34 +52,34 @@ function TabNavigator() {
             <Tab.Screen
                 name={SCREENS.HOME}
                 component={HomePage}
-                options={getTabOptions(SCREENS.HOME)}
+                options={getOptions(SCREENS.HOME)}
             />
             <Tab.Screen
                 name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
                 component={ReportsSplitNavigator}
-                options={getTabOptions(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR)}
+                options={getOptions(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR)}
             />
             <Tab.Screen
                 name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
                 component={SearchFullscreenNavigator}
-                options={getTabOptions(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR)}
+                options={getOptions(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR)}
             />
             <Tab.Screen
                 name={SCREENS.INSIGHTS}
                 component={InsightsPage}
                 // The Insights tab button opens the Spend dashboard, so a tap on the native tab lands on it too.
                 initialParams={{dashboardID: CONST.INSIGHTS.DASHBOARD.SPEND}}
-                options={{...getTabOptions(SCREENS.INSIGHTS), tabBarItemHidden: tabWithoutBarItem === SCREENS.INSIGHTS}}
+                options={getOptions(SCREENS.INSIGHTS)}
             />
             <Tab.Screen
                 name={NAVIGATORS.WORKSPACE_NAVIGATOR}
                 component={WorkspaceNavigator}
-                options={getTabOptions(NAVIGATORS.WORKSPACE_NAVIGATOR)}
+                options={getOptions(NAVIGATORS.WORKSPACE_NAVIGATOR)}
             />
             <Tab.Screen
                 name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
                 component={SettingsSplitNavigator}
-                options={{...getTabOptions(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR), tabBarItemHidden: tabWithoutBarItem === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}}
+                options={getOptions(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR)}
             />
         </Tab.Navigator>
     );
