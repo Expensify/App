@@ -534,6 +534,11 @@ const staticStyles = (theme: ThemeColors) =>
             lineHeight: lineHeightScale.label,
         },
 
+        /** Gives every digit the same advance so a counter doesn't shift sideways as its digits change. */
+        tabularNums: {
+            fontVariant: ['tabular-nums'],
+        },
+
         mutedNormalTextLabel: {
             color: theme.textSupporting,
             fontSize: fontScale.label,
@@ -1309,6 +1314,14 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadius,
             borderColor: 'transparent',
             paddingHorizontal: 4,
+        },
+
+        /**
+         * Cancels editableCell's horizontal chrome so the value lines up with a
+         * sibling that has no edit padding, such as a card title under a cardholder name.
+         */
+        editableCellFlushWithSibling: {
+            marginHorizontal: -(variables.editableCellChromeWidth / 2),
         },
 
         editableCell: {
@@ -3630,7 +3643,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         growlNotificationWrapper: {
-            zIndex: 2,
+            zIndex: variables.growlNotificationZIndex,
         },
 
         growlNotificationContainer: {
@@ -6854,6 +6867,8 @@ const staticStyles = (theme: ThemeColors) =>
             marginTop: variables.qrShareHorizontalPadding,
             flexDirection: 'row',
             flexWrap: 'wrap',
+            rowGap: 8,
+            columnGap: 16,
         },
         pieChartCenterLabel: {
             position: 'absolute',
@@ -7191,6 +7206,11 @@ const dynamicStyles = (theme: ThemeColors) =>
             top: 0,
             bottom: 0,
             width,
+        }),
+
+        getSplashScreenHiderPosition: (left: number, right: number): ViewStyle => ({
+            left: -left,
+            right: -right,
         }),
 
         getSelectionListPopoverHeight: ({
@@ -7555,6 +7575,15 @@ const plainStyles = (theme: ThemeColors) =>
             alignSelf: 'center',
             gap: variables.insightsCardGap,
         } satisfies ViewStyle,
+
+        insightsDashboardScrollView: {
+            ...scrollbarGutterStable,
+        },
+
+        insightsPageControlsContainer: {
+            ...scrollbarGutterStable,
+            overflow: 'hidden',
+        },
 
         insightsChartGrid: {
             flexDirection: 'row',
