@@ -4841,7 +4841,7 @@ ${amount} pour ${merchant} - ${date}`,
             memberAlternateText: 'Soumettre et approuver des notes de frais.',
             adminAlternateText: 'Gérer les notes de frais et les paramètres de l’espace de travail.',
             auditorAlternateText: 'Afficher et commenter les notes de frais.',
-            guestAlternateText: 'Soumettre et approuver des notes de frais, avec des discussions sur invitation uniquement.',
+            guestAlternateText: 'Envoyer et approuver des rapports, avec des discussions sur invitation uniquement.',
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.OWNER:
@@ -7124,8 +7124,8 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                 other: 'Créer des auditeurs',
             }),
             makeGuest: () => ({
-                one: 'Rendre invité',
-                other: 'Rendre invités',
+                one: 'Nommer invité',
+                other: 'Nommer invités',
             }),
             makePeopleAdmin: () => ({
                 one: 'Nommer administrateur des personnes',

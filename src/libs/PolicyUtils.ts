@@ -48,6 +48,8 @@ import type {TupleToUnion, ValueOf} from 'type-fest';
 
 import {Str} from 'expensify-common';
 
+import type {PolicyFeature, PolicyFeatureAccess} from './policyRolePermissions';
+
 import {getQuickbooksOnlineIntegrationName, isQBORefreshTokenExpiringSoon} from './AccountingUtils';
 import {getBankAccountFromID} from './actions/BankAccounts';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from './actions/connections';
@@ -77,8 +79,6 @@ type PolicyWithTaxRates = {
 };
 
 type TravelStep = ValueOf<typeof CONST.TRAVEL.STEPS>;
-type PolicyFeature = ValueOf<typeof CONST.POLICY.POLICY_FEATURE>;
-type PolicyFeatureAccess = ValueOf<typeof CONST.POLICY.POLICY_FEATURE_ACCESS>;
 
 type AccountingConnectionName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES>;
 type WorkspaceDetails = {

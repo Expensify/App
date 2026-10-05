@@ -5,19 +5,21 @@ import type {ValueOf} from 'type-fest';
 type PolicyFeature = ValueOf<typeof CONST.POLICY.POLICY_FEATURE>;
 type PolicyFeatureAccess = ValueOf<typeof CONST.POLICY.POLICY_FEATURE_ACCESS>;
 
-const WRITE_ALL_POLICY_FEATURES: Record<string, PolicyFeatureAccess> = Object.fromEntries(
-    Object.values(CONST.POLICY.POLICY_FEATURE).map((feature) => [feature, CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE]),
+const ALL_POLICY_FEATURES = Object.values(CONST.POLICY.POLICY_FEATURE);
+
+const WRITE_ALL_POLICY_FEATURES = ALL_POLICY_FEATURES.reduce<Partial<Record<PolicyFeature, PolicyFeatureAccess>>>(
+    (features, feature) => ({...features, [feature]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}),
+    {},
 );
 
-const READ_ALL_POLICY_FEATURES: Record<string, PolicyFeatureAccess> = Object.fromEntries(
-    Object.values(CONST.POLICY.POLICY_FEATURE).map((feature) => [feature, CONST.POLICY.POLICY_FEATURE_ACCESS.READ]),
+const READ_ALL_POLICY_FEATURES = ALL_POLICY_FEATURES.reduce<Partial<Record<PolicyFeature, PolicyFeatureAccess>>>(
+    (features, feature) => ({...features, [feature]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ}),
+    {},
 );
 
-const EDITOR_POLICY_FEATURES = Object.fromEntries(
-    Object.values(CONST.POLICY.POLICY_FEATURE)
-        .filter((feature) => feature !== CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES)
-        .map((feature) => [feature, CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE]),
-) as Partial<Record<PolicyFeature, PolicyFeatureAccess>>;
+const EDITOR_POLICY_FEATURES = ALL_POLICY_FEATURES.filter((feature) => feature !== CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES).reduce<
+    Partial<Record<PolicyFeature, PolicyFeatureAccess>>
+>((features, feature) => ({...features, [feature]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}), {});
 
 const ROLE_PERMISSION_BUNDLES: Record<string, Partial<Record<PolicyFeature, PolicyFeatureAccess>>> = {
     [CONST.POLICY.ROLE.ADMIN]: WRITE_ALL_POLICY_FEATURES,
@@ -56,4 +58,5 @@ function isControlPolicyOnlyRole(role: string | undefined): boolean {
     return CONTROL_POLICY_ONLY_ROLES.some((controlPolicyOnlyRole) => controlPolicyOnlyRole === role);
 }
 
+export type {PolicyFeature, PolicyFeatureAccess};
 export {ROLE_PERMISSION_BUNDLES, isControlPolicyOnlyRole};

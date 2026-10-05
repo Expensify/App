@@ -244,7 +244,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const isSelfDMTrackExpenseReport = isTrackExpenseReport && isSelfDMUtil(parentReport);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isArchivedRoom = isArchivedNonExpenseReport(report, isReportArchived);
-    const shouldDisableRename = shouldDisableRenameUtil(report, isReportArchived);
+    const shouldDisableRename = shouldDisableRenameUtil(report, isReportArchived, policy);
     const parentNavigationSubtitleData = getParentNavigationSubtitle(report, policy, conciergeReportID, translate, derivedParentReportName, isParentReportArchived);
     const base62ReportID = getBase62ReportID(Number(report.reportID));
     const ancestors = useAncestors(report);

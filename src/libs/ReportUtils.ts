@@ -11419,7 +11419,7 @@ function getAllWorkspaceReports(policyID?: string): Array<OnyxEntry<Report>> {
 /**
  * @param policy - the workspace the report is on, null if the user isn't a member of the workspace
  */
-function shouldDisableRename(report: OnyxEntry<Report>, isReportArchived = false): boolean {
+function shouldDisableRename(report: OnyxEntry<Report>, isReportArchived = false, policy?: OnyxEntry<Policy>): boolean {
     if (
         isDefaultRoom(report) ||
         isReportArchived ||
@@ -11440,6 +11440,10 @@ function shouldDisableRename(report: OnyxEntry<Report>, isReportArchived = false
     }
 
     if (isDeprecatedGroupDM(report, isReportArchived) || isTaskReport(report)) {
+        return true;
+    }
+
+    if (policy?.role === CONST.POLICY.ROLE.GUEST) {
         return true;
     }
 

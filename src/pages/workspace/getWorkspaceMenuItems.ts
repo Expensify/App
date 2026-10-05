@@ -220,7 +220,16 @@ function getWorkspaceMenuItems({
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.ROOMS,
         },
     ];
-    const items = defaultItems.filter((item) => !isGuest || item.screenName === SCREENS.WORKSPACE.PROFILE);
+    const items = defaultItems.filter((item) => {
+        if (item.screenName === SCREENS.WORKSPACE.PROFILE) {
+            return true;
+        }
+        // POLICY_FEATURE has no ROOMS entry yet, so guests are hidden from rooms by role
+        if (item.screenName === SCREENS.WORKSPACE.ROOMS) {
+            return !isGuest;
+        }
+        return canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.MEMBERS);
+    });
 
     if (isGroupPolicy(policy) && shouldShowProtectedItems) {
         if (canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS)) {

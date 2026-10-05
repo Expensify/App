@@ -22,7 +22,6 @@ jest.mock('@sentry/react-native', () => ({
 
 jest.mock('@libs/PolicyUtils', () => ({
     getActivePolicies: jest.fn(),
-    getHighestPolicyRole: jest.fn(),
 }));
 
 jest.mock('@libs/telemetry/sendMemoryContext', () => ({

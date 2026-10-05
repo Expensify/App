@@ -60,6 +60,7 @@ import {
     canEditWorkspaceSettings as canEditWorkspaceSettingsUtil,
     canMemberAssignRole,
     canMemberManageMemberWithRole,
+    canMemberRead,
     canMemberWrite,
     getConnectionExporters,
     getMemberAccountIDsForWorkspace,
@@ -135,6 +136,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const {showConfirmModal} = useConfirmModal();
     const showRuleBotGuardModal = useRuleBotGuardModal();
     const getWorkspaceMembers = () => {
+        if (!canMemberRead(policy, currentUserPersonalDetails.login ?? '', CONST.POLICY.POLICY_FEATURE.MEMBERS)) {
+            return;
+        }
         const clientMemberEmails = Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails));
         openWorkspaceMembersPage(route.params.policyID, clientMemberEmails);
     };

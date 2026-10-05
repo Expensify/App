@@ -4905,7 +4905,7 @@ ${amount} για ${merchant} - ${date}`,
             memberAlternateText: 'Υποβάλετε και εγκρίνετε αναφορές.',
             adminAlternateText: 'Διαχειριστείτε αναφορές και ρυθμίσεις χώρου εργασίας.',
             auditorAlternateText: 'Προβολή και σχολιασμός αναφορών.',
-            guestAlternateText: 'Υποβολή και έγκριση αναφορών, με συνομιλίες μόνο με πρόσκληση.',
+            guestAlternateText: 'Υποβάλετε και εγκρίνετε αναφορές, με συνομιλίες μόνο κατόπιν πρόσκλησης.',
             cardAdminAlternateText: 'Διαχειριστείτε τις κάρτες χώρου εργασίας.',
             peopleAdminAlternateText: 'Διαχειριστείτε μέλη και ροές έγκρισης.',
             paymentsAdminAlternateText: 'Διαχειριστείτε τις πληρωμές ροής εργασιών.',
@@ -4917,21 +4917,19 @@ ${amount} για ${merchant} - ${date}`,
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.OWNER:
-                        return 'Ιδιοκτήτης';
+                        return 'Κάτοχος';
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'Διαχειριστής χώρου εργασίας';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Ελεγκτής';
-                    case CONST.POLICY.ROLE.GUEST:
-                        return 'Επισκέπτης';
                     case CONST.POLICY.ROLE.EDITOR:
                         return 'Επεξεργαστής';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return 'Διαχείριση κάρτας';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'Διαχείριση ατόμων';
+                        return 'Διαχείριση προσώπων';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
-                        return 'Διαχειριστής πληρωμών';
+                        return 'διαχείριση πληρωμών';
                     case CONST.POLICY.ROLE.USER:
                         return 'Μέλος';
                     default:
@@ -7234,8 +7232,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 other: 'Δημιουργία ελεγκτών',
             }),
             makeGuest: () => ({
-                one: 'Κάντε επισκέπτη',
-                other: 'Προσθήκη επισκεπτών',
+                one: 'Ορισμός ως επισκέπτη',
+                other: 'Ορισμός ως επισκέπτες',
             }),
             makeCardAdmin: () => ({
                 one: 'Ορισμός διαχειριστή κάρτας',
@@ -7267,7 +7265,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             paymentsAdmins: 'Διαχειριστές πληρωμών',
             approvers: 'Εγκρίνοντες',
             auditors: 'Ελεγκτές',
-            guests: 'Καλεσμένοι',
+            guests: 'Επισκέπτες',
             editors: 'Συντάκτες',
             members: 'Μέλη',
             emptyRoleFilter: {
