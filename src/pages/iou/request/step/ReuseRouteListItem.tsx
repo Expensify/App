@@ -97,7 +97,7 @@ function ReuseRouteListItem<TItem extends ListItem>({item, isFocused, isFocusVis
             onDismissError={onDismissError}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            pressableStyle={styles.reuseRouteCard}
+            wrapperStyle={styles.reuseRouteCard}
         >
             <View style={styles.reuseRouteThumbnailWrapper}>
                 <View style={styles.reuseRouteThumbnail}>
