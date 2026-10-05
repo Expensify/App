@@ -408,8 +408,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Whether item should be focusable with keyboard */
         tabIndex?: 0 | -1;
 
-        rightIconWrapperStyle?: StyleProp<ViewStyle>;
-
         /** Whether to ignore compact popover menu styling for this item */
         shouldIgnoreCompactStyle?: boolean;
     };
@@ -559,7 +557,6 @@ function MenuItem({
     role = CONST.ROLE.BUTTON,
     shouldBeAccessible = true,
     tabIndex = 0,
-    rightIconWrapperStyle,
     titleAccessibilityRole,
     shouldIgnoreCompactStyle = false,
 }: MenuItemProps) {
@@ -1138,7 +1135,6 @@ function MenuItem({
                                                             hasSubMenuItems && styles.pl6,
                                                             !isHovered && shouldDimIconRight && styles.opacitySemiTransparent,
                                                             styles.alignItemsEnd,
-                                                            rightIconWrapperStyle,
                                                         ]}
                                                     >
                                                         <Icon
