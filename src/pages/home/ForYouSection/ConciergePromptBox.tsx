@@ -61,6 +61,9 @@ const MAX_INPUT_LINES = 5;
 // Size of the Concierge illustration above the greeting.
 const CONCIERGE_ILLUSTRATION_SIZE = 68;
 
+// Wide layouts have room to tuck a larger illustration into the card's top right, behind the composer.
+const CONCIERGE_WIDE_ILLUSTRATION_SIZE = 68;
+
 // The illustration drifts this far up and back down on a slow loop, easing at each end so it never snaps.
 const CONCIERGE_BOB_DISTANCE = 4;
 const CONCIERGE_BOB_DURATION = 1500;
@@ -91,9 +94,12 @@ type ConciergePromptBoxProps = {
 
     /** Shows skeleton bars in place of the date, the greeting and the composer's placeholder. */
     isCopyLoading: boolean;
+
+    /** Whether the card's body shows its own Concierge illustration, which this one would repeat. */
+    isEmptyStateShowing: boolean;
 };
 
-function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading}: ConciergePromptBoxProps) {
+function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading, isEmptyStateShowing}: ConciergePromptBoxProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -271,6 +277,19 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading}: Co
 
     return (
         <View style={[styles.gap6, styles.pRelative]}>
+            {/* Painted before the rest of the card so the composer sits over it. */}
+            {!shouldUseNarrowLayout && !isEmptyStateShowing && (
+                <Animated.View
+                    style={[styles.conciergePromptBoxWideIllustration, bobStyle]}
+                    pointerEvents="none"
+                >
+                    <Icon
+                        src={illustrations.ConciergeBot}
+                        width={CONCIERGE_WIDE_ILLUSTRATION_SIZE}
+                        height={CONCIERGE_WIDE_ILLUSTRATION_SIZE}
+                    />
+                </Animated.View>
+            )}
             <View style={[styles.gap1, shouldUseNarrowLayout && styles.alignItemsCenter]}>
                 {shouldUseNarrowLayout && (
                     <Animated.View style={bobStyle}>

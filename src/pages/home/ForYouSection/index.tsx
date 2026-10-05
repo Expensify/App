@@ -237,6 +237,7 @@ function ForYouSection({isInitialLoad, isConciergeMenuVisible, setIsConciergeMen
                     isMenuVisible={isConciergeMenuVisible}
                     setIsMenuVisible={setIsConciergeMenuVisible}
                     isCopyLoading={isInitialLoad}
+                    isEmptyStateShowing={showEmptyState}
                 />
             }
         >
