@@ -505,7 +505,6 @@ function buildOnyxDataForGovernmentRateAutoUpdate(
                         shouldAutoUpdateGovernmentDistanceRates: null,
                         ...(countryCode ? {autoUpdateGovernmentRateCountry: null} : {}),
                     },
-                    errorFields: {shouldAutoUpdateGovernmentDistanceRates: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                     ...(customUnitID && (Object.keys(failureRates).length > 0 || shouldCorrectUnit)
                         ? {
                               customUnits: {

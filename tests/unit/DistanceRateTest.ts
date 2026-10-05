@@ -442,7 +442,6 @@ describe('DistanceRate', () => {
             expect(onyxPolicy.shouldAutoUpdateGovernmentDistanceRates).toBe(true);
             expect(onyxPolicy.autoUpdateGovernmentRateCountry).toBe('DE');
             expect(onyxPolicy.pendingFields?.shouldAutoUpdateGovernmentDistanceRates).toBeUndefined();
-            expect(onyxPolicy.errorFields?.shouldAutoUpdateGovernmentDistanceRates).not.toBeUndefined();
         });
 
         it('should clear the flag and keep the stored country when enabling fails', async () => {

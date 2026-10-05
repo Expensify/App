@@ -263,7 +263,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                     {isAutoUpdateSupported && (
                         <OfflineWithFeedback
                             errors={getLatestErrorField(policy ?? {}, 'shouldAutoUpdateGovernmentDistanceRates')}
-                            errorRowStyles={styles.mh5}
+                            errorRowStyles={[styles.mh5, styles.gap3]}
                             pendingAction={policy?.pendingFields?.shouldAutoUpdateGovernmentDistanceRates}
                             onClose={() => clearWorkspaceDistanceAutoUpdateErrors(policyID)}
                         >
@@ -297,7 +297,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                     {shouldShowCountryRow && (
                         <OfflineWithFeedback
                             pendingAction={policy?.pendingFields?.autoUpdateGovernmentRateCountry}
-                            errorRowStyles={styles.mh5}
+                            errorRowStyles={[styles.mh5, styles.gap3]}
                             onClose={() => clearWorkspaceDistanceAutoUpdateErrors(policyID)}
                         >
                             <MenuItemWithTopDescription

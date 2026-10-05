@@ -18,6 +18,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {getAutoUpdateGovernmentRateCountry, isSharedGovernmentRateCurrency} from '@libs/PolicyDistanceRatesUtils';
 import {
     canEditWorkspaceSettings,
     canModifyPlan,
@@ -202,6 +203,10 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             });
             return;
         }
+        if (feature?.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.governmentDistanceRates.id && policyID && isSharedGovernmentRateCurrency(policy?.outputCurrency)) {
+            Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_GOVERNMENT_RATE_COUNTRY.getRoute(policyID), {forceReplace: true});
+            return;
+        }
         goBack();
     };
 
@@ -282,7 +287,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 }
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.governmentDistanceRates.id:
-                if (distanceRateCustomUnit) {
+                if (distanceRateCustomUnit && !(isSharedGovernmentRateCurrency(policy?.outputCurrency) && !getAutoUpdateGovernmentRateCountry(policy))) {
                     setWorkspaceDistanceAutoUpdate(policyID, distanceRateCustomUnit, true, governmentMileageRates ?? [], policy?.outputCurrency);
                 }
                 break;
