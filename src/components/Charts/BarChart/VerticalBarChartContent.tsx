@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import {BAR_CORNER_RADIUS, VERTICAL_BAR_DOMAIN_PADDING} from '@components/Charts/barChartConstants';
+import {BAR_CORNER_RADIUS, BAR_HIT_GAP_RATIO, VERTICAL_BAR_DOMAIN_PADDING} from '@components/Charts/barChartConstants';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
@@ -87,7 +87,9 @@ function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosit
         unitPosition: yAxisUnitPosition,
     });
 
-    const barWidth = useSharedValue(0);
+    const barHitHalfWidth = useSharedValue(0);
+    const plotTop = useSharedValue(0);
+    const plotBottom = useSharedValue(0);
     const chartBottom = useSharedValue(0);
     const yZero = useSharedValue(0);
 
@@ -102,7 +104,10 @@ function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosit
 
     const handleChartBoundsChange = (bounds: ChartBounds) => {
         const domainWidth = bounds.right - bounds.left;
-        barWidth.set(getBarLayout(domainWidth, data.length).barWidth);
+        const {barWidth, gap} = getBarLayout(domainWidth, data.length);
+        barHitHalfWidth.set(barWidth > 0 ? barWidth / 2 + gap * BAR_HIT_GAP_RATIO : 0);
+        plotTop.set(bounds.top);
+        plotBottom.set(bounds.bottom);
         yZero.set(0);
         setBarAreaWidth(domainWidth);
         setBoundsLeft(bounds.left);
@@ -112,18 +117,13 @@ function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosit
     const checkIsOverBar = (args: HitTestArgs) => {
         'worklet';
 
-        const currentBarWidth = barWidth.get();
-        const currentYZero = yZero.get();
-        if (currentBarWidth === 0) {
+        // The target spans the full plot height.
+        const halfWidth = barHitHalfWidth.get();
+        if (halfWidth === 0) {
             return false;
         }
-        const barLeft = args.targetX - currentBarWidth / 2;
-        const barRight = args.targetX + currentBarWidth / 2;
-
-        const barTop = Math.min(args.targetY, currentYZero);
-        const barBottom = Math.max(args.targetY, currentYZero);
-
-        return args.cursorX >= barLeft && args.cursorX <= barRight && args.cursorY >= barTop && args.cursorY <= barBottom;
+        const isWithinX = Math.abs(args.cursorX - args.targetX) <= halfWidth;
+        return isWithinX && args.cursorY >= plotTop.get() && args.cursorY <= plotBottom.get();
     };
 
     const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition} = useChartInteractions({
