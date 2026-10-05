@@ -48,6 +48,9 @@ type SearchResultsInfo = {
     /** The hash of the current search */
     hash: number;
 
+    /** Client-only query string this snapshot was searched with, used to add optimistic expenses to matching snapshots */
+    inputQuery?: string;
+
     /** Whether the user can fetch more search results */
     hasMoreResults: boolean;
 

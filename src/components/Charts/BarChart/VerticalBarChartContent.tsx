@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import BAR_INNER_PADDING from '@components/Charts/barChartConstants';
+import BAR_INNER_PADDING, {VERTICAL_BAR_DOMAIN_PADDING} from '@components/Charts/barChartConstants';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
@@ -13,7 +13,7 @@ import {
     useDynamicYDomain,
     useLabelHitTesting,
 } from '@components/Charts/hooks';
-import {calculateMinDomainPadding, getXAxisLabel, getYAxisLabelWidth} from '@components/Charts/utils';
+import {calculateMinDomainPadding, getVerticalBarLabelLayoutInputs, getXAxisLabel, getYAxisLabelWidth} from '@components/Charts/utils';
 import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING} from '@components/Charts/VictoryTheme';
 
 import useTheme from '@hooks/useTheme';
@@ -31,11 +31,6 @@ import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimate
 import {Bar, CartesianChart} from 'victory-native';
 
 import type {BarChartProps} from './types';
-
-/** Extra pixel spacing between the chart boundary and the data range, applied per side (Victory's `domainPadding` prop)
- * We need bottom: 1 for proper display of the bottom label
- */
-const BASE_DOMAIN_PADDING = {top: 32, bottom: 1, left: 0, right: 0};
 
 function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', color, onBarPress}: BarChartProps) {
     const theme = useTheme();
@@ -69,14 +64,11 @@ function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosit
 
     const domainPadding = (() => {
         if (chartWidth === 0) {
-            return BASE_DOMAIN_PADDING;
+            return VERTICAL_BAR_DOMAIN_PADDING;
         }
         const horizontalPadding = calculateMinDomainPadding(chartWidth, data.length, BAR_INNER_PADDING);
-        return {...BASE_DOMAIN_PADDING, left: horizontalPadding, right: horizontalPadding};
+        return {...VERTICAL_BAR_DOMAIN_PADDING, left: horizontalPadding, right: horizontalPadding};
     })();
-
-    const totalDomainPadding = domainPadding.left + domainPadding.right;
-    const paddingScale = barAreaWidth > 0 ? barAreaWidth / (barAreaWidth + totalDomainPadding) : 0;
 
     const originalLabels = data.map(getXAxisLabel);
 
@@ -86,14 +78,18 @@ function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosit
         data,
         fontManager,
         fontSize: variables.iconSizeExtraSmall,
-        tickSpacing: barAreaWidth > 0 ? barAreaWidth / data.length : 0,
-        labelAreaWidth: barAreaWidth,
-        firstTickLeftSpace: boundsLeft + domainPadding.left * paddingScale,
-        lastTickRightSpace: chartWidth > 0 ? chartWidth - boundsRight + domainPadding.right * paddingScale : 0,
         measurements,
+        ...getVerticalBarLabelLayoutInputs({
+            containerWidth: chartWidth,
+            plotLeft: boundsLeft,
+            plotRight: boundsRight,
+            plotWidth: barAreaWidth,
+            dataLength: data.length,
+            innerPadding: BAR_INNER_PADDING,
+        }),
     });
 
-    const {formatValue} = useChartLabelFormats({
+    const {formatValue, formatCompactValue} = useChartLabelFormats({
         data,
         unit: yAxisUnit,
         unitPosition: yAxisUnitPosition,
@@ -211,7 +207,7 @@ function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosit
                     fontSize={variables.iconSizeExtraSmall}
                     fontManager={fontManager}
                     labelColor={theme.textSupporting}
-                    formatValue={formatValue}
+                    formatValue={formatCompactValue}
                     leftAlign
                 />
             </>
@@ -220,7 +216,7 @@ function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosit
 
     const labelSpace = VictoryTheme.axis.labelGap + (xAxisLabelHeight ?? 0);
     const dynamicChartStyle = {height: CHART_CONTENT_MIN_HEIGHT + labelSpace};
-    const yAxisLabelWidth = getYAxisLabelWidth(data, formatValue, fontManager, variables.iconSizeExtraSmall, BASE_DOMAIN_PADDING);
+    const yAxisLabelWidth = getYAxisLabelWidth(data, formatCompactValue, fontManager, variables.iconSizeExtraSmall, VERTICAL_BAR_DOMAIN_PADDING);
     const chartPadding = {...VictoryTheme.axis.padding, bottom: labelSpace + VictoryTheme.axis.padding.bottom, left: yAxisLabelWidth + GLYPH_PADDING};
 
     if (isLoading || !fontManager) {
@@ -256,6 +252,9 @@ function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosit
                         xAxis={{
                             tickCount: data.length,
                             lineWidth: VictoryTheme.axis.xLineWidth,
+                            // "outset" makes victory-native reserve 2 * yAxis.labelOffset below the plot for labels it
+                            // doesn't draw (we render ChartXAxisLabels ourselves), on top of our own labelSpace.
+                            labelPosition: 'inset',
                         }}
                         yAxis={[
                             {
