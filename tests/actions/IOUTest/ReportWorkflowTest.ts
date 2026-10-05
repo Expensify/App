@@ -375,7 +375,17 @@ describe('actions/IOU/ReportWorkflow', () => {
             await waitForBatchedUpdates();
 
             // Hold one of the two expenses
-            putOnHold(heldTransaction.transactionID, 'hold reason', expenseReport.reportID, false, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, false, undefined, {
+            putOnHold({
+                transactionID: heldTransaction.transactionID,
+                transaction: heldTransaction,
+                comment: 'hold reason',
+                initialReportID: expenseReport.reportID,
+                isOffline: false,
+                currentUserLogin: CARLOS_EMAIL,
+                currentUserAccountID: CARLOS_ACCOUNT_ID,
+                transactionViolations: undefined,
+                isTrackIntentUser: false,
+                delegateAccountID: undefined,
                 rules: undefined,
                 ancestors: [],
             });
@@ -500,7 +510,17 @@ describe('actions/IOU/ReportWorkflow', () => {
             await waitForBatchedUpdates();
 
             // Hold one of the two expenses
-            putOnHold(heldTransaction.transactionID, 'hold reason', expenseReport.reportID, false, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, false, undefined, {
+            putOnHold({
+                transactionID: heldTransaction.transactionID,
+                transaction: heldTransaction,
+                comment: 'hold reason',
+                initialReportID: expenseReport.reportID,
+                isOffline: false,
+                currentUserLogin: CARLOS_EMAIL,
+                currentUserAccountID: CARLOS_ACCOUNT_ID,
+                transactionViolations: undefined,
+                isTrackIntentUser: false,
+                delegateAccountID: undefined,
                 rules: undefined,
                 ancestors: [],
             });
@@ -610,7 +630,17 @@ describe('actions/IOU/ReportWorkflow', () => {
             await waitForBatchedUpdates();
 
             // Hold the only expense on the report
-            putOnHold(heldTransaction.transactionID, 'hold reason', expenseReport.reportID, false, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, false, undefined, {
+            putOnHold({
+                transactionID: heldTransaction.transactionID,
+                transaction: heldTransaction,
+                comment: 'hold reason',
+                initialReportID: expenseReport.reportID,
+                isOffline: false,
+                currentUserLogin: CARLOS_EMAIL,
+                currentUserAccountID: CARLOS_ACCOUNT_ID,
+                transactionViolations: undefined,
+                isTrackIntentUser: false,
+                delegateAccountID: undefined,
                 rules: undefined,
                 ancestors: [],
             });
@@ -721,7 +751,17 @@ describe('actions/IOU/ReportWorkflow', () => {
             await waitForBatchedUpdates();
 
             // Hold one of the two expenses
-            putOnHold(heldTransaction.transactionID, 'hold reason', expenseReport.reportID, false, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, false, undefined, {
+            putOnHold({
+                transactionID: heldTransaction.transactionID,
+                transaction: heldTransaction,
+                comment: 'hold reason',
+                initialReportID: expenseReport.reportID,
+                isOffline: false,
+                currentUserLogin: CARLOS_EMAIL,
+                currentUserAccountID: CARLOS_ACCOUNT_ID,
+                transactionViolations: undefined,
+                isTrackIntentUser: false,
+                delegateAccountID: undefined,
                 rules: undefined,
                 ancestors: [],
             });
@@ -3668,6 +3708,82 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, false)).toBeFalsy();
             expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], true, false)).toBeTruthy();
+        });
+
+        it('allows a non-payer admin to pay when a bank account is connected (reimburseYes)', async () => {
+            const DESIGNATED_PAYER_EMAIL = 'designated-payer@mail.com';
+            const policyChat = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(1),
+                id: 'AA',
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                role: CONST.POLICY.ROLE.ADMIN,
+                achAccount: {
+                    reimburser: DESIGNATED_PAYER_EMAIL,
+                    bankAccountID: 1,
+                    accountNumber: '1234567890',
+                    routingNumber: '987654321',
+                    addressName: 'Test Address',
+                    bankName: 'Test Bank',
+                },
+            };
+
+            const fakeReport: Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: 'AA',
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                ownerAccountID: CARLOS_ACCOUNT_ID,
+                managerID: CARLOS_ACCOUNT_ID,
+                isWaitingOnBankAccount: false,
+                total: -100,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            // Rory is an admin but not the designated reimburser, so the Pay option comes from canAdminPayReport rather than isPayer.
+            expect(isPayer(RORY_ACCOUNT_ID, RORY_EMAIL, fakeReport, {}, fakePolicy, false)).toBeFalsy();
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, false)).toBeTruthy();
+        });
+
+        it('does not allow a non-payer admin to pay when reimbursementChoice is not configured', async () => {
+            const DESIGNATED_PAYER_EMAIL = 'designated-payer@mail.com';
+            const policyChat = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(1),
+                id: 'AA',
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                reimbursementChoice: undefined,
+                role: CONST.POLICY.ROLE.ADMIN,
+                achAccount: {
+                    reimburser: DESIGNATED_PAYER_EMAIL,
+                    bankAccountID: 1,
+                    accountNumber: '1234567890',
+                    routingNumber: '987654321',
+                    addressName: 'Test Address',
+                    bankName: 'Test Bank',
+                },
+            };
+
+            const fakeReport: Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: 'AA',
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                ownerAccountID: CARLOS_ACCOUNT_ID,
+                managerID: CARLOS_ACCOUNT_ID,
+                isWaitingOnBankAccount: false,
+                total: -100,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, false)).toBeFalsy();
         });
 
         it('allows admins to mark report with only non-reimbursable expenses as paid (onlyShowPayElsewhere=true)', async () => {

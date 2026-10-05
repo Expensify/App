@@ -1,3 +1,4 @@
+import {useActivePolicyContext} from '@components/ActivePolicyProvider';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
@@ -179,7 +180,7 @@ function SearchAutocompleteList({
 }: SearchAutocompleteListProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addOfflineIndicatorBottomSafeAreaPadding: true,
@@ -193,11 +194,17 @@ function SearchAutocompleteList({
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [recentSearches, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {
+        selector: expensifyLoginsSelector,
+    });
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+    const {activePolicyID} = useActivePolicyContext();
     const sortedReportActionsData = useSortedReportActionsData();
     const sortedActions = sortedReportActionsData?.sortedActions;
+    const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
+    const lastActions = sortedReportActionsData?.lastActions;
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
@@ -261,6 +268,7 @@ function SearchAutocompleteList({
         return getSearchOptions({
             dateFnsLocale,
             convertToDisplayString,
+            convertToDisplayStringWithoutCurrency,
             options: listOptions,
             draftComments,
             isDefaultRoomsBetaEnabled,
@@ -280,8 +288,15 @@ function SearchAutocompleteList({
             currentUserEmail,
             policyCollection: policies,
             personalDetails,
+            reportAttributesDerived: reportAttributes,
             sortedActions,
+            transactionThreadIDs,
+            lastActions,
+            currentUserLogin: currentUserEmail,
+            localeCompare,
+            formatPhoneNumber,
             conciergeReportID,
+            allPolicyTags,
             isTrackIntentUser,
             translate,
             getReportByID,
@@ -298,14 +313,21 @@ function SearchAutocompleteList({
         currentUserAccountID,
         currentUserEmail,
         policies,
+        allPolicyTags,
         personalDetails,
+        reportAttributes,
         sortedActions,
+        transactionThreadIDs,
+        lastActions,
+        localeCompare,
+        formatPhoneNumber,
         conciergeReportID,
         isTrackIntentUser,
         translate,
         getReportByID,
         dateFnsLocale,
         convertToDisplayString,
+        convertToDisplayStringWithoutCurrency,
         rules,
     ]);
 
@@ -427,6 +449,7 @@ function SearchAutocompleteList({
         loginList,
         policies,
         visibleReportActionsData,
+        reportAttributesDerived: reportAttributes,
         currentUserAccountID,
         currentUserEmail,
         personalDetails,
@@ -498,7 +521,7 @@ function SearchAutocompleteList({
         // previous query's matches during the debounce window (rows stay visible, preserving focus/Enter/arrow keys).
         // For the empty -> query transition hasActiveSearchResults is false until the debounced query lands, so
         // recentReportsOptions falls back to recent chats instead of unfiltered rows, avoiding the reflow.
-        const orderedOptions = combineOrderingOfReportsAndPersonalDetails(searchOptions, autocompleteQueryValue, {
+        const orderedOptions = combineOrderingOfReportsAndPersonalDetails(searchOptions, autocompleteQueryValue, activePolicyID, {
             sortByReportTypeInSearch: true,
             preferChatRoomsOverThreads: true,
         });
@@ -509,7 +532,7 @@ function SearchAutocompleteList({
         }
 
         return reportOptions;
-    }, [autocompleteQueryValue, hasActiveSearchResults, searchOptions]);
+    }, [autocompleteQueryValue, activePolicyID, hasActiveSearchResults, searchOptions]);
 
     const recentReportsOptions = useMemo(() => {
         if (!hasActiveSearchResults) {
