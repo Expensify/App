@@ -280,10 +280,7 @@ function IOURequestStepConfirmationContent({
     // are excluded too, since their values are fixed. A split scan takes the entered values through CompleteSplitBill
     // right after StartSplitBill, see useExpenseSubmission.
     const canEnterScanFieldsManually =
-        requestType === CONST.IOU.REQUEST_TYPE.SCAN &&
-        !isMovingTransactionFromTrackExpense &&
-        !transaction?.receipt?.isTestReceipt &&
-        !transaction?.receipt?.isTestDriveReceipt;
+        requestType === CONST.IOU.REQUEST_TYPE.SCAN && !isMovingTransactionFromTrackExpense && !transaction?.receipt?.isTestReceipt && !transaction?.receipt?.isTestDriveReceipt;
 
     // The confirmation only validates the transaction it shows, so find the partially filled one across all receipts.
     const partiallyManuallyFilledScanID = transactions.find((item) => isPartiallyEnteredScanExpense(item, canEnterScanFieldsManually))?.transactionID;

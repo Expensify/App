@@ -2421,4 +2421,4 @@ export {
     resetSplitShares,
 };
 
-export type {CreateDistanceRequestInformation, StartedSplitBill, StartSplitBilActionParams};
+export type {CreateDistanceRequestInformation, StartSplitBilActionParams};
