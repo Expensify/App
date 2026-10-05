@@ -11510,7 +11510,7 @@ function shouldDisableRename(report: OnyxEntry<Report>, isReportArchived = false
         return true;
     }
 
-    if (policy?.role === CONST.POLICY.ROLE.GUEST) {
+    if (isPolicyGuest(policy)) {
         return true;
     }
 

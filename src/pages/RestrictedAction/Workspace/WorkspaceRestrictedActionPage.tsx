@@ -105,7 +105,7 @@ function WorkspaceRestrictedActionPage({
     }
 
     // Workspace User, Auditor or Guest
-    if (isPolicyUser(policy, email) || isPolicyAuditor(policy, email) || isPolicyGuest(policy)) {
+    if (isPolicyUser(policy, email) || isPolicyAuditor(policy, email) || isPolicyGuest(policy, email)) {
         return <WorkspaceUserRestrictedAction policyID={policyID} />;
     }
 
