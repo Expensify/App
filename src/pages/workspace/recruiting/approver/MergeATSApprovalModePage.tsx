@@ -1,6 +1,6 @@
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
@@ -141,7 +141,7 @@ function MergeATSApprovalModePage({
                 enableEdgeToEdgeBottomSafeAreaPadding
                 testID="MergeATSApprovalModePage"
             >
-                <HeaderWithBackButton title={translate('workspace.recruiting.defaultApprover')} />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.recruiting.defaultApprover')} />
                 <View style={styles.flex1}>
                     <Text style={[styles.textSupporting, styles.ph5, styles.mb3]}>{translate('workspace.recruiting.approvalModeDescription', providerName)}</Text>
                     <ScrollView showsVerticalScrollIndicator={false}>
@@ -151,7 +151,6 @@ function MergeATSApprovalModePage({
                                     item={option}
                                     showTooltip={false}
                                     onSelectRow={() => setDraftApprovalMode(option.value)}
-                                    isAlternateTextMultilineSupported
                                     alternateTextNumberOfLines={3}
                                 />
                                 {option.value === selectedApprovalMode && selectedApprovalMode === CONST.MERGE.APPROVAL_MODE.BASIC && (
