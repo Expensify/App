@@ -33,6 +33,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardList, Policy, PolicyCategories, PolicyTagLists, PolicyTags, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Unit} from '@src/types/onyx/Policy';
+import type {RuleFilterNode} from '@src/types/onyx/RuleFilters';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -278,16 +279,14 @@ function formatViolationDate(date: string | undefined, dateFnsLocale: DateFnsLoc
     return DateUtils.formatWithUTCTimeZone(date, CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale);
 }
 
-type RuleViolationFilter = NonNullable<NonNullable<TransactionViolation['data']>['filters']>;
-
 const RULE_VIOLATION_FALLBACK_MESSAGE = 'Violates expense policy';
 const RULE_VIOLATION_FILTER_ORDER = ['expenseType', 'billable', 'reimbursable', 'category', 'merchant', 'vendor', 'amount', 'tag', 'currency', 'purchaseCurrency', 'has', 'mcc'];
 
-function isRuleViolationFilter(value: RuleViolationFilter | string | number | Array<string | number>): value is RuleViolationFilter {
+function isRuleViolationFilter(value: unknown): value is RuleFilterNode {
     return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function flattenRuleViolationAndFilters(filters: RuleViolationFilter, filtersByName: Map<string, RuleViolationFilter>): boolean {
+function flattenRuleViolationAndFilters(filters: RuleFilterNode, filtersByName: Map<string, RuleFilterNode>): boolean {
     if (filters.operator === CONST.SEARCH.SYNTAX_OPERATORS.AND) {
         if (!isRuleViolationFilter(filters.left) || !isRuleViolationFilter(filters.right)) {
             return false;
@@ -303,19 +302,19 @@ function flattenRuleViolationAndFilters(filters: RuleViolationFilter, filtersByN
     return true;
 }
 
-function normalizeRuleViolationFilterValues(value: RuleViolationFilter['right']): string[] {
+function normalizeRuleViolationFilterValues(value: RuleFilterNode['right']): string[] {
     if (isRuleViolationFilter(value)) {
         return [];
     }
     return (Array.isArray(value) ? value : [value]).map(String);
 }
 
-function buildRuleViolationMessage(filters: RuleViolationFilter | undefined, currency: string, convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString']): string {
+function buildRuleViolationMessage(filters: RuleFilterNode | undefined, currency: string, convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString']): string {
     if (!filters || !isRuleViolationFilter(filters)) {
         return RULE_VIOLATION_FALLBACK_MESSAGE;
     }
 
-    const filtersByName = new Map<string, RuleViolationFilter>();
+    const filtersByName = new Map<string, RuleFilterNode>();
     if (!flattenRuleViolationAndFilters(filters, filtersByName)) {
         return RULE_VIOLATION_FALLBACK_MESSAGE;
     }

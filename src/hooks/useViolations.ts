@@ -58,7 +58,7 @@ const violationNameToField: Record<ViolationName, (violation: TransactionViolati
         const field = violation.data.field as ViolationField;
         return validationFields.includes(field) ? field : 'receipt';
     },
-    ruleViolation: () => 'receipt',
+    ruleViolation: () => 'none',
     rter: () => 'merchant',
     smartscanFailed: () => 'receipt',
     someTagLevelsRequired: () => 'tag',

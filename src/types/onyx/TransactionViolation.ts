@@ -4,6 +4,8 @@ import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 
 import type {ValueOf} from 'type-fest';
 
+import type {RuleFilterNode} from './RuleFilters';
+
 /**
  * Names of violations.
  * Derived from `CONST.VIOLATIONS` to maintain a single source of truth.
@@ -21,13 +23,6 @@ type ViolationType = ValueOf<typeof CONST.VIOLATION_TYPES>;
  * Derived from CONST.VIOLATION_DATA_TYPES to maintain a single source of truth.
  */
 type ViolationDataType = ValueOf<typeof CONST.MODIFIED_AMOUNT_VIOLATION_DATA>;
-
-/** A comparison or AND node from the rule that triggered a violation. */
-type RuleViolationFilter = {
-    left: string | RuleViolationFilter;
-    operator: string;
-    right: string | number | Array<string | number> | RuleViolationFilter;
-};
 
 /** Model of transaction violation data */
 type TransactionViolationData = {
@@ -138,7 +133,7 @@ type TransactionViolationData = {
     ruleID?: number;
 
     /** Filters from the rule that triggered this violation */
-    filters?: RuleViolationFilter;
+    filters?: RuleFilterNode;
 };
 
 /** Model of a transaction violation */
