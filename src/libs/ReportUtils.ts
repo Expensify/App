@@ -13550,6 +13550,23 @@ function getIntegrationNameFromExportMessage(reportActions: OnyxEntry<ReportActi
     }
 }
 
+/** Actions that reset the approval state, which invalidates any export or export failure recorded before them */
+const RESET_APPROVAL_ACTION_TYPES = new Set<string>([
+    CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER,
+    CONST.REPORT.ACTIONS.TYPE.RETRACTED,
+    CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+    CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT,
+    CONST.REPORT.ACTIONS.TYPE.REOPENED,
+    CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
+]);
+
+/**
+ * The `created` time of the report's most recent approval reset, or an empty string when it has never been reset.
+ */
+function getLastApprovalResetTime(reportActionList: ReportAction[]): string {
+    return reportActionList.reduce((latest, action) => (RESET_APPROVAL_ACTION_TYPES.has(action.actionName) && action.created > latest ? action.created : latest), '');
+}
+
 function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[], report?: OnyxEntry<Report>): boolean {
     if (report?.isExportedToIntegration !== undefined) {
         return report.isExportedToIntegration;
@@ -13562,26 +13579,12 @@ function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[], re
 
     const reportActionList = Array.isArray(reportActions) ? reportActions : Object.values(reportActions);
 
-    // Actions that reset the approval state and invalidate previous exports
-    const resetApprovalActionTypes = new Set<string>([
-        CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER,
-        CONST.REPORT.ACTIONS.TYPE.RETRACTED,
-        CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-        CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT,
-        CONST.REPORT.ACTIONS.TYPE.REOPENED,
-        CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
-    ]);
     const validExportLabels = new Set<string>(Object.values(CONST.EXPORT_LABELS));
 
-    let lastResetCreated = '';
+    const lastResetCreated = getLastApprovalResetTime(reportActionList);
     let lastSuccessfulExportCreated = '';
 
     for (const action of reportActionList) {
-        if (resetApprovalActionTypes.has(action.actionName)) {
-            if (action.created > lastResetCreated) {
-                lastResetCreated = action.created;
-            }
-        }
         if (isExportIntegrationAction(action)) {
             const originalMessage = getOriginalMessage(action);
             const label = originalMessage?.label;
@@ -13613,11 +13616,13 @@ function hasExportError(reportActions: OnyxEntry<ReportActions> | ReportAction[]
         return false;
     }
 
-    if (Array.isArray(reportActions)) {
-        return reportActions.some((action) => isIntegrationMessageAction(action) && !getOriginalMessage(action)?.result?.reconciled);
-    }
+    const reportActionList = Array.isArray(reportActions) ? reportActions : Object.values(reportActions);
 
-    return Object.values(reportActions).some((action) => isIntegrationMessageAction(action) && !getOriginalMessage(action)?.result?.reconciled);
+    // A message older than the last reset describes an export the report has since moved past, which is how the
+    // server reads it too
+    const lastResetCreated = getLastApprovalResetTime(reportActionList);
+
+    return reportActionList.some((action) => isIntegrationMessageAction(action) && !getOriginalMessage(action)?.result?.reconciled && action.created > lastResetCreated);
 }
 
 function doesReportContainRequestsFromMultipleUsers(iouReport: OnyxEntry<Report>, shouldExcludeDeletedTransactions = false): boolean {

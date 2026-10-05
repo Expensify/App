@@ -786,6 +786,26 @@ describe('TodosUtils export bucket', () => {
             expect(getExportedReportIDs(createExportPolicy({isAutoSyncEnabled: true}), report)).toEqual([EXPORT_REPORT_ID]);
         });
 
+        it('ignores a failure message that predates the last approval reset', () => {
+            const actionsFor = (actions: Record<string, ReportAction>) => ({[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${EXPORT_REPORT_ID}`]: actions});
+            const failureMessage = createMock<ReportAction>({
+                reportActionID: 'failureMessage',
+                actionName: CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
+                created: '2024-06-01 00:00:00.000',
+            });
+            const unapproved = createMock<ReportAction>({
+                reportActionID: 'unapproved',
+                actionName: CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
+                created: '2024-06-02 00:00:00.000',
+            });
+
+            // The failure keeps the report actionable while it is the report's latest word on the export
+            expect(getExportedReportIDs(createExportPolicy({isAutoSyncEnabled: true}), createApprovedReport(), actionsFor({failureMessage}))).toEqual([EXPORT_REPORT_ID]);
+
+            // Unapproving and approving again moves the report past that failure, so auto-sync owns it once more
+            expect(getExportedReportIDs(createExportPolicy({isAutoSyncEnabled: true}), createApprovedReport(), actionsFor({failureMessage, unapproved}))).toEqual([]);
+        });
+
         it('includes the report when auto-sync is off', () => {
             expect(getExportedReportIDs(createExportPolicy({isAutoSyncEnabled: false}))).toEqual([EXPORT_REPORT_ID]);
         });
