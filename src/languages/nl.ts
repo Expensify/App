@@ -225,6 +225,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidDateShouldBeFuture: 'Kies vandaag of een toekomstige datum',
             invalidTimeShouldBeFuture: 'Kies een tijd die minstens één minuut vooruit ligt',
             invalidCharacter: 'Ongeldig teken',
+            invalidField: (fieldName) => `Ongeldig veld: ${fieldName}`,
             enterMerchant: 'Voer een naam van een leverancier in',
             enterAmount: 'Voer een bedrag in',
             missingMerchantName: 'Ontbrekende naam van handelaar',

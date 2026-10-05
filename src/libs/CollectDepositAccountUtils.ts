@@ -25,7 +25,7 @@ function getValidationErrors(values: CollectDepositAccountForm, fieldsMap: BankA
         }
 
         if (!matchesValidator.test(value)) {
-            addErrorMessage(errors, fieldName, field.errorMessage || translate('common.error.invalidCharacter'));
+            addErrorMessage(errors, fieldName, field.errorMessage || translate('common.error.invalidField', field.label));
         }
     }
 

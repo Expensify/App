@@ -6,8 +6,8 @@ import {getSubmitParameters, getValidationErrors} from '@libs/CollectDepositAcco
 import CONST from '@src/CONST';
 import type {CollectDepositAccountForm} from '@src/types/form';
 
-// Echoes the key back so assertions can tell the different failure messages apart.
-const translate: LocaleContextProps['translate'] = (path, ...parameters): string => (parameters.length > 0 ? `${path}:${parameters.length}` : path);
+// Echoes the key and its parameters back so assertions can tell the different failure messages apart.
+const translate: LocaleContextProps['translate'] = (path, ...parameters): string => (parameters.length > 0 ? `${path}:${parameters.join(',')}` : path);
 
 const LOCAL = CONST.BANK_ACCOUNT.FIELDS_TYPE.LOCAL;
 const INTERNATIONAL = CONST.BANK_ACCOUNT.FIELDS_TYPE.INTERNATIONAL;
@@ -80,8 +80,9 @@ describe('CollectDepositAccountUtils', () => {
             // When validating
             const errors = getValidationErrors(values, fieldsMap, translate);
 
-            // Then it is rejected, because the validator is anchored rather than matched anywhere in the value
-            expect(errors).toEqual({routingNumber: 'common.error.invalidCharacter'});
+            // Then it is rejected, because the validator is anchored rather than matched anywhere in the value, and the
+            // message names the field the way the country labels it
+            expect(errors).toEqual({routingNumber: 'common.error.invalidField:Branch Sorting Code'});
         });
     });
 

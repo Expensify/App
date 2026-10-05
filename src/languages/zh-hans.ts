@@ -225,6 +225,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidDateShouldBeFuture: '请选择今天或将来的日期',
             invalidTimeShouldBeFuture: '请选择一个至少比当前时间晚一分钟的时间',
             invalidCharacter: '字符无效',
+            invalidField: (fieldName) => `无效字段：${fieldName}`,
             enterMerchant: '输入商户名称',
             enterAmount: '输入金额',
             missingMerchantName: '缺少商家名称',

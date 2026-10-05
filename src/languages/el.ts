@@ -230,6 +230,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidDateShouldBeFuture: 'Παρακαλούμε επιλέξτε τη σημερινή ή κάποια μελλοντική ημερομηνία',
             invalidTimeShouldBeFuture: 'Παρακαλούμε επιλέξτε μια ώρα τουλάχιστον ένα λεπτό αργότερα',
             invalidCharacter: 'Μη έγκυρος χαρακτήρας',
+            invalidField: (fieldName) => `Μη έγκυρο πεδίο: ${fieldName}`,
             enterMerchant: 'Εισαγάγετε όνομα εμπόρου',
             enterAmount: 'Εισαγάγετε ποσό',
             missingMerchantName: 'Λείπει το όνομα εμπόρου',
