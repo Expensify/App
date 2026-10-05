@@ -3108,6 +3108,16 @@ const CONST = {
         MAX_FILE_LIMIT_EXCEEDED: 'maxFileLimitExceeded',
     },
 
+    INPUT_VALIDATION_ERRORS: {
+        REQUIRED: 'required',
+        EXISTING: 'existing',
+        INVALID: 'invalid',
+        TOO_LONG: 'tooLong',
+        NOT_INTEGER: 'notInteger',
+        TOO_HIGH: 'tooHigh',
+        TOO_LOW: 'tooLow',
+    },
+
     IOS_CAMERA_ROLL_ACCESS_ERROR: 'Access to photo library was denied',
     EMOJI_PICKER_ITEM_TYPES: {
         HEADER: 'header',
