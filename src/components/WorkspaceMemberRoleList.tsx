@@ -98,7 +98,7 @@ function getAssignableWorkspaceMemberRoleItems(
             value: CONST.POLICY.ROLE.APPROVE_ONLY,
             text: translate('workspace.common.roleName', CONST.POLICY.ROLE.APPROVE_ONLY),
             alternateText: translate('workspace.common.approveOnlyAlternateText'),
-            isSelected: role === CONST.POLICY.ROLE.APPROVE_ONLY,
+            isSelected: currentRole === CONST.POLICY.ROLE.APPROVE_ONLY,
             keyForList: CONST.POLICY.ROLE.APPROVE_ONLY,
         },
     ];
