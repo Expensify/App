@@ -8267,6 +8267,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 flagAmountsOver: 'Contrassegna importi superiori a',
                 flagAmountsOverDescription: (categoryName: string) => `Si applica alla categoria “${categoryName}”.`,
                 flagAmountsOverSubtitle: 'Questo sostituisce l’importo massimo per tutte le spese.',
+                expenseLimitType: 'Tipo di limite di spesa',
                 expenseLimitTypes: {
                     expense: 'Spesa individuale',
                     expenseSubtitle:

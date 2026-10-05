@@ -7966,6 +7966,7 @@ ${reportName}`,
                 flagAmountsOver: '标记超过此金额的费用',
                 flagAmountsOverDescription: (categoryName: string) => `适用于类别“${categoryName}”。`,
                 flagAmountsOverSubtitle: '这将覆盖所有报销的最高金额限制。',
+                expenseLimitType: '报销限额类型',
                 expenseLimitTypes: {
                     expense: '单笔报销',
                     expenseSubtitle: '按类别标记报销金额。此规则会覆盖工作区的一般最高报销金额规则。多天预订将按每晚平均金额进行评估。',
