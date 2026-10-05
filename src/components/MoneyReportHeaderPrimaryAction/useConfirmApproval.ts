@@ -106,7 +106,8 @@ function useConfirmApproval(
     // submenu, so this always approves the full report (used for the non-held case and as a safe fallback).
     const confirmApproval = () => onApprove(true);
 
-    return {confirmApproval, onApprove, isAnyTransactionOnHold};
+    // The report and transactions are returned so callers render the approve options from the same data that gets approved.
+    return {confirmApproval, onApprove, isAnyTransactionOnHold, moneyRequestReport, transactions};
 }
 
 export default useConfirmApproval;

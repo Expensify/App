@@ -2,14 +2,12 @@ import {useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvide
 import ExpenseHeaderApprovalButton from '@components/ExpenseHeaderApprovalButton';
 import useConfirmApproval from '@components/MoneyReportHeaderPrimaryAction/useConfirmApproval';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
-import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getSearchApproveOnyxData} from '@libs/actions/Search';
@@ -42,11 +40,21 @@ function ApproveActionCell({isLoading, reportID, policyID, hash, shouldDisablePo
     const {currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
 
-    const [liveReport, liveTransactions] = useReportWithTransactionsAndViolations(reportID);
     const snapshotReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] as OnyxEntry<Report>;
     const snapshotPolicy = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] as OnyxEntry<Policy>;
-    const iouReport = liveReport ?? snapshotReport;
-    const transactions = liveTransactions.length > 0 || !snapshotTransactions ? liveTransactions : snapshotTransactions;
+
+    // The button reads the report and transactions from the hook, so its options match what gets approved.
+    const {
+        onApprove,
+        isAnyTransactionOnHold,
+        moneyRequestReport: iouReport,
+        transactions,
+    } = useConfirmApproval(reportID, () => {}, {
+        getAdditionalOnyxData: hash === undefined ? undefined : () => getSearchApproveOnyxData(hash, reportID, currentSearchKey),
+        fallbackReport: snapshotReport,
+        fallbackPolicy: snapshotPolicy,
+        fallbackTransactions: snapshotTransactions,
+    });
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const activePolicy = usePolicy(activePolicyID);
@@ -84,37 +92,28 @@ function ApproveActionCell({isLoading, reportID, policyID, hash, shouldDisablePo
             invoiceReceiverPolicy,
         );
 
-    const {onApprove, isAnyTransactionOnHold} = useConfirmApproval(reportID, () => {}, {
-        getAdditionalOnyxData: hash === undefined ? undefined : () => getSearchApproveOnyxData(hash, reportID, currentSearchKey),
-        fallbackReport: snapshotReport,
-        fallbackPolicy: snapshotPolicy,
-        fallbackTransactions: snapshotTransactions,
-    });
-
     return (
-        <SearchScopeProvider isOnSearch={false}>
-            <ExpenseHeaderApprovalButton
-                isAnyTransactionOnHold={isAnyTransactionOnHold}
-                isDelegateAccessRestricted={isDelegateAccessRestricted}
-                onApprove={onApprove}
-                anchorAlignment={{
-                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                }}
-                moneyRequestReport={iouReport}
-                transactions={transactions}
-                shouldShowPayButton={canIOUBePaid || onlyShowPayElsewhere}
-                isLoading={isLoading}
-                size={CONST.BUTTON_SIZE.SMALL}
-                shouldUseShortForm
-                isNested
-                isDisabled={isOffline || shouldDisablePointerEvents}
-                stayNormalOnDisable={shouldDisablePointerEvents}
-                style={[styles.w100, shouldDisablePointerEvents && styles.pointerEventsNone]}
-                wrapperStyle={styles.w100}
-                sentryLabel={CONST.SENTRY_LABEL.SEARCH.ACTION_CELL_ACTION}
-            />
-        </SearchScopeProvider>
+        <ExpenseHeaderApprovalButton
+            isAnyTransactionOnHold={isAnyTransactionOnHold}
+            isDelegateAccessRestricted={isDelegateAccessRestricted}
+            onApprove={onApprove}
+            anchorAlignment={{
+                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+            }}
+            moneyRequestReport={iouReport}
+            transactions={transactions}
+            shouldShowPayButton={canIOUBePaid || onlyShowPayElsewhere}
+            isLoading={isLoading}
+            size={CONST.BUTTON_SIZE.SMALL}
+            shouldUseShortForm
+            isNested
+            isDisabled={isOffline || shouldDisablePointerEvents}
+            stayNormalOnDisable={shouldDisablePointerEvents}
+            style={[styles.w100, shouldDisablePointerEvents && styles.pointerEventsNone]}
+            wrapperStyle={styles.w100}
+            sentryLabel={CONST.SENTRY_LABEL.SEARCH.ACTION_CELL_ACTION}
+        />
     );
 }
 
