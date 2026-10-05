@@ -9,25 +9,40 @@ import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
+type UseFrozenSplitTransactionIDsParams = {
+    splitExpenses: SplitExpense[];
+    allTransactions: OnyxCollection<Transaction>;
+    allReports: OnyxCollection<Report>;
+    fallbackReport: Report | undefined;
+    searchResultsData: SearchResultDataType | undefined;
+    originalTransaction: OnyxEntry<Transaction>;
+    currentUserLogin: string;
+    currentUserAccountID: number;
+    rules: OnyxCollection<Rule>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+    allPolicies: OnyxCollection<Policy>;
+    parentReport: OnyxEntry<Report>;
+};
+
 /**
  * IDs of the splits that must stay fixed at their current amount: either their own report is already
  * approved/paid/done, or the current user otherwise can't perform the split action on them. Neither can
  * absorb any amount from a split added/removed/edited elsewhere in the same expense.
  */
-function useFrozenSplitTransactionIDs(
-    splitExpenses: SplitExpense[],
-    allTransactions: OnyxCollection<Transaction>,
-    allReports: OnyxCollection<Report>,
-    fallbackReport: Report | undefined,
-    searchResultsData: SearchResultDataType | undefined,
-    originalTransaction: OnyxEntry<Transaction>,
-    currentUserLogin: string,
-    currentUserAccountID: number,
-    rules: OnyxCollection<Rule>,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-    allPolicies: OnyxCollection<Policy>,
-    parentReport: OnyxEntry<Report>,
-): Set<string> {
+function useFrozenSplitTransactionIDs({
+    splitExpenses,
+    allTransactions,
+    allReports,
+    fallbackReport,
+    searchResultsData,
+    originalTransaction,
+    currentUserLogin,
+    currentUserAccountID,
+    rules,
+    personalDetails,
+    allPolicies,
+    parentReport,
+}: UseFrozenSplitTransactionIDsParams): Set<string> {
     const frozenIDs = new Set<string>();
     for (const item of splitExpenses) {
         const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}` as const;

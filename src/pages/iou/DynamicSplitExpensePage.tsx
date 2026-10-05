@@ -214,20 +214,20 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const sumOfSplitExpenses = splitExpenses.reduce((acc, item) => acc + (item.amount ?? 0), 0);
     const currencySymbol = getCurrencySymbol(transactionDetails.currency ?? '') ?? transactionDetails.currency ?? CONST.CURRENCY.USD;
 
-    const frozenSplitTransactionIDs = useFrozenSplitTransactionIDs(
+    const frozenSplitTransactionIDs = useFrozenSplitTransactionIDs({
         splitExpenses,
         allTransactions,
         allReports,
-        report,
-        currentSearchResults?.data,
+        fallbackReport: report,
+        searchResultsData: currentSearchResults?.data,
         originalTransaction,
-        currentUserPersonalDetails.login ?? '',
-        currentUserPersonalDetails.accountID,
+        currentUserLogin: currentUserPersonalDetails.login ?? '',
+        currentUserAccountID: currentUserPersonalDetails.accountID,
         rules,
         personalDetails,
         allPolicies,
         parentReport,
-    );
+    });
     const frozenSplitsContext = {frozenSplitTransactionIDs, searchResultsData: currentSearchResults?.data};
 
     useEffect(() => {

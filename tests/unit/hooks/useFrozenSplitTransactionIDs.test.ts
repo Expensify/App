@@ -47,20 +47,20 @@ function renderFrozenIDs(
     allPolicies: OnyxCollection<Policy> = {},
 ) {
     return renderHook(() =>
-        useFrozenSplitTransactionIDs(
+        useFrozenSplitTransactionIDs({
             splitExpenses,
             allTransactions,
             allReports,
             fallbackReport,
             searchResultsData,
-            undefined,
-            CURRENT_USER_LOGIN,
-            CURRENT_USER_ACCOUNT_ID,
-            {},
-            undefined,
+            originalTransaction: undefined,
+            currentUserLogin: CURRENT_USER_LOGIN,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            rules: {},
+            personalDetails: undefined,
             allPolicies,
-            undefined,
-        ),
+            parentReport: undefined,
+        }),
     );
 }
 

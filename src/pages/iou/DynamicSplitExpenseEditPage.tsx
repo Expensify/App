@@ -167,20 +167,20 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
     const splitExpenseItem = splitExpensesList?.find((item) => item.transactionID === splitExpenseTransactionID);
     const originalSign = (splitExpenseItem?.amount ?? 0) < 0 ? -1 : 1;
 
-    const frozenSplitTransactionIDs = useFrozenSplitTransactionIDs(
-        splitExpensesList ?? [],
+    const frozenSplitTransactionIDs = useFrozenSplitTransactionIDs({
+        splitExpenses: splitExpensesList ?? [],
         allTransactions,
         allReports,
-        report,
-        currentSearchResults?.data,
+        fallbackReport: report,
+        searchResultsData: currentSearchResults?.data,
         originalTransaction,
-        login ?? '',
+        currentUserLogin: login ?? '',
         currentUserAccountID,
         rules,
         personalDetails,
         allPolicies,
         parentReport,
-    );
+    });
     const frozenSplitsContext = {frozenSplitTransactionIDs, searchResultsData: currentSearchResults?.data};
 
     // Card and per diem require exact sum: hide Remove when every other split is frozen.
