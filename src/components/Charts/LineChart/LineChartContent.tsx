@@ -16,7 +16,7 @@ import {
     useDynamicYDomain,
     useLabelHitTesting,
 } from '@components/Charts/hooks';
-import {getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
+import {getDomainPaddingForEdgeSpace, getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
 import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING, LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
 
 import useTheme from '@hooks/useTheme';
@@ -107,11 +107,11 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
             rightOverhang = lineHeight / 2;
         }
 
-        return {
-            ...BASE_DOMAIN_PADDING,
+        const edgeSpace = {
             left: Math.max(0, leftOverhang - VictoryTheme.axis.padding.left),
             right: Math.max(0, rightOverhang - chartPaddingRight - VictoryTheme.axis.labelGap),
         };
+        return {...BASE_DOMAIN_PADDING, ...getDomainPaddingForEdgeSpace(edgeSpace, plotAreaWidth)};
     })();
 
     const totalDomainPadding = domainPadding.left + domainPadding.right;

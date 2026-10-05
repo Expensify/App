@@ -475,6 +475,18 @@ function getVerticalBarPlotBounds(chartWidth: number, paddingRight: number): {le
 }
 
 /**
+ * Domain padding that leaves `edgeSpace` px between the plot edges and the first and last points.
+ * victory-native fits the padded domain back into the plot width, so the space on screen is smaller than the padding.
+ */
+function getDomainPaddingForEdgeSpace(edgeSpace: {left: number; right: number}, plotWidth: number): {left: number; right: number} {
+    const pointsSpan = plotWidth - edgeSpace.left - edgeSpace.right;
+    if (pointsSpan <= 0) {
+        return edgeSpace;
+    }
+    return {left: (edgeSpace.left * plotWidth) / pointsSpan, right: (edgeSpace.right * plotWidth) / pointsSpan};
+}
+
+/**
  * Layout inputs shared by the vertical bar chart body and the orientation dispatcher, derived from the plot bounds.
  * The body passes its measured bounds and the dispatcher passes bounds predicted from the container width, so both
  * feed `useChartLabelLayout` the exact same geometry and cannot drift apart.
@@ -565,6 +577,7 @@ export {
     getHorizontalChartHeight,
     getVerticalBarPlotBounds,
     getVerticalBarLabelLayoutInputs,
+    getDomainPaddingForEdgeSpace,
 };
 
 export type {ChartLabelHitTestParams};

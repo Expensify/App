@@ -7,6 +7,7 @@ import {
     effectiveWidth,
     findSliceAtPosition,
     getAdditionalOffset,
+    getDomainPaddingForEdgeSpace,
     getHorizontalChartHeight,
     getNiceYAxisTicks,
     getVerticalBarLabelLayoutInputs,
@@ -816,5 +817,28 @@ describe('getVerticalBarLabelLayoutInputs', () => {
         expect(inputs.tickSpacing).toBe(230);
         expect(inputs.firstTickLeftSpace).toBe(50);
         expect(inputs.lastTickRightSpace).toBe(20);
+    });
+});
+
+describe('getDomainPaddingForEdgeSpace', () => {
+    it('returns the padding victory-native shrinks back to the requested edge space', () => {
+        // Given a 200px plot and the space wanted before the first and after the last point
+        const plotWidth = 200;
+        const edgeSpace = {left: 40, right: 10};
+
+        // When converting it to domain padding
+        const padding = getDomainPaddingForEdgeSpace(edgeSpace, plotWidth);
+
+        // Then victory-native's scaling (padding * plotWidth / (plotWidth + both paddings)) lands back on the requested space
+        const scale = plotWidth / (plotWidth + padding.left + padding.right);
+        expect(padding.left * scale).toBeCloseTo(edgeSpace.left, 5);
+        expect(padding.right * scale).toBeCloseTo(edgeSpace.right, 5);
+    });
+
+    it('returns the edge space unchanged when it leaves no room for the points', () => {
+        // Given edge space that covers the whole plot (or a plot that is not measured yet)
+        // When converting it to domain padding
+        // Then it is returned as is instead of dividing by zero or going negative
+        expect(getDomainPaddingForEdgeSpace({left: 30, right: 0}, 0)).toEqual({left: 30, right: 0});
     });
 });
