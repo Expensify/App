@@ -15,7 +15,7 @@ type SignInWithShortLivedAuthTokenParams = {
     deviceInfo: string;
     /**
      * The device's current session `authToken`, sent only when the device is already authenticated.
-     * Omit when the device has no current session (the public `/transition` sign-in and SAML sign-in flows).
+     * Omit when the device has no current session.
      */
     currentAuthToken?: string;
 };
