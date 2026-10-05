@@ -67,6 +67,7 @@ import {
     takePreMountedFullscreenForReveal,
 } from './helpers/preMountBuffer';
 import replaceWithSplitNavigator from './helpers/replaceWithSplitNavigator';
+import runAfterClosingScreenUnmount from './helpers/runAfterClosingScreenUnmount';
 import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionToMicrotaskQueue';
 import {finishWideTabPreMountReveal, preMountWideDestinationInTab} from './helpers/wideTabPreMount';
 import {linkingConfig} from './linkingConfig';
@@ -1219,9 +1220,15 @@ function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransiti
         options?.afterTransition || preMountedRouteKey
             ? () => {
                   setIsRevealingPreMountedFullscreen(false);
-                  // The closing RHP leaves the DOM in a commit after its transition ends, so wait two frames.
-                  requestAnimationFrame(() => requestAnimationFrame(releasePendingSearchWriteFlush));
-                  options?.afterTransition?.();
+                  if (!preMountedRouteKey) {
+                      options?.afterTransition?.();
+                      return;
+                  }
+                  // The write and Search flush re-render the revealed screen, so they wait until the RHP left the DOM.
+                  runAfterClosingScreenUnmount(() => {
+                      releasePendingSearchWriteFlush();
+                      options?.afterTransition?.();
+                  });
               }
             : undefined;
 
