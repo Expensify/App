@@ -1,4 +1,5 @@
-import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
+import ConfirmationPage from '@components/ConfirmationPage';
+import FixedFooter from '@components/FixedFooter';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -36,14 +37,19 @@ function DowngradeConfirmation({onConfirmDowngrade, policyID}: Props) {
     const hasOtherControlWorkspaces = hasOtherControlWorkspacesPolicyUtils(adminPolicies, policyID);
 
     return (
-        <ConfirmationPageDefault
-            heading={translate('workspace.downgrade.completed.headline')}
-            description={hasOtherControlWorkspaces ? translate('workspace.downgrade.completed.description') : undefined}
-            illustration={illustrations.MushroomTopHat}
-            onButtonPress={onConfirmDowngrade}
-            buttonText={translate('workspace.downgrade.completed.gotIt')}
-            containerStyle={styles.h100}
-        />
+        <ConfirmationPage style={styles.h100}>
+            <ConfirmationPage.Content>
+                <ConfirmationPage.Illustration illustration={illustrations.MushroomTopHat} />
+                <ConfirmationPage.Heading>{translate('workspace.downgrade.completed.headline')}</ConfirmationPage.Heading>
+                {hasOtherControlWorkspaces && <ConfirmationPage.Description>{translate('workspace.downgrade.completed.description')}</ConfirmationPage.Description>}
+            </ConfirmationPage.Content>
+            <FixedFooter>
+                <ConfirmationPage.PrimaryButton
+                    text={translate('workspace.downgrade.completed.gotIt')}
+                    onPress={onConfirmDowngrade}
+                />
+            </FixedFooter>
+        </ConfirmationPage>
     );
 }
 

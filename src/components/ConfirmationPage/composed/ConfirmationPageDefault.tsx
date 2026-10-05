@@ -1,3 +1,4 @@
+import ConfirmationPage from '@components/ConfirmationPage/ConfirmationPage';
 import ConfirmationPageContent from '@components/ConfirmationPage/layout/Content';
 import ConfirmationPageDescription from '@components/ConfirmationPage/primitives/ConfirmationPageDescription';
 import ConfirmationPageHeading from '@components/ConfirmationPage/primitives/ConfirmationPageHeading';
@@ -7,14 +8,10 @@ import FixedFooter from '@components/FixedFooter';
 import LottieAnimations from '@components/LottieAnimations';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 
-import useThemeStyles from '@hooks/useThemeStyles';
-
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-
-import {View} from 'react-native';
 
 type ConfirmationPageProps = {
     illustration?: DotLottieAnimation | IconAsset;
@@ -60,10 +57,8 @@ function ConfirmationPageDefault({
     containerStyle,
     innerContainerStyle,
 }: ConfirmationPageProps) {
-    const styles = useThemeStyles();
-
     return (
-        <View style={[styles.flex1, containerStyle]}>
+        <ConfirmationPage style={containerStyle}>
             <ConfirmationPageContent
                 style={innerContainerStyle}
                 requestErrors={requestErrors}
@@ -83,7 +78,7 @@ function ConfirmationPageDefault({
                     onPress={onButtonPress}
                 />
             </FixedFooter>
-        </View>
+        </ConfirmationPage>
     );
 }
 

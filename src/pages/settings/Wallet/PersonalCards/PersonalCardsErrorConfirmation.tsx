@@ -1,4 +1,5 @@
 import ConfirmationPage from '@components/ConfirmationPage';
+import FixedFooter from '@components/FixedFooter';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
@@ -43,27 +44,33 @@ function PersonalCardsErrorConfirmation({errorMessage}: PersonalCardsErrorConfir
     };
 
     return (
-        <ConfirmationPage
-            heading={translate('personalCard.bankConnectionError')}
-            description={
-                <Text style={[styles.textSupporting, styles.textAlignCenter]}>
-                    {!!errorMessage && `${errorMessage} `}
-                    {translate('personalCard.bankConnectionDescription')}{' '}
-                    <TextLink
-                        style={[styles.link]}
-                        onPress={openPlaidLink}
-                    >
-                        {translate('personalCard.connectWithPlaid')}
-                    </TextLink>
-                </Text>
-            }
-            illustration={illustrations.QuestionMark}
-            shouldShowButton
-            illustrationStyle={styles.errorStateCardIllustration}
-            onButtonPress={onButtonPress}
-            buttonText={translate('common.buttonConfirm')}
-            containerStyle={styles.h100}
-        />
+        <ConfirmationPage style={styles.h100}>
+            <ConfirmationPage.Content>
+                <ConfirmationPage.Illustration
+                    illustration={illustrations.QuestionMark}
+                    illustrationStyle={styles.errorStateCardIllustration}
+                />
+                <ConfirmationPage.Heading>{translate('personalCard.bankConnectionError')}</ConfirmationPage.Heading>
+                <ConfirmationPage.Description>
+                    <Text style={[styles.textSupporting, styles.textAlignCenter]}>
+                        {!!errorMessage && `${errorMessage} `}
+                        {translate('personalCard.bankConnectionDescription')}{' '}
+                        <TextLink
+                            style={[styles.link]}
+                            onPress={openPlaidLink}
+                        >
+                            {translate('personalCard.connectWithPlaid')}
+                        </TextLink>
+                    </Text>
+                </ConfirmationPage.Description>
+            </ConfirmationPage.Content>
+            <FixedFooter>
+                <ConfirmationPage.PrimaryButton
+                    text={translate('common.buttonConfirm')}
+                    onPress={onButtonPress}
+                />
+            </FixedFooter>
+        </ConfirmationPage>
     );
 }
 

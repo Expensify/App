@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 
 type ConfirmationPageButtonProps = Pick<ButtonProps, 'isDisabled' | 'isLoading'> & {
     text: string;
-    onPress: () => void;
+    onPress?: () => void;
 };
 
 type ConfirmationPageButtonBaseProps = ConfirmationPageButtonProps &
@@ -15,7 +15,7 @@ type ConfirmationPageButtonBaseProps = ConfirmationPageButtonProps &
         children?: React.ReactNode;
     };
 
-function ConfirmationPageButton({text, onPress, isDisabled, isLoading, testID, variant, children}: ConfirmationPageButtonBaseProps) {
+function ConfirmationPageButton({text, onPress = () => {}, isDisabled, isLoading, testID, variant, children}: ConfirmationPageButtonBaseProps) {
     const styles = useThemeStyles();
 
     return (

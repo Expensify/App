@@ -1,4 +1,5 @@
 import ConfirmationPage from '@components/ConfirmationPage';
+import FixedFooter from '@components/FixedFooter';
 import RenderHTML from '@components/RenderHTML';
 
 import useEnvironment from '@hooks/useEnvironment';
@@ -28,21 +29,25 @@ function UpgradeConfirmation({addCompanyCard, addPersonalCard}: {addCompanyCard:
     }, [updateSubscriptionLink]);
 
     return (
-        <ConfirmationPage
-            heading={translate('personalCard.newWorkspace')}
-            descriptionComponent={
+        <ConfirmationPage style={styles.h100}>
+            <ConfirmationPage.Content>
+                <ConfirmationPage.Illustration />
+                <ConfirmationPage.Heading>{translate('personalCard.newWorkspace')}</ConfirmationPage.Heading>
                 <View style={[styles.renderHTML, styles.w100]}>
                     <RenderHTML html={translate('personalCard.successMessage', {subscriptionLink})} />
                 </View>
-            }
-            shouldShowButton
-            shouldShowSecondaryButton
-            onSecondaryButtonPress={addCompanyCard}
-            secondaryButtonText={translate('personalCard.addCompanyCard')}
-            onButtonPress={addPersonalCard}
-            buttonText={translate('personalCard.addPersonalCard')}
-            containerStyle={styles.h100}
-        />
+            </ConfirmationPage.Content>
+            <FixedFooter>
+                <ConfirmationPage.SecondaryButton
+                    text={translate('personalCard.addCompanyCard')}
+                    onPress={addCompanyCard}
+                />
+                <ConfirmationPage.PrimaryButton
+                    text={translate('personalCard.addPersonalCard')}
+                    onPress={addPersonalCard}
+                />
+            </FixedFooter>
+        </ConfirmationPage>
     );
 }
 
