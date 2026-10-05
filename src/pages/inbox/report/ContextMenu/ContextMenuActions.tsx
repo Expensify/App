@@ -28,6 +28,7 @@ import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManag
 import stripFollowupListFromHtml from '@libs/ReportActionFollowupUtils/stripFollowupListFromHtml';
 import {
     getActionableCard3DSTransactionApprovalMessage,
+    getAgentPromptUpdatedMessage,
     getActionableCardFraudAlertMessage,
     getActionableMentionWhisperMessage,
     getAddedApprovalRuleMessage,
@@ -1096,7 +1097,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const displayMessage = getReimbursementDeQueuedOrCanceledActionMessage(translate, reportAction, report?.ownerAccountID, convertToDisplayString);
                     Clipboard.setString(displayMessage);
                 } else if (isMoneyRequestAction(reportAction)) {
-                    const displayMessage = getIOUReportActionDisplayMessage(translate, reportAction, convertToDisplayString, policy?.achAccount?.accountNumber, transaction, bankAccountList);
+                    const displayMessage = getIOUReportActionDisplayMessage(translate, reportAction, convertToDisplayString, policy, transaction, bankAccountList);
                     if (displayMessage === Parser.htmlToText(displayMessage)) {
                         Clipboard.setString(displayMessage);
                     } else {
@@ -1245,6 +1246,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     );
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
                     Clipboard.setString(getMarkedReimbursedMessage(translate, reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED)) {
+                    Clipboard.setString(getAgentPromptUpdatedMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
                     Clipboard.setString(
                         getReimbursedMessage(

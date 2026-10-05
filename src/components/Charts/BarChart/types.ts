@@ -11,6 +11,9 @@ type BarChartProps = CartesianChartProps & {
 type BarChartContentProps = BarChartProps & {
     /** When true, renders horizontal bars (value on the x-axis) instead of the default vertical bars. */
     isHorizontal?: boolean;
+
+    /** When true, the vertical chart may switch to horizontal bars if category labels don't fit even at 45° (narrow layout, beta on). */
+    canFallBackToHorizontalBars?: boolean;
 };
 
 export type {BarChartProps, BarChartContentProps};
