@@ -1,19 +1,9 @@
-import UserAvatar from '@components/Avatar/UserAvatar';
-import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
-import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
-import type {PromotedAction} from '@components/PromotedActionsBar';
-import PromotedActionsBar, {PromotedActions} from '@components/PromotedActionsBar';
-import ReportHeaderAvatars from '@components/ReportHeaderAvatars';
-import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
@@ -38,7 +28,6 @@ import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
-import {useDerivedReportNamesByReportIDs} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -53,32 +42,18 @@ import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {ReportDetailsNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
-import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
 import {isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getOneTransactionThreadReportID, getOriginalMessage, getTrackExpenseActionableWhisper, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
-import {getReportNameFromNames} from '@libs/ReportAttributesUtils';
-import {getReportName} from '@libs/ReportNameUtils';
 import {
     canDeleteCardTransactionByLiabilityType,
     canDeleteTransaction,
-    canEditReportDescription as canEditReportDescriptionUtil,
-    canEditReportTitle,
-    canJoinChat,
     canLeaveChat,
     canWriteInReport,
     findLastAccessedReport,
-    getAvailableReportFields,
-    getChatRoomSubtitle,
-    getIcons,
     getOriginalReportID,
-    getParentNavigationSubtitle,
     getParticipantsAccountIDsForDisplay,
     getParticipantsList,
-    getPolicyName,
-    getReportDescription,
-    getReportFieldKey,
-    getReportForHeader,
     isArchivedNonExpenseReport,
     isCanceledTaskReport as isCanceledTaskReportUtil,
     isChatRoom as isChatRoomUtil,
@@ -87,34 +62,25 @@ import {
     isCompletedTaskReport,
     isConciergeChatReport,
     isDefaultRoom as isDefaultRoomUtil,
-    isExpenseReport as isExpenseReportUtil,
     isFinancialReportsForBusinesses as isFinancialReportsForBusinessesUtil,
     isGroupChat as isGroupChatUtil,
     isHiddenForCurrentUser,
     isInvoiceReport as isInvoiceReportUtil,
-    isInvoiceRoom as isInvoiceRoomUtil,
     isMoneyRequest as isMoneyRequestUtil,
     isMoneyRequestReport as isMoneyRequestReportUtil,
     isPolicyExpenseChat as isPolicyExpenseChatUtil,
     isPublicRoom as isPublicRoomUtil,
-    isReportFieldDisabled,
-    isReportFieldOfTypeTitle,
     isRootGroupChat as isRootGroupChatUtil,
     isSelfDM as isSelfDMUtil,
     isSystemChat as isSystemChatUtil,
     isTaskReport as isTaskReportUtil,
-    isThread as isThreadUtil,
     isTrackExpenseReportNew as isTrackExpenseReportUtil,
     isUserCreatedPolicyRoom as isUserCreatedPolicyRoomUtil,
-    isWorkspaceChat as isWorkspaceChatUtil,
     isWorkspaceMemberLeavingWorkspaceRoom as isWorkspaceMemberLeavingWorkspaceRoomUtil,
     navigateBackOnDeleteTransaction,
     navigateToPrivateNotes,
-    shouldDisableRename as shouldDisableRenameUtil,
 } from '@libs/ReportUtils';
-import StringUtils from '@libs/StringUtils';
 import {getDeleteConfirmationPrompt, getDeleteExpenseTitle, getOriginalTransactionWithSplitInfo, isDemoTransaction} from '@libs/TransactionUtils';
-import {getAccountIDFromAvatarID} from '@libs/UserAvatarUtils';
 
 import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
 import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
@@ -122,16 +88,7 @@ import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
 import {getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU/DeleteMoneyRequest';
 import {createDraftTransactionAndNavigateToParticipantSelector} from '@userActions/IOU/StartExpenseFlows';
 import {deleteTrackExpense, getNavigationUrlAfterTrackExpenseDelete} from '@userActions/IOU/TrackExpense';
-import {
-    clearAvatarErrors,
-    clearPolicyRoomNameErrors,
-    getReportPrivateNote,
-    hasErrorInPrivateNotes,
-    leaveGroupChat,
-    leaveRoom,
-    setDeleteTransactionNavigateBackUrl,
-    updateGroupChatAvatar,
-} from '@userActions/Report';
+import {getReportPrivateNote, hasErrorInPrivateNotes, leaveGroupChat, leaveRoom, setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import {canActionTask, canModifyTask, reopenTask} from '@userActions/Task';
 import {deleteTask} from '@userActions/TaskDeletion';
@@ -141,7 +98,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import {pendingDeleteMemberAccountIDsSelector} from '@src/selectors/ReportMetaData';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -158,12 +114,17 @@ import {View} from 'react-native';
 import type {DynamicReportDetailsPageMenuItem} from './types';
 
 import getReportDetailsCaseID from './getReportDetailsCaseID';
+import ReportDetailsAvatar from './ReportDetailsAvatar';
+import ReportDetailsDescription from './ReportDetailsDescription';
+import ReportDetailsNameSection from './ReportDetailsNameSection';
+import ReportDetailsPromotedActions from './ReportDetailsPromotedActions';
+import ReportDetailsTitleSection from './ReportDetailsTitleSection';
 import {CASES} from './types';
 
 type DynamicReportDetailsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT>;
 
 function DynamicReportDetailsPage({policy, report, route, reportMetadata, reportLoadingState}: DynamicReportDetailsPageProps) {
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const activePolicy = useActivePolicy();
@@ -180,7 +141,6 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         'Building',
         'Exit',
         'Bug',
-        'Camera',
         'Trashcan',
         'ArrowSplit',
         'Hashtag',
@@ -201,7 +161,6 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
     const [guideAccountIDs] = useOnyx(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [pendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {selector: pendingDeleteMemberAccountIDsSelector});
 
     const {reportActions} = usePaginatedReportActions(report.reportID);
     const [reportActionsForOriginalReportID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`);
@@ -236,10 +195,6 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const [preferredPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(preferredPolicyID)}`, {selector: billingRestrictionPolicySelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {showConfirmModal} = useConfirmModal();
-    const reportForHeader = getReportForHeader(report, parentReport);
-    const derivedReportNames = useDerivedReportNamesByReportIDs([report?.parentReportID, reportForHeader?.reportID]);
-    const derivedParentReportName = getReportNameFromNames(derivedReportNames, report?.parentReportID);
-    const derivedHeaderReportName = getReportNameFromNames(derivedReportNames, reportForHeader?.reportID);
     const isPolicyAdmin = isPolicyAdminUtil(policy);
     const isPolicyEmployee = isPolicyEmployeeUtil(report?.policyID, policy);
     const isPolicyExpenseChat = isPolicyExpenseChatUtil(report);
@@ -251,7 +206,6 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const isMoneyRequest = isMoneyRequestUtil(report);
     const isInvoiceReport = isInvoiceReportUtil(report);
     const isFinancialReportsForBusinesses = isFinancialReportsForBusinessesUtil(report);
-    const isInvoiceRoom = isInvoiceRoomUtil(report);
     const isTaskReport = isTaskReportUtil(report);
     const isSelfDM = isSelfDMUtil(report);
     const isTrackExpenseReport = isTrackExpenseReportUtil(report, parentReport, parentReportAction);
@@ -259,25 +213,17 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
     const isTaskModifiable = canModifyTask(report, currentUserAccountID, isParentReportArchived);
     const isTaskActionable = canActionTask(report, parentReportAction, currentUserAccountID, parentReport, isParentReportArchived);
-    const canEditReportDescription = canEditReportDescriptionUtil(report, policy);
-    const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '') && (isTaskReport ? isTaskModifiable : true);
     const isExpenseReport = isMoneyRequestReport || isInvoiceReport || isMoneyRequest;
     const isSingleTransactionView = isMoneyRequest || isTrackExpenseReport;
     const isSelfDMTrackExpenseReport = isTrackExpenseReport && isSelfDMUtil(parentReport);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isArchivedRoom = isArchivedNonExpenseReport(report, isReportArchived);
-    const shouldDisableRename = shouldDisableRenameUtil(report, isReportArchived);
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(report, policy, conciergeReportID, translate, derivedParentReportName, isParentReportArchived);
     const base62ReportID = getBase62ReportID(Number(report.reportID));
     const ancestors = useAncestors(report);
-
-    const subtitle = getChatRoomSubtitle(report, policy, conciergeReportID, translate, rules, false, isReportArchived);
-    const chatRoomSubtitle = subtitle ?? '';
 
     const isSystemChat = isSystemChatUtil(report);
     const isGroupChat = isGroupChatUtil(report);
     const isRootGroupChat = isRootGroupChatUtil(report, isReportArchived);
-    const isThread = isThreadUtil(report);
     const shouldOpenRoomMembersPage = isUserCreatedPolicyRoom || isChatThread || (isPolicyExpenseChat && isPolicyAdmin);
     const participants = getParticipantsList(report, personalDetails, shouldOpenRoomMembersPage);
 
@@ -344,7 +290,6 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     } else if (caseID === CASES.DEFAULT) {
         deleteMenuItemTitle = translate('common.delete');
     }
-    const isWorkspaceChat = isWorkspaceChatUtil(report?.chatType ?? '');
 
     useEffect(() => {
         // Do not fetch private notes if the feature is disabled, isLoadingPrivateNotes is already defined, the network is offline, or if the report is a self DM.
@@ -392,20 +337,6 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     });
     const shouldShowGoToRoom = (isChatRoom || isPolicyExpenseChat) && !isRoomCurrentlyOpen;
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, currentUserEmail) && !policy?.isJoinRequestPending && !shouldShowGoToRoom;
-
-    const shouldParseFullTitle = parentReportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && !isGroupChat;
-    const rawReportName = getReportName(reportForHeader, derivedHeaderReportName);
-    const reportName = shouldParseFullTitle ? Parser.htmlToText(rawReportName) : rawReportName;
-    const additionalRoomDetails = isExpenseReportUtil(report) || isPolicyExpenseChat || isInvoiceRoom ? chatRoomSubtitle : `${translate('threads.in')} ${chatRoomSubtitle}`;
-
-    let roomDescription: string | undefined;
-    if (caseID === CASES.MONEY_REQUEST) {
-        roomDescription = translate('common.name');
-    } else if (isGroupChat) {
-        roomDescription = translate('newRoomPage.groupName');
-    } else {
-        roomDescription = translate('newRoomPage.roomName');
-    }
 
     const shouldShowNotificationPref = !isMoneyRequestReport && !isHiddenForCurrentUser(report);
     const shouldShowWriteCapability = !isMoneyRequestReport;
@@ -693,185 +624,6 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         return items;
     })();
 
-    const icons = getIcons(report, formatPhoneNumber, translate, personalDetails, null, '', -1, policy, undefined, isReportArchived, pendingDeleteMemberAccountIDs, conciergeReportID);
-
-    const renderedAvatar = (() => {
-        if (isChatRoom && !isThread) {
-            return (
-                <View style={styles.mb3}>
-                    <RoomHeaderAvatars
-                        icons={icons}
-                        report={report}
-                        policy={policy}
-                        participants={participants}
-                        currentUserAccountID={currentUserAccountID}
-                    />
-                </View>
-            );
-        }
-        if (!isGroupChat || isThread) {
-            return (
-                <View style={styles.mb3}>
-                    <ReportHeaderAvatars reportID={report?.reportID ?? moneyRequestReport?.reportID} />
-                </View>
-            );
-        }
-
-        const groupChatIcon = icons.at(0);
-        const groupChatAvatarSource = groupChatIcon?.source;
-        const groupChatAvatar = groupChatAvatarSource ? (
-            <UserAvatar
-                source={groupChatAvatarSource}
-                size={CONST.AVATAR_SIZE.XXXX_LARGE}
-                accountID={getAccountIDFromAvatarID(groupChatIcon?.id)}
-                fallbackIcon={groupChatIcon?.fallbackIcon}
-            />
-        ) : null;
-
-        return (
-            <AvatarWithImagePicker
-                source={groupChatAvatarSource}
-                avatar={groupChatAvatar}
-                isUsingDefaultAvatar={!report.avatarUrl}
-                onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report.reportID))}
-                onImageRemoved={() => {
-                    // Calling this without a file will remove the avatar
-                    updateGroupChatAvatar(report.reportID, report.avatarUrl);
-                }}
-                onImageSelected={(file) => updateGroupChatAvatar(report.reportID, report.avatarUrl, file)}
-                editIcon={expensifyIcons.Camera}
-                editIconStyle={styles.smallEditIconAccount}
-                pendingAction={report.pendingFields?.avatar ?? undefined}
-                errors={report.errorFields?.avatar ?? null}
-                errorRowStyles={styles.mt6}
-                onErrorClose={() => clearAvatarErrors(report.reportID)}
-                style={[styles.w100, styles.mb3]}
-            />
-        );
-    })();
-
-    const canJoin = canJoinChat(report, parentReportAction, policy, parentReport, !!reportNameValuePairs?.private_isArchived);
-
-    const promotedActions = (() => {
-        const result: PromotedAction[] = [];
-
-        if (canJoin) {
-            result.push(PromotedActions.join(report, currentUserAccountID));
-        }
-
-        if (report) {
-            result.push(PromotedActions.pin(report));
-        }
-
-        result.push(PromotedActions.share());
-
-        return result;
-    })();
-
-    const shouldDisplayGroupWorkspaceAsPushRow = !isThread && (isGroupChat || isUserCreatedPolicyRoom || isDefaultRoom);
-    const nameSectionGroupWorkspace = (
-        <OfflineWithFeedback
-            pendingAction={report?.pendingFields?.reportName}
-            errors={report?.errorFields?.reportName ?? null}
-            errorRowStyles={[styles.ph5]}
-            onClose={() => clearPolicyRoomNameErrors(report?.reportID)}
-        >
-            <View style={[styles.flex1, !shouldDisableRename && styles.mt3]}>
-                <MenuItemWithTopDescription
-                    shouldShowRightIcon={!shouldDisableRename}
-                    interactive={!shouldDisableRename}
-                    title={StringUtils.lineBreaksToSpaces(reportName)}
-                    titleStyle={[styles.newKansasLarge, !shouldDisplayGroupWorkspaceAsPushRow && styles.textAlignCenter]}
-                    titleContainerStyle={!shouldDisplayGroupWorkspaceAsPushRow && styles.alignItemsCenter}
-                    shouldCheckActionAllowedOnPress={false}
-                    description={shouldDisplayGroupWorkspaceAsPushRow ? roomDescription : ''}
-                    furtherDetails={chatRoomSubtitle && !isGroupChat && !shouldDisplayGroupWorkspaceAsPushRow ? additionalRoomDetails : ''}
-                    furtherDetailsNumberOfLines={isWorkspaceChat ? 0 : undefined}
-                    furtherDetailsStyle={isWorkspaceChat ? [styles.textAlignCenter, styles.breakWord] : undefined}
-                    onPress={() => {
-                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_SETTINGS_NAME.path));
-                    }}
-                    numberOfLinesTitle={isThread ? 2 : 0}
-                    shouldBreakWord
-                />
-                {shouldDisplayGroupWorkspaceAsPushRow && !isGroupChat && (
-                    <MenuItemWithTopDescription
-                        shouldShowRightIcon={false}
-                        interactive={false}
-                        description={translate('workspace.common.workspace')}
-                        title={getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')})}
-                        numberOfLinesTitle={2}
-                        shouldBreakWord
-                    />
-                )}
-            </View>
-        </OfflineWithFeedback>
-    );
-
-    const titleField: OnyxTypes.PolicyReportField | undefined = (() => {
-        const fields = getAvailableReportFields(report, Object.values(policy?.fieldList ?? {}));
-        return fields.find((reportField) => isReportFieldOfTypeTitle(reportField));
-    })();
-    const fieldKey = getReportFieldKey(titleField?.fieldID);
-    const isFieldDisabled = isReportFieldDisabled(report, titleField, policy, rules);
-
-    const shouldShowEditableTitleField = caseID !== CASES.MONEY_REQUEST && canEditReportTitle(report, policy, currentUserAccountID, rules);
-
-    const nameSectionFurtherDetailsContent = (
-        <MenuItemWithTopDescription
-            shouldShowRightIcon={false}
-            interactive={false}
-            titleComponent={
-                <ParentNavigationSubtitle
-                    parentNavigationSubtitleData={parentNavigationSubtitleData}
-                    reportID={report?.reportID}
-                    parentReportID={report?.parentReportID}
-                    parentReportActionID={report?.parentReportActionID}
-                    pressableStyles={[styles.mt1, styles.mw100]}
-                    textStyles={[styles.popoverMenuText, styles.flexShrink1, styles.preWrap, styles.mw100]}
-                    subtitleNumberOfLines={2}
-                    shouldShowFromPrefix={false}
-                    openParentReportInCurrentTab
-                />
-            }
-            description={translate('threads.from')}
-            descriptionTextStyle={[styles.mutedNormalTextLabel, styles.mb1]}
-            shouldCheckActionAllowedOnPress={false}
-        />
-    );
-
-    const nameSectionTitleField = (
-        <OfflineWithFeedback
-            pendingAction={report.pendingFields?.reportName}
-            errors={report.errorFields?.reportName ?? null}
-            errorRowStyles={styles.ph5}
-            key={`menuItem-${fieldKey}`}
-            onClose={() => clearPolicyRoomNameErrors(report.reportID)}
-        >
-            <View style={[styles.flex1]}>
-                <MenuItemWithTopDescription
-                    shouldShowRightIcon={shouldShowEditableTitleField && !isFieldDisabled}
-                    interactive={shouldShowEditableTitleField && !isFieldDisabled}
-                    title={reportName}
-                    titleStyle={styles.newKansasLarge}
-                    shouldCheckActionAllowedOnPress={false}
-                    description={translate('task.title')}
-                    onPress={
-                        shouldShowEditableTitleField && report.policyID
-                            ? () => {
-                                  if (!report?.policyID) {
-                                      return;
-                                  }
-
-                                  Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EDIT_REPORT_FIELD.getRoute(report.policyID, CONST.REPORT_FIELD_TITLE_FIELD_ID)));
-                              }
-                            : undefined
-                    }
-                />
-            </View>
-        </OfflineWithFeedback>
-    );
-
     const deleteTransaction = () => {
         if (caseID === CASES.DEFAULT) {
             deleteTask(
@@ -1034,11 +786,6 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         });
     };
 
-    const mentionReportContextValue = {currentReportID: report.reportID, exactlyMatch: true};
-
-    const shouldShowFurtherDetailsContent =
-        !isEmptyObject(parentNavigationSubtitleData) && (shouldShowEditableTitleField || isMoneyRequestReport || isInvoiceReport || isMoneyRequest || isTaskReport);
-
     return (
         <ScreenWrapper testID="DynamicReportDetailsPage">
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>
@@ -1047,28 +794,12 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                     onBackButtonPress={() => Navigation.goBack(navigateBackFromReportDetailsPath)}
                 />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
-                    <View style={[styles.reportDetailsTitleContainer, styles.pb0]}>{renderedAvatar}</View>
-                    {isExpenseReport && nameSectionTitleField}
-                    {isExpenseReport && shouldShowFurtherDetailsContent && nameSectionFurtherDetailsContent}
+                    <View style={[styles.reportDetailsTitleContainer, styles.pb0]}>
+                        <ReportDetailsAvatar reportID={report.reportID} />
+                    </View>
+                    {isExpenseReport ? <ReportDetailsTitleSection reportID={report.reportID} /> : <ReportDetailsNameSection reportID={report.reportID} />}
 
-                    {!isExpenseReport && nameSectionGroupWorkspace}
-
-                    {shouldShowReportDescription && (
-                        <OfflineWithFeedback pendingAction={report.pendingFields?.description}>
-                            <MentionReportContext.Provider value={mentionReportContextValue}>
-                                <MenuItem.Root onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DESCRIPTION.path))}>
-                                    <MenuItem.Row>
-                                        <MenuItemField.Content name={translate('reportDescriptionPage.roomDescription')}>
-                                            {!!getReportDescription(report) && <MenuItem.FieldValueHTML characterLimit={100}>{getReportDescription(report)}</MenuItem.FieldValueHTML>}
-                                        </MenuItemField.Content>
-                                        <MenuItem.Trailing>
-                                            <MenuItem.Chevron />
-                                        </MenuItem.Trailing>
-                                    </MenuItem.Row>
-                                </MenuItem.Root>
-                            </MentionReportContext.Provider>
-                        </OfflineWithFeedback>
-                    )}
+                    <ReportDetailsDescription reportID={report.reportID} />
 
                     {isFinancialReportsForBusinesses && (
                         <>
@@ -1091,10 +822,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                         </>
                     )}
 
-                    <PromotedActionsBar
-                        containerStyle={styles.mt5}
-                        promotedActions={promotedActions}
-                    />
+                    <ReportDetailsPromotedActions reportID={report.reportID} />
 
                     {menuItems.map((item) => (
                         <MenuItem
