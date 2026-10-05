@@ -4853,7 +4853,7 @@ ${amount} für ${merchant} – ${date}`,
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return 'Kartenverwaltung';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'Personalverwaltung';
+                        return 'Personenverwaltung';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Zahlungsadministrator';
                     case CONST.POLICY.ROLE.USER:
@@ -7114,7 +7114,7 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             }),
             makeGuest: () => ({
                 one: 'Zum Gast machen',
-                other: 'Zu Gästen machen',
+                other: 'Gäste erstellen',
             }),
             makePeopleAdmin: () => ({
                 one: 'Zum Personaladministrator machen',
