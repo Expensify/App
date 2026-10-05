@@ -37,6 +37,7 @@ jest.mock('@libs/Navigation/linkingConfig/RELATIONS', () => {
             [SCREENS_MOCK.TRACK_EXPENSE]: SCREENS_MOCK.SEARCH.ROOT,
         },
         RHP_TO_SETTINGS: {},
+        RHP_TO_SETTINGS_DEEPLINK: {[SCREENS_MOCK.SETTINGS.WALLET.DOMAIN_CARD]: SCREENS_MOCK.SETTINGS.WALLET.ROOT},
         RHP_TO_SIDEBAR: {},
         RHP_TO_WORKSPACE: {},
         RHP_TO_WORKSPACES_LIST: {},
@@ -291,4 +292,34 @@ describe('getMatchingFullScreenRoute - deeplink-only search relations', () => {
             expect(result).toBeUndefined();
         },
     );
+});
+
+describe('getMatchingFullScreenRoute - deeplink-only settings relations', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('resolves the domain card screen to the wallet when built from a path (isDeeplink=true)', () => {
+        // Given the domain card screen, which Home also opens, restored from a URL
+        const route = {name: SCREENS.SETTINGS.WALLET.DOMAIN_CARD, params: {cardID: '1'}};
+
+        // When the full screen under it is resolved for a deep link
+        const result = getMatchingFullScreenRoute(route, true);
+
+        // Then the wallet is placed underneath, since the URL carries no other page to return to
+        expect(result?.name).toBe(NAVIGATORS.TAB_NAVIGATOR);
+        const activeTab = result && 'state' in result ? result.state?.routes.at(result.state.index ?? 0) : undefined;
+        expect(activeTab?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.WALLET.ROOT);
+    });
+
+    it('does not resolve the domain card screen to a fullscreen for in-app navigation (isDeeplink=false)', () => {
+        // Given the domain card screen opened by a click, for example from Home
+        const route = {name: SCREENS.SETTINGS.WALLET.DOMAIN_CARD};
+
+        // When the full screen under it is resolved for in-app navigation
+        const result = getMatchingFullScreenRoute(route);
+
+        // Then nothing is forced underneath, so the page the user clicked from stays
+        expect(result).toBeUndefined();
+    });
 });

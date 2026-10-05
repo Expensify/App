@@ -195,26 +195,7 @@ describe('shouldChangeToMatchingFullScreen', () => {
         expect(result).toBe(true);
     });
 
-    it('returns true for ADD_PAYMENT_CARD when not on SUBSCRIPTION tab', () => {
-        const result = shouldChangeToMatchingFullScreen(
-            {name: SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD, key: 'k1'},
-            {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
-            {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
-        );
-        // Same name, not TAB_NAVIGATOR, but ADD_PAYMENT_CARD and lastActiveScreen is undefined (not SUBSCRIPTION.ROOT)
-        expect(result).toBe(true);
-    });
-
-    it('returns false for ADD_PAYMENT_CARD when on SUBSCRIPTION tab', () => {
-        const result = shouldChangeToMatchingFullScreen(
-            {name: SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD, key: 'k1'},
-            {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, state: {routes: [{name: SCREENS.SETTINGS.SUBSCRIPTION.ROOT}]}},
-            {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, state: {routes: [{name: SCREENS.SETTINGS.SUBSCRIPTION.ROOT}]}},
-        );
-        expect(result).toBe(false);
-    });
-
-    it('returns false when same name, not TAB, not ADD_PAYMENT_CARD', () => {
+    it('returns false when same name and not TAB_NAVIGATOR', () => {
         const result = shouldChangeToMatchingFullScreen({name: 'SomeOtherScreen', key: 'k1'}, {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}, {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR});
         expect(result).toBe(false);
     });

@@ -8,7 +8,8 @@ import type IllustrationsType from '@styles/theme/illustrations/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type {
     BankAccountList,
     Card,
@@ -2059,15 +2060,16 @@ function isCardInactive(card?: OnyxEntry<Card>): boolean {
  *
  * @param cards list of the broken cards
  * @param environmentURL environment url
+ * @param buildDynamicRoute builds the card details route on top of the screen showing the link
  * @returns url
  */
-function getBrokenConnectionUrlToFixPersonalCard(cards: Record<string, Card>, environmentURL: string) {
+function getBrokenConnectionUrlToFixPersonalCard(cards: Record<string, Card>, environmentURL: string, buildDynamicRoute: (dynamicRouteSuffixWithParams: string) => Route) {
     if (!cards) {
         return undefined;
     }
     if (Object.keys(cards).length === 1) {
         const card = Object.values(cards).at(0);
-        return `${environmentURL}/${ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(card?.cardID.toString())}`;
+        return `${environmentURL}/${buildDynamicRoute(DYNAMIC_ROUTES.PERSONAL_CARD_DETAILS.getRoute(card?.cardID.toString()))}`;
     }
 
     return `${environmentURL}/${ROUTES.SETTINGS_WALLET}`;
