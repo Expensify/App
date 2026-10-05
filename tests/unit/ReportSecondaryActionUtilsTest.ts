@@ -585,6 +585,7 @@ describe('getSecondaryAction', () => {
                 policy,
                 reportActions: [payAction],
                 rules: undefined,
+                cardList: undefined,
             });
         }
 
