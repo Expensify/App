@@ -535,6 +535,11 @@ const staticStyles = (theme: ThemeColors) =>
             lineHeight: lineHeightScale.label,
         },
 
+        /** Gives every digit the same advance so a counter doesn't shift sideways as its digits change. */
+        tabularNums: {
+            fontVariant: ['tabular-nums'],
+        },
+
         mutedNormalTextLabel: {
             color: theme.textSupporting,
             fontSize: fontScale.label,
@@ -1310,6 +1315,14 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadius,
             borderColor: 'transparent',
             paddingHorizontal: 4,
+        },
+
+        /**
+         * Cancels editableCell's horizontal chrome so the value lines up with a
+         * sibling that has no edit padding, such as a card title under a cardholder name.
+         */
+        editableCellFlushWithSibling: {
+            marginHorizontal: -(variables.editableCellChromeWidth / 2),
         },
 
         editableCell: {
