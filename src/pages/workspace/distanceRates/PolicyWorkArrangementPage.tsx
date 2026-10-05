@@ -38,6 +38,7 @@ function PolicyWorkArrangementPage({route}: PolicyWorkArrangementPageProps) {
     const [policyData] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         selector: (policy) => ({
             isOfficeWorkArrangement: hasOfficeWorkArrangement(policy?.commuterExclusions),
+            storedIsOfficeWorkArrangement: policy?.commuterExclusions?.isOfficeWorkArrangement,
             isHomeAndOfficeMethod: policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE,
             pendingFields: policy?.pendingFields,
             errorFields: policy?.errorFields,
@@ -45,8 +46,10 @@ function PolicyWorkArrangementPage({route}: PolicyWorkArrangementPageProps) {
     });
 
     const onSelect = (isOffice: boolean) => {
+        // The selected option follows the effective arrangement, but a failed save has to put back whatever the
+        // workspace actually had, which is nothing at all until an admin saves one.
         if (isOffice !== policyData?.isOfficeWorkArrangement) {
-            setPolicyWorkArrangement(policyID, isOffice, policyData?.isOfficeWorkArrangement);
+            setPolicyWorkArrangement(policyID, isOffice, policyData?.storedIsOfficeWorkArrangement);
         }
         Navigation.goBack();
     };
