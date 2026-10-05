@@ -6,7 +6,7 @@ import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@comp
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
 
 import {markAsManuallyExported} from '@libs/actions/Report';
-import {exportSearchItemsToCSV, exportToIntegrationOnSearch, getExportTemplates, queueExportSearchWithTemplate} from '@libs/actions/Search';
+import {exportSearchItemsToCSV, exportToIntegrationOnSearch, getExportTemplates, queueBulkMarkAsExported, queueExportSearchWithTemplate} from '@libs/actions/Search';
 import type * as ReportSecondaryActionUtilsModule from '@libs/ReportSecondaryActionUtils';
 import {getSelectedGroupFilterEntry} from '@libs/SearchUIUtils';
 import type * as SearchUIUtilsModule from '@libs/SearchUIUtils';
@@ -59,6 +59,7 @@ jest.mock('@libs/actions/Search', () => ({
     })),
     exportSearchItemsToCSV: jest.fn(),
     exportToIntegrationOnSearch: jest.fn(),
+    queueBulkMarkAsExported: jest.fn(),
     queueExportSearchItemsToCSV: jest.fn(),
     queueExportSearchWithTemplate: jest.fn(),
     getSearchApproveOnyxData: jest.fn(() => ({})),
@@ -143,9 +144,10 @@ jest.mock('@hooks/useTheme', () => ({
     default: () => ({icon: ''}),
 }));
 
+let mockIsOffline = false;
 jest.mock('@hooks/useNetwork', () => ({
     __esModule: true,
-    default: () => ({isOffline: false}),
+    default: () => ({isOffline: mockIsOffline}),
 }));
 
 jest.mock('@hooks/useEnvironment', () => ({
@@ -536,6 +538,7 @@ describe('useSearchBulkActions - export options', () => {
         mockShowConfirmModal.mockResolvedValue({action: 'CONFIRM'});
         mockAreAllMatchingItemsSelected = false;
         mockCurrentSearchKey = undefined;
+        mockIsOffline = false;
 
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
         // A policy connected to NetSuite so the integration export branch is reachable.
@@ -1262,6 +1265,147 @@ describe('useSearchBulkActions - export options', () => {
         });
 
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
+    });
+
+    it('queues a server-side bulk mark-as-exported instead of marking specific report IDs when all matching items are selected', async () => {
+        // Given: "Select all" is checked, so the selection can span more reports than are loaded on the current page.
+        mockAreAllMatchingItemsSelected = true;
+        mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+        mockSelectedReports = [makeSelectedReport()];
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportSubMenuItems(result.current.headerButtonsOptions)?.some((item) => item.text === 'workspace.common.markAsExported')).toBe(true);
+        });
+
+        // When: the user clicks "Mark as exported".
+        getExportSubMenuItems(result.current.headerButtonsOptions)
+            ?.find((item) => item.text === 'workspace.common.markAsExported')
+            ?.onSelected?.();
+
+        // Then: the connection and search query are handed to the backend, which resolves every matching report
+        // itself, instead of looping markAsManuallyExported over the loaded report IDs.
+        await waitFor(() => {
+            expect(queueBulkMarkAsExported).toHaveBeenCalledWith(expect.any(String), CONST.POLICY.CONNECTIONS.NAME.NETSUITE, undefined);
+        });
+        expect(markAsManuallyExported).not.toHaveBeenCalled();
+        expect(mockClearSelectedTransactions).toHaveBeenCalled();
+    });
+
+    it('passes qboIntegrationAlias so the backend can tell an IES connection apart from a regular QBO connection sharing the same connectionName', async () => {
+        // Given: "Select all" is checked on a workspace connected to QBO with the Intuit Enterprise Suite scope.
+        mockAreAllMatchingItemsSelected = true;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
+            id: POLICY_ID,
+            connections: {[CONST.POLICY.CONNECTIONS.NAME.QBO]: {config: {credentials: {scope: CONST.POLICY.CONNECTIONS.INTUIT_ENTERPRISE_SUITE_SCOPE}}}},
+        });
+        mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+        mockSelectedReports = [makeSelectedReport()];
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportSubMenuItems(result.current.headerButtonsOptions)?.some((item) => item.text === 'workspace.common.markAsExported')).toBe(true);
+        });
+
+        // When: the user clicks "Mark as exported".
+        getExportSubMenuItems(result.current.headerButtonsOptions)
+            ?.find((item) => item.text === 'workspace.common.markAsExported')
+            ?.onSelected?.();
+
+        // Then: qboIntegrationAlias is sent as the IES alias, since connectionName alone can't distinguish IES
+        // from a regular QBO connection.
+        await waitFor(() => {
+            expect(queueBulkMarkAsExported).toHaveBeenCalledWith(
+                expect.any(String),
+                CONST.POLICY.CONNECTIONS.NAME.QBO,
+                CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE,
+            );
+        });
+    });
+
+    it('omits qboIntegrationAlias for a regular QBO connection', async () => {
+        // Given: "Select all" is checked on a workspace connected to regular QBO (no IES scope).
+        mockAreAllMatchingItemsSelected = true;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
+            id: POLICY_ID,
+            connections: {[CONST.POLICY.CONNECTIONS.NAME.QBO]: {}},
+        });
+        mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+        mockSelectedReports = [makeSelectedReport()];
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportSubMenuItems(result.current.headerButtonsOptions)?.some((item) => item.text === 'workspace.common.markAsExported')).toBe(true);
+        });
+
+        // When: the user clicks "Mark as exported".
+        getExportSubMenuItems(result.current.headerButtonsOptions)
+            ?.find((item) => item.text === 'workspace.common.markAsExported')
+            ?.onSelected?.();
+
+        // Then: qboIntegrationAlias is left undefined, since there is nothing to disambiguate.
+        await waitFor(() => {
+            expect(queueBulkMarkAsExported).toHaveBeenCalledWith(expect.any(String), CONST.POLICY.CONNECTIONS.NAME.QBO, undefined);
+        });
+    });
+
+    it('opens the offline modal instead of queuing when all matching items are selected and offline', async () => {
+        // Given: "Select all" is checked and the user is offline.
+        mockAreAllMatchingItemsSelected = true;
+        mockIsOffline = true;
+        mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+        mockSelectedReports = [makeSelectedReport()];
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportSubMenuItems(result.current.headerButtonsOptions)?.some((item) => item.text === 'workspace.common.markAsExported')).toBe(true);
+        });
+
+        // When: the user clicks "Mark as exported".
+        getExportSubMenuItems(result.current.headerButtonsOptions)
+            ?.find((item) => item.text === 'workspace.common.markAsExported')
+            ?.onSelected?.();
+
+        // Then: the offline modal opens and nothing is queued, matching bulk pay's offline behavior.
+        await waitFor(() => {
+            expect(result.current.isOfflineModalVisible).toBe(true);
+        });
+        expect(queueBulkMarkAsExported).not.toHaveBeenCalled();
+        expect(mockClearSelectedTransactions).not.toHaveBeenCalled();
+    });
+
+    it('marks the specific selected report IDs, not the search query, for a limited (non-select-all) selection', async () => {
+        // Given: a finite selection of specific reports ("Select all" is NOT checked).
+        mockAreAllMatchingItemsSelected = false;
+        mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+        mockSelectedReports = [makeSelectedReport()];
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportSubMenuItems(result.current.headerButtonsOptions)?.some((item) => item.text === 'workspace.common.markAsExported')).toBe(true);
+        });
+
+        // When: the user clicks "Mark as exported".
+        getExportSubMenuItems(result.current.headerButtonsOptions)
+            ?.find((item) => item.text === 'workspace.common.markAsExported')
+            ?.onSelected?.();
+
+        // Then: the existing per-report flow runs (markAsManuallyExported with the loaded report IDs), and the
+        // select-all backend command is never called.
+        await waitFor(() => {
+            expect(markAsManuallyExported).toHaveBeenCalledWith([REPORT_ID], CONST.POLICY.CONNECTIONS.NAME.NETSUITE, expect.anything());
+        });
+        expect(queueBulkMarkAsExported).not.toHaveBeenCalled();
     });
 
     it('shows templates when reports are selected through their report groups', async () => {

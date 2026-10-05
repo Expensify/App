@@ -218,6 +218,14 @@ type LoginToAccountIDMapDerivedValue = Record<string, number>;
  */
 type GuideAccountIDsDerivedValue = number[];
 
+/**
+ * Maps a participant set to the reportID of its 1:1 (or system) chat, for the accountID it was built for.
+ */
+type OneOnOneChatReportIDsDerivedValue = {
+    reportIDs: Record<string, string>;
+    accountID?: number;
+};
+
 export type {
     ReportAttributes,
     ReportAttributesDerivedValue,
@@ -231,6 +239,7 @@ export type {
     CardFeedErrorsDerivedValue,
     LoginToAccountIDMapDerivedValue,
     GuideAccountIDsDerivedValue,
+    OneOnOneChatReportIDsDerivedValue,
     CardFeedErrorsObject,
     CardFeedErrorState,
     CardFeedErrors,

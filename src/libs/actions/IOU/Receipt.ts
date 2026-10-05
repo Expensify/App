@@ -22,7 +22,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
-import type {ReceiptSource} from '@src/types/onyx/Transaction';
+import type {Receipt, ReceiptSource} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -407,9 +407,12 @@ function replaceReceipt({
         );
     }
 
+    const receipt: Receipt = file;
+    receipt.source = source;
+
     const parameters: ReplaceReceiptParams = {
         transactionID,
-        receipt: file,
+        receipt,
         receiptState: state,
         isSameReceipt,
         reportActionID: optimisticReceiptAddedAction?.reportActionID,
@@ -429,6 +432,7 @@ function setMoneyRequestReceipt(
     thumbnail?: string,
     receiptTraceId?: string,
 ) {
+    ReceiptStorage.retain(source);
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         // isTestReceipt = false and isTestDriveReceipt = false are being converted to null because we don't really need to store it in Onyx in those cases
         receipt: {source, filename, type: type ?? '', isTestReceipt: isTestReceipt ? true : null, isTestDriveReceipt: isTestDriveReceipt ? true : null, thumbnail, receiptTraceId},

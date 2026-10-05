@@ -14,7 +14,12 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 
-function PersonalCardsErrorConfirmation() {
+type PersonalCardsErrorConfirmationProps = {
+    /** Backend-supplied bank connection error message to display */
+    errorMessage?: string;
+};
+
+function PersonalCardsErrorConfirmation({errorMessage}: PersonalCardsErrorConfirmationProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['QuestionMark']);
@@ -25,6 +30,7 @@ function PersonalCardsErrorConfirmation() {
     };
 
     const openPlaidLink = () => {
+        clearAddNewPersonalCardErrors();
         setAddNewPersonalCardStepAndData({
             step: CONST.PERSONAL_CARDS.STEP.PLAID_CONNECTION,
             data: {
@@ -41,6 +47,7 @@ function PersonalCardsErrorConfirmation() {
             heading={translate('personalCard.bankConnectionError')}
             description={
                 <Text style={[styles.textSupporting, styles.textAlignCenter]}>
+                    {!!errorMessage && `${errorMessage} `}
                     {translate('personalCard.bankConnectionDescription')}{' '}
                     <TextLink
                         style={[styles.link]}
