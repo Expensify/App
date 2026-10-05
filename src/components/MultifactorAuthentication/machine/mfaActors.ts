@@ -136,12 +136,11 @@ const authorizeActor = fromPromise<AuthorizeOutput, AuthorizeInput>(async ({inpu
 });
 
 /**
- * Runs the scenario's callback, then captures the end-of-flow telemetry. Both halves are contained:
- * the callback is arbitrary scenario code (it fires backend side effects, e.g. `AuthorizeTransaction`'s
- * fire-and-forget deny), so a throw there falls back to showing the outcome screen rather than
- * stranding the modal, and the telemetry half swallows its own failures because by then the callback
- * has already stored secrets or navigated - rejecting would drop its `SKIP_OUTCOME_SCREEN` answer and
- * push an outcome screen on top of the screen it just navigated to.
+ * Runs the scenario's callback, then fires the end-of-flow telemetry without awaiting it, so the
+ * outcome screen never waits on the end-state read. The callback is arbitrary scenario code (it fires
+ * backend side effects, e.g. `AuthorizeTransaction`'s fire-and-forget deny), so a throw there falls
+ * back to showing the outcome screen rather than stranding the modal. The telemetry swallows its own
+ * failures because by then the callback has already stored secrets or navigated.
  *
  * The input below is also what the dev-only XState inspector serializes, and that masking is by key
  * name: `maskSensitive.ts` redacts the whole subtree under any key in its `SENSITIVE_KEYS` set, which
@@ -175,27 +174,27 @@ const finalizeOutcomeActor = fromPromise<FinalizeOutcomeOutput, FinalizeOutcomeI
         message: input.scenarioResponse?.message ?? input.error?.message,
     });
 
-    try {
-        // Deliberately not passed the actor's `signal`: closing the modal while this actor runs stops
-        // it, and an aborted read would drop the outcome telemetry for exactly the flows where the user
-        // bailed at the very end. The read is cheap and nothing downstream depends on it, so letting it
-        // finish detached costs nothing.
-        const endState = await captureRegistrationState(input.accountID);
-        trackMFAFlowOutcome({
-            isSuccessful,
-            scenario: input.scenarioName,
-            scenarioResponse: input.scenarioResponse,
-            error: input.error,
-            authenticationMethod: input.authenticationMethod?.name,
-            isRegistrationComplete: input.isRegistrationComplete,
-            isAuthorizationComplete: input.scenarioResponse !== undefined,
-            softPromptApproved: input.softPromptApproved,
-            startState: input.registrationStateAtStart ?? endState,
-            endState,
+    // Deliberately not passed the actor's `signal`: closing the modal while this actor runs stops
+    // it, and an aborted read would drop the outcome telemetry for exactly the flows where the user
+    // bailed at the very end.
+    captureRegistrationState(input.accountID)
+        .then((endState) =>
+            trackMFAFlowOutcome({
+                isSuccessful,
+                scenario: input.scenarioName,
+                scenarioResponse: input.scenarioResponse,
+                error: input.error,
+                authenticationMethod: input.authenticationMethod?.name,
+                isRegistrationComplete: input.isRegistrationComplete,
+                isAuthorizationComplete: input.scenarioResponse !== undefined,
+                softPromptApproved: input.softPromptApproved,
+                startState: input.registrationStateAtStart ?? endState,
+                endState,
+            }),
+        )
+        .catch((error: unknown) => {
+            addMFABreadcrumb('Flow outcome telemetry failed', {message: getErrorMessage(error)}, 'error');
         });
-    } catch (error) {
-        addMFABreadcrumb('Flow outcome telemetry failed', {message: getErrorMessage(error)}, 'error');
-    }
 
     return {callbackResponse};
 });

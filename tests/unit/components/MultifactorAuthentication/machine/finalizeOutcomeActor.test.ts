@@ -175,6 +175,26 @@ describe('finalizeOutcome actor', () => {
         expect(trackMFAFlowOutcomeMock).toHaveBeenCalledTimes(1);
     });
 
+    it('resolves without waiting for the end-of-flow snapshot read, so the outcome screen is not delayed', async () => {
+        let resolveEndState: ((snapshot: MFARegistrationStateSnapshot) => void) | undefined;
+        mockCaptureRegistrationState.mockImplementationOnce(
+            () =>
+                new Promise<MFARegistrationStateSnapshot>((resolve) => {
+                    resolveEndState = resolve;
+                }),
+        );
+
+        const snapshot = await runFinalizeOutcomeActor(buildInput());
+
+        expect(snapshot.output).toEqual({callbackResponse: CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN});
+        expect(trackMFAFlowOutcomeMock).not.toHaveBeenCalled();
+
+        resolveEndState?.(END_STATE);
+        await waitForBatchedUpdates();
+
+        expect(trackMFAFlowOutcomeMock).toHaveBeenCalledTimes(1);
+    });
+
     it('computes isAuthorizationComplete from whether a scenario response exists', async () => {
         const input = buildInput({scenarioResponse: undefined});
 
