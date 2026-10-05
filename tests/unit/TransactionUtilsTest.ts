@@ -3541,6 +3541,26 @@ describe('TransactionUtils', () => {
             expect(transaction.wasAutoCategorizeEnabledOnCreation).toBe(false);
         });
 
+        it('should omit the auto-categorize snapshot when the setting is on', () => {
+            // Given a workspace that auto-categorizes new expenses
+            const policy = {...createRandomPolicy(0), autoCategorizeNewExpenses: true};
+
+            // When the expense is created optimistically
+            const transaction = TransactionUtils.buildOptimisticTransaction({
+                policy,
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: '1',
+                    merchant: 'Starbucks',
+                    created: '2026-01-15',
+                },
+            });
+
+            // Then the field is absent, because the category row treats a missing value as enabled
+            expect(transaction.wasAutoCategorizeEnabledOnCreation).toBeUndefined();
+        });
+
         it('should keep a recorded auto-categorize value when a rebuild has no policy', () => {
             // Given an expense created while auto-categorize was off, rebuilt the way a split does, with the original expense and no policy
             const existingTransaction = generateTransaction({
