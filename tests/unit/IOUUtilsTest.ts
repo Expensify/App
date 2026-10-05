@@ -333,6 +333,13 @@ describe('IOUUtils', () => {
             expect(IOUUtils.insertTagIntoTransactionTagsString('777 Accounting/Finance:150 CCI:150 CCI', '200 HQ', 1, true, 2)).toBe('777 Accounting/Finance:200 HQ');
         });
 
+        test('Should drop the last value when a middle tag list was removed, leaving the shifted value editable', () => {
+            // Lists were A:B:C and B was removed. The string is positional, so the removed list's value now sits in C's slot,
+            // where it shows as invalid and the user can replace it.
+            expect(IOUUtils.insertTagIntoTransactionTagsString('a:b:c', 'a2', 0, true, 2)).toBe('a2:b');
+            expect(IOUUtils.insertTagIntoTransactionTagsString('a:b:c', 'c2', 1, true, 2)).toBe('a:c2');
+        });
+
         test('Should keep every value when the tag list count is unknown', () => {
             expect(IOUUtils.insertTagIntoTransactionTagsString('East:NY:California', 'NewTag', 1, true, 0)).toBe('East:NewTag:California');
             expect(IOUUtils.insertTagIntoTransactionTagsString('East:NY:California', 'NewTag', 1, true)).toBe('East:NewTag:California');
