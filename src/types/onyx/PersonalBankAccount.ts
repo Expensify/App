@@ -1,5 +1,6 @@
 import type {TranslationPaths} from '@src/languages/types';
 import type {Route} from '@src/ROUTES';
+import type {HomeAddressForm, InternationalBankAccountForm, PersonalBankAccountForm} from '@src/types/form';
 
 import type * as OnyxCommon from './OnyxCommon';
 
@@ -28,6 +29,20 @@ type PersonalBankAccount = {
 
     /** Where the bank account addition was started, e.g., from the Invoices page or Wallet page */
     source?: string;
+
+    /** Last non-terminal page visited in a resumable personal bank-account setup */
+    currentPage?: string;
+
+    /** Whether the saved page was opened from the confirmation page for editing */
+    currentPageAction?: 'edit';
+
+    /** Values from before the current confirmation-page edit, used to cancel an unconfirmed edit after reopening the flow */
+    editDraftSnapshot?: {
+        pageName: string;
+        personalBankAccountDraft?: Partial<PersonalBankAccountForm> | null;
+        homeAddressDraft?: Partial<HomeAddressForm> | null;
+        internationalBankAccountDraft?: Partial<InternationalBankAccountForm> | null;
+    };
 
     /** If set, continue with the KYC flow after adding a PBA. This specifies the fallback route to use. */
     onSuccessFallbackRoute?: Route;

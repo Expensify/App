@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import Navigation from '@libs/Navigation/Navigation';
 
-import {validatePlaidSelection} from '@userActions/BankAccounts';
+import {updateAddPersonalBankAccountDraft, validatePlaidSelection} from '@userActions/BankAccounts';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalBankAccountForm';
@@ -21,7 +21,11 @@ import React, {useState} from 'react';
 const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
 const STEP_FIELDS = [BANK_INFO_STEP_KEYS.SELECTED_PLAID_ACCOUNT_ID];
 
-function PlaidBankAccountStep({onNext, isEditing}: SubPageProps) {
+type PlaidBankAccountStepProps = SubPageProps & {
+    shouldSaveDraft?: boolean;
+};
+
+function PlaidBankAccountStep({onNext, isEditing, shouldSaveDraft = false}: PlaidBankAccountStepProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [selectedPlaidAccountId, setSelectedPlaidAccountId] = useState('');
@@ -33,6 +37,15 @@ function PlaidBankAccountStep({onNext, isEditing}: SubPageProps) {
         onNext,
         shouldSaveDraft: true,
     });
+
+    const selectPlaidAccount = (plaidAccountID: string) => {
+        setSelectedPlaidAccountId(plaidAccountID);
+        if (shouldSaveDraft) {
+            updateAddPersonalBankAccountDraft({
+                selectedPlaidAccountID: plaidAccountID,
+            });
+        }
+    };
 
     return (
         <FormProvider
@@ -49,7 +62,7 @@ function PlaidBankAccountStep({onNext, isEditing}: SubPageProps) {
             <InputWrapper
                 inputID={INPUT_IDS.BANK_INFO_STEP.SELECTED_PLAID_ACCOUNT_ID}
                 InputComponent={AddPlaidBankAccount}
-                onSelect={setSelectedPlaidAccountId}
+                onSelect={selectPlaidAccount}
                 text={translate('walletPage.chooseAccountBody')}
                 plaidData={plaidData}
                 defaultValue={bankAccountPersonalDetails?.selectedPlaidAccountID}

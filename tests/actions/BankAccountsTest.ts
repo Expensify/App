@@ -1,4 +1,11 @@
-import {clearPersonalBankAccount, connectBankAccountWithPlaid, openPersonalBankAccountSetupView} from '@libs/actions/BankAccounts';
+import {
+    cancelPersonalBankAccountEdit,
+    clearPersonalBankAccount,
+    clearPersonalBankAccountPreservingEntryContext,
+    connectBankAccountWithPlaid,
+    openPersonalBankAccountSetupView,
+    openWalletPersonalBankAccountSetup,
+} from '@libs/actions/BankAccounts';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -160,7 +167,9 @@ describe('actions/BankAccounts', () => {
                 exitReportID: '123',
                 bankAccountID: 456,
             });
-            await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID});
+            await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {
+                setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID,
+            });
 
             openPersonalBankAccountSetupView({});
             await waitForBatchedUpdates();
@@ -201,11 +210,151 @@ describe('actions/BankAccounts', () => {
         });
 
         test('carries shouldSetUpUSBankAccount to the verify account page when the user is not validated', async () => {
-            openPersonalBankAccountSetupView({shouldSetUpUSBankAccount: true, isUserValidated: false});
+            openPersonalBankAccountSetupView({
+                shouldSetUpUSBankAccount: true,
+                isUserValidated: false,
+            });
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.getRoute(true, true)));
             expect(Navigation.navigate).toHaveBeenCalledWith(expect.stringContaining('shouldSetUpUSBankAccount=true'));
+        });
+    });
+
+    describe('openWalletPersonalBankAccountSetup', () => {
+        test('opens the base US route while preserving the exact Plaid edit destination', async () => {
+            // Given a Wallet Plaid setup dismissed while a legal-name edit was active
+            const editDraftSnapshot = {
+                pageName: CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.LEGAL_NAME,
+                personalBankAccountDraft: {
+                    setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID,
+                    selectedPlaidAccountID: 'plaid-account-1',
+                    legalFirstName: 'Alberta',
+                    legalLastName: 'Charleson',
+                },
+            };
+            const personalBankAccount = {
+                source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                currentPage: CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.LEGAL_NAME,
+                currentPageAction: 'edit' as const,
+                editDraftSnapshot,
+            };
+            const personalDraft = {
+                setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID,
+                selectedPlaidAccountID: 'plaid-account-1',
+                legalFirstName: 'Alberta2',
+                legalLastName: 'Charleson',
+            };
+            await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, personalBankAccount);
+            await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, personalDraft);
+
+            // When Add bank account is selected again from Wallet
+            openWalletPersonalBankAccountSetup({
+                personalBankAccount,
+                personalDraft,
+                internationalDraft: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the page performs prerequisite validation while retaining the edit destination and cancellation baseline
+            expect(await getOnyxValue(ONYXKEYS.PERSONAL_BANK_ACCOUNT)).toEqual(personalBankAccount);
+            expect(await getOnyxValue(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT)).toEqual(personalDraft);
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute());
+        });
+
+        test('keeps the US resume path through verification and removes stale entry metadata', async () => {
+            // Given Wallet Plaid progress containing stale metadata from another entry point
+            const personalBankAccount = {
+                source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                currentPage: CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.ADDRESS,
+                exitReportID: '123',
+                policyID: 'policy-1',
+                onSuccessFallbackRoute: ROUTES.ENABLE_PAYMENTS,
+            };
+            const personalDraft = {
+                setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID,
+            } as const;
+            await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, personalBankAccount);
+
+            // When an unvalidated user reopens the Wallet setup
+            openWalletPersonalBankAccountSetup({
+                personalBankAccount,
+                personalDraft,
+                internationalDraft: undefined,
+                isUserValidated: false,
+            });
+            await waitForBatchedUpdates();
+
+            // Then only Wallet resume state remains and verification continues toward the US flow
+            expect(await getOnyxValue(ONYXKEYS.PERSONAL_BANK_ACCOUNT)).toEqual({
+                source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                currentPage: CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.ADDRESS,
+            });
+            expect(Navigation.navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.getRoute(true, true)));
+        });
+
+        test('starts fresh after a completed Wallet setup was dismissed from Success', async () => {
+            // Given completed Wallet progress that must not be resumed
+            const personalBankAccount = {
+                source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                currentPage: CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.CONFIRMATION,
+                shouldShowSuccess: true,
+            };
+            const personalDraft = {
+                setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL,
+                routingNumber: '123456789',
+                accountNumber: '1234',
+            };
+            await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, personalBankAccount);
+            await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, personalDraft);
+
+            // When Add bank account is opened again
+            openWalletPersonalBankAccountSetup({
+                personalBankAccount,
+                personalDraft,
+                internationalDraft: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the completed draft is cleared and the purpose flow starts fresh
+            expect(await getOnyxValue(ONYXKEYS.PERSONAL_BANK_ACCOUNT)).toEqual({
+                source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+            });
+            expect(await getOnyxValue(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT)).toBeFalsy();
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute('settings/wallet'));
+        });
+    });
+
+    describe('cancelPersonalBankAccountEdit', () => {
+        test('restores the personal and address drafts captured before editing', async () => {
+            // Given unconfirmed values persisted after dismissal and their pre-edit snapshot
+            const editDraftSnapshot = {
+                pageName: CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.LEGAL_NAME,
+                personalBankAccountDraft: {
+                    legalFirstName: 'Alberta',
+                    legalLastName: 'Charleson',
+                },
+                homeAddressDraft: {addressLine1: 'Old street'},
+            };
+            await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {editDraftSnapshot});
+            await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {
+                legalFirstName: 'Alberta4',
+                legalLastName: 'Charleson',
+            });
+            await Onyx.set(ONYXKEYS.FORMS.HOME_ADDRESS_FORM_DRAFT, {
+                addressLine1: 'New street',
+            });
+
+            // When Back cancels the unconfirmed edit
+            cancelPersonalBankAccountEdit(editDraftSnapshot, CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.CONFIRMATION);
+            await waitForBatchedUpdates();
+
+            // Then both drafts are restored and edit-mode routing is cleared
+            expect(await getOnyxValue(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT)).toEqual(editDraftSnapshot.personalBankAccountDraft);
+            expect(await getOnyxValue(ONYXKEYS.FORMS.HOME_ADDRESS_FORM_DRAFT)).toEqual(editDraftSnapshot.homeAddressDraft);
+            expect(await getOnyxValue(ONYXKEYS.PERSONAL_BANK_ACCOUNT)).toEqual({
+                currentPage: CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.CONFIRMATION,
+            });
         });
     });
 
@@ -215,7 +364,9 @@ describe('actions/BankAccounts', () => {
                 onSuccessFallbackRoute: ROUTES.ENABLE_PAYMENTS,
                 exitReportID: '123',
             });
-            await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL});
+            await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {
+                setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL,
+            });
 
             clearPersonalBankAccount();
             await waitForBatchedUpdates();
@@ -234,12 +385,41 @@ describe('actions/BankAccounts', () => {
                 bankAccountID: 456,
             });
 
-            clearPersonalBankAccount({onSuccessFallbackRoute: ROUTES.ENABLE_PAYMENTS});
+            clearPersonalBankAccount({
+                onSuccessFallbackRoute: ROUTES.ENABLE_PAYMENTS,
+            });
             await waitForBatchedUpdates();
 
             const personalBankAccount = await getOnyxValue(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
 
-            expect(personalBankAccount).toEqual({onSuccessFallbackRoute: ROUTES.ENABLE_PAYMENTS});
+            expect(personalBankAccount).toEqual({
+                onSuccessFallbackRoute: ROUTES.ENABLE_PAYMENTS,
+            });
+        });
+
+        test('preserves entry context and Wallet ownership while clearing setup progress', async () => {
+            // Given transient setup progress together with its entry context and Wallet ownership
+            const personalBankAccount = {
+                exitReportID: '123',
+                policyID: 'policy-1',
+                source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                onSuccessFallbackRoute: ROUTES.ENABLE_PAYMENTS,
+                currentPage: CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.ADDRESS,
+                shouldShowSuccess: true,
+            };
+            await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, personalBankAccount);
+
+            // When setup progress is cleared while switching entry paths
+            clearPersonalBankAccountPreservingEntryContext(personalBankAccount);
+            await waitForBatchedUpdates();
+
+            // Then only stable entry context remains
+            expect(await getOnyxValue(ONYXKEYS.PERSONAL_BANK_ACCOUNT)).toEqual({
+                exitReportID: '123',
+                policyID: 'policy-1',
+                source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                onSuccessFallbackRoute: ROUTES.ENABLE_PAYMENTS,
+            });
         });
     });
 });

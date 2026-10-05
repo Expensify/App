@@ -90,6 +90,13 @@ type OpenPersonalBankAccountSetupViewProps = {
     onSuccessFallbackRoute?: Route;
 };
 
+type OpenWalletPersonalBankAccountSetupProps = {
+    personalBankAccount: OnyxEntry<PersonalBankAccount>;
+    personalDraft: OnyxEntry<Partial<Pick<PersonalBankAccountForm, 'setupType'>>>;
+    internationalDraft: OnyxEntry<InternationalBankAccountForm>;
+    isUserValidated?: boolean;
+};
+
 type VBBAOnyxKey =
     | typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT
     | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD
@@ -162,6 +169,43 @@ function openPersonalBankAccountSetupView({
         }
         Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(Navigation.getActiveRoute()));
     });
+}
+
+/** Opens a new Wallet-owned personal setup or resumes a compatible unfinished setup after its Onyx state has hydrated. */
+function openWalletPersonalBankAccountSetup({personalBankAccount, personalDraft, internationalDraft, isUserValidated = true}: OpenWalletPersonalBankAccountSetupProps) {
+    const hasPersonalProgress = !!personalDraft?.setupType;
+    const hasInternationalProgress = !!internationalDraft?.bankCountry;
+    const shouldResume = personalBankAccount?.source === CONST.BANK_ACCOUNT.SOURCE.WALLET && !personalBankAccount.shouldShowSuccess && (hasPersonalProgress || hasInternationalProgress);
+
+    if (!shouldResume) {
+        Onyx.set(ONYXKEYS.FORMS.HOME_ADDRESS_FORM_DRAFT, null);
+        openPersonalBankAccountSetupView({
+            isUserValidated,
+            source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+        });
+        return;
+    }
+
+    // Replace entry-specific metadata from another flow while retaining only the Wallet resume location.
+    const setPersonalBankAccount = Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
+        source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+        currentPage: personalBankAccount.currentPage,
+        currentPageAction: personalBankAccount.currentPageAction,
+        ...(personalBankAccount.editDraftSnapshot ? {editDraftSnapshot: personalBankAccount.editDraftSnapshot} : {}),
+    });
+
+    if (!isUserValidated) {
+        setPersonalBankAccount.then(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.getRoute(true, hasPersonalProgress))));
+        return;
+    }
+
+    if (personalDraft?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL || personalDraft?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
+        setPersonalBankAccount.then(() => Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute()));
+        return;
+    }
+
+    const backTo = Navigation.getActiveRoute();
+    setPersonalBankAccount.then(() => Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(backTo)));
 }
 
 /**
@@ -329,6 +373,26 @@ function clearPersonalBankAccount(preservedData?: Partial<PersonalBankAccount>) 
     clearPersonalBankAccountSetupType();
 }
 
+/** Clears setup progress while retaining the context needed to return to the flow that opened bank account setup. */
+function clearPersonalBankAccountPreservingEntryContext(personalBankAccount: OnyxEntry<PersonalBankAccount>) {
+    const preservedData: Partial<PersonalBankAccount> = {};
+
+    if (personalBankAccount?.exitReportID) {
+        preservedData.exitReportID = personalBankAccount.exitReportID;
+    }
+    if (personalBankAccount?.policyID) {
+        preservedData.policyID = personalBankAccount.policyID;
+    }
+    if (personalBankAccount?.source) {
+        preservedData.source = personalBankAccount.source;
+    }
+    if (personalBankAccount?.onSuccessFallbackRoute) {
+        preservedData.onSuccessFallbackRoute = personalBankAccount.onSuccessFallbackRoute;
+    }
+
+    clearPersonalBankAccount(Object.keys(preservedData).length > 0 ? preservedData : undefined);
+}
+
 /** Resets state and seeds drafts via Onyx.set to avoid set/merge races. */
 function resetPersonalBankAccountForUpdate(bankAccountID: number, personalBankAccountDraft?: Partial<PersonalBankAccountForm>, homeAddressDraft?: Record<string, string | undefined>) {
     clearPlaid();
@@ -344,6 +408,45 @@ function clearOnfidoToken() {
 
 function updateAddPersonalBankAccountDraft(bankData: Partial<PersonalBankAccountForm>) {
     Onyx.merge(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, bankData);
+}
+
+function finishPersonalBankAccountEdit(currentPage: string) {
+    Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
+        currentPage,
+        currentPageAction: null,
+        editDraftSnapshot: null,
+    });
+}
+
+function startPersonalBankAccountEdit(currentPage: string, editDraftSnapshot: NonNullable<PersonalBankAccount['editDraftSnapshot']>) {
+    Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
+        currentPage,
+        currentPageAction: 'edit',
+        editDraftSnapshot,
+    });
+}
+
+function cancelPersonalBankAccountEdit(editDraftSnapshot: PersonalBankAccount['editDraftSnapshot'], currentPage: string) {
+    if (editDraftSnapshot) {
+        if (editDraftSnapshot.personalBankAccountDraft !== undefined) {
+            Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, editDraftSnapshot.personalBankAccountDraft);
+        }
+        if (editDraftSnapshot.homeAddressDraft !== undefined) {
+            Onyx.set(ONYXKEYS.FORMS.HOME_ADDRESS_FORM_DRAFT, editDraftSnapshot.homeAddressDraft);
+        }
+        if (editDraftSnapshot.internationalBankAccountDraft !== undefined) {
+            Onyx.set(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT, editDraftSnapshot.internationalBankAccountDraft);
+        }
+    }
+
+    finishPersonalBankAccountEdit(currentPage);
+}
+
+function updatePersonalBankAccountCurrentPage(currentPage: string, currentPageAction?: 'edit') {
+    Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
+        currentPage,
+        currentPageAction: currentPageAction ?? null,
+    });
 }
 
 /**
@@ -1900,6 +2003,7 @@ export {
     addPersonalBankAccount,
     clearOnfidoToken,
     clearPersonalBankAccount,
+    clearPersonalBankAccountPreservingEntryContext,
     setPersonalBankAccountContinueKYCOnSuccess,
     resetPersonalBankAccountForUpdate,
     setPlaidEvent,
@@ -1910,6 +2014,7 @@ export {
     deletePaymentBankAccount,
     handlePlaidError,
     openPersonalBankAccountSetupView,
+    openWalletPersonalBankAccountSetup,
     openReimbursementAccountPage,
     updateBeneficialOwnersForBankAccount,
     updateCompanyInformationForBankAccount,
@@ -1919,7 +2024,11 @@ export {
     verifyIdentityForBankAccount,
     setReimbursementAccountLoading,
     openPersonalBankAccountSetupWithPlaid,
+    cancelPersonalBankAccountEdit,
+    finishPersonalBankAccountEdit,
+    startPersonalBankAccountEdit,
     updateAddPersonalBankAccountDraft,
+    updatePersonalBankAccountCurrentPage,
     clearPersonalBankAccountSetupType,
     validatePlaidSelection,
     fetchCorpayFields,
