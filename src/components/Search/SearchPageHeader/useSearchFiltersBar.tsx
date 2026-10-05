@@ -168,7 +168,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                 <ListFilterHeightContextProvider>
                     <FilterPopup
                         baseFilterKey={removeNegation(filterKey)}
-                        isDefault={isDefault}
+                        isDefault={isDefault && !isSavedSearch}
                         searchAdvancedFiltersForm={searchAdvancedFiltersForm}
                         closeOverlay={closeOverlay}
                         setPopoverWidth={setPopoverWidth}
