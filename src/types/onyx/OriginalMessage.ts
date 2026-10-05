@@ -545,6 +545,9 @@ type OriginalMessagePolicyChangeLog = {
     /** Report field type */
     fieldType?: string;
 
+    /** Account ID of the workspace member named in a member-scoped change log */
+    accountID?: number;
+
     field?: string;
 
     /** Array of field changes for consolidated employee updates */
@@ -974,6 +977,9 @@ type OriginalMessageModifiedExpense = {
 
     /** The Concierge reasoning for the action */
     reasoning?: string;
+
+    /** Whether a receipt was added to the expense */
+    receiptAdded?: boolean;
 };
 
 /** Model of `concierge auto match vendor` report action — emitted on the transaction thread when the PHP fuzzy matcher auto-matches a non-reimbursable expense to a QBO vendor. */
@@ -1623,6 +1629,21 @@ type OriginalMessageTravelNudge = {
     origination: ValueOf<typeof CONST.TRAVEL_NUDGE.ORIGINATION>;
 };
 
+/** Prompt values and modifier identity recorded when an agent's instructions change. */
+type OriginalMessageAgentPromptUpdated = {
+    /** Agent instructions stored before the update */
+    previousPrompt: string;
+
+    /** Agent instructions stored after the update */
+    newPrompt: string;
+
+    /** Account ID of the user who changed the instructions */
+    updatedByAccountID: number;
+
+    /** Login of the user who changed the instructions, displayed in the audit message */
+    updatedBy: string;
+};
+
 /** The map type of original message */
 /* eslint-disable jsdoc/require-jsdoc */
 type OriginalMessageMap = {
@@ -1634,6 +1655,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER]: OriginalMessageActionableMentionInviteToSubmitExpenseConfirmWhisper;
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER]: OriginalMessageActionableReportMentionWhisper;
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER]: OriginalMessageActionableTrackedExpenseWhisper;
+    [CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED]: OriginalMessageAgentPromptUpdated;
     [CONST.REPORT.ACTIONS.TYPE.POLICY_EXPENSE_CHAT_WELCOME_WHISPER]: OriginalMessagePolicyExpenseChatWelcomeWhisper;
     [CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT]: OriginalMessageAddComment;
     [CONST.REPORT.ACTIONS.TYPE.APPROVED]: OriginalMessageApproved;

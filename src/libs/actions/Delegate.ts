@@ -61,18 +61,9 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     ONYXKEYS.PERSONAL_DETAILS_LIST,
 ];
 
-/**
- * Atomically reset Onyx for a delegate-access transition. The IS_LOADING_APP=true
- * seed is delegate-specific: without it, consumers observe HAS_LOADED_APP=true and
- * IS_LOADING_APP=undefined together, which looks like a stuck app and triggers
- * DelegateAccessHandler's recovery effect, queueing a duplicate openApp.
- *
- * The reconnect-time seed is handled by clearOnyxAndSeedFullReconnect.
- */
+/** Atomically reset Onyx for a delegate-access transition. */
 function clearOnyxForDelegateTransition(): Promise<void> {
-    return clearOnyxAndSeedFullReconnect(KEYS_TO_PRESERVE_DELEGATE_ACCESS, {
-        [ONYXKEYS.IS_LOADING_APP]: true,
-    });
+    return clearOnyxAndSeedFullReconnect(KEYS_TO_PRESERVE_DELEGATE_ACCESS);
 }
 
 type WithDelegatedAccess = {
