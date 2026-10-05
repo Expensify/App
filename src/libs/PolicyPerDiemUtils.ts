@@ -10,10 +10,10 @@ import {convertToBackendAmount} from './CurrencyUtils';
 import StringUtils from './StringUtils';
 
 /** The reason a proposed per diem destination or subrate name is invalid. */
-type PerDiemNameError = 'required' | 'tooLong';
+type PerDiemNameError = typeof CONST.INPUT_VALIDATION_ERRORS.REQUIRED | typeof CONST.INPUT_VALIDATION_ERRORS.TOO_LONG;
 
 /** The reason a proposed per diem amount is invalid. Shared by the RHP edit form and inline table editing. */
-type PerDiemAmountError = 'required';
+type PerDiemAmountError = typeof CONST.INPUT_VALIDATION_ERRORS.REQUIRED;
 
 /**
  * Validates a per diem destination or subrate name against the same rules as the RHP edit forms
@@ -23,12 +23,12 @@ function getPerDiemNameError(newName: string): PerDiemNameError | undefined {
     const sanitized = StringUtils.sanitizeName(newName);
 
     if (StringUtils.isEmptyString(sanitized)) {
-        return 'required';
+        return CONST.INPUT_VALIDATION_ERRORS.REQUIRED;
     }
 
     // Spread to count Unicode code points rather than UTF-16 code units.
     if ([...sanitized].length > CONST.MAX_LENGTH_256) {
-        return 'tooLong';
+        return CONST.INPUT_VALIDATION_ERRORS.TOO_LONG;
     }
 
     return undefined;
@@ -37,9 +37,9 @@ function getPerDiemNameError(newName: string): PerDiemNameError | undefined {
 /** Translates a {@link PerDiemNameError} into a user-facing message for the given name. */
 function getPerDiemNameErrorMessage(translate: LocaleContextProps['translate'], error: PerDiemNameError, name: string): string {
     switch (error) {
-        case 'required':
+        case CONST.INPUT_VALIDATION_ERRORS.REQUIRED:
             return translate('common.error.fieldRequired');
-        case 'tooLong':
+        case CONST.INPUT_VALIDATION_ERRORS.TOO_LONG:
         default:
             return translate('common.error.characterLimitExceedCounter', [...StringUtils.sanitizeName(name)].length, CONST.MAX_LENGTH_256);
     }
@@ -53,12 +53,12 @@ function getPerDiemNameErrorMessage(translate: LocaleContextProps['translate'], 
 function getPerDiemAmountError(amount: string): PerDiemAmountError | undefined {
     const trimmed = amount.trim();
     if (!trimmed || trimmed === '-') {
-        return 'required';
+        return CONST.INPUT_VALIDATION_ERRORS.REQUIRED;
     }
 
     const numeric = Number(trimmed);
     if (Number.isNaN(numeric) || convertToBackendAmount(numeric) === 0) {
-        return 'required';
+        return CONST.INPUT_VALIDATION_ERRORS.REQUIRED;
     }
 
     return undefined;
@@ -67,7 +67,7 @@ function getPerDiemAmountError(amount: string): PerDiemAmountError | undefined {
 /** Translates a {@link PerDiemAmountError} into a user-facing message. */
 function getPerDiemAmountErrorMessage(translate: LocaleContextProps['translate'], error: PerDiemAmountError): string {
     switch (error) {
-        case 'required':
+        case CONST.INPUT_VALIDATION_ERRORS.REQUIRED:
         default:
             return translate('common.error.fieldRequired');
     }

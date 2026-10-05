@@ -101,8 +101,8 @@ describe('TagUtils', () => {
         });
 
         it('flags a decoded name that already exists as an encoded tag', () => {
-            expect(getTagNameError(tags, 'R&D')).toBe('existing');
-            expect(getTagNameError(tags, 'R&D', 'Engineering')).toBe('existing');
+            expect(getTagNameError(tags, 'R&D')).toBe(CONST.INPUT_VALIDATION_ERRORS.EXISTING);
+            expect(getTagNameError(tags, 'R&D', 'Engineering')).toBe(CONST.INPUT_VALIDATION_ERRORS.EXISTING);
         });
 
         it('returns tooLong when a colon pushes the escaped stored name over the limit', () => {
@@ -113,7 +113,7 @@ describe('TagUtils', () => {
             const error = getTagNameError(undefined, nameWithColon);
 
             // Then it is too long because expense submit rejects stored tags over the API max
-            expect(error).toBe('tooLong');
+            expect(error).toBe(CONST.INPUT_VALIDATION_ERRORS.TOO_LONG);
         });
 
         it('accepts a name at the limit when escaping does not add characters', () => {

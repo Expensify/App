@@ -1364,7 +1364,7 @@ function getDefaultCardName(cardholder?: string) {
 }
 
 /** The reason a proposed card name is invalid. Callers translate it via `getCardNameErrorMessage`. */
-type CardNameError = 'required' | 'tooLong';
+type CardNameError = typeof CONST.INPUT_VALIDATION_ERRORS.REQUIRED | typeof CONST.INPUT_VALIDATION_ERRORS.TOO_LONG;
 
 /**
  * Validates a card name. Sanitize first so RHP forms, assign/issue steps, and inline
@@ -1374,11 +1374,11 @@ function getCardNameError(newName: string): CardNameError | undefined {
     const sanitized = StringUtils.sanitizeName(newName);
 
     if (StringUtils.isEmptyString(sanitized)) {
-        return 'required';
+        return CONST.INPUT_VALIDATION_ERRORS.REQUIRED;
     }
 
     if (StringUtils.getUTF8ByteLength(sanitized) > CONST.STANDARD_LENGTH_LIMIT) {
-        return 'tooLong';
+        return CONST.INPUT_VALIDATION_ERRORS.TOO_LONG;
     }
 
     return undefined;
@@ -1387,16 +1387,20 @@ function getCardNameError(newName: string): CardNameError | undefined {
 /** Translates a {@link CardNameError} into a user-facing message for the given name. */
 function getCardNameErrorMessage(translate: LocaleContextProps['translate'], error: CardNameError, name: string): string {
     switch (error) {
-        case 'required':
+        case CONST.INPUT_VALIDATION_ERRORS.REQUIRED:
             return translate('common.error.fieldRequired');
-        case 'tooLong':
+        case CONST.INPUT_VALIDATION_ERRORS.TOO_LONG:
         default:
             return translate('common.error.characterLimitExceedCounter', StringUtils.getUTF8ByteLength(StringUtils.sanitizeName(name)), CONST.STANDARD_LENGTH_LIMIT);
     }
 }
 
 /** The reason a proposed Expensify card limit is invalid. Callers translate it via `getExpensifyCardLimitErrorMessage`. */
-type ExpensifyCardLimitError = 'required' | 'invalid' | 'notInteger' | 'tooHigh';
+type ExpensifyCardLimitError =
+    | typeof CONST.INPUT_VALIDATION_ERRORS.REQUIRED
+    | typeof CONST.INPUT_VALIDATION_ERRORS.INVALID
+    | typeof CONST.INPUT_VALIDATION_ERRORS.NOT_INTEGER
+    | typeof CONST.INPUT_VALIDATION_ERRORS.TOO_HIGH;
 
 /**
  * Validates an Expensify card limit against the same rules the RHP edit form uses.
@@ -1404,19 +1408,19 @@ type ExpensifyCardLimitError = 'required' | 'invalid' | 'notInteger' | 'tooHigh'
  */
 function getExpensifyCardLimitError(newLimit: string): ExpensifyCardLimitError | undefined {
     if (!newLimit) {
-        return 'required';
+        return CONST.INPUT_VALIDATION_ERRORS.REQUIRED;
     }
 
     if (Number.isNaN(Number(newLimit))) {
-        return 'invalid';
+        return CONST.INPUT_VALIDATION_ERRORS.INVALID;
     }
 
     if (!Number.isInteger(Number(newLimit))) {
-        return 'notInteger';
+        return CONST.INPUT_VALIDATION_ERRORS.NOT_INTEGER;
     }
 
     if (Number(newLimit) > CONST.EXPENSIFY_CARD.LIMIT_VALUE) {
-        return 'tooHigh';
+        return CONST.INPUT_VALIDATION_ERRORS.TOO_HIGH;
     }
 
     return undefined;
@@ -1425,13 +1429,13 @@ function getExpensifyCardLimitError(newLimit: string): ExpensifyCardLimitError |
 /** Translates an {@link ExpensifyCardLimitError} into a user-facing message. */
 function getExpensifyCardLimitErrorMessage(translate: LocaleContextProps['translate'], error: ExpensifyCardLimitError): string {
     switch (error) {
-        case 'required':
+        case CONST.INPUT_VALIDATION_ERRORS.REQUIRED:
             return translate('common.error.fieldRequired');
-        case 'notInteger':
+        case CONST.INPUT_VALIDATION_ERRORS.NOT_INTEGER:
             return translate('iou.error.invalidIntegerAmount');
-        case 'tooHigh':
+        case CONST.INPUT_VALIDATION_ERRORS.TOO_HIGH:
             return translate('workspace.card.issueNewCard.cardLimitError');
-        case 'invalid':
+        case CONST.INPUT_VALIDATION_ERRORS.INVALID:
         default:
             return translate('iou.error.invalidAmount');
     }

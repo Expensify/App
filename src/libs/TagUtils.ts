@@ -36,7 +36,11 @@ function getDecodedTagName(tagName: string): string {
 }
 
 /** The reason a proposed tag name is invalid. Callers translate it via `getTagNameErrorMessage`. */
-type TagNameError = 'required' | 'existing' | 'invalid' | 'tooLong';
+type TagNameError =
+    | typeof CONST.INPUT_VALIDATION_ERRORS.REQUIRED
+    | typeof CONST.INPUT_VALIDATION_ERRORS.EXISTING
+    | typeof CONST.INPUT_VALIDATION_ERRORS.INVALID
+    | typeof CONST.INPUT_VALIDATION_ERRORS.TOO_LONG;
 
 /**
  * Validates a tag name against every rule (required, reserved, unique, length). This is the single
@@ -49,24 +53,24 @@ function getTagNameError(tags: PolicyTags | undefined, newName: string, currentN
     const sanitized = StringUtils.sanitizeName(newName);
 
     if (StringUtils.isEmptyString(sanitized)) {
-        return 'required';
+        return CONST.INPUT_VALIDATION_ERRORS.REQUIRED;
     }
 
     // Tags are stored under their escaped name, so escape before the reserved-name, uniqueness, and length checks.
     const escaped = escapeTagName(sanitized);
 
     if (escaped === '0') {
-        return 'invalid';
+        return CONST.INPUT_VALIDATION_ERRORS.INVALID;
     }
 
     // Tag keys may be HTML-encoded, so uniqueness compares decoded names as well as the escaped storage key.
     if (sanitized !== currentName && (tags?.[escaped] || Object.keys(tags ?? {}).some((name) => getDecodedTagName(name) === sanitized))) {
-        return 'existing';
+        return CONST.INPUT_VALIDATION_ERRORS.EXISTING;
     }
 
     // Spread to count Unicode code points rather than UTF-16 code units.
     if ([...escaped].length > CONST.API_TRANSACTION_TAG_MAX_LENGTH) {
-        return 'tooLong';
+        return CONST.INPUT_VALIDATION_ERRORS.TOO_LONG;
     }
 
     return undefined;
@@ -75,13 +79,13 @@ function getTagNameError(tags: PolicyTags | undefined, newName: string, currentN
 /** Translates a {@link TagNameError} into a user-facing message for the given name. */
 function getTagNameErrorMessage(translate: LocaleContextProps['translate'], error: TagNameError, name: string): string {
     switch (error) {
-        case 'required':
+        case CONST.INPUT_VALIDATION_ERRORS.REQUIRED:
             return translate('workspace.tags.tagRequiredError');
-        case 'existing':
+        case CONST.INPUT_VALIDATION_ERRORS.EXISTING:
             return translate('workspace.tags.existingTagError');
-        case 'invalid':
+        case CONST.INPUT_VALIDATION_ERRORS.INVALID:
             return translate('workspace.tags.invalidTagNameError');
-        case 'tooLong':
+        case CONST.INPUT_VALIDATION_ERRORS.TOO_LONG:
         default:
             return translate('common.error.characterLimitExceedCounter', [...escapeTagName(StringUtils.sanitizeName(name))].length, CONST.API_TRANSACTION_TAG_MAX_LENGTH);
     }

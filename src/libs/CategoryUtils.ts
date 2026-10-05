@@ -141,7 +141,11 @@ function getDecodedCategoryName(categoryName: string) {
 }
 
 /** The reason a proposed category name is invalid. Callers translate it via `getCategoryNameErrorMessage`. */
-type CategoryNameError = 'required' | 'existing' | 'invalid' | 'tooLong';
+type CategoryNameError =
+    | typeof CONST.INPUT_VALIDATION_ERRORS.REQUIRED
+    | typeof CONST.INPUT_VALIDATION_ERRORS.EXISTING
+    | typeof CONST.INPUT_VALIDATION_ERRORS.INVALID
+    | typeof CONST.INPUT_VALIDATION_ERRORS.TOO_LONG;
 
 /**
  * Validates a category name against every rule (required, unique, reserved, length). This is the single
@@ -154,21 +158,21 @@ function getCategoryNameError(policyCategories: PolicyCategories | undefined, ne
     const sanitized = StringUtils.sanitizeName(newName);
 
     if (StringUtils.isEmptyString(sanitized)) {
-        return 'required';
+        return CONST.INPUT_VALIDATION_ERRORS.REQUIRED;
     }
 
     // Category keys may be HTML-encoded, so uniqueness compares decoded names. currentName is already decoded by the caller.
     if (sanitized !== currentName && Object.keys(policyCategories ?? {}).some((name) => getDecodedCategoryName(name) === sanitized)) {
-        return 'existing';
+        return CONST.INPUT_VALIDATION_ERRORS.EXISTING;
     }
 
     if (sanitized === CONST.INVALID_CATEGORY_NAME || sanitized === CONST.SEARCH.CATEGORY_DEFAULT_VALUE) {
-        return 'invalid';
+        return CONST.INPUT_VALIDATION_ERRORS.INVALID;
     }
 
     // Spread to count Unicode code points rather than UTF-16 code units.
     if ([...sanitized].length > CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH) {
-        return 'tooLong';
+        return CONST.INPUT_VALIDATION_ERRORS.TOO_LONG;
     }
 
     return undefined;
@@ -177,13 +181,13 @@ function getCategoryNameError(policyCategories: PolicyCategories | undefined, ne
 /** Translates a {@link CategoryNameError} into a user-facing message for the given name. */
 function getCategoryNameErrorMessage(translate: LocaleContextProps['translate'], error: CategoryNameError, name: string): string {
     switch (error) {
-        case 'required':
+        case CONST.INPUT_VALIDATION_ERRORS.REQUIRED:
             return translate('workspace.categories.categoryRequiredError');
-        case 'existing':
+        case CONST.INPUT_VALIDATION_ERRORS.EXISTING:
             return translate('workspace.categories.existingCategoryError');
-        case 'invalid':
+        case CONST.INPUT_VALIDATION_ERRORS.INVALID:
             return translate('workspace.categories.invalidCategoryName');
-        case 'tooLong':
+        case CONST.INPUT_VALIDATION_ERRORS.TOO_LONG:
         default:
             return translate('common.error.characterLimitExceedCounter', [...StringUtils.sanitizeName(name)].length, CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH);
     }

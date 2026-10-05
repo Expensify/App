@@ -25,10 +25,10 @@ type RateValueForm = typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM | ty
 type TaxReclaimableForm = typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT_FORM;
 
 /** The reason a proposed distance rate name is invalid. Callers translate it via `getDistanceRateNameErrorMessage`. */
-type DistanceRateNameError = 'required' | 'existing' | 'tooLong';
+type DistanceRateNameError = typeof CONST.INPUT_VALIDATION_ERRORS.REQUIRED | typeof CONST.INPUT_VALIDATION_ERRORS.EXISTING | typeof CONST.INPUT_VALIDATION_ERRORS.TOO_LONG;
 
 /** The reason a proposed distance rate amount is invalid. Shared by the RHP edit form and inline table editing. */
-type DistanceRateValueError = 'invalid' | 'tooLow';
+type DistanceRateValueError = typeof CONST.INPUT_VALIDATION_ERRORS.INVALID | typeof CONST.INPUT_VALIDATION_ERRORS.TOO_LOW;
 
 /**
  * Validates a distance rate name against every rule (required, unique, length). This is the single
@@ -40,16 +40,16 @@ function getDistanceRateNameError(existingRateNames: readonly string[], newName:
     const sanitized = StringUtils.sanitizeName(newName);
 
     if (StringUtils.isEmptyString(sanitized)) {
-        return 'required';
+        return CONST.INPUT_VALIDATION_ERRORS.REQUIRED;
     }
 
     if (sanitized !== currentName && existingRateNames.includes(sanitized)) {
-        return 'existing';
+        return CONST.INPUT_VALIDATION_ERRORS.EXISTING;
     }
 
     // Spread to count Unicode code points rather than UTF-16 code units.
     if ([...sanitized].length > CONST.TAX_RATES.NAME_MAX_LENGTH) {
-        return 'tooLong';
+        return CONST.INPUT_VALIDATION_ERRORS.TOO_LONG;
     }
 
     return undefined;
@@ -58,11 +58,11 @@ function getDistanceRateNameError(existingRateNames: readonly string[], newName:
 /** Translates a {@link DistanceRateNameError} into a user-facing message for the given name. */
 function getDistanceRateNameErrorMessage(translate: LocalizedTranslate, error: DistanceRateNameError, name: string): string {
     switch (error) {
-        case 'required':
+        case CONST.INPUT_VALIDATION_ERRORS.REQUIRED:
             return translate('workspace.distanceRates.errors.nameRequired');
-        case 'existing':
+        case CONST.INPUT_VALIDATION_ERRORS.EXISTING:
             return translate('workspace.distanceRates.errors.existingRateName');
-        case 'tooLong':
+        case CONST.INPUT_VALIDATION_ERRORS.TOO_LONG:
         default:
             return translate('common.error.characterLimitExceedCounter', [...StringUtils.sanitizeName(name)].length, CONST.TAX_RATES.NAME_MAX_LENGTH);
     }
@@ -79,10 +79,10 @@ function getDistanceRateValueError(rate: string, toLocaleDigit: (arg: string) =>
     const rateValueRegex = RegExp(String.raw`^-?\d{0,${CONST.IOU.AMOUNT_MAX_LENGTH}}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{0,${CONST.MAX_TAX_RATE_DECIMAL_PLACES}})?$`, 'i');
 
     if (!rateValueRegex.test(parsedRate) || parsedRate === '') {
-        return 'invalid';
+        return CONST.INPUT_VALIDATION_ERRORS.INVALID;
     }
     if (parseFloatAnyLocale(parsedRate) <= 0) {
-        return 'tooLow';
+        return CONST.INPUT_VALIDATION_ERRORS.TOO_LOW;
     }
 
     return undefined;
@@ -92,9 +92,9 @@ function validateRateValue(values: FormOnyxValues<RateValueForm>, toLocaleDigit:
     const errors: FormInputErrors<RateValueForm> = {};
     const error = getDistanceRateValueError(values.rate, toLocaleDigit);
 
-    if (error === 'invalid') {
+    if (error === CONST.INPUT_VALIDATION_ERRORS.INVALID) {
         errors.rate = translate('common.error.invalidRateError');
-    } else if (error === 'tooLow') {
+    } else if (error === CONST.INPUT_VALIDATION_ERRORS.TOO_LOW) {
         errors.rate = translate('common.error.lowRateError');
     }
 

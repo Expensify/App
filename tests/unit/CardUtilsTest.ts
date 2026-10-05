@@ -2474,25 +2474,25 @@ describe('CardUtils', () => {
 
     describe('getCardNameError', () => {
         it('rejects empty, whitespace-only, and invisible-only names', () => {
-            expect(getCardNameError('')).toBe('required');
-            expect(getCardNameError('   ')).toBe('required');
-            expect(getCardNameError('\u200B')).toBe('required');
+            expect(getCardNameError('')).toBe(CONST.INPUT_VALIDATION_ERRORS.REQUIRED);
+            expect(getCardNameError('   ')).toBe(CONST.INPUT_VALIDATION_ERRORS.REQUIRED);
+            expect(getCardNameError('\u200B')).toBe(CONST.INPUT_VALIDATION_ERRORS.REQUIRED);
         });
 
         it('measures length after sanitizing so padding does not count', () => {
             const paddedName = `${'a'.repeat(CONST.STANDARD_LENGTH_LIMIT)}   `;
 
             expect(getCardNameError(paddedName)).toBeUndefined();
-            expect(getCardNameError('a'.repeat(CONST.STANDARD_LENGTH_LIMIT + 1))).toBe('tooLong');
+            expect(getCardNameError('a'.repeat(CONST.STANDARD_LENGTH_LIMIT + 1))).toBe(CONST.INPUT_VALIDATION_ERRORS.TOO_LONG);
         });
     });
 
     describe('getExpensifyCardLimitError', () => {
         it('rejects empty, non-numeric, fractional, and oversized limits', () => {
-            expect(getExpensifyCardLimitError('')).toBe('required');
-            expect(getExpensifyCardLimitError('abc')).toBe('invalid');
-            expect(getExpensifyCardLimitError('10.5')).toBe('notInteger');
-            expect(getExpensifyCardLimitError(String(CONST.EXPENSIFY_CARD.LIMIT_VALUE + 1))).toBe('tooHigh');
+            expect(getExpensifyCardLimitError('')).toBe(CONST.INPUT_VALIDATION_ERRORS.REQUIRED);
+            expect(getExpensifyCardLimitError('abc')).toBe(CONST.INPUT_VALIDATION_ERRORS.INVALID);
+            expect(getExpensifyCardLimitError('10.5')).toBe(CONST.INPUT_VALIDATION_ERRORS.NOT_INTEGER);
+            expect(getExpensifyCardLimitError(String(CONST.EXPENSIFY_CARD.LIMIT_VALUE + 1))).toBe(CONST.INPUT_VALIDATION_ERRORS.TOO_HIGH);
         });
 
         it('accepts integer amounts at or below the max', () => {
