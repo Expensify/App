@@ -1781,7 +1781,6 @@ function rejectMoneyRequestInBulk(
     delegateAccountID: number | undefined,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     rules: OnyxCollection<Rule>,
-    // Expenses currently on reportID, used to tell if more than one expense remains after each rejection.
     reportTransactionsCollection: Record<string, Transaction>,
     hash?: number,
 ) {
