@@ -3,9 +3,9 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import variables from '@styles/variables';
 
-import type {ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 
-type TabRootScrollProps = Pick<ScrollViewProps, 'contentContainerStyle' | 'contentInsetAdjustmentBehavior'>;
+import type TabRootScrollProps from './types';
 
 /**
  * The content of a narrow tab root screen runs under the floating tab bar, so a list's content container ends with
@@ -25,4 +25,3 @@ function useTabRootScrollProps(style?: StyleProp<ViewStyle>, hasBottomSafeAreaPa
 }
 
 export default useTabRootScrollProps;
-export type {TabRootScrollProps};

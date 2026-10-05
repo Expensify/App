@@ -742,8 +742,7 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'visible',
         },
 
-        // The narrow tab bar on mobile web is a flat capsule floating above the screen content. iOS and Android hand
-        // the bottom bar over to their native tab bars, so nothing here reaches them.
+        // Only the mobile web bar uses this; iOS and Android draw native tab bars.
         navigationTabBarContainer: {
             flexDirection: 'row',
             height: variables.floatingTabBarHeight,
@@ -763,8 +762,7 @@ const staticStyles = (theme: ThemeColors) =>
         navigationTabBarItemSelected: {
             backgroundColor: theme.floatingTabBarSelectedBG,
             borderRadius: variables.componentBorderRadiusCircle,
-            // Spans the whole tab and a little past it, the way the native iOS bar draws its selection. The padding
-            // matches the negative margin, so the label keeps the tab's width to wrap in, selected or not.
+            // The padding matches the negative margin, so the label keeps the tab's width to wrap in, selected or not.
             alignSelf: 'stretch',
             paddingHorizontal: variables.floatingTabBarSelectedOverhang,
             marginHorizontal: -variables.floatingTabBarSelectedOverhang,

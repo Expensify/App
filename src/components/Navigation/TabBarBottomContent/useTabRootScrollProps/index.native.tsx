@@ -1,6 +1,6 @@
-import type {ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 
-type TabRootScrollProps = Pick<ScrollViewProps, 'contentContainerStyle' | 'contentInsetAdjustmentBehavior'>;
+import type TabRootScrollProps from './types';
 
 /**
  * UIKit insets the end of the list past the translucent iOS tab bar that the content runs under, and Android reserves
@@ -11,4 +11,3 @@ function useTabRootScrollProps(style?: StyleProp<ViewStyle>): TabRootScrollProps
 }
 
 export default useTabRootScrollProps;
-export type {TabRootScrollProps};
