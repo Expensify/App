@@ -328,6 +328,19 @@ describe('IOUUtils', () => {
         test('Should fill sparse slots when tagIndex exceeds current array length', () => {
             expect(IOUUtils.insertTagIntoTransactionTagsString('First', 'Third', 2, true)).toBe('First::Third');
         });
+
+        test('Should drop values for tag lists the policy no longer has', () => {
+            expect(IOUUtils.insertTagIntoTransactionTagsString('777 Accounting/Finance:150 CCI:150 CCI', '200 HQ', 1, true, 2)).toBe('777 Accounting/Finance:200 HQ');
+        });
+
+        test('Should keep every value when the tag list count is unknown', () => {
+            expect(IOUUtils.insertTagIntoTransactionTagsString('East:NY:California', 'NewTag', 1, true, 0)).toBe('East:NewTag:California');
+            expect(IOUUtils.insertTagIntoTransactionTagsString('East:NY:California', 'NewTag', 1, true)).toBe('East:NewTag:California');
+        });
+
+        test('Should keep every value when the tag string fits the tag list count', () => {
+            expect(IOUUtils.insertTagIntoTransactionTagsString('East:NY', 'California', 2, true, 3)).toBe('East:NY:California');
+        });
     });
 });
 

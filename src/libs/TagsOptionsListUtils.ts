@@ -391,7 +391,7 @@ function getUpdatedTransactionTag({transactionTag, selectedTagName, currentTag, 
     }
 
     // Independent tags (fallback): use comma-separated list.
-    return insertTagIntoTransactionTagsString(transactionTag, isSelectedTag ? '' : selectedTagName, tagListIndex, hasMultipleTagLists);
+    return insertTagIntoTransactionTagsString(transactionTag, isSelectedTag ? '' : selectedTagName, tagListIndex, hasMultipleTagLists, getTagLists(policyTags).length);
 }
 
 /**

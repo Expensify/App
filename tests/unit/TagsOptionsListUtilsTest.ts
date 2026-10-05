@@ -1187,6 +1187,35 @@ describe('TagsOptionsListUtils', () => {
 
             expect(result).toBe('Acme Corp');
         });
+
+        it('drops values for removed tag lists when editing an independent multi-level tag', () => {
+            const independentPolicyTags: PolicyTagLists = {
+                departments: {
+                    name: 'Departments',
+                    required: false,
+                    orderWeight: 0,
+                    tags: {accounting: {name: '777 Accounting/Finance', enabled: true}},
+                },
+                locations: {
+                    name: 'Locations',
+                    required: false,
+                    orderWeight: 1,
+                    tags: {hq: {name: '200 HQ', enabled: true}},
+                },
+            };
+
+            const result = getUpdatedTransactionTag({
+                hasDependentTags: false,
+                hasMultipleTagLists: true,
+                policyTags: independentPolicyTags,
+                transactionTag: '777 Accounting/Finance:150 CCI:150 CCI',
+                selectedTagName: '200 HQ',
+                currentTag: '150 CCI',
+                tagListIndex: 1,
+            });
+
+            expect(result).toBe('777 Accounting/Finance:200 HQ');
+        });
     });
 
     describe('getDependentTagVisibility', () => {
