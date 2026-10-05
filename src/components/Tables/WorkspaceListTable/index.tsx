@@ -1,3 +1,4 @@
+import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table, {composeTableListHeader} from '@components/Table';
 
@@ -66,6 +67,7 @@ type WorkspaceListTableProps = {
 };
 
 export default function WorkspaceListTable({ref, workspaces, headerComponent, onDeleteWorkspace, pendingDeletePolicyID}: WorkspaceListTableProps) {
+    const {contentInsetAdjustmentBehavior} = useTabRootScrollProps();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {isBetaEnabled} = usePermissions();
@@ -207,8 +209,7 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
             keyExtractor={(row, index) => `${row.policyID}-${index}`}
             filters={filterConfig}
             isItemInFilter={isItemInFilter}
-            // Lets UIKit inset the end of the list past the translucent iOS tab bar that the content runs under.
-            contentInsetAdjustmentBehavior="automatic"
+            contentInsetAdjustmentBehavior={contentInsetAdjustmentBehavior}
         >
             <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.NoResultsState />

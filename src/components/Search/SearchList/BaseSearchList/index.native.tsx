@@ -1,3 +1,4 @@
+import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 
 import {FlashList} from '@shopify/flash-list';
@@ -23,6 +24,7 @@ function BaseSearchList({
     stickyHeaderIndices,
     getItemType,
 }: BaseSearchListProps) {
+    const tabRootScrollProps = useTabRootScrollProps(contentContainerStyle);
     const renderItemWithoutKeyboardFocus = useCallback(
         ({item, index}: {item: SearchListItem; index: number}) => {
             return renderItem(item, index, false, undefined);
@@ -33,8 +35,6 @@ function BaseSearchList({
     return (
         <AnimatedFlashListComponent
             data={data}
-            // Lets UIKit inset the end of the list past the translucent iOS tab bar that the content runs under.
-            contentInsetAdjustmentBehavior="automatic"
             renderItem={renderItemWithoutKeyboardFocus}
             keyExtractor={keyExtractor}
             onScroll={onScroll}
@@ -47,7 +47,7 @@ function BaseSearchList({
             onLayout={onLayout}
             removeClippedSubviews
             drawDistance={250}
-            contentContainerStyle={contentContainerStyle}
+            {...tabRootScrollProps}
             maintainVisibleContentPosition={{disabled: true}}
             stickyHeaderIndices={stickyHeaderIndices}
             getItemType={getItemType}

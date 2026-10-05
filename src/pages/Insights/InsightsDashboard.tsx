@@ -1,8 +1,8 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import useTabBarContentInsetStyle from '@components/Navigation/TabBarBottomContent/useTabBarContentInsetStyle';
 import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
+import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -65,8 +65,8 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['OfflineCloud']);
-    const emptyStateContentContainerStyle = useTabBarContentInsetStyle([styles.flexGrow1, styles.flexShrink0], true);
-    const contentContainerStyle = useTabBarContentInsetStyle([styles.flexGrow1, styles.ph5, styles.pb5], true);
+    const emptyStateScrollProps = useTabRootScrollProps([styles.flexGrow1, styles.flexShrink0], true);
+    const scrollProps = useTabRootScrollProps([styles.flexGrow1, styles.ph5, styles.pb5], true);
 
     const didRequestFail = state === INSIGHTS_DASHBOARD_STATE.ERROR || state === INSIGHTS_DASHBOARD_STATE.STALE;
 
@@ -111,9 +111,7 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
     if (state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES || state === INSIGHTS_DASHBOARD_STATE.EMPTY) {
         return (
             <ScrollView
-                contentContainerStyle={emptyStateContentContainerStyle}
-                // Lets UIKit inset the end of the list past the translucent iOS tab bar that the content runs under.
-                contentInsetAdjustmentBehavior="automatic"
+                {...emptyStateScrollProps}
                 addBottomSafeAreaPadding
             >
                 {state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES ? <InsightsNoExpensesState /> : <InsightsEmptyState />}
@@ -127,9 +125,7 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
     return (
         <ScrollView
             style={styles.insightsDashboardScrollView}
-            // Lets UIKit inset the end of the list past the translucent iOS tab bar that the content runs under.
-            contentInsetAdjustmentBehavior="automatic"
-            contentContainerStyle={contentContainerStyle}
+            {...scrollProps}
             addBottomSafeAreaPadding
         >
             <View style={styles.insightsDashboardLayout}>

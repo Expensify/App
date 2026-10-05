@@ -2,8 +2,8 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import useTabBarContentInsetStyle from '@components/Navigation/TabBarBottomContent/useTabBarContentInsetStyle';
 import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
+import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -70,7 +70,7 @@ function dismissError(policyID: string | undefined, pendingAction: PendingAction
 function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: WorkspaceInitialPageProps) {
     const styles = useThemeStyles();
     const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.WORKSPACES);
-    const contentContainerStyle = useTabBarContentInsetStyle([styles.flexColumn, styles.pb14]);
+    const tabRootScrollProps = useTabRootScrollProps([styles.flexColumn, styles.pb14]);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
@@ -249,11 +249,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                     shouldDisplayAccountButton
                 />
 
-                <ScrollView
-                    contentContainerStyle={contentContainerStyle}
-                    // Lets UIKit inset the end of the list past the translucent iOS tab bar that the content runs under.
-                    contentInsetAdjustmentBehavior="automatic"
-                >
+                <ScrollView {...tabRootScrollProps}>
                     <OfflineWithFeedback
                         pendingAction={policy?.pendingAction}
                         onClose={() => dismissError(policyID, policy?.pendingAction)}

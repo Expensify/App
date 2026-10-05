@@ -2,8 +2,8 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import useTabBarContentInsetStyle from '@components/Navigation/TabBarBottomContent/useTabBarContentInsetStyle';
 import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
+import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
@@ -45,7 +45,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(DOMAIN_MENU_ICON_NAMES);
     const styles = useThemeStyles();
     const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.WORKSPACES);
-    const contentContainerStyle = useTabBarContentInsetStyle(styles.flexColumn);
+    const tabRootScrollProps = useTabRootScrollProps(styles.flexColumn);
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
     const activeRoute = useNavigationState((state) => findFocusedRoute(state)?.name);
@@ -123,11 +123,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                     shouldDisplayAccountButton
                 />
 
-                <ScrollView
-                    contentContainerStyle={contentContainerStyle}
-                    // Lets UIKit inset the end of the list past the translucent iOS tab bar that the content runs under.
-                    contentInsetAdjustmentBehavior="automatic"
-                >
+                <ScrollView {...tabRootScrollProps}>
                     <View style={[styles.pb4, styles.mh3, styles.mt3]}>
                         {/*
                             Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.

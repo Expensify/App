@@ -1,4 +1,4 @@
-import useTabBarContentInsetStyle from '@components/Navigation/TabBarBottomContent/useTabBarContentInsetStyle';
+import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 
 import useNetwork from '@hooks/useNetwork';
@@ -46,7 +46,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const [personalDetails] = useAllPersonalDetails();
 
     const styles = useThemeStyles();
-    const contentContainerStyle = useTabBarContentInsetStyle(contentContainerStyles);
+    const tabRootScrollProps = useTabRootScrollProps(contentContainerStyles);
     const estimatedItemSize = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
 
     // When the first item renders we want to call the onFirstItemRendered callback.
@@ -164,12 +164,11 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             <LHNTooltipContextProvider data={data}>
                 <FlashList
                     ref={flashListRef}
-                    // Lets UIKit inset the end of the list past the translucent iOS tab bar that the content runs under.
-                    contentInsetAdjustmentBehavior="automatic"
+                    contentInsetAdjustmentBehavior={tabRootScrollProps.contentInsetAdjustmentBehavior}
                     indicatorStyle="white"
                     keyboardShouldPersistTaps="always"
                     CellRendererComponent={OptionRowRendererComponent}
-                    contentContainerStyle={StyleSheet.flatten(contentContainerStyle)}
+                    contentContainerStyle={StyleSheet.flatten(tabRootScrollProps.contentContainerStyle)}
                     data={data}
                     testID="lhn-options-list"
                     keyExtractor={keyExtractor}

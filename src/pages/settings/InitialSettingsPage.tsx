@@ -2,8 +2,8 @@ import AccountSwitcher from '@components/AccountSwitcher';
 import AccountSwitcherButton from '@components/AccountSwitcherButton';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import useTabBarContentInsetStyle from '@components/Navigation/TabBarBottomContent/useTabBarContentInsetStyle';
 import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
+import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import TopBarWithLoadingBar from '@components/Navigation/TopBarWithLoadingBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
@@ -53,7 +53,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [canSwitchAccounts = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector: canSwitchAccountsSelector});
     const styles = useThemeStyles();
     const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.SETTINGS);
-    const contentContainerStyle = useTabBarContentInsetStyle(styles.w100);
+    const tabRootScrollProps = useTabRootScrollProps(styles.w100);
     const {isExecuting, singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
@@ -185,11 +185,9 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             </TopBarWithLoadingBar>
             <ScrollView
                 ref={scrollViewRef}
-                // Lets UIKit inset the end of the list past the translucent iOS tab bar that the content runs under.
-                contentInsetAdjustmentBehavior="automatic"
                 onScroll={onScroll}
                 scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
-                contentContainerStyle={contentContainerStyle}
+                {...tabRootScrollProps}
                 showsVerticalScrollIndicator={false}
             >
                 {headerContent}
