@@ -113,7 +113,7 @@ function invertObject(object: Record<string, string>): Record<string, string> {
 function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembersPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'common.members');
     const tableRef = useRef<TableHandle<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey, string>>(null);
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'FallbackAvatar', 'MakeAdmin', 'Plus', 'RemoveMembers', 'Sync', 'Table']);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'FallbackAvatar', 'Plus', 'RemoveMembers', 'Sync', 'Table', 'UserPencil']);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
     const policyMemberEmailsToAccountIDs = useMemo(
         () => getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails, true),
@@ -549,7 +549,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             options.push({
                 text: translate('workspace.people.changeRole'),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.CHANGE_ROLE,
-                icon: icons.MakeAdmin,
+                icon: icons.UserPencil,
                 shouldSkipFocusRestore: true,
                 onSelected: () => {
                     setMembersSelectedForRoleChange(selectedEmployees);
