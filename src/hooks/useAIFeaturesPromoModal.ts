@@ -86,10 +86,16 @@ function useAIFeaturesPromoModal(session: OnyxEntry<Session>) {
             return;
         }
         isWaitingForProtectedRoutes.current = true;
+        let isCancelled = false;
         // Defer until any in-flight navigation transition (splash → home, etc.) has fully settled
         const handle = TransitionTracker.runAfterTransitions({
             callback: () => {
                 Navigation.waitForProtectedRoutes().then(() => {
+                    // The transition may have finished before a reset or dismissal cancelled this effect.
+                    // Its protected-routes promise must not navigate using eligibility from before that change.
+                    if (isCancelled) {
+                        return;
+                    }
                     isWaitingForProtectedRoutes.current = false;
                     if (hasRedirectedToAIFeaturesPromoModal || observedActiveMigrationModalThisSession || observedActiveOnboardingThisSession || isAIPromoModalDismissed) {
                         return;
@@ -107,6 +113,7 @@ function useAIFeaturesPromoModal(session: OnyxEntry<Session>) {
         });
 
         return () => {
+            isCancelled = true;
             handle.cancel();
             isWaitingForProtectedRoutes.current = false;
         };
