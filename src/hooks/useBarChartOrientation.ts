@@ -4,14 +4,17 @@ import usePermissions from './usePermissions';
 import useResponsiveLayout from './useResponsiveLayout';
 
 /**
- * Determines the bar chart orientation: horizontal on wide layouts with the Insights beta, vertical otherwise.
+ * Bar chart orientation with the Insights beta on: horizontal on wide, vertical on narrow unless labels don't fit
+ * even at 45° (`canFallBackToHorizontalBars`). Everything stays vertical when the beta is off.
  */
-function useBarChartOrientation(): {isHorizontal: boolean} {
+function useBarChartOrientation(): {isHorizontal: boolean; canFallBackToHorizontalBars: boolean} {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBetaEnabled} = usePermissions();
-    const isHorizontal = !shouldUseNarrowLayout && isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE);
+    const isInsightsBeta = isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE);
+    const isHorizontal = !shouldUseNarrowLayout && isInsightsBeta;
+    const canFallBackToHorizontalBars = shouldUseNarrowLayout && isInsightsBeta;
 
-    return {isHorizontal};
+    return {isHorizontal, canFallBackToHorizontalBars};
 }
 
 export default useBarChartOrientation;
