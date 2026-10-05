@@ -358,15 +358,25 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                         ...(item.switchProps
                             ? {
                                   shouldShowRightComponent: true,
+                                  // The row IS the toggle: it's the single focus target, so it carries the switch semantics
+                                  // (role + checked) and announces the on/off state. The Switch is a decorative indicator.
+                                  role: CONST.ROLE.SWITCH,
+                                  accessibilityState: {checked: item.switchProps.isOn, disabled: item.disabled ?? item.switchProps.disabled},
                                   // Mirror the Switch's disabled state onto the row so a disabled toggle can't be flipped by
                                   // pressing the row (or Enter) — only the Switch carried `disabled` before.
                                   disabled: item.disabled ?? item.switchProps.disabled,
                                   // `isNested` lets the Switch handle its own press (so it animates) while stopping the event from
                                   // bubbling to the row — no double-toggle. `shouldAnimateOnExternalChange` makes the thumb also
                                   // animate when the row/keyboard toggles it. `focusable={false}` stops the Switch from being a
-                                  // second tab stop — the row owns keyboard focus and toggling.
+                                  // second tab stop — the row owns keyboard focus and toggling. The wrapper is aria-hidden so
+                                  // the Switch isn't announced separately from the row.
                                   rightComponent: (
-                                      <View style={styles.justifyContentCenter}>
+                                      <View
+                                          style={styles.justifyContentCenter}
+                                          aria-hidden
+                                          accessibilityElementsHidden
+                                          importantForAccessibility="no-hide-descendants"
+                                      >
                                           <Switch
                                               {...item.switchProps}
                                               isNested
