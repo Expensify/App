@@ -4,7 +4,6 @@ import Section from '@components/Section';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@navigation/Navigation';
@@ -25,8 +24,7 @@ type WorkspaceInvoicingDetailsSectionProps = {
 function WorkspaceInvoicingDetailsSection({policyID, canWriteMoreFeatures}: WorkspaceInvoicingDetailsSectionProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {cardPaddingHorizontal} = useLayoutSpacing();
+    const {cardPaddingHorizontal, cardPaddingTop} = useLayoutSpacing();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     const horizontalPadding = cardPaddingHorizontal;
@@ -35,7 +33,7 @@ function WorkspaceInvoicingDetailsSection({policyID, canWriteMoreFeatures}: Work
         <Section
             title={translate('workspace.invoices.invoicingDetails')}
             subtitle={translate('workspace.invoices.invoicingDetailsDescription')}
-            containerStyles={[styles.ph0, shouldUseNarrowLayout ? styles.pt5 : styles.pt8]}
+            containerStyles={[styles.ph0, cardPaddingTop]}
             subtitleStyles={horizontalPadding}
             titleStyles={[styles.accountSettingsSectionTitle, horizontalPadding]}
             childrenStyles={styles.pt5}

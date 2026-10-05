@@ -21,6 +21,7 @@ function resolveLayoutSpacing(shouldUseNarrowLayout: boolean) {
         values: {cardPadding, pageGutter, cardGap},
         cardPadding: {padding: cardPadding},
         cardPaddingHorizontal: {paddingHorizontal: cardPadding},
+        cardPaddingTop: {paddingTop: cardPadding},
         cardPaddingBottom: {paddingBottom: cardPadding},
         cardPaddingLeft: {paddingLeft: cardPadding},
         cardEdgeToEdge: {marginHorizontal: -cardPadding},
