@@ -29,7 +29,6 @@ function InviteMemberListItem<TItem extends ListItem>({
     onDismissError,
     onFocus,
     shouldSyncFocus,
-    wrapperStyle,
     titleNumberOfLines = 1,
 }: ListItemProps<TItem>) {
     const styles = useThemeStyles();
@@ -58,7 +57,7 @@ function InviteMemberListItem<TItem extends ListItem>({
         >
             <ListItemComposed.Row
                 testID={item.text}
-                style={[wrapperStyle, item.itemStyle]}
+                style={item.itemStyle}
             >
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
                     {(!!item.reportID || !!accountID || !!item.text || !!item.alternateText) &&

@@ -148,9 +148,6 @@ type ListItemProps<TItem extends ListItem> = {
     /** Which side of the row to render the selection button on */
     selectionButtonPosition?: ValueOf<typeof CONST.SELECTION_BUTTON_POSITION>;
 
-    /** Style of the row content wrapper, merged after the variant's own row styles and before `item.itemStyle` */
-    wrapperStyle?: StyleProp<ViewStyle>;
-
     /** Maximum number of title lines. Values above 1 also enable wrapping and leading-indent handling. Defaults to 1 */
     titleNumberOfLines?: number;
 
@@ -199,7 +196,6 @@ type ListItemPressableProps<TItem extends ListItem> = PropsWithChildren<{
 
     /** Style of the offline-feedback content container that wraps the pressable and its error row */
     containerStyle?: StyleProp<ViewStyle>;
-    errorRowStyles?: StyleProp<ViewStyle>;
     hoverStyle?: StyleProp<ViewStyle>;
 
     /**
@@ -248,14 +244,18 @@ type SelectableListItemProps<TItem extends ListItem> = PropsWithChildren<{
 type SingleSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     /** Accessibility role for the list item (e.g. 'checkbox' for multi-select options so screen readers announce checked state) */
     accessibilityRole?: Role;
+
+    /** Style of the row content wrapper, merged after the variant's own row styles and before `item.itemStyle` */
+    wrapperStyle?: StyleProp<ViewStyle>;
 };
 
-type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & ForwardedFSClassProps;
-
-type BareUserListItemProps<TItem extends ListItem> = UserListItemProps<TItem> & {
-    pressableStyle?: StyleProp<ViewStyle>;
-    shouldHighlightSelectedItem?: boolean;
-};
+type BareUserListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
+    ForwardedFSClassProps & {
+        /** Style of the row content wrapper, merged before `item.itemStyle` */
+        wrapperStyle?: StyleProp<ViewStyle>;
+        pressableStyle?: StyleProp<ViewStyle>;
+        shouldHighlightSelectedItem?: boolean;
+    };
 
 type SpendRuleListItemType = ListItem & {
     /** The action for this rule */
@@ -324,7 +324,6 @@ export type {
     ListItemFocusEventHandler,
     SelectableListItemProps,
     SingleSelectListItemProps,
-    UserListItemProps,
     BareUserListItemProps,
     SplitListItemType,
     WorkspaceListItemType,

@@ -23,7 +23,6 @@ function MultiSelectListItem<TItem extends ListItem>({
     shouldPreventEnterKeySubmit,
     onFocus,
     shouldSyncFocus,
-    wrapperStyle,
     titleNumberOfLines,
     alternateTextNumberOfLines,
 }: ListItemProps<TItem>) {
@@ -44,7 +43,7 @@ function MultiSelectListItem<TItem extends ListItem>({
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            wrapperStyle={[icon ? [styles.pv0, styles.mnh13] : styles.optionRowCompact, wrapperStyle]}
+            wrapperStyle={icon ? [styles.pv0, styles.mnh13] : styles.optionRowCompact}
             titleNumberOfLines={titleNumberOfLines}
             alternateTextNumberOfLines={alternateTextNumberOfLines}
         />
