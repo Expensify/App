@@ -3,7 +3,7 @@ import useLocalize from '@hooks/useLocalize';
 
 import {computePerDiemExpenseAmount} from '@libs/actions/IOU/PerDiem';
 import type {getAttendees} from '@libs/TransactionUtils';
-import {isScanning, isScanRequest as isScanRequestUtil} from '@libs/TransactionUtils';
+import {isFailedScanAmountPlaceholder, isScanning, isScanRequest as isScanRequestUtil} from '@libs/TransactionUtils';
 
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -42,12 +42,6 @@ type UseConfirmationAmountParams = {
     /** Whether the transaction is a per-diem request */
     isPerDiemRequest: boolean;
 
-    /** Currency the transaction had on the previous render, used to detect changes */
-    prevCurrency: string | undefined;
-
-    /** Currency the transaction has on the current render */
-    currency: string | undefined;
-
     /** Per-diem sub-rates from the previous render, used to detect rate changes */
     prevSubRates: SubRates;
 };
@@ -70,8 +64,6 @@ function useConfirmationAmount({
     distanceRequestAmount,
     distanceCurrency,
     isPerDiemRequest,
-    prevCurrency,
-    currency,
     prevSubRates,
 }: UseConfirmationAmountParams) {
     const {translate} = useLocalize();
@@ -80,7 +72,9 @@ function useConfirmationAmount({
     const isScanRequest = isScanRequestUtil(transaction);
 
     const subRates = transaction?.comment?.customUnit?.subRates ?? [];
-    const shouldCalculatePerDiemAmount = isPerDiemRequest && (iouAmount === 0 || JSON.stringify(prevSubRates) !== JSON.stringify(subRates) || prevCurrency !== currency);
+
+    // The per-diem amount is a sum over the sub-rates, so only a sub-rate change (or a still-empty amount) can move it.
+    const shouldCalculatePerDiemAmount = isPerDiemRequest && (iouAmount === 0 || JSON.stringify(prevSubRates) !== JSON.stringify(subRates));
 
     let amountToBeUsed = iouAmount;
     if (shouldCalculateDistanceAmount) {
@@ -96,6 +90,8 @@ function useConfirmationAmount({
         formattedAmount = '';
     } else if (isScanning(transaction)) {
         formattedAmount = translate('iou.receiptStatusTitle');
+    } else if (isFailedScanAmountPlaceholder(transaction)) {
+        formattedAmount = '';
     }
 
     const attendeeCount = iouAttendees?.length && iouAttendees.length > 0 ? iouAttendees.length : 1;
