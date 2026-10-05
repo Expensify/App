@@ -75,7 +75,13 @@ jest.mock('@hooks/useConfirmModal', () => ({
     default: () => ({showConfirmModal: jest.fn(() => Promise.resolve({action: 'cancel'}))}),
 }));
 
-// WorkspaceDuplicateSelectFeaturesForm fires openDuplicatePolicyPage on mount; stub it to avoid a network write.
+// Both pages prefetch rules on mount, which is unrelated to the tag count under test.
+jest.mock('@hooks/useRulesPrefetch', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
+
+// WorkspaceDuplicateSelectFeaturesForm opens the duplicate policy flow on mount; stub it to avoid a network write.
 jest.mock('@userActions/Policy/Policy', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const actual = jest.requireActual('@userActions/Policy/Policy');
