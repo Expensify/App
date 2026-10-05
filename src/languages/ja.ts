@@ -512,6 +512,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: '前年',
         nextYear: '来年',
         avatar: 'アバター',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${total} 件中 ${current} 件目`,
         editor: '編集者',
         restrictions: '制限',
         tryAgain: '再試行',
@@ -8161,6 +8162,7 @@ ${reportName}`,
                 flagAmountsOver: '超過金額にフラグを付ける',
                 flagAmountsOverDescription: (categoryName: string) => `カテゴリ「${categoryName}」に適用されます。`,
                 flagAmountsOverSubtitle: 'これは、すべての経費の上限金額を上書きします。',
+                expenseLimitType: '経費上限の種類',
                 expenseLimitTypes: {
                     expense: '個別経費',
                     expenseSubtitle:
