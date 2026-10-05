@@ -11988,5 +11988,6 @@ ${reportName}`,
         confirmTitle: 'Confirmar renovación',
         renew: 'Renovar',
     },
+    bulkActionBar: {label: 'Acciones en bloque', clearSelection: 'Borrar selección', loadingSelection: 'Cargando selección'},
 };
 export default translations;

@@ -7131,6 +7131,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                 optionNoRegularWorkspaceHelp: 'Członek pracuje z domu lub podróżuje między lokalizacjami bez stałego biura, więc zasady dotyczące dojazdów do pracy nie mają zastosowania.',
                 futureOnlyNote: 'Zmiany mają zastosowanie tylko do przyszłych obliczeń kilometrówki. Istniejące wydatki za przejazdy nie są przeliczane ponownie.',
             },
+            changeRole: 'Zmień rolę',
         },
         card: {
             getStartedIssuing: 'Zacznij od wydania swojej pierwszej wirtualnej lub fizycznej karty.',
@@ -11649,5 +11650,6 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         confirmTitle: 'Potwierdź odnowienie',
         renew: 'Odnów',
     },
+    bulkActionBar: {label: 'Akcje zbiorcze', clearSelection: 'Wyczyść wybór', loadingSelection: 'Wczytywanie zaznaczenia'},
 };
 export default translations;
