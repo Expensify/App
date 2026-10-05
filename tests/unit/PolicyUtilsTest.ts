@@ -5,8 +5,8 @@ import useDefaultFundID from '@hooks/useDefaultFundID';
 
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {canAccessPolicyBankAccount, getAccessiblePolicyBankAccount} from '@libs/PolicyPaymentUtils';
 import {
-    areApprovalsEnabled,
     arePolicyRulesEnabled,
     canEditWorkspaceSettings,
     canMemberAssignRole,
@@ -16,8 +16,6 @@ import {
     canSendInvoiceFromWorkspace,
     evaluateApprovalWorkflowRule,
     findVendorByID,
-    getVendorDisplayName,
-    hasVendorFeatureOnAnyPolicy,
     getActivePolicies,
     getActivePoliciesWithExpenseChat,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
@@ -41,6 +39,7 @@ import {
     getActiveVendorMatchingIntegration,
     getMatchingVendorByID,
     getMatchingVendors,
+    getVendorDisplayName,
     getVendorEmptyState,
     getVendorRuleDisplayValue,
     getPolicyApproverLogins,
@@ -82,6 +81,7 @@ import {
     hasPolicyRulesError,
     hasPolicyWithXeroConnection,
     hasVendorFeature,
+    hasVendorFeatureOnAnyPolicy,
     isBusinessCentralVendorMatchingActive,
     isArchivedPolicy,
     isDualEntryVendorMatchingActive,
@@ -1582,15 +1582,15 @@ describe('PolicyUtils', () => {
         const buildRule = (rule: ApprovalWorkflowRule): Rule => ({...rule, scope: CONST.RULES.SCOPE.POLICY, scopeID: policyID});
 
         const submitRule: ApprovalWorkflowRule = {
-            triggers: {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT},
+            triggers: {'1': CONST.RULES.TRIGGERS.REPORT_SUBMIT},
             filters: submitFilter,
-            actions: {'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: adminEmail}},
+            actions: {'1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: adminEmail}},
         };
 
         // After the admin approves, an under-limit report continues to the approver and an over-limit one is
         // escalated to the category approver instead.
         const underLimitRule: ApprovalWorkflowRule = {
-            triggers: {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE},
+            triggers: {'1': CONST.RULES.TRIGGERS.REPORT_APPROVE},
             filters: {
                 operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
                 left: submitFilter,
@@ -1600,10 +1600,10 @@ describe('PolicyUtils', () => {
                     right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, right: 10000},
                 },
             },
-            actions: {'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: approverEmail}},
+            actions: {'1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: approverEmail}},
         };
         const overLimitRule: ApprovalWorkflowRule = {
-            triggers: {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE},
+            triggers: {'1': CONST.RULES.TRIGGERS.REPORT_APPROVE},
             filters: {
                 operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
                 left: submitFilter,
@@ -1613,16 +1613,16 @@ describe('PolicyUtils', () => {
                     right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, right: 10000},
                 },
             },
-            actions: {'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: categoryApprover1Email}},
+            actions: {'1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: categoryApprover1Email}},
         };
         const terminalRule: ApprovalWorkflowRule = {
-            triggers: {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE},
+            triggers: {'1': CONST.RULES.TRIGGERS.REPORT_APPROVE},
             filters: {
                 operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
                 left: submitFilter,
                 right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, right: approverEmail},
             },
-            actions: {'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.APPROVE_REPORT}},
+            actions: {'1': {name: CONST.RULES.ACTIONS.APPROVE_REPORT}},
         };
 
         // A workspace whose employeeList still points somewhere else, so a rule-driven answer is distinguishable
@@ -1681,9 +1681,9 @@ describe('PolicyUtils', () => {
             });
 
             const buildAmountRule = (operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>, right: number): ApprovalWorkflowRule => ({
-                triggers: {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT},
+                triggers: {'1': CONST.RULES.TRIGGERS.REPORT_SUBMIT},
                 filters: {operator, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, right},
-                actions: {'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: adminEmail}},
+                actions: {'1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: adminEmail}},
             });
 
             it.each([
@@ -1712,22 +1712,22 @@ describe('PolicyUtils', () => {
 
             it('does not match a filter on a field this client does not understand', () => {
                 const rule: ApprovalWorkflowRule = {
-                    triggers: {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT},
+                    triggers: {'1': CONST.RULES.TRIGGERS.REPORT_SUBMIT},
                     filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: 'unsupportedField', right: employeeEmail},
-                    actions: {'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: adminEmail}},
+                    actions: {'1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: adminEmail}},
                 };
                 expect(evaluateApprovalWorkflowRule(rule, {submitterEmail: employeeEmail, reportTotal: 0})).toBe(false);
             });
 
             it('matches an OR filter when either side matches', () => {
                 const rule: ApprovalWorkflowRule = {
-                    triggers: {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT},
+                    triggers: {'1': CONST.RULES.TRIGGERS.REPORT_SUBMIT},
                     filters: {
                         operator: CONST.SEARCH.SYNTAX_OPERATORS.OR,
                         left: submitFilter,
                         right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: [adminEmail]},
                     },
-                    actions: {'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: adminEmail}},
+                    actions: {'1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: adminEmail}},
                 };
 
                 // Only the left side matches this submitter, but OR only needs one side.
@@ -2485,43 +2485,6 @@ describe('PolicyUtils', () => {
 
             // Then nobody is returned, because a disabled workspace has no payer no matter who is named on it
             expect(reimburserEmail).toBeUndefined();
-        });
-    });
-
-    describe('areApprovalsEnabled', () => {
-        it('should be false when there is no policy', () => {
-            // Given no policy, which happens while a workspace is still loading
-
-            // When approvals are resolved
-            // Then they read as off, rather than as on by virtue of the policy not saying they are off
-            expect(areApprovalsEnabled(undefined)).toBe(false);
-        });
-
-        it('should be false when the policy has no approval mode yet', () => {
-            // Given a workspace whose approval mode has not come back from the server
-            const policy = createMock<Policy>({id: '1'});
-
-            // When approvals are resolved
-            // Then they read as off, which is what separates this from `!isSubmitAndClose(policy)`
-            expect(areApprovalsEnabled(policy)).toBe(false);
-        });
-
-        it('should be false when the workspace submits and closes', () => {
-            // Given a workspace that has approvals turned off
-            const policy = createMock<Policy>({id: '1', approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL});
-
-            // When approvals are resolved
-            // Then they read as off
-            expect(areApprovalsEnabled(policy)).toBe(false);
-        });
-
-        it.each([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED])('should be true in %s mode', (approvalMode) => {
-            // Given a workspace on an approval mode that submits to an approver
-            const policy = createMock<Policy>({id: '1', approvalMode});
-
-            // When approvals are resolved
-            // Then they read as on
-            expect(areApprovalsEnabled(policy)).toBe(true);
         });
     });
 
@@ -4511,35 +4474,35 @@ describe('PolicyUtils', () => {
 
     describe('hasConfiguredRules', () => {
         it('returns false when policy is undefined', () => {
-            expect(hasConfiguredRules(undefined)).toBe(false);
+            expect(hasConfiguredRules(undefined, undefined, false)).toBe(false);
         });
 
         it('returns false when policy has no rules configured', () => {
-            expect(hasConfiguredRules(createMock<Policy>({}))).toBe(false);
+            expect(hasConfiguredRules(createMock<Policy>({}), undefined, false)).toBe(false);
         });
 
         describe('customRules', () => {
             it('returns true when customRules is non-empty', () => {
-                expect(hasConfiguredRules(createMock<Policy>({customRules: 'some rule'}))).toBe(true);
+                expect(hasConfiguredRules(createMock<Policy>({customRules: 'some rule'}), undefined, false)).toBe(true);
             });
 
             it('returns false when customRules is an empty string', () => {
-                expect(hasConfiguredRules(createMock<Policy>({customRules: ''}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({customRules: ''}), undefined, false)).toBe(false);
             });
 
             it('returns false when customRules is only whitespace', () => {
-                expect(hasConfiguredRules(createMock<Policy>({customRules: '   '}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({customRules: '   '}), undefined, false)).toBe(false);
             });
         });
 
         describe('rules.approvalRules', () => {
             it('returns true when approvalRules has items', () => {
                 const policy = createMock<Policy>({rules: {approvalRules: [{id: '1', applyWhen: [], approver: 'approver@test.com'}]}});
-                expect(hasConfiguredRules(policy)).toBe(true);
+                expect(hasConfiguredRules(policy, undefined, false)).toBe(true);
             });
 
             it('returns false when approvalRules is empty', () => {
-                expect(hasConfiguredRules(createMock<Policy>({rules: {approvalRules: []}}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({rules: {approvalRules: []}}), undefined, false)).toBe(false);
             });
         });
 
@@ -4556,157 +4519,151 @@ describe('PolicyUtils', () => {
                         ],
                     },
                 });
-                expect(hasConfiguredRules(policy)).toBe(true);
+                expect(hasConfiguredRules(policy, undefined, false)).toBe(true);
             });
 
             it('returns false when expenseRules is empty', () => {
-                expect(hasConfiguredRules(createMock<Policy>({rules: {expenseRules: []}}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({rules: {expenseRules: []}}), undefined, false)).toBe(false);
             });
         });
 
-        describe('rules.codingRules', () => {
-            it('returns true when codingRules has entries', () => {
-                const policy = createMock<Policy>({
-                    rules: {
-                        codingRules: {
-                            rule1: {
-                                ruleID: 'rule1',
-                                filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'},
-                            },
-                        },
-                    },
-                });
-                expect(hasConfiguredRules(policy)).toBe(true);
+        describe('merchant rules', () => {
+            // Which rules count towards this is decided by the caller's selector and covered in
+            // ExpenseDefaultRuleUtilsTest, so only the pass-through is checked here.
+            const policy = createMock<Policy>({id: 'policy1', rules: {}});
+
+            it('returns true when the policy has a merchant rule', () => {
+                expect(hasConfiguredRules(policy, undefined, true)).toBe(true);
             });
 
-            it('returns false when codingRules is empty', () => {
-                expect(hasConfiguredRules(createMock<Policy>({rules: {codingRules: {}}}))).toBe(false);
+            it('returns false when it has none', () => {
+                expect(hasConfiguredRules(policy, undefined, false)).toBe(false);
             });
         });
 
         describe('maxExpenseAmount', () => {
             it('returns true when maxExpenseAmount is set to a non-default value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmount: 500000}))).toBe(true);
+                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmount: 500000}), undefined, false)).toBe(true);
             });
 
             it('returns false when maxExpenseAmount is the default value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmount: CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmount: CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT}), undefined, false)).toBe(false);
             });
 
             it('returns false when maxExpenseAmount is the disabled value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmount: CONST.DISABLED_MAX_EXPENSE_VALUE}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmount: CONST.DISABLED_MAX_EXPENSE_VALUE}), undefined, false)).toBe(false);
             });
         });
 
         describe('maxExpenseAge', () => {
             it('returns true when maxExpenseAge is set to a non-default value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAge: 30}))).toBe(true);
+                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAge: 30}), undefined, false)).toBe(true);
             });
 
             it('returns false when maxExpenseAge is the default value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAge: CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAge: CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE}), undefined, false)).toBe(false);
             });
 
             it('returns false when maxExpenseAge is the disabled value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAge: CONST.DISABLED_MAX_EXPENSE_VALUE}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAge: CONST.DISABLED_MAX_EXPENSE_VALUE}), undefined, false)).toBe(false);
             });
         });
 
         describe('maxExpenseAmountNoReceipt', () => {
             it('returns true when maxExpenseAmountNoReceipt is set to a non-default value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoReceipt: 5000}))).toBe(true);
+                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoReceipt: 5000}), undefined, false)).toBe(true);
             });
 
             it('returns false when maxExpenseAmountNoReceipt is the default value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT}), undefined, false)).toBe(false);
             });
 
             it('returns false when maxExpenseAmountNoReceipt is the disabled value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE}), undefined, false)).toBe(false);
             });
         });
 
         describe('maxExpenseAmountNoItemizedReceipt', () => {
             it('returns true when maxExpenseAmountNoItemizedReceipt is set to a non-default value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoItemizedReceipt: 10000}))).toBe(true);
+                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoItemizedReceipt: 10000}), undefined, false)).toBe(true);
             });
 
             it('returns false when maxExpenseAmountNoItemizedReceipt is the default value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoItemizedReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_ITEMIZED_RECEIPT}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoItemizedReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_ITEMIZED_RECEIPT}), undefined, false)).toBe(false);
             });
 
             it('returns false when maxExpenseAmountNoItemizedReceipt is the disabled value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoItemizedReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoItemizedReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE}), undefined, false)).toBe(false);
             });
         });
 
         describe('defaultBillable', () => {
             it('returns true when defaultBillable is true', () => {
-                expect(hasConfiguredRules(createMock<Policy>({defaultBillable: true}))).toBe(true);
+                expect(hasConfiguredRules(createMock<Policy>({defaultBillable: true}), undefined, false)).toBe(true);
             });
 
             it('returns false when defaultBillable is false', () => {
-                expect(hasConfiguredRules(createMock<Policy>({defaultBillable: false}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({defaultBillable: false}), undefined, false)).toBe(false);
             });
         });
 
         describe('defaultReimbursable', () => {
             it('returns true when defaultReimbursable is false', () => {
-                expect(hasConfiguredRules(createMock<Policy>({defaultReimbursable: false}))).toBe(true);
+                expect(hasConfiguredRules(createMock<Policy>({defaultReimbursable: false}), undefined, false)).toBe(true);
             });
 
             it('returns false when defaultReimbursable is true', () => {
-                expect(hasConfiguredRules(createMock<Policy>({defaultReimbursable: true}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({defaultReimbursable: true}), undefined, false)).toBe(false);
             });
         });
 
         describe('eReceipts', () => {
             it('returns true when eReceipts is true', () => {
-                expect(hasConfiguredRules(createMock<Policy>({eReceipts: true}))).toBe(true);
+                expect(hasConfiguredRules(createMock<Policy>({eReceipts: true}), undefined, false)).toBe(true);
             });
 
             it('returns false when eReceipts is false', () => {
-                expect(hasConfiguredRules(createMock<Policy>({eReceipts: false}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({eReceipts: false}), undefined, false)).toBe(false);
             });
         });
 
         describe('requireCompanyCardsEnabled', () => {
             it('returns true when requireCompanyCardsEnabled is true', () => {
-                expect(hasConfiguredRules(createMock<Policy>({requireCompanyCardsEnabled: true}))).toBe(true);
+                expect(hasConfiguredRules(createMock<Policy>({requireCompanyCardsEnabled: true}), undefined, false)).toBe(true);
             });
 
             it('returns false when requireCompanyCardsEnabled is false', () => {
-                expect(hasConfiguredRules(createMock<Policy>({requireCompanyCardsEnabled: false}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({requireCompanyCardsEnabled: false}), undefined, false)).toBe(false);
             });
         });
 
         describe('prohibitedExpenses', () => {
             it('returns true when a prohibitedExpenses value differs from its default', () => {
                 // alcohol defaults to false — setting it to true triggers the rule
-                expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {alcohol: true}}))).toBe(true);
+                expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {alcohol: true}}), undefined, false)).toBe(true);
             });
 
             it('returns true when gambling is disabled (differs from default true)', () => {
-                expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {gambling: false}}))).toBe(true);
+                expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {gambling: false}}), undefined, false)).toBe(true);
             });
 
             it('returns false when prohibitedExpenses matches all defaults', () => {
-                expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {...CONST.POLICY.DEFAULT_PROHIBITED_EXPENSES}}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {...CONST.POLICY.DEFAULT_PROHIBITED_EXPENSES}}), undefined, false)).toBe(false);
             });
 
             it('returns false when prohibitedExpenses is an empty object', () => {
-                expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {}}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {}}), undefined, false)).toBe(false);
             });
         });
 
         it('returns true when only Classic category rules exist', () => {
             const categories = {Travel: {name: 'Travel', enabled: true, maxAmountNoReceipt: 0}};
-            expect(hasConfiguredRules(createMock<Policy>({}), categories)).toBe(true);
+            expect(hasConfiguredRules(createMock<Policy>({}), categories, false)).toBe(true);
         });
 
         it('returns false when categories have no active rule fields', () => {
             const categories = {Advertising: {name: 'Advertising', enabled: true, 'GL Code': '1234'}};
-            expect(hasConfiguredRules(createMock<Policy>({}), categories)).toBe(false);
+            expect(hasConfiguredRules(createMock<Policy>({}), categories, false)).toBe(false);
         });
     });
 
@@ -5260,8 +5217,26 @@ describe('PolicyUtils', () => {
                 expect(hasVendorFeature(buildIntacctPolicy(undefined), false)).toBe(false);
             });
 
-            it('returns false when beta is disabled and Xero is connected because Xero (R3) is still pre-GA', () => {
-                expect(hasVendorFeature(buildXeroPolicy(), false)).toBe(false);
+            it('returns true when beta is disabled and Xero is connected because Xero (R3) is generally available', () => {
+                // Given a workspace with a configured Xero connection
+                const policy = buildXeroPolicy();
+
+                // When the vendor feature is checked without the vendorMatching beta
+                const isVendorFeatureAvailable = hasVendorFeature(policy, false);
+
+                // Then the feature is available because Xero does not depend on the beta
+                expect(isVendorFeatureAvailable).toBe(true);
+            });
+
+            it('returns false when beta is disabled and Xero is connected but isConfigured=false because GA did not widen the configuration gate', () => {
+                // Given a Xero connection in the middle of a tenant switch, which Integration Server marks as not configured
+                const policy = buildXeroPolicy(undefined, {isConfigured: false});
+
+                // When the vendor feature is checked without the vendorMatching beta
+                const isVendorFeatureAvailable = hasVendorFeature(policy, false);
+
+                // Then the feature stays off so the contacts left over from the previous tenant are not offered
+                expect(isVendorFeatureAvailable).toBe(false);
             });
 
             it('returns true when beta is disabled and Rillet is connected because Rillet is generally available', () => {
@@ -5474,9 +5449,11 @@ describe('PolicyUtils', () => {
         describe('hasVendorFeatureOnAnyPolicy', () => {
             const qboPolicy: Policy = {...buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), id: 'qbo'};
             const xeroPolicy: Policy = {...buildXeroPolicy(), id: 'xero'};
+            const businessCentralPolicy: Policy = {...buildBusinessCentralPolicy(), id: 'businessCentral'};
             const plainPolicy: Policy = {...createRandomPolicy(3), connections: undefined, id: 'plain'};
             const qboKey = `${ONYXKEYS.COLLECTION.POLICY}qbo`;
             const xeroKey = `${ONYXKEYS.COLLECTION.POLICY}xero`;
+            const businessCentralKey = `${ONYXKEYS.COLLECTION.POLICY}businessCentral`;
             const plainKey = `${ONYXKEYS.COLLECTION.POLICY}plain`;
 
             it('is false when no workspace has the vendor feature', () => {
@@ -5487,12 +5464,37 @@ describe('PolicyUtils', () => {
                 expect(hasVendorFeatureOnAnyPolicy({[qboKey]: qboPolicy, [plainKey]: plainPolicy}, false)).toBe(true);
             });
 
-            it('is true for a Xero workspace with the beta', () => {
-                expect(hasVendorFeatureOnAnyPolicy({[xeroKey]: xeroPolicy, [plainKey]: plainPolicy}, true)).toBe(true);
+            it('is true for a Xero workspace without the beta', () => {
+                // Given a configured Xero workspace next to one with no accounting connection
+                const policies = {[xeroKey]: xeroPolicy, [plainKey]: plainPolicy};
+
+                // When the vendor feature is checked across the workspaces without the vendorMatching beta
+                const isVendorFeatureAvailable = hasVendorFeatureOnAnyPolicy(policies, false);
+
+                // Then the feature is available because Xero is generally available
+                expect(isVendorFeatureAvailable).toBe(true);
+            });
+
+            it('is true for a Business Central workspace with the beta', () => {
+                // Given a configured Business Central workspace, an integration that still depends on the beta
+                const policies = {[businessCentralKey]: businessCentralPolicy, [plainKey]: plainPolicy};
+
+                // When the vendor feature is checked across the workspaces with the vendorMatching beta
+                const isVendorFeatureAvailable = hasVendorFeatureOnAnyPolicy(policies, true);
+
+                // Then the feature is available because the beta unlocks Business Central
+                expect(isVendorFeatureAvailable).toBe(true);
             });
 
             it('ignores beta-gated integrations while the beta is off', () => {
-                expect(hasVendorFeatureOnAnyPolicy({[xeroKey]: xeroPolicy}, false)).toBe(false);
+                // Given only a Business Central workspace, an integration that still depends on the beta
+                const policies = {[businessCentralKey]: businessCentralPolicy};
+
+                // When the vendor feature is checked across the workspaces without the vendorMatching beta
+                const isVendorFeatureAvailable = hasVendorFeatureOnAnyPolicy(policies, false);
+
+                // Then the feature is not available on any workspace because Business Central still depends on the beta
+                expect(isVendorFeatureAvailable).toBe(false);
             });
         });
 
@@ -6014,44 +6016,42 @@ describe('PolicyUtils', () => {
     });
 
     describe('hasPolicyRulesError', () => {
+        // Whether a merchant rule failed is reduced by the caller's selector and covered in
+        // ExpenseDefaultRuleUtilsTest, so only the agent rules and the pass-through are checked here.
+        const POLICY_ID = 'policy-with-rules';
+
         it('returns false for an undefined policy', () => {
-            expect(hasPolicyRulesError(undefined)).toBe(false);
+            expect(hasPolicyRulesError(undefined, false)).toBe(false);
         });
 
-        it('returns false when no coding or agent rules exist', () => {
-            const policy: Policy = {...createRandomPolicy(0), rules: {}};
-            expect(hasPolicyRulesError(policy)).toBe(false);
+        it('returns false when no merchant or agent rules exist', () => {
+            const policy: Policy = {...createRandomPolicy(0), id: POLICY_ID, rules: {}};
+            expect(hasPolicyRulesError(policy, false)).toBe(false);
         });
 
-        it('returns false when rules exist but none have errors', () => {
+        it('returns false when agent rules exist but none have errors', () => {
             const policy: Policy = {
                 ...createRandomPolicy(0),
-                rules: {
-                    codingRules: {rule1: {ruleID: 'rule1', filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'}}},
-                    agentRules: {ai1: {ruleID: 'ai1', prompt: 'p', created: '2026-06-08'}},
-                },
+                id: POLICY_ID,
+                rules: {agentRules: {ai1: {ruleID: 'ai1', prompt: 'p', created: '2026-06-08'}}},
             };
-            expect(hasPolicyRulesError(policy)).toBe(false);
+            expect(hasPolicyRulesError(policy, false)).toBe(false);
         });
 
-        it('returns true when a coding rule has errors', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(0),
-                rules: {
-                    codingRules: {rule1: {ruleID: 'rule1', filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'}, errors: {123: 'boom'}}},
-                },
-            };
-            expect(hasPolicyRulesError(policy)).toBe(true);
+        it('returns true when a merchant rule has errors', () => {
+            const policy: Policy = {...createRandomPolicy(0), id: POLICY_ID, rules: {}};
+            expect(hasPolicyRulesError(policy, true)).toBe(true);
         });
 
         it('returns true when an agent rule has errors', () => {
             const policy: Policy = {
                 ...createRandomPolicy(0),
+                id: POLICY_ID,
                 rules: {
                     agentRules: {ai1: {ruleID: 'ai1', prompt: 'p', created: '2026-06-08', errors: {123: 'boom'}}},
                 },
             };
-            expect(hasPolicyRulesError(policy)).toBe(true);
+            expect(hasPolicyRulesError(policy, false)).toBe(true);
         });
     });
 
@@ -6364,6 +6364,104 @@ describe('getDefaultWorkspacePlanType', () => {
         },
     ])('returns $expected when $description', ({policies, expected}) => {
         expect(getDefaultWorkspacePlanType(policies)).toBe(expected);
+    });
+});
+
+describe('canAccessPolicyBankAccount', () => {
+    const PAYER_EMAIL = 'payer@test.com';
+    const NON_PAYER_ADMIN_EMAIL = 'admin@test.com';
+    const POLICY_BANK_ACCOUNT_ID = 1111;
+
+    const policyWithBankAccount: Policy = {
+        ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+        role: CONST.POLICY.ROLE.ADMIN,
+        reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+        reimburser: PAYER_EMAIL,
+        achAccount: {
+            bankAccountID: POLICY_BANK_ACCOUNT_ID,
+            accountNumber: 'XXXXXX1111',
+            routingNumber: '123456789',
+            addressName: 'Test bank account',
+            bankName: 'Test bank',
+            reimburser: PAYER_EMAIL,
+            state: CONST.BANK_ACCOUNT.STATE.OPEN,
+        },
+        employeeList: {
+            [PAYER_EMAIL]: {email: PAYER_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
+            [NON_PAYER_ADMIN_EMAIL]: {email: NON_PAYER_ADMIN_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
+        },
+    };
+
+    const bankAccountListWithPolicyAccount = {
+        [POLICY_BANK_ACCOUNT_ID]: {methodID: POLICY_BANK_ACCOUNT_ID, bankCurrency: CONST.CURRENCY.USD, bankCountry: CONST.COUNTRY.US},
+    };
+
+    // The designated payer is the case that produced the original bug: the workspace account was advertised on their Pay
+    // button but never shared with them, so the backend debited a different account.
+    it('returns false for the designated payer when the workspace account is missing from their bank account list', () => {
+        expect(canAccessPolicyBankAccount(policyWithBankAccount, {})).toBe(false);
+    });
+
+    it('returns true for the designated payer when the workspace account is in their bank account list', () => {
+        expect(canAccessPolicyBankAccount(policyWithBankAccount, bankAccountListWithPolicyAccount)).toBe(true);
+    });
+
+    it('returns false when the bank account list only holds other accounts', () => {
+        const otherAccountID = POLICY_BANK_ACCOUNT_ID + 1;
+        expect(
+            canAccessPolicyBankAccount(policyWithBankAccount, {
+                [otherAccountID]: {methodID: otherAccountID, bankCurrency: CONST.CURRENCY.USD, bankCountry: CONST.COUNTRY.US},
+            }),
+        ).toBe(false);
+    });
+
+    it('returns false when the workspace has no connected bank account', () => {
+        expect(canAccessPolicyBankAccount({...policyWithBankAccount, achAccount: undefined}, bankAccountListWithPolicyAccount)).toBe(false);
+    });
+
+    it('returns false when there is no policy', () => {
+        expect(canAccessPolicyBankAccount(undefined, bankAccountListWithPolicyAccount)).toBe(false);
+    });
+});
+
+describe('getAccessiblePolicyBankAccount', () => {
+    const POLICY_BANK_ACCOUNT_ID = 1111;
+
+    // `achAccount.accountNumber` is deliberately a different account's number than the one `bankAccountID` resolves to.
+    // The two really do fall out of sync, and reading the number off `achAccount` is what makes a Pay button name an
+    // account other than the one the payment debits.
+    const policyWithStaleAccountNumber: Policy = {
+        ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+        achAccount: {
+            bankAccountID: POLICY_BANK_ACCOUNT_ID,
+            accountNumber: 'XXXXXX9999',
+            routingNumber: '123456789',
+            addressName: 'Test bank account',
+            bankName: 'Test bank',
+            reimburser: 'payer@test.com',
+            state: CONST.BANK_ACCOUNT.STATE.OPEN,
+        },
+    };
+
+    const bankAccountList = {
+        [POLICY_BANK_ACCOUNT_ID]: {
+            methodID: POLICY_BANK_ACCOUNT_ID,
+            bankCurrency: CONST.CURRENCY.USD,
+            bankCountry: CONST.COUNTRY.US,
+            accountData: {accountNumber: 'XXXXXX1234'},
+        },
+    };
+
+    it('resolves the account number through the bank account list rather than the stale one on achAccount', () => {
+        expect(getAccessiblePolicyBankAccount(policyWithStaleAccountNumber, bankAccountList)?.accountData?.accountNumber).toBe('XXXXXX1234');
+    });
+
+    it('returns undefined when the workspace account is not shared with the user', () => {
+        expect(getAccessiblePolicyBankAccount(policyWithStaleAccountNumber, {})).toBeUndefined();
+    });
+
+    it('returns undefined when the workspace has no connected bank account', () => {
+        expect(getAccessiblePolicyBankAccount({...policyWithStaleAccountNumber, achAccount: undefined}, bankAccountList)).toBeUndefined();
     });
 });
 
