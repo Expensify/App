@@ -71,7 +71,7 @@
 ### [@react-navigation+bottom-tabs+7.16.2+002+active-indicator-color-precedence.patch](@react-navigation+bottom-tabs+7.16.2+002+active-indicator-color-precedence.patch)
 
 - Reason: `tabBarActiveIndicatorColor` was never applied on the native Android tab bar: a missing pair of parentheses made `??` bind to the `typeof` check, so the indicator always got `tabBarActiveTintColor` at 10% alpha. The patch restores the intended precedence, so the active indicator pill takes the color from the design.
-- Upstream PR/issue: not reported yet.
+- Upstream PR/issue: not reported. The rewritten native tab view on the v8 branch no longer has the bug, but it is still present on the `7.x` branch as of 7.20.0. **This patch can be removed on the upgrade to v8.**
 - E/App issue: [#101169](https://github.com/Expensify/App/issues/101169)
 - PR Introducing Patch: [#101339](https://github.com/Expensify/App/pull/101339)
 - PR Updating Patch: N/A
