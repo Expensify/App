@@ -90,6 +90,22 @@ describe('useAIFeaturesPromoModal', () => {
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
+    it('keeps a previous dismissal while a reset finishes before training data is restored', async () => {
+        await Onyx.set(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, dismissedTraining);
+        renderHook(() => useAIFeaturesPromoModal(session));
+        await act(waitForBatchedUpdates);
+
+        await act(async () => {
+            await clearOnyxAndSeedFullReconnect([ONYXKEYS.SESSION, ONYXKEYS.ACCOUNT]);
+            await waitForBatchedUpdates();
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
+            await waitForBatchedUpdates();
+        });
+
+        expect(Navigation.waitForProtectedRoutes).not.toHaveBeenCalled();
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+    });
+
     it('does not open a promo when its dismissal arrives while protected routes are pending', async () => {
         // Given an evaluation that began before the server restored a previous dismissal.
         renderHook(() => useAIFeaturesPromoModal(session));
@@ -123,6 +139,26 @@ describe('useAIFeaturesPromoModal', () => {
 
         // Then its deferred callback must not navigate into the new screen tree.
         expect(Navigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('does not apply a remembered dismissal to another account', async () => {
+        await Onyx.set(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, dismissedTraining);
+        const {rerender} = renderHook(({currentSession}) => useAIFeaturesPromoModal(currentSession), {initialProps: {currentSession: session}});
+        await act(waitForBatchedUpdates);
+
+        const nextSession = {...session, accountID: 456};
+        await act(async () => {
+            await Onyx.multiSet({[ONYXKEYS.SESSION]: nextSession, [ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING]: {}});
+            await waitForBatchedUpdates();
+        });
+        rerender({currentSession: nextSession});
+        await waitFor(() => expect(Navigation.waitForProtectedRoutes).toHaveBeenCalledTimes(1));
+        await act(async () => {
+            resolveProtectedRoutes();
+            await waitForBatchedUpdates();
+        });
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(`${ROUTES.SETTINGS_TROUBLESHOOT}/ai-features-promo`);
     });
 
     it('opens the promo when the user remains eligible until protected routes are ready', async () => {
