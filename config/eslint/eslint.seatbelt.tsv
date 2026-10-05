@@ -339,7 +339,6 @@
 "../../src/components/Search/index.tsx"	"react-hooks/refs"	5
 "../../src/components/Search/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/Search/SearchAutocompleteInput.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../src/components/Search/SearchAutocompleteList.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Search/SearchBulkActionsButton.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/Search/SearchContextDefinitions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Search/SearchList/ListItem/BaseListItemHeader.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -371,8 +370,7 @@
 "../../src/components/SelectionList/BaseSelectionList.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/SelectionList/components/Footer.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/SelectionList/hooks/useFlattenedSections.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../src/components/SelectionList/ListItem/SpendRuleListItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/SelectionList/ListItem/SplitListItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../src/components/SelectionList/ListItem/SplitListItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/SelectionList/SelectionListWithSections/BaseSelectionListWithSections.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/SelectionList/utils/getListboxRole/index.web.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/SelectionScreen.tsx"	"no-restricted-imports"	1
@@ -863,7 +861,7 @@
 "../../src/libs/PaymentUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/PersonalDetailsUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/PhoneNumber.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/libs/PolicyUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	8
+"../../src/libs/PolicyUtils/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	8
 "../../src/libs/prepareRequestPayload/index.native.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../src/libs/prepareRequestPayload/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Pusher/index.native.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
@@ -1093,7 +1091,6 @@
 "../../src/pages/iou/request/step/StepScreenWrapper.tsx"	"no-restricted-imports"	1
 "../../src/pages/iou/request/step/withFullTransactionOrNotFound.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/iou/request/step/withWritableReportOrNotFound.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/iou/SplitList/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/LoadingPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/media/AttachmentModalScreen/AttachmentModalBaseContent/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/media/AttachmentModalScreen/AttachmentModalBaseContent/index.tsx"	"no-restricted-imports"	1
