@@ -5,9 +5,12 @@ import type {BankAccountList, Policy, Report, ReportAction, ReportMetadata, Repo
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {CONST as COMMON_CONST} from 'expensify-common';
+
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     canAdminPayReport,
+    getIntegrationAccountingMethod,
     getManagerAccountID,
     getSubmitToAccountID,
     getValidConnectedIntegration,
@@ -52,6 +55,7 @@ import {
     isPayBlockedByArchivedState,
     isPayer,
     isProcessingReport as isProcessingReportUtils,
+    isQueuedForExport as isQueuedForExportUtil,
     isReportApproved as isReportApprovedUtils,
     isReportManager,
     isSettled,
@@ -102,6 +106,14 @@ type IsPrimaryPayActionParams = {
     reportActions?: ReportAction[];
     isSecondaryAction?: boolean;
     canNonPayerAdminPay?: boolean;
+};
+
+type IsExportActionOptions = {
+    /** Whether an admin who is not the exporter can export. Defaults to true. */
+    shouldAllowAdmin?: boolean;
+
+    /** Needed to skip archived reports, which the backend never returns as exportable */
+    reportNameValuePairs?: ReportNameValuePairs;
 };
 
 function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isChatReportArchived: boolean, rules: OnyxCollection<Rule>) {
@@ -285,7 +297,7 @@ function isPrimaryPayAction({
     return invoiceReceiverPolicy?.role === CONST.POLICY.ROLE.ADMIN && reimbursableSpend > 0;
 }
 
-function isExportAction(report: Report, currentUserLogin: string, policy?: Policy, reportActions?: ReportAction[]) {
+function isExportAction(report: Report, currentUserLogin: string, policy?: Policy, reportActions?: ReportAction[], options?: IsExportActionOptions) {
     if (!policy) {
         return false;
     }
@@ -300,7 +312,11 @@ function isExportAction(report: Report, currentUserLogin: string, policy?: Polic
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
     const isReportExporter = isPreferredExporter(policy, currentUserLogin);
-    if (!isReportExporter && !isAdmin) {
+
+    // The to-dos pass shouldAllowAdmin false because the backend's export to-do is for the exporter alone, while the
+    // report page offers the action to any admin.
+    const shouldAllowAdmin = options?.shouldAllowAdmin ?? true;
+    if (!isReportExporter && !(shouldAllowAdmin && isAdmin)) {
         return false;
     }
 
@@ -315,13 +331,23 @@ function isExportAction(report: Report, currentUserLogin: string, policy?: Polic
         return false;
     }
 
-    if (report.isWaitingOnBankAccount) {
+    // An export already in flight needs no second one, unless the last one failed
+    if (isQueuedForExportUtil(reportActions) && !hasExportError) {
+        return false;
+    }
+
+    if (report.isWaitingOnBankAccount || isArchivedReport(options?.reportNameValuePairs)) {
         return false;
     }
 
     const isReportReimbursed = isSettled(report);
     const isReportApproved = isReportApprovedUtils({report});
     const isReportClosed = isClosedReportUtils(report);
+
+    // Cash basis only exports once the report is paid, so approval alone leaves nothing to export
+    if (getIntegrationAccountingMethod(policy, connectedIntegration) === COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH) {
+        return isReportReimbursed;
+    }
 
     if (isReportApproved || isReportReimbursed || isReportClosed) {
         return true;

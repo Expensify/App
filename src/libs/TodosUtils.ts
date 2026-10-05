@@ -166,7 +166,7 @@ function reportMatchesTodoBucket(
             );
         case CONST.SEARCH.SEARCH_KEYS.EXPORT: {
             const reportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? []);
-            return isExportAction(report, login, policy, reportActions) && policy?.exporter === login;
+            return isExportAction(report, login, policy, reportActions, {shouldAllowAdmin: false, reportNameValuePairs: reportNameValuePair});
         }
         default:
             return false;
