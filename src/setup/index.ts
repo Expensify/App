@@ -7,6 +7,7 @@ import registerReportActionsPagination from '@libs/registerReportActionsPaginati
 
 import {setDeviceID} from '@userActions/Device';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
+import {clearActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -86,7 +87,10 @@ export default function () {
             ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN,
             ONYXKEYS.RAM_ONLY_WALLET_ONFIDO,
             ONYXKEYS.RAM_ONLY_HAS_FRESH_WALLET_DATA,
+            ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED,
+            ONYXKEYS.RAM_ONLY_IS_LOADING_RULES,
             ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA,
+            ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_VENDOR_DATA,
             ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION,
             ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS,
             ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE,
@@ -103,6 +107,12 @@ export default function () {
     });
 
     cleanupPreMountedDraftReports();
+
+    // The carousel's sibling list belongs to the screen that seeded it, and that ownership lives in module state
+    // which dies with the JS runtime. A list that survives in storage is therefore orphaned the moment the app
+    // reloads: no mounted screen can refresh or release it, and an expense opened straight from a deeplink would
+    // pick it up and page through whatever the user last saw. Drop it before anything can read it.
+    clearActiveTransactionIDs();
 
     // Register the commands after Onyx is initialized so every JS runtime can process paginated
     // responses. Initial snapshots remain asynchronous and gate only pagination, not app startup.
