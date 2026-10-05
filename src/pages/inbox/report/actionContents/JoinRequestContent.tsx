@@ -3,6 +3,7 @@ import ActionableItemButtons from '@components/ReportActionItem/ActionableItemBu
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 
 import {getJoinRequestMessage, getOriginalMessage} from '@libs/ReportActionsUtils';
 
@@ -12,7 +13,6 @@ import {acceptJoinRequest, declineJoinRequest} from '@userActions/Policy/Member'
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {personalDetailsSelector} from '@src/selectors/PersonalDetails';
 import {policyNameSelector} from '@src/selectors/Policy';
 import type {ReportAction} from '@src/types/onyx';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
@@ -31,7 +31,7 @@ function JoinRequestContent({action, actionOwnerReportID, policyID}: JoinRequest
     const [policyName = ''] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: policyNameSelector});
 
     const originalMessage = getOriginalMessage(action);
-    const [requesterDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(originalMessage?.accountID)});
+    const [requesterDetails] = usePersonalDetail(originalMessage?.accountID);
 
     const isJoinRequestUnresolved = originalMessage?.choice === ('' as JoinWorkspaceResolution);
 

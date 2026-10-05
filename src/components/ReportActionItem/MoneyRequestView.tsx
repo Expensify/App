@@ -1,6 +1,7 @@
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import HighlightableMenuItemWithTopDescription from '@components/HighlightableMenuItemWithTopDescription';
 import Icon from '@components/Icon';
+import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -32,6 +33,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import {useDerivedReportNamesByReportIDs} from '@hooks/useReportAttributes';
@@ -118,6 +120,7 @@ import {
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isDistanceTypeRequest,
     isExpenseUnreported as isExpenseUnreportedTransactionUtils,
+    isFailedScanAmountPlaceholder,
     isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils,
     isManagedCardTransaction as isManagedCardTransactionTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
@@ -138,11 +141,13 @@ import AnimatedEmptyStateBackground from '@pages/inbox/report/AnimatedEmptyState
 
 import variables from '@styles/variables';
 
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
+import {loginSelector} from '@src/selectors/PersonalDetails';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -223,7 +228,7 @@ function MoneyRequestView({
     // When this component is used when merging from the search page, we might not have the parent report stored in the main collection
     const [parentReportFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
     const parentReport = parentReportFromOnyx ?? currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
-    const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
+    const [iouReportOwnerLogin] = usePersonalDetail(parentReport?.ownerAccountID, loginSelector);
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
 
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`);
@@ -280,7 +285,7 @@ function MoneyRequestView({
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
 
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${getNonEmptyStringOnyxID(linkedTransactionID)}`);
-    const transactionViolations = useTransactionViolations(transaction?.transactionID, true, distanceOriginalPolicy ?? policy);
+    const transactionViolations = useTransactionViolations(transaction?.transactionID, false, distanceOriginalPolicy ?? policy);
     const allTransactionViolations = useAllTransactionViolations(transaction?.transactionID);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -334,6 +339,8 @@ function MoneyRequestView({
     const isOdometerDistanceRequest = isOdometerDistanceRequestTransactionUtils(transaction);
     const isMapDistanceRequest = isMapDistanceRequestTransactionUtils(transaction) || isDistanceTypeRequest(transaction);
     const isTransactionScanning = isScanning(updatedTransaction ?? transaction);
+    const isSettled = isSettledReportUtils(moneyRequestReport);
+    const hasFailedScanAmountPlaceholder = isFailedScanAmountPlaceholder(updatedTransaction ?? transaction, isSettled);
     const hasRoute = hasRouteTransactionUtils(transactionBackup ?? transaction, isDistanceRequest);
 
     const rawActualAttendees = isFromMergeTransaction && updatedTransaction ? updatedTransaction.comment?.attendees : transactionAttendees;
@@ -376,7 +383,6 @@ function MoneyRequestView({
     const actualTransactionDate = isFromMergeTransaction && updatedTransaction ? getFormattedCreated(updatedTransaction) : transactionDate;
     const fallbackTaxRateTitle = transaction?.taxValue;
 
-    const isSettled = isSettledReportUtils(moneyRequestReport);
     const isCancelled = moneyRequestReport?.isCancelledIOU;
     const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
@@ -404,7 +410,16 @@ function MoneyRequestView({
     const isSplitAvailable =
         moneyRequestReport &&
         transaction &&
-        isSplitAction(moneyRequestReport, [transaction], originalTransaction, currentUserPersonalDetails.login ?? '', currentUserPersonalDetails.accountID, rules, policy);
+        isSplitAction(
+            moneyRequestReport,
+            [transaction],
+            originalTransaction,
+            currentUserPersonalDetails.login ?? '',
+            currentUserPersonalDetails.accountID,
+            rules,
+            iouReportOwnerLogin,
+            policy,
+        );
 
     const canEditTaxFields = canEdit && !isDistanceRequest;
     const canEditAmount =
@@ -642,6 +657,8 @@ function MoneyRequestView({
     if (isTransactionScanning) {
         merchantTitle = translate('iou.receiptStatusTitle');
         amountTitle = translate('iou.receiptStatusTitle');
+    } else if (hasFailedScanAmountPlaceholder) {
+        amountTitle = '';
     }
 
     const updatedTransactionDescription = getDescription(updatedTransaction) || undefined;
@@ -807,6 +824,10 @@ function MoneyRequestView({
                 isError: transactionDate === '',
                 translationPath: canEditDate ? 'common.error.enterDate' : 'common.error.missingDate',
             },
+            amount: {
+                isError: !isSettled && !isCancelled && hasFailedScanAmountPlaceholder,
+                translationPath: canEditAmount ? 'common.error.enterAmount' : 'common.error.missingAmount',
+            },
         };
 
         const {isError, translationPath} = fieldChecks[field] ?? {};
@@ -854,6 +875,8 @@ function MoneyRequestView({
 
         return '';
     };
+
+    const dateError = getErrorForField('date');
 
     const showTaxDisabledAlert = () => {
         showConfirmModal({
@@ -998,103 +1021,133 @@ function MoneyRequestView({
     const distanceRequestFields = (
         <>
             <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints') ?? getPendingFieldAction('merchant')}>
-                <MenuItemWithTopDescription
-                    description={distanceToDisplayDescription}
-                    title={distanceToDisplay}
-                    hintText={distanceToDisplayHintText}
-                    numberOfLinesTitle={2}
-                    interactive={canEditDistance}
-                    shouldShowRightIcon={canEditDistance}
-                    titleStyle={styles.flex1}
-                    onPress={() => {
-                        if (!transaction?.transactionID || !transactionThreadReport?.reportID) {
-                            return;
-                        }
+                <MenuItem.Root
+                    onPress={
+                        canEditDistance
+                            ? callFunctionIfActionIsAllowed(() => {
+                                  if (!transaction?.transactionID || !transactionThreadReport?.reportID) {
+                                      return;
+                                  }
 
-                        if (isOdometerDistanceRequest) {
-                            Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport.reportID),
-                            );
-                            return;
-                        }
+                                  if (isOdometerDistanceRequest) {
+                                      Navigation.navigate(
+                                          ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport.reportID),
+                                      );
+                                      return;
+                                  }
 
-                        if (isManualDistanceRequest) {
-                            Navigation.navigate(
-                                createDynamicRoute(
-                                    DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE_MANUAL.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport.reportID),
-                                ),
-                            );
-                            return;
-                        }
+                                  if (isManualDistanceRequest) {
+                                      Navigation.navigate(
+                                          createDynamicRoute(
+                                              DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE_MANUAL.getRoute(
+                                                  CONST.IOU.ACTION.EDIT,
+                                                  iouType,
+                                                  transaction.transactionID,
+                                                  transactionThreadReport.reportID,
+                                              ),
+                                          ),
+                                      );
+                                      return;
+                                  }
 
-                        Navigation.navigate(
-                            createDynamicRoute(
-                                DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport.reportID),
-                            ),
-                        );
-                    }}
-                    brickRoadIndicator={getErrorForField('waypoints') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    errorText={getErrorForField('waypoints')}
-                    copyValue={distanceCopyValue}
-                    copyable={!!distanceCopyValue}
-                />
+                                  Navigation.navigate(
+                                      createDynamicRoute(
+                                          DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport.reportID),
+                                      ),
+                                  );
+                              })
+                            : undefined
+                    }
+                >
+                    <MenuItemField.Row
+                        name={distanceToDisplayDescription}
+                        value={distanceToDisplay}
+                        numberOfLinesValue={2}
+                    >
+                        {!!getErrorForField('waypoints') && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                        {canEditDistance && <MenuItem.Chevron />}
+                        {!!distanceCopyValue && <MenuItem.Copy value={distanceCopyValue} />}
+                    </MenuItemField.Row>
+                    {!!getErrorForField('waypoints') && (
+                        <MenuItem.HelpText
+                            isError
+                            message={getErrorForField('waypoints')}
+                        />
+                    )}
+                    {!!distanceToDisplayHintText && <MenuItem.HelpText message={distanceToDisplayHintText} />}
+                </MenuItem.Root>
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={getPendingFieldAction('customUnitRateID')}>
-                <MenuItemWithTopDescription
-                    description={translate('common.rate')}
-                    title={rateToDisplay}
-                    numberOfLinesTitle={2}
-                    interactive={canEditDistanceRate}
-                    shouldShowRightIcon={canEditDistanceRate}
-                    titleStyle={styles.flex1}
-                    onPress={() => {
-                        if (!transaction?.transactionID || !transactionThreadReport?.reportID) {
-                            return;
-                        }
+                <MenuItem.Root
+                    onPress={
+                        canEditDistanceRate
+                            ? callFunctionIfActionIsAllowed(() => {
+                                  if (!transaction?.transactionID || !transactionThreadReport?.reportID) {
+                                      return;
+                                  }
 
-                        if (isTrackExpense) {
-                            if (shouldNavigateToUpgradePath && transactionThreadReport) {
-                                Navigation.navigate(
-                                    createDynamicRoute(
-                                        DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                            action: CONST.IOU.ACTION.EDIT,
-                                            iouType,
-                                            transactionID: transaction.transactionID,
-                                            reportID: transactionThreadReport?.reportID,
-                                            upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
-                                        }),
-                                    ),
-                                );
-                                return;
-                            }
-                            if (!policy && shouldSelectPolicy) {
-                                Navigation.navigate(
-                                    ROUTES.SET_DEFAULT_WORKSPACE.getRoute(
-                                        createDynamicRoute(
-                                            DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(
-                                                CONST.IOU.ACTION.EDIT,
-                                                iouType,
-                                                transaction.transactionID,
-                                                transactionThreadReport?.reportID,
-                                            ),
-                                        ),
-                                    ),
-                                );
-                                return;
-                            }
-                        }
+                                  if (isTrackExpense) {
+                                      if (shouldNavigateToUpgradePath && transactionThreadReport) {
+                                          Navigation.navigate(
+                                              createDynamicRoute(
+                                                  DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                                      action: CONST.IOU.ACTION.EDIT,
+                                                      iouType,
+                                                      transactionID: transaction.transactionID,
+                                                      reportID: transactionThreadReport?.reportID,
+                                                      upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
+                                                  }),
+                                              ),
+                                          );
+                                          return;
+                                      }
+                                      if (!policy && shouldSelectPolicy) {
+                                          Navigation.navigate(
+                                              ROUTES.SET_DEFAULT_WORKSPACE.getRoute(
+                                                  createDynamicRoute(
+                                                      DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(
+                                                          CONST.IOU.ACTION.EDIT,
+                                                          iouType,
+                                                          transaction.transactionID,
+                                                          transactionThreadReport?.reportID,
+                                                      ),
+                                                  ),
+                                              ),
+                                          );
+                                          return;
+                                      }
+                                  }
 
-                        Navigation.navigate(
-                            createDynamicRoute(
-                                DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport.reportID),
-                            ),
-                        );
-                    }}
-                    brickRoadIndicator={getErrorForField('customUnitRateID') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    errorText={getErrorForField('customUnitRateID')}
-                    copyValue={distanceRateCopyValue}
-                    copyable={!!distanceRateCopyValue}
-                />
+                                  Navigation.navigate(
+                                      createDynamicRoute(
+                                          DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(
+                                              CONST.IOU.ACTION.EDIT,
+                                              iouType,
+                                              transaction.transactionID,
+                                              transactionThreadReport.reportID,
+                                          ),
+                                      ),
+                                  );
+                              })
+                            : undefined
+                    }
+                >
+                    <MenuItemField.Row
+                        name={translate('common.rate')}
+                        value={rateToDisplay}
+                        numberOfLinesValue={2}
+                    >
+                        {!!getErrorForField('customUnitRateID') && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                        {canEditDistanceRate && <MenuItem.Chevron />}
+                        {!!distanceRateCopyValue && <MenuItem.Copy value={distanceRateCopyValue} />}
+                    </MenuItemField.Row>
+                    {!!getErrorForField('customUnitRateID') && (
+                        <MenuItem.HelpText
+                            isError
+                            message={getErrorForField('customUnitRateID')}
+                        />
+                    )}
+                </MenuItem.Root>
             </OfflineWithFeedback>
         </>
     );
@@ -1178,7 +1231,8 @@ function MoneyRequestView({
     const reportNameToDisplay = isFromMergeTransaction ? (updatedTransaction?.reportName ?? translate('common.none')) : getReportName(parentReport, parentReportDerivedName);
     const shouldShowReport = !!parentReportID || (isFromMergeTransaction && !!reportNameToDisplay);
     const reportCopyValue = !canEditReport && reportNameToDisplay !== translate('common.none') ? reportNameToDisplay : undefined;
-    const shouldShowCategoryAnalyzing = isCategoryBeingAnalyzed(transaction, transactionReport);
+    const shouldShowCategoryAnalyzing = isCategoryBeingAnalyzed(updatedTransaction ?? transaction, transactionReport, policy);
+
     // In this case we want to use this value. The shouldUseNarrowLayout will always be true as this case is handled when we display ReportScreen in RHP.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -1323,188 +1377,244 @@ function MoneyRequestView({
                     </OfflineWithFeedback>
                 )}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('created')}>
-                    <MenuItemWithTopDescription
-                        description={dateDescription}
-                        title={actualTransactionDate}
-                        numberOfLinesTitle={2}
-                        interactive={canEditDate}
-                        shouldShowRightIcon={canEditDate}
-                        titleStyle={styles.flex1}
-                        onPress={() => {
-                            Navigation.navigate(
-                                createDynamicRoute(
-                                    DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID),
-                                ),
-                            );
-                        }}
-                        brickRoadIndicator={getErrorForField('date') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        errorText={getErrorForField('date')}
-                        copyValue={dateCopyValue}
-                        copyable={!!dateCopyValue}
-                    />
+                    <MenuItem.Root
+                        onPress={
+                            canEditDate
+                                ? callFunctionIfActionIsAllowed(() => {
+                                      Navigation.navigate(
+                                          createDynamicRoute(
+                                              DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID),
+                                          ),
+                                      );
+                                  })
+                                : undefined
+                        }
+                    >
+                        <MenuItemField.Row
+                            name={dateDescription}
+                            value={actualTransactionDate}
+                            numberOfLinesValue={2}
+                        >
+                            {!!dateError && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                            {canEditDate && <MenuItem.Chevron />}
+                            {!!dateCopyValue && <MenuItem.Copy value={dateCopyValue} />}
+                        </MenuItemField.Row>
+                        {!!dateError && (
+                            <MenuItem.HelpText
+                                isError
+                                message={dateError}
+                            />
+                        )}
+                    </MenuItem.Root>
                 </OfflineWithFeedback>
                 {!!shouldShowCategory && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('category')}>
-                        <MenuItemWithTopDescription
-                            description={translate('common.category')}
-                            title={shouldShowCategoryAnalyzing ? translate('common.analyzing') : decodedCategoryName}
-                            numberOfLinesTitle={2}
-                            interactive={canEdit}
-                            shouldShowRightIcon={canEdit}
-                            titleStyle={styles.flex1}
-                            onPress={() => {
-                                if (shouldShowCategoryDisabledAlert) {
-                                    showCategoryDisabledAlert();
-                                    return;
-                                }
+                        <MenuItem.Root
+                            onPress={
+                                canEdit
+                                    ? callFunctionIfActionIsAllowed(() => {
+                                          if (shouldShowCategoryDisabledAlert) {
+                                              showCategoryDisabledAlert();
+                                              return;
+                                          }
 
-                                if (shouldNavigateToUpgradePath && transactionThreadReport) {
-                                    Navigation.navigate(
-                                        createDynamicRoute(
-                                            DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                                action: CONST.IOU.ACTION.EDIT,
-                                                iouType,
-                                                transactionID: transaction.transactionID,
-                                                reportID: transactionThreadReport?.reportID,
-                                                upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
-                                                upgradeBackTo: createDynamicRoute(
-                                                    DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
-                                                        action: CONST.IOU.ACTION.EDIT,
-                                                        iouType,
-                                                        transactionID: transaction.transactionID,
-                                                        reportID: transactionThreadReport?.reportID,
-                                                    }),
-                                                ),
-                                            }),
-                                        ),
-                                    );
-                                } else if (!policy && shouldSelectPolicy) {
-                                    Navigation.navigate(
-                                        ROUTES.SET_DEFAULT_WORKSPACE.getRoute(
-                                            createDynamicRoute(
-                                                DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
-                                                    action: CONST.IOU.ACTION.EDIT,
-                                                    iouType,
-                                                    transactionID: transaction.transactionID,
-                                                    reportID: transactionThreadReport?.reportID,
-                                                }),
-                                            ),
-                                        ),
-                                    );
-                                } else {
-                                    Navigation.navigate(
-                                        createDynamicRoute(
-                                            DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
-                                                action: CONST.IOU.ACTION.EDIT,
-                                                iouType,
-                                                transactionID: transaction.transactionID,
-                                                reportID: transactionThreadReport?.reportID,
-                                            }),
-                                        ),
-                                    );
-                                }
-                            }}
-                            brickRoadIndicator={getErrorForField('category') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            errorText={getErrorForField('category')}
-                            copyValue={categoryCopyValue}
-                            copyable={!!categoryCopyValue}
-                        />
+                                          if (shouldNavigateToUpgradePath && transactionThreadReport) {
+                                              Navigation.navigate(
+                                                  createDynamicRoute(
+                                                      DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                                          action: CONST.IOU.ACTION.EDIT,
+                                                          iouType,
+                                                          transactionID: transaction.transactionID,
+                                                          reportID: transactionThreadReport?.reportID,
+                                                          upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
+                                                          upgradeBackTo: createDynamicRoute(
+                                                              DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
+                                                                  action: CONST.IOU.ACTION.EDIT,
+                                                                  iouType,
+                                                                  transactionID: transaction.transactionID,
+                                                                  reportID: transactionThreadReport?.reportID,
+                                                              }),
+                                                          ),
+                                                      }),
+                                                  ),
+                                              );
+                                          } else if (!policy && shouldSelectPolicy) {
+                                              Navigation.navigate(
+                                                  ROUTES.SET_DEFAULT_WORKSPACE.getRoute(
+                                                      createDynamicRoute(
+                                                          DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
+                                                              action: CONST.IOU.ACTION.EDIT,
+                                                              iouType,
+                                                              transactionID: transaction.transactionID,
+                                                              reportID: transactionThreadReport?.reportID,
+                                                          }),
+                                                      ),
+                                                  ),
+                                              );
+                                          } else {
+                                              Navigation.navigate(
+                                                  createDynamicRoute(
+                                                      DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
+                                                          action: CONST.IOU.ACTION.EDIT,
+                                                          iouType,
+                                                          transactionID: transaction.transactionID,
+                                                          reportID: transactionThreadReport?.reportID,
+                                                      }),
+                                                  ),
+                                              );
+                                          }
+                                      })
+                                    : undefined
+                            }
+                        >
+                            <MenuItemField.Row
+                                name={translate('common.category')}
+                                value={shouldShowCategoryAnalyzing ? translate('common.analyzing') : decodedCategoryName}
+                                numberOfLinesValue={2}
+                            >
+                                {!!getErrorForField('category') && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                                {canEdit && <MenuItem.Chevron />}
+                                {!!categoryCopyValue && <MenuItem.Copy value={categoryCopyValue} />}
+                            </MenuItemField.Row>
+                            {!!getErrorForField('category') && (
+                                <MenuItem.HelpText
+                                    isError
+                                    message={getErrorForField('category')}
+                                />
+                            )}
+                        </MenuItem.Root>
                     </OfflineWithFeedback>
                 )}
                 {shouldShowVendor && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('vendor')}>
-                        <MenuItemWithTopDescription
-                            description={vendorFieldLabel}
-                            title={transactionVendorName}
-                            numberOfLinesTitle={2}
-                            interactive={canEdit}
-                            shouldShowRightIcon={canEdit}
-                            titleStyle={styles.flex1}
-                            onPress={() => {
-                                if (!transactionThreadReport?.reportID) {
-                                    return;
-                                }
-                                Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_VENDOR.getRoute(
-                                        CONST.IOU.ACTION.EDIT,
-                                        iouType,
-                                        transaction.transactionID,
-                                        transactionThreadReport.reportID,
-                                        getReportRHPActiveRoute(),
-                                    ),
-                                );
-                            }}
-                            brickRoadIndicator={getErrorForField('vendor') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            errorText={getErrorForField('vendor')}
-                        />
+                        <MenuItem.Root
+                            onPress={
+                                canEdit
+                                    ? callFunctionIfActionIsAllowed(() => {
+                                          if (!transactionThreadReport?.reportID) {
+                                              return;
+                                          }
+                                          Navigation.navigate(
+                                              ROUTES.MONEY_REQUEST_STEP_VENDOR.getRoute(
+                                                  CONST.IOU.ACTION.EDIT,
+                                                  iouType,
+                                                  transaction.transactionID,
+                                                  transactionThreadReport.reportID,
+                                                  getReportRHPActiveRoute(),
+                                              ),
+                                          );
+                                      })
+                                    : undefined
+                            }
+                        >
+                            <MenuItemField.Row
+                                name={vendorFieldLabel}
+                                value={transactionVendorName}
+                                numberOfLinesValue={2}
+                            >
+                                {!!getErrorForField('vendor') && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                                {canEdit && <MenuItem.Chevron />}
+                            </MenuItemField.Row>
+                            {!!getErrorForField('vendor') && (
+                                <MenuItem.HelpText
+                                    isError
+                                    message={getErrorForField('vendor')}
+                                />
+                            )}
+                        </MenuItem.Root>
                     </OfflineWithFeedback>
                 )}
                 {shouldShowTag && tagList}
                 {!!shouldShowCard && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('cardID')}>
-                        <MenuItemWithTopDescription
-                            description={translate('iou.card')}
-                            title={cardCopyValue}
-                            numberOfLinesTitle={2}
-                            titleStyle={styles.flex1}
-                            interactive={false}
-                            copyValue={cardCopyValue}
-                            copyable={!!cardCopyValue}
-                        />
+                        <MenuItem.Root>
+                            <MenuItemField.Row
+                                name={translate('iou.card')}
+                                value={cardCopyValue}
+                                numberOfLinesValue={2}
+                            >
+                                {!!cardCopyValue && <MenuItem.Copy value={cardCopyValue} />}
+                            </MenuItemField.Row>
+                        </MenuItem.Root>
                     </OfflineWithFeedback>
                 )}
                 {shouldShowTax && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('taxCode')}>
-                        <MenuItemWithTopDescription
-                            title={taxRateValue}
-                            description={taxRatesDescription ?? translate('common.tax')}
-                            numberOfLinesTitle={2}
-                            interactive={canEditTaxFields}
-                            shouldShowRightIcon={canEditTaxFields}
-                            titleStyle={styles.flex1}
-                            onPress={() => {
-                                if (shouldShowTaxDisabledAlert) {
-                                    showTaxDisabledAlert();
-                                    return;
-                                }
+                        <MenuItem.Root
+                            onPress={
+                                canEditTaxFields
+                                    ? callFunctionIfActionIsAllowed(() => {
+                                          if (shouldShowTaxDisabledAlert) {
+                                              showTaxDisabledAlert();
+                                              return;
+                                          }
 
-                                Navigation.navigate(
-                                    createDynamicRoute(
-                                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID),
-                                    ),
-                                );
-                            }}
-                            brickRoadIndicator={getErrorForField('tax') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            errorText={getErrorForField('tax')}
-                            copyValue={taxRateCopyValue}
-                            copyable={!!taxRateCopyValue}
-                        />
+                                          Navigation.navigate(
+                                              createDynamicRoute(
+                                                  DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(
+                                                      CONST.IOU.ACTION.EDIT,
+                                                      iouType,
+                                                      transaction.transactionID,
+                                                      transactionThreadReport?.reportID,
+                                                  ),
+                                              ),
+                                          );
+                                      })
+                                    : undefined
+                            }
+                        >
+                            <MenuItemField.Row
+                                name={taxRatesDescription ?? translate('common.tax')}
+                                value={taxRateValue}
+                                numberOfLinesValue={2}
+                            >
+                                {!!getErrorForField('tax') && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                                {canEditTaxFields && <MenuItem.Chevron />}
+                                {!!taxRateCopyValue && <MenuItem.Copy value={taxRateCopyValue} />}
+                            </MenuItemField.Row>
+                            {!!getErrorForField('tax') && (
+                                <MenuItem.HelpText
+                                    isError
+                                    message={getErrorForField('tax')}
+                                />
+                            )}
+                        </MenuItem.Root>
                     </OfflineWithFeedback>
                 )}
                 {shouldShowTax && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('taxAmount')}>
-                        <MenuItemWithTopDescription
-                            title={taxAmountTitle}
-                            description={taxAmountDescription}
-                            numberOfLinesTitle={2}
-                            interactive={canEditTaxFields}
-                            shouldShowRightIcon={canEditTaxFields}
-                            titleStyle={styles.flex1}
-                            onPress={() => {
-                                if (shouldShowTaxDisabledAlert) {
-                                    showTaxDisabledAlert();
-                                    return;
-                                }
+                        <MenuItem.Root
+                            onPress={
+                                canEditTaxFields
+                                    ? callFunctionIfActionIsAllowed(() => {
+                                          if (shouldShowTaxDisabledAlert) {
+                                              showTaxDisabledAlert();
+                                              return;
+                                          }
 
-                                Navigation.navigate(
-                                    createDynamicRoute(
-                                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID),
-                                    ),
-                                );
-                            }}
-                            copyValue={taxAmountCopyValue}
-                            copyable={!!taxAmountCopyValue}
-                        />
+                                          Navigation.navigate(
+                                              createDynamicRoute(
+                                                  DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(
+                                                      CONST.IOU.ACTION.EDIT,
+                                                      iouType,
+                                                      transaction.transactionID,
+                                                      transactionThreadReport?.reportID,
+                                                  ),
+                                              ),
+                                          );
+                                      })
+                                    : undefined
+                            }
+                        >
+                            <MenuItemField.Row
+                                name={taxAmountDescription}
+                                value={taxAmountTitle}
+                                numberOfLinesValue={2}
+                            >
+                                {canEditTaxFields && <MenuItem.Chevron />}
+                                {!!taxAmountCopyValue && <MenuItem.Copy value={taxAmountCopyValue} />}
+                            </MenuItemField.Row>
+                        </MenuItem.Root>
                     </OfflineWithFeedback>
                 )}
                 {shouldShowAttendees && (

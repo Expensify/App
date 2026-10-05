@@ -124,7 +124,6 @@ function ReportFetchHandler() {
     const [reportLoadingState = defaultReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
     const isReportActionsLoaded = useIsReportActionsLoaded(reportIDFromRoute);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
@@ -238,7 +237,6 @@ function ReportFetchHandler() {
             conciergeChat,
             reportActionID: reportActionIDFromRoute,
             participants: dmParticipants,
-            betas,
             personalDetails,
             hasReportActions,
             // Falsy means a page refresh / cold start, which is when openReport clears a manual unread marker.
@@ -263,7 +261,6 @@ function ReportFetchHandler() {
             hasCompletedGuidedSetupFlow,
             currentUserLogin: currentUserEmail ?? '',
             currentUserAccountID,
-            betas,
             iouReport: report,
             iouReportAction: iouAction,
             transaction: currentReportTransactions.at(0),
@@ -283,7 +280,7 @@ function ReportFetchHandler() {
         if (!shouldUseNarrowLayout || !isChatThread(report) || !isHiddenForCurrentUser(report) || isTransactionThreadView) {
             return;
         }
-        openReport({reportID, introSelected, conciergeChat, betas, personalDetails, hasReportActions, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow});
+        openReport({reportID, introSelected, conciergeChat, personalDetails, hasReportActions, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow});
     });
 
     const joinPublicRoomIfNeeded = useEffectEvent(() => {
@@ -295,7 +292,6 @@ function ReportFetchHandler() {
             reportID: viewingPublicRoomReportID,
             introSelected,
             conciergeChat,
-            betas,
             personalDetails,
             hasReportActions: hasViewingPublicRoomReportActions,
             currentUserAccountID,
@@ -488,6 +484,27 @@ function ReportFetchHandler() {
         updateLoadingInitialReportAction(reportIDFromRoute, true);
     }, [reportIDFromRoute, reportLoadingState.hasOnceLoadedReportActions]);
 
+    // "Clear cache and restart" drops the memory-only `hasOnceLoadedReportActions` under a mounted report screen, and
+    // nothing re-fetches, so the effect above re-arms `isLoadingInitialReportActions` for a load that never comes and
+    // the report preview spins forever. Re-fetch only when a stamp this screen saw for the same reportID is lost, so a
+    // normal open or a switch to another report does not double up on the fetch effect below. See issue #100524.
+    const stampedReportIDRef = useRef<string | undefined>(undefined);
+    useEffect(() => {
+        if (reportLoadingState.hasOnceLoadedReportActions) {
+            stampedReportIDRef.current = reportIDFromRoute;
+            return;
+        }
+
+        // Held while the Inbox tab is merely preloaded, like every other fetch here: OpenReport would mark a report
+        // the user has never opened as read. The ref survives the bail, so opening the tab re-runs this effect and
+        // the fetch is deferred rather than lost.
+        if (stampedReportIDRef.current !== reportIDFromRoute || !isFocused || isOffline || isInPreloadedTab) {
+            return;
+        }
+        stampedReportIDRef.current = undefined;
+        fetchReport();
+    }, [reportIDFromRoute, reportLoadingState.hasOnceLoadedReportActions, isFocused, isOffline, isInPreloadedTab]);
+
     // isLoadingInitialReportActions only clears via OpenReport's success/failure Onyx update (no client timeout), so
     // a reconciliation stall that pauses the queue before that response arrives leaves the skeleton stuck with
     // nothing else to log it. See Expensify#667674.
@@ -640,7 +657,6 @@ function ReportFetchHandler() {
             hasCompletedGuidedSetupFlow,
             currentUserLogin: currentUserEmail ?? '',
             currentUserAccountID,
-            betas,
             iouReport: report,
             transaction,
             personalDetails,
@@ -651,7 +667,6 @@ function ReportFetchHandler() {
         hasCompletedGuidedSetupFlow,
         currentUserEmail,
         currentUserAccountID,
-        betas,
         personalDetails,
         report,
         visibleTransactions,
