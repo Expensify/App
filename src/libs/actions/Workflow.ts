@@ -308,13 +308,10 @@ type SetApprovalWorkflowRulesParams = {
 };
 
 /**
- * Apply a set of approval-workflow rule changes to a policy via the SetApprovalWorkflow Auth command.
+ * Build the Onyx updates for a request that applies a diff of approval-workflow rules: the diff shows while the request
+ * is pending, and is kept when it succeeds or rolled back when it fails.
  */
-function setApprovalWorkflowRules({policyID, rulesDiff, previousRules}: SetApprovalWorkflowRulesParams) {
-    if (!policyID || isEmptyObject(rulesDiff)) {
-        return;
-    }
-
+function buildApprovalWorkflowRulesOnyxData({policyID, rulesDiff, previousRules}: SetApprovalWorkflowRulesParams) {
     const genericError = getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage');
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RULE>> = [];
@@ -350,12 +347,32 @@ function setApprovalWorkflowRules({policyID, rulesDiff, previousRules}: SetAppro
         failureData.push(restore);
     }
 
+    return {optimisticData, successData, failureData};
+}
+
+/**
+ * Apply a set of approval-workflow rule changes to a policy via the SetApprovalWorkflow Auth command.
+ */
+function setApprovalWorkflowRules({policyID, rulesDiff, previousRules}: SetApprovalWorkflowRulesParams) {
+    if (!policyID || isEmptyObject(rulesDiff)) {
+        return;
+    }
+
     const parameters: SetApprovalWorkflowParams = {
         policyID,
         rules: JSON.stringify(rulesDiff),
     };
 
-    write(WRITE_COMMANDS.SET_APPROVAL_WORKFLOW, parameters, {optimisticData, successData, failureData});
+    write(WRITE_COMMANDS.SET_APPROVAL_WORKFLOW, parameters, buildApprovalWorkflowRulesOnyxData({policyID, rulesDiff, previousRules}));
+}
+
+/**
+ * Build the Onyx updates for a request whose backend deletes the policy's approval workflow rules, the way
+ * setApprovalWorkflowRules deletes rules: they stop routing while the request is pending, and come back if it fails.
+ */
+function buildDeleteApprovalWorkflowRulesOnyxData(policyID: string, rules: OnyxCollection<Rule>) {
+    const rulesDiff: ApprovalWorkflowRulesDiff = Object.fromEntries(Object.keys(getApprovalWorkflowRulesForPolicy(rules, policyID)).map((ruleID) => [ruleID, null]));
+    return buildApprovalWorkflowRulesOnyxData({policyID, rulesDiff, previousRules: rules});
 }
 
 type CreateApprovalWorkflowRulesParams = CreateApprovalWorkflowParams & {
@@ -726,6 +743,7 @@ function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx): appro
 }
 
 export {
+    buildDeleteApprovalWorkflowRulesOnyxData,
     createApprovalWorkflow,
     createApprovalWorkflowRules,
     removeApprovalWorkflowRules,
