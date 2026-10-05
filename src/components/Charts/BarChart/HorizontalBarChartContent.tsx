@@ -1,11 +1,12 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import {HORIZONTAL_BAR_DOMAIN_PADDING, MIN_BAR_ROW_HEIGHT} from '@components/Charts/barChartConstants';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
 import type {HitTestArgs, ResolveTargetIndexArgs} from '@components/Charts/hooks';
 import {useChartFontManager, useChartInteractions, useChartLabelFormats, useChartParagraphs} from '@components/Charts/hooks';
 import {findClosestPoint} from '@components/Charts/hooks/useChartInteractions';
-import {calculateMinDomainPadding, getFontLineMetrics, getNiceValueDomain, getNiceValueTicks, measureTextWidth} from '@components/Charts/utils';
-import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING, LABEL_PADDING, MAX_Y_AXIS_LABEL_WIDTH} from '@components/Charts/VictoryTheme';
+import {getFontLineMetrics, getHorizontalChartHeight, getNiceValueDomain, getNiceValueTicks, measureTextWidth} from '@components/Charts/utils';
+import VictoryTheme, {CATEGORY_LABEL_WIDTH_RATIO, CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING, LABEL_PADDING, MAX_Y_AXIS_LABEL_WIDTH} from '@components/Charts/VictoryTheme';
 
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,9 +26,6 @@ import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimate
 import {CartesianChart} from 'victory-native';
 
 import type {BarChartProps} from './types';
-
-/** Extra pixel spacing between the chart boundary and the data range. `right` keeps the longest bar's tip and its tooltip off the edge. */
-const BASE_DOMAIN_PADDING = {top: 8, bottom: 8, left: 0, right: 8};
 
 /** Gap between the bar tip and the tooltip pointer, lifting the tooltip clear of the bar. */
 const TOOLTIP_TIP_GAP = 4;
@@ -157,7 +155,6 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
     const styles = useThemeStyles();
     const fontManager = useChartFontManager();
     const [chartWidth, setChartWidth] = useState(0);
-    const [barAreaHeight, setBarAreaHeight] = useState(0);
 
     // Transpose: value on the x-axis, category index on the y-axis.
     // Categories are reversed (index 0 mapped to the top row) so a descending-sorted ranking reads top-to-bottom.
@@ -169,7 +166,7 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
 
     const valueDomain = getNiceValueDomain(data, VictoryTheme.axis.tickCount);
 
-    const {formatValue} = useChartLabelFormats({
+    const {formatValue, formatCompactValue} = useChartLabelFormats({
         data,
         unit: yAxisUnit,
         unitPosition: yAxisUnitPosition,
@@ -189,14 +186,6 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
         setChartWidth(event.nativeEvent.layout.width);
     };
 
-    const domainPadding = (() => {
-        if (barAreaHeight === 0) {
-            return BASE_DOMAIN_PADDING;
-        }
-        const verticalPadding = calculateMinDomainPadding(barAreaHeight, data.length, HORIZONTAL_BAR_PADDING);
-        return {...BASE_DOMAIN_PADDING, top: verticalPadding, bottom: verticalPadding};
-    })();
-
     const barThickness = useSharedValue(0);
     const rowHeight = useSharedValue(0);
     const xZero = useSharedValue(0);
@@ -204,7 +193,6 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
 
     const handleChartBoundsChange = (bounds: ChartBounds) => {
         const plotHeight = bounds.bottom - bounds.top;
-        setBarAreaHeight(plotHeight);
         barThickness.set(data.length > 0 ? (1 - HORIZONTAL_BAR_PADDING) * (plotHeight / data.length) : 0);
         plotLeft.set(bounds.left);
     };
@@ -288,6 +276,10 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
         cursor: isCursorOverClickable.get() ? 'pointer' : 'auto',
     }));
 
+    // Cap the label column as a fraction of the width so long labels can't starve the plot on narrow containers.
+    // Shared by the left padding and ChartYAxisLabels truncation so the gutter and rendered labels agree.
+    const categoryLabelMaxWidth = chartWidth > 0 ? Math.min(MAX_Y_AXIS_LABEL_WIDTH, CATEGORY_LABEL_WIDTH_RATIO * chartWidth) : MAX_Y_AXIS_LABEL_WIDTH;
+
     const categoryLabelWidth = (() => {
         if (!fontManager || data.length === 0) {
             return 0;
@@ -296,7 +288,7 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
         for (const point of data) {
             widest = Math.max(widest, measureTextWidth(point.label, fontManager, variables.iconSizeExtraSmall));
         }
-        return Math.min(MAX_Y_AXIS_LABEL_WIDTH, widest);
+        return Math.min(categoryLabelMaxWidth, widest);
     })();
 
     const {ascent, descent} = fontManager ? getFontLineMetrics(fontManager, variables.iconSizeExtraSmall) : {ascent: 0, descent: 0};
@@ -312,7 +304,7 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
         }
         let widest = 0;
         for (const tick of getNiceValueTicks(valueDomain, VictoryTheme.axis.tickCount)) {
-            widest = Math.max(widest, measureTextWidth(formatValue(tick), fontManager, variables.iconSizeExtraSmall));
+            widest = Math.max(widest, measureTextWidth(formatCompactValue(tick), fontManager, variables.iconSizeExtraSmall));
         }
         return widest / 2;
     })();
@@ -333,7 +325,7 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
                     fontSize={variables.iconSizeExtraSmall}
                     fontManager={fontManager}
                     labelColor={theme.textSupporting}
-                    formatValue={formatValue}
+                    formatValue={formatCompactValue}
                 />
                 <ChartYAxisLabels
                     yTicks={chartData.map((point) => point.y)}
@@ -343,7 +335,7 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
                     fontManager={fontManager}
                     labelColor={theme.textSupporting}
                     formatValue={(yValue: number) => data.at(lastIndex - yValue)?.label ?? ''}
-                    labelGap={CATEGORY_LABEL_GAP}
+                    maxLabelWidth={categoryLabelMaxWidth}
                     leftAlign
                     avoidOverlap
                 />
@@ -351,13 +343,17 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
         );
     };
 
-    const dynamicChartStyle = {height: CHART_CONTENT_MIN_HEIGHT + labelSpace};
     const chartPadding = {
         ...VictoryTheme.axis.padding,
+        top: 0,
         right: VictoryTheme.axis.padding.right + valueLabelRightGutter,
-        bottom: labelSpace + VictoryTheme.axis.padding.bottom,
+        // Just enough to hold the axis-label gap and the label itself. The card's own bottom padding sits below the
+        // canvas, so no extra padding is needed here and the labels stay a card-padding's distance from the edge.
+        bottom: labelSpace,
         left: categoryLabelWidth + CATEGORY_LABEL_GAP + GLYPH_PADDING,
     };
+
+    const dynamicChartStyle = {height: getHorizontalChartHeight(data.length, MIN_BAR_ROW_HEIGHT, chartPadding.top + chartPadding.bottom, CHART_CONTENT_MIN_HEIGHT + labelSpace)};
 
     // Draw each bar as its own Skia path so the rounded pill sits on the value tip and the axis end stays square,
     // for both positive (right-pointing) and negative (left-pointing) bars. thickness mirrors BarGroup's own
@@ -416,7 +412,7 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
                         padding={chartPadding}
                         yKeys={['y']}
                         domain={valueDomain ? {x: valueDomain} : undefined}
-                        domainPadding={domainPadding}
+                        domainPadding={HORIZONTAL_BAR_DOMAIN_PADDING}
                         onChartBoundsChange={handleChartBoundsChange}
                         onScaleChange={handleScaleChange}
                         renderOutside={renderOutside}
