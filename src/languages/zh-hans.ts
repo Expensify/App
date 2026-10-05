@@ -7306,8 +7306,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     title: '默认工作安排',
                     officeBasedTitle: '办公室办公',
                     officeBasedHelp: '成员通勤前往办公室。日常通勤不在报销范围内。',
-                    noRegularWorkplaceTitle: '无固定工作地点',
-                    noRegularWorkplaceHelp: '成员远程办公或没有固定工作地点，因此家到工作地点通勤的规则不适用。',
+                    noRegularWorkplaceTitle: '远程或移动',
+                    noRegularWorkplaceHelp: '成员在家办公或在各地点之间出差，没有固定办公地点，因此通勤规则不适用。',
                     startingPrompt: {
                         title: '设置一个常见工作安排',
                         prompt: '请选择适用于大多数现有成员的安排。您以后可以单独或批量更新成员。',

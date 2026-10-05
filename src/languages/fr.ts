@@ -7645,8 +7645,9 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                     title: 'Organisation de travail par défaut',
                     officeBasedTitle: 'Au bureau',
                     officeBasedHelp: 'Le membre se rend habituellement au bureau. Les trajets domicile-travail ordinaires sont exclus du remboursement.',
-                    noRegularWorkplaceTitle: 'Aucun lieu de travail habituel',
-                    noRegularWorkplaceHelp: 'Le membre travaille à distance ou n’a pas de lieu de travail fixe, donc les règles relatives aux trajets domicile‑travail ne s’appliquent pas.',
+                    noRegularWorkplaceTitle: 'À distance ou mobile',
+                    noRegularWorkplaceHelp:
+                        'Le membre travaille à domicile ou se déplace entre plusieurs sites sans bureau fixe, donc les règles relatives aux trajets domicile-travail ne s’appliquent pas.',
                     startingPrompt: {
                         title: 'Définir une organisation de travail type',
                         prompt: 'Choisissez l’organisation qui s’applique à la majorité des membres actuels. Vous pourrez mettre à jour les membres individuellement ou en masse plus tard.',

@@ -7644,9 +7644,9 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                     title: 'Acuerdo de trabajo predeterminado',
                     officeBasedTitle: 'En oficina',
                     officeBasedHelp: 'El miembro se desplaza habitualmente a una oficina. Los desplazamientos ordinarios están excluidos del reembolso.',
-                    noRegularWorkplaceTitle: 'Sin lugar de trabajo habitual',
+                    noRegularWorkplaceTitle: 'Remoto o móvil',
                     noRegularWorkplaceHelp:
-                        'El miembro trabaja en remoto o no tiene un lugar de trabajo fijo, por lo que no se aplican las normas sobre el desplazamiento entre casa y trabajo.',
+                        'La persona miembro trabaja desde casa o viaja entre ubicaciones sin una oficina fija, por lo que no se aplican las normas sobre desplazamientos.',
                     startingPrompt: {
                         title: 'Configura una modalidad de trabajo habitual',
                         prompt: 'Elige la modalidad que se aplique a la mayoría de los miembros actuales. Más tarde podrás actualizar a los miembros individualmente o de forma masiva.',

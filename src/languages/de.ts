@@ -7624,9 +7624,8 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                     title: 'Standardarbeitsmodell',
                     officeBasedTitle: 'Bürobasiert',
                     officeBasedHelp: 'Mitglied pendelt zu einem Büro. Gewöhnliche Arbeitswege sind von der Erstattung ausgeschlossen.',
-                    noRegularWorkplaceTitle: 'Keine regelmäßige Arbeitsstätte',
-                    noRegularWorkplaceHelp:
-                        'Das Mitglied arbeitet remote oder hat keinen festen Arbeitsplatz, daher gelten die Regeln für den Arbeitsweg zwischen Wohnung und Arbeitsstätte nicht.',
+                    noRegularWorkplaceTitle: 'Remote oder mobil',
+                    noRegularWorkplaceHelp: 'Das Mitglied arbeitet von zu Hause aus oder reist zwischen verschiedenen Standorten ohne festes Büro, daher gelten die Pendelregelungen nicht.',
                     startingPrompt: {
                         title: 'Legen Sie eine typische Arbeitsregelung fest',
                         prompt: 'Wählen Sie die Vereinbarung, die für die meisten aktuellen Mitglieder gilt. Sie können Mitglieder später einzeln oder in großen Mengen aktualisieren.',

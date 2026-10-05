@@ -8080,8 +8080,8 @@ const translations = {
                     title: 'Default work arrangement',
                     officeBasedTitle: 'Office-based',
                     officeBasedHelp: 'Member commutes to an office. Ordinary commutes are excluded from reimbursement.',
-                    noRegularWorkplaceTitle: 'No regular workplace',
-                    noRegularWorkplaceHelp: "Member works remotely or lacks a fixed workplace, so home-to-work commute rules don't apply.",
+                    noRegularWorkplaceTitle: 'Remote or mobile',
+                    noRegularWorkplaceHelp: "Member works from home or travels between locations with no regular office, so commute rules don't apply.",
                     startingPrompt: {
                         title: 'Set a typical work arrangement',
                         prompt: 'Choose the arrangement that applies to most current members. You can update members individually or in bulk later.',

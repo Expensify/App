@@ -7488,8 +7488,8 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                     title: 'デフォルトの勤務形態',
                     officeBasedTitle: 'オフィス勤務',
                     officeBasedHelp: 'メンバーはオフィスに通勤します。通常の通勤は精算の対象外です。',
-                    noRegularWorkplaceTitle: '通常の勤務先なし',
-                    noRegularWorkplaceHelp: 'メンバーはリモート勤務、または固定の勤務先がないため、自宅から勤務先への通勤に関するルールは適用されません。',
+                    noRegularWorkplaceTitle: 'リモートまたはモバイル',
+                    noRegularWorkplaceHelp: 'メンバーは在宅勤務、または決まったオフィスがなく拠点間を移動しているため、通勤規程は適用されません。',
                     startingPrompt: {
                         title: '一般的な勤務形態を設定する',
                         prompt: '現在のメンバーの大半に当てはまる区分を選択してください。メンバーは後から個別または一括で更新できます。',

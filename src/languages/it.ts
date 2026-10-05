@@ -7582,8 +7582,9 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                     title: 'Impostazione di lavoro predefinita',
                     officeBasedTitle: 'In ufficio',
                     officeBasedHelp: 'Il membro si reca in ufficio per il tragitto casa-lavoro. I normali spostamenti casa-lavoro sono esclusi dal rimborso.',
-                    noRegularWorkplaceTitle: 'Nessun luogo di lavoro fisso',
-                    noRegularWorkplaceHelp: 'Il membro lavora da remoto o non ha una sede di lavoro fissa, quindi le regole sul tragitto casa-lavoro non si applicano.',
+                    noRegularWorkplaceTitle: 'Remoto o mobile',
+                    noRegularWorkplaceHelp:
+                        'Il membro lavora da casa o si sposta tra diverse sedi senza un ufficio fisso, quindi le regole relative al tragitto casa-lavoro non si applicano.',
                     startingPrompt: {
                         title: 'Imposta una tipica modalità di lavoro',
                         prompt: 'Scegli la disposizione che si applica alla maggior parte dei membri attuali. Potrai aggiornare i membri singolarmente o in blocco in un secondo momento.',
