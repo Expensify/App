@@ -425,6 +425,7 @@ const getSubscriptAvatarBackgroundColor = (isHovered: boolean, isPressed: boolea
     }
 };
 
+/** @deprecated Please compose `MenuItem.Root` with its leaves, or use a preset from `@components/MenuItem/presets/`, for new usages. */
 function MenuItem({
     interactive = true,
     onPress,
@@ -1237,4 +1238,5 @@ function MenuItem({
 }
 
 export type {MenuItemBaseProps, MenuItemProps};
+// eslint-disable-next-line @typescript-eslint/no-deprecated -- Exporting the deprecated component itself is not a usage.
 export default MenuItem;
