@@ -1083,7 +1083,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
                         modifiedCurrency: 'USD',
                         modifiedMerchant: 'Bakery',
                         modifiedCreated: '2026-09-01',
-                    }) as unknown,
+                    }),
                 }),
             );
         });
