@@ -88,6 +88,12 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
     [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_SIGN]: {
         animationTypeForReplace: 'push',
     },
+    [SCREENS.REIMBURSEMENT_ACCOUNT_USD]: {
+        animationTypeForReplace: 'push',
+    },
+    [SCREENS.REIMBURSEMENT_ACCOUNT_NON_USD]: {
+        animationTypeForReplace: 'push',
+    },
     [SCREENS.SEARCH.DYNAMIC_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS]: {
         animation: Animations.NONE,
     },
