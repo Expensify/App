@@ -1,15 +1,9 @@
 import FixedFooter from '@components/FixedFooter';
-import ImageSVG from '@components/ImageSVG';
-import Lottie from '@components/Lottie';
 import LottieAnimations from '@components/LottieAnimations';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import Text from '@components/Text';
 
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
-
-import Accessibility from '@libs/Accessibility';
-import isIllustrationLottieAnimation from '@libs/isIllustrationLottieAnimation';
 
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -17,9 +11,10 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
 import React from 'react';
-import {StyleSheet, View} from 'react-native';
+import {View} from 'react-native';
 
 import ConfirmationPageContent from './layout/Content';
+import ConfirmationPageIllustration from './primitives/ConfirmationPageIllustration';
 import ConfirmationPagePrimaryButton from './primitives/ConfirmationPagePrimaryButton';
 import ConfirmationPageSecondaryButton from './primitives/ConfirmationPageSecondaryButton';
 
@@ -104,10 +99,6 @@ function ConfirmationPage({
     innerContainerStyle,
 }: ConfirmationPageProps) {
     const styles = useThemeStyles();
-    const isReduceMotionEnabled = Accessibility.useReducedMotion();
-    const illustrations = useMemoizedLazyIllustrations(['Fireworks']);
-    const isLottie = isIllustrationLottieAnimation(illustration);
-    const shouldShowStaticFallback = isLottie && isReduceMotionEnabled && illustration === LottieAnimations.Fireworks;
 
     return (
         <View style={[styles.flex1, containerStyle]}>
@@ -115,40 +106,10 @@ function ConfirmationPage({
                 style={innerContainerStyle}
                 requestErrors={requestErrors}
             >
-                {(() => {
-                    if (shouldShowStaticFallback) {
-                        return (
-                            <View style={[styles.confirmationAnimation, illustrationStyle]}>
-                                <ImageSVG
-                                    src={illustrations.Fireworks}
-                                    contentFit="contain"
-                                />
-                            </View>
-                        );
-                    }
-                    if (isLottie) {
-                        return (
-                            <Lottie
-                                source={illustration}
-                                autoPlay
-                                loop
-                                style={[styles.confirmationAnimation, illustrationStyle]}
-                                webStyle={{
-                                    width: (StyleSheet.flatten(illustrationStyle)?.width as number) ?? styles.confirmationAnimation.width,
-                                    height: (StyleSheet.flatten(illustrationStyle)?.height as number) ?? styles.confirmationAnimation.height,
-                                }}
-                            />
-                        );
-                    }
-                    return (
-                        <View style={[styles.confirmationAnimation, illustrationStyle]}>
-                            <ImageSVG
-                                src={illustration}
-                                contentFit="contain"
-                            />
-                        </View>
-                    );
-                })()}
+                <ConfirmationPageIllustration
+                    illustration={illustration}
+                    illustrationStyle={illustrationStyle}
+                />
                 <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mv2, headingStyle]}>{heading}</Text>
                 {!!descriptionComponent && descriptionComponent}
                 {!!description && <Text style={[styles.textAlignCenter, descriptionStyle, styles.w100]}>{description}</Text>}
