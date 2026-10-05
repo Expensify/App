@@ -985,7 +985,7 @@ function MoneyRequestView({
             }
 
             // Clear only the pressed level so the other levels of a multi-level tag are kept.
-            const updatedTag = insertTagIntoTransactionTagsString(transactionTag ?? '', '', tagListIndex, policy?.hasMultipleTagLists ?? false, policyTagLists.length);
+            const updatedTag = insertTagIntoTransactionTagsString(transactionTag ?? '', '', tagListIndex, policy?.hasMultipleTagLists ?? false);
             updateMoneyRequestTag({
                 isVendorMatchingBetaEnabled,
                 transactionID,

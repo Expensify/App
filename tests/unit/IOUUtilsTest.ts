@@ -330,23 +330,54 @@ describe('IOUUtils', () => {
         });
 
         test('Should drop values for tag lists the policy no longer has', () => {
-            expect(IOUUtils.insertTagIntoTransactionTagsString('777 Accounting/Finance:150 CCI:150 CCI', '200 HQ', 1, true, 2)).toBe('777 Accounting/Finance:200 HQ');
+            // Given an expense tagged while the policy had 3 tag lists, and the policy now has only 2,
+            // so the third value can never be edited and keeps the expense flagged as having an invalid tag
+            const transactionTags = '777 Accounting/Finance:150 CCI:150 CCI';
+            const tagListCount = 2;
+
+            // When the user edits the second tag
+            const result = IOUUtils.insertTagIntoTransactionTagsString(transactionTags, '200 HQ', 1, true, tagListCount);
+
+            // Then only the 2 current tag lists keep a value, which clears the stale third value
+            expect(result).toBe('777 Accounting/Finance:200 HQ');
         });
 
         test('Should drop the last value when a middle tag list was removed, leaving the shifted value editable', () => {
-            // Lists were A:B:C and B was removed. The string is positional, so the removed list's value now sits in C's slot,
-            // where it shows as invalid and the user can replace it.
-            expect(IOUUtils.insertTagIntoTransactionTagsString('a:b:c', 'a2', 0, true, 2)).toBe('a2:b');
-            expect(IOUUtils.insertTagIntoTransactionTagsString('a:b:c', 'c2', 1, true, 2)).toBe('a:c2');
+            // Given an expense tagged with lists A:B:C after list B was removed. The tag string is positional,
+            // so B's value now sits in C's slot and C's value sits beyond the 2 remaining lists
+            const transactionTags = 'a:b:c';
+            const tagListCount = 2;
+
+            // When the user edits the first tag
+            const result = IOUUtils.insertTagIntoTransactionTagsString(transactionTags, 'a2', 0, true, tagListCount);
+
+            // Then the value beyond the remaining lists is dropped and the shifted value stays in a visible slot,
+            // where it shows as invalid and the user can replace it
+            expect(result).toBe('a2:b');
         });
 
         test('Should keep every value when the tag list count is unknown', () => {
-            expect(IOUUtils.insertTagIntoTransactionTagsString('East:NY:California', 'NewTag', 1, true, 0)).toBe('East:NewTag:California');
-            expect(IOUUtils.insertTagIntoTransactionTagsString('East:NY:California', 'NewTag', 1, true)).toBe('East:NewTag:California');
+            // Given a tag string with 3 values and no reliable tag list count, because the policy's tags have not finished loading
+            const transactionTags = 'East:NY:California';
+
+            // When the user edits the second tag without a count, or with a count of 0
+            const resultWithoutCount = IOUUtils.insertTagIntoTransactionTagsString(transactionTags, 'NewTag', 1, true);
+            const resultWithZeroCount = IOUUtils.insertTagIntoTransactionTagsString(transactionTags, 'NewTag', 1, true, 0);
+
+            // Then no value is dropped, since a partial tag collection must not discard valid tags
+            expect(resultWithoutCount).toBe('East:NewTag:California');
+            expect(resultWithZeroCount).toBe('East:NewTag:California');
         });
 
         test('Should keep every value when the tag string fits the tag list count', () => {
-            expect(IOUUtils.insertTagIntoTransactionTagsString('East:NY', 'California', 2, true, 3)).toBe('East:NY:California');
+            // Given a policy with 3 tag lists and an expense that only has the first 2 set
+            const transactionTags = 'East:NY';
+
+            // When the user sets the third tag
+            const result = IOUUtils.insertTagIntoTransactionTagsString(transactionTags, 'California', 2, true, 3);
+
+            // Then all 3 values are kept, since truncation only applies to values beyond the policy's tag lists
+            expect(result).toBe('East:NY:California');
         });
     });
 });

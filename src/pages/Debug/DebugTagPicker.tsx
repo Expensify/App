@@ -45,7 +45,7 @@ function DebugTagPicker({policyID, tagName = '', onSubmit}: DebugTagPickerProps)
         (index: number) =>
             ({text}: Partial<OptionData>) => {
                 const newTag = text === selectedTags.at(index) ? undefined : text;
-                const updatedTagName = insertTagIntoTransactionTagsString(newTagName, newTag ?? '', index, hasMultipleTagLists ?? false, policyTagLists.length);
+                const updatedTagName = insertTagIntoTransactionTagsString(newTagName, newTag ?? '', index, hasMultipleTagLists ?? false);
                 if (policyTagLists.length === 1) {
                     return onSubmit({text: updatedTagName, keyForList: updatedTagName});
                 }
