@@ -690,7 +690,7 @@
 "../../src/libs/actions/IOU/Hold.ts"	"import/no-cycle"	6
 "../../src/libs/actions/IOU/Hold.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/IOU/index.ts"	"import/no-cycle"	1
-"../../src/libs/actions/IOU/index.ts"	"rulesdir/no-onyx-connect"	9
+"../../src/libs/actions/IOU/index.ts"	"rulesdir/no-onyx-connect"	7
 "../../src/libs/actions/IOU/MoneyRequest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/IOU/MoneyRequestBuilder.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	2
 "../../src/libs/actions/IOU/MoneyRequestBuilder.ts"	"@typescript-eslint/no-deprecated/originalMessage"	1
@@ -2154,6 +2154,7 @@
 "../../tests/ui/ClearReportActionErrorsUITest.tsx"	"@typescript-eslint/no-deprecated/originalMessage"	1
 "../../tests/ui/components/HeaderViewTest.tsx"	"@typescript-eslint/no-deprecated/originalMessage"	1
 "../../tests/ui/components/IOURequestStepConfirmationPageTest.tsx"	"no-restricted-imports"	1
+"../../tests/ui/components/MoneyReportHeaderActionsPlacementTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	2
 "../../tests/ui/components/MoneyReportHeaderFocusSelectionModeTest.tsx"	"no-restricted-imports"	1
 "../../tests/ui/components/MoneyReportHeaderSelectionModeTest.tsx"	"no-restricted-imports"	1
 "../../tests/ui/components/MoneyRequestHeaderSecondaryActionsTest.tsx"	"@typescript-eslint/no-deprecated/originalMessage"	1
@@ -2213,6 +2214,7 @@
 "../../tests/ui/WorkspaceWorkflowsLockedBankAccountTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/ui/WorkspaceWorkflowsPayerPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/ui/WorkspaceWorkflowsPayerRowTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
+"../../tests/ui/WorkspaceWorkflowsSmartLimitApprovalsTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/AccountSwitcherSkeletonViewTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/activeSpansSweepOrderTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/AddExistingExpenseTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
