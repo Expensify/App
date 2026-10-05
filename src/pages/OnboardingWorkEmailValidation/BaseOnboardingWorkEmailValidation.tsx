@@ -4,6 +4,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeForm';
 
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -21,7 +22,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
@@ -42,7 +42,6 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
     const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY);
     const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
-    const isFocused = useIsFocused();
 
     useEffect(() => {
         if (onboardingValues?.isMergeAccountStepCompleted === undefined) {
@@ -66,7 +65,21 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
         }
 
         Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
-    }, [onboardingValues?.isMergeAccountStepCompleted, onboardingValues?.shouldRedirectToClassicAfterMerge, onboardingValues?.isMergeAccountStepSkipped, isVsb, isSmb, isFocused]);
+    }, [onboardingValues?.isMergeAccountStepCompleted, onboardingValues?.shouldRedirectToClassicAfterMerge, onboardingValues?.isMergeAccountStepSkipped, isVsb, isSmb]);
+
+    const handleBackPress = () => {
+        // The merge request cannot be cancelled. Leaving mid-flight lets the work email screen consume the success
+        // and route through PRIVATE_DOMAIN instead of Join a workspace.
+        if (isValidateCodeFormSubmitting) {
+            return true;
+        }
+        updateOnboardingValuesAndNavigation(onboardingValues);
+        return true;
+    };
+
+    // The work email screen force-replaces itself with this one, so Android's system Back would otherwise pop the whole
+    // onboarding modal while `shouldValidate` is still set. Run the same handler as the header Back button.
+    useAndroidBackButtonHandler(handleBackPress);
 
     const sendValidateCode = () => {
         if (!credentials?.login) {
@@ -88,9 +101,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
         >
             <OnboardingHeader
                 shouldShowBackButton={!onboardingValues?.isMergingAccountBlocked}
-                onBackButtonPress={() => {
-                    updateOnboardingValuesAndNavigation(onboardingValues);
-                }}
+                onBackButtonPress={handleBackPress}
             />
             {onboardingValues?.isMergingAccountBlocked ? (
                 <View style={[styles.flex1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
