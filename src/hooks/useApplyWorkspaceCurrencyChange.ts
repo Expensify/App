@@ -13,6 +13,10 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 
+import type {TupleToUnion} from 'type-fest';
+
+type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
+
 import type {OnyxEntry} from 'react-native-onyx';
 
 import useOnyx from './useOnyx';
@@ -71,7 +75,7 @@ function useApplyWorkspaceCurrencyChange(policy: OnyxEntry<Policy>) {
             return;
         }
 
-        const isSupportedForGlobalReimbursement = isCurrencySupportedForGlobalReimbursement(currencyCode);
+        const isSupportedForGlobalReimbursement = isCurrencySupportedForGlobalReimbursement(currencyCode as CurrencyType);
         if (isForcedToChangeCurrency && isSupportedForGlobalReimbursement) {
             const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, currencyCode, true).length > 0;
             if (hasValidExistingAccounts) {
