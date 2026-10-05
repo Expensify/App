@@ -13,7 +13,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 
 type ConfirmationPageIllustrationProps = {
     illustration?: DotLottieAnimation | IconAsset;
@@ -37,6 +37,7 @@ function ConfirmationPageIllustration({illustration = LottieAnimations.Fireworks
         );
     }
     if (isLottie) {
+        const flattenedIllustrationStyle = StyleSheet.flatten(illustrationStyle);
         return (
             <Lottie
                 source={illustration}
@@ -44,8 +45,8 @@ function ConfirmationPageIllustration({illustration = LottieAnimations.Fireworks
                 loop
                 style={[styles.confirmationAnimation, illustrationStyle]}
                 webStyle={{
-                    width: (StyleSheet.flatten(illustrationStyle)?.width as number) ?? styles.confirmationAnimation.width,
-                    height: (StyleSheet.flatten(illustrationStyle)?.height as number) ?? styles.confirmationAnimation.height,
+                    width: typeof flattenedIllustrationStyle?.width === 'number' ? flattenedIllustrationStyle.width : styles.confirmationAnimation.width,
+                    height: typeof flattenedIllustrationStyle?.height === 'number' ? flattenedIllustrationStyle.height : styles.confirmationAnimation.height,
                 }}
             />
         );
