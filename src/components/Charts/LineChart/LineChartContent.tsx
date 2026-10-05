@@ -35,12 +35,6 @@ import {CartesianChart, Line} from 'victory-native';
 
 import type {CartesianChartProps, ChartDataPoint} from '..';
 
-const DOT_RADIUS = 6;
-const LINE_STROKE_WIDTH = 4;
-
-/** Base domain padding applied to all sides */
-const BASE_DOMAIN_PADDING = {top: 16, bottom: 16, left: 0, right: 0};
-
 type LineChartProps = CartesianChartProps & {
     onPointPress?: (dataPoint: ChartDataPoint, index: number) => void;
 };
@@ -87,14 +81,14 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
         unitPosition: yAxisUnitPosition,
     });
 
-    const yAxisLabelWidth = getYAxisLabelWidth(data, formatCompactValue, fontManager, variables.iconSizeExtraSmall, BASE_DOMAIN_PADDING);
+    const yAxisLabelWidth = getYAxisLabelWidth(data, formatCompactValue, fontManager, variables.iconSizeExtraSmall, VictoryTheme.line.domainPadding);
 
     const tickSpacing = plotAreaWidth > 0 && data.length > 0 ? plotAreaWidth / data.length : 0;
     const chartPaddingLeft = yAxisLabelWidth + GLYPH_PADDING;
 
     const domainPadding = (() => {
         if (!firstLabelWidth || !lastLabelWidth) {
-            return BASE_DOMAIN_PADDING;
+            return VictoryTheme.line.domainPadding;
         }
         const labelsExceedTickSpacing = tickSpacing > 0 && maxLabelWidth + LABEL_PADDING > tickSpacing;
         let leftOverhang = firstLabelWidth / 2;
@@ -107,7 +101,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
         }
 
         return {
-            ...BASE_DOMAIN_PADDING,
+            ...VictoryTheme.line.domainPadding,
             left: Math.max(0, leftOverhang - chartPaddingLeft),
             right: rightOverhang,
         };
@@ -283,7 +277,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
                                 <Line
                                     points={points.y}
                                     color={VictoryTheme.colors.default}
-                                    strokeWidth={LINE_STROKE_WIDTH}
+                                    strokeWidth={VictoryTheme.line.strokeWidth}
                                     strokeCap="round"
                                     strokeJoin="round"
                                     curveType="linear"
@@ -293,8 +287,8 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
                                     isActive={isTooltipActive}
                                     top={chartBounds.top}
                                     bottom={yScale(Math.min(...yTicks))}
-                                    dotRadius={DOT_RADIUS}
-                                    dotColor={VictoryTheme.colors.defaultDot}
+                                    dotRadius={VictoryTheme.line.activeDotRadius}
+                                    dotColor={VictoryTheme.colors.default}
                                     guidelineColor={theme.border}
                                 />
                             </>
