@@ -19,7 +19,7 @@ import {createScenarioActionRunner} from '@userActions/MultifactorAuthentication
 import CONST from '@src/CONST';
 
 import {createActorAtState, createFlowContext, sendAuthorizeDone, sendFinalizeOutcomeDone} from 'tests/utils/mfa/flowActors';
-import {MFA_TEST_AUTH_METHOD, MFA_TEST_FINALIZE_OUTCOME_SHOW_SCREEN, MFA_TEST_SCENARIO_RESPONSE} from 'tests/utils/mfa/flowFixtures';
+import {MFA_TEST_AUTH_METHOD, MFA_TEST_FINALIZE_OUTCOME_SHOW_SCREEN, MFA_TEST_REGISTRATION_STATE_AT_START, MFA_TEST_SCENARIO_RESPONSE} from 'tests/utils/mfa/flowFixtures';
 import waitForBatchedUpdates from 'tests/utils/waitForBatchedUpdates';
 import {createActor, fromPromise, waitFor} from 'xstate';
 
@@ -32,7 +32,7 @@ const REASON = CONST.MULTIFACTOR_AUTHENTICATION.REASON;
 
 describe('MFA authorization', () => {
     describe('authorize actor outcome', () => {
-        it('forwards the account and pre-bound scenario runner from INIT to the authorize actor', async () => {
+        it('forwards the account and pre-bound scenario runner from INIT to the authorize actor and keeps the start-of-flow registration snapshot', async () => {
             const accountID = 67890;
             const transactionID = 'transaction-from-machine-context';
             const scenarioName = CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION;
@@ -61,11 +61,12 @@ describe('MFA authorization', () => {
                 scenario,
                 payload: {transactionID},
                 runScenarioAction,
-                registrationStateAtStart: {hasServerCredentials: false, hasLocalCredentials: false, hasEverAcceptedSoftPrompt: false},
+                registrationStateAtStart: MFA_TEST_REGISTRATION_STATE_AT_START,
             });
             await waitFor(actor, (snapshot) => snapshot.matches({[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: MFA_STATE.AUTHORIZING}}));
 
             expect(receivedInput).toEqual({accountID, runScenarioAction});
+            expect(actor.getSnapshot().context.registrationStateAtStart).toEqual(MFA_TEST_REGISTRATION_STATE_AT_START);
 
             actor.stop();
         });

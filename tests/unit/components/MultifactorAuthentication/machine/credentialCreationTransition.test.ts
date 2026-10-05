@@ -94,7 +94,9 @@ describe('MFA credential creation', () => {
             actor.start();
             sendCreateCredentialDone(actor, {success: true});
 
-            expect(actor.getSnapshot().matches({[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: MFA_STATE.AUTHORIZING}})).toBe(true);
+            const result = actor.getSnapshot();
+            expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: MFA_STATE.AUTHORIZING}})).toBe(true);
+            expect(result.context.isRegistrationComplete).toBe(true);
 
             actor.stop();
         });
