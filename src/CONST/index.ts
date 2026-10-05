@@ -8032,6 +8032,7 @@ const CONST = {
             OR: 'or',
             EQUAL_TO: 'eq',
             CONTAINS: 'contains',
+            NOT_CONTAINS: 'notContains',
             NOT_EQUAL_TO: 'neq',
             RANGE: 'range',
             GREATER_THAN: 'gt',

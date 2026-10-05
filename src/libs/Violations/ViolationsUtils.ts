@@ -107,24 +107,38 @@ function getTagViolationsForSingleLevelTags(
     if (!hasTagOutOfPolicyViolation && updatedTransaction.tag && !isTagInPolicy) {
         const tagName = policyTagList[policyTagListName]?.name;
         const tagNameToShow = isDefaultTagName(tagName) ? undefined : tagName;
-        newTransactionViolations.push({name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION, data: {tagName: tagNameToShow}, showInReview: true});
+        newTransactionViolations.push({
+            name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+            data: {tagName: tagNameToShow},
+            showInReview: true,
+        });
     }
 
     // Remove 'tagOutOfPolicy' violation if tag is empty or in policy
     if (hasTagOutOfPolicyViolation && (!updatedTransaction.tag || isTagInPolicy)) {
-        newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY});
+        newTransactionViolations = reject(newTransactionViolations, {
+            name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
+        });
     }
 
     // Remove 'missingTag' violation if tag is valid according to policy or there are no enabled tags
     if (hasMissingTagViolation && (isTagInPolicy || !hasEnabledTagsInList)) {
-        newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.MISSING_TAG});
+        newTransactionViolations = reject(newTransactionViolations, {
+            name: CONST.VIOLATIONS.MISSING_TAG,
+        });
     }
 
     // Add 'missingTag violation' if tag is required, not set, and there are enabled tags
     if (!hasMissingTagViolation && !updatedTransaction.tag && policyRequiresTags && hasEnabledTagsInList) {
         const tagName = policyTagList[policyTagListName]?.name;
         const tagNameToShow = isDefaultTagName(tagName) ? undefined : tagName;
-        newTransactionViolations.push({name: CONST.VIOLATIONS.MISSING_TAG, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true, data: {tagName: tagNameToShow}});
+        newTransactionViolations.push({
+            name: CONST.VIOLATIONS.MISSING_TAG,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+            showInReview: true,
+            data: {tagName: tagNameToShow},
+        });
     }
     return newTransactionViolations;
 }
@@ -399,7 +413,7 @@ function buildRuleViolationMessage(
             } else if (op === CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS) {
                 phrases.push(translate('violations.ruleViolation.fromMerchantsContaining', filterValuesString));
                 hasMerchant = true;
-            } else if (op === 'notContains') {
+            } else if (op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_CONTAINS) {
                 phrases.push(translate('violations.ruleViolation.notFromMerchantsContaining', filterValuesString));
                 hasMerchant = true;
             }
@@ -443,8 +457,10 @@ function buildRuleViolationMessage(
                 phrases.push(translate('violations.ruleViolation.notPaidInCurrency', filterValuesString));
             }
         } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
-            const isNegated = op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO || op === 'notContains';
-            if (![CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS, 'notContains'].includes(op)) {
+            const isNegated = op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO || op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_CONTAINS;
+            const isEqualToOp = op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO || op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO;
+            const isContainsOp = op === CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS || op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_CONTAINS;
+            if (!isEqualToOp && !isContainsOp) {
                 continue;
             }
 
@@ -589,7 +605,11 @@ function syncCustomUnitRateOutOfDateRangeViolation(violations: TransactionViolat
 
     const customUnitRateID = transaction.comment?.customUnit?.customUnitRateID;
     const expenseDate = TransactionUtils.getCreated(transaction);
-    const isOutOfDateRange = DistanceRequestUtils.isCustomUnitRateOutOfDateRange({customUnitRateID, policy, expenseDate});
+    const isOutOfDateRange = DistanceRequestUtils.isCustomUnitRateOutOfDateRange({
+        customUnitRateID,
+        policy,
+        expenseDate,
+    });
     const hasViolation = violations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE);
 
     if (!isOutOfDateRange && !hasViolation) {
@@ -604,7 +624,10 @@ function syncCustomUnitRateOutOfDateRangeViolation(violations: TransactionViolat
         return violations;
     }
 
-    const mileageRate = DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID, policy});
+    const mileageRate = DistanceRequestUtils.getRateByCustomUnitRateID({
+        customUnitRateID,
+        policy,
+    });
     const violationData = {
         startDate: mileageRate?.startDate ?? undefined,
         endDate: mileageRate?.endDate ?? undefined,
@@ -702,10 +725,16 @@ const ViolationsUtils = {
             !hasUserStartedFixingSmartscan;
         const hasSmartScanFailedError = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.SMARTSCAN_FAILED);
         if (shouldShowSmartScanFailedError && !hasSmartScanFailedError) {
-            newTransactionViolations.push({name: CONST.VIOLATIONS.SMARTSCAN_FAILED, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true});
+            newTransactionViolations.push({
+                name: CONST.VIOLATIONS.SMARTSCAN_FAILED,
+                type: CONST.VIOLATION_TYPES.WARNING,
+                showInReview: true,
+            });
         }
         if (!shouldShowSmartScanFailedError && hasSmartScanFailedError) {
-            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.SMARTSCAN_FAILED});
+            newTransactionViolations = reject(newTransactionViolations, {
+                name: CONST.VIOLATIONS.SMARTSCAN_FAILED,
+            });
         }
 
         // Calculate client-side category violations. Also run when the transaction has a category (not just
@@ -722,28 +751,42 @@ const ViolationsUtils = {
 
             // Add 'categoryOutOfPolicy' violation if category is not in policy
             if (!hasCategoryOutOfPolicyViolation && !isCategoryMissing(categoryKey) && !isCategoryInPolicy) {
-                newTransactionViolations.push({name: 'categoryOutOfPolicy', type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
+                newTransactionViolations.push({
+                    name: 'categoryOutOfPolicy',
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                });
             }
 
             // Remove 'categoryOutOfPolicy' violation if category is in policy
             if (hasCategoryOutOfPolicyViolation && updatedTransaction.category && isCategoryInPolicy) {
-                newTransactionViolations = reject(newTransactionViolations, {name: 'categoryOutOfPolicy'});
+                newTransactionViolations = reject(newTransactionViolations, {
+                    name: 'categoryOutOfPolicy',
+                });
             }
 
             // Remove 'missingCategory' violation if category is valid according to policy
             if (hasMissingCategoryViolation && (isCategoryInPolicy || isSelfDM)) {
-                newTransactionViolations = reject(newTransactionViolations, {name: 'missingCategory'});
+                newTransactionViolations = reject(newTransactionViolations, {
+                    name: 'missingCategory',
+                });
             }
 
             // Add 'missingCategory' violation when categories are required and none is set. isCategoryMissing also
             // covers the 'Uncategorized'/'none' placeholder value, mirroring the categoryOutOfPolicy check above.
             if (!hasMissingCategoryViolation && !!policy.requiresCategory && isCategoryMissing(categoryKey) && !isSelfDM) {
-                newTransactionViolations.push({name: 'missingCategory', type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
+                newTransactionViolations.push({
+                    name: 'missingCategory',
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                });
             }
         } else if (transactionViolations.some((violation) => violation.name === 'missingCategory')) {
             // Categories aren't required and none is set, so a leftover 'missingCategory' is stale (e.g. after the
             // workspace disables categories). Remove it so the optimistic state matches the backend.
-            newTransactionViolations = reject(newTransactionViolations, {name: 'missingCategory'});
+            newTransactionViolations = reject(newTransactionViolations, {
+                name: 'missingCategory',
+            });
         }
 
         // Calculate client-side tag violations
@@ -766,7 +809,9 @@ const ViolationsUtils = {
                 // Feature off (e.g. admin switched export type away from credit/debit card) — clear any
                 // stale inactive-vendor violation.
                 if (hasInactiveVendorViolation) {
-                    newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
+                    newTransactionViolations = reject(newTransactionViolations, {
+                        name: CONST.VIOLATIONS.INACTIVE_VENDOR,
+                    });
                 }
             } else if (transactionVendorID && isMatchingVendorListLoaded(policy)) {
                 // Only mutate INACTIVE_VENDOR once the active integration's vendor list has actually
@@ -789,7 +834,9 @@ const ViolationsUtils = {
                         ...(isSupplierViolation ? {data: {isSupplierViolation: true}} : {}),
                     });
                 } else if (matchedVendor && hasInactiveVendorViolation) {
-                    newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
+                    newTransactionViolations = reject(newTransactionViolations, {
+                        name: CONST.VIOLATIONS.INACTIVE_VENDOR,
+                    });
                 } else if (!matchedVendor && hasInactiveVendorViolation) {
                     // Reconcile data.isSupplierViolation with the current active matching source.
                     // Backfills the flag when Xero is now active (server-fired violation, or
@@ -810,7 +857,10 @@ const ViolationsUtils = {
                                 return violation;
                             }
                             if (isSupplierViolation) {
-                                return {...violation, data: {...violation.data, isSupplierViolation: true}};
+                                return {
+                                    ...violation,
+                                    data: {...violation.data, isSupplierViolation: true},
+                                };
                             }
                             const {isSupplierViolation: stripped, ...remainingData} = violation.data ?? {};
                             return Object.keys(remainingData).length > 0 ? {...violation, data: remainingData} : {...violation, data: undefined};
@@ -819,7 +869,9 @@ const ViolationsUtils = {
                 }
             } else if (!transactionVendorID && hasInactiveVendorViolation) {
                 // Vendor was cleared while the feature is still active — drop the now-stale violation.
-                newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
+                newTransactionViolations = reject(newTransactionViolations, {
+                    name: CONST.VIOLATIONS.INACTIVE_VENDOR,
+                });
             }
         }
 
@@ -836,7 +888,9 @@ const ViolationsUtils = {
             // rate, and the violation is what prompts them to do so — so that case falls through to the rate check below.
             const isTransactionOnPolicyExpenseChat = updatedTransaction.participants?.some((participant) => participant?.isPolicyExpenseChat);
             if (TransactionUtils.isCustomUnitRateIDForP2P(updatedTransaction) && !isTransactionOnPolicyExpenseChat) {
-                newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
+                newTransactionViolations = reject(newTransactionViolations, {
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+                });
             } else {
                 const isPerDiem = TransactionUtils.isPerDiemRequest(updatedTransaction);
                 let policyForCustomUnitRate = policy;
@@ -849,13 +903,21 @@ const ViolationsUtils = {
                 // The backend only flags a rate that's gone from the policy (or pending deletion here), a disabled rate is still valid
                 const isRateValid = customRate?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                 if (customRate && isRateValid) {
-                    newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
+                    newTransactionViolations = reject(newTransactionViolations, {
+                        name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+                    });
                     newTransactionViolations = syncCustomUnitRateOutOfDateRangeViolation(newTransactionViolations, updatedTransaction, policyForCustomUnitRate);
                 } else if (isSelfDM && isDistanceRequestForCustomUnit) {
-                    newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE});
-                    newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
+                    newTransactionViolations = reject(newTransactionViolations, {
+                        name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                    });
+                    newTransactionViolations = reject(newTransactionViolations, {
+                        name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+                    });
                 } else {
-                    newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE});
+                    newTransactionViolations = reject(newTransactionViolations, {
+                        name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                    });
                     newTransactionViolations.push({
                         name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
                         type: CONST.VIOLATION_TYPES.VIOLATION,
@@ -1000,17 +1062,25 @@ const ViolationsUtils = {
         const hasFutureDateViolation = transactionViolations.some((violation) => violation.name === 'futureDate');
         // Add 'futureDate' violation if transaction date is in the future and policy type is corporate
         if (!hasFutureDateViolation && shouldDisplayFutureDateViolation) {
-            newTransactionViolations.push({name: CONST.VIOLATIONS.FUTURE_DATE, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
+            newTransactionViolations.push({
+                name: CONST.VIOLATIONS.FUTURE_DATE,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                showInReview: true,
+            });
         }
 
         // Remove 'futureDate' violation if transaction date is not in the future
         if (hasFutureDateViolation && !shouldDisplayFutureDateViolation) {
-            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.FUTURE_DATE});
+            newTransactionViolations = reject(newTransactionViolations, {
+                name: CONST.VIOLATIONS.FUTURE_DATE,
+            });
         }
 
         // Remove itemized receipt required violation if it exists (will be re-added with updated data if still needed)
         if (canCalculateAmountViolations && hasItemizedReceiptRequiredViolation) {
-            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED});
+            newTransactionViolations = reject(newTransactionViolations, {
+                name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED,
+            });
         }
 
         // Add itemized receipt required violation if conditions are met (policy or category level)
@@ -1033,7 +1103,9 @@ const ViolationsUtils = {
 
         // Remove receipt required violation if it exists (will be re-added with updated data if still needed)
         if (canCalculateAmountViolations && (hasReceiptRequiredViolation || hasCategoryReceiptRequiredViolation)) {
-            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.RECEIPT_REQUIRED});
+            newTransactionViolations = reject(newTransactionViolations, {
+                name: CONST.VIOLATIONS.RECEIPT_REQUIRED,
+            });
         }
 
         // Add receipt required violation if conditions are met and itemized receipt is not required
@@ -1053,11 +1125,15 @@ const ViolationsUtils = {
         }
 
         if (canCalculateAmountViolations && hasOverLimitViolation && !shouldShowOverLimitViolation) {
-            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.OVER_LIMIT});
+            newTransactionViolations = reject(newTransactionViolations, {
+                name: CONST.VIOLATIONS.OVER_LIMIT,
+            });
         }
 
         if (canCalculateAmountViolations && hasCategoryOverLimitViolation && (!shouldCategoryShowOverLimitViolation || hasStaleCategoryOverLimitNights)) {
-            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.OVER_CATEGORY_LIMIT});
+            newTransactionViolations = reject(newTransactionViolations, {
+                name: CONST.VIOLATIONS.OVER_CATEGORY_LIMIT,
+            });
         }
 
         if (
@@ -1089,7 +1165,9 @@ const ViolationsUtils = {
         }
 
         if (canCalculateAmountViolations && hasOverTripLimitViolation && !shouldShowOverTripLimitViolation) {
-            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.OVER_TRIP_LIMIT});
+            newTransactionViolations = reject(newTransactionViolations, {
+                name: CONST.VIOLATIONS.OVER_TRIP_LIMIT,
+            });
         }
 
         if (!hasMissingCommentViolation && shouldShowMissingComment) {
@@ -1101,7 +1179,9 @@ const ViolationsUtils = {
         }
 
         if (hasMissingCommentViolation && !shouldShowMissingComment) {
-            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.MISSING_COMMENT});
+            newTransactionViolations = reject(newTransactionViolations, {
+                name: CONST.VIOLATIONS.MISSING_COMMENT,
+            });
         }
 
         if (!hasMissingAttendeesViolation && shouldShowMissingAttendees) {
@@ -1113,7 +1193,9 @@ const ViolationsUtils = {
         }
 
         if (hasMissingAttendeesViolation && !shouldShowMissingAttendees) {
-            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.MISSING_ATTENDEES});
+            newTransactionViolations = reject(newTransactionViolations, {
+                name: CONST.VIOLATIONS.MISSING_ATTENDEES,
+            });
         }
 
         const hasTransactionTaxData = !!updatedTransaction.taxCode || !!updatedTransaction.taxValue || !!updatedTransaction.taxAmount;
@@ -1123,11 +1205,17 @@ const ViolationsUtils = {
         const shouldAddTaxOutOfPolicy = !isTimeRequest && !isPerDiemRequest && (isPolicyTrackTaxEnabled ? !!updatedTransaction.taxCode && !isTaxRateValid : hasTransactionTaxData);
 
         if (!hasTaxOutOfPolicyViolation && shouldAddTaxOutOfPolicy) {
-            newTransactionViolations.push({name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
+            newTransactionViolations.push({
+                name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                showInReview: true,
+            });
         }
 
         if (hasTaxOutOfPolicyViolation && !shouldAddTaxOutOfPolicy) {
-            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY});
+            newTransactionViolations = reject(newTransactionViolations, {
+                name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY,
+            });
         }
         return {
             onyxMethod: Onyx.METHOD.SET,
@@ -1200,13 +1288,20 @@ const ViolationsUtils = {
                 const formattedStartDate = formatViolationDate(startDate, dateFnsLocale);
                 const formattedEndDate = formatViolationDate(endDate, dateFnsLocale);
                 if (formattedStartDate && formattedEndDate) {
-                    return translate('violations.customUnitRateOutOfDateRange', {startDate: formattedStartDate, endDate: formattedEndDate});
+                    return translate('violations.customUnitRateOutOfDateRange', {
+                        startDate: formattedStartDate,
+                        endDate: formattedEndDate,
+                    });
                 }
                 if (formattedStartDate) {
-                    return translate('violations.customUnitRateOutOfDateRangeStartOnly', {startDate: formattedStartDate});
+                    return translate('violations.customUnitRateOutOfDateRangeStartOnly', {
+                        startDate: formattedStartDate,
+                    });
                 }
                 if (formattedEndDate) {
-                    return translate('violations.customUnitRateOutOfDateRangeEndOnly', {endDate: formattedEndDate});
+                    return translate('violations.customUnitRateOutOfDateRangeEndOnly', {
+                        endDate: formattedEndDate,
+                    });
                 }
                 return '';
             }
@@ -1284,7 +1379,10 @@ const ViolationsUtils = {
                 );
             }
             case 'smartscanFailed':
-                return translate('violations.smartscanFailed', {canEdit, missingFields});
+                return translate('violations.smartscanFailed', {
+                    canEdit,
+                    missingFields,
+                });
             case 'someTagLevelsRequired':
                 return getTagViolationMessagesForMultiLevelTags(tagName, errorIndexes, tags ?? {}, translate);
             case 'tagOutOfPolicy':
