@@ -70,15 +70,15 @@
 
 ### [@react-navigation+bottom-tabs+7.16.2+002+active-indicator-color-precedence.patch](@react-navigation+bottom-tabs+7.16.2+002+active-indicator-color-precedence.patch)
 
-- Reason: `tabBarActiveIndicatorColor` was never applied on the native Android tab bar: a missing pair of parentheses made `??` bind to the `typeof` check, so the indicator always got `tabBarActiveTintColor` at 10% alpha. The patch restores the intended precedence, so the active indicator pill takes the color from the design.
-- Upstream PR/issue: not reported. The rewritten native tab view on the v8 branch no longer has the bug, but it is still present on the `7.x` branch as of 7.20.0. **This patch can be removed on the upgrade to v8.**
+- Reason: `tabBarActiveIndicatorColor` was never applied on the native Android tab bar: a missing pair of parentheses made `??` bind to the `typeof` check, so the indicator always got `tabBarActiveTintColor` at 10% alpha. The patch restores the intended precedence, so the active indicator pill takes the color from the design. **This patch can be removed on the upgrade to React Navigation v8**, whose rewritten native tab view no longer has the bug.
+- Upstream PR/issue: not reported. Fixed on the v8 branch, still present on the `7.x` branch as of 7.20.0.
 - E/App issue: [#101169](https://github.com/Expensify/App/issues/101169)
 - PR Introducing Patch: [#101339](https://github.com/Expensify/App/pull/101339)
 - PR Updating Patch: N/A
 
 ### [@react-navigation+bottom-tabs+7.16.2+003+hidden-tab-items.patch](@react-navigation+bottom-tabs+7.16.2+003+hidden-tab-items.patch)
 
-- Reason: Adds a `tabBarItemHidden` option to the native bottom tabs. The App registers six tabs but the native bar can show at most five (Material's `BottomNavigationView` throws past five, and `UITabBar` folds the rest into a "More" tab), and which five depends on the Insights beta: Insights with it, Account without it. A native tab bar cannot hide one of its items, so a route with `tabBarItemHidden` gets no `Tabs.Screen` at all. When such a route is focused, it is drawn in JS over the native host with the tab bar hidden, while the host keeps the last focused visible tab selected underneath. A hidden route stays mounted once visited. Like every other tab, it is frozen by the App's tab screen layout while another tab is focused. Nothing native changes.
+- Reason: Adds a `tabBarItemHidden` option to the native bottom tabs. The App registers six tabs but the native bar can show at most five (Material's `BottomNavigationView` throws past five, and `UITabBar` folds the rest into a "More" tab), and which five depends on the Insights beta: Insights with it, Account without it. A native tab bar cannot hide one of its items, so a route with `tabBarItemHidden` gets no `Tabs.Screen` at all. When such a route is focused, it is drawn in JS over the native host with the tab bar hidden, while the host keeps the last focused visible tab selected underneath. A hidden route stays mounted once visited. Like every other tab, it is frozen by the App's tab screen layout while another tab is focused. Nothing native changes. The patch also forwards a `tabBarAccessibilityLabel` option to RNScreens' `tabBarItemAccessibilityLabel`. The iOS tab labels are drawn into the icon images, so without it VoiceOver announces the tabs with no name. **This part can be removed on the upgrade to React Navigation v8**, which forwards the same option. The `tabBarItemHidden` part has no upstream counterpart and stays.
 - Upstream PR/issue: not reported yet.
 - E/App issue: [#101169](https://github.com/Expensify/App/issues/101169)
 - PR Introducing Patch: [#101339](https://github.com/Expensify/App/pull/101339)

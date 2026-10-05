@@ -58,7 +58,11 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, dotColors, tabLabels}: 
             });
         const inactiveIcon = getIcon(false);
         const activeIcon = getIcon(true);
-        return {tabBarIcon: inactiveIcon && activeIcon ? ({focused}) => (focused ? activeIcon : inactiveIcon) : undefined};
+        return {
+            tabBarIcon: inactiveIcon && activeIcon ? ({focused}) => (focused ? activeIcon : inactiveIcon) : undefined,
+            // The label is drawn into the icon, so VoiceOver reads it from here.
+            tabBarAccessibilityLabel: tabLabels[name],
+        };
     };
 
     return {screenOptions, getTabOptions};
