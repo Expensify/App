@@ -112,13 +112,8 @@ import {
     isPerDiemRequest,
     isScanning,
 } from '@libs/TransactionUtils';
-import {
-    getReportSubmitViolationSummary,
-    hasAnySubmitViolation,
-    mergeReportSubmitViolationSummaries,
-    shouldResolveAcknowledgedViolations,
-} from '@libs/Violations/getReportSubmitViolationSummary';
-import showSubmitViolationsConfirmModal from '@libs/Violations/showSubmitViolationsConfirmModal';
+import confirmSubmitViolationsThenProceed from '@libs/Violations/confirmSubmitViolationsThenProceed';
+import {getReportSubmitViolationSummary, mergeReportSubmitViolationSummaries} from '@libs/Violations/getReportSubmitViolationSummary';
 
 import variables from '@styles/variables';
 
@@ -2812,30 +2807,21 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                                 accountID,
                             );
 
-                            if (!hasAnySubmitViolation(summaryForSubmit)) {
-                                openPopoverForSubmit();
-                            } else {
-                                showSubmitViolationsConfirmModal({
-                                    summary: summaryForSubmit,
-                                    showConfirmModal,
-                                    translate,
-                                    dateFnsLocale,
-                                    convertToDisplayString,
-                                    shouldShowMarkAsDoneCopy: allReportsShouldMarkAsDone,
-                                }).then((result) => {
-                                    if (result.action !== ModalActions.CONFIRM) {
-                                        return;
-                                    }
-                                    if (summaryForSubmit.hasPendingCardMatch) {
-                                        markPendingRTERTransactionsAsCash(
-                                            reportTransactionsForSubmit,
-                                            reportViolationsCollectionForSubmit,
-                                            Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDForSubmit}`] ?? {}),
-                                        );
-                                    }
-                                    openPopoverForSubmit(shouldResolveAcknowledgedViolations(summaryForSubmit));
-                                });
-                            }
+                            confirmSubmitViolationsThenProceed({
+                                summary: summaryForSubmit,
+                                showConfirmModal,
+                                translate,
+                                dateFnsLocale,
+                                convertToDisplayString,
+                                shouldShowMarkAsDoneCopy: allReportsShouldMarkAsDone,
+                                onMarkPendingCardMatchAsCash: () =>
+                                    markPendingRTERTransactionsAsCash(
+                                        reportTransactionsForSubmit,
+                                        reportViolationsCollectionForSubmit,
+                                        Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDForSubmit}`] ?? {}),
+                                    ),
+                                onProceed: openPopoverForSubmit,
+                            });
                         }
                         return;
                     }
@@ -2925,23 +2911,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         clearSelectedTransactions();
                     };
 
-                    if (!hasAnySubmitViolation(summary)) {
-                        runSubmit();
-                        return;
-                    }
-
-                    showSubmitViolationsConfirmModal({
+                    confirmSubmitViolationsThenProceed({
                         summary,
                         showConfirmModal,
                         translate,
                         dateFnsLocale,
                         convertToDisplayString,
                         shouldShowMarkAsDoneCopy: allReportsShouldMarkAsDone,
-                    }).then((result) => {
-                        if (result.action !== ModalActions.CONFIRM) {
-                            return;
-                        }
-                        if (summary.hasPendingCardMatch) {
+                        onMarkPendingCardMatchAsCash: () => {
                             for (const reportID of reportIDsToSubmit) {
                                 markPendingRTERTransactionsAsCash(
                                     transactionsByReportID.get(reportID) ?? [],
@@ -2949,8 +2926,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                                     Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {}),
                                 );
                             }
-                        }
-                        runSubmit(shouldResolveAcknowledgedViolations(summary));
+                        },
+                        onProceed: runSubmit,
                     });
                 },
             });

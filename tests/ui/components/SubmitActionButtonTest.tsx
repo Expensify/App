@@ -115,10 +115,21 @@ jest.mock('@libs/ReportUtils', () => {
     };
 });
 
-// The violations confirmation gate itself is exercised by its own tests; here it just proceeds straight to the
-// submission. The mock is still spied on so a test can assert which violations collection reached it, since it must
-// agree with the strict-policy-rules gate below on which violations are dismissed.
-const mockedUseConfirmSubmitReportViolations = jest.fn<(proceed: (shouldResolveAcknowledgedViolations?: boolean) => void) => void, [unknown]>(() => (proceed) => proceed());
+// The violations confirmation gate itself is exercised by its own tests; by default it proceeds straight to the
+// submission (matching the "no violations" case), so most tests here don't need to think about it. The mock is
+// still spied on so a test can assert which violations collection reached it, since it must agree with the
+// strict-policy-rules gate below on which violations are dismissed. A test exercising the iOS-freeze fix (the
+// popover must only open after this gate resolves, never before or instead) sets mockShouldAutoProceedConfirmSubmit
+// to false and drives mockCapturedConfirmSubmitOnProceed itself to simulate Cancel (never call it) or Confirm
+// (call it with the resolved flag).
+let mockShouldAutoProceedConfirmSubmit = true;
+let mockCapturedConfirmSubmitOnProceed: ((shouldResolveAcknowledgedViolations?: boolean) => void) | undefined;
+const mockedUseConfirmSubmitReportViolations = jest.fn<(proceed: (shouldResolveAcknowledgedViolations?: boolean) => void) => void, [unknown]>(() => (proceed) => {
+    mockCapturedConfirmSubmitOnProceed = proceed;
+    if (mockShouldAutoProceedConfirmSubmit) {
+        proceed();
+    }
+});
 jest.mock('@hooks/useConfirmSubmitReportViolations', () => ({
     __esModule: true,
     default: (params: unknown) => mockedUseConfirmSubmitReportViolations(params),
@@ -162,6 +173,8 @@ describe('SubmitActionButton', () => {
         mockTransactionViolations = {};
         mockTransactions = [];
         mockAreStrictPolicyRulesEnabled = false;
+        mockShouldAutoProceedConfirmSubmit = true;
+        mockCapturedConfirmSubmitOnProceed = undefined;
         mockedIsSubmitPolicy.mockReturnValue(false);
         mockedHasOnlyPendingCardTransactions.mockReturnValue(false);
         mockedHasOnlyHeldExpenses.mockReturnValue(false);
@@ -206,6 +219,44 @@ describe('SubmitActionButton', () => {
 
         expect(mockOpenReportSubmitToPopover).toHaveBeenCalled();
         expect(mockedSubmitReport).not.toHaveBeenCalled();
+    });
+
+    it('never opens the submit-to popover when the user cancels the violations confirmation', () => {
+        // Given a submit policy whose violations confirmation modal is still awaiting the user's answer (iOS can't
+        // present that modal while the submit-to popover is already open, so the popover must not open first)
+        mockedIsSubmitPolicy.mockReturnValue(true);
+        mockShouldAutoProceedConfirmSubmit = false;
+        render(<SubmitActionButton />);
+
+        // When the user presses Submit, then cancels the violations confirmation modal (the gate's onProceed is
+        // simply never called, since Cancel means "make no changes")
+        act(() => {
+            mockSubmitButtonPropsHolder.current?.onPress?.();
+        });
+
+        // Then the popover must never open, and the report must stay a draft
+        expect(mockOpenReportSubmitToPopover).not.toHaveBeenCalled();
+        expect(mockedSubmitReport).not.toHaveBeenCalled();
+    });
+
+    it('opens the submit-to popover with the resolved violations flag once the user confirms', () => {
+        // Given a submit policy whose violations confirmation modal is still awaiting the user's answer
+        mockedIsSubmitPolicy.mockReturnValue(true);
+        mockShouldAutoProceedConfirmSubmit = false;
+        render(<SubmitActionButton />);
+        act(() => {
+            mockSubmitButtonPropsHolder.current?.onPress?.();
+        });
+        expect(mockOpenReportSubmitToPopover).not.toHaveBeenCalled();
+
+        // When the user confirms "Submit anyway", resolving shouldResolveAcknowledgedViolations to true
+        act(() => {
+            mockCapturedConfirmSubmitOnProceed?.(true);
+        });
+
+        // Then the popover must open only now, carrying the resolved flag, so ReportSubmitToContent doesn't have to
+        // run its own violations check while the popover is already on screen
+        expect(mockOpenReportSubmitToPopover).toHaveBeenCalledWith(expect.objectContaining({shouldResolveAcknowledgedViolations: true}));
     });
 
     it('shows the pending card transactions block modal instead of submitting', () => {

@@ -1,8 +1,6 @@
-import {ModalActions} from '@components/Modal/Global/ModalContext';
-
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getReportSubmitViolationSummary, hasAnySubmitViolation, shouldResolveAcknowledgedViolations} from '@libs/Violations/getReportSubmitViolationSummary';
-import showSubmitViolationsConfirmModal from '@libs/Violations/showSubmitViolationsConfirmModal';
+import confirmSubmitViolationsThenProceed from '@libs/Violations/confirmSubmitViolationsThenProceed';
+import {getReportSubmitViolationSummary} from '@libs/Violations/getReportSubmitViolationSummary';
 
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 
@@ -62,19 +60,15 @@ function useConfirmSubmitReportViolations({
 
     return (onProceed: ConfirmSubmitReportViolationsOnProceed) => {
         const summary = getReportSubmitViolationSummary(transactions, violationsCollection, report, policy, currentUserEmail ?? '', currentUserAccountID);
-        if (!hasAnySubmitViolation(summary)) {
-            onProceed();
-            return;
-        }
-
-        showSubmitViolationsConfirmModal({summary, showConfirmModal, translate, dateFnsLocale, convertToDisplayString, shouldShowMarkAsDoneCopy}).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-            if (summary.hasPendingCardMatch) {
-                markPendingRTERTransactionsAsCash(transactions, violationsCollection, reportActions);
-            }
-            onProceed(shouldResolveAcknowledgedViolations(summary));
+        confirmSubmitViolationsThenProceed({
+            summary,
+            showConfirmModal,
+            translate,
+            dateFnsLocale,
+            convertToDisplayString,
+            shouldShowMarkAsDoneCopy,
+            onMarkPendingCardMatchAsCash: () => markPendingRTERTransactionsAsCash(transactions, violationsCollection, reportActions),
+            onProceed,
         });
     };
 }
