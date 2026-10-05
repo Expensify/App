@@ -14,6 +14,7 @@ import {rand64} from '@libs/NumberUtils';
 import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getDistanceRateCustomUnit, getReimbursementChoice, hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
+import ReceiptStorage from '@libs/ReceiptStorage';
 import {getOriginalMessage, getReportActionHtml, getReportActionText, isReportPreviewAction} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
 import {
@@ -193,6 +194,11 @@ type RequestMoneyInformation = {
     optimisticIOUReportID?: string;
     optimisticReportPreviewActionID?: string;
     optimisticTransactionID?: string;
+    currentReportActionID?: string;
+    existingTransactionThreadReportID?: string;
+
+    /** The report already counts this transaction, so its totals and transaction count are not recalculated. */
+    isTransactionAlreadyOnReport?: boolean;
     shouldGenerateTransactionThreadReport: boolean;
     isASAPSubmitBetaEnabled: boolean;
     currentUserAccountIDParam: number;
@@ -241,6 +247,12 @@ type MoneyRequestInformationParams = {
     isReverseSplitOperation?: boolean;
     action?: IOUAction;
     currentReportActionID?: string;
+
+    /** Reuses this thread so a retry lands on the records the first attempt created. */
+    existingTransactionThreadReportID?: string;
+
+    /** The report already counts this transaction, so its totals and transaction count are not recalculated. */
+    isTransactionAlreadyOnReport?: boolean;
     isASAPSubmitBetaEnabled: boolean;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
@@ -453,7 +465,9 @@ function buildOnyxDataForTestDriveIOU(
 
 function getTransactionWithPreservedLocalReceiptSource(transaction: OnyxTypes.Transaction, isScanRequest: boolean): OnyxTypes.Transaction {
     if (isScanRequest && isLocalFile(transaction.receipt?.source)) {
-        return {...transaction, receipt: {...transaction.receipt, localSource: String(transaction.receipt?.source)}};
+        const localSource = String(transaction.receipt?.source);
+        ReceiptStorage.retain(localSource);
+        return {...transaction, receipt: {...transaction.receipt, localSource}};
     }
     return transaction;
 }
@@ -1070,7 +1084,8 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                                   errors: getReceiptError(transaction.receipt, transaction.receipt?.filename, isScanRequest, errorKey, CONST.IOU.ACTION_PARAMS.MONEY_REQUEST),
                               },
                               [iou.action.reportActionID]: {
-                                  errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage'),
+                                  // `errorKey + 1` so this doesn't overwrite the transaction's `ReceiptError` when the receipt view merges them.
+                                  errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage', errorKey + 1),
                               },
                           }
                         : {
@@ -1304,6 +1319,8 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         isReverseSplitOperation,
         action,
         currentReportActionID,
+        existingTransactionThreadReportID,
+        isTransactionAlreadyOnReport = false,
         isASAPSubmitBetaEnabled,
         currentUserAccountIDParam,
         currentUserEmailParam,
@@ -1458,6 +1475,9 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                   rules,
               })
             : buildOptimisticIOUReport(payeeAccountID, payerAccountID, reportAmount, chatReport.reportID, currency, getCurrencyDecimals, undefined, undefined, optimisticReportID);
+    } else if (isTransactionAlreadyOnReport) {
+        // The report already counts this transaction, so skip the totals. Still clone it, because code below mutates `iouReport`.
+        iouReport = {...iouReport};
     } else if (isPolicyExpenseChat) {
         // Capture previous fresh reimbursable totals before mutating, so the diff applies whether or
         // not the iouReport already had reimbursableTotal/unheldReimbursableTotal populated locally.
@@ -1566,7 +1586,10 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         isDemoTransactionParam: transactionParams.receipt?.isTestDriveReceipt,
     });
 
-    iouReport.transactionCount = (iouReport.transactionCount ?? 0) + 1;
+    if (!isTransactionAlreadyOnReport) {
+        // A retry must not bump this, because `isOneTransactionReport` checks `transactionCount === 1`.
+        iouReport.transactionCount = (iouReport.transactionCount ?? 0) + 1;
+    }
 
     const optimisticPolicyRecentlyUsedCategories = mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories);
     const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
@@ -1670,7 +1693,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             participants: [participant],
             transactionID: optimisticTransaction.transactionID,
             paymentType: transactionParams.receipt?.isTestDriveReceipt ? CONST.IOU.PAYMENT_TYPE.ELSEWHERE : undefined,
-            existingTransactionThreadReportID: linkedTrackedExpenseReportAction?.childReportID,
+            existingTransactionThreadReportID: existingTransactionThreadReportID ?? linkedTrackedExpenseReportAction?.childReportID,
             optimisticCreatedReportActionID,
             linkedTrackedExpenseReportAction,
             isPersonalTrackingExpense: isSelfDMSplit,
@@ -1695,11 +1718,11 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             chatReport,
             iouReport,
             getCurrencyDecimals,
+            delegateAccountID,
             comment,
             optimisticTransaction,
             undefined,
             optimisticReportPreviewActionID,
-            delegateAccountID,
         );
         chatReport.lastVisibleActionCreated = reportPreviewAction.created;
 

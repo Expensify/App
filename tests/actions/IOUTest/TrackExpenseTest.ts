@@ -2547,6 +2547,7 @@ describe('actions/IOU/TrackExpense', () => {
                 isChatReportArchived: false,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 transactionThreadReportActions: passedThreadReportActions,
+                transactionThread: thread,
             });
             await waitForBatchedUpdates();
 
@@ -2619,6 +2620,7 @@ describe('actions/IOU/TrackExpense', () => {
                 isChatReportArchived: false,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 transactionThreadReportActions: undefined,
+                transactionThread: undefined,
                 isMovingTransactionFromTrackExpense: true,
             });
             await waitForBatchedUpdates();
@@ -2754,6 +2756,7 @@ describe('actions/IOU/TrackExpense', () => {
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 reportAction: iouReportAction!,
                 iouReport: undefined,
+                iouReportTransactions: [],
                 chatIOUReport: undefined,
                 transactions: {},
                 violations: {},

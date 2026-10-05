@@ -359,3 +359,10 @@
 - Upstream PR/issue: [react/react-native#58566](https://github.com/react/react-native/pull/58566) — open, not merged. Still unfixed in every release to date: `v0.88.0-rc.1` has the same unchecked `subdataWithRange:`. Re-check on each RN upgrade and drop this patch once the adopted release contains it.
 - E/App issue: https://github.com/Expensify/App/issues/100843
 - PR introducing patch: this PR.
+
+### [react-native+0.86.0+044+run-insertion-effect-cleanup-in-hidden-subtree.patch](react-native+0.86.0+044+run-insertion-effect-cleanup-in-hidden-subtree.patch)
+
+- Reason: Fabric skips the cleanup of `useInsertionEffect` when a component is removed while its `<Activity>` is hidden (visible, then hidden, then removed), so whatever the effect registered leaks. react-dom 19.2 runs that cleanup. The renderer bundled with RN 0.86 is React 19.2.3 built with the `native-oss` feature flags, where `enableHiddenSubtreeInsertionEffectCleanup` stayed `false` after React flipped the default for react-dom, and React 19.3 removed the flag and runs the cleanup unconditionally. The patch drops the `offscreenSubtreeWasHidden` guard in front of the insertion cleanup in `commitDeletionEffectsOnFiber` of the dev, prod and profiling builds, which is exactly what the flag controlled. Hiding alone still leaves insertion effects untouched. `react-test-renderer` carries the same patch so jest matches the runtime.
+- Upstream PR/issue: fix behind the flag in https://github.com/facebook/react/pull/30954, enabled for react-dom in https://github.com/facebook/react/pull/34372, flag removed in https://github.com/facebook/react/pull/35918. react-native `main` already ships the React 19.3 renderer with the unconditional cleanup; drop this patch when the adopted RN release does.
+- E/App issue: https://github.com/Expensify/App/issues/98254
+- PR introducing patch: https://github.com/Expensify/App/pull/101577
