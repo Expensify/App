@@ -57,7 +57,7 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
     const isClassicRedirectDismissed = tryNewDot?.classicRedirect?.dismissed;
     const isIncompleteOnboarding = hasCompletedGuidedSetupFlow === false;
     const hasSavedOnboardingPath = !!onboardingInitialPath?.includes(`/${ROUTES.ONBOARDING_ROOT.route}`);
-    // Forced onboarding 2FA enters from the require-2FA overlay (Home base); users can also reach it from Settings > Security.
+    // Forced onboarding 2FA enters from the require-2FA overlay, which uses Home as its base route. Users can also reach it from Settings > Security.
     // Gate on the real hasCompletedGuidedSetupFlow so the handoff only fires for users who haven't finished
     // guided setup; passing a literal false made it fire for every user setting up 2FA from Settings > Security.
     const isForcedOnboardingHandoff =
