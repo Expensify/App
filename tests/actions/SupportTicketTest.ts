@@ -78,16 +78,18 @@ describe('actions/Report', () => {
         expect(mockNavigate).toHaveBeenCalledWith(`r/${serverCreatedReportID}`);
     });
 
-    it('stays on the resolved ticket when the server reopens it', async () => {
+    it('navigates to the returned ticket when the server reopens it', async () => {
         // Given a resolved support ticket and a response that reopens it with the existing assignee
         const resolvedSupportTicketReportID = 'resolvedSupportTicketReportID';
         mockMakeRequestWithSideEffects.mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS, reportID: resolvedSupportTicketReportID});
+        mockGetReportRouteForCurrentContext.mockImplementation(({reportID}) => `r/${reportID}`);
 
         // When the customer reopens the ticket
         await openSupportTicket(resolvedSupportTicketReportID);
 
-        // Then the App does not navigate away from the resolved ticket
-        expect(mockNavigate).not.toHaveBeenCalled();
+        // Then the App navigates to the report returned by the server
+        expect(mockGetReportRouteForCurrentContext).toHaveBeenCalledWith({reportID: resolvedSupportTicketReportID});
+        expect(mockNavigate).toHaveBeenCalledWith(`r/${resolvedSupportTicketReportID}`);
     });
 
     it('recognizes the no-rep response', () => {

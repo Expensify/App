@@ -4871,7 +4871,7 @@ function openSupportTicket(resolvedSupportTicketReportID?: string) {
 
     // eslint-disable-next-line rulesdir/no-api-side-effects-method -- reopening must wait for the server-selected report ID before navigating.
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_SUPPORT_TICKET, parameters).then((response) => {
-        if (resolvedSupportTicketReportID && response?.reportID && response.reportID !== resolvedSupportTicketReportID) {
+        if (resolvedSupportTicketReportID && response?.reportID) {
             Navigation.navigate(getReportRouteForCurrentContext({reportID: response.reportID}));
         }
         return response;
