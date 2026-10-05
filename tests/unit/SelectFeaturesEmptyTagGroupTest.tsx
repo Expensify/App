@@ -16,6 +16,7 @@ import Onyx from 'react-native-onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
+import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const POLICY_ID = '1';
@@ -111,6 +112,7 @@ const POLICY_TAGS_WITH_EMPTY_GROUP = createMock<PolicyTagLists>({
 describe('Select features pages with an empty tag group', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
+        global.fetch = TestHelper.getGlobalFetchMock();
     });
 
     beforeEach(async () => {
