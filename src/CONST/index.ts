@@ -1152,6 +1152,7 @@ const CONST = {
         INSIGHTS_COMPARE: 'insightsCompare',
         PAYMENT_HISTORY: 'paymentHistory',
         UNIFIED_CONNECTIONS: 'unifiedConnections',
+        ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1747,6 +1748,7 @@ const CONST = {
                 ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER: 'ACTIONABLEMENTIONINVITETOSUBMITEXPENSECONFIRMWHISPER',
                 ACTIONABLE_REPORT_MENTION_WHISPER: 'ACTIONABLEREPORTMENTIONWHISPER',
                 ACTIONABLE_TRACK_EXPENSE_WHISPER: 'ACTIONABLETRACKEXPENSEWHISPER',
+                AGENT_PROMPT_UPDATED: 'AGENTPROMPTUPDATED',
                 POLICY_EXPENSE_CHAT_WELCOME_WHISPER: 'POLICYEXPENSECHATWELCOMEWHISPER',
                 ADD_COMMENT: 'ADDCOMMENT',
 
@@ -1805,6 +1807,7 @@ const CONST = {
                 MOVED: 'MOVED',
                 MOVED_TRANSACTION: 'MOVEDTRANSACTION',
                 UNREPORTED_TRANSACTION: 'UNREPORTEDTRANSACTION',
+                UNDELETED_TRANSACTION: 'UNDELETEDTRANSACTION',
                 OUTDATED_BANK_ACCOUNT: 'OUTDATEDBANKACCOUNT', // OldDot Action
                 REIMBURSED: 'REIMBURSED',
                 REIMBURSEMENT_ACH_BOUNCE: 'REIMBURSEMENTACHBOUNCE', // OldDot Action
@@ -2327,6 +2330,8 @@ const CONST = {
             POLICIES_COUNT: 'policies_count',
             REPORTS_COUNT: 'reports_count',
             PERSONAL_DETAILS_COUNT: 'personal_details_count',
+            TRANSACTIONS_COUNT: 'transactions_count',
+            DB_SIZE: 'db_size',
             USER_ROLE: 'user_role',
             NUDGE_MIGRATION_COHORT: 'nudge_migration_cohort',
             AUTHENTICATION_FUNCTION: 'authentication_function',
@@ -2358,6 +2363,13 @@ const CONST = {
             SQLITE: 'sqlite',
             INDEXED_DB: 'indexed_db',
             UNAVAILABLE: 'unavailable',
+        },
+        // Numeric prefix keeps Sentry's alphabetical sort in size order
+        SIZE_TIER: {
+            SMALL: '1-small',
+            MEDIUM: '2-medium',
+            LARGE: '3-large',
+            XLARGE: '4-xlarge',
         },
         BUILD_TYPE_HYBRID_APP: 'hybrid_app',
         BUILD_TYPE_STANDALONE: 'standalone',
@@ -3097,6 +3109,16 @@ const CONST = {
         IMAGE_DIMENSIONS_TOO_LARGE: 'imageDimensionsTooLarge',
         FOLDER_NOT_ALLOWED: 'folderNotAllowed',
         MAX_FILE_LIMIT_EXCEEDED: 'maxFileLimitExceeded',
+    },
+
+    INPUT_VALIDATION_ERRORS: {
+        REQUIRED: 'required',
+        EXISTING: 'existing',
+        INVALID: 'invalid',
+        TOO_LONG: 'tooLong',
+        NOT_INTEGER: 'notInteger',
+        TOO_HIGH: 'tooHigh',
+        TOO_LOW: 'tooLow',
     },
 
     IOS_CAMERA_ROLL_ACCESS_ERROR: 'Access to photo library was denied',
@@ -5165,7 +5187,7 @@ const CONST = {
         // Corner radius scaled to the avatar size, used for workspace avatars
         ROUNDED_SQUARE: 'rounded-square',
     },
-
+    CASH_CARD_NAME: '__CASH__',
     COMPANY_CARD: {
         // Mostly used for feed details
         FEED_BANK_NAME: {
@@ -7309,6 +7331,7 @@ const CONST = {
     SESSION_STORAGE_KEYS: {
         INITIAL_URL: 'INITIAL_URL',
         RETRY_LAZY_REFRESHED: 'RETRY_LAZY_REFRESHED',
+        UPDATE_REQUIRED_RELOADED_VERSION: 'UPDATE_REQUIRED_RELOADED_VERSION',
         LAST_REFRESH_TIMESTAMP: 'LAST_REFRESH_TIMESTAMP',
         LAST_VISITED_PATH: {
             WORKSPACES_TAB: 'LAST_VISITED_PATH_WORKSPACES_TAB',
@@ -8065,6 +8088,7 @@ const CONST = {
             EXPORTER: 'exporter',
             CATEGORY: 'category',
             TAG: 'tag',
+            VENDOR: 'vendor',
             TAX_RATE: 'taxRate',
             CARD_ID: 'cardID',
             FEED: 'feed',
@@ -8116,6 +8140,7 @@ const CONST = {
         TAG_EMPTY_VALUE: 'none',
         CATEGORY_EMPTY_VALUE: 'none',
         CATEGORY_DEFAULT_VALUE: 'Uncategorized',
+        VENDOR_EMPTY_VALUE: 'none',
         MERCHANT_EMPTY_VALUE: 'none',
         SEARCH_ROUTER_ITEM_TYPE: {
             CONTEXTUAL_SUGGESTION: 'contextualSuggestion',
@@ -8152,6 +8177,7 @@ const CONST = {
             EXPORTER: 'exporter',
             CATEGORY: 'category',
             TAG: 'tag',
+            VENDOR: 'vendor',
             TAX_RATE: 'tax-rate',
             CARD_ID: 'card',
             FEED: 'feed',
@@ -8854,6 +8880,11 @@ const CONST = {
         EXTERNAL_ID: 'externalID',
         MAX_AMOUNT_NO_RECEIPT: 'maxAmountNoReceipt',
         MAX_AMOUNT_NO_ITEMIZED_RECEIPT: 'maxAmountNoItemizedReceipt',
+        PAYROLL_CODE: 'payrollCode',
+        ARE_COMMENTS_REQUIRED: 'areCommentsRequired',
+        COMMENT_HINT: 'commentHint',
+        EXPENSE_LIMIT_TYPE: 'expenseLimitType',
+        MAX_EXPENSE_AMOUNT: 'maxExpenseAmount',
         MERCHANT_IS: 'merchantIs',
         MERCHANT_CONTAINS: 'merchantContains',
         UPDATED_MERCHANT: 'updatedMerchant',
@@ -9259,10 +9290,7 @@ const CONST = {
             /** How narrow a free-text column may be squeezed before the table scrolls instead. Around 17 characters, so a typical merchant name or full name still reads, and a column is never squeezed below its header regardless. */
             MIN_FREE_TEXT_COLUMN_WIDTH: 120,
 
-            /** The width a free-text column is laid out at once the table scrolls, when horizontal room is no longer scarce. */
-            SCROLLED_FREE_TEXT_COLUMN_WIDTH: 180,
-
-            /** The cap a column opts into through `dynamicSizing.maxWidth`, so one unusually long value doesn't take room the columns after it need. */
+            /** How wide a free-text column may be sized for its content once the table scrolls, so one unusually long value doesn't push every column after it out of view. A table that still fits its columns caps nothing: the spare room is there to be used. */
             MAX_FREE_TEXT_COLUMN_WIDTH: 180,
         },
     },
