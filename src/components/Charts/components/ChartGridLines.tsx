@@ -27,11 +27,7 @@ const STROKE_WIDTH = VictoryTheme.axis.yLineWidth;
 const DASH_INTERVALS = [Math.max(0, DASH_LENGTH - STROKE_WIDTH), DASH_GAP + STROKE_WIDTH];
 
 function ChartGridLines({yTicks, yScale, chartBounds, color}: ChartGridLinesProps) {
-    const bottomTick = Math.min(...yTicks);
     return yTicks.map((tick) => {
-        if (tick === 0 && tick === bottomTick) {
-            return null;
-        }
         const y = yScale(tick);
         return (
             <Line
@@ -42,7 +38,7 @@ function ChartGridLines({yTicks, yScale, chartBounds, color}: ChartGridLinesProp
                 strokeWidth={STROKE_WIDTH}
                 strokeCap="round"
             >
-                <DashPathEffect intervals={DASH_INTERVALS} />
+                {tick !== 0 && <DashPathEffect intervals={DASH_INTERVALS} />}
             </Line>
         );
     });
