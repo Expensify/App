@@ -54,7 +54,7 @@ Left to do:
 | Per-rule parity, all batches | `npm run oxlint-rule-fixtures` | **307 entries: 306 identical, 1 pinned divergence** |
 | Whole-repo parity | `bash oxlint-migration/compareFullRepo.sh --fresh` | section 3 |
 | Sidecar rule evidence | `npm run oxlint-sidecar-coverage` | **193 / 193 covered** |
-| Rule inventory | `npm run oxlint-rule-inventory` | **490 rules, fixture coverage 301 / 490** |
+| Rule inventory | `npm run oxlint-rule-inventory` | **490 rules, fixture coverage 302 / 490** |
 | Config drift | `npm run oxlint-config-drift` | 29 rules differ, **0 open**, all in the LEDGER |
 | ESLint directive parity | `npm run oxlint-eslint-directives` | **22 / 22**, matching ESLint 9.36.0 |
 
@@ -93,7 +93,7 @@ time. Exit codes are the process exits, not a reading of the output.
 | `oxlint-react-compiler-rust` | **0** | twelve fixtures self-report, one per `rc/*` rule; every category mapped |
 | `oxlint-rule-availability` | **0** | wrote `oxlint-migration/rule-availability.json`, byte-identical |
 | `oxlint-rule-fixtures` | **0** | 307 entries: 306 identical, 1 pinned divergence (`react/no-did-update-set-state`) |
-| `oxlint-rule-inventory` | **0** | 490 rules, fixture coverage 301/490, 0 unproven. Wrote `rule-inventory.json`, byte-identical |
+| `oxlint-rule-inventory` | **0** | 490 rules, fixture coverage 302/490, 0 unproven. Wrote `rule-inventory.json`, byte-identical |
 | `oxlint-rule-tester` | **0** | all 35 custom rules identical across 463 harvested cases |
 | `oxlint-sidecar-coverage` | **0** | core 10/10, hosted 40/40, rulesdir 37/37, hand-hosted 87/87; all 193 enabled sidecar rules covered |
 | `tests/tooling/lintPipeline.test.ts` | **0** | 50 tests, 124 assertions. Runs under `bun test`, not the jest config, which ignores `tests/tooling/` |
@@ -223,7 +223,7 @@ oxlint-tsgolint 7.0.2003.
 
 | rule | eslint | oxlint | delta | reading |
 | --- | ---: | ---: | ---: | --- |
-| `@typescript-eslint/no-unsafe-type-assertion` | 1903 | 1956 | +53 | both enable it; tsgolint 7.0.2003 infers stricter than TS 6.0.2 -- separate triage before Phase 3 |
+| `@typescript-eslint/no-unsafe-type-assertion` | 1903 | 1956 | +53 | both enable it; tsgolint 7.0.2003 infers stricter than TS 6.0.2. Kept, grandfathered (safe direction, section 3.3.1) |
 | `no-restricted-imports` | 598 | 598 | 0 | parity, including the `HeaderWithBackButton`->`Header` migration ban and the `OnyxUtils` path ban, both of which oxlint spells differently -- see section 3.5 |
 | `@typescript-eslint/no-unnecessary-type-assertion` | 0 | 752 | +752 | both enable it; TS 6.0.2 and tsgo TS7 infer differently |
 | `@typescript-eslint/no-deprecated` | 259 | 461 | +202 | write-site strictness; tsgolint flags write sites typescript-eslint does not (typescript-eslint#10643). 82 of the 259 are the `Gesture` API the upstream gesture-handler 3.3 bump deprecated, and oxlint reports the same 82 |
@@ -239,7 +239,7 @@ oxlint-tsgolint 7.0.2003.
 | `rulesdir/no-direct-personal-details-list` | 9 | 9 | 0 | parity |
 | `import/no-named-as-default` | 0 | 13 | +13 | shared config, Oxlint finds more |
 | `react-hooks/immutability` | 6 | 7 | +1 | one extra through the bridge |
-| `@typescript-eslint/no-unsafe-return` | 0 | 8 | +8 | oxlint-only, tsgolint 7.0.2003 strictness -- separate triage before Phase 3 |
+| `@typescript-eslint/no-unsafe-return` | 0 | 8 | +8 | oxlint-only, tsgolint 7.0.2003 strictness. Kept, grandfathered (safe direction, section 3.3.1) |
 | `no-unsafe-optional-chaining` | 0 | 4 | +4 | Oxlint-only finding |
 | `unicorn/prefer-at` | 0 | 4 | +4 | Oxlint-only, expected (default options, covers the type-free `x[x.length - N]` family) |
 | `react-hooks/static-components` | 2 | 2 | 0 | parity |
@@ -263,7 +263,8 @@ Every rule not listed reports 0 on both tools. Section 3.3.1 splits these deltas
 they risk. `refs` under-reports (section 5.1); `purity` reports 35 ESLint cannot see (section 5.3);
 `preserve-manual-memoization` and `immutability` over-report through the bridge. The typescript-eslint
 `no-unsafe-*` extras (`no-unsafe-type-assertion` +53, `no-unsafe-return` +8) come from tsgolint
-inferring stricter than typescript-eslint, and need triage before Phase 3.
+inferring stricter than typescript-eslint. They stay on and grandfathered: an extra finding only makes
+the gate stricter, and suppressing the family to hold parity would give that up.
 
 The React Compiler reports some diagnostics twice, same file, position and text. On these pins ESLint
 does it at 29 `refs` locations (45 extra copies) and no other compiler rule; the bridge at 14 `refs` and
@@ -449,12 +450,9 @@ Native Rust rules, 288. `compareFixtures.py` carries 307 entries: 306 identical 
 pinned intentional divergence (`react/no-did-update-set-state`, section 5.2). Each batch is checked
 red-green by emptying its fixtures and confirming every row flips to FAIL.
 
-A finding on a fixture file that no entry claims fails the run. It used to print as informational
-(oxlint=17, eslint=6), and every one of those was the two probe configs enabling different rules:
-the oxlint probe left the default `correctness` category on (production turns it off), and the
-ESLint probe ran `no-redeclare` and `no-unreachable` on TS fixtures from `js.configs.recommended`
-(production turns both off for TS). Both probes now match production, and the JS `no-redeclare`
-finding became its own entry.
+A finding on a fixture file that no entry claims fails the run: it means the two probe configs
+enable different rules. Both probes mirror production's scoping for that reason, including oxlint's
+`categories: {correctness: "off"}` and ESLint's TS-off `no-redeclare` / `no-unreachable`.
 
 ### 4.1 Tier B is deliberately not covered
 
@@ -570,13 +568,12 @@ running on `main` than they are to hold the branch open for.
    `oxlint.seatbelt.tsv` tightens once and only once.
 2. Close the deltas an oxlint gate would hide, before Phase 3 (section 3.3.1). In rough order of size:
    - Explain or close the `refs` multiplicity gap (189 vs 210, section 5.1).
-   - Decide whether to keep the tsgolint `no-unsafe-*` extras (`no-unsafe-type-assertion` +53,
-     `no-unsafe-return` +8) grandfathered, or suppress the family to hold parity until
-     typescript-eslint and tsgo agree.
    - Clean up the 35 `purity` `Date`-during-render findings over time (section 5.3); they stay
      grandfathered meanwhile.
 3. File a tracking issue for `rulesdir/boolean-conditional-rendering`, which has no replacement and
    no issue today (section 3.2). It is the one real coverage loss, and Phase 4 step 6 depends on it.
+   Blocked upstream: JS plugins get no type information
+   ([Oxlint JS plugins alpha, "What it can't do yet"](https://oxc.rs/blog/2026-03-11-oxlint-js-plugins-alpha.html#what-it-can-t-do-yet)).
 4. Every merge from `main` needs a manual `SEATBELT_INCREASE=all` pass, because the seatbelt
    tightens but never increases.
 
