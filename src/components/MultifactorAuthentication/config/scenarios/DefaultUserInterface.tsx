@@ -35,7 +35,6 @@ function customConfig<const T extends MultifactorAuthenticationScenarioCustomCon
         ...config,
         modals: {...DEFAULT_CONFIG.modals, ...config.modals},
         callback: config.callback ?? defaultCallback,
-        onCancel: config.onCancel,
         successScreen: config.successScreen ?? DEFAULT_CONFIG.successScreen,
         defaultClientFailureScreen: config.defaultClientFailureScreen ?? DEFAULT_CONFIG.defaultClientFailureScreen,
         defaultServerFailureScreen: config.defaultServerFailureScreen ?? DEFAULT_CONFIG.defaultServerFailureScreen,

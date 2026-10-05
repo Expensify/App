@@ -57,19 +57,6 @@ describe('MultifactorAuthentication Scenarios Config', () => {
     });
 
     /**
-     * Verifies that every scenario config exposes `onCancel`, present or `undefined`. `customConfig`
-     * normalizes it onto every resolved config the same way it normalizes `callback`, so Slice B's
-     * cancel guard can read it uniformly.
-     */
-    it('should have an onCancel property for every scenario config', () => {
-        const config = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG as MultifactorAuthenticationScenarioConfigRecord;
-
-        for (const scenarioConfig of Object.values(config)) {
-            expect(scenarioConfig).toHaveProperty('onCancel');
-        }
-    });
-
-    /**
      * Verifies that the default callback behavior returns SHOW_OUTCOME_SCREEN.
      * When a callback returns SHOW_OUTCOME_SCREEN, the handleCallback function
      * will navigate to the appropriate success or failure outcome screen.
