@@ -346,7 +346,6 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
             : getLatestConciergeFeedbackActionID(renderedVisibleReportActions, allReportActionIDs);
 
     useFollowActionBadgeTarget({
-        isProduction,
         reportID,
         actionTargetReportActionID: reportAttributes?.actionTargetReportActionID,
         actionBadgeTargetIndex,

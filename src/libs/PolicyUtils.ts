@@ -818,17 +818,6 @@ function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | und
     return canPayOnPolicy && currentUserLogin === reimburserEmail;
 }
 
-/**
- * Whether an admin/payments admin who isn't the designated workspace payer can still pay reports on the policy.
- * Unlike `isPolicyPayer`/`isPayer`, this must not drive active prompting (badges, GBRs, next steps, pay to-dos), which stay payer-only.
- */
-function canAdminPayReport(policy: OnyxInputOrEntry<Policy>, currentUserLogin: string): boolean {
-    const isReimbursementConfigured =
-        policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES || policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
-
-    return isGroupPolicy(policy) && isReimbursementConfigured && canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
-}
-
 /** Check if the passed employee is an approver in the policy's employeeList */
 function isPolicyApprover(policy: OnyxInputOrEntry<Policy>, employeeLogin: string) {
     if (policy?.approver === employeeLogin) {
@@ -1769,14 +1758,6 @@ function getCorrectedAutoReportingFrequency(policy: OnyxInputOrEntry<Policy>): V
  */
 function isSubmitAndClose(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL;
-}
-
-/**
- * Whether the policy has approvals turned on. False while the policy hasn't loaded yet (no `approvalMode`),
- * unlike `!isSubmitAndClose(policy)`, which reads an unresolved policy as approvals-enabled.
- */
-function areApprovalsEnabled(policy: OnyxInputOrEntry<Policy>): boolean {
-    return !!policy?.approvalMode && !isSubmitAndClose(policy);
 }
 
 /**
@@ -2768,10 +2749,23 @@ function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled
 }
 
 /**
- * Search spans every workspace at once, so the vendor column is offered when any workspace has the vendor feature.
+ * Search spans every workspace at once, so the vendor filter and column are offered when any workspace has the vendor feature.
  */
 function hasVendorFeatureOnAnyPolicy(policies: OnyxCollection<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
     return Object.values(policies ?? {}).some((policy) => hasVendorFeature(policy, isVendorMatchingBetaEnabled));
+}
+
+/**
+ * IDs of the workspaces that have the vendor feature, so the Search vendor filter only offers their vendor lists.
+ */
+function getVendorFeaturePolicyIDs(policies: OnyxCollection<Policy>, isVendorMatchingBetaEnabled: boolean): string[] {
+    const policyIDs: string[] = [];
+    for (const policy of Object.values(policies ?? {})) {
+        if (policy?.id && hasVendorFeature(policy, isVendorMatchingBetaEnabled)) {
+            policyIDs.push(policy.id);
+        }
+    }
+    return policyIDs;
 }
 
 /**
@@ -3640,6 +3634,7 @@ export {
     isXeroVendorMatchingActive,
     hasVendorFeature,
     hasVendorFeatureOnAnyPolicy,
+    getVendorFeaturePolicyIDs,
     isMatchingVendorListLoaded,
     getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,
@@ -3717,7 +3712,6 @@ export {
     isPolicyMember,
     isMemberInHomeAndOfficeWorkspace,
     isPolicyPayer,
-    canAdminPayReport,
     getReimburserEmail,
     getOwnerChangePayerSuccessData,
     PAYER_ROLES,
@@ -3727,7 +3721,6 @@ export {
     getReimbursementChoice,
     isSubmitterAndApprover,
     isSubmitAndClose,
-    areApprovalsEnabled,
     isTaxTrackingEnabled,
     shouldShowPolicy,
     getActiveAdminWorkspaces,

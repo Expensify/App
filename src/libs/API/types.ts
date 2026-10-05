@@ -616,6 +616,7 @@ const WRITE_COMMANDS = {
     QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV: 'QueueExportSearchToCSV',
     QUEUE_EXPORT_SEARCH_WITH_TEMPLATE: 'QueueExportSearchWithTemplate',
     QUEUE_BULK_PAY_REPORTS: 'QueueBulkPayReports',
+    QUEUE_BULK_MARK_AS_EXPORTED: 'QueueBulkMarkAsExported',
     CREATE_WORKSPACE_APPROVAL: 'CreateWorkspaceApproval',
     UPDATE_WORKSPACE_APPROVAL: 'UpdateWorkspaceApproval',
     REMOVE_WORKSPACE_APPROVAL: 'RemoveWorkspaceApproval',
@@ -1409,6 +1410,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV]: Parameters.QueueExportSearchItemsToCSVParams;
     [WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_WITH_TEMPLATE]: Parameters.QueueExportSearchWithTemplateParams;
     [WRITE_COMMANDS.QUEUE_BULK_PAY_REPORTS]: Parameters.QueueBulkPayReportsParams;
+    [WRITE_COMMANDS.QUEUE_BULK_MARK_AS_EXPORTED]: Parameters.QueueBulkMarkAsExportedParams;
     [WRITE_COMMANDS.EXPORT_REPORT_TO_CSV]: Parameters.ExportReportCSVParams;
     [WRITE_COMMANDS.CREATE_WORKSPACE_APPROVAL]: Parameters.CreateWorkspaceApprovalParams;
     [WRITE_COMMANDS.UPDATE_WORKSPACE_APPROVAL]: Parameters.UpdateWorkspaceApprovalParams;
@@ -1559,6 +1561,7 @@ const READ_COMMANDS = {
     OPEN_SEARCH_PAGE: 'OpenSearchPage',
     OPEN_SEARCH_CARD_FILTERS_PAGE: 'OpenSearchCardFiltersPage',
     OPEN_SEARCH_CATEGORY_FILTERS_PAGE: 'OpenSearchCategoryFiltersPage',
+    OPEN_SEARCH_VENDOR_FILTERS_PAGE: 'OpenSearchVendorFiltersPage',
     SEARCH: 'Search',
     GET_INSIGHTS: 'GetInsights',
     GET_TRANSACTIONS_CONVERTED_AMOUNT: 'GetTransactionsConvertedAmount',
@@ -1740,6 +1743,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_DRAFT_DISTANCE_EXPENSE]: null;
     [READ_COMMANDS.OPEN_SEARCH_CARD_FILTERS_PAGE]: null;
     [READ_COMMANDS.OPEN_SEARCH_CATEGORY_FILTERS_PAGE]: null;
+    [READ_COMMANDS.OPEN_SEARCH_VENDOR_FILTERS_PAGE]: null;
     [READ_COMMANDS.START_ISSUE_NEW_CARD_FLOW]: Parameters.StartIssueNewCardFlowParams;
     [READ_COMMANDS.OPEN_CARD_DETAILS_PAGE]: Parameters.OpenCardDetailsPageParams;
     [READ_COMMANDS.GET_CORPAY_ONBOARDING_FIELDS]: Parameters.GetCorpayOnboardingFieldsParams;
