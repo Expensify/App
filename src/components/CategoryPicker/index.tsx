@@ -120,6 +120,7 @@ function CategoryPicker({
     const sectionsWithNoneOption =
         noneOption.length > 0 ? [...sections.slice(0, selectedCategorySectionIndex + 1), noneOptionSection, ...sections.slice(selectedCategorySectionIndex + 1)] : sections;
 
+    const sectionsWithTitleStyles = sectionsWithNoneOption.map((section) => ({...section, data: section.data.map((category) => ({...category, titleStyles: styles.w100}))}));
     const categoryData = sectionsWithNoneOption.flatMap((section) => section.data);
     const renderedRowCount = sectionsWithNoneOption.reduce((total, section) => total + section.data.length + (section.title ? 1 : 0), 0);
 
@@ -146,15 +147,13 @@ function CategoryPicker({
 
     return (
         <SelectionListWithSections
-            sections={sectionsWithNoneOption}
+            sections={sectionsWithTitleStyles}
             onSelectRow={onSubmit}
             ListItem={SingleSelectListItem}
             shouldShowTextInput={categoriesCount >= CONST.STANDARD_LIST_ITEM_LIMIT}
             textInputOptions={textInputOptions}
             initiallyFocusedItemKey={selectedOptionKey}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
-            style={{listItemTitleStyles: styles.w100}}
-            isRowMultilineSupported
             titleNumberOfLines={CONST.TRANSACTION_TAG_AND_CATEGORY_PICKER_MAX_TITLE_LINES}
         />
     );

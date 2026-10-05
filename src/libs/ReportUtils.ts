@@ -101,7 +101,6 @@ import type {AddCommentOrAttachmentParams} from './API/parameters';
 import type {FormulaContext, compute as computeFormula, computeWithMetadata as computeFormulaWithMetadata} from './Formula';
 import type {MoneyRequestNavigatorParamList, ReportsSplitNavigatorParamList} from './Navigation/types';
 import type {PersonalDetailsOnyxUpdate} from './PersonalDetailsUtils';
-import type {PolicyPaymentAttribution} from './PolicyPaymentUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
 import type {AvatarSource} from './UserAvatarUtils';
 
@@ -438,12 +437,6 @@ type BuildOptimisticIOUReportActionParams = {
     linkedExpenseReportAction?: OnyxEntry<ReportAction>;
     payAsBusiness?: boolean;
     bankAccountID?: number | undefined;
-    /**
-     * Masked number of the bank account the report was actually paid with. Stored on the action so every viewer sees
-     * the same account, since the payer's account is not present in every viewer's `bankAccountList` and the policy's
-     * ACH account can belong to a different bank account than the one used to pay.
-     */
-    accountNumber?: string;
     isPersonalTrackingExpense?: boolean;
     reportActionID?: string;
     // TODO: delegateAccountIDParam will be made required when all callers pass the value (https://github.com/Expensify/App/issues/66425)
@@ -6042,8 +6035,6 @@ type GetReportPreviewMessageBaseParams = {
     isForListPreview?: boolean;
     /** This can be either a report preview action or the IOU action. This will be the original report preview action in cases where `iouReportAction` was unwrapped from a report preview action. Otherwise, it will be the same as `iouReportAction`. */
     originalReportAction?: OnyxInputOrEntry<ReportAction>;
-    /** The current user's bank accounts, used to name the account a report was paid with. */
-    bankAccountList?: OnyxEntry<BankAccountList>;
 };
 
 /**
@@ -6078,15 +6069,7 @@ function getReportPreviewMessage(
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     params: GetReportPreviewMessageBaseParams,
 ): string {
-    const {
-        reportOrID,
-        iouReportAction = null,
-        shouldConsiderScanningReceiptOrPendingRoute = false,
-        isPreviewMessageForParentChatReport = false,
-        policy,
-        isForListPreview = false,
-        bankAccountList,
-    } = params;
+    const {reportOrID, iouReportAction = null, shouldConsiderScanningReceiptOrPendingRoute = false, isPreviewMessageForParentChatReport = false, policy, isForListPreview = false} = params;
     const originalReportAction = params.originalReportAction ?? iouReportAction;
     const report = typeof reportOrID === 'string' ? getReport(reportOrID, deprecatedAllReports) : reportOrID;
     const reportActionMessage = getReportActionHtml(iouReportAction);
@@ -6208,10 +6191,7 @@ function getReportPreviewMessage(
             report.isWaitingOnBankAccount
         ) {
             translatePhraseKey = 'iou.paidWithExpensify';
-
-            // A paying admin can record `bankAccountID` on a workspace payment too, so the report type is what says
-            // whether this was an invoice, matching `getIOUReportActionDisplayMessage`.
-            const isFromInvoice = isInvoiceReport(report) && !!originalMessage?.bankAccountID;
+            const isFromInvoice = !!originalMessage?.bankAccountID;
             if (originalMessage?.automaticAction) {
                 translatePhraseKey = 'iou.automaticallyPaidWithExpensify';
             }
@@ -6241,13 +6221,7 @@ function getReportPreviewMessage(
         actualPayerName = actualPayerName && isForListPreview && !isPreviewMessageForParentChatReport ? `${actualPayerName}:` : actualPayerName;
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
         if (translatePhraseKey === 'iou.businessBankAccount') {
-            const last4Digits = getBankAccountLastFourDigits({
-                bankAccountID: originalMessage?.bankAccountID,
-                bankAccountList,
-                policy: policy ?? undefined,
-                accountNumber: originalMessage?.accountNumber,
-                payerAccountID,
-            });
+            const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? policy?.achAccount?.accountNumber?.slice(-4) ?? '';
             const crossBorderMessage = originalMessage ? getCrossBorderReimbursedMessage(translate, originalMessage, convertToDisplayString, last4Digits) : undefined;
             if (crossBorderMessage) {
                 return crossBorderMessage;
@@ -6338,15 +6312,7 @@ function getReportPreviewReportActionMessage(
     params: Omit<GetReportPreviewMessageBaseParams, 'policy'> & {policy?: OnyxInputOrEntry<Policy>},
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
 ): string {
-    const {
-        reportOrID,
-        iouReportAction = null,
-        shouldConsiderScanningReceiptOrPendingRoute = false,
-        isPreviewMessageForParentChatReport = false,
-        policy,
-        isForListPreview = false,
-        bankAccountList,
-    } = params;
+    const {reportOrID, iouReportAction = null, shouldConsiderScanningReceiptOrPendingRoute = false, isPreviewMessageForParentChatReport = false, policy, isForListPreview = false} = params;
     const originalReportAction = params.originalReportAction ?? iouReportAction;
     const report = typeof reportOrID === 'string' ? getReport(reportOrID, deprecatedAllReports) : reportOrID;
     const reportActionMessage = getReportActionHtml(iouReportAction);
@@ -6462,9 +6428,7 @@ function getReportPreviewReportActionMessage(
             report.isWaitingOnBankAccount
         ) {
             translatePhraseKey = 'iou.paidWithExpensify';
-            // A paying admin can record `bankAccountID` on a workspace payment too, so the report type is what says
-            // whether this was an invoice, matching `getIOUReportActionDisplayMessage`.
-            const isFromInvoice = isInvoiceReport(report) && !!originalMessage?.bankAccountID;
+            const isFromInvoice = !!originalMessage?.bankAccountID;
             if (originalMessage?.automaticAction) {
                 translatePhraseKey = 'iou.automaticallyPaidWithExpensify';
             }
@@ -6489,13 +6453,7 @@ function getReportPreviewReportActionMessage(
         actualPayerName = actualPayerName && isForListPreview && !isPreviewMessageForParentChatReport ? `${actualPayerName}:` : actualPayerName;
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
         if (translatePhraseKey === 'iou.businessBankAccount') {
-            const last4Digits = getBankAccountLastFourDigits({
-                bankAccountID: originalMessage?.bankAccountID,
-                bankAccountList,
-                policy: reportPolicy,
-                accountNumber: originalMessage?.accountNumber,
-                payerAccountID,
-            });
+            const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '';
 
             // This variant returns raw English to match the surrounding non-localized preview strings.
             if (originalMessage?.creditedAmount && originalMessage.creditedCurrency) {
@@ -8054,7 +8012,6 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
         isPersonalTrackingExpense = false,
         payAsBusiness,
         bankAccountID,
-        accountNumber,
         reportActionID,
         delegateAccountIDParam,
         isSubmitterMarkedPaymentReceived,
@@ -8095,11 +8052,6 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
 
         if (isSubmitterMarkedPaymentReceived) {
             originalMessage.isSubmitterMarkedPaymentReceived = true;
-        }
-
-        // Persist the masked account used to pay so every viewer resolves the same account (see `accountNumber` above).
-        if (accountNumber) {
-            originalMessage.accountNumber = accountNumber;
         }
     }
 
@@ -11723,7 +11675,7 @@ function getIOUReportActionDisplayMessage(
     translate: LocalizedTranslate,
     reportAction: OnyxEntry<ReportAction>,
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
-    policy: OnyxEntry<PolicyPaymentAttribution>,
+    policyACHAccountNumber: string | undefined,
     transaction?: OnyxEntry<Transaction>,
     bankAccountList?: OnyxEntry<BankAccountList>,
 ): string {
@@ -11738,13 +11690,7 @@ function getIOUReportActionDisplayMessage(
 
     let translationKey: TranslationPaths;
     if (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
-        const last4Digits = getBankAccountLastFourDigits({
-            bankAccountID: originalMessage?.bankAccountID,
-            bankAccountList,
-            policy,
-            accountNumber: originalMessage?.accountNumber,
-            payerAccountID: reportAction?.actorAccountID,
-        });
+        const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? getBankAccountLastFourDigits(originalMessage?.bankAccountID, bankAccountList, policyACHAccountNumber);
         const crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, convertToDisplayString, last4Digits);
 
         switch (originalMessage.paymentType) {
