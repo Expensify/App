@@ -153,5 +153,4 @@ function toggleEmojiReaction(
     addEmojiReaction(originalReportID, reportAction.reportActionID, emoji, skinTone, currentUserAccountID);
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export {toggleEmojiReaction};
+export {addEmojiReaction, toggleEmojiReaction};

@@ -9706,6 +9706,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         genericCreateSupportTicketFailureMessage: 'Non siamo riusciti a creare questo ticket di assistenza. Chiudi questo errore e riprova.',
         noSupportRepAvailable: 'Al momento non sono disponibili rappresentanti dell’assistenza. Puoi comunque inviare un messaggio a Concierge per ricevere aiuto.',
         fallbackTitle: 'Ticket di assistenza',
+        resolved: 'Questo ticket di assistenza è risolto.',
+        reopenTicket: 'Riapri ticket',
     },
     statementPage: {
         title: (year: number | string, monthName: string) => `Estratto conto di ${monthName} ${year}`,

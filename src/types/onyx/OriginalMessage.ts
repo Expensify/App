@@ -336,6 +336,11 @@ type OriginalMessageClosed = {
     message?: string;
 };
 
+/** Model of a support ticket survey report action */
+type OriginalMessageSupportSurvey = {
+    html: string;
+};
+
 /** Model of `renamed` report action, created when chat rooms get renamed */
 type OriginalMessageRenamed = {
     /** Renamed room comment */
@@ -1694,6 +1699,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.STRIPE_PAID]: never;
     [CONST.REPORT.ACTIONS.TYPE.SUBMITTED]: OriginalMessageSubmitted;
     [CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED]: OriginalMessageSubmitted;
+    [CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY]: OriginalMessageSupportSurvey;
     [CONST.REPORT.ACTIONS.TYPE.ADD_EXPENSE_ON_SUBMITTED]: OriginalMessageAddExpenseOnSubmitted;
     [CONST.REPORT.ACTIONS.TYPE.TASK_CANCELLED]: never;
     [CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED]: never;

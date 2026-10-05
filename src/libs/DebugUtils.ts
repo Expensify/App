@@ -608,6 +608,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
             });
         case 'supportTicketCalendarLink':
             return validateString(value);
+        case 'reopenedAsReportID':
+            return validateString(value);
         case 'calendlyCalls':
             return validateArray<ArrayElement<ReportNameValuePairs, 'calendlyCalls'>>(value, {
                 status: 'string',
@@ -712,6 +714,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 originalID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 conciergeFeedbackForReportActionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 supportTicketCalendarLink: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                reopenedAsReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
             });
         case 'expensify_text_title':
             return validateObject<ObjectElement<ReportNameValuePairs, 'expensify_text_title'>>(value, {

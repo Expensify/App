@@ -9579,6 +9579,8 @@ ${reportName}`,
         genericCreateSupportTicketFailureMessage: 'No pudimos crear este ticket de soporte. Descarta este error e inténtalo de nuevo.',
         noSupportRepAvailable: 'No hay representantes de soporte disponibles en este momento. Aún puedes enviar un mensaje a Concierge para obtener ayuda.',
         fallbackTitle: 'Ticket de soporte',
+        resolved: 'Este ticket de soporte está resuelto.',
+        reopenTicket: 'Reabrir ticket',
     },
     statementPage: {
         title: (year, monthName) => `Estado de cuenta de ${monthName} ${year}`,

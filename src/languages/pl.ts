@@ -9683,6 +9683,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         genericCreateSupportTicketFailureMessage: 'Nie udało się utworzyć tego zgłoszenia. Zamknij ten błąd i spróbuj ponownie.',
         noSupportRepAvailable: 'Obecnie nie ma dostępnych pracowników pomocy technicznej. Nadal możesz wysłać wiadomość do Concierge, aby uzyskać pomoc.',
         fallbackTitle: 'Zgłoszenie do pomocy technicznej',
+        resolved: 'To zgłoszenie do pomocy technicznej zostało rozwiązane.',
+        reopenTicket: 'Otwórz zgłoszenie ponownie',
     },
     statementPage: {
         title: (year: number | string, monthName: string) => `Wyciąg za ${monthName} ${year}`,

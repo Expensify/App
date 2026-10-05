@@ -1615,6 +1615,22 @@ describe('ReportActionsUtils', () => {
 
             expect(ReportActionsUtils.getReportActionMessageFragments(translateLocal, action)).toEqual(action.message);
         });
+
+        it('keeps the backend message for a closed support ticket', () => {
+            const html = '<muted-text>Daniel resolved this support ticket.</muted-text>';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
+                reportActionID: 'support-ticket-closed-action',
+                created: '2026-10-05 12:00:00.000',
+                message: [{html, text: 'Daniel resolved this support ticket.', type: CONST.REPORT.MESSAGE.TYPE.COMMENT}],
+                originalMessage: {
+                    policyName: '',
+                    reason: CONST.REPORT.ARCHIVE_REASON.DEFAULT,
+                },
+            };
+
+            expect(ReportActionsUtils.getReportActionMessageFragments(translateLocal, action, true)).toEqual([{text: 'Daniel resolved this support ticket.', html, type: 'COMMENT'}]);
+        });
     });
 
     describe('getConciergeAutoSelectDistanceRateMessage', () => {
@@ -2564,6 +2580,21 @@ describe('ReportActionsUtils', () => {
     });
 
     describe('shouldReportActionBeVisible', () => {
+        it('keeps a closed support ticket action visible', () => {
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
+                reportActionID: '1',
+                created: '2025-09-29',
+                originalMessage: {
+                    policyName: '',
+                    reason: CONST.REPORT.ARCHIVE_REASON.DEFAULT,
+                },
+            };
+
+            expect(ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true)).toBe(false);
+            expect(ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, undefined, undefined, true)).toBe(true);
+        });
+
         it('should return false for moved transaction if the report destination is unavailable', () => {
             // Given a moved transaction action but the report destination is not available
             const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> = {

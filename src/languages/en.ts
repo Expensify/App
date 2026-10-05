@@ -9924,6 +9924,8 @@ const translations = {
         genericCreateSupportTicketFailureMessage: "We couldn't create this support ticket. Please dismiss this error and try again.",
         noSupportRepAvailable: 'No support reps are available right now. You can still message Concierge for help.',
         fallbackTitle: 'Support ticket',
+        resolved: 'This support ticket is resolved.',
+        reopenTicket: 'Reopen ticket',
     },
     statementPage: {
         title: (year: number | string, monthName: string) => `${monthName} ${year} statement`,

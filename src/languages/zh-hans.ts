@@ -9316,6 +9316,8 @@ ${reportName}`,
         genericCreateSupportTicketFailureMessage: '无法创建此支持工单。请关闭此错误后重试。',
         noSupportRepAvailable: '目前没有可用的支持代表。您仍可向 Concierge 发送消息以获取帮助。',
         fallbackTitle: '支持工单',
+        resolved: '此支持工单已解决。',
+        reopenTicket: '重新打开工单',
     },
     statementPage: {
         title: (year: number | string, monthName: string) => `${year}年${monthName}对账单`,

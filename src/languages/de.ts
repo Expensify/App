@@ -9750,6 +9750,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         genericCreateSupportTicketFailureMessage: 'Dieses Support-Ticket konnte nicht erstellt werden. Bitte schließe diesen Fehler und versuche es erneut.',
         noSupportRepAvailable: 'Derzeit sind keine Support-Mitarbeiter verfügbar. Du kannst Concierge trotzdem um Hilfe bitten.',
         fallbackTitle: 'Support-Ticket',
+        resolved: 'Dieses Support-Ticket ist gelöst.',
+        reopenTicket: 'Ticket erneut öffnen',
     },
     statementPage: {
         title: (year: number | string, monthName: string) => `Abrechnung ${monthName} ${year}`,

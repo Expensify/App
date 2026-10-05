@@ -9673,6 +9673,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         genericCreateSupportTicketFailureMessage: 'We konden dit supportticket niet maken. Sluit deze foutmelding en probeer het opnieuw.',
         noSupportRepAvailable: 'Er zijn momenteel geen supportmedewerkers beschikbaar. Je kunt Concierge nog steeds een bericht sturen voor hulp.',
         fallbackTitle: 'Supportticket',
+        resolved: 'Dit supportticket is opgelost.',
+        reopenTicket: 'Ticket opnieuw openen',
     },
     statementPage: {
         title: (year: number | string, monthName: string) => `Overzicht van ${monthName} ${year}`,

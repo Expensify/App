@@ -9671,6 +9671,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         genericCreateSupportTicketFailureMessage: 'Não foi possível criar este chamado de suporte. Feche este erro e tente novamente.',
         noSupportRepAvailable: 'Não há representantes de suporte disponíveis no momento. Você ainda pode enviar uma mensagem para a Concierge para obter ajuda.',
         fallbackTitle: 'Chamado de suporte',
+        resolved: 'Este chamado de suporte foi resolvido.',
+        reopenTicket: 'Reabrir chamado',
     },
     statementPage: {
         title: (year: number | string, monthName: string) => `Extrato de ${monthName} de ${year}`,

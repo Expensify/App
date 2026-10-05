@@ -9566,6 +9566,8 @@ ${reportName}`,
         genericCreateSupportTicketFailureMessage: 'このサポートチケットを作成できませんでした。このエラーを閉じて、もう一度お試しください。',
         noSupportRepAvailable: '現在対応可能なサポート担当者はいません。Concierge にメッセージを送ってサポートを受けることはできます。',
         fallbackTitle: 'サポートチケット',
+        resolved: 'このサポートチケットは解決済みです。',
+        reopenTicket: 'チケットを再開',
     },
     statementPage: {
         title: (year: number | string, monthName: string) => `${year}年${monthName}の明細書`,

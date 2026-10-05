@@ -665,7 +665,7 @@ function ReportActionItem({
                                                                     <LinkPreviewer linkMetadata={action.linkMetadata?.filter((item) => !isEmptyObject(item))} />
                                                                 </View>
                                                             )}
-                                                            {!isOnSearch && !isMessageDeleted(action) && (
+                                                            {!isOnSearch && !isMessageDeleted(action) && action.actionName !== CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY && (
                                                                 <ReportActionItemEmojiReactions
                                                                     reportAction={action}
                                                                     reportID={reportID}

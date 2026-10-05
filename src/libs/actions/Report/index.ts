@@ -4859,16 +4859,20 @@ function isNoSupportRepAvailableResponse(response: {jsonCode?: number | string; 
 }
 
 function openSupportTicket(resolvedSupportTicketReportID?: string) {
-    const newSupportTicketReportID = generateReportID();
-    const parameters: CreateSupportTicketParams = {
-        newSupportTicketReportID,
-        ...(resolvedSupportTicketReportID ? {resolvedSupportTicketReportID} : {}),
-    };
+    const newSupportTicketReportID = resolvedSupportTicketReportID ? undefined : generateReportID();
+    const parameters: CreateSupportTicketParams = resolvedSupportTicketReportID ? {resolvedSupportTicketReportID, idempotencyKey: Str.guid()} : {newSupportTicketReportID};
 
-    Navigation.navigate(getReportRouteForCurrentContext({reportID: newSupportTicketReportID, isPendingCreation: true}));
+    if (!resolvedSupportTicketReportID) {
+        Navigation.navigate(getReportRouteForCurrentContext({reportID: newSupportTicketReportID, isPendingCreation: true}));
+    }
 
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method -- this command creates the report under the client-generated ID used by the pending route.
-    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_SUPPORT_TICKET, parameters);
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method -- reopening must wait for the server-selected report ID before navigating.
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_SUPPORT_TICKET, parameters).then((response) => {
+        if (resolvedSupportTicketReportID && response?.reportID) {
+            Navigation.navigate(getReportRouteForCurrentContext({reportID: response.reportID}));
+        }
+        return response;
+    });
 }
 
 function dismissFailedSupportTicket(supportTicketReportID: string, parentReportID: string, parentReportActionID: string) {

@@ -9937,6 +9937,8 @@ ${reportName}`,
         genericCreateSupportTicketFailureMessage: 'Δεν ήταν δυνατή η δημιουργία αυτού του αιτήματος υποστήριξης. Κλείστε αυτό το σφάλμα και δοκιμάστε ξανά.',
         noSupportRepAvailable: 'Δεν υπάρχουν διαθέσιμοι εκπρόσωποι υποστήριξης αυτή τη στιγμή. Μπορείτε ακόμη να στείλετε μήνυμα στο Concierge για βοήθεια.',
         fallbackTitle: 'Αίτημα υποστήριξης',
+        resolved: 'Αυτό το αίτημα υποστήριξης επιλύθηκε.',
+        reopenTicket: 'Επανέναρξη αιτήματος',
     },
     statementPage: {
         title: (year: number | string, monthName: string) => `αντίγραφο κίνησης ${monthName} ${year}`,

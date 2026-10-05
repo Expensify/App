@@ -1,6 +1,7 @@
 type CreateSupportTicketParams = {
-    newSupportTicketReportID: string;
+    newSupportTicketReportID?: string;
     resolvedSupportTicketReportID?: string;
+    idempotencyKey?: string;
 };
 
 export default CreateSupportTicketParams;

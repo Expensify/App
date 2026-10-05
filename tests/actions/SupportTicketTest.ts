@@ -33,24 +33,50 @@ describe('actions/Report', () => {
         mockNavigate.mockClear();
     });
 
-    it.each([
-        ['a new support ticket', undefined, {newSupportTicketReportID}],
-        ['a reassigned support ticket', 'resolvedSupportTicketReportID', {newSupportTicketReportID, resolvedSupportTicketReportID: 'resolvedSupportTicketReportID'}],
-    ])('opens a pending report and sends the expected payload for %s', async (_scenario, resolvedSupportTicketReportID, parameters) => {
-        // Given a request for a new or reassigned support ticket
+    it('opens a pending report and sends the expected payload for a new support ticket', async () => {
+        // Given a request for a new support ticket
         // When the customer asks to talk to a human
-        const request = openSupportTicket(resolvedSupportTicketReportID);
+        const request = openSupportTicket();
 
         // Then the App opens the client-generated report ID while the request is still pending
         expect(mockGenerateReportID).toHaveBeenCalled();
         expect(mockGetReportRouteForCurrentContext).toHaveBeenCalledWith({reportID: newSupportTicketReportID, isPendingCreation: true});
         expect(mockNavigate).toHaveBeenCalledWith(`r/${newSupportTicketReportID}`);
-        expect(mockMakeRequestWithSideEffects).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_SUPPORT_TICKET, parameters);
+        expect(mockMakeRequestWithSideEffects).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_SUPPORT_TICKET, {newSupportTicketReportID});
 
         await request;
 
         // And the request does not navigate a second time after the server has created the report
         expect(mockNavigate).toHaveBeenCalledTimes(1);
+    });
+
+    it('waits for a reopened support ticket before navigating to the server-created report', async () => {
+        // Given a resolved support ticket and a server response for its reassignment
+        const resolvedSupportTicketReportID = 'resolvedSupportTicketReportID';
+        const serverCreatedReportID = 'serverCreatedSupportTicketReportID';
+        mockMakeRequestWithSideEffects.mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS, reportID: serverCreatedReportID});
+        mockGetReportRouteForCurrentContext.mockImplementation(({reportID}) => `r/${reportID}`);
+
+        // When the customer reopens the ticket
+        const request = openSupportTicket(resolvedSupportTicketReportID);
+
+        // Then neither ticket is opened optimistically
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockMakeRequestWithSideEffects).toHaveBeenCalledWith(
+            SIDE_EFFECT_REQUEST_COMMANDS.CREATE_SUPPORT_TICKET,
+            expect.objectContaining({
+                resolvedSupportTicketReportID,
+                idempotencyKey: expect.any(String),
+            }),
+        );
+        expect(mockMakeRequestWithSideEffects.mock.calls.at(0)?.[1]).not.toHaveProperty('newSupportTicketReportID');
+        expect(mockGenerateReportID).not.toHaveBeenCalled();
+
+        await request;
+
+        // And the App opens the report chosen by the server
+        expect(mockGetReportRouteForCurrentContext).toHaveBeenCalledWith({reportID: serverCreatedReportID});
+        expect(mockNavigate).toHaveBeenCalledWith(`r/${serverCreatedReportID}`);
     });
 
     it('recognizes the no-rep response', () => {
