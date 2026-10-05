@@ -257,7 +257,9 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                         </OfflineWithFeedback>
                     )}
                     {isAutoUpdateSupported && <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />}
-                    {isAutoUpdateSupported && <Text style={[styles.textLabel, styles.textStrong, styles.mh5, styles.mb2]}>{translate('workspace.distanceRates.automaticRates')}</Text>}
+                    {isAutoUpdateSupported && (
+                        <Text style={[styles.textLabel, styles.textStrong, styles.mh5, styles.mt3, styles.mb2]}>{translate('workspace.distanceRates.automaticRates')}</Text>
+                    )}
                     {isAutoUpdateSupported && (
                         <OfflineWithFeedback
                             errors={getLatestErrorField(policy ?? {}, 'shouldAutoUpdateGovernmentDistanceRates')}
