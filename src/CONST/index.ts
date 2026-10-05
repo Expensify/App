@@ -6790,7 +6790,6 @@ const CONST = {
             RECEIPTS: 'receipts',
             AI: 'ai',
         },
-        CONNECTIONS_TAB_TYPE: 'connectionsTabType',
         WORKFLOWS_TAB_TYPE: 'workflowsTabType',
         WORKFLOWS: {
             SUBMISSIONS: 'submissions',
