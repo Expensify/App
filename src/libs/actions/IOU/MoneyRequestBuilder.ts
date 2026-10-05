@@ -254,7 +254,10 @@ type MoneyRequestInformationParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
-    allReportActionsList: OnyxCollection<OnyxTypes.ReportActions>;
+    /** Report actions of `parentChatReport` */
+    parentChatReportActions?: OnyxEntry<OnyxTypes.ReportActions>;
+    /** Report actions of the participant's existing chat, which is their policy expense chat or the 1:1 chat found by `getChatByParticipants` */
+    participantChatReportActions?: OnyxEntry<OnyxTypes.ReportActions>;
 };
 
 type MoneyRequestOptimisticParams = {
@@ -1314,7 +1317,8 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         getCurrencyDecimals,
         rules,
         isVendorMatchingBetaEnabled,
-        allReportActionsList,
+        parentChatReportActions,
+        participantChatReportActions,
     } = moneyRequestInformation;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -1676,9 +1680,13 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             delegateAccountIDParam: delegateAccountID,
         });
 
-    let reportPreviewAction = shouldCreateNewMoneyRequestReport
-        ? null
-        : getReportPreviewReportAction(chatReport.reportID, iouReport.reportID, allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`]);
+    // An existing chat report is either the parent chat report or the participant's chat. A new optimistic chat report has no actions yet.
+    let chatReportActions: OnyxEntry<OnyxTypes.ReportActions>;
+    if (!isNewChatReport) {
+        chatReportActions = chatReport.reportID === parentChatReport?.reportID ? parentChatReportActions : participantChatReportActions;
+    }
+
+    let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewReportAction(chatReport.reportID, iouReport.reportID, chatReportActions);
 
     if (reportPreviewAction) {
         reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, getCurrencyDecimals, false, comment, optimisticTransaction);

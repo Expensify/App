@@ -34,6 +34,7 @@ import {
 import {
     buildOptimisticAddCommentReportAction,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
+    getChatByParticipants,
     getParsedComment,
     getPolicyExpenseChat,
     getReimbursableTotal,
@@ -690,7 +691,6 @@ function updateSplitTransactions({
             formatPhoneNumber,
             getCurrencyDecimals,
             rules,
-            allReportActionsList,
         } as MoneyRequestInformationParams;
 
         if (isReverseSplitOperation) {
@@ -785,6 +785,13 @@ function updateSplitTransactions({
             moneyRequestReportIDForSplit = splitExpense?.reportID;
         }
 
+        // getMoneyRequestInformation resolves the chat report on its own, so it gets the actions of both candidates:
+        // the parent chat report and the participant's existing chat.
+        const {participant} = participantParams;
+        const participantChatReportID = participant.isPolicyExpenseChat
+            ? participant.reportID
+            : getChatByParticipants([Number(participant.accountID), currentUserPersonalDetails.accountID], allReportsList)?.reportID;
+
         const {
             transactionThreadReportID,
             createdReportActionIDForThread,
@@ -820,7 +827,8 @@ function updateSplitTransactions({
             formatPhoneNumber,
             getCurrencyDecimals,
             rules,
-            allReportActionsList,
+            parentChatReportActions: allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentChatReport?.reportID}`],
+            participantChatReportActions: allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${participantChatReportID}`],
         });
 
         let updateMoneyRequestParamsOnyxData: OnyxData<UpdateMoneyRequestDataKeys> = {};

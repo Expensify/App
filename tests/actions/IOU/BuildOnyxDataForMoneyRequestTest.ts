@@ -520,7 +520,8 @@ describe('buildOnyxDataForMoneyRequest', () => {
             isTrackIntentUser: false,
             formatPhoneNumber: mockFormatPhoneNumber,
             rules: undefined,
-            allReportActionsList: undefined,
+            parentChatReportActions: undefined,
+            participantChatReportActions: undefined,
         });
 
         const personalDetailsEntry = result.onyxData.optimisticData?.find((entry) => entry.key === ONYXKEYS.PERSONAL_DETAILS_LIST);

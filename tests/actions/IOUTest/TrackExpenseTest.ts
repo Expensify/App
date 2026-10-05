@@ -2881,7 +2881,7 @@ describe('actions/IOU/TrackExpense', () => {
                     isTrackIntentUser: false,
                     formatPhoneNumber,
                     rules: undefined,
-                    allReportActionsList: undefined,
+                    chatReportActions: undefined,
                 });
             }).not.toThrow();
         });
@@ -2959,7 +2959,7 @@ describe('actions/IOU/TrackExpense', () => {
                     isTrackIntentUser: false,
                     formatPhoneNumber,
                     rules: undefined,
-                    allReportActionsList: undefined,
+                    chatReportActions: undefined,
                 });
             }).not.toThrow();
         });
@@ -3007,7 +3007,7 @@ describe('actions/IOU/TrackExpense', () => {
                     isTrackIntentUser: false,
                     formatPhoneNumber,
                     rules: undefined,
-                    allReportActionsList: undefined,
+                    chatReportActions: undefined,
                 });
             }).not.toThrow();
         });
@@ -3055,9 +3055,122 @@ describe('actions/IOU/TrackExpense', () => {
                     isTrackIntentUser: false,
                     formatPhoneNumber,
                     rules: undefined,
-                    allReportActionsList: undefined,
+                    chatReportActions: undefined,
                 });
             }).not.toThrow();
+        });
+
+        it('should reuse the report preview action passed via chatReportActions', async () => {
+            // Given a tracked expense in the self DM and a target IOU report whose REPORT_PREVIEW action is supplied
+            // only through the chatReportActions param. It is deliberately never written to Onyx, so the deprecated
+            // report actions fallback inside getReportPreviewReportAction cannot be its source.
+            const currentUserAccountID = 40;
+            const currentUserEmail = 'user4@test.com';
+            const payerAccountID = 41;
+            const payerEmail = 'payer4@test.com';
+            const selfDMReportID = 'selfDM400';
+            const targetReportID = 'iouReport400';
+            const chatReportID = 'chatReport400';
+            const transactionID = 'transaction400';
+            const trackExpenseActionID = 'trackExpenseAction400';
+            const reportPreviewActionID = 'reportPreviewAction400';
+
+            const participants = {
+                [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                [payerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            };
+            const selfDMReport: Report = {
+                reportID: selfDMReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                ownerAccountID: currentUserAccountID,
+                participants: {
+                    [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+            const iouReport: Report = {
+                reportID: targetReportID,
+                type: CONST.REPORT.TYPE.IOU,
+                chatReportID,
+                ownerAccountID: currentUserAccountID,
+                managerID: payerAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                currency: 'USD',
+                total: 0,
+                participants,
+            };
+            const chatReport: Report = {
+                reportID: chatReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                iouReportID: targetReportID,
+                participants,
+            };
+            const transaction: Transaction = {
+                transactionID,
+                reportID: selfDMReportID,
+                amount: 1000,
+                currency: 'USD',
+                merchant: 'Test Merchant',
+                created: DateUtils.getDBTime(),
+                comment: {comment: 'Test expense'},
+            };
+            const selfDMReportActions: ReportActions = {
+                [trackExpenseActionID]: {
+                    reportActionID: trackExpenseActionID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    created: DateUtils.getDBTime(),
+                    childReportID: 'transactionThread400',
+                    originalMessage: {IOUTransactionID: transactionID, type: CONST.IOU.REPORT_ACTION_TYPE.TRACK, amount: 1000, currency: 'USD'},
+                } as ReportAction,
+            };
+            const chatReportActions: ReportActions = {
+                [reportPreviewActionID]: {
+                    reportActionID: reportPreviewActionID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                    created: '2024-01-02 00:00:00',
+                    message: [{type: 'COMMENT', html: '', text: ''}],
+                    originalMessage: {linkedReportID: targetReportID},
+                } as ReportAction,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, selfDMReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`, iouReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            await waitForBatchedUpdates();
+
+            // When the tracked expense is moved to the IOU report.
+            convertBulkTrackedExpensesToIOU({
+                isVendorMatchingBetaEnabled: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                transactions: [transaction],
+                iouReport,
+                chatReport,
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: currentUserAccountID,
+                currentUserEmailParam: currentUserEmail,
+                transactionViolations: {},
+                policyRecentlyUsedCurrencies: [],
+                quickAction: undefined,
+                personalDetails: {[payerAccountID]: {accountID: payerAccountID, login: payerEmail}},
+                policyTagList: undefined,
+                selfDMReportActions,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+                rules: undefined,
+                chatReportActions,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then the chat report ends up with a single preview action, the supplied one, instead of a new optimistic one,
+            // proving chatReportActions reaches getMoneyRequestInformation as the actions of the chat report it resolves.
+            const updatedChatReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`);
+            const reportPreviewActions = Object.values(updatedChatReportActions ?? {}).filter((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW);
+            expect(reportPreviewActions).toHaveLength(1);
+            expect(reportPreviewActions.at(0)?.reportActionID).toBe(reportPreviewActionID);
         });
     });
 
