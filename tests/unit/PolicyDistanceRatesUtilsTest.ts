@@ -1,5 +1,7 @@
 import {
     getDistanceExpenseTypeForPolicy,
+    getDistanceRateNameError,
+    getDistanceRateValueError,
     getExpectedUnitForCurrency,
     getGovernmentRateCountryForCurrency,
     getGovernmentRateCountryPhraseTranslationKey,
@@ -249,6 +251,57 @@ describe('PolicyDistanceRatesUtils', () => {
 
         it('should pass through an unset preference', () => {
             expect(getDistanceExpenseTypeForPolicy(buildPolicy({requireMapOrGPS: true}), undefined)).toBeUndefined();
+        });
+    });
+
+    describe('getDistanceRateNameError', () => {
+        const existingRateNames = ['IRS', 'Custom rate'];
+
+        it('should return required when the name is empty or only whitespace', () => {
+            expect(getDistanceRateNameError(existingRateNames, '')).toBe(CONST.INPUT_VALIDATION_ERRORS.REQUIRED);
+            expect(getDistanceRateNameError(existingRateNames, '   ')).toBe(CONST.INPUT_VALIDATION_ERRORS.REQUIRED);
+            expect(getDistanceRateNameError(existingRateNames, '\u200B')).toBe(CONST.INPUT_VALIDATION_ERRORS.REQUIRED);
+        });
+
+        it('should return existing when the name matches another rate', () => {
+            expect(getDistanceRateNameError(existingRateNames, 'IRS')).toBe(CONST.INPUT_VALIDATION_ERRORS.EXISTING);
+            expect(getDistanceRateNameError(existingRateNames, ' Custom rate ')).toBe(CONST.INPUT_VALIDATION_ERRORS.EXISTING);
+        });
+
+        it('should not flag a rate as a duplicate of its own name', () => {
+            expect(getDistanceRateNameError(existingRateNames, 'IRS', 'IRS')).toBeUndefined();
+        });
+
+        it('should return tooLong when the name exceeds the character limit', () => {
+            const tooLongName = 'a'.repeat(CONST.TAX_RATES.NAME_MAX_LENGTH + 1);
+            expect(getDistanceRateNameError(existingRateNames, tooLongName)).toBe(CONST.INPUT_VALIDATION_ERRORS.TOO_LONG);
+        });
+
+        it('should accept a unique name within the character limit', () => {
+            expect(getDistanceRateNameError(existingRateNames, 'New rate')).toBeUndefined();
+        });
+    });
+
+    describe('getDistanceRateValueError', () => {
+        const toLocaleDigit = (digit: string) => digit;
+
+        it('should return invalid when the rate is empty or not a number', () => {
+            expect(getDistanceRateValueError('', toLocaleDigit)).toBe(CONST.INPUT_VALIDATION_ERRORS.INVALID);
+            expect(getDistanceRateValueError('abc', toLocaleDigit)).toBe(CONST.INPUT_VALIDATION_ERRORS.INVALID);
+        });
+
+        it('should return tooLow when the rate is zero or negative', () => {
+            expect(getDistanceRateValueError('0', toLocaleDigit)).toBe(CONST.INPUT_VALIDATION_ERRORS.TOO_LOW);
+            expect(getDistanceRateValueError('-1', toLocaleDigit)).toBe(CONST.INPUT_VALIDATION_ERRORS.TOO_LOW);
+        });
+
+        it('should return invalid when the rate has more than four decimal places', () => {
+            expect(getDistanceRateValueError('0.12345', toLocaleDigit)).toBe(CONST.INPUT_VALIDATION_ERRORS.INVALID);
+        });
+
+        it('should accept a positive rate with up to four decimal places', () => {
+            expect(getDistanceRateValueError('0.67', toLocaleDigit)).toBeUndefined();
+            expect(getDistanceRateValueError('0.6700', toLocaleDigit)).toBeUndefined();
         });
     });
 });
