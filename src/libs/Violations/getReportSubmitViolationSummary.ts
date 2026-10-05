@@ -60,7 +60,6 @@ function getReportSubmitViolationSummary(
                 continue;
             }
 
-            // Hold is surfaced via its own dedicated "on hold" UI elsewhere, not as a generic policy violation.
             if (violation.name === CONST.VIOLATIONS.HOLD) {
                 continue;
             }
@@ -69,8 +68,6 @@ function getReportSubmitViolationSummary(
                 continue;
             }
 
-            // Mirrors the filtering expense rows already apply, so the modal never lists a violation that's
-            // hidden from (or stale for) the current user elsewhere in the app.
             if (!shouldShowViolation(report, policy, violation.name, currentUserEmail, currentUserAccountID, true, transaction)) {
                 continue;
             }

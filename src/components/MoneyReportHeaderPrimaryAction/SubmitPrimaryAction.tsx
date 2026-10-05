@@ -155,9 +155,6 @@ function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionP
         }
 
         if (!shouldExportToPDF && isSubmitPolicy(policy) && reportID) {
-            // On a Submit workspace, vanilla Submit prompts for the approver's email via the submit-to popover, which
-            // runs the submit itself once an approver is chosen. iOS can't present the violations modal while this
-            // popover is still open, so resolve violations first and open the popover afterwards.
             confirmSubmitReportViolations((shouldResolveAcknowledgedViolations) => {
                 openReportSubmitToPopover({shouldResolveAcknowledgedViolations});
             });

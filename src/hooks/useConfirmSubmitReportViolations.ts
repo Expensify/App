@@ -24,11 +24,6 @@ type UseConfirmSubmitReportViolationsParams = {
     report: OnyxEntry<Report>;
     policy: OnyxEntry<Policy>;
     shouldShowMarkAsDoneCopy?: boolean;
-    /**
-     * Already-fetched transactions/violations/report actions, for a caller (e.g. a Search report preview) that
-     * already subscribes to this data via a shared context and would otherwise duplicate the Onyx subscriptions
-     * below for every row on screen. When omitted, the hook fetches its own via `reportID`.
-     */
     transactions?: Array<OnyxEntry<Transaction>>;
     violationsCollection?: OnyxCollection<TransactionViolations>;
     reportActions?: ReportAction[];

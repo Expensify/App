@@ -16,7 +16,6 @@ type SubmitViolationsListProps = {
     violations: string[];
 };
 
-// Centers the fixed-size dot icon against the first line of the (possibly wrapped) label text next to it.
 const dotColumnStyle = {width: variables.iconSizeExtraSmall, marginTop: (variables.lineHeightNormal - variables.iconSizeExtraSmall) / 2};
 
 /**

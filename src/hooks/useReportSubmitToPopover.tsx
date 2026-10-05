@@ -86,7 +86,6 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
     const anchorRef = useRef<ComponentRef<typeof View>>(null);
     const oneShotOnSubmitSuccessRef = useRef<(() => void) | undefined>(undefined);
     const onSubmitWithManagerEmailRef = useRef<ReportSubmitToPopoverOpenOptions['onSubmitWithManagerEmail']>(undefined);
-    // State (not a ref) because it's read directly during render to build the `ReportSubmitToContent` prop below.
     const [shouldResolveViolationsOnOpen, setShouldResolveViolationsOnOpen] = useState<boolean | undefined>(undefined);
     const canSubmitRef = useRef(true);
     const ignoreNextSearchSubmitPressRef = useRef(false);

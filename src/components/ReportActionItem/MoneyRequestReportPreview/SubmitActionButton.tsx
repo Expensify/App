@@ -147,8 +147,6 @@ function SubmitActionButtonContent() {
         }
 
         if (isSubmitPolicy(policy) && iouReportID) {
-            // iOS can't present the violations modal while this popover is still open, so resolve violations first
-            // and open the popover afterwards instead of letting ReportSubmitToContent check them itself.
             confirmSubmitReportViolations((shouldResolveAcknowledgedViolations) => {
                 openReportSubmitToPopover({shouldResolveAcknowledgedViolations});
             });
