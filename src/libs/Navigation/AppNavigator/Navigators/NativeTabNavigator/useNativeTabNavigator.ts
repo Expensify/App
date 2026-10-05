@@ -11,7 +11,6 @@ import useTheme from '@hooks/useTheme';
 import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
 
 import {getPreservedNavigatorState, setPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
-import getTabWithoutBarItem from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/getTabWithoutBarItem';
 import {NAVIGATION_TAB_TO_SPANS} from '@libs/Navigation/AppNavigator/Navigators/TabNavigatorBar';
 import isTabRouteAtRoot from '@libs/Navigation/helpers/isTabRouteAtRoot';
 import Navigation from '@libs/Navigation/Navigation';
@@ -27,6 +26,8 @@ import type {NavigationAction, NavigationState, PartialState, Router, TabNavigat
 
 import {findFocusedRoute, useNavigation, useNavigationState, useRoute} from '@react-navigation/native';
 import {useEffect} from 'react';
+
+import getTabWithoutBarItem from './getTabWithoutBarItem';
 
 /**
  * Root-level tab screens where the swipe-back gesture should be disabled.
