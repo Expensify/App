@@ -92,6 +92,8 @@ If someone no longer needs access to your workspace, you can remove them individ
 3. In the right-hand panel, click **Roles**.
 4. Select the new role and confirm.
 
+On the web, you can also change a member’s role directly from the members list. Hover over the member’s **Role** and click the pencil icon that appears to select a new role.
+
 **Note:** People admins can change a member’s role between **Member** and **Auditor** only. Granting or removing the admin role or any scoped admin role (such as Card admin, People admin, or Payments admin) requires a Workspace admin.
 
 **Note:** You can’t change the role of the member set as the workspace’s authorized payer. Their **Role** can’t be edited and role-change options are hidden until you assign a different payer. To change their role, first go to **Workspaces > Workflows**, open **Payments**, and set a different admin as the **Payer**.
