@@ -5,15 +5,16 @@ import {translateLocal} from '../utils/TestHelper';
 describe('WorkArrangementUtils', () => {
     describe('getEffectiveWorkArrangement', () => {
         it.each([
-            {memberArrangement: true, workspaceArrangement: false, expected: true},
-            {memberArrangement: false, workspaceArrangement: true, expected: false},
-            {memberArrangement: undefined, workspaceArrangement: true, expected: true},
-            {memberArrangement: undefined, workspaceArrangement: undefined, expected: false},
-        ] as const)('uses member arrangement when set and otherwise falls back to the workspace default (%#)', ({memberArrangement, workspaceArrangement, expected}) => {
+            {memberArrangement: true, workspaceArrangement: false, fallbackArrangement: false, expected: true},
+            {memberArrangement: false, workspaceArrangement: true, fallbackArrangement: false, expected: false},
+            {memberArrangement: undefined, workspaceArrangement: true, fallbackArrangement: false, expected: true},
+            {memberArrangement: undefined, workspaceArrangement: undefined, fallbackArrangement: false, expected: false},
+            {memberArrangement: undefined, workspaceArrangement: undefined, fallbackArrangement: true, expected: true},
+        ] as const)('uses member arrangement when set and otherwise falls back to the workspace default (%#)', ({memberArrangement, workspaceArrangement, fallbackArrangement, expected}) => {
             // Given a member arrangement and an optional workspace default,
-            // When resolving the member's effective work arrangement,
-            // Then the member value takes precedence and missing values default to false.
-            expect(getEffectiveWorkArrangement(memberArrangement, workspaceArrangement)).toBe(expected);
+            // When resolving the member's effective work arrangement with an optional fallback,
+            // Then the member and workspace values take precedence and the fallback is used only when both are missing.
+            expect(getEffectiveWorkArrangement(memberArrangement, workspaceArrangement, fallbackArrangement)).toBe(expected);
         });
     });
 

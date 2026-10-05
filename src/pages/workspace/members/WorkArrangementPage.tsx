@@ -77,8 +77,12 @@ function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPa
     const canAccessWorkArrangementPage =
         canWriteMembers && isWorkArrangementBetaEnabled && isHomeAndOfficeWorkspace && (isInviteFlow || isMemberInHomeAndOfficeWorkspace(policy, memberLogin));
 
-    // The member-level setting wins; otherwise fall back to the workspace default, then to no regular workspace.
-    const currentIsOffice = getEffectiveWorkArrangement(isInviteFlow ? inviteWorkArrangementDraft : member?.hasOfficeWorkArrangement, policy?.commuterExclusions?.isOfficeWorkArrangement);
+    // The member-level setting wins; otherwise fall back to the workspace default and then to the invite-specific default.
+    const currentIsOffice = getEffectiveWorkArrangement(
+        isInviteFlow ? inviteWorkArrangementDraft : member?.hasOfficeWorkArrangement,
+        policy?.commuterExclusions?.isOfficeWorkArrangement,
+        isInviteFlow,
+    );
 
     const navigateBackToDetails = () => {
         if (isInviteFlow) {

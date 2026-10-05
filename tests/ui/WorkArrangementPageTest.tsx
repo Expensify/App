@@ -55,7 +55,7 @@ jest.mock('@pages/workspace/AccessOrNotFoundWrapper', () => ({
 }));
 jest.mock('@pages/workspace/withPolicyAndFullscreenLoading', () => (Component: React.ComponentType) => Component);
 
-type MockWorkArrangementOption = {value: boolean};
+type MockWorkArrangementOption = {value: boolean; isSelected?: boolean};
 
 type MockSelectionListProps = {
     data: MockWorkArrangementOption[];
@@ -180,6 +180,25 @@ describe('WorkArrangementPage', () => {
         expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_WORK_ARRANGEMENT_DRAFT}${policyID}`)).toBe(true);
         expect(setEmployeeWorkArrangement).not.toHaveBeenCalled();
         expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(policyID));
+    });
+
+    it('defaults an invite to office-based when the workspace has no work arrangement default', async () => {
+        // Given an unsent invite whose workspace has no configured work arrangement default
+        const inviteAccountID = 23456;
+        const invitePolicy = createMock<Policy>({
+            ...policy,
+            employeeList: {},
+            commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE},
+        });
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`, {[memberLogin]: inviteAccountID});
+        });
+        render(getPage(inviteAccountID, personalDetails, invitePolicy, true));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the admin opens the work arrangement selection for the invite
+        // Then the Office-Based option matches the confirmation page's default
+        expect(getSelectionListProps()?.data.find((option) => option.value)?.isSelected).toBe(true);
     });
 
     it('uses the resolved account ID for the first arrangement change after an offline invite syncs', async () => {

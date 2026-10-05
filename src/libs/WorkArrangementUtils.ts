@@ -8,8 +8,8 @@ import {Str} from 'expensify-common';
 
 import {generateAccountID} from './UserUtils';
 
-function getEffectiveWorkArrangement(memberArrangement: boolean | undefined, workspaceArrangement: boolean | undefined): boolean {
-    return memberArrangement ?? workspaceArrangement ?? false;
+function getEffectiveWorkArrangement(memberArrangement: boolean | undefined, workspaceArrangement: boolean | undefined, fallbackArrangement = false): boolean {
+    return memberArrangement ?? workspaceArrangement ?? fallbackArrangement;
 }
 
 function getWorkArrangementLabel(translate: LocalizedTranslate, isOfficeBased: boolean): string {
