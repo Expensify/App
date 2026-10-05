@@ -4,7 +4,6 @@ import type {PaymentMethodType} from '@components/KYCWall/types';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {useAllReportsTransactionsAndViolations} from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import {useOpenReportPDFDownloadModal} from '@components/ReportPDFDownloadModalHost';
 import {useOpenSearchReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import {getSearchGroupCountByKey} from '@components/Search/selectionBuilders';
@@ -156,6 +155,7 @@ import usePermissions from './usePermissions';
 import {useAllPersonalDetails} from './usePersonalDetails';
 import usePersonalPolicy from './usePersonalPolicy';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
+import useReportPDFDownloadModal from './useReportPDFDownloadModal';
 import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
 import useSelfDMReport from './useSelfDMReport';
@@ -619,7 +619,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [isExpensifyCardStatementMultiFeedAlertVisible, setIsExpensifyCardStatementMultiFeedAlertVisible] = useState(false);
     const {showConfirmModal} = useConfirmModal();
     const openSearchReportSubmitToPopover = useOpenSearchReportSubmitToPopover();
-    const openReportPDFDownloadModal = useOpenReportPDFDownloadModal();
+    const {showReportPDFDownloadModal} = useReportPDFDownloadModal();
     const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
     const [rejectModalAction, setRejectModalAction] = useState<ValueOf<
         typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT
@@ -2506,7 +2506,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         return;
                     }
                     await exportReportToPDF({reportID: reportIDForPDF});
-                    openReportPDFDownloadModal(reportIDForPDF);
+                    showReportPDFDownloadModal({reportID: reportIDForPDF});
                     selectAllMatchingItems(false);
                     clearSelectedTransactions(undefined, true);
                     return;
@@ -3228,7 +3228,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         currentSearchResults?.search?.isLoading,
         shouldCalculateTotalsOnRefresh,
         rules,
-        openReportPDFDownloadModal,
+        showReportPDFDownloadModal,
     ]);
 
     // When the dropdown surfaces the export options directly there is no "Export" row above them, so on its own the
