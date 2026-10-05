@@ -72,7 +72,7 @@ function CollapsedSystemMessages({count, earliestReportAction, report, onPress, 
                                     fill={theme.icon}
                                     width={variables.iconSizeExtraSmall}
                                     height={variables.iconSizeExtraSmall}
-                                    additionalStyles={styles.opacitySemiTransparent}
+                                    additionalStyles={!isHovered && styles.opacitySemiTransparent}
                                 />
                             </PressableWithFeedback>
                         </ReportActionItemSingle>
