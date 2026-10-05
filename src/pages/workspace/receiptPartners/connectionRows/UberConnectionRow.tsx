@@ -10,7 +10,6 @@ import MenuItem from '@components/MenuItem';
 import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -54,7 +53,7 @@ function UberConnectionRow({policyID}: ReceiptPartnerRowProps) {
     const policy = usePolicy(policyID);
     const uber = policy?.receiptPartners?.uber;
     const {getReceiptPartnersIntegrationData, shouldShowEnterCredentialsError, isUberConnected} = useGetReceiptPartnersIntegrationData(policyID);
-    let {canWrite, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
+    const {canWrite, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
     const integrationData = getReceiptPartnersIntegrationData(UBER);
 
     if (!integrationData) {
