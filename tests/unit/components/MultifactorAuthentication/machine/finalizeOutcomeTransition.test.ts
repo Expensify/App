@@ -134,6 +134,33 @@ describe('MFA outcome finalization', () => {
 
             actor.stop();
         });
+
+        it('falls back to the failure outcome on the stored error when the actor rejects', async () => {
+            const failureError = createMFAErrorFromApiResponse(404, REASON.LOCAL_ERRORS.HSM.CANCELED, 'Finalize rejection spec failure');
+            const {actor} = startFlowEnteringFinalization(fromPromise<FinalizeOutcomeOutput, FinalizeOutcomeInput>(() => Promise.reject(new Error('Finalize outcome exploded'))));
+
+            actor.send(createActorDoneEvent('authorize', {success: false, error: failureError}));
+            await waitForBatchedUpdates();
+
+            const result = actor.getSnapshot();
+            expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.OUTCOME]: MFA_STATE.FAILURE}})).toBe(true);
+            expect(result.context.error).toBe(failureError);
+
+            actor.stop();
+        });
+
+        it('falls back to the success outcome when the actor rejects without a stored error', async () => {
+            const {actor} = startFlowEnteringFinalization(fromPromise<FinalizeOutcomeOutput, FinalizeOutcomeInput>(() => Promise.reject(new Error('Finalize outcome exploded'))));
+
+            actor.send(createActorDoneEvent('authorize', {success: true, scenarioResponse: MFA_TEST_SCENARIO_RESPONSE, authenticationMethod: MFA_TEST_AUTH_METHOD}));
+            await waitForBatchedUpdates();
+
+            const result = actor.getSnapshot();
+            expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.OUTCOME]: MFA_STATE.SUCCESS}})).toBe(true);
+            expect(result.context.error).toBeUndefined();
+
+            actor.stop();
+        });
     });
 
     describe('closing while the actor is in flight', () => {
