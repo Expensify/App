@@ -2230,7 +2230,6 @@ function updateGeneralSettings(
                 ...(customUnitID && {
                     customUnits: {
                         [customUnitID]: {
-                            ...distanceUnit,
                             rates: finallyRates,
                         },
                     },

@@ -53,7 +53,12 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
 
         // Several supported countries share EUR, so moving to EUR with auto-update on needs the country choice first
         if (isAutoUpdateOn && isCurrencyChange && isSharedGovernmentRateCurrency(item.currencyCode)) {
-            Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY_GOVERNMENT_RATE_COUNTRY.getRoute(policy.id, item.currencyCode, isForcedToChangeCurrency));
+            Navigation.navigate(
+                ROUTES.WORKSPACE_OVERVIEW_CURRENCY_GOVERNMENT_RATE_COUNTRY.getRoute(policy.id, item.currencyCode, {
+                    isForcedToChangeCurrency,
+                    shouldStartExpensifyCardEnrollment,
+                }),
+            );
             return;
         }
 

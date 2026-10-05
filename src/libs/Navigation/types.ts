@@ -351,6 +351,7 @@ type SettingsNavigatorParamList = {
         policyID: string;
         currencyCode: string;
         isForcedToChangeCurrency?: boolean;
+        shouldStartExpensifyCardEnrollment?: boolean;
     };
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS]: {
         policyID: string;

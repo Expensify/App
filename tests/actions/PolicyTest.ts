@@ -2479,6 +2479,7 @@ describe('actions/Policy', () => {
             updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
             expect(updatedPolicy?.pendingFields?.shouldAutoUpdateGovernmentDistanceRates).toBeUndefined();
             expect(updatedPolicy?.pendingFields?.autoUpdateGovernmentRateCountry).toBeUndefined();
+            expect(updatedPolicy?.customUnits?.[customUnitID]?.attributes?.unit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
         });
 
         it('clears the stored government rate country when the currency changes without a new country', async () => {
