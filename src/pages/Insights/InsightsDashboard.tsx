@@ -65,8 +65,8 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['OfflineCloud']);
-    const emptyStateScrollProps = useTabRootScrollProps([styles.flexGrow1, styles.flexShrink0], true);
-    const scrollProps = useTabRootScrollProps([styles.flexGrow1, styles.ph5, styles.pb5], true);
+    const isEmptyState = state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES || state === INSIGHTS_DASHBOARD_STATE.EMPTY;
+    const scrollProps = useTabRootScrollProps(isEmptyState ? [styles.flexGrow1, styles.flexShrink0] : [styles.flexGrow1, styles.ph5, styles.pb5], true);
 
     const didRequestFail = state === INSIGHTS_DASHBOARD_STATE.ERROR || state === INSIGHTS_DASHBOARD_STATE.STALE;
 
@@ -108,10 +108,10 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
         );
     }
 
-    if (state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES || state === INSIGHTS_DASHBOARD_STATE.EMPTY) {
+    if (isEmptyState) {
         return (
             <ScrollView
-                {...emptyStateScrollProps}
+                {...scrollProps}
                 addBottomSafeAreaPadding
             >
                 {state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES ? <InsightsNoExpensesState /> : <InsightsEmptyState />}
