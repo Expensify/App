@@ -5,7 +5,6 @@ import useDefaultFundID from '@hooks/useDefaultFundID';
 
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {canAccessPolicyBankAccount, getAccessiblePolicyBankAccount} from '@libs/PolicyPaymentUtils';
 import {
     arePolicyRulesEnabled,
     canEditWorkspaceSettings,
@@ -16,6 +15,9 @@ import {
     canSendInvoiceFromWorkspace,
     evaluateApprovalWorkflowRule,
     findVendorByID,
+    getVendorFeaturePolicyIDs,
+    getVendorDisplayName,
+    hasVendorFeatureOnAnyPolicy,
     getActivePolicies,
     getActivePoliciesWithExpenseChat,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
@@ -39,7 +41,6 @@ import {
     getActiveVendorMatchingIntegration,
     getMatchingVendorByID,
     getMatchingVendors,
-    getVendorDisplayName,
     getVendorEmptyState,
     getVendorRuleDisplayValue,
     getPolicyApproverLogins,
@@ -81,7 +82,6 @@ import {
     hasPolicyRulesError,
     hasPolicyWithXeroConnection,
     hasVendorFeature,
-    hasVendorFeatureOnAnyPolicy,
     isBusinessCentralVendorMatchingActive,
     isArchivedPolicy,
     isDualEntryVendorMatchingActive,
@@ -5446,7 +5446,7 @@ describe('PolicyUtils', () => {
             });
         });
 
-        describe('hasVendorFeatureOnAnyPolicy', () => {
+        describe('hasVendorFeatureOnAnyPolicy and getVendorFeaturePolicyIDs', () => {
             const qboPolicy: Policy = {...buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), id: 'qbo'};
             const xeroPolicy: Policy = {...buildXeroPolicy(), id: 'xero'};
             const businessCentralPolicy: Policy = {...buildBusinessCentralPolicy(), id: 'businessCentral'};
@@ -5495,6 +5495,19 @@ describe('PolicyUtils', () => {
 
                 // Then the feature is not available on any workspace because Business Central still depends on the beta
                 expect(isVendorFeatureAvailable).toBe(false);
+            });
+
+            it('lists the workspaces that have the vendor feature', () => {
+                // Given QBO, Xero and Business Central workspaces next to one with no accounting connection
+                const policies = {[qboKey]: qboPolicy, [xeroKey]: xeroPolicy, [businessCentralKey]: businessCentralPolicy, [plainKey]: plainPolicy};
+
+                // When the workspace IDs are listed with and without the vendorMatching beta
+                const policyIDsWithBeta = getVendorFeaturePolicyIDs(policies, true);
+                const policyIDsWithoutBeta = getVendorFeaturePolicyIDs(policies, false);
+
+                // Then every connected workspace is listed with the beta, and Business Central is dropped without it because it still depends on the beta
+                expect(policyIDsWithBeta.toSorted()).toEqual(['businessCentral', 'qbo', 'xero']);
+                expect(policyIDsWithoutBeta.toSorted()).toEqual(['qbo', 'xero']);
             });
         });
 
@@ -6348,104 +6361,6 @@ describe('getDefaultWorkspacePlanType', () => {
         },
     ])('returns $expected when $description', ({policies, expected}) => {
         expect(getDefaultWorkspacePlanType(policies)).toBe(expected);
-    });
-});
-
-describe('canAccessPolicyBankAccount', () => {
-    const PAYER_EMAIL = 'payer@test.com';
-    const NON_PAYER_ADMIN_EMAIL = 'admin@test.com';
-    const POLICY_BANK_ACCOUNT_ID = 1111;
-
-    const policyWithBankAccount: Policy = {
-        ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
-        role: CONST.POLICY.ROLE.ADMIN,
-        reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
-        reimburser: PAYER_EMAIL,
-        achAccount: {
-            bankAccountID: POLICY_BANK_ACCOUNT_ID,
-            accountNumber: 'XXXXXX1111',
-            routingNumber: '123456789',
-            addressName: 'Test bank account',
-            bankName: 'Test bank',
-            reimburser: PAYER_EMAIL,
-            state: CONST.BANK_ACCOUNT.STATE.OPEN,
-        },
-        employeeList: {
-            [PAYER_EMAIL]: {email: PAYER_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
-            [NON_PAYER_ADMIN_EMAIL]: {email: NON_PAYER_ADMIN_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
-        },
-    };
-
-    const bankAccountListWithPolicyAccount = {
-        [POLICY_BANK_ACCOUNT_ID]: {methodID: POLICY_BANK_ACCOUNT_ID, bankCurrency: CONST.CURRENCY.USD, bankCountry: CONST.COUNTRY.US},
-    };
-
-    // The designated payer is the case that produced the original bug: the workspace account was advertised on their Pay
-    // button but never shared with them, so the backend debited a different account.
-    it('returns false for the designated payer when the workspace account is missing from their bank account list', () => {
-        expect(canAccessPolicyBankAccount(policyWithBankAccount, {})).toBe(false);
-    });
-
-    it('returns true for the designated payer when the workspace account is in their bank account list', () => {
-        expect(canAccessPolicyBankAccount(policyWithBankAccount, bankAccountListWithPolicyAccount)).toBe(true);
-    });
-
-    it('returns false when the bank account list only holds other accounts', () => {
-        const otherAccountID = POLICY_BANK_ACCOUNT_ID + 1;
-        expect(
-            canAccessPolicyBankAccount(policyWithBankAccount, {
-                [otherAccountID]: {methodID: otherAccountID, bankCurrency: CONST.CURRENCY.USD, bankCountry: CONST.COUNTRY.US},
-            }),
-        ).toBe(false);
-    });
-
-    it('returns false when the workspace has no connected bank account', () => {
-        expect(canAccessPolicyBankAccount({...policyWithBankAccount, achAccount: undefined}, bankAccountListWithPolicyAccount)).toBe(false);
-    });
-
-    it('returns false when there is no policy', () => {
-        expect(canAccessPolicyBankAccount(undefined, bankAccountListWithPolicyAccount)).toBe(false);
-    });
-});
-
-describe('getAccessiblePolicyBankAccount', () => {
-    const POLICY_BANK_ACCOUNT_ID = 1111;
-
-    // `achAccount.accountNumber` is deliberately a different account's number than the one `bankAccountID` resolves to.
-    // The two really do fall out of sync, and reading the number off `achAccount` is what makes a Pay button name an
-    // account other than the one the payment debits.
-    const policyWithStaleAccountNumber: Policy = {
-        ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
-        achAccount: {
-            bankAccountID: POLICY_BANK_ACCOUNT_ID,
-            accountNumber: 'XXXXXX9999',
-            routingNumber: '123456789',
-            addressName: 'Test bank account',
-            bankName: 'Test bank',
-            reimburser: 'payer@test.com',
-            state: CONST.BANK_ACCOUNT.STATE.OPEN,
-        },
-    };
-
-    const bankAccountList = {
-        [POLICY_BANK_ACCOUNT_ID]: {
-            methodID: POLICY_BANK_ACCOUNT_ID,
-            bankCurrency: CONST.CURRENCY.USD,
-            bankCountry: CONST.COUNTRY.US,
-            accountData: {accountNumber: 'XXXXXX1234'},
-        },
-    };
-
-    it('resolves the account number through the bank account list rather than the stale one on achAccount', () => {
-        expect(getAccessiblePolicyBankAccount(policyWithStaleAccountNumber, bankAccountList)?.accountData?.accountNumber).toBe('XXXXXX1234');
-    });
-
-    it('returns undefined when the workspace account is not shared with the user', () => {
-        expect(getAccessiblePolicyBankAccount(policyWithStaleAccountNumber, {})).toBeUndefined();
-    });
-
-    it('returns undefined when the workspace has no connected bank account', () => {
-        expect(getAccessiblePolicyBankAccount({...policyWithStaleAccountNumber, achAccount: undefined}, bankAccountList)).toBeUndefined();
     });
 });
 

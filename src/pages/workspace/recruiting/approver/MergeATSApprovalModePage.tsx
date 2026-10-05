@@ -151,7 +151,6 @@ function MergeATSApprovalModePage({
                                     item={option}
                                     showTooltip={false}
                                     onSelectRow={() => setDraftApprovalMode(option.value)}
-                                    isAlternateTextMultilineSupported
                                     alternateTextNumberOfLines={3}
                                 />
                                 {option.value === selectedApprovalMode && selectedApprovalMode === CONST.MERGE.APPROVAL_MODE.BASIC && (
