@@ -1,3 +1,4 @@
+import ReportPDFDownloadModalHost from '@components/ReportPDFDownloadModalHost';
 import {ReportSubmitToPopoverHost, SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
@@ -174,35 +175,37 @@ function SearchPage({route}: SearchPageProps) {
     return (
         <ReportSubmitToPopoverHost anchorAlignment={SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT}>
             <PaymentContextProvider>
-                <Animated.View style={[styles.flex1]}>
-                    {shouldUseNarrowLayout ? (
-                        <SearchPageNarrow
-                            queryJSON={currentSearchQueryJSON}
-                            searchResults={searchResults}
-                            contentQueryJSON={contentQueryJSON}
-                            contentSearchResults={contentSearchResults}
-                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                            onSortPressedCallback={onSortPressedCallback}
-                            searchOverlayContent={searchOverlayContent}
-                            onSearchContentReady={onSearchContentReady}
-                            hasFilterBars={hasFilterBars}
-                            isOverlayActive={isOverlayActive}
-                        />
-                    ) : (
-                        <SearchPageWide
-                            queryJSON={currentSearchQueryJSON}
-                            searchResults={searchResults}
-                            contentQueryJSON={contentQueryJSON}
-                            contentSearchResults={contentSearchResults}
-                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                            handleSearchAction={handleSearchAction}
-                            onSortPressedCallback={onSortPressedCallback}
-                            route={route}
-                            searchOverlayContent={searchOverlayContent}
-                            onSearchContentReady={onSearchContentReady}
-                        />
-                    )}
-                </Animated.View>
+                <ReportPDFDownloadModalHost>
+                    <Animated.View style={[styles.flex1]}>
+                        {shouldUseNarrowLayout ? (
+                            <SearchPageNarrow
+                                queryJSON={currentSearchQueryJSON}
+                                searchResults={searchResults}
+                                contentQueryJSON={contentQueryJSON}
+                                contentSearchResults={contentSearchResults}
+                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                onSortPressedCallback={onSortPressedCallback}
+                                searchOverlayContent={searchOverlayContent}
+                                onSearchContentReady={onSearchContentReady}
+                                hasFilterBars={hasFilterBars}
+                                isOverlayActive={isOverlayActive}
+                            />
+                        ) : (
+                            <SearchPageWide
+                                queryJSON={currentSearchQueryJSON}
+                                searchResults={searchResults}
+                                contentQueryJSON={contentQueryJSON}
+                                contentSearchResults={contentSearchResults}
+                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                handleSearchAction={handleSearchAction}
+                                onSortPressedCallback={onSortPressedCallback}
+                                route={route}
+                                searchOverlayContent={searchOverlayContent}
+                                onSearchContentReady={onSearchContentReady}
+                            />
+                        )}
+                    </Animated.View>
+                </ReportPDFDownloadModalHost>
             </PaymentContextProvider>
         </ReportSubmitToPopoverHost>
     );

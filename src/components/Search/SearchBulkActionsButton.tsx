@@ -10,7 +10,6 @@ import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {ContinueActionParams} from '@components/KYCWall/types';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import ReportPDFDownloadModal from '@components/ReportPDFDownloadModal';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -87,10 +86,6 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         emptyReportsCount,
         handleOfflineModalClose,
         handleDownloadErrorModalClose,
-        isPdfModalVisible,
-        setIsPdfModalVisible,
-        pdfReportID,
-        handlePdfModalHide,
         isExpensifyCardStatementPDFModalVisible,
         setIsExpensifyCardStatementPDFModalVisible,
         expensifyCardStatementPDFParams,
@@ -292,14 +287,6 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                 isVisible={isDownloadErrorModalVisible}
                 onClose={handleDownloadErrorModalClose}
             />
-            {!!pdfReportID && (
-                <ReportPDFDownloadModal
-                    reportID={pdfReportID}
-                    isVisible={isPdfModalVisible}
-                    onClose={() => setIsPdfModalVisible(false)}
-                    onModalHide={handlePdfModalHide}
-                />
-            )}
             {!!expensifyCardStatementPDFParams && (
                 <ExpensifyCardStatementPDFDownloadModal
                     statementParams={expensifyCardStatementPDFParams}
