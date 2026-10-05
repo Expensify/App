@@ -1,6 +1,6 @@
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -298,10 +298,7 @@ function RulesRequireFieldsPage({
                 shouldEnableMaxHeight
                 testID="RulesRequireFieldsPage"
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.rules.requireFields.title')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.rules.requireFields.title')} />
                 <ScrollView
                     style={[styles.flexGrow1]}
                     contentContainerStyle={[styles.ph5, styles.pb5]}
