@@ -16,19 +16,19 @@ import useOnyx from './useOnyx';
  *
  * Shared by BaseOnboardingPrivateDomain, BaseOnboardingWorkEmail, and BaseOnboardingWorkspaces.
  */
-function useReturnToOriginReport() {
-    const [originReportID] = useState(() => Navigation.getTopmostReportId());
+function useReturnToOriginReport(explicitOriginReportID?: string) {
+    const [originReportID] = useState(() => Navigation.getFocusedReportId() ?? Navigation.getTopmostReportId());
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     return useCallback(() => {
         setDisableDismissOnEscape(false);
-        const reportID = originReportID ?? conciergeReportID;
+        const reportID = explicitOriginReportID ?? originReportID ?? conciergeReportID;
         if (!reportID) {
             Navigation.dismissModal();
             return;
         }
 
         Navigation.dismissModalWithReport({reportID});
-    }, [originReportID, conciergeReportID]);
+    }, [explicitOriginReportID, originReportID, conciergeReportID]);
 }
 
 export default useReturnToOriginReport;

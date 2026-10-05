@@ -608,7 +608,8 @@ describe('OnboardingWorkEmail Page', () => {
 
     it('should continue a Concierge add-work-email task to validation after a direct add', async () => {
         const taskReportID = 'add-work-email-task-report';
-        const getTopmostReportId = jest.spyOn(Navigation, 'getTopmostReportId').mockReturnValue(taskReportID);
+        const getFocusedReportId = jest.spyOn(Navigation, 'getFocusedReportId').mockReturnValue(taskReportID);
+        const getTopmostReportId = jest.spyOn(Navigation, 'getTopmostReportId').mockReturnValue(undefined);
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
@@ -641,6 +642,7 @@ describe('OnboardingWorkEmail Page', () => {
         });
 
         HttpUtils.xhr = originalXhr;
+        getFocusedReportId.mockRestore();
         getTopmostReportId.mockRestore();
 
         unmount();

@@ -90,7 +90,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         parentReportAction: validateEmailTaskParentReportAction,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const returnToOriginReport = useReturnToOriginReport();
+    const returnToOriginReport = useReturnToOriginReport(route.params?.reportID);
     const createdValidateEmailTaskReportID = useRef<string | undefined>(undefined);
     const delegateAccountID = useDelegateAccountID();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);

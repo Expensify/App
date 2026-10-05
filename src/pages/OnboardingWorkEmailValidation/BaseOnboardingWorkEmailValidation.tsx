@@ -59,7 +59,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
     const onboardingIntent = useOnboardingIntent({isJoinWorkspaceTask: isJoinWorkspaceTaskRoute});
     const isConciergeTaskFlow = onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE && hasCompletedGuidedSetupFlowSelector(onboardingValues) && isJoinWorkspaceTaskRoute;
     const isCurrentPrimaryValidated = isCurrentUserValidated(loginList, session?.email) || (!!account?.validated && !loginList?.[session?.email ?? '']);
-    const returnToOriginReport = useReturnToOriginReport();
+    const returnToOriginReport = useReturnToOriginReport(route.params?.reportID);
     const {
         taskReport: addWorkEmailTaskReport,
         taskParentReport: addWorkEmailTaskParentReport,

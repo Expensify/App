@@ -82,12 +82,12 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
     });
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {selector: accountSelector});
     const isJoinWorkspaceTaskRoute = route.params?.isJoinWorkspaceTask === 'true';
-    const [initialOriginReportID] = useState(() => Navigation.getTopmostReportId());
+    const [initialOriginReportID] = useState(() => Navigation.getFocusedReportId() ?? Navigation.getTopmostReportId());
     const originReportID = route.params?.reportID ?? initialOriginReportID;
     const onboardingIntent = useOnboardingIntent({isJoinWorkspaceTask: isJoinWorkspaceTaskRoute});
     const isJoiningCompanyWorkspace = onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE;
     const {taskReport: addWorkEmailTaskReport} = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.ADD_WORK_EMAIL);
-    const returnToOriginReport = useReturnToOriginReport();
+    const returnToOriginReport = useReturnToOriginReport(route.params?.reportID);
     const [formValue] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM);
     const workEmail = formValue?.[INPUT_IDS.ONBOARDING_WORK_EMAIL];
     const [onboardingErrorMessageTranslationKey] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY);
