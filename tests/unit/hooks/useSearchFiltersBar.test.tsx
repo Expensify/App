@@ -8,6 +8,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringWithResetFilters} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 
 const mockSetFilterQueryParams = jest.fn();
@@ -15,6 +17,12 @@ const mockUpdateFilterQueryParams = jest.fn();
 const mockUseSearchResultsContext = jest.fn<Record<string, unknown>, []>();
 const mockUseSearchQueryContext = jest.fn<Record<string, unknown>, []>();
 const mockMapFiltersFormToLabelValueList = jest.fn<unknown[], unknown[]>();
+const mockOnyxData: Record<string, unknown> = {};
+
+jest.mock('@hooks/useOnyx', () => ({
+    __esModule: true,
+    default: (key: string) => [mockOnyxData[key]],
+}));
 
 jest.mock('@components/Search/hooks/useUpdateFilterQuery', () => ({
     __esModule: true,
@@ -74,6 +82,7 @@ const categoryFilters: SearchQueryJSON['flatFilters'] = [{key: CONST.SEARCH.SYNT
 describe('useSearchFiltersBar', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        delete mockOnyxData[ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM];
         mockSearchResultsContext();
         mockSearchQueryContext();
         mockMapFiltersFormToLabelValueList.mockReturnValue([]);
@@ -127,6 +136,17 @@ describe('useSearchFiltersBar', () => {
             return skippedFilters instanceof Set ? skippedFilters : undefined;
         }
 
+        function mockApproveToDoView(searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>) {
+            const approveFilters: SearchQueryJSON['flatFilters'] = [
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.SEARCH.ACTION_FILTERS.APPROVE}]},
+            ];
+            mockSearchQueryContext({
+                currentDefaultSearchQueryFilterKeys: new Set([CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION]),
+                currentDefaultSearchQueryJSON: buildQueryJSON(approveFilters),
+            });
+            mockOnyxData[ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM] = searchAdvancedFiltersForm;
+        }
+
         it('shows the action filter when it is not part of the default query', () => {
             // Given a view whose default query has no action filter, like Spend > Reports
             mockSearchQueryContext({currentDefaultSearchQueryFilterKeys: new Set([CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE])});
@@ -139,16 +159,38 @@ describe('useSearchFiltersBar', () => {
             expect(getSkippedFilters()?.has(FILTER_KEYS.ACTION_NOT)).toBe(false);
         });
 
-        it('hides the action filter when it is part of the default query', () => {
-            // Given a to-do view whose default query is built from an action filter, like Approve
-            mockSearchQueryContext({currentDefaultSearchQueryFilterKeys: new Set([CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE, CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION])});
+        it('hides the action filter when it matches the default query', () => {
+            // Given a to-do view like Approve, whose default query is built from action:approve, showing that same action
+            mockApproveToDoView({[FILTER_KEYS.ACTION]: CONST.SEARCH.ACTION_FILTERS.APPROVE});
 
             // When the filters bar is built
             renderHook(() => useSearchFiltersBar(queryJSON));
 
-            // Then the action filter and its negation are skipped so the to-do view looks the same as before
+            // Then the action filter is skipped so the to-do view looks the same as before
             expect(getSkippedFilters()?.has(CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION)).toBe(true);
-            expect(getSkippedFilters()?.has(FILTER_KEYS.ACTION_NOT)).toBe(true);
+        });
+
+        it('shows the action filter when it differs from the default query', () => {
+            // Given the Approve to-do view whose query was changed to a different action, e.g. through a link that kept the Approve search key
+            mockApproveToDoView({[FILTER_KEYS.ACTION]: CONST.SEARCH.ACTION_FILTERS.PAY});
+
+            // When the filters bar is built
+            renderHook(() => useSearchFiltersBar(queryJSON));
+
+            // Then the action filter isn't skipped, so the changed action shows as a chip instead of being hidden
+            expect(getSkippedFilters()?.has(CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION)).toBe(false);
+        });
+
+        it('shows the negated action filter even when the default query has the same action', () => {
+            // Given the Approve to-do view whose query was changed to -action:approve, which is the opposite of the default
+            mockApproveToDoView({[FILTER_KEYS.ACTION_NOT]: CONST.SEARCH.ACTION_FILTERS.APPROVE});
+
+            // When the filters bar is built
+            renderHook(() => useSearchFiltersBar(queryJSON));
+
+            // Then neither the action filter nor its negation is skipped, so the negated action shows as a chip
+            expect(getSkippedFilters()?.has(CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION)).toBe(false);
+            expect(getSkippedFilters()?.has(FILTER_KEYS.ACTION_NOT)).toBe(false);
         });
     });
 

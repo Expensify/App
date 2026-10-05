@@ -153,10 +153,10 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
     const {shouldShowFiltersBarLoading, currentSearchResults} = useSearchResultsContext();
     const {currentSearchQueryJSON, currentDefaultSearchQueryJSON, currentDefaultSearchQueryFilterKeys} = useSearchQueryContext();
     const {updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
-    // The action filter defines the to-do views (e.g. Approve), so it (and its negation) is only shown when it isn't part of the default query
-    const skippedFilters = currentDefaultSearchQueryFilterKeys.has(CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION)
-        ? new Set([...SKIPPED_SEARCH_FILTERS, FILTER_KEYS.ACTION, FILTER_KEYS.ACTION_NOT])
-        : SKIPPED_SEARCH_FILTERS;
+    // The action filter defines the to-do views (e.g. Approve), so it's hidden while it still matches the default query's action, and shown once it's changed or negated
+    const defaultActionFilter = currentDefaultSearchQueryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION)?.filters.at(0);
+    const isDefaultAction = defaultActionFilter?.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && defaultActionFilter.value === searchAdvancedFiltersForm.action;
+    const skippedFilters = isDefaultAction ? new Set([...SKIPPED_SEARCH_FILTERS, FILTER_KEYS.ACTION]) : SKIPPED_SEARCH_FILTERS;
     const filters = mapFiltersFormToLabelValueList(
         searchAdvancedFiltersForm,
         currentDefaultSearchQueryFilterKeys,
