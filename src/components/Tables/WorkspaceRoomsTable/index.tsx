@@ -45,9 +45,11 @@ type WorkspaceRoomsTableProps = {
 
     /** Content rendered above the table header inside the scrollable list */
     headerComponent?: React.ReactElement;
+
+    isContentLoaded?: boolean;
 };
 
-function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, onSearchStringChange, onEndReached, onSortingChange, headerComponent}: WorkspaceRoomsTableProps) {
+function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, onSearchStringChange, onEndReached, onSortingChange, headerComponent, isContentLoaded}: WorkspaceRoomsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -125,7 +127,7 @@ function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, onSearchStri
         </View>
     ) : undefined;
 
-    if (!roomsMetadata?.isLoaded) {
+    if (!(isContentLoaded ?? roomsMetadata?.isLoaded)) {
         // The page header stays visible above the loading skeleton so the layout doesn't jump once the table renders.
         return (
             <>

@@ -20,7 +20,6 @@ import {
     isMCPEnabled,
     isPerDiemEnabled,
     isPolicyAdmin,
-    isPolicyGuest,
     isQBORefreshTokenExpiringSoonSelector,
     isTimeTrackingEnabled,
     shouldShowEmployeeListError,
@@ -134,7 +133,6 @@ function getWorkspaceMenuItems({
     convertToDisplayString,
 }: GetWorkspaceMenuItemsParams): WorkspaceMenuItem[] {
     const canReadPolicyFeature = (policyFeature: PolicyFeature) => canMemberRead(policy, currentUserLogin ?? '', policyFeature);
-    const isGuest = isPolicyGuest(policy, currentUserLogin ?? '');
     const canReadMoreFeatures = canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
     const shouldShowProtectedItems = [
         CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS,
@@ -221,12 +219,8 @@ function getWorkspaceMenuItems({
         },
     ];
     const items = defaultItems.filter((item) => {
-        if (item.screenName === SCREENS.WORKSPACE.PROFILE) {
+        if (item.screenName !== SCREENS.WORKSPACE.MEMBERS) {
             return true;
-        }
-        // POLICY_FEATURE has no ROOMS entry yet, so guests are hidden from rooms by role
-        if (item.screenName === SCREENS.WORKSPACE.ROOMS) {
-            return !isGuest;
         }
         if (!policy) {
             return true;

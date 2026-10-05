@@ -139,8 +139,6 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     // The fetch is driven by the requested page: loading more only bumps `pageNumber` and this effect issues the
     // request, the same way Search drives its own pagination from `offset`. Refocusing and coming back online refetch
     // the page that is currently displayed.
-    // Guests are blocked from this page, so they must not fetch room data either. Otherwise the rooms they
-    // should not browse would end up in Onyx.
     useEffect(() => {
         if (!isFocused || isOffline || isGuest) {
             return;
@@ -175,10 +173,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
         ) : undefined;
 
     return (
-        <AccessOrNotFoundWrapper
-            policyID={policyID}
-            shouldBeBlocked={isGuest}
-        >
+        <AccessOrNotFoundWrapper policyID={policyID}>
             <ScreenWrapper
                 testID={WorkspaceRoomsPage.displayName}
                 style={[styles.defaultModalContainer]}
@@ -207,6 +202,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                 <WorkspaceRoomsTable
                     rooms={rooms}
                     policyID={policyID}
+                    isContentLoaded={isGuest ? true : undefined}
                     highlightedReportID={highlightedReportID}
                     onSearchStringChange={setSearchTerm}
                     onEndReached={loadMoreRooms}
