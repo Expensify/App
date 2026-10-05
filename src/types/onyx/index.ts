@@ -61,8 +61,10 @@ import type DatabaseSizeMeasurement from './DatabaseSizeMeasurement';
 import type {
     CardFeedErrorsDerivedValue,
     GuideAccountIDsDerivedValue,
+    SpendDataSignatureDerivedValue,
     LoginToAccountIDMapDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
+    OneOnOneChatReportIDsDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
     PersonalAndWorkspaceCardListDerivedValue,
     ReportAttributesDerivedValue,
@@ -80,6 +82,7 @@ import type DomainHighlightItems from './DomainHighlightItems';
 import type DomainPendingActions from './DomainPendingActions';
 import type Download from './Download';
 import type DuplicateWorkspace from './DuplicateWorkspace';
+import type EarlyRenewalOfferEligibility from './EarlyRenewalOfferEligibility';
 import type ExpenseRule from './ExpenseRule';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
 import type ExpensifyCardLoadingState from './ExpensifyCardLoadingState';
@@ -138,6 +141,7 @@ import type PlaidData from './PlaidData';
 import type Policy from './Policy';
 import type {AutoReportingOffset, PolicyConnectionName, PolicyConnectionSyncProgress, PolicyReportField, TaxRate, TaxRates, TaxRatesWithDefault} from './Policy';
 import type {PolicyCategories, PolicyCategory} from './PolicyCategory';
+import type PolicyDataLoadingState from './PolicyDataLoadingState';
 import type {PolicyEmployeeList} from './PolicyEmployee';
 import type PolicyEmployee from './PolicyEmployee';
 import type PolicyJoinMember from './PolicyJoinMember';
@@ -253,6 +257,7 @@ export type {
     CurrencyList,
     CustomStatusDraft,
     DatabaseSizeMeasurement,
+    EarlyRenewalOfferEligibility,
     UnshareBankAccount,
     DismissedReferralBanners,
     Domain,
@@ -319,6 +324,7 @@ export type {
     Policy,
     PolicyCategories,
     PolicyCategory,
+    PolicyDataLoadingState,
     PolicyVendors,
     PolicyEmployee,
     PolicyEmployeeList,
@@ -453,6 +459,8 @@ export type {
     CardFeedErrorsDerivedValue,
     LoginToAccountIDMapDerivedValue,
     GuideAccountIDsDerivedValue,
+    SpendDataSignatureDerivedValue,
+    OneOnOneChatReportIDsDerivedValue,
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
     VacationDelegate,

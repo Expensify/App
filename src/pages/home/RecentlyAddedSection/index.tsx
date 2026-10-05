@@ -11,7 +11,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
+import {CAROUSEL_SOURCE, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 import type {TransactionThreadNavigationDescriptor} from '@libs/TransactionThreadNavigationUtils';
@@ -83,9 +83,12 @@ function RecentlyAddedSection() {
         // Each row opens a single-expense view that always lands in (Wide) RHP on both layouts so the carousel
         // arrows are available. Marking the report as an expense lets the RHP open wide immediately, before its
         // data loads, instead of flickering from narrow to wide.
-        setActiveTransactionIDs(siblingTransactionIDs, siblingDescriptorsByTransactionID).then(() => {
+        setActiveTransactionIDs(siblingTransactionIDs, {source: CAROUSEL_SOURCE.homeRecentlyAdded, descriptors: siblingDescriptorsByTransactionID}).then(() => {
             markReportRHPWidth(reportID, 'wide');
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo: ROUTES.HOME}));
+            // The anchor is what lets the header show the carousel on a cold open: getReportIDToOpenForExpense
+            // resolves the snapshot's childReportID without materializing the thread, so the header has no
+            // transaction of its own until OpenReport round-trips, and the counter would pop in only after that.
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo: ROUTES.HOME, anchorTransactionID: expense.transactionID}));
         });
     };
 

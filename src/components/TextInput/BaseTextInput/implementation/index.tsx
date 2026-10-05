@@ -8,6 +8,7 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RNTextInput from '@components/RNTextInput';
 import SwipeInterceptPanResponder from '@components/SwipeInterceptPanResponder';
 import Text from '@components/Text';
+import HtmlPasteHandler from '@components/TextInput/BaseTextInput/HtmlPasteHandler';
 import InputComponentMap from '@components/TextInput/BaseTextInput/implementations';
 import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import {ACTIVE_LABEL_SCALE, ACTIVE_LABEL_TRANSLATE_Y, INACTIVE_LABEL_SCALE, INACTIVE_LABEL_TRANSLATE_Y} from '@components/TextInput/styleConst';
@@ -15,7 +16,6 @@ import TextInputClearButton from '@components/TextInput/TextInputClearButton';
 import TextInputLabel from '@components/TextInput/TextInputLabel';
 import TextInputMeasurement from '@components/TextInput/TextInputMeasurement';
 
-import useHtmlPaste from '@hooks/useHtmlPaste';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
@@ -129,8 +129,6 @@ function BaseTextInput({
     const input = useRef<HTMLInputElement | null>(null);
     const isLabelActive = useRef(initialActiveLabel);
     const didScrollToEndRef = useRef(false);
-
-    useHtmlPaste(input as RefObject<ComponentRef<typeof TextInput> | null>, undefined, isMarkdownEnabled, maxLength);
 
     // AutoFocus which only works on mount:
     useEffect(() => {
@@ -371,6 +369,13 @@ function BaseTextInput({
 
     return (
         <>
+            {/* Scoped to markdown inputs so plain text fields never subscribe to reports. */}
+            {isMarkdownEnabled && (
+                <HtmlPasteHandler
+                    inputRef={input as RefObject<ComponentRef<typeof TextInput> | null>}
+                    maxLength={maxLength}
+                />
+            )}
             <View
                 style={[containerStyles]}
                 {...(shouldInterceptSwipe && SwipeInterceptPanResponder.panHandlers)}

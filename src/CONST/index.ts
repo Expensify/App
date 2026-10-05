@@ -225,6 +225,13 @@ const RESERVATION_TYPE = {
     TRAIN: 'train',
 } as const;
 
+/** Every event that can fire a rule, across all rule kinds. Hoisted so `RULES` can list subsets of it. */
+const RULE_TRIGGERS = {
+    REPORT_SUBMIT: 'ReportSubmit',
+    REPORT_APPROVE: 'ReportApprove',
+    CREATE_TRANSACTION: 'CreateTransaction',
+} as const;
+
 const EMAIL = {
     ACCOUNTING: 'accounting@expensify.com',
     ACCOUNTS_PAYABLE: 'accountspayable@expensify.com',
@@ -1130,6 +1137,7 @@ const CONST = {
         CAMPFIRE: 'campfire',
         BUSINESS_CENTRAL: 'businessCentral',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
+        COMMUTER_EXCLUSIONS_ARRANGEMENTS: 'commuterExclusionsArrangements',
         MULTIPLE_APPROVERS: 'multipleApprovers',
         GLOBAL_REIMBURSEMENTS: 'globalReimbursements',
         GLOBAL_REIMBURSEMENT_FX: 'globalReimbursementFX',
@@ -1143,6 +1151,7 @@ const CONST = {
         INSIGHTS_PAGE: 'insightsPage',
         INSIGHTS_COMPARE: 'insightsCompare',
         PAYMENT_HISTORY: 'paymentHistory',
+        ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1738,6 +1747,7 @@ const CONST = {
                 ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER: 'ACTIONABLEMENTIONINVITETOSUBMITEXPENSECONFIRMWHISPER',
                 ACTIONABLE_REPORT_MENTION_WHISPER: 'ACTIONABLEREPORTMENTIONWHISPER',
                 ACTIONABLE_TRACK_EXPENSE_WHISPER: 'ACTIONABLETRACKEXPENSEWHISPER',
+                AGENT_PROMPT_UPDATED: 'AGENTPROMPTUPDATED',
                 POLICY_EXPENSE_CHAT_WELCOME_WHISPER: 'POLICYEXPENSECHATWELCOMEWHISPER',
                 ADD_COMMENT: 'ADDCOMMENT',
 
@@ -1796,6 +1806,7 @@ const CONST = {
                 MOVED: 'MOVED',
                 MOVED_TRANSACTION: 'MOVEDTRANSACTION',
                 UNREPORTED_TRANSACTION: 'UNREPORTEDTRANSACTION',
+                UNDELETED_TRANSACTION: 'UNDELETEDTRANSACTION',
                 OUTDATED_BANK_ACCOUNT: 'OUTDATEDBANKACCOUNT', // OldDot Action
                 REIMBURSED: 'REIMBURSED',
                 REIMBURSEMENT_ACH_BOUNCE: 'REIMBURSEMENTACHBOUNCE', // OldDot Action
@@ -1942,6 +1953,7 @@ const CONST = {
                     UPDATE_REIMBURSER: 'POLICYCHANGELOG_UPDATE_REIMBURSER',
                     UPDATE_PROHIBITED_EXPENSES: 'POLICYCHANGELOG_UPDATE_PROHIBITED_EXPENSES',
                     UPDATE_COMMUTER_EXCLUSIONS: 'POLICYCHANGELOG_UPDATE_COMMUTER_EXCLUSIONS',
+                    UPDATE_MEMBER_WORK_ARRANGEMENT: 'POLICYCHANGELOG_UPDATE_MEMBER_WORK_ARRANGEMENT',
                     UPDATE_REIMBURSEMENT_CHOICE: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_CHOICE',
                     UPDATE_REIMBURSEMENT_ENABLED: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_ENABLED',
                     UPDATE_REPORT_FIELD: 'POLICYCHANGELOG_UPDATE_REPORT_FIELD',
@@ -2312,10 +2324,13 @@ const CONST = {
         BREADCRUMB_MEMORY_PERIODIC: 'Periodic memory check',
         BREADCRUMB_MEMORY_FOREGROUND: 'App foreground - memory check',
         TAGS: {
+            APP_BLOCKING: 'app_blocking',
             ACTIVE_POLICY: 'active_policy_id',
             POLICIES_COUNT: 'policies_count',
             REPORTS_COUNT: 'reports_count',
             PERSONAL_DETAILS_COUNT: 'personal_details_count',
+            TRANSACTIONS_COUNT: 'transactions_count',
+            DB_SIZE: 'db_size',
             USER_ROLE: 'user_role',
             NUDGE_MIGRATION_COHORT: 'nudge_migration_cohort',
             AUTHENTICATION_FUNCTION: 'authentication_function',
@@ -2347,6 +2362,13 @@ const CONST = {
             SQLITE: 'sqlite',
             INDEXED_DB: 'indexed_db',
             UNAVAILABLE: 'unavailable',
+        },
+        // Numeric prefix keeps Sentry's alphabetical sort in size order
+        SIZE_TIER: {
+            SMALL: '1-small',
+            MEDIUM: '2-medium',
+            LARGE: '3-large',
+            XLARGE: '4-xlarge',
         },
         BUILD_TYPE_HYBRID_APP: 'hybrid_app',
         BUILD_TYPE_STANDALONE: 'standalone',
@@ -2721,6 +2743,7 @@ const CONST = {
         EXP_ERROR: 666,
         UNABLE_TO_RETRY: 'unableToRetry',
         UPDATE_REQUIRED: 426,
+        TOO_MANY_REQUESTS: 429,
         INCORRECT_VALIDATE_CODE: 451,
         ADMIN_REQUIRED: 460,
         SERVICE_UNAVAILABLE: 503,
@@ -3085,6 +3108,16 @@ const CONST = {
         IMAGE_DIMENSIONS_TOO_LARGE: 'imageDimensionsTooLarge',
         FOLDER_NOT_ALLOWED: 'folderNotAllowed',
         MAX_FILE_LIMIT_EXCEEDED: 'maxFileLimitExceeded',
+    },
+
+    INPUT_VALIDATION_ERRORS: {
+        REQUIRED: 'required',
+        EXISTING: 'existing',
+        INVALID: 'invalid',
+        TOO_LONG: 'tooLong',
+        NOT_INTEGER: 'notInteger',
+        TOO_HIGH: 'tooHigh',
+        TOO_LOW: 'tooLow',
     },
 
     IOS_CAMERA_ROLL_ACCESS_ERROR: 'Access to photo library was denied',
@@ -3497,6 +3530,7 @@ const CONST = {
         PROVINCIAL_TAX_POSTING_ACCOUNT: 'provincialTaxPostingAccount',
         ALLOW_FOREIGN_CURRENCY: 'allowForeignCurrency',
         EXPORT_TO_NEXT_OPEN_PERIOD: 'exportToNextOpenPeriod',
+        SPLIT_EXPORTS_BY_POSTING_PERIOD: 'splitExportsByPostingPeriod',
         IMPORT_FIELDS: ['departments', 'classes', 'locations'],
         AUTO_SYNC: 'autoSync',
         ACCOUNTING_METHOD: 'accountingMethod',
@@ -3971,6 +4005,32 @@ const CONST = {
         SYNC_TAX_RATES: 'syncTaxRates',
         SYNC_ITEMS: 'syncItems',
         FIELD_MAPPING_PREFIX: 'fieldMapping_',
+        EXPORTER: 'exporter',
+        EXPORT_DATE: 'exportDate',
+        REIMBURSABLE: 'reimbursable',
+        NON_REIMBURSABLE: 'nonReimbursable',
+        REIMBURSABLE_ACCOUNT: 'reimbursableAccount',
+        NON_REIMBURSABLE_ACCOUNT: 'nonReimbursableAccount',
+        DEFAULT_VENDOR_ID: 'defaultVendorID',
+        PAYMENT_METHOD_CODE: 'paymentMethodCode',
+    },
+
+    BUSINESS_CENTRAL_EXPORT_DATE: {
+        LAST_EXPENSE: 'LAST_EXPENSE',
+        REPORT_EXPORTED: 'REPORT_EXPORTED',
+        REPORT_SUBMITTED: 'REPORT_SUBMITTED',
+    },
+
+    /** Business Central document an expense exports to */
+    BUSINESS_CENTRAL_EXPORT_DESTINATION: {
+        JOURNAL_ENTRY: 'JOURNAL_ENTRY',
+        PURCHASE_INVOICE: 'PURCHASE_INVOICE',
+    },
+
+    /** Whether an exported Business Central document is only created or also posted */
+    BUSINESS_CENTRAL_POSTING_MODE: {
+        CREATE_ONLY: 'CREATE_ONLY',
+        CREATE_AND_POST: 'CREATE_AND_POST',
     },
 
     BUSINESS_CENTRAL_MAPPING_VALUE: {
@@ -5126,7 +5186,7 @@ const CONST = {
         // Corner radius scaled to the avatar size, used for workspace avatars
         ROUNDED_SQUARE: 'rounded-square',
     },
-
+    CASH_CARD_NAME: '__CASH__',
     COMPANY_CARD: {
         // Mostly used for feed details
         FEED_BANK_NAME: {
@@ -5551,6 +5611,14 @@ const CONST = {
     SUBSCRIPTION: {
         TEAM_2025_PRICING_START_DATE: new Date(2025, 3, 1),
         PRICING_TYPE_2025: 'team2025Pricing',
+        EARLY_RENEWAL: {
+            NON_INCENTIVIZED_START: '2026-10-01T00:00:00Z',
+            INCENTIVIZED_START: '2026-10-15T00:00:00Z',
+            CAMPAIGN_END: '2027-01-01T00:00:00Z',
+            OFFER_ID: {
+                NON_INCENTIVIZED_ONE_YEAR: 'nonIncentivizedOneYear',
+            },
+        },
         TYPE: {
             ANNUAL: 'yearly2018',
             PAY_PER_USE: 'monthly2018',
@@ -7163,6 +7231,7 @@ const CONST = {
         RHP_HOME_PAGE: 'rhpHomePage',
         TRACK_EXPENSES_WITH_CONCIERGE: 'trackExpensesWithConcierge',
         INBOX_ADMINS_BESPOKE: 'inboxAdminsBespoke',
+        HOME_PAGE_NO_RHP: 'homePageNoRHP',
     },
     ONBOARDING_JOINABLE_WORKSPACES_LIMIT: 5,
     ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE: 'What would you like to do with this expense?',
@@ -7252,6 +7321,7 @@ const CONST = {
     SESSION_STORAGE_KEYS: {
         INITIAL_URL: 'INITIAL_URL',
         RETRY_LAZY_REFRESHED: 'RETRY_LAZY_REFRESHED',
+        UPDATE_REQUIRED_RELOADED_VERSION: 'UPDATE_REQUIRED_RELOADED_VERSION',
         LAST_REFRESH_TIMESTAMP: 'LAST_REFRESH_TIMESTAMP',
         LAST_VISITED_PATH: {
             WORKSPACES_TAB: 'LAST_VISITED_PATH_WORKSPACES_TAB',
@@ -8008,6 +8078,7 @@ const CONST = {
             EXPORTER: 'exporter',
             CATEGORY: 'category',
             TAG: 'tag',
+            VENDOR: 'vendor',
             TAX_RATE: 'taxRate',
             CARD_ID: 'cardID',
             FEED: 'feed',
@@ -8059,6 +8130,7 @@ const CONST = {
         TAG_EMPTY_VALUE: 'none',
         CATEGORY_EMPTY_VALUE: 'none',
         CATEGORY_DEFAULT_VALUE: 'Uncategorized',
+        VENDOR_EMPTY_VALUE: 'none',
         MERCHANT_EMPTY_VALUE: 'none',
         SEARCH_ROUTER_ITEM_TYPE: {
             CONTEXTUAL_SUGGESTION: 'contextualSuggestion',
@@ -8095,6 +8167,7 @@ const CONST = {
             EXPORTER: 'exporter',
             CATEGORY: 'category',
             TAG: 'tag',
+            VENDOR: 'vendor',
             TAX_RATE: 'tax-rate',
             CARD_ID: 'card',
             FEED: 'feed',
@@ -8256,7 +8329,7 @@ const CONST = {
             MAX_STALE_HOLD_DURATION: 500,
         },
         TODO_BADGE_MAX_COUNT: 50,
-        TOP_SEARCH_LIMIT: 10,
+        TOP_SEARCH_LIMIT: 5,
     },
     SEARCH_SELECTOR: {
         SELECTION_MODE_SINGLE: 'single',
@@ -8728,16 +8801,33 @@ const CONST = {
     RULES: {
         SCOPE: {
             POLICY: 'policy',
+            ACCOUNT: 'account',
+        },
+        TRIGGERS: RULE_TRIGGERS,
+        /** Every action a rule can perform, across all rule kinds. */
+        ACTIONS: {
+            FORWARD_TO: 'ForwardTo',
+            APPROVE_REPORT: 'ApproveReport',
+            SET: 'Set',
         },
         APPROVAL_WORKFLOW: {
-            TRIGGER: {
-                REPORT_SUBMIT: 'ReportSubmit',
-                REPORT_APPROVE: 'ReportApprove',
+            /** A rule firing only on these is an approval workflow rather than an expense default. */
+            TRIGGERS: [RULE_TRIGGERS.REPORT_SUBMIT, RULE_TRIGGERS.REPORT_APPROVE],
+        },
+        EXPENSE_DEFAULT: {
+            /** Expense fields a `Set` action can write to */
+            FIELD: {
+                BILLABLE: 'billable',
+                CATEGORY: 'category',
+                COMMENT: 'comment',
+                MERCHANT: 'merchant',
+                REIMBURSABLE: 'reimbursable',
+                TAG: 'tag',
+                TAX: 'tax',
+                VENDOR_ID: 'vendorID',
             },
-            ACTION: {
-                FORWARD_TO: 'ForwardTo',
-                APPROVE_REPORT: 'ApproveReport',
-            },
+            /** Every expense default rule is created with the same priority, per the rules engine spec */
+            PRIORITY: 10000,
         },
     },
 
@@ -8780,6 +8870,11 @@ const CONST = {
         EXTERNAL_ID: 'externalID',
         MAX_AMOUNT_NO_RECEIPT: 'maxAmountNoReceipt',
         MAX_AMOUNT_NO_ITEMIZED_RECEIPT: 'maxAmountNoItemizedReceipt',
+        PAYROLL_CODE: 'payrollCode',
+        ARE_COMMENTS_REQUIRED: 'areCommentsRequired',
+        COMMENT_HINT: 'commentHint',
+        EXPENSE_LIMIT_TYPE: 'expenseLimitType',
+        MAX_EXPENSE_AMOUNT: 'maxExpenseAmount',
         MERCHANT_IS: 'merchantIs',
         MERCHANT_CONTAINS: 'merchantContains',
         UPDATED_MERCHANT: 'updatedMerchant',
@@ -9078,8 +9173,28 @@ const CONST = {
     OFFLINE_INDICATOR_HEIGHT: 25,
 
     BILLING: {
+        TYPE_FAILED: 'failed',
         TYPE_FAILED_2018: 'failed_2018',
+        TYPE_FAILED_SMARTSCAN: 'failed_smartscan2018',
         TYPE_STRIPE_FAILED_AUTHENTICATION: 'failed_stripe_authentication',
+        TYPE_CLEAR: 'clear',
+        TYPE_REFUND: 'refund',
+        TYPE_CC_REFUND: 'ccRefund',
+        TYPE_DISPUTE: 'dispute',
+        TYPE_TRANSFER: 'transfer',
+        TYPE_TRANSFER_TO: 'transfer_to',
+        TYPE_TRANSFER_FAILED: 'transfer_failed',
+        TYPE_TRANSFER_OLD: 'transfer_old',
+    },
+    PAYMENT_HISTORY: {
+        STATE: {
+            PAID: 'paid',
+            CLEARED: 'cleared',
+            FAILED: 'failed',
+            REFUNDED: 'refunded',
+            DISPUTED: 'disputed',
+            BALANCE_TRANSFER: 'balanceTransfer',
+        },
     },
 
     ONBOARDING_HELP: {
@@ -9354,6 +9469,7 @@ const CONST = {
             CONTROL_WORKSPACE: 'Insights-ControlWorkspace',
             CONTROL_GROUP_CURRENCY: 'Insights-ControlGroupCurrency',
             CONTROL_GROUP_BY: 'Insights-ControlGroupBy',
+            CONTROL_COMPARE: 'Insights-ControlCompare',
         },
         EXPENSE_RULES: {
             TABLE_ROW: 'ExpenseRules-TableRow',
@@ -10027,6 +10143,7 @@ const CONST = {
             RETRY_PAYMENT: 'SettingsSubscription-RetryPayment',
             AUTHENTICATE_PAYMENT: 'SettingsSubscription-AuthenticatePayment',
             VIEW_PAYMENT_HISTORY: 'SettingsSubscription-ViewPaymentHistory',
+            PAYMENT_HISTORY_ROW: 'SettingsSubscription-PaymentHistoryRow',
             REQUEST_REFUND: 'SettingsSubscription-RequestRefund',
             CANCEL_SUBSCRIPTION: 'SettingsSubscription-CancelSubscription',
         },
