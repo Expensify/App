@@ -12,9 +12,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import UserPill from '@components/UserPill';
 
-import useApprovalWorkflows from '@hooks/useApprovalWorkflows';
 import useCardFeeds from '@hooks/useCardFeeds';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -34,16 +32,14 @@ import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setPolicyPreventSelfApproval} from '@libs/actions/Policy/Policy';
-import {clearApprovalWorkflow, removeApprovalWorkflow as removeApprovalWorkflowAction, setApprovalWorkflow, updateApprovalWorkflow} from '@libs/actions/Workflow';
+import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import {isRuleBotEnforcingRules} from '@libs/AgentRulesUtils';
 import {getAllCardsForWorkspace, getCardFeedIcon, getCardFeedWithDomainID, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
-import {isAnyHRReadOnlyWorkflowMode} from '@libs/merge/HRUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getPhoneNumber, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {
-    areApprovalsEnabled,
     canMemberAssignRole,
     canMemberManageMemberWithRole,
     canMemberWrite,
@@ -57,7 +53,7 @@ import {isApproverOfOutstandingPolicyReports} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import {getEffectiveWorkArrangement, getMemberLoginByAccountID, getWorkArrangementLabel} from '@libs/WorkArrangementUtils';
-import {getFirstApproverLabel, INITIAL_APPROVAL_WORKFLOW, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
+import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -106,7 +102,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
     const isWorkArrangementBetaEnabled = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS);
-    const {formatPhoneNumber, translate, toLocaleOrdinalWithWords} = useLocalize();
+    const {formatPhoneNumber, translate, localeCompare} = useLocalize();
     const StyleUtils = useStyleUtils();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
@@ -154,49 +150,12 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
 
-    const {approvalWorkflows, enforcedApprovalWorkflows, availableMembers, usedApproverEmails} = useApprovalWorkflows({policy, personalDetails, currentUserLogin});
-
-    // The label follows this member's own workflow depth, not the workspace's.
-    const memberApprovalWorkflow = enforcedApprovalWorkflows.find((workflow) => workflow.members.some((workflowMember) => workflowMember.email === memberLogin));
-    const memberFirstApprover = memberApprovalWorkflow?.approvers.at(0);
-    const isApprovalsEnabled = areApprovalsEnabled(policy);
-    // An HR integration in a read-only approval mode owns the workflows, so the editor rejects manual edits.
-    // Keep the row visible for reference but inert, the same way the Workflows tab disables its own actions.
-    const shouldAllowApproverEdit = canWriteMembers && !isAnyHRReadOnlyWorkflowMode(policy);
-    // A member at the top of their own chain approves themselves, the workspace owner being the common case.
-    const isSelfApprovingMember = !!memberFirstApprover && memberFirstApprover.email === memberLogin;
-    const approverLabel = getFirstApproverLabel((memberApprovalWorkflow?.approvers.length ?? 0) > 1, translate, toLocaleOrdinalWithWords);
-
-    const openMemberApprovalWorkflow = () => {
-        // Discard stale onyx edits or the Edit page's resume check would surface a prior abandoned session.
-        clearApprovalWorkflow();
-
-        // The editor opens the whole workflow, so a self-approving member has to start their own rather than edit the
-        // one they approve, which would let an admin reassign everyone else on it.
-        if (memberFirstApprover?.email && !isSelfApprovingMember) {
-            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, memberFirstApprover.email, memberLogin));
-            return;
-        }
-
-        // Creating a workflow is plan-gated, the same way adding one from the Workflows tab is.
-        const backTo = ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID);
-        if (tryNavigateToSubmitWorkspaceUpgrade(policy, true, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.alias, backTo)) {
-            return;
-        }
-
-        if (!isControlPolicy(policy)) {
-            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias, backTo));
-            return;
-        }
-
-        setApprovalWorkflow({
-            ...INITIAL_APPROVAL_WORKFLOW,
-            members: [{email: memberLogin, displayName, avatar: details?.avatar}],
-            availableMembers,
-            usedApproverEmails,
-        });
-        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID));
-    };
+    const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({
+        policy,
+        personalDetails: personalDetails ?? {},
+        localeCompare,
+        currentUserLogin,
+    });
 
     useEffect(() => {
         openPolicyMemberProfilePage(policyID, accountID);
@@ -440,29 +399,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.getRoute(policyID, accountID));
                                 }}
                             />
-                            {isApprovalsEnabled && (
-                                <OfflineWithFeedback pendingAction={member?.pendingFields?.submitsTo}>
-                                    <MenuItemWithTopDescription
-                                        description={approverLabel}
-                                        titleComponent={
-                                            memberFirstApprover ? (
-                                                <View style={styles.pr3}>
-                                                    <UserPill
-                                                        avatar={memberFirstApprover.avatar}
-                                                        displayName={memberFirstApprover.displayName}
-                                                        email={memberFirstApprover.email}
-                                                        style={styles.userPillStandalone}
-                                                    />
-                                                </View>
-                                            ) : undefined
-                                        }
-                                        shouldShowRightIcon={shouldAllowApproverEdit}
-                                        interactive={shouldAllowApproverEdit}
-                                        onPress={openMemberApprovalWorkflow}
-                                        pressableTestID="member-approver-menu-item"
-                                    />
-                                </OfflineWithFeedback>
-                            )}
                             {policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && isWorkArrangementBetaEnabled && (
                                 <MenuItemWithTopDescription
                                     disabled={!canWriteMembers}
