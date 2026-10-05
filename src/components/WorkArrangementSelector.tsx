@@ -65,7 +65,6 @@ function WorkArrangementSelector({isOffice, onSelect, shouldDescribeMostMembers 
                     item={option}
                     showTooltip={false}
                     onSelectRow={() => onSelect(option.keyForList === CONST.POLICY.WORK_ARRANGEMENT.OFFICE_BASED)}
-                    isAlternateTextMultilineSupported
                     alternateTextNumberOfLines={3}
                 />
             ))}
