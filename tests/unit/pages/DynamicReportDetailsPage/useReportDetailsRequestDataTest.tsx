@@ -21,7 +21,6 @@ const OTHER_ACCOUNT_ID = 2;
 const CHAT_REPORT_ID = '20';
 const IOU_REPORT_ID = '10';
 const TRANSACTION_THREAD_REPORT_ID = '30';
-const TASK_REPORT_ID = '40';
 const IOU_ACTION_ID = '100';
 const TRANSACTION_ID = '1000';
 
@@ -171,19 +170,5 @@ describe('useReportDetailsRequestData', () => {
         expect(result.current.moneyRequestReport?.reportID).toBe(IOU_REPORT_ID);
         expect(result.current.iouTransactionID).toBe(TRANSACTION_ID);
         expect(result.current.isSingleTransactionView).toBe(false);
-    });
-
-    it('should title the delete row as a plain delete for a non-money report', async () => {
-        // Given a task report, which resolves to the default case
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TASK_REPORT_ID}`, {reportID: TASK_REPORT_ID, type: CONST.REPORT.TYPE.TASK});
-        await waitForBatchedUpdates();
-
-        // When the request data is read for it
-        const {result} = await renderRequestData(TASK_REPORT_ID);
-
-        // Then there is no expense to resolve, and the row falls back to the generic delete title
-        expect(result.current.requestParentReportAction).toBeUndefined();
-        expect(result.current.iouTransactionID).toBeUndefined();
-        expect(result.current.deleteMenuItemTitle).toBe('Delete');
     });
 });

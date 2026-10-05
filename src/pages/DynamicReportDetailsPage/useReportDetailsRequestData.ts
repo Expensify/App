@@ -15,21 +15,14 @@ import {getOneTransactionThreadReportID, getOriginalMessage, isDeletedAction, is
 import {
     canDeleteCardTransactionByLiabilityType,
     canDeleteTransaction,
-    canWriteInReport,
-    isCanceledTaskReport as isCanceledTaskReportUtil,
-    isClosedReport,
     isInvoiceReport as isInvoiceReportUtil,
     isMoneyRequest as isMoneyRequestUtil,
     isMoneyRequestReport as isMoneyRequestReportUtil,
     isSelfDM as isSelfDMUtil,
-    isTaskReport as isTaskReportUtil,
     isTrackExpenseReportNew as isTrackExpenseReportUtil,
 } from '@libs/ReportUtils';
 import {isDemoTransaction} from '@libs/TransactionUtils';
 
-import {canActionTask, canModifyTask} from '@userActions/Task';
-
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -58,12 +51,7 @@ function useReportDetailsRequestData(reportID: string): ReportDetailsRequestData
     const isMoneyRequestReport = isMoneyRequestReportUtil(report);
     const isMoneyRequest = isMoneyRequestUtil(report);
     const isInvoiceReport = isInvoiceReportUtil(report);
-    const isTaskReport = isTaskReportUtil(report);
     const isTrackExpenseReport = isTrackExpenseReportUtil(report, parentReport, parentReportAction);
-    const isCanceledTaskReport = isCanceledTaskReportUtil(report, parentReportAction);
-    const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
-    const isTaskModifiable = canModifyTask(report, currentUserAccountID, isParentReportArchived);
-    const isTaskActionable = canActionTask(report, parentReportAction, currentUserAccountID, parentReport, isParentReportArchived);
     const isSingleTransactionView = isMoneyRequest || isTrackExpenseReport;
     const isSelfDMTrackExpenseReport = isTrackExpenseReport && isSelfDMUtil(parentReport);
 
@@ -90,14 +78,6 @@ function useReportDetailsRequestData(reportID: string): ReportDetailsRequestData
     const isMoneyRequestReportArchived = useReportIsArchived(moneyRequestReport?.reportID);
     const [moneyRequestReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(moneyRequestReport?.reportID)}`);
 
-    const shouldShowTaskDeleteButton =
-        isTaskReport &&
-        !isCanceledTaskReport &&
-        canWriteInReport(report) &&
-        report?.stateNum !== CONST.REPORT.STATE_NUM.APPROVED &&
-        !isClosedReport(report) &&
-        isTaskModifiable &&
-        isTaskActionable;
     const canDeleteRequest = isActionOwner && (canDeleteTransaction(moneyRequestReport, rules, isMoneyRequestReportArchived) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
     const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
@@ -109,14 +89,9 @@ function useReportDetailsRequestData(reportID: string): ReportDetailsRequestData
         policy,
     });
     const isCardTransactionCanBeDeleted = canDeleteCardTransactionByLiabilityType(iouTransaction);
-    const shouldShowDeleteButton = shouldShowTaskDeleteButton || (canDeleteRequest && isCardTransactionCanBeDeleted) || isDemoTransaction(iouTransaction);
+    const shouldShowDeleteButton = (canDeleteRequest && isCardTransactionCanBeDeleted) || isDemoTransaction(iouTransaction);
     const shouldShowEditSplitOnDeleteAction = iouTransactionID ? shouldOpenSplitExpenseEditFlowOnDelete([iouTransactionID]) : false;
-    let deleteMenuItemTitle = translate('reportActionContextMenu.deleteAction', requestParentReportAction);
-    if (shouldShowEditSplitOnDeleteAction) {
-        deleteMenuItemTitle = translate('iou.editSplits');
-    } else if (caseID === CASES.DEFAULT) {
-        deleteMenuItemTitle = translate('common.delete');
-    }
+    const deleteMenuItemTitle = shouldShowEditSplitOnDeleteAction ? translate('iou.editSplits') : translate('reportActionContextMenu.deleteAction', requestParentReportAction);
 
     return {
         requestParentReportAction,
