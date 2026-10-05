@@ -119,6 +119,10 @@ const DIAGONAL_ANGLE_RADIAN_THRESHOLD = 1;
 // Maximum width for Y-axis labels in pixels
 const MAX_Y_AXIS_LABEL_WIDTH = 200;
 
+// Max fraction of the chart width the horizontal chart's category labels may occupy, so the plot
+// stays usable on narrow containers where the fixed MAX_Y_AXIS_LABEL_WIDTH would starve it.
+const CATEGORY_LABEL_WIDTH_RATIO = 0.4;
+
 // Maximum width for X-axis labels in pixels
 const MAX_X_AXIS_LABEL_WIDTH = 500;
 
@@ -137,6 +141,7 @@ export {
     DIAGONAL_ANGLE_RADIAN_THRESHOLD,
     MAX_X_AXIS_LABEL_WIDTH,
     MAX_Y_AXIS_LABEL_WIDTH,
+    CATEGORY_LABEL_WIDTH_RATIO,
     GLYPH_PADDING,
 };
 export default VictoryTheme;
