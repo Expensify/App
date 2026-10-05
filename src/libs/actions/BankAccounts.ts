@@ -1802,7 +1802,7 @@ function initiateBankAccountUnlock(bankAccountID: number, conciergeReportID: str
                       {
                           onyxMethod: Onyx.METHOD.MERGE,
                           key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeReportID}` as const,
-                          value: {[optimisticReportActionID]: {pendingAction: null}},
+                          value: {[optimisticReportActionID]: {pendingAction: null, isOptimisticAction: null}},
                       },
                   ]
                 : []),
