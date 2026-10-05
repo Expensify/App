@@ -14,13 +14,12 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
-import React from 'react';
 import {View} from 'react-native';
 
 type ConfirmationPageProps = {
     illustration?: DotLottieAnimation | IconAsset;
     heading: string;
-    description: React.ReactNode;
+    description: string;
 
     /** The text for the primary button label */
     buttonText?: string;

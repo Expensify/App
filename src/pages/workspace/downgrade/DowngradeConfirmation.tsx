@@ -1,4 +1,4 @@
-import ConfirmationPage from '@components/ConfirmationPage';
+import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -36,11 +36,10 @@ function DowngradeConfirmation({onConfirmDowngrade, policyID}: Props) {
     const hasOtherControlWorkspaces = hasOtherControlWorkspacesPolicyUtils(adminPolicies, policyID);
 
     return (
-        <ConfirmationPage
+        <ConfirmationPageDefault
             heading={translate('workspace.downgrade.completed.headline')}
             description={hasOtherControlWorkspaces ? translate('workspace.downgrade.completed.description') : undefined}
             illustration={illustrations.MushroomTopHat}
-            shouldShowButton
             onButtonPress={onConfirmDowngrade}
             buttonText={translate('workspace.downgrade.completed.gotIt')}
             containerStyle={styles.h100}

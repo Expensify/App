@@ -1,4 +1,4 @@
-import ConfirmationPage from '@components/ConfirmationPage';
+import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -129,11 +129,10 @@ function DynamicReportDetailsExportPage({route}: DynamicReportDetailsExportPageP
                     title={translate('common.export')}
                     onBackButtonPress={() => Navigation.goBack(navigateBackFromExportPath)}
                 />
-                <ConfirmationPage
+                <ConfirmationPageDefault
                     illustration={lazyIllustrations.LaptopWithSecondScreenAndHourglass}
                     heading={translate('workspace.export.notReadyHeading')}
                     description={translate('workspace.export.notReadyDescription')}
-                    shouldShowButton
                     buttonText={translate('common.buttonConfirm')}
                     onButtonPress={() => Navigation.goBack()}
                     illustrationStyle={{width: 233, height: 162}}

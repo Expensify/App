@@ -1,6 +1,6 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
-import ConfirmationPage from '@components/ConfirmationPage';
+import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
@@ -249,10 +249,9 @@ function DynamicReviewPage() {
                     title={translate('iou.reviewDuplicates')}
                     onBackButtonPress={() => Navigation.goBack(backPath, {compareParams: false})}
                 />
-                <ConfirmationPage
+                <ConfirmationPageDefault
                     heading={translate('iou.noDuplicatesTitle')}
                     description={translate('iou.noDuplicatesDescription')}
-                    shouldShowButton
                     buttonText={translate('common.buttonConfirm')}
                     onButtonPress={() => Navigation.goBack(backPath, {compareParams: false})}
                 />

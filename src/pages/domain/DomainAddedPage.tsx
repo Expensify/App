@@ -1,4 +1,4 @@
-import ConfirmationPage from '@components/ConfirmationPage';
+import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
@@ -47,14 +47,13 @@ function DomainAddedPage({route}: DomainAddedPageProps) {
     return (
         <ScreenWrapper testID="DomainAddedPage">
             <HeaderWithBackButton title={translate('domain.domainAdded.title')} />
-            <ConfirmationPage
+            <ConfirmationPageDefault
                 illustration={Encryption}
                 heading={translate('domain.domainAdded.title')}
                 innerContainerStyle={styles.p10}
                 description={translate('domain.domainAdded.description')}
                 descriptionStyle={styles.textSupporting}
                 buttonText={translate('domain.domainAdded.configure')}
-                shouldShowButton
                 onButtonPress={() => Navigation.navigate(ROUTES.DOMAIN_INITIAL.getRoute(domainAccountID))}
             />
         </ScreenWrapper>

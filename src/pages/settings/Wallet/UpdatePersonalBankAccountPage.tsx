@@ -1,4 +1,4 @@
-import ConfirmationPage from '@components/ConfirmationPage';
+import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -257,10 +257,9 @@ function UpdatePersonalBankAccountPage() {
                     onBackButtonPress={exitFlow}
                 />
                 <ScrollView contentContainerStyle={styles.flexGrow1}>
-                    <ConfirmationPage
+                    <ConfirmationPageDefault
                         heading={translate('addPersonalBankAccount.updateSuccessTitle')}
                         description={translate('addPersonalBankAccount.updateSuccessMessage')}
-                        shouldShowButton
                         buttonText={translate('common.continue')}
                         onButtonPress={exitFlow}
                         containerStyle={styles.h100}
