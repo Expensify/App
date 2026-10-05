@@ -62,13 +62,20 @@ The following columns are supported:
 | **GL Code** | No | Control |
 | **Require receipts over** | No | Control |
 | **Require itemized receipts over** | No | Control |
+| **Payroll code** | No | Control |
+| **Require description** | No | Collect, Control |
+| **Description hint** | No | Collect, Control |
+| **Flag amounts over** | No | Collect, Control |
+| **Expense limit type** | No | Collect, Control |
+
+The **Require description**, **Description hint**, **Flag amounts over**, and **Expense limit type** columns are available when **Rules** is enabled for the workspace. For **Expense limit type**, use `expense` (**Individual expense**) or `daily` (**Category total**).
 
 For the **Require receipts over** and **Require itemized receipts over** columns, use one of the following values:
 
 - `default` — Keep the existing workspace or category setting (no change).
 - `required` — Always require a receipt (or itemized receipt), regardless of amount.
 - `not_required` — Never require a receipt (or itemized receipt).
-- A number (e.g., `2500`) — Require a receipt (or itemized receipt) for expenses over that amount in cents.
+- A number (e.g., `25`) — Require a receipt (or itemized receipt) for expenses over that amount.
 
 ---
 
