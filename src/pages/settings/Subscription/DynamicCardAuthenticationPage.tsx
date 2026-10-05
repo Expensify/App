@@ -1,6 +1,6 @@
 import CardAuthenticationView from '@components/CardAuthenticationView';
 import DismissibleBackdrop from '@components/DismissibleBackdrop';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -55,11 +55,10 @@ function DynamicCardAuthenticationPage({route}: DynamicCardAuthenticationPagePro
                     includeSafeAreaPaddingBottom={false}
                     testID="DynamicCardAuthenticationPage"
                 >
-                    <HeaderWithBackButton
+                    <HeaderWithBackButtonAndTitle
                         title={translate('subscription.authenticatePaymentCard')}
-                        shouldShowBorderBottom
+                        style={styles.borderBottom}
                         onBackButtonPress={onClose}
-                        shouldDisplayHelpButton={false}
                     />
                     <CardAuthenticationView
                         onAuthenticationComplete={verifyAuthenticationResult}
