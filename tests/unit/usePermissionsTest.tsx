@@ -82,6 +82,29 @@ describe('usePermissions', () => {
         expect(result.current.isBetaEnabled(CONST.BETAS.ALL)).toBe(true);
     });
 
+    it.each([
+        {description: 'no betas', betas: [], expected: false},
+        {description: 'an unrelated beta', betas: [CONST.BETAS.ASAP_SUBMIT], expected: false},
+        {description: 'the explicit archive beta', betas: [CONST.BETAS.ARCHIVE_POLICIES], expected: true},
+        {description: 'the all beta', betas: [CONST.BETAS.ALL], expected: true},
+        {description: 'both all and archive betas', betas: [CONST.BETAS.ALL, CONST.BETAS.ARCHIVE_POLICIES], expected: true},
+    ])('should resolve archive permissions with $description', async ({betas, expected}) => {
+        // Given: Archive policies is a normal beta in the server-provided configuration
+        Onyx.set(ONYXKEYS.BETAS, betas);
+        Onyx.set(ONYXKEYS.BETA_CONFIGURATION, {
+            explicitOnly: [CONST.BETAS.ASAP_SUBMIT],
+            exclusion: [CONST.BETAS.PREVENT_SPOTNANA_TRAVEL],
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When: Workspace UI checks the archive policies permission
+        const {result} = renderHook(() => usePermissions(), {wrapper: Wrapper});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then: Explicit enrollment or the all beta enables archiving, but unrelated betas do not
+        expect(result.current.isBetaEnabled(CONST.BETAS.ARCHIVE_POLICIES)).toBe(expected);
+    });
+
     it('should handle explicit only and exclusion betas correctly', async () => {
         // Given: A beta configuration with both explicit only and exclusion betas
         const explicitOnlyBeta = CONST.BETAS.ASAP_SUBMIT;
