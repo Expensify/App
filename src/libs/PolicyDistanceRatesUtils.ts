@@ -297,8 +297,8 @@ function getGovernmentRateCountryOptions(translate: LocalizedTranslate, localeCo
     return CONST.CUSTOM_UNITS.GOVERNMENT_RATE_SUPPORTED_EUR_COUNTRIES.map((countryCode) => {
         const countryName = translate(`allCountries.${countryCode}` as TranslationPaths);
         return {
-            value: countryCode as string,
-            keyForList: countryCode as string,
+            value: countryCode,
+            keyForList: countryCode,
             text: countryName,
             isSelected: selectedCountry === countryCode,
             searchValue: StringUtils.sanitizeString(`${countryCode}${countryName}`),
