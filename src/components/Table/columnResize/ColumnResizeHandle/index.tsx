@@ -8,8 +8,6 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 
-const {INDICATOR_WIDTH} = CONST.TABLES.COLUMN_RESIZE;
-
 // A DOM `div` style, which the React Native style system can't type because of the custom property expressions.
 const INDICATOR_STYLE: React.CSSProperties = {
     position: 'absolute',
@@ -17,8 +15,8 @@ const INDICATOR_STYLE: React.CSSProperties = {
     top: `var(${RESIZE_INDICATOR_TOP_VARIABLE}, 0px)`,
     height: `var(${RESIZE_INDICATOR_HEIGHT_VARIABLE}, 100%)`,
     left: '50%',
-    marginLeft: -INDICATOR_WIDTH / 2,
-    width: INDICATOR_WIDTH,
+    marginLeft: -CONST.TABLES.COLUMN_RESIZE.INDICATOR_WIDTH / 2,
+    width: CONST.TABLES.COLUMN_RESIZE.INDICATOR_WIDTH,
     opacity: `var(${RESIZE_INDICATOR_OPACITY_VARIABLE}, 0)`,
     pointerEvents: 'none',
 };
@@ -36,13 +34,11 @@ function ColumnResizeHandle({columnKey}: ColumnResizeHandleProps) {
         return null;
     }
 
-    const indicatorStyle: React.CSSProperties = {...INDICATOR_STYLE, backgroundColor: theme.iconMenu};
-
     return (
         <div {...handleProps}>
             <div
                 aria-hidden
-                style={indicatorStyle}
+                style={{...INDICATOR_STYLE, backgroundColor: theme.iconMenu}}
             />
         </div>
     );
