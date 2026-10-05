@@ -191,6 +191,7 @@ import {
     isOneOnOneChat,
     isPayer,
     isPolicyRelatedReport,
+    isReportExportedOrPending,
     isReportManager,
     isReportOutstanding,
     isReportPendingDelete,
@@ -25627,6 +25628,40 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('isReportExportedOrPending', () => {
+        it('returns true for a historical export action when the report flag is unavailable', () => {
+            // Given a report from the legacy data shape where export status only exists in report actions.
+            const report = createMock<Report>({reportID: 'exported-report'});
+            const exportAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION>>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+                reportActionID: 'export-action',
+                created: '2026-01-01 00:00:00.000',
+                originalMessage: {markedManually: true},
+            });
+
+            // When merge-warning export state is resolved.
+            const result = isReportExportedOrPending({[exportAction.reportActionID]: exportAction}, report);
+
+            // Then the historical export action is treated as exported.
+            expect(result).toBe(true);
+        });
+
+        it('returns true while an export is pending even when the persisted exported flag is false', () => {
+            // Given an optimistic export that has not yet flipped isExportedToIntegration.
+            const report = createMock<Report>({
+                reportID: 'pending-export-report',
+                isExportedToIntegration: false,
+                pendingFields: {export: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+            });
+
+            // When merge-warning export state is resolved.
+            const result = isReportExportedOrPending([], report);
+
+            // Then the pending export still triggers the warning.
+            expect(result).toBe(true);
+        });
+    });
+
     describe('canMergeReports', () => {
         const OWNER_ID = 10;
         const ownerEmail = 'owner@example.com';
@@ -25660,6 +25695,21 @@ describe('ReportUtils', () => {
                 policyID: POLICY_ID,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: MANAGER_ID,
+                isWaitingOnBankAccount: false,
+                ...overrides,
+            });
+        }
+
+        /** Minimal valid expense report in the Approved state. */
+        function makeApprovedReport(overrides?: Partial<Report>) {
+            return createMock<Report>({
+                reportID: String(reportCounter++),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: OWNER_ID,
+                policyID: POLICY_ID,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
                 managerID: MANAGER_ID,
                 isWaitingOnBankAccount: false,
                 ...overrides,
@@ -25771,33 +25821,45 @@ describe('ReportUtils', () => {
         });
 
         it('returns true when all reports are approved and the current user is an admin', () => {
-            const approved: Report = {
-                ...makeOpenReport(),
-                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-            } as Report;
-            const approved2 = {...approved, reportID: String(reportCounter++)};
+            const approved = makeApprovedReport();
+            const approved2 = makeApprovedReport();
             expect(canMergeReports([approved, approved2], USER_ID, undefined)).toBe(true);
+        });
+
+        it('returns false when approved reports have different managerIDs', () => {
+            // Given two approved reports in the same workspace and state but with different approval chains.
+            const approved = makeApprovedReport({managerID: MANAGER_ID});
+            const approved2 = makeApprovedReport({managerID: MANAGER_ID + 1});
+
+            // When an admin checks whether they can merge the reports.
+            const result = canMergeReports([approved, approved2], USER_ID, undefined);
+
+            // Then the reports are rejected because the v1 same-manager rule must still apply.
+            expect(result).toBe(false);
+        });
+
+        it('returns true when an approved report is waiting on a bank account', () => {
+            // Given two approved reports where one reimbursement is waiting on the submitter to add a bank account.
+            const approved = makeApprovedReport();
+            const waitingOnBankAccount = makeApprovedReport({isWaitingOnBankAccount: true});
+
+            // When an admin checks whether they can merge the reports.
+            const result = canMergeReports([approved, waitingOnBankAccount], USER_ID, undefined);
+
+            // Then the reports remain mergeable because the waiting report is still Approved, not Paid/reimbursed.
+            expect(result).toBe(true);
         });
 
         it('returns false when all reports are approved and the current user is not an admin', async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {...mockPolicy, role: CONST.POLICY.ROLE.USER});
             await waitForBatchedUpdates();
-            const approved: Report = {
-                ...makeOpenReport(),
-                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-            } as Report;
-            const approved2 = {...approved, reportID: String(reportCounter++)};
+            const approved = makeApprovedReport();
+            const approved2 = makeApprovedReport();
             expect(canMergeReports([approved, approved2], USER_ID, undefined)).toBe(false);
         });
 
         it('returns false when approved and processing reports are mixed', () => {
-            const approved: Report = {
-                ...makeOpenReport(),
-                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-            } as Report;
+            const approved = makeApprovedReport();
             const processing = makeProcessingReport();
             expect(canMergeReports([approved, processing], USER_ID, undefined)).toBe(false);
         });

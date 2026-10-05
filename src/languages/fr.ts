@@ -10011,6 +10011,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         mergeReports: {
             title: 'Fusionner des notes de frais',
             description: 'Sélectionnez la note de frais à conserver. Toutes les dépenses y seront déplacées et les autres notes de frais seront supprimées.',
+            exportedWarning:
+                'Une ou plusieurs notes de frais sélectionnées ont déjà été exportées vers une intégration comptable. Les fusionner peut créer des données en double si elles sont exportées à nouveau.',
         },
         percentOfSpend: ({percent}: {percent: string}) => `${percent} des dépenses`,
     },

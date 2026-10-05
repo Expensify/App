@@ -9908,6 +9908,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         mergeReports: {
             title: 'Rapporten samenvoegen',
             description: 'Selecteer het rapport dat je wilt behouden. Alle uitgaven worden daarheen verplaatst en de andere rapporten worden verwijderd.',
+            exportedWarning:
+                'Een of meer geselecteerde rapporten zijn al geëxporteerd naar een boekhoudintegratie. Als je ze samenvoegt en opnieuw exporteert, kunnen dubbele gegevens ontstaan.',
         },
         percentOfSpend: ({percent}: {percent: string}) => `${percent} van de uitgaven`,
     },

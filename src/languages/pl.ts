@@ -9921,7 +9921,12 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             topMerchants: 'Najważniejsi sprzedawcy',
             violationsBySubmitter: 'Naruszenia przez zgłaszającego',
         },
-        mergeReports: {title: 'Połącz raporty', description: 'Wybierz raport, który chcesz zachować. Wszystkie wydatki zostaną do niego przeniesione, a pozostałe raporty zostaną usunięte.'},
+        mergeReports: {
+            title: 'Połącz raporty',
+            description: 'Wybierz raport, który chcesz zachować. Wszystkie wydatki zostaną do niego przeniesione, a pozostałe raporty zostaną usunięte.',
+            exportedWarning:
+                'Co najmniej jeden z wybranych raportów został już wyeksportowany do integracji księgowej. Scalenie raportów może spowodować duplikację danych, jeśli zostaną ponownie wyeksportowane.',
+        },
         percentOfSpend: ({percent}: {percent: string}) => `${percent} wydatków`,
     },
     genericErrorPage: {

@@ -19,7 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {mergeReports} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import {canMergeReports, getMoneyRequestSpendBreakdown, getPersonalDetailsForAccountID} from '@libs/ReportUtils';
+import {canMergeReports, getMoneyRequestSpendBreakdown, getPersonalDetailsForAccountID, isReportExportedOrPending} from '@libs/ReportUtils';
 
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 
@@ -153,6 +153,14 @@ function SearchMergeReports() {
         sourceReportIDs.length > 0 &&
         canMergeReports(reportItems, currentUserPersonalDetails.accountID, rules);
 
+    // Search snapshots can contain export actions/report fields that are not hydrated into live Onyx yet, such as immediately after login.
+    const shouldShowExportWarning = reportItems.some((report) => {
+        const liveReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? [];
+        const snapshotReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
+        const snapshotReportActions = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? [];
+        return isReportExportedOrPending(liveReportActions, report) || isReportExportedOrPending(snapshotReportActions, snapshotReport);
+    });
+
     const mergeSelectedReports = () => {
         if (!destinationReportID || !destinationReport || !isValidForMerge) {
             return;
@@ -230,7 +238,7 @@ function SearchMergeReports() {
                         enabledWhenOffline
                         shouldRenderFooterAboveSubmit
                         footerContent={
-                            reportItems.some((report) => report.isExportedToIntegration) ? (
+                            shouldShowExportWarning ? (
                                 <Text style={[styles.ph5, styles.pb3]}>
                                     <Text style={[styles.textStrong, styles.noWrap]}>{translate('iou.headsUp')}</Text> <Text>{translate('search.mergeReports.exportedWarning')}</Text>
                                 </Text>

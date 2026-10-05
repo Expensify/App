@@ -9788,7 +9788,11 @@ ${reportName}`,
             topMerchants: '上位加盟店',
             violationsBySubmitter: '申請者による違反',
         },
-        mergeReports: {title: 'レポートをマージする', description: '保持するレポートを選択してください。すべての経費はそのレポートに移動され、他のレポートは削除されます。'},
+        mergeReports: {
+            title: 'レポートをマージする',
+            description: '保持するレポートを選択してください。すべての経費はそのレポートに移動され、他のレポートは削除されます。',
+            exportedWarning: '選択したレポートのうち1つ以上は、すでに会計連携にエクスポートされています。マージ後に再度エクスポートすると、データが重複する可能性があります。',
+        },
         percentOfSpend: ({percent}: {percent: string}) => `支出の${percent}`,
     },
     genericErrorPage: {

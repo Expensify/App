@@ -9528,7 +9528,11 @@ ${reportName}`,
             topMerchants: '热门商家',
             violationsBySubmitter: '提交人违规',
         },
-        mergeReports: {title: '合并报表', description: '选择要保留的报表。所有费用都将移入该报表，其他报表将被删除。'},
+        mergeReports: {
+            title: '合并报表',
+            description: '选择要保留的报表。所有费用都将移入该报表，其他报表将被删除。',
+            exportedWarning: '一个或多个选定报表已导出到会计集成。如果再次导出，合并这些报表可能会导致重复数据。',
+        },
         percentOfSpend: ({percent}: {percent: string}) => `${percent} 的支出`,
     },
     genericErrorPage: {

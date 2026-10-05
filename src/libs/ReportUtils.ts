@@ -3129,7 +3129,8 @@ function isMoneyRequestReportEligibleForMerge(
     const isSubmitter = isReportOwner(report, currentUserAccountID);
 
     if (isAdmin) {
-        return isOpenReport(report) || isProcessingReport(report) || (!!allowReportApprovedForAdmin && isReportApproved({report}));
+        const isApprovedAndMergeable = !!allowReportApprovedForAdmin && isReportApproved({report});
+        return isOpenReport(report) || isProcessingReport(report) || isApprovedAndMergeable;
     }
 
     if (isSubmitter) {
@@ -13506,6 +13507,10 @@ function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[], re
     return lastSuccessfulExportCreated > lastResetCreated;
 }
 
+function isReportExportedOrPending(reportActions: OnyxEntry<ReportActions> | ReportAction[], report?: OnyxEntry<Report>): boolean {
+    return !!report?.pendingFields?.export || isExported(reportActions, report);
+}
+
 function hasExportError(reportActions: OnyxEntry<ReportActions> | ReportAction[], report?: OnyxEntry<Report>) {
     if (report?.hasExportError) {
         return true;
@@ -14474,11 +14479,10 @@ function canMergeReports(selectedReports: Array<OnyxEntry<Report>>, currentUserA
             return false;
         }
 
-        // When reports are in the Processing (submitted) state they must share
-        // the same managerID so the merged report lands in exactly one approver's
-        // inbox. For Open reports the managerID may legitimately be unset, but the
-        // same-state constraint above already prevents mixing Open and Processing.
-        if (isProcessingReport(report)) {
+        // Processing and Approved reports must share the same managerID so the
+        // merged report preserves a single approval chain. Open drafts may
+        // legitimately have no managerID.
+        if (isProcessingReport(report) || isReportApproved({report})) {
             if (!firstSelectedReport.managerID || firstSelectedReport.managerID !== report.managerID) {
                 return false;
             }
@@ -14821,6 +14825,7 @@ export {
     getIntegrationIcon,
     canBeExported,
     isExported,
+    isReportExportedOrPending,
     hasExpensifyGuidesEmails,
     hasExportError,
     hasOnlyNonReimbursableTransactions,
