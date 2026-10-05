@@ -50,7 +50,7 @@ describe('actions/Report', () => {
         expect(mockNavigate).toHaveBeenCalledTimes(1);
     });
 
-    it('waits for a reopened support ticket before navigating to the server-created report', async () => {
+    it('navigates to a newly reassigned support ticket', async () => {
         // Given a resolved support ticket and a server response for its reassignment
         const resolvedSupportTicketReportID = 'resolvedSupportTicketReportID';
         const serverCreatedReportID = 'serverCreatedSupportTicketReportID';
@@ -76,6 +76,18 @@ describe('actions/Report', () => {
         // And the App opens the report chosen by the server
         expect(mockGetReportRouteForCurrentContext).toHaveBeenCalledWith({reportID: serverCreatedReportID});
         expect(mockNavigate).toHaveBeenCalledWith(`r/${serverCreatedReportID}`);
+    });
+
+    it('stays on the resolved ticket when the server reopens it', async () => {
+        // Given a resolved support ticket and a response that reopens it with the existing assignee
+        const resolvedSupportTicketReportID = 'resolvedSupportTicketReportID';
+        mockMakeRequestWithSideEffects.mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS, reportID: resolvedSupportTicketReportID});
+
+        // When the customer reopens the ticket
+        await openSupportTicket(resolvedSupportTicketReportID);
+
+        // Then the App does not navigate away from the resolved ticket
+        expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('recognizes the no-rep response', () => {
