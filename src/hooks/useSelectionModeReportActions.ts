@@ -75,6 +75,7 @@ function useSelectionModeReportActions({
     );
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
 
@@ -187,6 +188,7 @@ function useSelectionModeReportActions({
             isChatReportArchived,
             isOffline,
             rules,
+            cardList,
         });
     })();
 
