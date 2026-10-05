@@ -48,7 +48,7 @@ function buildInsightConfigFromChart(chart: InsightsChartSpec, filters: Insights
  * Builds the configs for the Home insights the current user should see, in display order.
  * With the Insights page beta, the charts and their visibility match the Insights Spend dashboard, otherwise the Spend menu.
  */
-function useSearchTypeMenuItems(): {configs: SearchTypeMenuItem[]; isResolved: boolean} {
+function useHomeInsightConfigs(): {configs: SearchTypeMenuItem[]; isResolved: boolean} {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [defaultExpensifyCard] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: defaultExpensifyCardSelector});
@@ -68,4 +68,4 @@ function useSearchTypeMenuItems(): {configs: SearchTypeMenuItem[]; isResolved: b
     return {configs, isResolved: areFiltersResolved};
 }
 
-export default useSearchTypeMenuItems;
+export default useHomeInsightConfigs;
