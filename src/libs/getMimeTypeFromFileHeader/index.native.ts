@@ -1,4 +1,5 @@
 import fileURIToPath from '@libs/fileURIToPath';
+
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import {Buffer} from 'buffer';

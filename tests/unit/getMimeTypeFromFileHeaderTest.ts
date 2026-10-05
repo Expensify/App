@@ -1,5 +1,5 @@
-import getMimeTypeFromFileHeader from '@libs/getMimeTypeFromFileHeader/index.native';
 import getMimeTypeFromHeaderBytes from '@libs/getMimeTypeFromFileHeader/getMimeTypeFromHeaderBytes';
+import getMimeTypeFromFileHeader from '@libs/getMimeTypeFromFileHeader/index.native';
 
 import {Buffer} from 'buffer';
 import RNFS from 'react-native-fs';
