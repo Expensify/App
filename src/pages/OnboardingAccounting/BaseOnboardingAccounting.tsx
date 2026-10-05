@@ -180,12 +180,10 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                     isSelected && styles.onboardingAccountingItemSelected,
                 ]}
             >
-                {/* Square to match the mocks, but a radio because only one option can be picked. */}
                 <RadioButton
                     isChecked={isSelected}
                     onPress={() => handleIntegrationSelect(optionKey)}
                     accessibilityLabel={label}
-                    containerBorderRadius={variables.componentBorderRadiusSmall}
                     wrapperStyle={styles.onboardingAccountingItemSelectionButton}
                 />
                 <Icon
