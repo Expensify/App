@@ -82,19 +82,12 @@ const mockAttachmentStyleUtils = createMock<ReturnType<typeof useStyleUtils>>({
 const mockAttachmentCanvasSize = {canvasSize: {width: 320, height: 240}, isCanvasLoading: false, updateCanvasSize: () => {}} satisfies ReturnType<typeof useCanvasSize>;
 
 // Supply platform and I/O boundaries below the installed Asset JavaScript, without replacing its methods.
-jest.mock('@react-native/assets-registry/registry', () => ({getAssetByID: (id: AttachmentAssetID) => mockGetAssetByID(id)}));
-jest.mock('react-native/Libraries/Image/resolveAssetSource', () => {
-    const {default: actualResolveAssetSource} = jest.requireActual<{default: typeof RNImage.resolveAssetSource}>('react-native/Libraries/Image/resolveAssetSource');
-    return {
-        __esModule: true,
-        default: Object.assign((...args: Parameters<typeof RNImage.resolveAssetSource>) => mockResolveAssetSource(...args), actualResolveAssetSource),
-    };
-});
-jest.mock('expo-modules-core', () => {
+jest.mock('@react-native/assets-registry/registry', () => {
+    // The Expo preset preloads this public module. Apply its supplied platform and I/O before Asset loads.
+    const core = jest.requireMock<typeof ExpoModulesCore>('expo-modules-core');
     const actual = jest.requireActual<typeof ExpoModulesCore>('expo-modules-core');
     const platform = {...actual.Platform, OS: 'web'} satisfies typeof ExpoModulesCore.Platform;
-    return {
-        ...actual,
+    Object.assign(core, {
         Platform: platform,
         requireOptionalNativeModule: jest.fn<null, [Parameters<typeof ExpoModulesCore.requireOptionalNativeModule>[0]]>(() => null),
         requireNativeModule: (name: Parameters<typeof ExpoModulesCore.requireNativeModule>[0]) => {
@@ -106,6 +99,14 @@ jest.mock('expo-modules-core', () => {
             }
             return {downloadAsync: (...args: [Asset['uri'], Asset['hash'], Asset['type']]) => mockNativeAssetDownload(...args)};
         },
+    });
+    return {getAssetByID: (id: AttachmentAssetID) => mockGetAssetByID(id)};
+});
+jest.mock('react-native/Libraries/Image/resolveAssetSource', () => {
+    const {default: actualResolveAssetSource} = jest.requireActual<{default: typeof RNImage.resolveAssetSource}>('react-native/Libraries/Image/resolveAssetSource');
+    return {
+        __esModule: true,
+        default: Object.assign((...args: Parameters<typeof RNImage.resolveAssetSource>) => mockResolveAssetSource(...args), actualResolveAssetSource),
     };
 });
 jest.mock('@components/PDFView', () => {
