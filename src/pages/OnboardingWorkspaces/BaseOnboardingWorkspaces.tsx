@@ -153,6 +153,14 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                 : CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
         const onboardingMessage = isJoiningCompanyWorkspace ? joinWorkspaceOnboardingMessage : onboardingMessages[completionIntent];
 
+        setOnboardingAdminsChatReportID();
+        setOnboardingPolicyID(policy.policyID);
+
+        if (isJoiningCompanyWorkspace && (!onboardingPersonalDetails?.firstName.trim() || !onboardingPersonalDetails.lastName.trim())) {
+            Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), {forceReplace: true});
+            return;
+        }
+
         completeOnboarding({
             engagementChoice: completionIntent,
             onboardingMessage,
@@ -168,8 +176,6 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             delegateAccountID,
             shouldSkipConciergeOnboarding: completionIntent === CONST.ONBOARDING_CHOICES.EMPLOYER,
         });
-        setOnboardingAdminsChatReportID();
-        setOnboardingPolicyID(policy.policyID);
 
         if (shouldUseSubmitFlow) {
             navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policy.policyID, shouldUseNarrowLayout);

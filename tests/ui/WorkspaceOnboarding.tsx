@@ -543,6 +543,38 @@ describe('OnboardingWorkspaces Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should collect a name before completing onboarding after joining a workspace', async () => {
+        const policyID = 'joined-policy-id';
+        await TestHelper.signInWithTestUser();
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+            await Onyx.set(ONYXKEYS.JOINABLE_POLICIES, {
+                [policyID]: {
+                    policyID,
+                    policyName: 'Joined workspace',
+                    policyOwner: 'owner@example.com',
+                    employeeCount: 1,
+                    hasPendingAccess: false,
+                    automaticJoiningEnabled: true,
+                    policyType: CONST.POLICY.TYPE.CORPORATE,
+                },
+            });
+        });
+
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ''});
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('workspace.workspaceList.joinNow')));
+
+        expect(mockJoinAccessiblePolicy).toHaveBeenCalledWith(policyID, undefined, undefined, false, false, undefined, 1);
+        expect(mockCompleteOnboarding).not.toHaveBeenCalled();
+        expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), {forceReplace: true});
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should finish the marked Join Workspace flow when the merged account has a different persisted intent', async () => {
         // Given a merge resumed from a Join Workspace task while the target account still persists a different intent.
         const dismissModalWithReport = jest.spyOn(Navigation, 'dismissModalWithReport').mockImplementation(() => {});
