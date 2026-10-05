@@ -23,7 +23,7 @@ import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
 import {useSearchQueryContext} from './SearchContext';
 
 type SearchChartViewProps = {
-    queryJSON: Readonly<SearchQueryJSON>;
+    queryJSON: Readonly<SearchQueryJSON> | undefined;
 
     /** The view type (bar, etc.) */
     view: ChartView;
@@ -62,7 +62,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, rend
 
     const handleItemPress = (index: number) => {
         const item = rows.at(index)?.item;
-        if (!item) {
+        if (!item || !queryJSON) {
             return;
         }
 

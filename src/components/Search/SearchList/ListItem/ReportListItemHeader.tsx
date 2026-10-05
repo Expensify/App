@@ -302,6 +302,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
         delegateEmail,
         delegateAccountID,
         conciergeChat,
+        bankAccountList,
     } = useReportPaymentContext({
         chatReportPolicyID: chatReport?.policyID,
     });
@@ -356,6 +357,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             allViolations,
             rules,
             conciergeChat,
+            bankAccountList,
         });
     };
     return !isLargeScreenWidth ? (

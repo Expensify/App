@@ -365,6 +365,7 @@ describe('handleActionButtonPress', () => {
             isTrackIntentUser: false,
             allViolations: undefined,
             rules: undefined,
+            bankAccountList: undefined,
         });
 
         // Then the report opens instead of approving held expenses without a prompt
@@ -397,6 +398,7 @@ describe('handleActionButtonPress', () => {
             isTrackIntentUser: false,
             allViolations: undefined,
             rules: undefined,
+            bankAccountList: undefined,
         });
         expect(goToItem).toHaveBeenCalledTimes(0);
     });
@@ -434,6 +436,7 @@ describe('handleActionButtonPress', () => {
             rules: undefined,
             conciergeChat: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            bankAccountList: undefined,
         });
 
         // Then: hasViolations is evaluated against the passed collection, proving the deprecated global getter is no longer used,
@@ -659,7 +662,10 @@ describe('handleBulkPayItemSelected', () => {
         });
 
         expect(baseParams.triggerKYCFlow).not.toHaveBeenCalled();
-        expect(baseParams.confirmPayment).toHaveBeenCalledWith(CONST.IOU.PAYMENT_TYPE.VBBA, {bankAccountID, paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT});
+        expect(baseParams.confirmPayment).toHaveBeenCalledWith(CONST.IOU.PAYMENT_TYPE.VBBA, {
+            bankAccountID,
+            paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+        });
     });
 
     it('should trigger the KYC flow when the selected business bank account is not open', async () => {
@@ -680,7 +686,11 @@ describe('handleBulkPayItemSelected', () => {
                 [bankAccountID]: {
                     bankCurrency: CONST.CURRENCY.USD,
                     bankCountry: CONST.COUNTRY.US,
-                    accountData: {bankAccountID, type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, state: CONST.BANK_ACCOUNT.STATE.LOCKED},
+                    accountData: {
+                        bankAccountID,
+                        type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                        state: CONST.BANK_ACCOUNT.STATE.LOCKED,
+                    },
                 },
             },
             item: {
