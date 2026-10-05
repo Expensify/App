@@ -108,6 +108,7 @@ function EarlyRenewalOfferPage() {
                     <View
                         style={[styles.flexRow, styles.w100, styles.gap2]}
                         role={CONST.ROLE.RADIOGROUP}
+                        accessibilityLabel={translate('earlyRenewal.offer.heading')}
                     >
                         {OFFERS.map((offer) => {
                             const isSelected = selectedOfferID === offer.offerID;
