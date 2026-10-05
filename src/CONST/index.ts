@@ -1134,7 +1134,6 @@ const CONST = {
         BULK_EDIT: 'bulkEdit',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         VENDOR_MATCHING: 'vendorMatching',
-        CAMPFIRE: 'campfire',
         BUSINESS_CENTRAL: 'businessCentral',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
         COMMUTER_EXCLUSIONS_ARRANGEMENTS: 'commuterExclusionsArrangements',
