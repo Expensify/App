@@ -368,6 +368,14 @@ function getISODateFromSegments(segments: DateSegments): string | undefined {
     return isValid(parse(isoDate, CONST.DATE.FNS_FORMAT_STRING, new Date())) ? isoDate : undefined;
 }
 
+/**
+ * What a cut or copy puts on the clipboard. A date that is not finished has only the digits that were typed to offer,
+ * which is enough to put a date back together when they were entered from the start of the field.
+ */
+function getClipboardTextFromSegments(segments: DateSegments): string {
+    return getISODateFromSegments(segments) ?? DATE_SEGMENT_NAMES.map((name) => getSegmentDisplay(segments, name)).join('');
+}
+
 function hasAnySegment(segments: DateSegments): boolean {
     return DATE_SEGMENT_NAMES.some((name) => !!segments[name]);
 }
@@ -377,6 +385,7 @@ export {
     clearSegmentsUpTo,
     EMPTY_SEGMENTS,
     getAdjacentSegmentName,
+    getClipboardTextFromSegments,
     getDateMaskParts,
     getFirstUnfilledSegmentName,
     getISODateFromSegments,

@@ -10,6 +10,7 @@ import {
     DATE_SEGMENT_NAMES,
     EMPTY_SEGMENTS,
     getAdjacentSegmentName,
+    getClipboardTextFromSegments,
     getFirstUnfilledSegmentName,
     getISODateFromSegments,
     getSegmentDisplay,
@@ -216,14 +217,14 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit}: Use
             // Selecting the whole date selects nothing in the document, so the browser has neither anything of its own
             // to put on the clipboard nor anything to remove from the field
             if (isAllSelected && (key.toLowerCase() === COPY_KEY || key.toLowerCase() === CUT_KEY)) {
-                const isoDate = getISODateFromSegments(segments);
+                const clipboardText = getClipboardTextFromSegments(segments);
 
-                if (!isoDate) {
+                if (!clipboardText) {
                     return;
                 }
 
                 event.preventDefault();
-                Clipboard.setString(isoDate);
+                Clipboard.setString(clipboardText);
 
                 if (key.toLowerCase() === CUT_KEY) {
                     setIsAllSelected(false);

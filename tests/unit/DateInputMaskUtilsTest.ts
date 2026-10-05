@@ -1,6 +1,7 @@
 import {
     clearSegmentsUpTo,
     getAdjacentSegmentName,
+    getClipboardTextFromSegments,
     getDateMaskParts,
     getFirstUnfilledSegmentName,
     getISODateFromSegments,
@@ -346,6 +347,30 @@ describe('DateInputMaskUtils', () => {
             expect(getSegmentsFromISODate('')).toEqual(EMPTY);
             expect(getSegmentsFromISODate(undefined)).toEqual(EMPTY);
             expect(getSegmentsFromISODate('not a date')).toEqual(EMPTY);
+        });
+    });
+
+    describe('getClipboardTextFromSegments', () => {
+        it('copies a finished date in the format the app stores', () => {
+            // Given every segment filled in
+            // When the date is cut or copied
+            // Then the clipboard carries the same text any other field would be given
+            expect(getClipboardTextFromSegments(segments('1990', '02', '03'))).toBe('1990-02-03');
+        });
+
+        it('copies the digits typed so far while the date is unfinished', () => {
+            // Given a date the user has only started
+            // When it is cut or copied
+            // Then the digits go on their own, so pasting them back into a date field fills the same segments again
+            expect(getClipboardTextFromSegments(segments('1990', '', ''))).toBe('1990');
+            expect(getClipboardTextFromSegments(segments('1990', '2', ''))).toBe('199002');
+        });
+
+        it('has nothing to offer when no digit has been typed', () => {
+            // Given a field showing nothing but its mask
+            // When it is cut or copied
+            // Then the clipboard is left alone rather than being emptied
+            expect(getClipboardTextFromSegments(EMPTY)).toBe('');
         });
     });
 

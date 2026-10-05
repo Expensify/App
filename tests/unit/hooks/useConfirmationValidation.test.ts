@@ -105,6 +105,7 @@ const baseParams = {
     isReadOnly: false,
     shouldShowDate: true,
     isTaxAmountEmpty: false,
+    hasDateValidationError: false,
 } satisfies UseConfirmationValidationParams;
 
 function createValidationParamsForParticipant(
