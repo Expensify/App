@@ -1,10 +1,10 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import ActivePointIndicator from '@components/Charts/components/ActivePointIndicator';
 import AreaGradient from '@components/Charts/components/AreaGradient';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
 import LeftFrameLine from '@components/Charts/components/LeftFrameLine';
-import ScatterPoints from '@components/Charts/components/ScatterPoints';
 import type {HitTestArgs} from '@components/Charts/hooks';
 import {
     ChartFontsProvider,
@@ -35,11 +35,8 @@ import {CartesianChart, Line} from 'victory-native';
 
 import type {CartesianChartProps, ChartDataPoint} from '..';
 
-/** Inner dot radius for line chart data points */
-const DOT_RADIUS = 4;
-
-/** Extra hover area beyond the dot radius for easier touch targeting */
-const DOT_HOVER_EXTRA_RADIUS = 2;
+const DOT_RADIUS = 6;
+const LINE_STROKE_WIDTH = 4;
 
 /** Base domain padding applied to all sides */
 const BASE_DOMAIN_PADDING = {top: 16, bottom: 16, left: 0, right: 0};
@@ -78,6 +75,8 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
     };
 
     const chartBottom = useSharedValue(0);
+    const plotTop = useSharedValue(0);
+    const bandHalfWidth = useSharedValue(0);
 
     const measurements = useChartLabelMeasurements(data, fontManager, variables.iconSizeExtraSmall);
     const {lineHeight, firstLabelWidth, lastLabelWidth, maxLabelWidth, labelWidths} = measurements;
@@ -140,22 +139,21 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
     });
 
     const handleChartBoundsChange = (bounds: ChartBounds) => {
+        plotTop.set(bounds.top);
         setPlotAreaWidth(bounds.right - bounds.left);
         setBoundsLeft(bounds.left);
         setBoundsRight(bounds.right);
     };
 
-    const checkIsOverDot = (args: HitTestArgs) => {
+    const checkIsOverBand = (args: HitTestArgs) => {
         'worklet';
 
-        const dx = args.cursorX - args.targetX;
-        const dy = args.cursorY - args.targetY;
-        return Math.sqrt(dx * dx + dy * dy) <= DOT_RADIUS + DOT_HOVER_EXTRA_RADIUS;
+        return Math.abs(args.cursorX - args.targetX) <= bandHalfWidth.get() && args.cursorY >= plotTop.get() && args.cursorY <= args.chartBottom;
     };
 
-    const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition} = useChartInteractions({
+    const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition, activePointPosition} = useChartInteractions({
         handlePress: handlePointPress,
-        checkIsOver: checkIsOverDot,
+        checkIsOver: checkIsOverBand,
         isCursorOverLabel,
         resolveLabelTouchX: findLabelCursorX,
         chartBottom,
@@ -163,6 +161,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
 
     const handleScaleChange = (xScale: Scale, yScale: Scale) => {
         updateTickPositions(xScale, data.length);
+        bandHalfWidth.set(data.length > 1 ? Math.abs(xScale(1) - xScale(0)) / 2 : plotAreaWidth / 2);
         setPointPositions(
             chartData.map((point) => xScale(point.x)),
             chartData.map((point) => yScale(point.y)),
@@ -183,11 +182,6 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
                     yTicks={args.yTicks}
                     yScale={args.yScale}
                     color={theme.border}
-                />
-                <ScatterPoints
-                    points={args.points.y}
-                    radius={DOT_RADIUS}
-                    color={VictoryTheme.colors.defaultDot}
                 />
                 {xAxisLabelHeight !== undefined && !!fontManager && (
                     <ChartXAxisLabels
@@ -279,7 +273,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
                         frame={{lineWidth: 0}}
                         data={chartData}
                     >
-                        {({points, yScale, yTicks}) => (
+                        {({points, yScale, yTicks, chartBounds}) => (
                             <>
                                 <AreaGradient
                                     points={points.y}
@@ -289,8 +283,19 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
                                 <Line
                                     points={points.y}
                                     color={VictoryTheme.colors.default}
-                                    strokeWidth={2}
+                                    strokeWidth={LINE_STROKE_WIDTH}
+                                    strokeCap="round"
+                                    strokeJoin="round"
                                     curveType="linear"
+                                />
+                                <ActivePointIndicator
+                                    position={activePointPosition}
+                                    isActive={isTooltipActive}
+                                    top={chartBounds.top}
+                                    bottom={yScale(Math.min(...yTicks))}
+                                    dotRadius={DOT_RADIUS}
+                                    dotColor={VictoryTheme.colors.defaultDot}
+                                    guidelineColor={theme.border}
                                 />
                             </>
                         )}
