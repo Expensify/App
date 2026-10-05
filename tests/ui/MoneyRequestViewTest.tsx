@@ -31,16 +31,9 @@ type MockMenuItemWithTopDescriptionProps = {
     title?: string;
     interactive?: boolean;
     descriptionTextStyle?: StyleProp<TextStyle>;
-    titleComponent?: React.ReactNode;
 };
 
-type MockUserPillsProps = {
-    users: unknown[];
-    maxVisible?: number;
-    isCopyable?: boolean;
-};
-
-const mockMenuItemWithTopDescription = jest.fn(({description, title, interactive, titleComponent}: MockMenuItemWithTopDescriptionProps) => {
+const mockMenuItemWithTopDescription = jest.fn(({description, title, interactive}: MockMenuItemWithTopDescriptionProps) => {
     const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string; children?: React.ReactNode}>>>('react-native');
 
     return (
@@ -53,18 +46,15 @@ const mockMenuItemWithTopDescription = jest.fn(({description, title, interactive
                     <RN.Text>{title}</RN.Text>
                 </RN.View>
             )}
-            {titleComponent}
         </>
     );
 });
-const mockUserPills = jest.fn<null, [MockUserPillsProps]>(() => null);
 
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: jest.fn((key: string) => key),
         numberFormat: jest.fn((num: number) => num.toString()),
         toLocaleDigit: jest.fn((digit: string) => digit),
-        localeCompare: jest.fn((first: string, second: string) => first.localeCompare(second)),
     })),
 );
 
@@ -96,10 +86,6 @@ jest.mock('@pages/inbox/report/AnimatedEmptyStateBackground', () => {
 // the menu-item testID stay strict-equal — they don't pick up the title text.
 jest.mock('@components/MenuItemWithTopDescription', () => {
     return (props: MockMenuItemWithTopDescriptionProps) => mockMenuItemWithTopDescription(props);
-});
-
-jest.mock('@components/UserPills', () => {
-    return (props: MockUserPillsProps) => mockUserPills(props);
 });
 
 // Mock the legacy MenuItem (used for some fields like billable), but keep the real compound parts the migrated rows render with
@@ -185,7 +171,6 @@ describe('MoneyRequestView edit fields', () => {
             await Onyx.clear();
         });
         mockMenuItemWithTopDescription.mockClear();
-        mockUserPills.mockClear();
     });
 
     const setupTestData = async (isSettledReport = false) => {
@@ -334,8 +319,8 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
-    it('excludes the reimbursable toggle label from selection and copied content', async () => {
-        // Given an expense that displays the reimbursable toggle
+    it('marks selectable toggle labels for multi-field copying', async () => {
+        // Given an expense that displays the Reimbursable and Billable toggles
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
             parentReportID: expenseReportID,
@@ -348,57 +333,14 @@ describe('MoneyRequestView edit fields', () => {
         renderMoneyRequestView(threadReport);
         await waitForBatchedUpdatesWithAct();
 
-        // Then the visual label is hidden from selection while the switch remains accessible
+        // Then both selectable labels carry the marker used by the multi-field selection scraper
         await waitFor(() => {
-            const reimbursableLabel = screen.getByText(/reimbursable$/i, {includeHiddenElements: true});
-            expect(reimbursableLabel).toHaveStyle({userSelect: 'none'});
-            expect(reimbursableLabel).toHaveProp(
-                'dataSet',
-                expect.objectContaining({
-                    [CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true,
-                }),
-            );
-            expect(reimbursableLabel).not.toHaveProp(
-                'dataSet',
-                expect.objectContaining({
-                    [CONST.COPYABLE_TEXT_ELEMENT]: true,
-                }),
-            );
-            expect(screen.getByLabelText(/reimbursable$/i)).toBeOnTheScreen();
-        });
-    });
+            const toggleLabels = [screen.getByText(/reimbursable$/i, {includeHiddenElements: true}), screen.getByText('common.billable', {includeHiddenElements: true})];
 
-    it('renders every copyable attendee on an editable expense', async () => {
-        // Given an editable expense with more attendees than UserPills displays by default
-        const threadReport = {
-            ...LHNTestUtils.getFakeReport(),
-            parentReportID: expenseReportID,
-            parentReportActionID,
-        };
-        const attendees = Array.from({length: 8}, (_, index) => ({
-            email: `attendee${index}@example.com`,
-            displayName: `Attendee ${index}`,
-            avatarUrl: '',
-        }));
-
-        await setupTestData();
-        await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-                type: CONST.POLICY.TYPE.CORPORATE,
-                isAttendeeTrackingEnabled: true,
-            });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {attendees}});
-        });
-
-        // When attendee tracking is enabled and the expense details are rendered
-        renderMoneyRequestView(threadReport, {type: CONST.POLICY.TYPE.CORPORATE, isAttendeeTrackingEnabled: true});
-        await waitForBatchedUpdatesWithAct();
-
-        // Then every copyable attendee is rendered instead of collapsing the final attendees into a non-copyable summary
-        await waitFor(() => {
-            const userPillsProps = mockUserPills.mock.calls.at(-1)?.[0];
-            expect(userPillsProps).toEqual(expect.objectContaining({isCopyable: true, maxVisible: attendees.length}));
-            expect(userPillsProps?.users).toHaveLength(attendees.length);
+            for (const toggleLabel of toggleLabels) {
+                expect(toggleLabel).toHaveProp('dataSet', expect.objectContaining({[CONST.COPYABLE_TEXT_ELEMENT]: true}));
+                expect(toggleLabel).not.toHaveProp('dataSet', expect.objectContaining({[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}));
+            }
         });
     });
 

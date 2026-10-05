@@ -98,7 +98,7 @@ import {
     isTrackExpenseReportNew,
     shouldEnableNegative,
 } from '@libs/ReportUtils';
-import {COPYABLE_ROW_DATA_SET} from '@libs/SelectionScraper';
+import {COPYABLE_ROW_DATA_SET, COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 import {getDependentTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     getAttendeesListDisplayString,
@@ -1687,7 +1687,7 @@ function MoneyRequestView({
                                             accountID: a?.accountID,
                                             email: a?.email,
                                         }))}
-                                        maxVisible={areAttendeesCopyable ? actualAttendees.length : undefined}
+                                        maxVisible={canEdit ? undefined : actualAttendees.length}
                                         isCopyable={areAttendeesCopyable}
                                     />
                                 ) : undefined
@@ -1721,8 +1721,7 @@ function MoneyRequestView({
                             <Text
                                 accessible={false}
                                 aria-hidden
-                                style={styles.userSelectNone}
-                                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                dataSet={COPYABLE_TEXT_DATA_SET}
                             >
                                 {Str.UCFirst(translate('iou.reimbursable'))}
                             </Text>
@@ -1744,8 +1743,7 @@ function MoneyRequestView({
                             <Text
                                 accessible={false}
                                 aria-hidden
-                                style={styles.userSelectNone}
-                                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                dataSet={COPYABLE_TEXT_DATA_SET}
                             >
                                 {translate('common.billable')}
                             </Text>
