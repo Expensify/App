@@ -376,7 +376,6 @@ export default {
     expensifyCardEmptyIllustrationWidth: 280,
     expensifyCardEmptyIllustrationHeight: 172,
     rulesNewMenuItemMinHeight: 84,
-    agentRulePromptInputHeight: 340,
     cardPreviewWidth: 235,
     cardDetailsActionButtonMinWidth: 140,
     cardScarfOverlayWidth: 264,
