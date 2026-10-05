@@ -7309,6 +7309,7 @@ const CONST = {
     SESSION_STORAGE_KEYS: {
         INITIAL_URL: 'INITIAL_URL',
         RETRY_LAZY_REFRESHED: 'RETRY_LAZY_REFRESHED',
+        UPDATE_REQUIRED_RELOADED_VERSION: 'UPDATE_REQUIRED_RELOADED_VERSION',
         LAST_REFRESH_TIMESTAMP: 'LAST_REFRESH_TIMESTAMP',
         LAST_VISITED_PATH: {
             WORKSPACES_TAB: 'LAST_VISITED_PATH_WORKSPACES_TAB',
@@ -8854,6 +8855,11 @@ const CONST = {
         EXTERNAL_ID: 'externalID',
         MAX_AMOUNT_NO_RECEIPT: 'maxAmountNoReceipt',
         MAX_AMOUNT_NO_ITEMIZED_RECEIPT: 'maxAmountNoItemizedReceipt',
+        PAYROLL_CODE: 'payrollCode',
+        ARE_COMMENTS_REQUIRED: 'areCommentsRequired',
+        COMMENT_HINT: 'commentHint',
+        EXPENSE_LIMIT_TYPE: 'expenseLimitType',
+        MAX_EXPENSE_AMOUNT: 'maxExpenseAmount',
         MERCHANT_IS: 'merchantIs',
         MERCHANT_CONTAINS: 'merchantContains',
         UPDATED_MERCHANT: 'updatedMerchant',

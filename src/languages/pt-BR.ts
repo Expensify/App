@@ -514,6 +514,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Ano anterior',
         nextYear: 'Ano que vem',
         avatar: 'Avatar',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} de ${total}`,
         editor: 'Editor',
         restrictions: 'Restrições',
         tryAgain: 'Tentar novamente',
@@ -8258,6 +8259,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 flagAmountsOver: 'Sinalizar valores acima de',
                 flagAmountsOverDescription: (categoryName: string) => `Aplica-se à categoria “${categoryName}”.`,
                 flagAmountsOverSubtitle: 'Isso substitui o valor máximo para todas as despesas.',
+                expenseLimitType: 'Tipo de limite de despesa',
                 expenseLimitTypes: {
                     expense: 'Despesa individual',
                     expenseSubtitle:

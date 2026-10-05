@@ -382,6 +382,8 @@ const translations = {
         automatic: 'Automatic',
         showing: 'Showing',
         of: 'of',
+        // @context Carousel pagination counter showing the current item's position out of the total (e.g. "3 of 50").
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} of ${total}`,
         default: 'Default',
         update: 'Update',
         member: 'Member',
@@ -8945,6 +8947,7 @@ const translations = {
                 flagAmountsOver: 'Flag amounts over',
                 flagAmountsOverDescription: (categoryName: string) => `Applies to the category “${categoryName}”.`,
                 flagAmountsOverSubtitle: 'This overrides the max amount for all expenses.',
+                expenseLimitType: 'Expense limit type',
                 expenseLimitTypes: {
                     expense: 'Individual expense',
                     expenseSubtitle:

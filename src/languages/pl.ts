@@ -518,6 +518,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Poprzedni rok',
         nextYear: 'W przyszłym roku',
         avatar: 'Avatar',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} z ${total}`,
         editor: 'Edytor',
         restrictions: 'Ograniczenia',
         tryAgain: 'Spróbuj ponownie',
@@ -8275,6 +8276,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 flagAmountsOver: 'Oznaczaj kwoty powyżej',
                 flagAmountsOverDescription: (categoryName: string) => `Dotyczy kategorii „${categoryName}”.`,
                 flagAmountsOverSubtitle: 'To zastępuje maksymalną kwotę dla wszystkich wydatków.',
+                expenseLimitType: 'Typ limitu wydatków',
                 expenseLimitTypes: {
                     expense: 'Pojedynczy wydatek',
                     expenseSubtitle:

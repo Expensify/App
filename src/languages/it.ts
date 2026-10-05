@@ -515,6 +515,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Anno precedente',
         nextYear: "L'anno prossimo",
         avatar: 'Avatar',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} di ${total}`,
         editor: 'Editor',
         restrictions: 'Restrizioni',
         tryAgain: 'Riprova',
@@ -8276,6 +8277,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 flagAmountsOver: 'Contrassegna importi superiori a',
                 flagAmountsOverDescription: (categoryName: string) => `Si applica alla categoria “${categoryName}”.`,
                 flagAmountsOverSubtitle: 'Questo sostituisce l’importo massimo per tutte le spese.',
+                expenseLimitType: 'Tipo di limite di spesa',
                 expenseLimitTypes: {
                     expense: 'Spesa individuale',
                     expenseSubtitle:

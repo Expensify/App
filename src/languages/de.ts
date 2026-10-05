@@ -516,6 +516,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Vorheriges Jahr',
         nextYear: 'Nächstes Jahr',
         avatar: 'Avatar',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} von ${total}`,
         editor: 'Editor',
         restrictions: 'Beschränkungen',
         tryAgain: 'Erneut versuchen',
@@ -8324,6 +8325,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 flagAmountsOver: 'Beträge kennzeichnen über',
                 flagAmountsOverDescription: (categoryName: string) => `Gilt für die Kategorie „${categoryName}“.`,
                 flagAmountsOverSubtitle: 'Dadurch wird der Höchstbetrag für alle Ausgaben überschrieben.',
+                expenseLimitType: 'Ausgabenlimit-Typ',
                 expenseLimitTypes: {
                     expense: 'Einzelne Ausgabe',
                     expenseSubtitle:

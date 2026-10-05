@@ -515,6 +515,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Année précédente',
         nextYear: 'L’an prochain',
         avatar: 'Avatar',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} sur ${total}`,
         editor: 'Éditeur',
         restrictions: 'Restrictions',
         tryAgain: 'Réessayer',
@@ -8345,6 +8346,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 flagAmountsOver: 'Signaler les montants supérieurs à',
                 flagAmountsOverDescription: (categoryName: string) => `S’applique à la catégorie « ${categoryName} ».`,
                 flagAmountsOverSubtitle: 'Cela remplace le montant maximal pour toutes les dépenses.',
+                expenseLimitType: 'Type de limite de dépense',
                 expenseLimitTypes: {
                     expense: 'Dépense individuelle',
                     expenseSubtitle:

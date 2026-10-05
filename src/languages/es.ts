@@ -506,6 +506,7 @@ const translations: TranslationDeepObject<typeof en> = {
         goToConcierge: 'Ir a Concierge',
         allSet: '¡Todo listo!',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `introducir dígito ${digitIndex} de ${totalDigits}`,
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} de ${total}`,
         apiKey: 'Clave API',
         editor: 'Editor',
         restrictions: 'Restricciones',
@@ -8352,6 +8353,7 @@ ${reportName}`,
                 flagAmountsOver: 'Señala importes superiores a',
                 flagAmountsOverDescription: (categoryName) => `Aplica a la categoría “${categoryName}”.`,
                 flagAmountsOverSubtitle: 'Esto anula el importe máximo para todos los gastos.',
+                expenseLimitType: 'Tipo de límite de gasto',
                 expenseLimitTypes: {
                     expense: 'Gasto individual',
                     expenseSubtitle:
