@@ -1,3 +1,4 @@
+import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
 import usePrevious from '@hooks/usePrevious';
 import useReportIDToNameMap from '@hooks/useReportIDToNameMap';
 
@@ -29,6 +30,7 @@ function useDraftMessageVideoAttributeCache({
     isEditInProgressRef,
 }: UseDraftMessageVideoAttributeCacheProps): DraftMessageVideoAttributeCache {
     const prevDraftMessage = usePrevious(draftMessage);
+    const accountIDToName = useAccountIDToNameMap();
     const reportIDToName = useReportIDToNameMap();
 
     useEffect(() => {
@@ -40,6 +42,7 @@ function useDraftMessageVideoAttributeCache({
 
         const originalMessage = Parser.htmlToMarkdown(getReportActionHtml(editingReportAction), {
             reportIDToName,
+            accountIDToName,
             cacheVideoAttributes: (videoSource, attrs) => draftMessageVideoAttributeCache.set(videoSource, attrs),
         });
         if (
@@ -50,7 +53,7 @@ function useDraftMessageVideoAttributeCache({
             return;
         }
         updateDraftMessageProp(draftMessage);
-    }, [draftMessage, editingReportAction, isEditInProgressRef, isEditing, prevDraftMessage, reportIDToName, updateDraftMessageProp]);
+    }, [draftMessage, editingReportAction, isEditInProgressRef, isEditing, prevDraftMessage, accountIDToName, reportIDToName, updateDraftMessageProp]);
 
     return draftMessageVideoAttributeCache;
 }

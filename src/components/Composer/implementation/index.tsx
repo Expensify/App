@@ -3,6 +3,7 @@ import {useSession} from '@components/OnyxListItemProvider';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 
+import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
 import useHtmlPaste from '@hooks/useHtmlPaste';
 import useIsScrollBarVisible from '@hooks/useIsScrollBarVisible';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
@@ -57,7 +58,8 @@ function Composer({
     ref,
     ...props
 }: ComposerProps) {
-    const textContainsOnlyEmojis = useMemo(() => containsOnlyEmojis(Parser.htmlToText(Parser.replace(value ?? ''))), [value]);
+    const accountIDToName = useAccountIDToNameMap();
+    const textContainsOnlyEmojis = useMemo(() => containsOnlyEmojis(Parser.htmlToText(Parser.replace(value ?? ''), {accountIDToName})), [value, accountIDToName]);
 
     const theme = useTheme();
     const styles = useThemeStyles();
