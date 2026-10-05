@@ -1,5 +1,4 @@
 import type {MFARegistrationStateSnapshot} from '@components/MultifactorAuthentication/biometrics/captureRegistrationState';
-import type {UseBiometricsReturn} from '@components/MultifactorAuthentication/biometrics/shared/types';
 import type createActors from '@components/MultifactorAuthentication/machine/mfaActors';
 import type {
     AuthorizeInput,
@@ -53,17 +52,6 @@ const pendingModalClose = {
     clear: () => {
         pendingCloseCallback = undefined;
     },
-};
-
-/**
- * Stands in for the `useBiometrics` hook. Nothing under test renders a component that calls it
- * (the Provider now reads registration state through the shared `captureRegistrationState` helper
- * below instead), so this only needs to satisfy the hook's return type. The `Pick` makes renamed hook
- * fields fail type checking.
- */
-const biometricsMock: Pick<UseBiometricsReturn, 'serverKnownCredentialIDs' | 'areLocalCredentialsKnownToServer'> = {
-    serverKnownCredentialIDs: [],
-    areLocalCredentialsKnownToServer: () => Promise.resolve(false),
 };
 
 const DEFAULT_REGISTRATION_STATE_SNAPSHOT: MFARegistrationStateSnapshot = {hasServerCredentials: false, hasLocalCredentials: false, hasEverAcceptedSoftPrompt: false};
@@ -172,13 +160,6 @@ function captureRegistrationStateMock() {
     };
 }
 
-function biometricsHookMock() {
-    return {
-        __esModule: true,
-        default: () => biometricsMock,
-    };
-}
-
 /**
  * Stubs only the validate-code email request. It is a backend call outside the modal lifecycle
  * contract, and the machine fires it when the walk enters the validate-code screen.
@@ -265,7 +246,6 @@ export {
     mfaActorsMock,
     captureRegistrationStateMock,
     userActionsMock,
-    biometricsHookMock,
     renderHtmlMock,
     validateCodeCountdownMock,
     syncHistoryMock,

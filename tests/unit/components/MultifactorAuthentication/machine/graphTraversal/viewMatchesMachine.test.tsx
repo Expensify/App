@@ -48,8 +48,6 @@ jest.mock('@libs/XStateInspector', () => ({__esModule: true, default: {inspect: 
 
 // The UI walk needs to control invoked actor outcomes, and the actors' real side effects are outside the modal lifecycle contract.
 jest.mock('@components/MultifactorAuthentication/machine/mfaActors', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').mfaActorsMock());
-// Native and WebAuthn biometrics are outside the modal lifecycle contract.
-jest.mock('@components/MultifactorAuthentication/biometrics/useBiometrics', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').biometricsHookMock());
 // The Provider's pre-INIT snapshot is a real Onyx/platform read outside the modal lifecycle contract.
 jest.mock('@components/MultifactorAuthentication/biometrics/captureRegistrationState', () =>
     jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').captureRegistrationStateMock(),
