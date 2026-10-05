@@ -769,6 +769,7 @@ function archivePolicy(params: ArchivePolicyActionParams) {
             value: {
                 archivedDate: null,
                 pendingAction: null,
+                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
         },
     ];
