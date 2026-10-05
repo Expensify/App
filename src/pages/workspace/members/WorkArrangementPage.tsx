@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setEmployeeWorkArrangement} from '@libs/actions/Policy/DistanceRate';
 import {setWorkspaceInviteWorkArrangementDraft} from '@libs/actions/Policy/Member';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -26,7 +27,7 @@ import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPol
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 
@@ -86,7 +87,12 @@ function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPa
 
     const navigateBackToDetails = () => {
         if (isInviteFlow) {
-            Navigation.goBack(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(policyID));
+            const activeRoute = Navigation.getActiveRoute().split('?').at(0) ?? '';
+            const inviteBaseRoute = activeRoute.match(/^(.*)\/invite-message\/work-arrangement\/?$/)?.[1];
+            const inviteConfirmationRoute = inviteBaseRoute
+                ? createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_INVITE_MESSAGE.path, inviteBaseRoute)
+                : ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(policyID);
+            Navigation.goBack(inviteConfirmationRoute);
             return;
         }
         Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, memberAccountID));

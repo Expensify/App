@@ -43,7 +43,7 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({login: '
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
 jest.mock('@hooks/usePermissions', () => jest.fn(() => ({isBetaEnabled: () => true})));
 jest.mock('@hooks/useThemeStyles', () => jest.fn(() => new Proxy({}, {get: () => ({})})));
-jest.mock('@libs/Navigation/Navigation', () => ({goBack: jest.fn()}));
+jest.mock('@libs/Navigation/Navigation', () => ({getActiveRoute: jest.fn(), goBack: jest.fn()}));
 jest.mock('@libs/actions/Policy/DistanceRate', () => ({setEmployeeWorkArrangement: jest.fn()}));
 jest.mock('@libs/PolicyUtils', () => ({
     canMemberWrite: jest.fn(() => true),
@@ -90,6 +90,7 @@ describe('WorkArrangementPage', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
         jest.mocked(canMemberWrite).mockReturnValue(true);
+        jest.mocked(Navigation.getActiveRoute).mockReturnValue(ROUTES.WORKSPACE_INVITE_WORK_ARRANGEMENT.getRoute(policyID));
         await act(async () => {
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
             await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`, {});
@@ -199,6 +200,27 @@ describe('WorkArrangementPage', () => {
         // When the admin opens the work arrangement selection for the invite
         // Then the Office-Based option matches the confirmation page's default
         expect(getSelectionListProps()?.data.find((option) => option.value)?.isSelected).toBe(true);
+    });
+
+    it('returns to the workflow invite confirmation after changing an invited approver arrangement', async () => {
+        // Given an unsent approver invite that was opened from the workflow expenses-from flow
+        const inviteAccountID = 23456;
+        const invitePolicy = createMock<Policy>({...policy, employeeList: {}});
+        const workflowInviteArrangementRoute = `workspaces/${policyID}/workflows/approvals/expenses-from/invite-message/work-arrangement`;
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`, {[memberLogin]: inviteAccountID});
+        });
+        jest.mocked(Navigation.getActiveRoute).mockReturnValue(workflowInviteArrangementRoute);
+        render(getPage(inviteAccountID, personalDetails, invitePolicy, true));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the admin changes the invited approver to office-based
+        act(() => {
+            getSelectionListProps()?.onSelectRow?.({value: true});
+        });
+
+        // Then the workflow's invite confirmation stays as the return destination
+        expect(Navigation.goBack).toHaveBeenCalledWith(`workspaces/${policyID}/workflows/approvals/expenses-from/invite-message`);
     });
 
     it('uses the resolved account ID for the first arrangement change after an offline invite syncs', async () => {

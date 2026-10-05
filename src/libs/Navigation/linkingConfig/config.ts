@@ -1148,7 +1148,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.WORKSPACE_MEMBER_WORK_ARRANGEMENT.route,
                         },
                         [SCREENS.WORKSPACE.INVITE_WORK_ARRANGEMENT]: {
-                            path: ROUTES.WORKSPACE_INVITE_WORK_ARRANGEMENT.route,
+                            path: DYNAMIC_ROUTES.WORKSPACE_INVITE_WORK_ARRANGEMENT.path,
                         },
                         [SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_SUCCESS]: DYNAMIC_ROUTES.WORKSPACE_OWNER_CHANGE_SUCCESS.path,
                         [SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_ERROR]: DYNAMIC_ROUTES.WORKSPACE_OWNER_CHANGE_ERROR.path,

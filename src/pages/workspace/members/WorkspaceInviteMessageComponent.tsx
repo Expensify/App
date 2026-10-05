@@ -135,7 +135,7 @@ function WorkspaceInviteMessageComponent({
     };
 
     const navigateToWorkArrangementPage = () => {
-        Navigation.navigate(ROUTES.WORKSPACE_INVITE_WORK_ARRANGEMENT.getRoute(policyID));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_INVITE_WORK_ARRANGEMENT.path));
     };
 
     const isOnyxLoading = isLoadingOnyxValue(workspaceInviteMessageDraftResult, invitedEmailsToAccountIDsDraftResult, formDataResult);
