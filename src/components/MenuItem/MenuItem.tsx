@@ -425,7 +425,7 @@ const getSubscriptAvatarBackgroundColor = (isHovered: boolean, isPressed: boolea
     }
 };
 
-/** @deprecated Please compose `MenuItem.Root` with its leaves, or use a preset from `@components/MenuItem/presets/`, for new usages. */
+/** @deprecated Compose `MenuItem.Root` with its leaves, or use a preset from `@components/MenuItem/presets/`, for new usages. */
 function MenuItem({
     interactive = true,
     onPress,

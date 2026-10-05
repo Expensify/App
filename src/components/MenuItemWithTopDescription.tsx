@@ -4,10 +4,10 @@ import type {MenuItemProps} from './MenuItem';
 
 import MenuItem from './MenuItem';
 
-/** @deprecated Please use `MenuItemField` from `@components/MenuItem/presets/MenuItemField` for new usages. */
+/** @deprecated Use `MenuItemField` from `@components/MenuItem/presets/MenuItemField` for new usages. */
 function MenuItemWithTopDescription({ref, ...props}: MenuItemProps) {
     return (
-        // eslint-disable-next-line @typescript-eslint/no-deprecated -- This deprecated wrapper is deleted together with legacy MenuItem.
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- The deprecated wrapper itself must render legacy MenuItem.
         <MenuItem
             {...props}
             ref={ref}
