@@ -297,10 +297,11 @@ describe('QuickCreationActionsBar - button identifiers', () => {
     });
 
     it('routes a press on the test-ID-targeted travel button to the travel flow', async () => {
-        // When the travel button is pressed by its test ID
+        // Given the travel-ready default workspace set up in beforeEach
         renderComponent();
         await waitForBatchedUpdatesWithAct();
 
+        // When the travel button is pressed by its test ID
         fireEvent.press(screen.getByTestId(CONST.TEST_ID.QUICK_CREATION_ACTIONS_BAR.BOOK_TRAVEL));
         await waitForBatchedUpdatesWithAct();
 

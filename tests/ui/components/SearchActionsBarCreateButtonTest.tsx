@@ -130,7 +130,7 @@ describe('SearchActionsBarCreateButton', () => {
     });
 
     it('should show the "Create report" menu item once workspaces and domain settings have loaded', async () => {
-        // When component is rendered
+        // Given workspaces and the domain security group have finished loading
         renderComponent();
         await waitForBatchedUpdatesWithAct();
 

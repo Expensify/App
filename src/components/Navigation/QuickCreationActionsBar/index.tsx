@@ -153,7 +153,6 @@ function QuickCreationActionsBar() {
             <Button
                 size={CONST.BUTTON_SIZE.SMALL}
                 onPress={createReport}
-                // Disabled rather than hidden while policies and the domain lock hydrate, so the bar doesn't reflow
                 isDisabled={!isCreateReportReady}
                 style={styles.quickCreationActionsBarButton}
                 testID={CONST.TEST_ID.QUICK_CREATION_ACTIONS_BAR.REPORT}
