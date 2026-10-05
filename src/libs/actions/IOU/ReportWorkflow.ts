@@ -19,13 +19,12 @@ import {getIsOffline} from '@libs/NetworkState';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {
     arePaymentsEnabled,
-    canMemberWrite,
+    canAdminPayReport,
     getAccountIDForSubmitManagerEmail,
     getReimbursementChoice,
     getSubmitReportManagerAccountID,
     hasDynamicExternalWorkflow,
     isArchivedOrPendingDeletePolicy,
-    isGroupPolicy,
     isPaidGroupPolicy,
     isSubmitAndClose,
     isSubmitPolicy,
@@ -213,13 +212,11 @@ function canIOUBePaid(
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>,
     currentUserLogin: string,
     currentUserAccountID: number,
-    transactions?: OnyxTypes.Transaction[],
-    onlyShowPayElsewhere = false,
-    chatReportRNVP?: OnyxTypes.ReportNameValuePairs,
+    transactions: OnyxTypes.Transaction[] | undefined,
+    onlyShowPayElsewhere: boolean,
+    isChatReportArchived: boolean,
     invoiceReceiverPolicy?: OnyxTypes.Policy,
 ) {
-    const reportNameValuePairs = chatReportRNVP ?? getAllReportNameValuePairs()?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport?.reportID}`];
-    const isChatReportArchived = isArchivedReport(reportNameValuePairs);
     const iouSettled = isSettled(iouReport);
 
     if (isEmptyObject(iouReport)) {
@@ -246,13 +243,7 @@ function canIOUBePaid(
     }
 
     const isReportPayer = isPayerReportUtils(currentUserAccountID, currentUserLogin, iouReport, bankAccountList, policy, onlyShowPayElsewhere);
-
-    // The admin pay path is for workspace expense reports. Personal policies should only offer Pay to the actual payer.
-    const canPay =
-        isReportPayer ||
-        (isGroupPolicy(policy) &&
-            getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL &&
-            canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
+    const canPay = isReportPayer || canAdminPayReport(policy, currentUserLogin);
 
     const {reimbursableSpend, nonReimbursableSpend} = getMoneyRequestSpendBreakdown(iouReport);
     const isAutoReimbursable = getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ? false : canBeAutoReimbursed(iouReport, policy);
@@ -344,10 +335,14 @@ function getBadgeFromIOUReport(
         return undefined;
     }
 
+    // TODO: https://github.com/Expensify/App/issues/66518
+    // Transitional: resolve the chat report's archived state from the module-level cache until this function threads it down from its callers.
+    const isChatReportArchived = isArchivedReport(getAllReportNameValuePairs()?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport?.reportID}`]);
+
     const isReportPayer = isPayerReportUtils(currentUserAccountID, currentUserLogin, iouReport, undefined, policy, false);
     const canBePaidNow =
         (isInvoiceReportReportUtils(iouReport) || isReportPayer) &&
-        canIOUBePaid(iouReport, chatReport, policy, undefined, currentUserLogin, currentUserAccountID, undefined, undefined, undefined, invoiceReceiverPolicy);
+        canIOUBePaid(iouReport, chatReport, policy, undefined, currentUserLogin, currentUserAccountID, undefined, false, isChatReportArchived, invoiceReceiverPolicy);
     if (canBePaidNow) {
         return CONST.REPORT.ACTION_BADGE.PAY;
     }
@@ -357,7 +352,7 @@ function getBadgeFromIOUReport(
     const canPayElsewhereActor = isPayerReportUtils(currentUserAccountID, currentUserLogin, iouReport, undefined, policy, true);
     const canBePaidElsewhere =
         (isInvoiceReportReportUtils(iouReport) || canPayElsewhereActor) &&
-        canIOUBePaid(iouReport, chatReport, policy, undefined, currentUserLogin, currentUserAccountID, undefined, true, undefined, invoiceReceiverPolicy);
+        canIOUBePaid(iouReport, chatReport, policy, undefined, currentUserLogin, currentUserAccountID, undefined, true, isChatReportArchived, invoiceReceiverPolicy);
     if (canBePaidElsewhere) {
         return hasOnlyNonReimbursableTransactions(iouReport?.reportID) ? undefined : CONST.REPORT.ACTION_BADGE.PAY;
     }
@@ -374,6 +369,8 @@ function getBadgeFromIOUReport(
         getAllTransactionViolations(),
         currentUserLogin,
         currentUserAccountID,
+        // TODO: Pass iouReportOwnerLogin in PR 23. canSubmitAndIsAwaitingForCurrentUser falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
+        undefined,
         iouReportActions,
     );
     if (isWaitingSubmitFromCurrentUser) {
