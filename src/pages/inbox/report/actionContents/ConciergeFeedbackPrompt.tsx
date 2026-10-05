@@ -33,6 +33,12 @@ type ConciergeFeedbackPromptProps = {
 
     /** The ID of the report being viewed */
     reportID: string | undefined;
+
+    /** Whether to show the generic feedback prompt alongside the thumbs */
+    shouldShowPrompt?: boolean;
+
+    /** Whether the thumbs should remain available after the user rates the action */
+    shouldPersistAfterRating?: boolean;
 };
 
 /** A reaction can be stored under the emoji name or under its hexcode, so both keys are read */
@@ -94,7 +100,7 @@ function ConciergeFeedbackThumb({emoji, label, accessibilityLabel, onPress}: Con
     );
 }
 
-function ConciergeFeedbackPrompt({action, reportID}: ConciergeFeedbackPromptProps) {
+function ConciergeFeedbackPrompt({action, reportID, shouldShowPrompt = true, shouldPersistAfterRating = false}: ConciergeFeedbackPromptProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -118,17 +124,17 @@ function ConciergeFeedbackPrompt({action, reportID}: ConciergeFeedbackPromptProp
 
     const rate = (emoji: Emoji) => {
         // Skin tone is ignored on compare so a user whose preferred tone changed toggles their existing reaction instead of adding a second one
-        toggleEmojiReaction(reportID, action, emoji, reactions, preferredSkinTone, currentUserAccountID, reportActions, true);
+        toggleEmojiReaction(reportID, action, emoji, reactions, preferredSkinTone, currentUserAccountID, reportActions, true, true, emoji.name === thumbsUp.name ? thumbsDown : thumbsUp);
     };
 
     const hasRated = hasReactedWithEmoji(thumbsUp, reactions, currentUserAccountID) || hasReactedWithEmoji(thumbsDown, reactions, currentUserAccountID);
 
     // The acknowledgement comes from the reaction, so removing it from the reaction row brings the prompt back right away
-    if (isDisplayedThankMessage) {
+    if (!shouldPersistAfterRating && isDisplayedThankMessage) {
         return <Text style={[styles.textLabelSupporting, styles.mt2]}>{translate('concierge.feedback.thanks')}</Text>;
     }
 
-    if (hasRated) {
+    if (!shouldPersistAfterRating && hasRated) {
         return null;
     }
 
@@ -137,7 +143,7 @@ function ConciergeFeedbackPrompt({action, reportID}: ConciergeFeedbackPromptProp
             layout="horizontal"
             style={styles.alignItemsCenter}
         >
-            <Text style={[styles.textLabelSupporting, styles.flexShrink1]}>{translate('concierge.feedback.prompt')}</Text>
+            {shouldShowPrompt && <Text style={[styles.textLabelSupporting, styles.flexShrink1]}>{translate('concierge.feedback.prompt')}</Text>}
             {/* The thumbs share one child so the container gap does not separate them */}
             <View style={styles.flexRow}>
                 <ConciergeFeedbackThumb

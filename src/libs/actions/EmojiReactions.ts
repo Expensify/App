@@ -97,6 +97,7 @@ function removeEmojiReaction(reportID: string, reportActionID: string, emoji: Em
 
 /**
  * Calls either addEmojiReaction or removeEmojiReaction depending on if the current user has reacted to the report action.
+ * When an opposite reaction is provided, it is removed before adding the selected reaction.
  * Uses the NEW FORMAT for "emojiReactions"
  */
 function toggleEmojiReaction(
@@ -109,6 +110,7 @@ function toggleEmojiReaction(
     reportActions: OnyxEntry<ReportActions>,
     isOffline: boolean,
     ignoreSkinToneOnCompare = false,
+    oppositeReactionObject?: Emoji,
 ) {
     const originalReportID = getOriginalReportID(reportID, reportAction, reportActions, isOffline);
 
@@ -148,6 +150,22 @@ function toggleEmojiReaction(
     if (userReactedUnderName) {
         removeEmojiReaction(originalReportID, reportAction.reportActionID, emoji, currentUserAccountID, emoji.name);
         return;
+    }
+
+    if (oppositeReactionObject) {
+        const oppositeEmoji = findEmojiByCode(oppositeReactionObject.code);
+        const oppositeHexEntry = oppositeEmoji.hexcode ? existingReactions?.[oppositeEmoji.hexcode] : undefined;
+        const oppositeNameEntry = existingReactions?.[oppositeEmoji.name];
+        const userReactedWithOppositeUnderHex = !!oppositeHexEntry && hasAccountIDEmojiReacted(currentUserAccountID, oppositeHexEntry.users, skinToneToCheck);
+        const userReactedWithOppositeUnderName = !!oppositeNameEntry && hasAccountIDEmojiReacted(currentUserAccountID, oppositeNameEntry.users, skinToneToCheck);
+
+        // The same reaction may be stored under both its legacy name and its hexcode, so clear both before recording the new rating.
+        if (userReactedWithOppositeUnderHex && oppositeEmoji.hexcode) {
+            removeEmojiReaction(originalReportID, reportAction.reportActionID, oppositeEmoji, currentUserAccountID, oppositeEmoji.hexcode);
+        }
+        if (userReactedWithOppositeUnderName) {
+            removeEmojiReaction(originalReportID, reportAction.reportActionID, oppositeEmoji, currentUserAccountID, oppositeEmoji.name);
+        }
     }
 
     addEmojiReaction(originalReportID, reportAction.reportActionID, emoji, skinTone, currentUserAccountID);

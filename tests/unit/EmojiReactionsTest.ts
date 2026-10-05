@@ -27,6 +27,7 @@ jest.mock('@libs/API', () => ({
 }));
 
 const THUMBSUP = {name: '+1', code: '👍', hexcode: '1F44D'};
+const THUMBSDOWN = {name: '-1', code: '👎', hexcode: '1F44E'};
 const REPORT_ID = 'report1';
 const ACTION = createMock<ReportAction>({reportActionID: 'action1'});
 const USER_A = 12345;
@@ -109,6 +110,24 @@ describe('toggleEmojiReaction — mixed-format Onyx state', () => {
 
         expect(writeMock).toHaveBeenCalledTimes(1);
         expect(writeMock.mock.calls.at(0)?.at(0)).toBe(WRITE_COMMANDS.ADD_EMOJI_REACTION);
+    });
+
+    it('removes the opposite rating before adding the selected rating', () => {
+        const existingReactions: ReportActionReactions = {
+            [THUMBSDOWN.name]: {
+                createdAt: TIMESTAMP,
+                oldestTimestamp: TIMESTAMP,
+                users: {[USER_A]: makeUserReaction(USER_A)},
+            },
+        };
+
+        toggleEmojiReaction(REPORT_ID, ACTION, THUMBSUP, existingReactions, SKIN_TONE, USER_A, undefined, false, true, THUMBSDOWN);
+
+        expect(writeMock).toHaveBeenCalledTimes(2);
+        expect(writeMock.mock.calls.at(0)?.[0]).toBe(WRITE_COMMANDS.REMOVE_EMOJI_REACTION);
+        expect(writeMock.mock.calls.at(0)?.[1]).toEqual(expect.objectContaining({emojiCode: THUMBSDOWN.name}));
+        expect(writeMock.mock.calls.at(1)?.[0]).toBe(WRITE_COMMANDS.ADD_EMOJI_REACTION);
+        expect(writeMock.mock.calls.at(1)?.[1]).toEqual(expect.objectContaining({emojiCode: THUMBSUP.name}));
     });
 
     it('prefers the hex entry when the current user appears under both keys', () => {

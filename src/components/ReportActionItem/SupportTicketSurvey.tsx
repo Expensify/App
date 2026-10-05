@@ -1,17 +1,12 @@
-import type {Emoji} from '@assets/emojis/types';
-
-import Button from '@components/Button';
 import RenderHTML from '@components/RenderHTML';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {findEmojiByName} from '@libs/EmojiUtils';
 import {getReportActionHtml} from '@libs/ReportActionsUtils';
 
-import {addEmojiReaction} from '@userActions/EmojiReactions';
+import ConciergeFeedbackPrompt from '@pages/inbox/report/actionContents/ConciergeFeedbackPrompt';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -47,7 +42,6 @@ function getLatestSurveyAfterResolution(reportActions: OnyxEntry<ReportActions>)
 
 function SupportTicketSurvey({action, report, reportID}: SupportTicketSurveyProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
@@ -64,28 +58,16 @@ function SupportTicketSurvey({action, report, reportID}: SupportTicketSurveyProp
         return null;
     }
 
-    const react = (emoji: Emoji) => addEmojiReaction(reportID, action.reportActionID, emoji, CONST.EMOJI_DEFAULT_SKIN_TONE, currentUserAccountID);
-
     return (
         <View style={styles.chatItemMessage}>
             <RenderHTML html={getReportActionHtml(action)} />
             {canRateSurvey && (
-                <View style={[styles.flexRow, styles.gap2, styles.mt2]}>
-                    <Button
-                        size={CONST.BUTTON_SIZE.SMALL}
-                        onPress={() => react(findEmojiByName('+1'))}
-                        accessibilityLabel={translate('concierge.feedback.useful')}
-                    >
-                        <Button.Text>👍</Button.Text>
-                    </Button>
-                    <Button
-                        size={CONST.BUTTON_SIZE.SMALL}
-                        onPress={() => react(findEmojiByName('-1'))}
-                        accessibilityLabel={translate('concierge.feedback.notUseful')}
-                    >
-                        <Button.Text>👎</Button.Text>
-                    </Button>
-                </View>
+                <ConciergeFeedbackPrompt
+                    action={action}
+                    reportID={reportID}
+                    shouldShowPrompt={false}
+                    shouldPersistAfterRating
+                />
             )}
         </View>
     );
