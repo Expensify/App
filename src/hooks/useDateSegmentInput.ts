@@ -80,6 +80,12 @@ type UseDateSegmentInputResult = {
     /** Where a press on the field rather than on a segment lands */
     focusFirstUnfilledSegment: () => void;
 
+    /** Selects the last segment's own digits, which is the word a double click on the field lands nearest to */
+    selectLastSegment: () => void;
+
+    /** Selects the whole date, which is what a triple click on the field asks for */
+    selectAllSegments: () => void;
+
     /** Whether focus is going to another segment, which is moving within the field rather than leaving it */
     isSegmentElement: (target: unknown) => boolean;
 
@@ -131,6 +137,8 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit}: Use
     const [hasInvalidEntry, setHasInvalidEntry] = useState(false);
     // Native selection cannot span separate inputs, so selecting the whole date is tracked here and drawn by the field
     const [isAllSelected, setIsAllSelected] = useState(false);
+    // A repeated click selects as its last press goes down, and the press completing that click arrives after
+    const hasJustSelectedByClick = useRef(false);
 
     // A date set from outside, by the calendar or a restored draft, has to reach an edit in progress too
     if (value !== appliedValue) {
@@ -383,6 +391,8 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit}: Use
         return {
             setSegmentRef: () => {},
             focusFirstUnfilledSegment: () => {},
+            selectLastSegment: () => {},
+            selectAllSegments: () => {},
             isSegmentElement: () => false,
             viewDate: undefined,
             viewDateVersion: 0,
@@ -402,13 +412,55 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit}: Use
     const displayedSegments = shouldShowSegments ? segments : getSegmentsFromISODate(value);
 
     const focusFirstUnfilledSegment = () => {
+        // The press that completes a repeated click would otherwise put the caret straight back where it started
+        if (hasJustSelectedByClick.current) {
+            hasJustSelectedByClick.current = false;
+            return;
+        }
+
         setIsAllSelected(false);
         focusSegment(getFirstUnfilledSegmentName(displayedSegments) ?? LAST_SEGMENT_NAME);
+    };
+
+    /**
+     * Hands the segment a selection of its own rather than the field's, so copying and replacing it are the browser's
+     * to answer, exactly as they are when the segment itself is double clicked.
+     */
+    const selectLastSegment = () => {
+        const shownLength = getSegmentDisplay(displayedSegments, LAST_SEGMENT_NAME).length;
+
+        // There are no digits to select yet, so the click is left to place the caret the way a single one does
+        if (!shownLength) {
+            return;
+        }
+
+        hasJustSelectedByClick.current = true;
+        setIsAllSelected(false);
+        // Focus only announces itself on arrival, and the segment may be the one the caret is already in
+        setShouldOverwrite(true);
+
+        const element = segmentRefs.current[LAST_SEGMENT_NAME];
+        element?.focus();
+        element?.setSelectionRange?.(0, shownLength);
+    };
+
+    const selectAllSegments = () => {
+        // There is no date to select yet, so the click is left to place the caret the way a single one does
+        if (!hasAnySegment(displayedSegments)) {
+            return;
+        }
+
+        hasJustSelectedByClick.current = true;
+        setIsAllSelected(true);
+        // Selecting the date puts the caret at its start, so replacing it does not have to move focus first
+        enterSegment(FIRST_SEGMENT_NAME);
     };
 
     return {
         setSegmentRef,
         focusFirstUnfilledSegment,
+        selectLastSegment,
+        selectAllSegments,
         isSegmentElement,
         viewDate: isEditing ? viewDate : undefined,
         viewDateVersion,

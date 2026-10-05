@@ -352,6 +352,8 @@ function DatePicker({
                                   getSegmentProps: segmentInput.getSegmentProps,
                                   setSegmentRef: segmentInput.setSegmentRef,
                                   focusFirstUnfilledSegment: segmentInput.focusFirstUnfilledSegment,
+                                  selectLastSegment: segmentInput.selectLastSegment,
+                                  selectAllSegments: segmentInput.selectAllSegments,
                                   isSegmentElement: segmentInput.isSegmentElement,
                                   isAllSelected: segmentInput.isAllSelected,
                                   onFieldBlur: handleFieldBlur,

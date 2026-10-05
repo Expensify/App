@@ -61,7 +61,7 @@ function DateSegmentsInput({
         return null;
     }
 
-    const {mask, getSegmentProps, setSegmentRef, focusFirstUnfilledSegment, isSegmentElement, isAllSelected, onFieldBlur} = dateSegmentsConfig;
+    const {mask, getSegmentProps, setSegmentRef, focusFirstUnfilledSegment, selectLastSegment, selectAllSegments, isSegmentElement, isAllSelected, onFieldBlur} = dateSegmentsConfig;
 
     const parts = getDateMaskParts(mask).map((part) => ({...part, segmentProps: getSegmentProps(part.name)}));
 
@@ -185,7 +185,21 @@ function DateSegmentsInput({
             <PressableWithoutFeedback
                 accessible={false}
                 accessibilityLabel={translate('common.date')}
-                onMouseDown={(event) => event.preventDefault()}
+                onMouseDown={(event) => {
+                    event.preventDefault();
+
+                    // A text field answers a double click with the word under it and a triple click with the whole
+                    // line. The space beside the date holds no text of its own, so the nearest segment stands in for
+                    // the word, the way clicking past the end of a line does.
+                    if (event.detail === 2) {
+                        selectLastSegment();
+                        return;
+                    }
+
+                    if (event.detail > 2) {
+                        selectAllSegments();
+                    }
+                }}
                 onPress={focusFirstUnfilledSegment}
                 sentryLabel="DateSegmentsInput-EmptySpace"
                 style={[styles.flex1, styles.cursorText]}
