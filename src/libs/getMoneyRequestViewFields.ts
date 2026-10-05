@@ -21,7 +21,10 @@ const DEFAULT_FIELDS: SearchColumnType[] = [
     CONST.SEARCH.TABLE_COLUMNS.BILLABLE,
 ];
 
-/** Receipts keep their own panel; table controls do not become expense fields. */
+/**
+ * Receipts keep their own panel.
+ * Table controls do not become expense fields.
+ */
 function getMoneyRequestViewFields(tableColumns: SearchColumnType[] = [], hasCustomColumns = false): SearchColumnType[] {
     const fields = tableColumns.filter((column) => isReportDetailsCustomColumn(column) && column !== CONST.SEARCH.TABLE_COLUMNS.RECEIPT);
     if (!hasCustomColumns) {
