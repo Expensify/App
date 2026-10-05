@@ -1633,20 +1633,21 @@ describe('ReportActionsUtils', () => {
             expect(ReportActionsUtils.getReportActionMessageFragments(translateLocal, action)).toEqual(action.message);
         });
 
-        it('keeps the backend message for a closed support ticket', () => {
-            const html = '<muted-text>Daniel resolved this support ticket.</muted-text>';
+        it('formats a closed support ticket as a muted system message', () => {
             const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED> = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
                 reportActionID: 'support-ticket-closed-action',
                 created: '2026-10-05 12:00:00.000',
-                message: [{html, text: 'Daniel resolved this support ticket.', type: CONST.REPORT.MESSAGE.TYPE.COMMENT}],
+                message: [{text: 'Daniel resolved this support ticket.', type: CONST.REPORT.MESSAGE.TYPE.TEXT}],
                 originalMessage: {
                     policyName: '',
                     reason: CONST.REPORT.ARCHIVE_REASON.DEFAULT,
                 },
             };
 
-            expect(ReportActionsUtils.getReportActionMessageFragments(translateLocal, action, true)).toEqual([{text: 'Daniel resolved this support ticket.', html, type: 'COMMENT'}]);
+            expect(ReportActionsUtils.getReportActionMessageFragments(translateLocal, action, true)).toEqual([
+                {text: 'Daniel resolved this support ticket.', html: '<muted-text>Daniel resolved this support ticket.</muted-text>', type: 'COMMENT'},
+            ]);
         });
     });
 

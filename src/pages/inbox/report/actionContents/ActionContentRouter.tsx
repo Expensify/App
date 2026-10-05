@@ -341,7 +341,7 @@ function ActionContentRouter({
             />
         );
     }
-    if (report?.type === CONST.REPORT.TYPE.SUPPORT_TICKET && isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REOPENED)) {
+    if (report?.type === CONST.REPORT.TYPE.SUPPORT_TICKET && (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CLOSED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REOPENED))) {
         return (
             <ReportActionMessageContent
                 action={action}

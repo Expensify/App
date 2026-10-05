@@ -1,4 +1,5 @@
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openSupportTicket} from '@userActions/Report';
@@ -19,6 +20,7 @@ type SupportTicketResolvedFooterProps = {
 
 function SupportTicketResolvedFooter({reportID, isOffline}: SupportTicketResolvedFooterProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
     const [isReopening, setIsReopening] = useState(false);
 
@@ -31,29 +33,30 @@ function SupportTicketResolvedFooter({reportID, isOffline}: SupportTicketResolve
 
     return (
         <Banner
-            containerStyles={styles.chatFooterBanner}
+            containerStyles={[styles.chatFooterBanner, styles.p3]}
             content={
                 <>
                     <Checkbox
                         isChecked
-                        disabled
                         onPress={() => undefined}
                         accessibilityLabel={translate('supportTicket.resolved')}
                         accessible={false}
-                        style={styles.mr3}
+                        tabIndex={-1}
+                        style={[styles.mr3, styles.cursorDisabled]}
+                        containerStyle={{backgroundColor: theme.placeholderText, borderColor: theme.placeholderText}}
                     />
-                    <Text style={[styles.textLabel, styles.flex1]}>{translate('supportTicket.resolved')}</Text>
+                    <Text style={[styles.textNormal, styles.flex1]}>{translate('supportTicket.resolved')}</Text>
                 </>
             }
         >
             <Button
-                size={CONST.BUTTON_SIZE.SMALL}
+                size={CONST.BUTTON_SIZE.MEDIUM}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 isDisabled={isOffline}
                 isLoading={isReopening}
                 onPress={reopenTicket}
             >
-                <Button.Text>{translate('supportTicket.reopenTicket')}</Button.Text>
+                <Button.Text style={styles.textNormal}>{translate('supportTicket.reopenTicket')}</Button.Text>
             </Button>
         </Banner>
     );

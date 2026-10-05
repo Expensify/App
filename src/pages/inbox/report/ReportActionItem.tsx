@@ -244,6 +244,9 @@ function ReportActionItem({
     const highlightedBackgroundColorIfNeeded = isReportActionLinked || shouldHighlight ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {};
 
     const isDeletedParentAction = isDeletedParentActionUtils(action);
+    const isSupportTicketStatusAction =
+        report?.type === CONST.REPORT.TYPE.SUPPORT_TICKET && (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CLOSED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REOPENED));
+    const shouldDisplayAsGroup = displayAsGroup || isSupportTicketStatusAction;
 
     const draftMessage = editingReportAction && action && editingReportAction.reportActionID === action.reportActionID ? (editingMessage ?? undefined) : undefined;
     const hasDraft = draftMessage !== undefined;
@@ -527,7 +530,7 @@ function ReportActionItem({
     const plainMessage = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED)
         ? getAgentPromptUpdatedMessage(translate, action)
         : getPaymentMessageWithExpectedDate(translate, dateFnsLocale, getReportActionText(action), paymentExpectedDate);
-    const accessibilityLabel = `${actorDisplayName ?? ''}, ${formattedTimestamp}, ${plainMessage}`;
+    const accessibilityLabel = isSupportTicketStatusAction ? plainMessage : `${actorDisplayName ?? ''}, ${formattedTimestamp}, ${plainMessage}`;
 
     return (
         <ShowContextMenuStateContext.Provider value={contextMenuStateValue}>
@@ -634,7 +637,7 @@ function ReportActionItem({
                                                             action={action}
                                                             report={report}
                                                             iouReport={iouReport}
-                                                            displayAsGroup={displayAsGroup}
+                                                            displayAsGroup={shouldDisplayAsGroup}
                                                             isEditingInline={isEditingInline}
                                                             isWhisper={isWhisper}
                                                             isOnSearch={isOnSearch}
@@ -648,7 +651,7 @@ function ReportActionItem({
                                                                 reportID={reportID}
                                                                 originalReportID={originalReportID}
                                                                 iouReport={iouReport}
-                                                                displayAsGroup={displayAsGroup}
+                                                                displayAsGroup={shouldDisplayAsGroup}
                                                                 draftMessage={draftMessage}
                                                                 isWhisper={isWhisper}
                                                                 hovered={isHoveredOrActive}

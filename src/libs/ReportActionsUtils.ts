@@ -2609,10 +2609,8 @@ function getReportActionMessageFragments(translate: LocalizedTranslate, action: 
     }
 
     if (isSupportTicketReport && (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CLOSED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REOPENED))) {
-        const supportTicketMessage = getReportActionMessage(action)?.html;
-        if (supportTicketMessage) {
-            return [{text: getReportActionText(action), html: supportTicketMessage, type: 'COMMENT'}];
-        }
+        const supportTicketText = getReportActionText(action);
+        return [{text: supportTicketText, html: `<muted-text>${Str.htmlEncode(supportTicketText)}</muted-text>`, type: 'COMMENT'}];
     }
 
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REOPENED)) {

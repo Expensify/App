@@ -9,6 +9,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDebouncedValue from '@hooks/useDebouncedValue';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {findEmojiByName} from '@libs/EmojiUtils';
@@ -85,14 +86,18 @@ type ConciergeFeedbackThumbProps = {
 
     /** Whether hovering the thumb should show its tooltip */
     shouldShowTooltip: boolean;
+
+    /** Whether the current user selected this rating */
+    isSelected: boolean;
 };
 
-function ConciergeFeedbackThumb({emoji, label, accessibilityLabel, onPress, shouldShowTooltip}: ConciergeFeedbackThumbProps) {
+function ConciergeFeedbackThumb({emoji, label, accessibilityLabel, onPress, shouldShowTooltip, isSelected}: ConciergeFeedbackThumbProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
 
     const thumb = (
         <PressableWithFeedback
-            style={[styles.conciergeFeedbackThumb, styles.userSelectNone]}
+            style={[styles.conciergeFeedbackThumb, isSelected && {backgroundColor: theme.reactionActiveBackground}, styles.userSelectNone]}
             hoverStyle={styles.conciergeFeedbackThumbHovered}
             pressStyle={styles.conciergeFeedbackThumbHovered}
             onPress={onPress}
@@ -162,6 +167,7 @@ function ConciergeFeedbackPrompt({
                 accessibilityLabel={translate('concierge.feedback.useful')}
                 onPress={callFunctionIfActionIsAllowed(() => rate(thumbsUp))}
                 shouldShowTooltip={shouldShowTooltips}
+                isSelected={hasReactedWithEmoji(thumbsUp, reactions, currentUserAccountID)}
             />
             <ConciergeFeedbackThumb
                 emoji={thumbsDown}
@@ -169,6 +175,7 @@ function ConciergeFeedbackPrompt({
                 accessibilityLabel={translate('concierge.feedback.notUseful')}
                 onPress={callFunctionIfActionIsAllowed(() => rate(thumbsDown))}
                 shouldShowTooltip={shouldShowTooltips}
+                isSelected={hasReactedWithEmoji(thumbsDown, reactions, currentUserAccountID)}
             />
         </View>
     );
