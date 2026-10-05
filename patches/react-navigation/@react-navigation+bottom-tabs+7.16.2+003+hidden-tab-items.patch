@@ -1,5 +1,5 @@
 diff --git a/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js b/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
-index 09ec68f..bd6204e 100644
+index 09ec68f..6645270 100644
 --- a/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
 +++ b/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
 @@ -4,11 +4,11 @@ import { getLabel, SafeAreaProviderCompat, Screen as ScreenContent } from '@reac
@@ -16,7 +16,7 @@ index 09ec68f..bd6204e 100644
  const meta = {
    type: 'native-tabs'
  };
-@@ -32,9 +32,23 @@ export function NativeBottomTabView({
+@@ -32,9 +32,21 @@ export function NativeBottomTabView({
      fonts
    } = useTheme();
    const focusedRouteKey = state.routes[state.index].key;
@@ -24,11 +24,9 @@ index 09ec68f..bd6204e 100644
 +  // and the tab bar is hidden, and the host keeps the last focused visible tab selected underneath.
 +  const isRouteHidden = route => descriptors[route.key]?.options.tabBarItemHidden === true;
 +  const isFocusedRouteHidden = isRouteHidden(state.routes[state.index]);
-+  const lastVisibleRouteKeyRef = React.useRef(undefined);
-+  if (!isFocusedRouteHidden) {
-+    lastVisibleRouteKeyRef.current = focusedRouteKey;
-+  }
-+  const nativeSelectedRouteKey = isFocusedRouteHidden ? lastVisibleRouteKeyRef.current ?? state.routes.find(route => !isRouteHidden(route))?.key ?? focusedRouteKey : focusedRouteKey;
++  // Derived from the history rather than remembered, so a route that became hidden since it was focused is skipped.
++  const isRouteKeyVisible = key => state.routes.some(route => route.key === key && !isRouteHidden(route));
++  const nativeSelectedRouteKey = isFocusedRouteHidden ? state.history.findLast(entry => isRouteKeyVisible(entry.key))?.key ?? state.routes.find(route => !isRouteHidden(route))?.key ?? focusedRouteKey : focusedRouteKey;
 +  // Hidden routes stay mounted once visited, the same as the native tabs.
 +  const visitedHiddenRouteKeysRef = React.useRef(new Set());
 +  if (isFocusedRouteHidden) {
@@ -41,7 +39,7 @@ index 09ec68f..bd6204e 100644
        provenance: 0
      }
    });
-@@ -189,17 +203,17 @@ export function NativeBottomTabView({
+@@ -189,17 +201,17 @@ export function NativeBottomTabView({
    const tabBarMinimizeBehavior = currentOptions.tabBarMinimizeBehavior === 'auto' ? 'automatic' : currentOptions.tabBarMinimizeBehavior === 'none' ? 'never' : currentOptions.tabBarMinimizeBehavior;
    const shouldHideTabBar = currentOptions.tabBarStyle?.display === 'none';
    const bottomAccessory = currentOptions.bottomAccessory;
@@ -63,7 +61,7 @@ index 09ec68f..bd6204e 100644
        colorScheme: dark ? 'dark' : 'light',
        ios: {
          bottomAccessory: bottomAccessory ? environment => bottomAccessory({
-@@ -210,6 +224,9 @@ export function NativeBottomTabView({
+@@ -210,6 +222,9 @@ export function NativeBottomTabView({
          tabBarTintColor: activeTintColor
        },
        children: state.routes.map((route, index) => {
@@ -73,7 +71,7 @@ index 09ec68f..bd6204e 100644
          const {
            options,
            render,
-@@ -221,6 +238,7 @@ export function NativeBottomTabView({
+@@ -221,6 +236,7 @@ export function NativeBottomTabView({
            title,
            lazy = false,
            tabBarLabel,
@@ -81,7 +79,7 @@ index 09ec68f..bd6204e 100644
            tabBarSelectionEnabled,
            tabBarBadgeStyle,
            tabBarIcon,
-@@ -287,6 +305,7 @@ export function NativeBottomTabView({
+@@ -287,6 +303,7 @@ export function NativeBottomTabView({
            preventNativeSelection: tabBarSelectionEnabled === false,
            badgeValue: tabBarBadge?.toString(),
            title: tabTitle,
@@ -89,7 +87,7 @@ index 09ec68f..bd6204e 100644
            specialEffects: {
              repeatedTabSelection: {
                popToRoot: true,
-@@ -363,9 +382,40 @@ export function NativeBottomTabView({
+@@ -363,9 +380,40 @@ export function NativeBottomTabView({
            })
          }, route.key);
        })
