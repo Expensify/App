@@ -309,7 +309,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                             />
                         </OfflineWithFeedback>
                     )}
-                    {shouldShowCountryRow && <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />}
+                    {isAutoUpdateSupported && <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />}
                     <ToggleSettingOptionRow
                         title={translate('distance.error.mapOrGpsDistanceRequired.title')}
                         subtitle={translate('workspace.distanceRates.requireMapOrGPSDescription')}
