@@ -95,6 +95,15 @@ const typescriptRestrictedImportPatterns = [
     },
 ];
 
+// `HeaderWithBackButton` is being migrated to the composed `Header` (`@components/Header`).
+// Two patterns for what ESLint writes as one: ESLint matches with gitignore semantics, where a bare
+// directory name also covers everything under it, and oxlint matches the path exactly. The second
+// entry is what catches `.../HeaderWithBackButton/types`.
+const restrictedHeaderImportPatterns = [
+    {group: ['**/HeaderWithBackButton'], message: 'HeaderWithBackButton is being migrated to the composed Header. Please use `@components/Header` instead for new usages.'},
+    {group: ['**/HeaderWithBackButton/**'], message: 'HeaderWithBackButton is being migrated to the composed Header. Please use `@components/Header` instead for new usages.'},
+];
+
 // Headless CLI cannot use useTheme; email charts always render with the light theme.
 const victoryChartRendererRestrictedImportPaths = restrictedImportPaths.filter((entry) => entry.name !== '@styles/theme');
 const victoryChartRendererRestrictedImportPatterns = typescriptRestrictedImportPatterns.filter((entry) => !entry.group.includes('@styles/theme/themes/**'));
@@ -573,11 +582,6 @@ export default defineConfig({
         // NOT oxlint's native react/exhaustive-deps: it is a Rust rule, and the React Compiler
         // message gate can only wrap a JS plugin. See config/oxlint/plugins/hosted-rules.mjs.
         'hosted/exhaustive-deps': 'error',
-        // The React Compiler rules run as rc/* below, on the Rust compiler
-        // (config/oxlint/reactCompilerRust.mjs). `panicThreshold: "all_errors"` is what makes any of
-        // them report at all: oxc-transform-react narrowed `result.errors` to fatal diagnostics
-        // (oxc-project/oxc#26128), so on the default every one of these rules reports nothing.
-        // Tracked upstream as oxc-project/oxc#26318.
         'rc/refs': 'error',
         'rc/set-state-in-effect': 'error',
         'rc/set-state-in-render': 'error',
@@ -1046,7 +1050,7 @@ export default defineConfig({
         {
             files: ['**/*.{ts,tsx}'],
             rules: {
-                'no-restricted-imports': ['error', {paths: restrictedImportPaths, patterns: typescriptRestrictedImportPatterns}],
+                'no-restricted-imports': ['error', {paths: restrictedImportPaths, patterns: [...typescriptRestrictedImportPatterns, ...restrictedHeaderImportPatterns]}],
                 // Overrides are last-wins, so this block's position is load-bearing twice: this rule
                 // has to stay above the 83-file block near the end of `overrides` that switches it
                 // off, and `no-restricted-imports` above has to stay above the two blocks that re-set
@@ -1295,7 +1299,7 @@ export default defineConfig({
                 'src/libs/PersonalDetailsStore.ts',
                 'src/libs/PersonalDetailsUtils.ts',
                 'src/components/OnyxListItemProvider.tsx',
-                'src/libs/ExportOnyxState/common.ts',
+                'src/libs/ExportOnyxState/masking.ts',
                 'tests/**/*.{ts,tsx}',
                 'jest/**/*.{ts,tsx}',
                 '__mocks__/**/*.{ts,tsx}',

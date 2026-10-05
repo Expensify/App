@@ -1,15 +1,15 @@
 import type {ChartDataPoint, PieSlice} from '@components/Charts/types';
 import {
     calculateMinDomainPadding,
-    createHorizontalBarPath,
     edgeLabelsFit,
     edgeMaxLabelWidth,
     effectiveHeight,
     effectiveWidth,
     findSliceAtPosition,
     getAdditionalOffset,
-    getBarColor,
+    getHorizontalChartHeight,
     getNiceYAxisTicks,
+    getVerticalBarLabelLayoutInputs,
     getVerticalBarPlotBounds,
     isAngleInSlice,
     isCursorInSkewedLabel,
@@ -23,21 +23,6 @@ import {
     truncateLabel,
 } from '@components/Charts/utils';
 import VictoryTheme, {CHART_Y_SCALE_HEIGHT, DIAGONAL_ANGLE_RADIAN_THRESHOLD, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
-
-type MockRect = {x: number; y: number; width: number; height: number};
-type MockRRect = {rect: MockRect; rx: number; ry: number};
-
-// The global Skia mock has no `Skia` object; record the rounded rects added to paths so bar geometry can be asserted.
-const mockAddedRRects: MockRRect[] = [];
-jest.mock('@shopify/react-native-skia', () => ({
-    FontStyle: {},
-    FontWeight: {},
-    Skia: {
-        Path: {Make: () => ({addRRect: (roundedRect: MockRRect) => mockAddedRRects.push(roundedRect)})},
-        XYWHRect: (x: number, y: number, width: number, height: number): MockRect => ({x, y, width, height}),
-        RRectXY: (rect: MockRect, rx: number, ry: number): MockRRect => ({rect, rx, ry}),
-    },
-}));
 
 const LINE_HEIGHT = 16;
 
@@ -730,95 +715,106 @@ describe('getNiceYAxisTicks', () => {
     });
 });
 
+describe('getHorizontalChartHeight', () => {
+    const MIN_ROW_HEIGHT = 36;
+    const PADDING = 40;
+    const MIN_HEIGHT = 220;
+
+    it('keeps the shared minimum height when few rows do not need the extra space', () => {
+        // Given 3 rows, 3 * 36 + 40 = 148 is below the 220 minimum
+        // When computing the height
+        // Then it stays at the minimum so small charts are not shrunk
+        expect(getHorizontalChartHeight(3, MIN_ROW_HEIGHT, PADDING, MIN_HEIGHT)).toBe(MIN_HEIGHT);
+    });
+
+    it('grows past the minimum once the rows need more than the minimum height', () => {
+        // Given 10 rows, 10 * 36 + 40 = 400 exceeds the 220 minimum
+        // When computing the height
+        // Then it grows so every row keeps its full MIN_ROW_HEIGHT and no label is thinned out
+        expect(getHorizontalChartHeight(10, MIN_ROW_HEIGHT, PADDING, MIN_HEIGHT)).toBe(400);
+    });
+
+    it('reserves at least one row of space per row as the count increases', () => {
+        // Given the row count grows by one
+        // When comparing consecutive grown heights
+        // Then each extra row adds exactly MIN_ROW_HEIGHT of space
+        const ten = getHorizontalChartHeight(10, MIN_ROW_HEIGHT, PADDING, MIN_HEIGHT);
+        const eleven = getHorizontalChartHeight(11, MIN_ROW_HEIGHT, PADDING, MIN_HEIGHT);
+        expect(eleven - ten).toBe(MIN_ROW_HEIGHT);
+    });
+
+    it('returns the minimum height when there are no rows', () => {
+        // Given an empty dataset
+        // When computing the height
+        // Then it falls back to the minimum rather than collapsing to just the padding
+        expect(getHorizontalChartHeight(0, MIN_ROW_HEIGHT, PADDING, MIN_HEIGHT)).toBe(MIN_HEIGHT);
+    });
+});
+
 describe('getVerticalBarPlotBounds', () => {
-    it('matches the plot bounds victory-native lays out for the vertical bar chart', () => {
-        // Given a 360px wide container whose y-axis label gutter (left padding) is 34px
-        const chartWidth = 360;
-        const paddingLeft = 34;
+    // labelGap = 12, padding.right = 5 (from VictoryTheme.axis)
+    const LABEL_GAP = VictoryTheme.axis.labelGap;
+    const PADDING_RIGHT = VictoryTheme.axis.padding.right;
 
-        // When the plot bounds are derived without mounting the chart
-        const bounds = getVerticalBarPlotBounds(chartWidth, paddingLeft);
-
-        // Then they match victory-native's [padding.left + yLabelOffset, width - padding.right] range,
-        // so the label layout decided from them is the same one the mounted chart would produce
-        expect(bounds.left).toBe(paddingLeft + VictoryTheme.axis.labelGap);
-        expect(bounds.right).toBe(chartWidth - VictoryTheme.axis.padding.right);
-        expect(bounds.width).toBe(bounds.right - bounds.left);
+    it('reserves the left gutter for labels and the right base padding', () => {
+        // Given a 300px container with a 30px left gutter
+        // When computing the plot bounds
+        // Then the plot starts past the gutter+labelGap and ends before the right padding
+        expect(getVerticalBarPlotBounds(300, 30)).toEqual({left: 30 + LABEL_GAP, right: 300 - PADDING_RIGHT, width: 300 - PADDING_RIGHT - (30 + LABEL_GAP)});
     });
 
     it('grows the plot width one-for-one with the container width', () => {
-        // Given the same label gutter in a narrow and a wider container
-        const paddingLeft = 34;
-
-        // When the plot bounds are derived for both widths
-        const narrow = getVerticalBarPlotBounds(300, paddingLeft);
-        const wide = getVerticalBarPlotBounds(400, paddingLeft);
-
-        // Then the extra width goes entirely to the plot, which is what lets a horizontal chart switch back to vertical as its container grows
-        expect(wide.width - narrow.width).toBe(100);
-        expect(wide.left).toBe(narrow.left);
+        // Given the same left gutter but a wider container
+        // When comparing plot widths
+        // Then every extra container pixel becomes plot width (lets a horizontal chart switch back to vertical as it grows)
+        const narrow = getVerticalBarPlotBounds(300, 30).width;
+        const wide = getVerticalBarPlotBounds(360, 30).width;
+        expect(wide - narrow).toBe(60);
     });
 
-    it('returns an empty plot before the container has been measured', () => {
-        // Given a container that hasn't been laid out yet
-        const chartWidth = 0;
-
-        // When the plot bounds are derived
-        const bounds = getVerticalBarPlotBounds(chartWidth, 34);
-
-        // Then the plot is empty instead of negative, so the label layout falls back to its defaults
+    it('clamps to a zero-width plot when the container is too small for the gutters', () => {
+        // Given a container narrower than the left gutter itself
+        // When computing the plot bounds
+        // Then the right edge clamps to the left edge instead of going negative
+        const bounds = getVerticalBarPlotBounds(10, 30);
+        expect(bounds.left).toBe(30 + LABEL_GAP);
+        expect(bounds.right).toBe(30 + LABEL_GAP);
         expect(bounds.width).toBe(0);
     });
 });
 
-describe('getBarColor', () => {
-    it('uses the given color for every bar when the chart has one', () => {
-        // Given a bar chart drawn in one color, like the Insights dashboard's Top Spenders chart
-        const color = VictoryTheme.colors.default;
-
-        // When colors are resolved for different bars
-        const colors = [0, 1, 5].map((index) => getBarColor(color, index));
-
-        // Then every bar gets that color
-        expect(colors).toEqual([color, color, color]);
+describe('getVerticalBarLabelLayoutInputs', () => {
+    it('derives the label layout geometry from the plot bounds', () => {
+        // Given a 400px container with 2 points and the resolved plot bounds
+        // When computing the label layout inputs
+        // Then tick spacing, label area, and edge spaces follow from the bounds and the domain padding
+        // (domainPadding = calculateMinDomainPadding(400, 2, 0) = 200, paddingScale = 200 / (200 + 2*200) = 1/3)
+        const inputs = getVerticalBarLabelLayoutInputs({containerWidth: 400, plotLeft: 40, plotRight: 380, plotWidth: 200, dataLength: 2, innerPadding: 0});
+        expect(inputs.tickSpacing).toBe(100);
+        expect(inputs.labelAreaWidth).toBe(200);
+        expect(inputs.firstTickLeftSpace).toBeCloseTo(40 + 200 / 3, 5);
+        expect(inputs.lastTickRightSpace).toBeCloseTo(20 + 200 / 3, 5);
     });
 
-    it('uses the palette color at the bar index when no color is given', () => {
-        // Given a bar chart without a color of its own
-        const color = undefined;
-
-        // When colors are resolved for different bars
-        const colors = [0, 1, 5].map((index) => getBarColor(color, index));
-
-        // Then each bar gets its own palette color, keyed by data index so vertical and horizontal layouts color bars the same way
-        expect(colors).toEqual([VictoryTheme.colors.getColor(0), VictoryTheme.colors.getColor(1), VictoryTheme.colors.getColor(5)]);
-    });
-});
-
-describe('createHorizontalBarPath', () => {
-    beforeEach(() => {
-        mockAddedRRects.length = 0;
+    it('returns zeros before the container is measured', () => {
+        // Given a container width of 0 (chart not yet laid out)
+        // When computing the label layout inputs
+        // Then every geometry input is 0 so the layout hook takes its empty-layout early return
+        expect(getVerticalBarLabelLayoutInputs({containerWidth: 0, plotLeft: 0, plotRight: 0, plotWidth: 0, dataLength: 2, innerPadding: 0})).toEqual({
+            tickSpacing: 0,
+            labelAreaWidth: 0,
+            firstTickLeftSpace: 0,
+            lastTickRightSpace: 0,
+        });
     });
 
-    it('extends a positive bar rightwards from zero, centered on its row', () => {
-        // Given a positive value whose end sits at x=150, with zero at x=50, on a 20px thick row centered at y=100
-        const barEndX = 150;
-
-        // When the bar path is built
-        createHorizontalBarPath(barEndX, 100, 50, 20, 8);
-
-        // Then it spans from zero to the value and is centered on the row
-        expect(mockAddedRRects).toEqual([{rect: {x: 50, y: 90, width: 100, height: 20}, rx: 8, ry: 8}]);
-    });
-
-    it('extends a negative bar leftwards from zero with a positive width', () => {
-        // Given a negative value whose end sits at x=20, left of zero at x=50
-        const barEndX = 20;
-
-        // When the bar path is built
-        createHorizontalBarPath(barEndX, 100, 50, 20, 8);
-
-        // Then the rect starts at the value and still has a positive width, because Skia draws nothing for negative widths
-        expect(mockAddedRRects).toEqual([{rect: {x: 20, y: 90, width: 30, height: 20}, rx: 8, ry: 8}]);
+    it('drops the domain padding for a single data point', () => {
+        // Given a single-point chart where there are no adjacent bars to pad against
+        // When computing the label layout inputs
+        // Then domain padding is 0, so the edge spaces equal the raw distances to the container edges
+        const inputs = getVerticalBarLabelLayoutInputs({containerWidth: 300, plotLeft: 50, plotRight: 280, plotWidth: 230, dataLength: 1, innerPadding: 0.3});
+        expect(inputs.tickSpacing).toBe(230);
+        expect(inputs.firstTickLeftSpace).toBe(50);
+        expect(inputs.lastTickRightSpace).toBe(20);
     });
 });

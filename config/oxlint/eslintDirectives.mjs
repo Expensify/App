@@ -36,14 +36,15 @@ function parseDirectives(comments) {
         }
         for (const ruleId of parsed.ruleIds) {
             if (parsed.kind === 'eslint-disable-next-line' || parsed.kind === 'eslint-disable-line') {
-                // ESLint rejects a multi-line -next-line/-line directive and does not apply it.
-                if (start !== end) {
+                // ESLint rejects only a multi-line `-line` directive; a multi-line `-next-line` is
+                // applied to the line after the comment closes, which is why the target is `end`.
+                if (parsed.kind === 'eslint-disable-line' && start !== end) {
                     continue;
                 }
                 if (!lines.has(ruleId)) {
                     lines.set(ruleId, new Set());
                 }
-                lines.get(ruleId).add(parsed.kind === 'eslint-disable-line' ? start : start + 1);
+                lines.get(ruleId).add(parsed.kind === 'eslint-disable-line' ? start : end + 1);
             } else {
                 blocks.push({line: start, ruleId, disable: parsed.kind === 'eslint-disable'});
             }

@@ -16,14 +16,12 @@ const RULE_BY_CATEGORY = {
     UnsupportedSyntax: 'unsupported-syntax',
 };
 
-// Upstream makes a Config diagnostic fatal regardless of `panicThreshold` because it means the
-// options handed to the compiler are wrong. Not ignorable: a broken ENVIRONMENT would otherwise
-// become twelve rules that silently report nothing on every file.
+// A `Config` diagnostic means the options handed to the compiler are wrong, so it is never
+// ignorable: a broken ENVIRONMENT would otherwise become twelve rules that silently report nothing.
 const CONFIG_CATEGORY = 'Config';
 
 // ESLint does not enable the rule behind each of these, so surfacing them would be oxlint-only
-// noise. They are not inert: under `panicThreshold: 'all_errors'` any one of them aborts the
-// compile, and the abort is what carries the non-fatal categories out of the compiler at all.
+// noise.
 const IGNORED_CATEGORIES = new Set([
     'CapitalizedCalls',
     'EffectDependencies',
@@ -155,13 +153,9 @@ function analyze(filename, sourceText) {
             reactCompiler: {
                 target: '19',
                 outputMode: 'lint',
-                // `all_errors`, not the `none` default: oxc-transform-react 0.148.0 narrowed
-                // `result.errors` to *fatal* React Compiler diagnostics (oxc-project/oxc#26128,
-                // tracked as #26318) and `should_panic` answers false for `PanicThreshold::None`, so
-                // on the default nothing is fatal and the list is always empty. The cost: a fatal
-                // result aborts on the first function that fails to compile, so findings in a file
-                // surface iteratively rather than all at once.
-                panicThreshold: 'all_errors',
+                // Without it the binding returns only fatal diagnostics, so a non-blocking problem
+                // reports nothing and the rule looks clean.
+                reportDiagnostics: true,
                 flowSuppressions: false,
                 // Without it the compiler skips every function under an
                 // `eslint-disable-next-line react-hooks/exhaustive-deps` comment, and the repo has

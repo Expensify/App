@@ -1,13 +1,22 @@
+import useBarChartOrientation from '@hooks/useBarChartOrientation';
+
 import React from 'react';
 
-import type {BarChartProps} from './BarChartContent';
+import type {BarChartProps} from './types';
 
 import BarChartContent from './BarChartContent';
 
 function BarChart(props: BarChartProps) {
-    return <BarChartContent {...props} />;
-}
+    // Horizontal bars on wide layouts, vertical on narrow (mobile/RHP) unless labels don't fit.
+    const {isHorizontal, canFallBackToHorizontalBars} = useBarChartOrientation();
 
-BarChart.displayName = 'BarChart';
+    return (
+        <BarChartContent
+            {...props}
+            isHorizontal={isHorizontal}
+            canFallBackToHorizontalBars={canFallBackToHorizontalBars}
+        />
+    );
+}
 
 export default BarChart;
