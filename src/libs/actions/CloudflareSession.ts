@@ -21,12 +21,16 @@ const ACCESS_TOKEN_EXPIRY_BUFFER_MS = 60_000;
 /** `undefined` = Onyx not read yet, `null` = read and absent. NetworkStore's hydration convention */
 let sessionCache: CloudflareSession | null | undefined;
 
-/**
- * Bumped by sign-out and by `clearCloudflareSession`. The async flows below cannot be cancelled, so each
- * captures this at the start and re-checks it after awaits. A mismatch makes the late result inert. Every
- * new `await` added to this module must re-check the captured generation afterwards.
- */
+/** Every async continuation here, after an `await` or in a `.then` or `.catch`, must re-check the captured generation before acting on its result */
 let sessionGeneration = 0;
+
+let codeExchangeErrorMessage: string | undefined;
+
+function resetInMemorySession() {
+    sessionGeneration++;
+    sessionCache = null;
+    codeExchangeErrorMessage = undefined;
+}
 
 // Definite assignment: the Promise executor runs synchronously, so this is set before anything reads it
 let resolveHydration!: () => void;
@@ -44,10 +48,7 @@ if (isQAAuthConfigured()) {
         },
     });
     // Onyx.clear wipes the key but its callback is async, so drop the cache synchronously
-    registerSessionCleanupCallback(() => {
-        sessionGeneration++;
-        sessionCache = null;
-    });
+    registerSessionCleanupCallback(resetInMemorySession);
 } else {
     // Nothing will ever hydrate the cache, so a waiter must not block forever
     sessionCache = null;
@@ -66,10 +67,6 @@ function isSessionNearExpiry(session: CloudflareSession): boolean {
     return session.expiresAt - Date.now() < ACCESS_TOKEN_EXPIRY_BUFFER_MS;
 }
 
-/**
- * Cache first: requests during this boot must see the token before disk I/O settles. A failed persist is
- * not fatal, because the cache holds the only usable credential and a reload self-heals.
- */
 function cacheAndPersistSession(session: CloudflareSession, source: 'exchanged' | 'rotated'): Promise<void> {
     sessionCache = session;
     return Onyx.set(ONYXKEYS.CLOUDFLARE_SESSION, session).catch((error: unknown) => {
@@ -81,7 +78,7 @@ let isRedirectInFlight = false;
 
 /**
  * Navigates this tab to Cloudflare to start the authorize round trip. Never settles once navigation is
- * requested. The page is leaving. Rejects only if the flow record couldn't be stored.
+ * requested. The page is leaving. Rejects only if the round trip could not start.
  */
 async function redirectToCloudflareSignIn(returnURL: string = window.location.href): Promise<never> {
     if (isRedirectInFlight) {
@@ -110,12 +107,8 @@ async function redirectToCloudflareSignIn(returnURL: string = window.location.hr
 
 let codeExchangePromise: Promise<void> | null = null;
 
-/** Outlives the settled exchange, so this page load still knows its callback failed once the promise above clears */
-let codeExchangeErrorMessage: string | undefined;
-
 function exchangeCodeForCloudflareSession({code, codeVerifier}: AuthorizationCodeExchange): Promise<void> {
     const generation = sessionGeneration;
-    // Single-flight: a caller joining mid-exchange must not burn the single-use authorization code twice
     codeExchangePromise ??= exchangeCode({code, codeVerifier})
         .then((session) => {
             if (generation !== sessionGeneration) {
@@ -124,7 +117,9 @@ function exchangeCodeForCloudflareSession({code, codeVerifier}: AuthorizationCod
             return cacheAndPersistSession(session, 'exchanged');
         })
         .catch((error: unknown) => {
-            codeExchangeErrorMessage = error instanceof Error ? error.message : String(error);
+            if (generation === sessionGeneration) {
+                codeExchangeErrorMessage = error instanceof Error ? error.message : String(error);
+            }
             throw error;
         })
         .finally(() => {
@@ -138,7 +133,6 @@ function getPendingCloudflareCodeExchange(): Promise<void> | null {
     return codeExchangePromise;
 }
 
-/** Set once this page load's exchange rejected, until Clear session. Its code is spent, so only a fresh round trip can recover */
 function getCloudflareCodeExchangeError(): string | undefined {
     return codeExchangeErrorMessage;
 }
@@ -158,14 +152,12 @@ function withCrossTabRefreshLock(callback: () => Promise<CloudflareRefreshResult
     return navigator.locks.request('cloudflareSessionRefresh', callback);
 }
 
-/** Runs with the cross-tab lock held. The session is re-read here rather than captured by the caller */
 async function refreshCloudflareSessionUnderLock(staleAccessToken: string): Promise<CloudflareRefreshResult> {
     const generation = sessionGeneration;
     const current = sessionCache;
     if (!current?.refreshToken) {
         return 'reauth-required';
     }
-    // Rotation already completed, here or in another tab, while this caller's request was in flight
     if (current.accessToken !== staleAccessToken) {
         return 'skipped-newer-token';
     }
@@ -195,10 +187,7 @@ async function refreshCloudflareSessionUnderLock(staleAccessToken: string): Prom
     }
 }
 
-/** Pass the access token the caller decided to refresh from: if it is no longer the current one, a rotation beat this call */
 function refreshCloudflareSession(staleAccessToken: string): Promise<CloudflareRefreshResult> {
-    // A joiner resumes only once the rotated pair is cached, and persisted unless the write failed.
-    // Preconditions are re-checked inside the lock
     if (refreshPromise) {
         return refreshPromise;
     }
@@ -209,14 +198,8 @@ function refreshCloudflareSession(staleAccessToken: string): Promise<CloudflareR
     return refreshPromise;
 }
 
-/** Deletes the session for every tab */
 function clearCloudflareSession(): Promise<void> {
-    // In-flight work must not undo the clear by persisting its late result, exactly like on sign-out
-    sessionGeneration++;
-    // Synchronous, so a probe pressed right after Clear cannot read the dead session
-    sessionCache = null;
-    // Otherwise a remount after Clear would show the old failure again, and the probe would still refuse to redirect
-    codeExchangeErrorMessage = undefined;
+    resetInMemorySession();
     return Onyx.set(ONYXKEYS.CLOUDFLARE_SESSION, null);
 }
 

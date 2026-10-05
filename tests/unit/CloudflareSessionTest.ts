@@ -1,6 +1,3 @@
-/**
- * Modules are re-required per test because the module-level caches are exactly what's under test.
- */
 import type * as ConfigModule from '@libs/CloudflareAccess/Config';
 import type * as PKCEModule from '@libs/CloudflareAccess/generatePKCE';
 import type WebCryptoProvider from '@libs/CloudflareAccess/getWebCrypto/types';
@@ -22,10 +19,8 @@ type PKCEPair = PKCEModule.PKCEPair;
 
 const AUTHORIZE_URL = 'https://team.cloudflareaccess.com/cdn-cgi/access/oauth/authorization?mock=1';
 
-// OAuthClient imports CONFIG, whose native dependency is unavailable in the Jest environment.
 jest.mock('@src/CONFIG', () => ({__esModule: true, default: {QA_AUTH: {CLIENT_ID: 'client-123'}}}));
 
-// The module gates its subscription on a complete config. Everything under test is behind it
 jest.mock('@libs/CloudflareAccess/Config', () => ({
     __esModule: true,
     ...jest.requireActual<typeof ConfigModule>('@libs/CloudflareAccess/Config'),
@@ -41,9 +36,7 @@ jest.mock('@libs/CloudflareAccess/OAuthClient', () => ({
     refreshTokens: jest.fn(),
 }));
 
-// CloudflareSession imports Log, whose native dependency is unavailable in the Jest environment. The session
-// behavior under test is platform-independent, so keep that native dependency out of this test.
-// Log also ships its lines to the server, so a real warn enqueues an API request that flushes into a later test
+// Log ships its lines to the server, so a real warn enqueues an API request that flushes into a later test
 jest.mock('@libs/Log', () => ({
     __esModule: true,
     default: {alert: jest.fn(), warn: jest.fn(), info: jest.fn(), hmmm: jest.fn()},
@@ -75,7 +68,6 @@ beforeEach(() => {
     // Nothing here makes an HTTP request, but resetModules gives every test its own copy of the network
     // queues, and one of those flushes during an await in this suite, reaching jsdom's missing `Request`.
     global.fetch = jest.fn(() => Promise.reject(new Error('fetch is not available in CloudflareSessionTest')));
-    // The redirect flow record lives in jsdom's real sessionStorage
     window.sessionStorage.clear();
     // jsdom throws "Not implemented: navigation" on a real location.assign
     realLocation = window.location;
@@ -463,19 +455,24 @@ describe('exchangeCodeForCloudflareSession', () => {
         setSpy.mockRestore();
     });
 
-    it('discards an exchange that resolves after Clear session, so clearing cannot be undone', async () => {
+    it.each<{outcome: string; settle: (exchange: PromiseWithResolvers<CloudflareSession>) => void}>([
+        {outcome: 'resolves', settle: (exchange) => exchange.resolve(SESSION_A)},
+        {outcome: 'rejects', settle: (exchange) => exchange.reject(new oAuthClient.OAuthError('invalid_grant'))},
+    ])('keeps nothing from an exchange that $outcome after Clear session, so clearing cannot be undone', async ({settle}) => {
         // Given a code exchange that is still in flight when the user presses Clear session
         const exchangeDeferred = Promise.withResolvers<CloudflareSession>();
         jest.mocked(oAuthClient.exchangeCode).mockReturnValue(exchangeDeferred.promise);
         const completion = SessionActions.exchangeCodeForCloudflareSession({code: 'auth-code-1', codeVerifier: PAIR_1.codeVerifier});
 
-        // When the session is cleared before the exchange settles
+        // When the session is cleared and the exchange settles afterwards
         await SessionActions.clearCloudflareSession();
-        exchangeDeferred.resolve(SESSION_A);
-        await completion;
+        settle(exchangeDeferred);
+        await Promise.allSettled([completion]);
 
-        // Then the late result must stay discarded, because persisting it would silently undo the clear
+        // Then neither outcome survives the clear. A late session would silently undo it, and a late failure
+        // would make the next probe report that failure instead of redirecting
         expect(SessionActions.getCloudflareSession()).toBeNull();
+        expect(SessionActions.getCloudflareCodeExchangeError()).toBeUndefined();
     });
 
     it('exposes no pending completion before an exchange starts', () => {
@@ -501,16 +498,23 @@ describe('exchangeCodeForCloudflareSession', () => {
         expect(SessionActions.getCloudflareCodeExchangeError()).toBe(exchangeError.message);
     });
 
-    it('forgets a recorded exchange failure on Clear session', async () => {
+    it.each<{trigger: string; reset: () => Promise<void>}>([
+        {trigger: 'Clear session', reset: () => SessionActions.clearCloudflareSession()},
+        {
+            trigger: 'an Expensify sign-out',
+            reset: async () => {
+                sessionCleanup.runSessionCleanupCallbacks();
+            },
+        },
+    ])('forgets a recorded exchange failure on $trigger', async ({reset}) => {
         // Given an exchange the server rejected, so this page load has a recorded failure
         jest.mocked(oAuthClient.exchangeCode).mockRejectedValue(new oAuthClient.OAuthError('invalid_grant'));
         await expect(SessionActions.exchangeCodeForCloudflareSession({code: 'bad-code', codeVerifier: PAIR_1.codeVerifier})).rejects.toThrow();
 
-        // When the user presses Clear session
-        await SessionActions.clearCloudflareSession();
+        // When the session is reset
+        await reset();
 
-        // Then the failure is gone with the session. The rows seed from it on remount and the probe refuses to
-        // redirect while it is set, so a stale one would outlive the reset the user asked for
+        // Then the failure is gone with the session. While a failure is recorded, the probe reports it instead of redirecting
         expect(SessionActions.getCloudflareCodeExchangeError()).toBeUndefined();
     });
 });
