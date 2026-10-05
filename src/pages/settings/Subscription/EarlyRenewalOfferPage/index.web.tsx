@@ -24,12 +24,10 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
-import type {ValueOf} from 'type-fest';
-
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
-type IncentivizedOfferID = ValueOf<Pick<typeof CONST.SUBSCRIPTION.EARLY_RENEWAL.OFFER_ID, 'INCENTIVIZED_ONE_YEAR' | 'INCENTIVIZED_TWO_YEARS'>>;
+type IncentivizedOfferID = typeof CONST.SUBSCRIPTION.EARLY_RENEWAL.OFFER_ID.INCENTIVIZED_ONE_YEAR | typeof CONST.SUBSCRIPTION.EARLY_RENEWAL.OFFER_ID.INCENTIVIZED_TWO_YEARS;
 
 type Offer = {
     offerID: IncentivizedOfferID;
