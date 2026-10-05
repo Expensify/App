@@ -42,6 +42,7 @@ import {
     isHarvestCreatedExpenseReport,
     isInvoiceReport,
     isIOUReport,
+    isResolvedSupportTicket,
     isTaskReport,
     isSupportTicket,
     shouldShowMarkAsDone,
@@ -215,6 +216,8 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
           )
         : undefined;
 
+    const shouldHideSupportTicketSurvey = isSupportTicket(report) && (!isResolvedSupportTicket(report) || !!reportNameValuePairs?.reopenedAsReportID);
+
     const renderedVisibleReportActions = (() => {
         if (!draftReportAction) {
             return sortedVisibleReportActions;
@@ -246,7 +249,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         const visibleReportActionsWithDraft = [...sortedVisibleReportActions];
         visibleReportActionsWithDraft.push(draftReportAction);
         return visibleReportActionsWithDraft;
-    })();
+    })().filter((action) => !shouldHideSupportTicketSurvey || action.actionName !== CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY);
 
     const draftMessageHTML = draftReportAction ? getReportActionMessage(draftReportAction)?.html : undefined;
     const draftReportActionID = draftReportAction?.reportActionID;
