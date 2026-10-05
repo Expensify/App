@@ -223,7 +223,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                 accountID === session?.accountID ||
                 pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
                 details.accountID === report.ownerAccountID ||
-                isThreadMemberProtectedByParentReport(parentReport, policy, details.login, accountID);
+                isThreadMemberProtectedByParentReport(parentReport, accountID);
 
             result.push({
                 keyForList: String(accountID),

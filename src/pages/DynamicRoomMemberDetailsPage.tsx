@@ -66,7 +66,7 @@ function DynamicRoomMemberDetailsPage({report, route}: DynamicRoomMemberDetailsP
     const isSelectedMemberProtectedByPolicyRole = isRoomMemberProtectedByPolicyRole(policy, details.login, accountID);
     // Select only the derived boolean so this page doesn't re-render on every unrelated change to the parent report.
     const [isSelectedMemberProtectedByParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {
-        selector: (parentReport) => isThreadMemberProtectedByParentReport(parentReport, policy, details.login, accountID),
+        selector: (parentReport) => isThreadMemberProtectedByParentReport(parentReport, accountID),
     });
     const shouldDisableRemoveUser =
         (isPolicyExpenseChat(report) && isSelectedMemberProtectedByPolicyRole) || isSelectedMemberCurrentUser || isSelectedMemberOwner || !!isSelectedMemberProtectedByParentReport;
