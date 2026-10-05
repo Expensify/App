@@ -13,7 +13,7 @@ import type {InsightsDashboardID, InsightsGraphKey, InsightsSearchKey, Policy} f
 import type {OnyxCollection} from 'react-native-onyx';
 
 type InsightsChartSpec = {
-    /** Slot the chart finds its snapshot hash under in the stored dashboard's `graphs` */
+    /** Slot the request names the chart's snapshot under, and the response's `graphs` confirms it in */
     graphKey: InsightsGraphKey;
     titleKey: TranslationPaths;
     view: ChartView;
