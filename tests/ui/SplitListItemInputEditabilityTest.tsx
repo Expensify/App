@@ -48,7 +48,6 @@ const renderAmountInput = (splitItem: SplitListItemType) =>
             contentWidth={100}
             onSplitExpenseValueChange={jest.fn()}
             focusHandler={jest.fn()}
-            onInputBlur={undefined}
             inputCallbackRef={jest.fn()}
         />,
     );
@@ -62,7 +61,6 @@ const renderPercentageInput = (splitItem: SplitListItemType) =>
             onSplitExpenseValueChange={jest.fn()}
             setPercentageDraft={jest.fn()}
             focusHandler={jest.fn()}
-            onInputBlur={undefined}
         />,
     );
 
