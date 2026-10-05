@@ -14,6 +14,8 @@ import React from 'react';
 import {View} from 'react-native';
 
 import ConfirmationPageContent from './layout/Content';
+import ConfirmationPageDescription from './primitives/ConfirmationPageDescription';
+import ConfirmationPageHeading from './primitives/ConfirmationPageHeading';
 import ConfirmationPageIllustration from './primitives/ConfirmationPageIllustration';
 import ConfirmationPagePrimaryButton from './primitives/ConfirmationPagePrimaryButton';
 import ConfirmationPageSecondaryButton from './primitives/ConfirmationPageSecondaryButton';
@@ -110,9 +112,9 @@ function ConfirmationPage({
                     illustration={illustration}
                     illustrationStyle={illustrationStyle}
                 />
-                <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mv2, headingStyle]}>{heading}</Text>
+                <ConfirmationPageHeading style={headingStyle}>{heading}</ConfirmationPageHeading>
                 {!!descriptionComponent && descriptionComponent}
-                {!!description && <Text style={[styles.textAlignCenter, descriptionStyle, styles.w100]}>{description}</Text>}
+                {!!description && <ConfirmationPageDescription style={descriptionStyle}>{description}</ConfirmationPageDescription>}
                 {cta ? <Text style={[styles.textAlignCenter, ctaStyle]}>{cta}</Text> : null}
                 {!!ctaComponent && ctaComponent}
             </ConfirmationPageContent>
