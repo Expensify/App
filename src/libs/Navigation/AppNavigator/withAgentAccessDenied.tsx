@@ -8,8 +8,10 @@ import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
+import {accountIDSelector} from '@selectors/Session';
+
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 
 function withAgentAccessDenied(getComponent: () => React.ComponentType): () => React.ComponentType {
     let ProtectedComponent: React.ComponentType | undefined;
@@ -17,7 +19,17 @@ function withAgentAccessDenied(getComponent: () => React.ComponentType): () => R
         if (!ProtectedComponent) {
             const Component = getComponent();
             ProtectedComponent = (props) => {
-                const isAgent = useIsAgentAccount();
+                const currentIsAgent = useIsAgentAccount();
+                const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+                const [lastKnownIdentity, setLastKnownIdentity] = useState<{accountID: number | undefined; isAgent: boolean}>();
+                if (currentIsAgent !== undefined && (lastKnownIdentity?.accountID !== accountID || lastKnownIdentity?.isAgent !== currentIsAgent)) {
+                    setLastKnownIdentity({accountID, isAgent: currentIsAgent});
+                }
+
+                // An Onyx reset that keeps the session (e.g. the reconnect after required 2FA setup) briefly makes the
+                // identity unknown again. Keep using the last value resolved for this same account so the guarded screen
+                // isn't unmounted mid-flow, which would remount it with its local state (like an entered code) lost.
+                const isAgent = currentIsAgent ?? (lastKnownIdentity?.accountID === accountID ? lastKnownIdentity?.isAgent : undefined);
                 const isFocused = useIsFocused();
                 const [isSwitchingToDelegator] = useOnyx(ONYXKEYS.IS_SWITCHING_TO_DELEGATOR);
                 const isAlreadyOnRedirectTarget = Navigation.isActiveRoute(ROUTES.SETTINGS_PROFILE.route);

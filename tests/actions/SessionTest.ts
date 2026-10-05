@@ -843,6 +843,7 @@ describe('Session', () => {
             expect(clearSpy.mock.calls.at(0)?.at(0)).toEqual(
                 expect.arrayContaining([
                     ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                    ONYXKEYS.NVP_TRY_NEW_DOT,
                     ONYXKEYS.NVP_ONBOARDING,
                     ONYXKEYS.ONBOARDING_LAST_VISITED_PATH,
                     ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
@@ -857,6 +858,30 @@ describe('Session', () => {
 
             makeRequestSpy.mockRestore();
             setAuthTokenSpy.mockRestore();
+            multiSetSpy.mockRestore();
+            clearSpy.mockRestore();
+            writeWithNoDuplicatesSpy.mockRestore();
+        });
+
+        test('login-required path keeps the Classic redirect preference through the Onyx reset', async () => {
+            // Given a HybridApp user who is forced to set up 2FA right after signing in
+            const makeRequestSpy = jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue({
+                authToken: 'newAuthToken',
+                encryptedAuthToken: 'newEncryptedAuthToken',
+            });
+            const multiSetSpy = jest.spyOn(Onyx, 'multiSet').mockResolvedValue(undefined);
+            const clearSpy = jest.spyOn(Onyx, 'clear').mockResolvedValue(undefined);
+            const writeWithNoDuplicatesSpy = jest.spyOn(API, 'writeWithNoDuplicatesConflictAction').mockResolvedValue(undefined);
+
+            // When the 2FA validation succeeds and stale pre-2FA data is cleared
+            SessionUtil.validateTwoFactorAuth('123456', true);
+            await waitForBatchedUpdates();
+
+            // Then the Classic redirect preference is preserved so Got it on the success screen can return the user to OldDot
+            expect(clearSpy).toHaveBeenCalled();
+            expect(clearSpy.mock.calls.at(0)?.at(0)).toEqual(expect.arrayContaining([ONYXKEYS.NVP_TRY_NEW_DOT, ONYXKEYS.PRIVATE_PERSONAL_DETAILS, ONYXKEYS.SESSION]));
+
+            makeRequestSpy.mockRestore();
             multiSetSpy.mockRestore();
             clearSpy.mockRestore();
             writeWithNoDuplicatesSpy.mockRestore();

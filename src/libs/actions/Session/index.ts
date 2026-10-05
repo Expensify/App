@@ -1482,10 +1482,13 @@ function validateTwoFactorAuth(twoFactorAuthCode: string, shouldClearData: boole
         // DynamicSuccessPage Got it so the 2FA RHP stays open through verify → success.
         // Preserve list matches login-required 2FA reconnect baseline plus onboarding resume keys
         // (including work-email form state for account-merge validation after dismiss).
+        // NVP_TRY_NEW_DOT is preserved in both branches so the HybridApp success screen can still send users who
+        // chose Classic back to OldDot on Got it, before the next OpenApp repopulates it.
         if (options.shouldKeepTwoFactorAuthFlowOpen) {
             const keysToPreserveForForcedOnboarding2FA = [
                 ...KEYS_TO_PRESERVE,
                 ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                ONYXKEYS.NVP_TRY_NEW_DOT,
                 ONYXKEYS.NVP_ONBOARDING,
                 ONYXKEYS.ONBOARDING_LAST_VISITED_PATH,
                 ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
@@ -1512,7 +1515,7 @@ function validateTwoFactorAuth(twoFactorAuthCode: string, shouldClearData: boole
 
         // Clear onyx data if the user has just signed in and is forced to add 2FA
         if (shouldClearData) {
-            const keysToPreserveWithPrivatePersonalDetails = [...KEYS_TO_PRESERVE, ONYXKEYS.PRIVATE_PERSONAL_DETAILS];
+            const keysToPreserveWithPrivatePersonalDetails = [...KEYS_TO_PRESERVE, ONYXKEYS.PRIVATE_PERSONAL_DETAILS, ONYXKEYS.NVP_TRY_NEW_DOT];
             clearOnyxAndSeedFullReconnect(keysToPreserveWithPrivatePersonalDetails).then(() => updateAuthTokenAndOpenApp(response.authToken, response.encryptedAuthToken));
             return;
         }

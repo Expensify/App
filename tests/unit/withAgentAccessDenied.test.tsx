@@ -245,4 +245,56 @@ describe('withAgentAccessDenied', () => {
         expect(screen.getByTestId('protected-content')).toBeDefined();
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
+
+    it('keeps rendering the wrapped component when an Onyx reset for the same account wipes the loaded identity', async () => {
+        // Given a non-agent user on a guarded 2FA screen whose identity is already known
+        await TestHelper.signInWithTestUser(1, 'user@expensify.com');
+        await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
+        await waitForBatchedUpdatesWithAct();
+
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('protected-content')).toBeDefined();
+
+        // When the post-2FA reset keeps the session but clears HAS_LOADED_APP and personal details while OpenApp loads
+        await act(async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.IS_LOADING_APP]: true,
+                [ONYXKEYS.HAS_LOADED_APP]: null,
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: null,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the guarded screen stays mounted, so the user does not lose their place in the flow
+        expect(screen.getByTestId('protected-content')).toBeDefined();
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('does not reuse a previous account identity after the session switches accounts', async () => {
+        // Given a non-agent user whose identity is already known on a guarded screen
+        await TestHelper.signInWithTestUser(1, 'user@expensify.com');
+        await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
+        await waitForBatchedUpdatesWithAct();
+
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('protected-content')).toBeDefined();
+
+        // When the session switches to another account whose identity is still loading
+        await act(async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {accountID: 2, email: 'other@expensify.com'},
+                [ONYXKEYS.IS_LOADING_APP]: true,
+                [ONYXKEYS.HAS_LOADED_APP]: null,
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: null,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the guard waits for the new account's identity instead of trusting the previous account's value
+        expect(screen.queryByTestId('protected-content')).toBeNull();
+    });
 });
