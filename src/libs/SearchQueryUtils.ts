@@ -2878,7 +2878,7 @@ function serializeQueryJSONForBackend<T extends {filters?: ASTNode | null; rawFi
               return filter;
           })
         : queryData.rawFilterList;
-    return JSON.stringify({...queryData, filters: normalizedFilters, rawFilterList: normalizedRawFilterList, status: ''});
+    return JSON.stringify({...queryData, filters: normalizedFilters, rawFilterList: normalizedRawFilterList});
 }
 
 function addNegation<T extends string>(filterKey: T, isNegated: boolean): T | `${T}${typeof CONST.SEARCH.NOT_MODIFIER}` {
