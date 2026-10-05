@@ -2,6 +2,7 @@ import type {ComposerProps, ComposerRef} from '@components/Composer/types';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 
+import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
 import useBlurOnKeyboardHide from '@hooks/useBlurOnKeyboardHide';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
@@ -53,7 +54,8 @@ function Composer({
     ...props
 }: ComposerProps) {
     const textInputRef = useRef<MarkdownTextInput | null>(null);
-    const textContainsOnlyEmojis = useMemo(() => containsOnlyEmojis(Parser.htmlToText(Parser.replace(value ?? ''))), [value]);
+    const accountIDToName = useAccountIDToNameMap();
+    const textContainsOnlyEmojis = useMemo(() => containsOnlyEmojis(Parser.htmlToText(Parser.replace(value ?? ''), {accountIDToName})), [value, accountIDToName]);
     const theme = useTheme();
     const markdownStyle = useMarkdownStyle(textContainsOnlyEmojis, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
     const styles = useThemeStyles();
