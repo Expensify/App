@@ -23,6 +23,7 @@ import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnbo
 import Navigation from '@libs/Navigation/Navigation';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 
+import {setDisableDismissOnEscape} from '@userActions/Modal';
 import {clearGetAccessiblePoliciesErrors, getAccessiblePolicies} from '@userActions/Policy/Policy';
 import {completeOnboarding} from '@userActions/Report';
 import {resendValidateCode} from '@userActions/User';
@@ -223,6 +224,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         if (!isConciergeTaskFlow) {
             return;
         }
+        setDisableDismissOnEscape(false);
         const validateEmailTaskReportID =
             validateEmailTaskReport?.reportID ??
             createdValidateEmailTaskReportID.current ??

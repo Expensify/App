@@ -27,6 +27,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getValidateEmailTaskDescription} from '@libs/ReportUtils';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 
+import {setDisableDismissOnEscape} from '@userActions/Modal';
 import {getAccessiblePolicies} from '@userActions/Policy/Policy';
 import {MergeIntoAccountAndLogin} from '@userActions/Session';
 import {completeTask, completeTaskAfterSuccessfulSideEffect, editTask} from '@userActions/Task';
@@ -200,6 +201,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
         if (!isConciergeTaskFlow) {
             return;
         }
+        setDisableDismissOnEscape(false);
         if (onboardingValues?.isMergingAccountBlocked) {
             clearOnboardingMergeAccountBlocked();
             returnToOriginReport();

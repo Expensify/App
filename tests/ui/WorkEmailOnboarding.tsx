@@ -1026,6 +1026,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
             await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE});
             await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false});
             await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {onboardingWorkEmail: workEmail});
+            await Onyx.merge(ONYXKEYS.MODAL, {disableDismissOnEscape: true});
         });
 
         const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {isJoinWorkspaceTask: 'true'});
@@ -1034,6 +1035,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
         fireEvent.press(screen.getByText(TestHelper.translateLocal('common.skip')));
 
         expect(createJoinWorkspaceOnboardingContent).toHaveBeenCalledWith('validateEmail', 'privateemail.com', workEmail, undefined, undefined, true);
+        expect(await getOnyxValue(ONYXKEYS.MODAL)).toEqual(expect.objectContaining({disableDismissOnEscape: false}));
 
         unmount();
         await waitForBatchedUpdatesWithAct();
@@ -1693,6 +1695,29 @@ describe('OnboardingPrivateDomain Page', () => {
         });
         expect(mockCompleteOnboarding).not.toHaveBeenCalled();
 
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should restore Escape dismissal when skipping a Concierge validation task', async () => {
+        const createJoinWorkspaceOnboardingContent = jest.spyOn(WelcomeActions, 'createJoinWorkspaceOnboardingContent').mockReturnValue('validate-task-report');
+        await TestHelper.signInWithTestUser(1, 'newperson@privatecompany.com');
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE});
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false, isFromPublicDomain: false});
+            await Onyx.merge(ONYXKEYS.MODAL, {disableDismissOnEscape: true});
+        });
+
+        const {unmount} = renderOnboardingPrivateDomainPage(SCREENS.ONBOARDING.PRIVATE_DOMAIN, {backTo: '', isJoinWorkspaceTask: 'true'});
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.skip')));
+
+        expect(await getOnyxValue(ONYXKEYS.MODAL)).toEqual(expect.objectContaining({disableDismissOnEscape: false}));
+
+        createJoinWorkspaceOnboardingContent.mockRestore();
         unmount();
         await waitForBatchedUpdatesWithAct();
     });
