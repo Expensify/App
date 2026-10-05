@@ -1,28 +1,31 @@
 diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
 --- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
 +++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
-@@ -145,6 +145,15 @@
-                     context.assets,
-                 )
+@@ -3,6 +3,7 @@
+ import android.annotation.SuppressLint
+ import android.content.Context
+ import android.content.res.ColorStateList
++import android.graphics.Typeface
+ import android.graphics.drawable.StateListDrawable
+ import android.util.TypedValue
+ import android.view.MenuItem
+@@ -95,6 +96,10 @@
  
-+            // The selected tab's label is drawn bold, the way the app marks a selected tab everywhere else.
-+            val activeFontFamily =
-+                ReactFontManager.getInstance().getTypeface(
-+                    tabBarAppearance?.tabBarItemTitleFontFamily ?: "",
-+                    maxOf(fontWeight, 700),
-+                    isFontStyleItalic,
-+                    context.assets,
-+                )
+         bottomNavigationView.labelVisibilityMode = visibilityMode
+ 
++        // The selected tab's label is drawn bold, the way the app marks a selected tab everywhere else. Material re-applies
++        // its text appearance when enabling this, so it has to run before `updateFontStyles` sets the app's typeface.
++        bottomNavigationView.setItemTextAppearanceActiveBoldEnabled(true)
 +
-             /*
-                 Short explanation about computations we're doing below.
-                 R.dimen, has defined value in SP, getDimension converts it to pixels, and by default
-@@ -167,7 +176,7 @@
+         // Ripple color
+         val rippleColor =
+             tabBarAppearance?.tabBarItemRippleColor
+@@ -167,7 +172,7 @@
  
              // Active
              largeLabel.setTextSize(TypedValue.COMPLEX_UNIT_PX, largeFontSize)
 -            largeLabel.typeface = fontFamily
-+            largeLabel.typeface = activeFontFamily
++            largeLabel.setTypeface(fontFamily, Typeface.BOLD)
          }
      }
  

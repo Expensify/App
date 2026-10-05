@@ -1,0 +1,30 @@
+diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
+--- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
++++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
+@@ -152,13 +152,18 @@
+                 tabBarAppearance?.tabBarItemTitleLargeLabelFontSize?.takeIf { it > 0 }?.let { PixelUtil.toPixelFromSP(it) }
+                     ?: context.resources.getDimension(R.dimen.design_bottom_navigation_text_size)
+ 
++            // Material's label text appearance tracks letters 0.5sp apart, wider than the app's labels.
++            val labelTracking = PixelUtil.toPixelFromDIP(LABEL_TRACKING_DP)
++
+             // Inactive
+             smallLabel.setTextSize(TypedValue.COMPLEX_UNIT_PX, smallFontSize)
+             smallLabel.typeface = fontFamily
++            smallLabel.letterSpacing = labelTracking / smallFontSize
+ 
+             // Active
+             largeLabel.setTextSize(TypedValue.COMPLEX_UNIT_PX, largeFontSize)
+             largeLabel.setTypeface(fontFamily, Typeface.BOLD)
++            largeLabel.letterSpacing = labelTracking / largeFontSize
+         }
+     }
+ 
+@@ -228,5 +233,7 @@
+ 
+     companion object {
+         const val TAG = "TabsAppearanceApplicator"
++
++        private const val LABEL_TRACKING_DP = -0.5f
+     }
+ }
