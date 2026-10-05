@@ -4,7 +4,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
-import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
+import {useChatTabBrickRoad} from '@hooks/useSidebarOrderedReports';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -206,7 +206,7 @@ function InboxTabButton({selectedTab, isWideLayout}: InboxTabButtonProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const {chatTabBrickRoad} = useSidebarOrderedReportsState();
+    const chatTabBrickRoad = useChatTabBrickRoad();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Inbox']);
 
     let statusIndicatorColor: string | undefined;

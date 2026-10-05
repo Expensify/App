@@ -53,7 +53,7 @@ jest.mock('@components/Navigation/NavigationTabBar/TabBarItem', () => () => null
 jest.mock('@components/Navigation/NavigationTabBar/getLastRoute', () => () => mockLastRoute);
 jest.mock('@hooks/useLazyAsset', () => ({useMemoizedLazyExpensifyIcons: () => ({Inbox: 'inbox-icon'})}));
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
-jest.mock('@hooks/useSidebarOrderedReports', () => ({useSidebarOrderedReportsState: () => ({chatTabBrickRoad: undefined})}));
+jest.mock('@hooks/useSidebarOrderedReports', () => ({useChatTabBrickRoad: () => undefined}));
 jest.mock('@hooks/useTheme', () => () => ({danger: 'danger', iconSuccessFill: 'success'}));
 jest.mock('@hooks/useThemeStyles', () => () => ({
     flex1: {},

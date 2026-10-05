@@ -6,7 +6,7 @@ import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
+import {useChatTabBrickRoad} from '@hooks/useSidebarOrderedReports';
 import useTheme from '@hooks/useTheme';
 import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
 
@@ -47,7 +47,7 @@ function useNativeTabNavigator() {
     // With the Insights beta, Insights takes the Account tab's place in the bar and Account moves to the top bar.
     const isInsightsTabVisible = isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE);
     const theme = useTheme();
-    const {chatTabBrickRoad} = useSidebarOrderedReportsState();
+    const chatTabBrickRoad = useChatTabBrickRoad();
     const {indicatorColor: workspacesIndicatorColor, status: workspacesIndicatorStatus} = useWorkspacesTabIndicatorStatus();
     const {indicatorColor: accountIndicatorColor, status: accountIndicatorStatus} = useAccountTabIndicatorStatus();
     const navigation = useNavigation();
