@@ -289,7 +289,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         }
 
         const companyDomain = session?.email ? getEmailDomain(session.email) : '';
-        if (isConciergeTaskFlow && companyDomain && !createdEmptyWorkspaceContentDomains.current.has(companyDomain)) {
+        if (isConciergeTaskFlow && companyDomain && !introSelected?.noJoinableWorkspacesMessage && !createdEmptyWorkspaceContentDomains.current.has(companyDomain)) {
             createdEmptyWorkspaceContentDomains.current.add(companyDomain);
             createJoinWorkspaceOnboardingContent('empty', companyDomain, session?.email ?? '', conciergeChat, delegateAccountID);
         }
@@ -313,6 +313,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         accessiblePoliciesRequestID,
         isConciergeTaskFlow,
         isJoiningCompanyWorkspace,
+        introSelected?.noJoinableWorkspacesMessage,
         joinablePoliciesErrors,
         joinablePoliciesLength,
         joinablePoliciesLoading,

@@ -55,6 +55,9 @@ type IntroSelected = {
     /** Task reportID for 'joinWorkspace' type */
     joinWorkspace?: string;
 
+    /** Report action ID for the post-onboarding no-joinable-workspaces message */
+    noJoinableWorkspacesMessage?: string;
+
     /** The previous onboarding choices of the user */
     previousChoices?: OnboardingPurpose[];
 

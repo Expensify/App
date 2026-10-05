@@ -275,6 +275,44 @@ describe('OnboardingWorkspaces Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should not recreate the empty-workspace message after the screen remounts', async () => {
+        const dismissModalWithReport = jest.spyOn(Navigation, 'dismissModalWithReport').mockImplementation(() => {});
+        const requestID = 'empty-workspace-remount-request';
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {
+                choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+                noJoinableWorkspacesMessage: 'existing-message-action',
+            });
+            await Onyx.set(ONYXKEYS.LOGINS, {
+                [`1_${VALIDATED_EMAIL}`]: {
+                    partnerID: CONST.PARTNER_ID.EXPENSIFY,
+                    partnerUserID: VALIDATED_EMAIL,
+                    validatedDate: '2026-09-12 00:00:00',
+                },
+            });
+            await Onyx.set(ONYXKEYS.JOINABLE_POLICIES, {});
+            await Onyx.set(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {loading: true, requestID});
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, '123');
+        });
+
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: '', isJoinWorkspaceTask: 'true'});
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {loading: false, requestID});
+        });
+
+        await waitFor(() => {
+            expect(dismissModalWithReport).toHaveBeenCalledWith({reportID: '123'});
+        });
+        expect(mockCreateJoinWorkspaceOnboardingContent).not.toHaveBeenCalled();
+
+        dismissModalWithReport.mockRestore();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should not treat a failed workspace lookup as an empty result', async () => {
         const dismissModal = jest.spyOn(Navigation, 'dismissModal');
         await TestHelper.signInWithTestUser();
