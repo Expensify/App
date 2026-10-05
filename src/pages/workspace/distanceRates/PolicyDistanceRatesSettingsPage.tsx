@@ -1,6 +1,6 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import CustomUnitDefaultCategorySelector from '@components/CustomUnitDefaultCategorySelector';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
@@ -218,7 +218,9 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                 style={[styles.defaultModalContainer]}
                 testID="PolicyDistanceRatesSettingsPage"
             >
-                <HeaderWithBackButton title={translate('workspace.common.settings')} />
+                <Header>
+                    <Header.Title title={translate('workspace.common.settings')} />
+                </Header>
                 <ContentWrapper shouldBlockWhenOffline={!customUnit}>
                     {!!defaultUnit && (
                         <OfflineWithFeedback
@@ -254,7 +256,8 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                             />
                         </OfflineWithFeedback>
                     )}
-                    {shouldShowCountryRow && <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />}
+                    {isAutoUpdateSupported && <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />}
+                    {isAutoUpdateSupported && <Text style={[styles.textLabel, styles.textStrong, styles.mh5, styles.mb2]}>{translate('workspace.distanceRates.automaticRates')}</Text>}
                     {isAutoUpdateSupported && (
                         <OfflineWithFeedback
                             errors={getLatestErrorField(policy ?? {}, 'shouldAutoUpdateGovernmentDistanceRates')}
@@ -265,7 +268,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                             <View style={[styles.mt2, styles.mh5, shouldShowCountryRow ? styles.mb2 : styles.mb5]}>
                                 <View style={[styles.flexRow, styles.mb2, styles.alignItemsCenter, styles.justifyContentBetween]}>
                                     <Text
-                                        style={[styles.textNormal, styles.colorMuted]}
+                                        style={[styles.textNormal]}
                                         accessible={false}
                                         aria-hidden
                                     >
