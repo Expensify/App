@@ -247,8 +247,8 @@ function hasAnyManuallyEnteredScanField(transaction: OnyxEntry<ManuallyEnteredSc
 
 /**
  * Whether the user started filling the three fields in but stopped short, which blocks confirmation.
- * `canEnterScanFieldsManually` says whether the surface offers those fields at all, since splits, moved tracked
- * expenses and test receipts carry the same flags without ever having shown them.
+ * `canEnterScanFieldsManually` says whether the surface offers those fields at all, since moved tracked expenses
+ * and test receipts carry the same flags without ever having shown them.
  */
 function isPartiallyEnteredScanExpense(transaction: OnyxEntry<ManuallyEnteredScanFields>, canEnterScanFieldsManually = false): boolean {
     return canEnterScanFieldsManually && hasAnyManuallyEnteredScanField(transaction) && !hasAllManuallyEnteredScanFields(transaction);

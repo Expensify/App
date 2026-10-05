@@ -69,7 +69,14 @@ import {isOneToTwoTransactionTransition} from '@userActions/IOU/PendingNewTransa
 import {getPerDiemExpensePolicyID, hasCompletePerDiemCustomUnit, submitPerDiemExpenseForSelfDM, submitPerDiemExpense as submitPerDiemExpenseIOUActions} from '@userActions/IOU/PerDiem';
 import {getReceiverType, sendInvoice} from '@userActions/IOU/SendInvoice';
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
-import {createDistanceRequest as createDistanceRequestIOUActions, resolveOptimisticSplitChatReportID, splitBill, splitBillAndOpenReport, startSplitBill} from '@userActions/IOU/Split';
+import {
+    completeSplitBill,
+    createDistanceRequest as createDistanceRequestIOUActions,
+    resolveOptimisticSplitChatReportID,
+    splitBill,
+    splitBillAndOpenReport,
+    startSplitBill,
+} from '@userActions/IOU/Split';
 import {requestMoney as requestMoneyIOUActions, trackExpense as trackExpenseIOUActions} from '@userActions/IOU/TrackExpense';
 import type {GPSPoint as GpsPoint} from '@userActions/IOU/types/TrackExpenseTransactionParams';
 
@@ -1074,8 +1081,11 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 for (const [index, item] of scannedItems.entries()) {
                     const transactionReceiptFile = receiptFiles[item.transactionID];
                     const itemTrimmedComment = item?.comment?.comment?.trim() ?? '';
+                    // StartSplitBill takes no amount/merchant/date, so a split whose details were all typed in is
+                    // completed with them right away, the same way the split's owner would from its details page.
+                    const shouldCompleteWithEnteredFields = canEnterScanFieldsManually && hasAllManuallyEnteredScanFields(item);
 
-                    startSplitBill({
+                    const startedSplit = startSplitBill({
                         getCurrencyDecimals,
                         writeBarrier,
                         participants: selectedParticipants,
@@ -1092,7 +1102,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
                         taxValue: transactionTaxValue,
-                        shouldPlaySound: index === scannedItems.length - 1,
+                        // completeSplitBill plays its own sound, so don't play it twice for the same split.
+                        shouldPlaySound: index === scannedItems.length - 1 && !shouldCompleteWithEnteredFields,
                         optimisticSplitChatReportID,
                         isFirstSplitInBatch: !(index > 0 && optimisticSplitChatReportID),
                         policyRecentlyUsedCategories,
@@ -1103,6 +1114,36 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                         delegateAccountID,
                         formatPhoneNumber,
                     });
+
+                    if (shouldCompleteWithEnteredFields) {
+                        // StartSplitBill may be deferred behind the navigation barrier, so only queue CompleteSplitBill
+                        // once it has been written, otherwise the server would get the completion for a split it doesn't have yet.
+                        startedSplit.writePromise.then(() =>
+                            completeSplitBill({
+                                isVendorMatchingBetaEnabled,
+                                getCurrencyDecimals,
+                                chatReportID: startedSplit.chatReportID,
+                                reportAction: startedSplit.reportAction,
+                                updatedTransaction: {
+                                    ...startedSplit.transaction,
+                                    modifiedAmount: item.amount,
+                                    modifiedCurrency: item.currency,
+                                    modifiedMerchant: item.merchant,
+                                    modifiedCreated: item.created,
+                                },
+                                sessionAccountID: currentUserPersonalDetails.accountID,
+                                isASAPSubmitBetaEnabled,
+                                quickAction,
+                                transactionViolations: transactionViolationsRef.current,
+                                personalDetails,
+                                delegateAccountID,
+                                isTrackIntentUser,
+                                sessionEmail: currentUserLogin,
+                                formatPhoneNumber,
+                                rules,
+                            }),
+                        );
+                    }
                 }
                 if (shouldHandleNavigation) {
                     dismissModalAndOpenReportInInboxTab(chatReportID, undefined, false);
