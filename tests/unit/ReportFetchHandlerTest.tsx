@@ -2,6 +2,7 @@ import {act, render} from '@testing-library/react-native';
 
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import {IsHiddenWideTabPreMountContext} from '@hooks/useIsHiddenWideTabPreMount';
 import {IsInPreloadedTabContext} from '@hooks/useIsInPreloadedTab';
 
 import ReportFetchHandler from '@pages/inbox/ReportFetchHandler';
@@ -51,18 +52,25 @@ jest.mock('@userActions/Report', () => ({
     },
 }));
 
-function HandlerTree({isInPreloadedTab}: {isInPreloadedTab: boolean}) {
+function HandlerTree({isInPreloadedTab, isHiddenPreMount = false}: {isInPreloadedTab: boolean; isHiddenPreMount?: boolean}) {
     return (
         <IsInPreloadedTabContext.Provider value={isInPreloadedTab}>
-            <OnyxListItemProvider>
-                <ReportFetchHandler />
-            </OnyxListItemProvider>
+            <IsHiddenWideTabPreMountContext.Provider value={isHiddenPreMount}>
+                <OnyxListItemProvider>
+                    <ReportFetchHandler />
+                </OnyxListItemProvider>
+            </IsHiddenWideTabPreMountContext.Provider>
         </IsInPreloadedTabContext.Provider>
     );
 }
 
-function renderHandler(isInPreloadedTab = false) {
-    return render(<HandlerTree isInPreloadedTab={isInPreloadedTab} />);
+function renderHandler(isInPreloadedTab = false, isHiddenPreMount = false) {
+    return render(
+        <HandlerTree
+            isInPreloadedTab={isInPreloadedTab}
+            isHiddenPreMount={isHiddenPreMount}
+        />,
+    );
 }
 
 /** Regression tests for the guards that suppress openReport for a client-generated report ID that doesn't exist on the server yet. */
@@ -152,6 +160,32 @@ describe('ReportFetchHandler', () => {
 
         // Then fetching stays blocked because the report is not committed on the server
         expect(mockOpenReport).not.toHaveBeenCalled();
+    });
+
+    it('loads a hidden wide submit pre-mount without marking it read or clearing its manual unread marker', async () => {
+        // Given a report that exists locally, mounted hidden under the screen the user is looking at
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
+        await waitForBatchedUpdates();
+
+        // When the handler fetches it
+        renderHandler(false, true);
+        await waitForBatchedUpdates();
+
+        // Then it still loads, so the reveal is instant, but the read state waits for the user to actually see it
+        expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({reportID: REPORT_ID, shouldMarkAsRead: false, hasOnceLoadedReportActions: true}));
+    });
+
+    it('marks a visible report read when fetching it', async () => {
+        // Given a report that exists locally, on a screen the user is looking at
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
+        await waitForBatchedUpdates();
+
+        // When the handler fetches it
+        renderHandler();
+        await waitForBatchedUpdates();
+
+        // Then the fetch marks it read like opening any report does
+        expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({reportID: REPORT_ID, shouldMarkAsRead: true}));
     });
 
     it('calls openReport again once the pre-mount marker is cleared', async () => {
