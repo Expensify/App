@@ -44,7 +44,7 @@ function isRealizedNavigationState(state: NavigationState | PartialState<Navigat
 function useNativeTabNavigator() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBlockingViewVisible} = useFullScreenBlockingViewState();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const {translate} = useLocalize();
     const isInsightsTabVisible = isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE);
     const tabWithoutBarItem = getTabWithoutBarItem(isInsightsTabVisible);
@@ -99,13 +99,14 @@ function useNativeTabNavigator() {
     }, [tabState, route.key]);
 
     // Without the beta, Insights has no bar item and its page is not found, so a restored or deep-linked Insights tab
-    // would be a full screen with no way out. Home takes its place.
-    const isInsightsTabFocusedWithoutBeta = !isInsightsTabVisible && activeTabRoute?.name === SCREENS.INSIGHTS;
+    // would be a full screen with no way out. Home replaces it, so going back does not return to it. Betas that are
+    // still loading are not a missing beta.
+    const isInsightsTabFocusedWithoutBeta = isBetaEnabledOrUnknown(CONST.BETAS.INSIGHTS_PAGE) === false && activeTabRoute?.name === SCREENS.INSIGHTS;
     useEffect(() => {
         if (!isInsightsTabFocusedWithoutBeta) {
             return;
         }
-        Navigation.navigate(ROUTES.HOME);
+        Navigation.navigate(ROUTES.HOME, {forceReplace: true});
     }, [isInsightsTabFocusedWithoutBeta]);
 
     // Cancel any in-flight tab-navigation span that doesn't match the new focused tab.

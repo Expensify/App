@@ -12,6 +12,7 @@ import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useIsSettingsDrawnOverTabs from '@hooks/useIsSettingsDrawnOverTabs';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -60,13 +61,21 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const navigation = useNavigation();
     const isDrawnOverTabs = useIsSettingsDrawnOverTabs();
     // The tab navigator keeps the full tab history, so going back returns to the tab the user opened Account from.
+    // With nothing behind it, as after a deep link, Home replaces Account so that going back does not reopen it.
     const goBackFromAccount = () => {
         if (navigation.canGoBack()) {
             navigation.goBack();
             return;
         }
-        Navigation.navigate(ROUTES.HOME);
+        Navigation.navigate(ROUTES.HOME, {forceReplace: true});
     };
+    useAndroidBackButtonHandler(() => {
+        if (!isDrawnOverTabs) {
+            return false;
+        }
+        goBackFromAccount();
+        return true;
+    });
     const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, shouldUseNarrowLayout);
     const previousUserPersonalDetails = usePrevious(currentUserPersonalDetails);
     const {accountMenuItemsData, generalMenuItemsData} = useInitialSettingsPageMenuData(currentUserPersonalDetails);
