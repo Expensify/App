@@ -14320,7 +14320,9 @@ function isWorkspaceMemberLeavingWorkspaceRoom(report: OnyxEntry<Report>, isPoli
 
 /**
  * Checks whether a list report field has at least one enabled value.
- * A value without a matching `disabledOptions` entry is treated as enabled.
+ * A value without a matching `disabledOptions` entry is treated as enabled, because fields created outside NewDot
+ * can arrive with an empty `disabledOptions` array even when `values` has entries. Iterate over `values` rather than
+ * calling `disabledOptions.some(...)`, which would return false for those fields and hide them.
  */
 function hasEnabledListValue(reportField: PolicyReportField): boolean {
     return reportField.values.some((_, index) => !reportField.disabledOptions.at(index));
