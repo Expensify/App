@@ -24,11 +24,13 @@ import WideRHPContextProvider from '@components/WideRHPContextProvider';
 import useGPSInProgressModal from '@hooks/useGPSInProgressModal';
 import useGPSTripStateChecker from '@hooks/useGPSTripStateChecker';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
+import {REQUIRE_2FA_ABOVE_PORTAL_HOST} from '@hooks/useRequire2FAOverlayVisibility';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldSuppressPromotionalUI from '@hooks/useShouldSuppressPromotionalUI';
 import {SidebarOrderedReportsContextProvider} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import setFullscreenVisibility from '@libs/actions/setFullscreenVisibility';
 import {READ_COMMANDS} from '@libs/API/types';
@@ -55,7 +57,9 @@ import '@src/libs/subscribeToFullReconnect';
 import type {RouteProp} from '@react-navigation/native';
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
 
+import {PortalHost} from '@gorhom/portal';
 import React, {useEffect} from 'react';
+import {StyleSheet, View} from 'react-native';
 
 import attachmentModalScreenOptions from './attachmentModalScreenOptions';
 import AuthScreensInitHandler from './AuthScreensInitHandler';
@@ -131,6 +135,7 @@ const modalScreenListenersWithCancelSearch = {
 
 function AuthScreens() {
     const theme = useTheme();
+    const themeStyles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
@@ -403,6 +408,12 @@ function AuthScreens() {
                         />
                     </RootStack.Navigator>
                     <RequireTwoFactorAuthenticationOverlay />
+                    <View
+                        pointerEvents="box-none"
+                        style={[StyleSheet.absoluteFill, themeStyles.twoFARequiredTestToolsHost]}
+                    >
+                        <PortalHost name={REQUIRE_2FA_ABOVE_PORTAL_HOST} />
+                    </View>
                     <MultifactorAuthenticationModalNavigator />
                     <SearchRouterModal />
                     <OpenAppFailureModal />
