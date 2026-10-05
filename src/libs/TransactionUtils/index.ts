@@ -517,7 +517,7 @@ function getDescription(transaction: OnyxInputOrEntry<Transaction>): string {
  * Return the amount field from the transaction, return the modifiedAmount if present.
  */
 function getAmount(
-    transaction: OnyxInputOrEntry<Partial<Pick<Transaction, 'amount' | 'modifiedAmount'>>>,
+    transaction: OnyxInputOrEntry<Partial<Transaction>>,
     isFromExpenseReport = false,
     isFromTrackedExpense = false,
     allowNegative = false,

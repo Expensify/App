@@ -5153,6 +5153,26 @@ describe('TransactionUtils', () => {
     });
 
     describe('buildNewTransactionAfterReviewingDuplicates', () => {
+        it('keeps amount and transaction ID absent when neither preview source exists', () => {
+            // Given neither source is available while the duplicate review data loads
+            const partial = TransactionUtils.buildNewTransactionAfterReviewingDuplicates(undefined, undefined);
+
+            // When the amount accessor and merge consume the incomplete preview directly
+            const amount = TransactionUtils.getAmount(partial);
+            const expenseAmount = TransactionUtils.getAmount(partial, true);
+            const params = TransactionUtils.buildMergeDuplicatesParams(undefined, [undefined], partial);
+
+            // Then missing metadata stays absent and the existing amount and merge defaults still apply
+            expect(Object.hasOwn(partial, 'amount')).toBe(false);
+            expect(Object.hasOwn(partial, 'transactionID')).toBe(false);
+            expect(amount).toBe(0);
+            expect(expenseAmount).toBe(0);
+            expect(params.amount).toBe(-0);
+            expect(params.currency).toBe(CONST.CURRENCY.USD);
+            expect(params.created).toBe('');
+            expect(params.transactionIDList).toEqual([]);
+        });
+
         it('passes the real partial producer into merge accessors without an original transaction', () => {
             // Given no original Onyx transaction and a valid review payload from the duplicate flow
             const source = generateTransaction({comment: {comment: 'original', customUnit: {name: 'Distance', quantity: 8}, waypoints: {waypoint0: {address: 'Origin'}}}});
@@ -5177,6 +5197,7 @@ describe('TransactionUtils', () => {
 
             // Then absent amount/currency/date are accepted without completing a fictional transaction
             expect(Object.hasOwn(partial, 'amount')).toBe(false);
+            expect(partial.transactionID).toBe(review.transactionID);
             expect(params.amount).toBe(-0);
             expect(params.currency).toBe(CONST.CURRENCY.USD);
             expect(params.created).toBe('');
