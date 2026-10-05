@@ -9,7 +9,9 @@
         "../../config/oxlint/plugins/expensify-rules.mjs",
         "../../config/oxlint/plugins/rc-rules.mjs"
     ],
-    "categories": {},
+    // Mirrors oxlint.config.mts: without this the default correctness category runs rules
+    // ESLint never enables, and they show up as findings outside the manifest.
+    "categories": {"correctness": "off"},
     // Same settings block as .oxlintrc.json, plus one entry the repo does not have: the object form
     // {"property": "exact", "exact": true}. propWrapperFunctions is load-bearing, not decoration --
     // react/prefer-exact-props asks getExactPropWrapperFunctions for wrappers marked `exact: true`,
