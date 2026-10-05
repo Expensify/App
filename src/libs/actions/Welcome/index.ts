@@ -159,13 +159,12 @@ function createJoinWorkspaceOnboardingContent(
         (item) => item.type === 'task' && item.task === (contentType === 'joinWorkspace' ? CONST.ONBOARDING_TASK_TYPE.JOIN_WORKSPACE : CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL),
     );
     const taskReportID = task && 'taskReportID' in task ? task.taskReportID : undefined;
-    const commandData = onboardingData.guidedSetupData.map((item) => (contentType === 'empty' && item.type === 'message' ? {...item, reportComment: {html: item.reportComment}} : item));
 
     API.write(
         WRITE_COMMANDS.CREATE_JOIN_WORKSPACE_ONBOARDING_CONTENT,
         {
             event: contentType === 'empty' ? 'noJoinableWorkspacesMessage' : contentType,
-            data: JSON.stringify(commandData),
+            data: JSON.stringify(onboardingData.guidedSetupData),
         },
         {
             optimisticData: onboardingData.optimisticData,

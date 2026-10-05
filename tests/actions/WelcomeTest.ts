@@ -27,7 +27,7 @@ describe('createJoinWorkspaceOnboardingContent', () => {
         // When the empty-workspace follow-up is created.
         createJoinWorkspaceOnboardingContent('empty', 'company.com', 'employee@company.com', conciergeChat, undefined);
 
-        // Then the command carries a positive action ID and an object containing nonempty HTML.
+        // Then the command carries a positive action ID and raw HTML for Web-Expensify to sanitize and wrap.
         expect(mockWrite).toHaveBeenCalledTimes(1);
         expect(mockWrite.mock.calls.at(0)?.[0]).toBe(WRITE_COMMANDS.CREATE_JOIN_WORKSPACE_ONBOARDING_CONTENT);
         const parameters = mockWrite.mock.calls.at(0)?.[1];
@@ -37,10 +37,10 @@ describe('createJoinWorkspaceOnboardingContent', () => {
         }
         const data = JSON.parse(parameters.data) as unknown;
         const message = isRecord(data) ? data['0'] : undefined;
-        if (!isRecord(message) || typeof message.reportActionID !== 'string' || !isRecord(message.reportComment) || typeof message.reportComment.html !== 'string') {
+        if (!isRecord(message) || typeof message.reportActionID !== 'string' || typeof message.reportComment !== 'string') {
             throw new Error('CreateJoinWorkspaceOnboardingContent did not include a valid message');
         }
         expect(BigInt(message.reportActionID)).toBeGreaterThan(0n);
-        expect(message.reportComment.html).not.toBe('');
+        expect(message.reportComment).not.toBe('');
     });
 });
