@@ -3366,7 +3366,7 @@ function getBadgeFromIOUReport(
     currentUserLogin: string,
     currentUserAccountID: number,
     iouReportActions: OnyxEntry<ReportActions>,
-    allViolations?: OnyxCollection<TransactionViolations>,
+    allViolations: OnyxCollection<TransactionViolations> | undefined,
 ): ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined {
     // TODO: https://github.com/Expensify/App/issues/66512
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -3440,9 +3440,9 @@ function getIOUReportActionWithBadge(
     currentUserLogin: string,
     currentUserAccountID: number,
     chatReportActions: OnyxEntry<ReportActions>,
+    allViolations: OnyxCollection<TransactionViolations> | undefined,
     allReports?: OnyxCollection<Report>,
     allReportActionsParam?: OnyxCollection<ReportActions>,
-    allViolations?: OnyxCollection<TransactionViolations>,
 ): {
     reportAction: OnyxEntry<ReportAction>;
     actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>;
@@ -4890,9 +4890,9 @@ function getReasonAndReportActionThatRequiresAttention(
     optionOrReport: OnyxEntry<Report> | OptionData,
     currentUserLogin: string,
     currentUserAccountID: number,
+    transactionViolations: OnyxCollection<TransactionViolations> | undefined,
     parentReportAction?: OnyxEntry<ReportAction>,
     isReportArchived = false,
-    transactionViolations?: OnyxCollection<TransactionViolations>,
     allReportActionsParam?: OnyxCollection<ReportActions>,
     reports?: OnyxCollection<Report>,
     policiesParam?: OnyxCollection<Policy>,
@@ -4962,9 +4962,9 @@ function getReasonAndReportActionThatRequiresAttention(
         currentUserLogin,
         currentUserAccountID,
         reportActions,
+        transactionViolations,
         reports,
         allReportActionsParam ?? allReportActions,
-        transactionViolations,
     );
     // Fall back to the chat's outstanding child so the pending-only check still runs when no badge action was found.
     const iouReportID = getIOUReportIDFromReportActionPreview(iouReportActionToApproveOrPay) ?? optionOrReport.iouReportID;
@@ -5085,11 +5085,11 @@ function requiresAttentionFromCurrentUser(
     optionOrReport: OnyxEntry<Report> | OptionData,
     currentUserLogin: string,
     currentUserAccountID: number,
+    transactionViolations: OnyxCollection<TransactionViolations> | undefined,
     parentReportAction?: OnyxEntry<ReportAction>,
     isReportArchived = false,
-    transactionViolations?: OnyxCollection<TransactionViolations>,
 ) {
-    return !!getReasonAndReportActionThatRequiresAttention(optionOrReport, currentUserLogin, currentUserAccountID, parentReportAction, isReportArchived, transactionViolations);
+    return !!getReasonAndReportActionThatRequiresAttention(optionOrReport, currentUserLogin, currentUserAccountID, transactionViolations, parentReportAction, isReportArchived);
 }
 
 /**
@@ -10935,7 +10935,7 @@ function reasonForReportToBeInOptionList({
 
     if (
         requiresAttention ??
-        requiresAttentionFromCurrentUser(report, currentUserLogin ?? '', currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, undefined, isReportArchived, transactionViolations)
+        requiresAttentionFromCurrentUser(report, currentUserLogin ?? '', currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, transactionViolations, undefined, isReportArchived)
     ) {
         return CONST.REPORT_IN_LHN_REASONS.HAS_GBR;
     }
@@ -14105,9 +14105,9 @@ function generateReportAttributes({
             report,
             currentUserLogin,
             currentUserAccountID,
+            transactionViolations,
             parentReportAction,
             isReportArchived,
-            transactionViolations,
             reportActions,
             reports,
             policies,

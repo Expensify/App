@@ -759,7 +759,7 @@ describe('SidebarUtils', () => {
 
             await waitForBatchedUpdatesWithAct();
 
-            const requiresAttention = getReasonAndReportActionThatRequiresAttention(policyExpenseChat, CURRENT_USER_LOGIN, CURRENT_USER_ACCOUNT_ID);
+            const requiresAttention = getReasonAndReportActionThatRequiresAttention(policyExpenseChat, CURRENT_USER_LOGIN, CURRENT_USER_ACCOUNT_ID, undefined);
             expect(requiresAttention?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
 
             const {reason} =

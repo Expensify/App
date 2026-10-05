@@ -4001,7 +4001,7 @@ describe('ReportUtils', () => {
         });
 
         it('returns false when there is no report', () => {
-            expect(requiresAttentionFromCurrentUser(undefined, currentUserEmail, currentUserAccountID)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(undefined, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
         });
 
         it('returns false when the matched IOU report does not have an owner accountID', () => {
@@ -4009,7 +4009,7 @@ describe('ReportUtils', () => {
                 ...LHNTestUtils.getFakeReport(),
                 ownerAccountID: undefined,
             };
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
         });
 
         it('returns false when the linked iou report has an outstanding IOU', () => {
@@ -4021,7 +4021,7 @@ describe('ReportUtils', () => {
                 reportID: '1',
                 ownerAccountID: 99,
             }).then(() => {
-                expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(false);
+                expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
             });
         });
 
@@ -4031,7 +4031,7 @@ describe('ReportUtils', () => {
                 ownerAccountID: currentUserAccountID,
                 isWaitingOnBankAccount: true,
             };
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
         });
 
         it('returns false when the report has outstanding IOU and is not waiting for a bank account and the logged user is the report owner', () => {
@@ -4040,7 +4040,7 @@ describe('ReportUtils', () => {
                 ownerAccountID: currentUserAccountID,
                 isWaitingOnBankAccount: false,
             };
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
         });
 
         it('returns false when the report has no outstanding IOU but is waiting for a bank account and the logged user is not the report owner', () => {
@@ -4049,7 +4049,7 @@ describe('ReportUtils', () => {
                 ownerAccountID: 97,
                 isWaitingOnBankAccount: true,
             };
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
         });
 
         it('returns true when the report has an unread mention', () => {
@@ -4057,7 +4057,7 @@ describe('ReportUtils', () => {
                 ...LHNTestUtils.getFakeReport(),
                 isUnreadWithMention: true,
             };
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
         });
 
         it('returns true for @here mention in an admin room', () => {
@@ -4067,7 +4067,7 @@ describe('ReportUtils', () => {
                 lastReadTime: '2024-03-01 12:00:00.000',
                 lastMentionedTime: '2024-03-01 12:00:01.000',
             };
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
         });
 
         it('returns false for @here in an admin room when user already read after mention', () => {
@@ -4077,7 +4077,7 @@ describe('ReportUtils', () => {
                 lastReadTime: '2024-03-01 12:00:02.000',
                 lastMentionedTime: '2024-03-01 12:00:01.000',
             };
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
         });
 
         it('returns true when the report is an outstanding task', () => {
@@ -4090,7 +4090,7 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 hasParentAccess: false,
             };
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
         });
 
         it('returns true when the report has outstanding child expense', () => {
@@ -4100,7 +4100,7 @@ describe('ReportUtils', () => {
                 hasOutstandingChildRequest: true,
                 isWaitingOnBankAccount: false,
             };
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
         });
 
         it('returns false if the user is not on free trial', async () => {
@@ -4114,7 +4114,7 @@ describe('ReportUtils', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.SYSTEM,
             };
 
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
         });
 
         it("returns false if the user free trial hasn't ended yet", async () => {
@@ -4128,7 +4128,7 @@ describe('ReportUtils', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.SYSTEM,
             };
 
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
         });
 
         it('returns true when expense report is awaiting current user approval without parent access', () => {
@@ -4141,7 +4141,7 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
 
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
         });
 
         it('returns false when awaiting approval but parent accessible or user is not approver', () => {
@@ -4154,7 +4154,7 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
 
-            expect(requiresAttentionFromCurrentUser(reportWithParentAccess, currentUserEmail, currentUserAccountID)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(reportWithParentAccess, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
 
             const reportWithDifferentManager = {
                 ...LHNTestUtils.getFakeReport(),
@@ -4165,7 +4165,7 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
 
-            expect(requiresAttentionFromCurrentUser(reportWithDifferentManager, currentUserEmail, currentUserAccountID)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(reportWithDifferentManager, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
         });
 
         it('returns false when expense report is awaiting user submission, delayed submission on > daily', async () => {
@@ -4177,7 +4177,7 @@ describe('ReportUtils', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL});
 
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
         });
 
         it('returns false when expense report is awaiting user submission, delayed submission on > manually', async () => {
@@ -4189,7 +4189,7 @@ describe('ReportUtils', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL});
 
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
         });
 
         it('returns true for expense report awaiting submission with manual submit', async () => {
@@ -4212,8 +4212,8 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL});
 
             // The GBR should appear on the policy expense chat but not on the report itself
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(false);
-            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
         });
 
         it('returns false when the outstanding child expense only has pending card transactions', async () => {
@@ -4251,7 +4251,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             // Even though the chat carries an outstanding-child flag, an all-pending card report can't be actioned yet.
-            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
         });
 
         describe('when the outstanding child expense is all on hold', () => {
@@ -4328,14 +4328,14 @@ describe('ReportUtils', () => {
                 const policyExpenseChat = await seedHeldChildExpense(otherUserAccountID);
 
                 // An all-held report can't move to its next state, so it isn't a to-do when someone else placed the hold.
-                expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID)).toBe(false);
+                expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
             });
 
             it('still requires attention when the current user placed the hold', async () => {
                 const policyExpenseChat = await seedHeldChildExpense(currentUserAccountID);
 
                 // Only the person who placed the hold can remove it, so the report stays in their to-do queue.
-                expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID)).toBe(true);
+                expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
             });
 
             it('does not require attention for an open report the current user owns and placed the hold on', async () => {
@@ -4348,7 +4348,7 @@ describe('ReportUtils', () => {
                 // Only the owner can hold on an open report, and that owner is the one who submits, so the hold placer
                 // exception never applies there. This holds on the fallback path too, where the chat carries an
                 // outstanding-child flag but no report preview action is loaded yet, so there is no action badge.
-                expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID)).toBe(false);
+                expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
             });
         });
 
@@ -4462,13 +4462,13 @@ describe('ReportUtils', () => {
                 const policyExpenseChat = await seedTwoChildExpenses();
 
                 // The all-held report can't move to its next state, but it must not hide the sibling that can.
-                expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID)).toBe(true);
+                expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
             });
 
             it('surfaces the approvable sibling as the badge action instead of the all-held report', async () => {
                 const policyExpenseChat = await seedTwoChildExpenses();
 
-                const {reportAction, actionBadge} = getReasonAndReportActionThatRequiresAttention(policyExpenseChat, currentUserEmail, currentUserAccountID) ?? {};
+                const {reportAction, actionBadge} = getReasonAndReportActionThatRequiresAttention(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined) ?? {};
 
                 expect(reportAction?.childReportID).toBe(approvableExpenseReportID);
                 expect(actionBadge).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
@@ -4493,8 +4493,8 @@ describe('ReportUtils', () => {
             };
 
             // The GBR should appear on the policy expense chat but not on the report itself
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(false);
-            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
         });
 
         it('returns false and does not surface GBR when expense report is approved and reimbursement is enabled', async () => {
@@ -4518,7 +4518,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             // When we evaluate if the report requires attention from the current user
-            const requiresAttention = requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID);
+            const requiresAttention = requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined);
 
             // Then it should return false because the report is already approved and reimbursement is enabled
             expect(requiresAttention).toBe(false);
@@ -12007,7 +12007,7 @@ describe('ReportUtils', () => {
 
             // When the reason is retrieved
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-            const result = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+            const result = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID, undefined, undefined, isReportArchived.current);
 
             // There should be some kind of a reason (any reason is fine)
             expect(result).toHaveProperty('reason');
@@ -12031,7 +12031,7 @@ describe('ReportUtils', () => {
 
             // When the reason is retrieved
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-            const result = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+            const result = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID, undefined, undefined, isReportArchived.current);
 
             expect(result).toHaveProperty('reason', CONST.REQUIRES_ATTENTION_REASONS.HAS_UNRESOLVED_CARD_FRAUD_ALERT);
         });
@@ -12049,7 +12049,7 @@ describe('ReportUtils', () => {
 
             // When the reason is retrieved
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-            const result = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+            const result = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID, undefined, undefined, isReportArchived.current);
 
             // Then the result is null
             expect(result).toBe(null);
@@ -12090,7 +12090,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(expenseReport?.reportID));
-            const result = getReasonAndReportActionThatRequiresAttention(expenseReport, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+            const result = getReasonAndReportActionThatRequiresAttention(expenseReport, currentUserEmail, currentUserAccountID, undefined, undefined, isReportArchived.current);
 
             // Should return IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION (from getActionTypeForAssigneeToComplete)
             // AND include actionBadge (APPROVE) since it's a processing expense report the user can approve
@@ -12127,7 +12127,7 @@ describe('ReportUtils', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
 
             // Without the param, the function should NOT find DEW_APPROVE_FAILED (since it's not in Onyx)
-            const resultWithout = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+            const resultWithout = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID, undefined, undefined, isReportArchived.current);
             expect(resultWithout?.reason).not.toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED);
 
             // With the param, the function should find DEW_APPROVE_FAILED from the passed param
@@ -12136,8 +12136,8 @@ describe('ReportUtils', () => {
                 currentUserEmail,
                 currentUserAccountID,
                 undefined,
-                isReportArchived.current,
                 undefined,
+                isReportArchived.current,
                 allReportActionsParam,
             );
             expect(resultWith).toHaveProperty('reason', CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED);
@@ -12186,8 +12186,8 @@ describe('ReportUtils', () => {
                     currentUserEmail,
                     currentUserAccountID,
                     undefined,
-                    isReportArchived.current,
                     undefined,
+                    isReportArchived.current,
                     allReportActionsParam,
                 );
 
@@ -12196,14 +12196,14 @@ describe('ReportUtils', () => {
                 expect(approverResult?.reportAction?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED);
 
                 // When the same report is viewed by the owner and by an unrelated participant
-                const ownerResult = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, ownerA, undefined, isReportArchived.current, undefined, allReportActionsParam);
+                const ownerResult = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, ownerA, undefined, undefined, isReportArchived.current, allReportActionsParam);
                 const bystanderResult = getReasonAndReportActionThatRequiresAttention(
                     report,
                     currentUserEmail,
                     bystanderC,
                     undefined,
-                    isReportArchived.current,
                     undefined,
+                    isReportArchived.current,
                     allReportActionsParam,
                 );
 
@@ -12225,18 +12225,18 @@ describe('ReportUtils', () => {
                     currentUserEmail,
                     currentUserAccountID,
                     undefined,
-                    isReportArchived.current,
                     undefined,
+                    isReportArchived.current,
                     allReportActionsParam,
                 );
-                const ownerResult = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, ownerA, undefined, isReportArchived.current, undefined, allReportActionsParam);
+                const ownerResult = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, ownerA, undefined, undefined, isReportArchived.current, allReportActionsParam);
                 const bystanderResult = getReasonAndReportActionThatRequiresAttention(
                     report,
                     currentUserEmail,
                     bystanderC,
                     undefined,
-                    isReportArchived.current,
                     undefined,
+                    isReportArchived.current,
                     allReportActionsParam,
                 );
 
@@ -12254,7 +12254,7 @@ describe('ReportUtils', () => {
 
                 // When the reason is retrieved for each account
                 const results = [currentUserAccountID, ownerA, bystanderC].map((accountID) =>
-                    getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, accountID, undefined, isReportArchived.current, undefined, allReportActionsParam),
+                    getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, accountID, undefined, undefined, isReportArchived.current, allReportActionsParam),
                 );
 
                 // Then the gate fails closed, so nobody gets a dot rather than everybody getting one
@@ -12276,8 +12276,8 @@ describe('ReportUtils', () => {
                     currentUserEmail,
                     currentUserAccountID,
                     undefined,
-                    isReportArchived.current,
                     undefined,
+                    isReportArchived.current,
                     allReportActionsParam,
                 );
 
@@ -12319,8 +12319,8 @@ describe('ReportUtils', () => {
                     currentUserEmail,
                     currentUserAccountID,
                     undefined,
-                    isReportArchived.current,
                     undefined,
+                    isReportArchived.current,
                     allReportActionsParam,
                 );
 
@@ -12348,7 +12348,7 @@ describe('ReportUtils', () => {
 
             // When the reason is retrieved
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(adminReport?.reportID));
-            const result = getReasonAndReportActionThatRequiresAttention(adminReport, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+            const result = getReasonAndReportActionThatRequiresAttention(adminReport, currentUserEmail, currentUserAccountID, undefined, undefined, isReportArchived.current);
 
             // Then the result is null
             expect(result).toBe(null);
@@ -12379,7 +12379,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat.reportID));
-            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID, undefined, undefined, isReportArchived.current);
 
             expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
             expect(result?.reportAction?.reportActionID).toBe(cardMissingAddressAction.reportActionID);
@@ -12427,7 +12427,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat.reportID));
-            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID, undefined, undefined, isReportArchived.current);
 
             expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
             // Should skip the completed task and return the incomplete one
@@ -12474,7 +12474,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat.reportID));
-            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID, undefined, undefined, isReportArchived.current);
 
             expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
             // Should return the earliest created incomplete task
@@ -12525,7 +12525,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat.reportID));
-            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID, undefined, undefined, isReportArchived.current);
 
             expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
             // All tasks completed, so no matching reportAction
@@ -12574,7 +12574,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat.reportID));
-            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID, undefined, undefined, isReportArchived.current);
 
             expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
             // Should only return the task where childManagerAccountID matches the current user
@@ -12622,7 +12622,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat.reportID));
-            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID, undefined, undefined, isReportArchived.current);
 
             // The IOU action is older, so its badge should take priority over the task badge
             expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
@@ -12671,7 +12671,7 @@ describe('ReportUtils', () => {
             // Without a policies param, resolution falls back to the deprecated module-level policy cache, which
             // was never populated with this policyID in this test - canApproveIOU bails out on the missing policy,
             // so the GBR shows without an Approve badge, exactly like a client whose policy merge hasn't landed yet
-            const resultWithoutParam = getReasonAndReportActionThatRequiresAttention(expenseReport, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+            const resultWithoutParam = getReasonAndReportActionThatRequiresAttention(expenseReport, currentUserEmail, currentUserAccountID, undefined, undefined, isReportArchived.current);
             expect(resultWithoutParam?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
             expect(resultWithoutParam?.actionBadge).toBeUndefined();
 
@@ -12686,8 +12686,8 @@ describe('ReportUtils', () => {
                 currentUserEmail,
                 currentUserAccountID,
                 undefined,
-                isReportArchived.current,
                 undefined,
+                isReportArchived.current,
                 undefined,
                 undefined,
                 policiesParam,
@@ -12737,7 +12737,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat.reportID));
-            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID, undefined, undefined, isReportArchived.current);
 
             // The task action is older, so the task badge should take priority
             expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
@@ -12787,7 +12787,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat.reportID));
-            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID, undefined, undefined, isReportArchived.current);
 
             // When oldestTaskAction is undefined (no childManagerAccountID), IOU badge should be returned
             expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
@@ -12861,7 +12861,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(invoiceRoomID));
-            const result = getReasonAndReportActionThatRequiresAttention(invoiceRoom, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+            const result = getReasonAndReportActionThatRequiresAttention(invoiceRoom, currentUserEmail, currentUserAccountID, undefined, undefined, isReportArchived.current);
 
             // Currently returns null because hasMissingInvoiceBankAccount requires isSettled=true
             // but the outer condition filters out settled reports with isSettled check.
@@ -17990,10 +17990,10 @@ describe('ReportUtils', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
 
-            const reasonForAttention = getReasonAndReportActionThatRequiresAttention(expenseReport, currentUserEmail, currentUserAccountID, undefined, false);
+            const reasonForAttention = getReasonAndReportActionThatRequiresAttention(expenseReport, currentUserEmail, currentUserAccountID, undefined, undefined, false);
             expect(reasonForAttention?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
 
-            const requiresAttention = requiresAttentionFromCurrentUser(expenseReport, currentUserEmail, currentUserAccountID, undefined, false);
+            const requiresAttention = requiresAttentionFromCurrentUser(expenseReport, currentUserEmail, currentUserAccountID, undefined, undefined, false);
             expect(requiresAttention).toBe(true);
 
             const reasonForOptionList = reasonForReportToBeInOptionList({
@@ -18037,10 +18037,10 @@ describe('ReportUtils', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
 
-            const reasonForAttention = getReasonAndReportActionThatRequiresAttention(expenseReport, currentUserEmail, currentUserAccountID, undefined, false);
+            const reasonForAttention = getReasonAndReportActionThatRequiresAttention(expenseReport, currentUserEmail, currentUserAccountID, undefined, undefined, false);
             expect(reasonForAttention?.reason).toBe(undefined);
 
-            const requiresAttention = requiresAttentionFromCurrentUser(expenseReport, currentUserEmail, currentUserAccountID, undefined, false);
+            const requiresAttention = requiresAttentionFromCurrentUser(expenseReport, currentUserEmail, currentUserAccountID, undefined, undefined, false);
             expect(requiresAttention).toBe(false);
 
             const reasonForOptionList = reasonForReportToBeInOptionList({
@@ -19412,7 +19412,7 @@ describe('ReportUtils', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
 
-        const reasonForAttention = getReasonAndReportActionThatRequiresAttention(expenseReport, currentUserEmail, currentUserAccountID, undefined, false);
+        const reasonForAttention = getReasonAndReportActionThatRequiresAttention(expenseReport, currentUserEmail, currentUserAccountID, undefined, undefined, false);
         expect(reasonForAttention?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
     });
 
@@ -23420,7 +23420,7 @@ describe('ReportUtils', () => {
             expect(getOutstandingChildRequest(expenseReport).hasOutstandingChildRequest).toBe(true);
 
             // GBR shows on the workspace chat
-            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
 
             const reason = reasonForReportToBeInOptionList({
                 report: policyExpenseChat,
@@ -23493,7 +23493,7 @@ describe('ReportUtils', () => {
             expect(getOutstandingChildRequest(expenseReport)).toEqual({});
 
             // The workspace chat still has hasOutstandingChildRequest: true, so GBR persists
-            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
 
             const reason = reasonForReportToBeInOptionList({
                 report: policyExpenseChat,

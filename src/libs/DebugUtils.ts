@@ -1604,7 +1604,7 @@ function getReasonAndReportActionForGBRInLHNRow(
         return null;
     }
 
-    const {reason, reportAction} = getReasonAndReportActionThatRequiresAttention(report, currentUserLogin, currentUserAccountID, undefined, isReportArchived, transactionViolations) ?? {};
+    const {reason, reportAction} = getReasonAndReportActionThatRequiresAttention(report, currentUserLogin, currentUserAccountID, transactionViolations, undefined, isReportArchived) ?? {};
 
     if (reason) {
         return {reason: `debug.reasonGBR.${reason}`, reportAction};
