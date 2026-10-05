@@ -86,12 +86,11 @@ jest.mock('@components/ActivityIndicator', () => ({__esModule: true, default: ()
 
 // The header's three-dot menu only renders its entries inside a popover once pressed. Rendering their labels inline lets the tests
 // read which credentials entry the page offers without driving the popover.
-jest.mock('@components/HeaderWithBackButton', () => {
+jest.mock('@components/Header/primitives/HeaderThreeDotsMenu', () => {
     const {default: MockText} = jest.requireActual<{default: typeof TextComponent}>('@components/Text');
     return {
         __esModule: true,
-        default: ({threeDotsMenuItems, shouldShowThreeDotsButton}: {threeDotsMenuItems?: PopoverMenuItem[]; shouldShowThreeDotsButton?: boolean}) =>
-            shouldShowThreeDotsButton ? threeDotsMenuItems?.map((menuItem) => <MockText key={menuItem.text}>{`${OVERFLOW_MENU_ITEM_PREFIX}${menuItem.text}`}</MockText>) : null,
+        default: ({items}: {items: PopoverMenuItem[]}) => items.map((menuItem) => <MockText key={menuItem.text}>{`${OVERFLOW_MENU_ITEM_PREFIX}${menuItem.text}`}</MockText>),
     };
 });
 

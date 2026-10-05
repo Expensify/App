@@ -308,6 +308,8 @@ describe('WorkspaceMoreFeaturesPage', () => {
             await TestHelper.signInWithTestUser();
             hasAccountingConnectionsMock.mockReturnValue(true);
             await act(async () => {
+                // The test user is on the 'all' beta, which includes the unified Connections beta that hides this toggle
+                await Onyx.merge(ONYXKEYS.BETAS, []);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID}));
             });
 
@@ -321,6 +323,8 @@ describe('WorkspaceMoreFeaturesPage', () => {
             await TestHelper.signInWithTestUser();
             hasAccountingConnectionsMock.mockReturnValue(true);
             await act(async () => {
+                // The test user is on the 'all' beta, which includes the unified Connections beta that hides this toggle
+                await Onyx.merge(ONYXKEYS.BETAS, []);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID}));
             });
 
@@ -389,6 +393,8 @@ describe('WorkspaceMoreFeaturesPage', () => {
             await TestHelper.signInWithTestUser();
             useIsUberConnectedMock.mockReturnValue(true);
             await act(async () => {
+                // The test user is on the 'all' beta, which includes the unified Connections beta that hides this toggle
+                await Onyx.merge(ONYXKEYS.BETAS, []);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID}));
             });
 
