@@ -542,6 +542,19 @@ describe('Navigation pre-mount buffer', () => {
         restoreAnimationSpy.mockRestore();
     });
 
+    it('wide layout: cancel takes the pre-mount out of its tab navigator while another fullscreen covers it', () => {
+        // Given a wide pre-mount on top of the covered Reports tab, then a workspace pushed above the RHP
+        preMountOnWide();
+        setRootState([...(mockRootState?.routes ?? []), {key: 'workspace-key', name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}]);
+
+        // When the user backs out of the form without submitting
+        Navigation.removePreInsertedFullscreenIfNeeded();
+
+        // Then the covered tab navigator still gets its Reports tab back, so a later back to it shows no leftover hidden screen
+        expect(getReportsStack()?.routes.map((route) => route.key)).toEqual(['inbox-key']);
+        expect(getWideTabState()?.preloadedRouteKeys).toEqual([]);
+    });
+
     it('wide layout: clearFullscreenPreInsertedFlag drops a pre-mount that was never revealed', () => {
         // Given a wide pre-mount, which only a reveal can show, so a plain dismiss after clearing would leave it hidden in the stack
         preMountOnWide();
@@ -591,7 +604,7 @@ describe('Navigation pre-mount buffer', () => {
         expect(mockDispatch).not.toHaveBeenCalled();
         expect(Navigation.getPreMountedFullscreenRouteKey()).toBeUndefined();
 
-        // The REPLACE handler finishes the reveal in the app, so finish it here to leave no live pre-mount for the next test
+        // Navigation finishes the reveal after dispatching REPLACE in the app, so finish it here to leave no live pre-mount for the next test
         finishWideTabPreMountReveal(takenRouteKey ?? '');
         setIsRevealingPreMountedFullscreen(false);
     });

@@ -151,6 +151,12 @@ function getCurrentTabState(): TabStateWithPreloads | undefined {
     return tabState && tabState.stale === false && tabState.key ? (tabState as TabStateWithPreloads) : undefined;
 }
 
+/** State of the tab navigator a pre-mount was built in, found by key so a fullscreen covering it does not hide it. */
+function getPreMountTabState(tabStateKey: string): TabStateWithPreloads | undefined {
+    const tabState = navigationRef.getRootState()?.routes.find((route) => route.name === NAVIGATORS.TAB_NAVIGATOR && route.state?.key === tabStateKey)?.state;
+    return tabState && tabState.stale === false ? (tabState as TabStateWithPreloads) : undefined;
+}
+
 /**
  * Mounts the wide-layout submit destination as a hidden screen inside the current TAB_NAVIGATOR. The single navigator
  * instance is kept, so visited tabs keep their state. Returns the key of the pre-mounted screen, or undefined when skipped.
@@ -221,8 +227,8 @@ function cancelWideTabPreMount() {
         return;
     }
     livePreMount = undefined;
-    const tabState = getCurrentTabState();
-    const cancelledTabState = tabState?.key === preMount.tabStateKey ? buildCancelledWideTabPreMount(tabState, preMount) : undefined;
+    const tabState = getPreMountTabState(preMount.tabStateKey);
+    const cancelledTabState = tabState ? buildCancelledWideTabPreMount(tabState, preMount) : undefined;
     if (tabState && cancelledTabState) {
         navigationRef.dispatch({...CommonActions.reset(cancelledTabState), target: tabState.key});
     }
