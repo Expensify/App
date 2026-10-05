@@ -150,6 +150,11 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
                     prompt: translate('deeplinkWrapper.sessionMismatch'),
                     confirmText: translate('common.buttonConfirm'),
                     shouldShowCancelButton: false,
+                }).then(() => {
+                    // The exitTo navigation below only runs when !CONFIG.IS_HYBRID_APP, so nothing else leaves /transition on HybridApp. Go home once the user dismisses this.
+                    Navigation.isNavigationReady().then(() => {
+                        Navigation.goBack(ROUTES.HOME);
+                    });
                 });
             })
             .catch((error) => Log.warn('Unable to sign in with shortLivedAuthToken', {error}));
