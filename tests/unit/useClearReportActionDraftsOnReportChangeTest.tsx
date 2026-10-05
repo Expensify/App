@@ -1,5 +1,6 @@
 import {renderHook} from '@testing-library/react-native';
 
+import {IsHiddenWideTabPreMountContext} from '@hooks/useIsHiddenWideTabPreMount';
 import {IsInPreloadedTabContext} from '@hooks/useIsInPreloadedTab';
 
 import {clearAllReportActionDrafts} from '@libs/actions/Report';
@@ -16,16 +17,22 @@ jest.mock('@libs/actions/Report', () => ({
 
 const mockClearAllReportActionDrafts = jest.mocked(clearAllReportActionDrafts);
 
-type HookProps = {reportID: string; isInPreloadedTab: boolean};
+type HookProps = {reportID: string; isInPreloadedTab: boolean; isHiddenPreMount?: boolean};
 
 function renderDraftsHook(initialProps: HookProps) {
     let isInPreloadedTab = initialProps.isInPreloadedTab;
-    const wrapper = ({children}: {children: ReactNode}) => <IsInPreloadedTabContext.Provider value={isInPreloadedTab}>{children}</IsInPreloadedTabContext.Provider>;
+    let isHiddenPreMount = initialProps.isHiddenPreMount ?? false;
+    const wrapper = ({children}: {children: ReactNode}) => (
+        <IsInPreloadedTabContext.Provider value={isInPreloadedTab}>
+            <IsHiddenWideTabPreMountContext.Provider value={isHiddenPreMount}>{children}</IsHiddenWideTabPreMountContext.Provider>
+        </IsInPreloadedTabContext.Provider>
+    );
     const hook = renderHook(({reportID}: HookProps) => useClearReportActionDraftsOnReportChange(reportID), {initialProps, wrapper});
     return {
         ...hook,
         rerenderWith: (props: HookProps) => {
             isInPreloadedTab = props.isInPreloadedTab;
+            isHiddenPreMount = props.isHiddenPreMount ?? false;
             hook.rerender(props);
         },
     };
@@ -51,7 +58,7 @@ describe('useClearReportActionDraftsOnReportChange', () => {
     });
 
     it('keeps the drafts while the screen is mounted out of sight, and clears them once it is shown', () => {
-        // Given a report screen mounted in a preloaded tab or as a hidden wide submit pre-mount
+        // Given a report screen mounted in a preloaded tab
         const {rerenderWith} = renderDraftsHook({reportID: '1', isInPreloadedTab: true});
 
         // Then nothing is cleared, so the report the user is editing keeps its draft
@@ -59,6 +66,28 @@ describe('useClearReportActionDraftsOnReportChange', () => {
 
         // When the screen is shown
         rerenderWith({reportID: '1', isInPreloadedTab: false});
+
+        // Then the drafts are cleared, as if the user had just navigated to this report
+        expect(mockClearAllReportActionDrafts).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps the drafts while the screen is a hidden wide submit pre-mount, also when the form is cancelled', () => {
+        // Given a report screen pre-mounted hidden under the report the user is editing
+        const {unmount} = renderDraftsHook({reportID: '1', isInPreloadedTab: false, isHiddenPreMount: true});
+
+        // When the user cancels the form, which unmounts the pre-mount without ever showing it
+        unmount();
+
+        // Then nothing is cleared, so the draft in the visible report survives
+        expect(mockClearAllReportActionDrafts).not.toHaveBeenCalled();
+    });
+
+    it('clears the drafts once a hidden wide submit pre-mount is revealed', () => {
+        // Given a report screen pre-mounted hidden under the current one
+        const {rerenderWith} = renderDraftsHook({reportID: '1', isInPreloadedTab: false, isHiddenPreMount: true});
+
+        // When the submit reveals it
+        rerenderWith({reportID: '1', isInPreloadedTab: false, isHiddenPreMount: false});
 
         // Then the drafts are cleared, as if the user had just navigated to this report
         expect(mockClearAllReportActionDrafts).toHaveBeenCalledTimes(1);
