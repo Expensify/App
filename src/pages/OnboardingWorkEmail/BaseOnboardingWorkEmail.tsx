@@ -25,7 +25,7 @@ import getOperatingSystem from '@libs/getOperatingSystem';
 import Navigation from '@libs/Navigation/Navigation';
 
 import {AddWorkEmail} from '@userActions/Session';
-import {addWorkEmailFormError, clearWorkEmailFormErrors, setOnboardingErrorMessage, setOnboardingMergeAccountStepValue} from '@userActions/Welcome';
+import {addWorkEmailFormError, clearWorkEmailFormErrors, setOnboardingErrorMessage, setOnboardingMergeAccountStepValue, setOnboardingShouldValidate} from '@userActions/Welcome';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -122,9 +122,17 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         onboardingValues?.isMergeAccountStepSkipped,
     ]);
 
-    const submitWorkEmail = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
-        AddWorkEmail(values[INPUT_IDS.ONBOARDING_WORK_EMAIL].trim());
-    }, []);
+    const submitWorkEmail = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
+        const submittedWorkEmail = values[INPUT_IDS.ONBOARDING_WORK_EMAIL].trim();
+
+        // AddWorkEmail already made this the account's login, and resending it would merge the account into itself, so restore the shouldValidate: false that going back cleared
+        if (session?.email && submittedWorkEmail.toLowerCase() === session.email.toLowerCase()) {
+            setOnboardingShouldValidate(false);
+            return;
+        }
+
+        AddWorkEmail(submittedWorkEmail);
+    };
 
     useEffect(() => {
         if (!onboardingErrorMessageTranslationKey) {
@@ -163,11 +171,15 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         const emailParts = userEmail.split('@');
         const domain = emailParts.at(1) ?? '';
 
-        if (session?.email && userEmail.toLowerCase() === session.email.toLowerCase() && !isOffline) {
-            addErrorMessage(errors, INPUT_IDS.ONBOARDING_WORK_EMAIL, translate('onboarding.workEmailValidationError.sameAsSignupEmail'));
-        } else if ((!Str.isValidEmail(userEmail) || PUBLIC_DOMAINS_SET.has(domain.toLowerCase())) && !isOffline) {
+        // AddWorkEmail can make the submitted work email the account's login, so session.email is only the signup email while it is still on a public domain
+        if ((!Str.isValidEmail(userEmail) || PUBLIC_DOMAINS_SET.has(domain.toLowerCase())) && !isOffline) {
             Log.hmmm('User is trying to add an invalid work email', {userEmail, domain});
-            addErrorMessage(errors, INPUT_IDS.ONBOARDING_WORK_EMAIL, translate('onboarding.workEmailValidationError.publicEmail'));
+            const isSignupEmail = !!session?.email && userEmail.toLowerCase() === session.email.toLowerCase();
+            addErrorMessage(
+                errors,
+                INPUT_IDS.ONBOARDING_WORK_EMAIL,
+                translate(isSignupEmail ? 'onboarding.workEmailValidationError.sameAsSignupEmail' : 'onboarding.workEmailValidationError.publicEmail'),
+            );
         }
 
         if (isOffline ?? false) {

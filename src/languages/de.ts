@@ -514,6 +514,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Vorheriges Jahr',
         nextYear: 'Nächstes Jahr',
         avatar: 'Avatar',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} von ${total}`,
         editor: 'Editor',
         restrictions: 'Beschränkungen',
         tryAgain: 'Erneut versuchen',
@@ -1922,6 +1923,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Aktivieren Sie Tags im Workspace, um die Ausgabendetails zu bearbeiten oder den Tag aus dieser Ausgabe zu löschen.',
             confirmText: 'Tag löschen',
         },
+        undeletedExpense: 'Löschvorgang für diese Ausgabe rückgängig gemacht',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `Kilometersätze für den neuen Arbeitsbereich aktualisiert – ${policyName}`,
     },
     transactionMerge: {
@@ -6670,7 +6672,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 corporate: 'Löschen von Transaktionen einschränken',
                 personal: 'Löschen von Transaktionen erlauben',
                 setFeedNameDescription: 'Gib dem Karten-Feed einen eindeutigen Namen, damit du ihn von den anderen unterscheiden kannst',
-                setTransactionLiabilityDescription: 'Wenn aktiviert, können Karteninhaber Kartentransaktionen löschen. Neue Transaktionen folgen dieser Regel.',
+                setTransactionLiabilityDescription: 'Karteninhaber können Transaktionen löschen. Gilt nur für neue Transaktionen.',
                 emptyAddedFeedTitle: 'Keine Karten in diesem Feed',
                 emptyAddedFeedDescription: 'Stelle sicher, dass sich Karten im Kartenfeed deiner Bank befinden.',
                 pendingFeedTitle: `Wir überprüfen Ihre Anfrage …`,
@@ -8315,6 +8317,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 flagAmountsOver: 'Beträge kennzeichnen über',
                 flagAmountsOverDescription: (categoryName: string) => `Gilt für die Kategorie „${categoryName}“.`,
                 flagAmountsOverSubtitle: 'Dadurch wird der Höchstbetrag für alle Ausgaben überschrieben.',
+                expenseLimitType: 'Ausgabenlimit-Typ',
                 expenseLimitTypes: {
                     expense: 'Einzelne Ausgabe',
                     expenseSubtitle:
@@ -10008,6 +10011,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         noCategory: 'Keine Kategorie',
         noMerchant: 'Kein Händler',
         noTag: 'Kein Tag',
+        noVendor: 'Kein Lieferant',
         expenseType: 'Ausgabenart',
         receiptType: 'Belegart',
         receiptTypeValues: {
