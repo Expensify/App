@@ -34,6 +34,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportActions, ReportAttributesDerivedValue, Transaction, TransactionViolation} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -731,7 +732,9 @@ export default createOnyxDerivedValueConfig({
             const parentReportAction = report.parentReportActionID
                 ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID]
                 : undefined;
-            if (isDeletedAction(parentReportAction)) {
+            // `isDeletedAction` treats a missing action as deleted, so check for one first — otherwise a parent action that
+            // simply hasn't loaded yet silently suppresses error propagation for its child.
+            if (!isEmptyObject(parentReportAction) && isDeletedAction(parentReportAction)) {
                 continue;
             }
 
