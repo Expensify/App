@@ -12839,6 +12839,305 @@ describe('ReportUtils', () => {
             expect(result?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.TASK);
         });
 
+        describe('unread mention priority', () => {
+            const otherUserAccountID = 99;
+
+            /** Builds a comment from another user that mentions the current user. */
+            const buildMentionAction = (reportActionID: string, created: string): ReportAction => ({
+                ...createRandomReportAction(42100),
+                reportActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID: otherUserAccountID,
+                created,
+                pendingAction: null,
+                message: [{html: `<mention-user>@${currentUserEmail}</mention-user>`, text: `@${currentUserEmail}`, type: 'COMMENT'}],
+                originalMessage: {
+                    html: `<mention-user>@${currentUserEmail}</mention-user>`,
+                    whisperedTo: [],
+                    mentionedAccountIDs: [currentUserAccountID],
+                },
+            });
+
+            it('should return the Task badge instead of an older unread mention', async () => {
+                // Given a chat with an outstanding task and an unread mention that is older than the task
+                const mentionAction = buildMentionAction('mention-older-than-task', '2024-01-01 00:00:00.000');
+                const taskAction: ReportAction = {
+                    reportActionID: 'task-newer-than-mention',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
+                    childType: CONST.REPORT.TYPE.TASK,
+                    childReportID: 'task-report-mention-priority',
+                    childManagerAccountID: currentUserAccountID,
+                    created: '2024-01-02 00:00:00.000',
+                    originalMessage: {
+                        assigneeAccountID: currentUserAccountID,
+                        cardID: 99003,
+                    },
+                };
+                const workspaceChat = {
+                    ...createPolicyExpenseChat(42101),
+                    hasOutstandingChildTask: true,
+                    lastReadTime: '2023-12-31 00:00:00.000',
+                    lastMentionedTime: mentionAction.created,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChat.reportID}`, {
+                    [mentionAction.reportActionID]: mentionAction,
+                    [taskAction.reportActionID]: taskAction,
+                });
+                await waitForBatchedUpdates();
+
+                // When the reason is retrieved
+                const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID);
+
+                // Then the action badge wins over the mention, even though the mention came first
+                expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
+                expect(result?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.TASK);
+                expect(result?.reportAction?.reportActionID).toBe('task-newer-than-mention');
+            });
+
+            it('should return the IOU badge instead of an unread mention', async () => {
+                // Given a chat with an IOU preview the current user has to pay and an unread mention
+                const iouReportID = 'iou-report-mention-priority';
+                const mentionAction = buildMentionAction('mention-with-iou', '2024-01-01 00:00:00.000');
+                const iouAction: ReportAction = {
+                    reportActionID: 'iou-action-with-mention',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                    childType: CONST.REPORT.TYPE.IOU,
+                    childReportID: iouReportID,
+                    childManagerAccountID: currentUserAccountID,
+                    created: '2024-01-02 00:00:00.000',
+                    message: [{html: 'iou preview', text: 'iou preview', type: 'COMMENT'}],
+                };
+                const workspaceChat = {
+                    ...createPolicyExpenseChat(42102),
+                    hasOutstandingChildRequest: true,
+                    iouReportID,
+                    lastReadTime: '2023-12-31 00:00:00.000',
+                    lastMentionedTime: mentionAction.created,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChat.reportID}`, {
+                    [mentionAction.reportActionID]: mentionAction,
+                    [iouAction.reportActionID]: iouAction,
+                });
+                await waitForBatchedUpdates();
+
+                // When the reason is retrieved
+                const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID);
+
+                // Then the Pay badge is shown and links to the IOU preview
+                expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
+                expect(result?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.PAY);
+                expect(result?.reportAction?.reportActionID).toBe('iou-action-with-mention');
+            });
+
+            it('should link the green dot to the oldest unread mention when there is no action badge', async () => {
+                // Given a chat with a read mention, two unread mentions and an unread comment without a mention
+                const readMention = buildMentionAction('read-mention', '2024-01-01 00:00:00.000');
+                const oldestUnreadMention = buildMentionAction('oldest-unread-mention', '2024-01-03 00:00:00.000');
+                const newestUnreadMention = buildMentionAction('newest-unread-mention', '2024-01-04 00:00:00.000');
+                const unreadComment: ReportAction = {
+                    ...buildMentionAction('unread-comment-without-mention', '2024-01-02 12:00:00.000'),
+                    message: [{html: 'no mention here', text: 'no mention here', type: 'COMMENT'}],
+                    originalMessage: {html: 'no mention here', whisperedTo: [], mentionedAccountIDs: []},
+                };
+                const report: Report = {
+                    ...createRandomReport(42103, CONST.REPORT.CHAT_TYPE.GROUP),
+                    lastReadTime: '2024-01-02 00:00:00.000',
+                    lastMentionedTime: newestUnreadMention.created,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [readMention.reportActionID]: readMention,
+                    [oldestUnreadMention.reportActionID]: oldestUnreadMention,
+                    [newestUnreadMention.reportActionID]: newestUnreadMention,
+                    [unreadComment.reportActionID]: unreadComment,
+                });
+                await waitForBatchedUpdates();
+
+                // When the reason is retrieved
+                const result = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID);
+
+                // Then the mention reason is returned with the oldest unread mention, so the LHN can deep link to it
+                expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_UNREAD_WITH_MENTION);
+                expect(result?.actionBadge).toBeUndefined();
+                expect(result?.reportAction?.reportActionID).toBe('oldest-unread-mention');
+            });
+
+            it('should return the IOU action instead of an unread mention when the outstanding child request has no badge', async () => {
+                // Given a chat flagged with an outstanding child request but no IOU preview to badge, plus an unread mention
+                const mentionAction = buildMentionAction('mention-without-badge', '2024-01-01 00:00:00.000');
+                const workspaceChat = {
+                    ...createPolicyExpenseChat(42104),
+                    hasOutstandingChildRequest: true,
+                    lastReadTime: '2023-12-31 00:00:00.000',
+                    lastMentionedTime: mentionAction.created,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChat.reportID}`, {
+                    [mentionAction.reportActionID]: mentionAction,
+                });
+                await waitForBatchedUpdates();
+
+                // When the reason is retrieved
+                const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID);
+
+                // Then the IOU action still wins over the mention, even though no badge could be computed for it
+                expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
+                expect(result?.actionBadge).toBeUndefined();
+            });
+
+            it('should still require attention for an invoice room with an unread mention', async () => {
+                // Given an invoice room with no missing bank account and an unread mention
+                const mentionAction = buildMentionAction('mention-in-invoice-room', '2024-01-01 00:00:00.000');
+                const invoiceRoom: Report = {
+                    ...createRandomReport(42105, CONST.REPORT.CHAT_TYPE.INVOICE),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    lastReadTime: '2023-12-31 00:00:00.000',
+                    lastMentionedTime: mentionAction.created,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoiceRoom.reportID}`, invoiceRoom);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${invoiceRoom.reportID}`, {
+                    [mentionAction.reportActionID]: mentionAction,
+                });
+                await waitForBatchedUpdates();
+
+                // When the reason is retrieved
+                const result = getReasonAndReportActionThatRequiresAttention(invoiceRoom, currentUserEmail, currentUserAccountID);
+
+                // Then the mention still returns a reason instead of the invoice room branch returning null
+                expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_UNREAD_WITH_MENTION);
+                expect(result?.reportAction?.reportActionID).toBe('mention-in-invoice-room');
+            });
+
+            it('should skip mentions the current user wrote, deleted mentions and mentions hidden from the current user', async () => {
+                // Given older unread mentions the LHN can't link to, and one newer unread mention it can
+                const ownMention: ReportAction = {...buildMentionAction('own-mention', '2024-01-01 00:00:00.000'), actorAccountID: currentUserAccountID};
+                const deletedMention: ReportAction = {
+                    ...buildMentionAction('deleted-mention', '2024-01-02 00:00:00.000'),
+                    message: [{html: '', text: '', type: 'COMMENT', deleted: '2024-01-02 00:00:01.000'}],
+                };
+                const pendingDeleteMention: ReportAction = {
+                    ...buildMentionAction('pending-delete-mention', '2024-01-03 00:00:00.000'),
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                };
+                const whisperToOthersMention: ReportAction = {
+                    ...buildMentionAction('whisper-to-others-mention', '2024-01-04 00:00:00.000'),
+                    originalMessage: {
+                        html: `<mention-user>@${currentUserEmail}</mention-user>`,
+                        whisperedTo: [otherUserAccountID],
+                        mentionedAccountIDs: [currentUserAccountID],
+                    },
+                };
+                const visibleMention = buildMentionAction('visible-mention', '2024-01-05 00:00:00.000');
+                const report: Report = {
+                    ...createRandomReport(42106, CONST.REPORT.CHAT_TYPE.GROUP),
+                    lastReadTime: '2023-12-31 00:00:00.000',
+                    lastMentionedTime: visibleMention.created,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [ownMention.reportActionID]: ownMention,
+                    [deletedMention.reportActionID]: deletedMention,
+                    [pendingDeleteMention.reportActionID]: pendingDeleteMention,
+                    [whisperToOthersMention.reportActionID]: whisperToOthersMention,
+                    [visibleMention.reportActionID]: visibleMention,
+                });
+                await waitForBatchedUpdates();
+
+                // When the reason is retrieved
+                const result = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID);
+
+                // Then the green dot links to the only mention the user can see and act on
+                expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_UNREAD_WITH_MENTION);
+                expect(result?.reportAction?.reportActionID).toBe('visible-mention');
+            });
+
+            it('should link the green dot to an unread @here mention', async () => {
+                // Given a chat whose only unread mention is an @here mention
+                const hereMention: ReportAction = {
+                    ...buildMentionAction('here-mention', '2024-01-01 00:00:00.000'),
+                    message: [{html: '<mention-here>@here</mention-here>', text: '@here', type: 'COMMENT'}],
+                    originalMessage: {html: '<mention-here>@here</mention-here>', whisperedTo: [], mentionedAccountIDs: []},
+                };
+                const report: Report = {
+                    ...createRandomReport(42107, CONST.REPORT.CHAT_TYPE.GROUP),
+                    lastReadTime: '2023-12-31 00:00:00.000',
+                    lastMentionedTime: hereMention.created,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [hereMention.reportActionID]: hereMention,
+                });
+                await waitForBatchedUpdates();
+
+                // When the reason is retrieved
+                const result = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID);
+
+                // Then @here counts as a mention of the current user, so the green dot links to it
+                expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_UNREAD_WITH_MENTION);
+                expect(result?.reportAction?.reportActionID).toBe('here-mention');
+            });
+
+            it('should match a mention by the passed account ID instead of the session account ID', async () => {
+                // Given a mention that only carries an account ID that differs from the session's account ID, so it can
+                // only match if the passed currentUserAccountID is used
+                const passedAccountID = 4242;
+                const accountIDOnlyMention: ReportAction = {
+                    ...buildMentionAction('account-id-only-mention', '2024-01-01 00:00:00.000'),
+                    message: [{html: 'hi', text: 'hi', type: 'COMMENT'}],
+                    originalMessage: {html: 'hi', whisperedTo: [], mentionedAccountIDs: [passedAccountID]},
+                };
+                const report: Report = {
+                    ...createRandomReport(42108, CONST.REPORT.CHAT_TYPE.GROUP),
+                    lastReadTime: '2023-12-31 00:00:00.000',
+                    lastMentionedTime: accountIDOnlyMention.created,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [accountIDOnlyMention.reportActionID]: accountIDOnlyMention,
+                });
+                await waitForBatchedUpdates();
+
+                // When the reason is retrieved with that account ID
+                const result = getReasonAndReportActionThatRequiresAttention(report, 'someone-else@example.com', passedAccountID);
+
+                // Then the mention is found through the passed account ID
+                expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_UNREAD_WITH_MENTION);
+                expect(result?.reportAction?.reportActionID).toBe('account-id-only-mention');
+            });
+
+            it('should return the assignee expense action instead of an unread mention when it has no badge', async () => {
+                // Given a processing expense report the current user manages without parent access, with no policy loaded
+                // so no badge can be computed, plus an unread mention
+                const mentionAction = buildMentionAction('mention-on-assignee-expense', '2024-01-01 00:00:00.000');
+                const expenseReport: Report = {
+                    ...createExpenseReport(42109),
+                    policyID: 'policy-not-loaded-mention-priority',
+                    hasParentAccess: false,
+                    managerID: currentUserAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    lastReadTime: '2023-12-31 00:00:00.000',
+                    lastMentionedTime: mentionAction.created,
+                };
+                await Onyx.merge(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
+                    [mentionAction.reportActionID]: mentionAction,
+                });
+                await waitForBatchedUpdates();
+
+                // When the reason is retrieved
+                const result = getReasonAndReportActionThatRequiresAttention(expenseReport, currentUserEmail, currentUserAccountID);
+
+                // Then the assignee expense action still wins over the mention, even without a badge
+                expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
+                expect(result?.actionBadge).toBeUndefined();
+            });
+        });
+
         it('should return the IOU badge when task action has no childManagerAccountID (backend bug before opening report)', async () => {
             const iouReportID = 'iou-report-for-missing-manager';
 
