@@ -468,9 +468,9 @@ function getNiceValueTicks(domain: [number, number], tickCount: number): number[
  * Horizontal plot bounds of a vertical bar chart for a container width, mirroring victory-native's layout.
  * Deriving it from the width (not post-mount) lets the wrapper re-decide orientation on every resize.
  */
-function getVerticalBarPlotBounds(chartWidth: number, paddingLeft: number): {left: number; right: number; width: number} {
-    const left = paddingLeft + VictoryTheme.axis.labelGap;
-    const right = Math.max(left, chartWidth - VictoryTheme.axis.padding.right);
+function getVerticalBarPlotBounds(chartWidth: number, paddingRight: number): {left: number; right: number; width: number} {
+    const left = VictoryTheme.axis.padding.left;
+    const right = Math.max(left, chartWidth - paddingRight - VictoryTheme.axis.labelGap);
     return {left, right, width: right - left};
 }
 
