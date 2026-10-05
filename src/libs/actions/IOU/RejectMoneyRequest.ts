@@ -86,7 +86,6 @@ type RejectMoneyRequestOptions = {
 type RejectMoneyRequestRulesAndOptions = {
     rules: OnyxCollection<OnyxTypes.Rule>;
     options?: RejectMoneyRequestOptions;
-    // Expenses currently on the report being rejected from, used to tell if more than one expense remains.
     reportTransactionsCollection: Record<string, OnyxTypes.Transaction>;
 };
 
@@ -131,7 +130,6 @@ type PrepareRejectMoneyRequestDataParams = {
     rules: OnyxCollection<OnyxTypes.Rule>;
     options?: RejectMoneyRequestOptions;
     shouldUseBulkAction?: boolean;
-    // Expenses currently on the report being rejected from, used to tell if more than one expense remains.
     reportTransactionsCollection: Record<string, OnyxTypes.Transaction>;
 };
 
