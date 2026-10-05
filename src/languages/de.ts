@@ -4900,22 +4900,14 @@ ${amount} für ${merchant} – ${date}`,
             description: 'Großartige Neuigkeiten 🎉. Kontaktiere uns, wenn sie Hilfe bei der Einrichtung benötigen.',
         },
         mcp: {
-            connectors: 'Konnektoren',
-            connectorsSubtitle: 'Verbinde einen KI-Assistenten mit deinem Expensify-Konto.',
-            connect: 'Verbinden',
-            helpPrompt: 'Brauchst du Hilfe beim Verbinden?',
-            helpLink: 'Lies unsere Anleitung.',
             claude: {
                 title: 'Claude',
-                subtitle: 'von Anthropic',
             },
             cursor: {
                 title: 'Cursor',
-                subtitle: 'von Anysphere',
             },
             chatgpt: {
                 title: 'ChatGPT',
-                subtitle: 'von OpenAI',
             },
         },
         receiptPartners: {
@@ -8998,6 +8990,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             suggestIntegration: 'Sie sehen Ihre nicht? Schlagen Sie eine Integration vor, wir schauen sie uns an.',
             noResultsPrompt: 'Bitte passen Sie Ihre Suche an oder',
             suggestAnIntegration: 'Integration vorschlagen',
+            noResultsPromptEnd: '.',
             allConnectedTitle: 'Sie sind vollständig verbunden',
             allConnectedPrompt: 'Hier ist bereits alles verbunden. Sie können auch',
         },

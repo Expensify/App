@@ -147,6 +147,7 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
             shouldBeBlocked={!config}
         >
             <ScreenWrapper

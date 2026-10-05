@@ -4832,22 +4832,14 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             description: '素晴らしいニュースです 🎉。セットアップにサポートが必要な場合はお問い合わせください。',
         },
         mcp: {
-            connectors: 'コネクタ',
-            connectorsSubtitle: 'AIアシスタントをExpensifyアカウントに接続します。',
-            connect: '接続',
-            helpPrompt: '接続にお困りですか？',
-            helpLink: 'ガイドをご覧ください。',
             claude: {
                 title: 'Claude',
-                subtitle: 'Anthropic 提供',
             },
             cursor: {
                 title: 'Cursor',
-                subtitle: 'Anysphere 提供',
             },
             chatgpt: {
                 title: 'ChatGPT',
-                subtitle: 'OpenAI 提供',
             },
         },
         receiptPartners: {
@@ -8822,6 +8814,7 @@ ${reportName}`,
             suggestIntegration: 'お探しのものが見つかりませんか？連携を提案してください、こちらで検討します。',
             noResultsPrompt: '検索条件を調整するか',
             suggestAnIntegration: '連携を提案する',
+            noResultsPromptEnd: '。',
             allConnectedTitle: 'すべて接続されました',
             allConnectedPrompt: 'ここにあるものはすべてすでに連携されています。さらに、次のこともできます',
         },
