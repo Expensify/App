@@ -8080,6 +8080,7 @@ const CONST = {
             CATEGORY: 'category',
             TAG: 'tag',
             VENDOR: 'vendor',
+            MCC: 'mcc',
             TAX_RATE: 'taxRate',
             CARD_ID: 'cardID',
             FEED: 'feed',

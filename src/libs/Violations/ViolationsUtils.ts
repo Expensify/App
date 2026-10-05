@@ -279,7 +279,20 @@ function formatViolationDate(date: string | undefined, dateFnsLocale: DateFnsLoc
     return DateUtils.formatWithUTCTimeZone(date, CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale);
 }
 
-const RULE_VIOLATION_FILTER_ORDER = ['expenseType', 'billable', 'reimbursable', 'category', 'merchant', 'vendor', 'amount', 'tag', 'currency', 'purchaseCurrency', 'has', 'mcc'];
+const RULE_VIOLATION_FILTER_ORDER = [
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.MCC,
+];
 
 function isRuleViolationFilter(value: unknown): value is RuleFilterNode {
     return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -323,8 +336,9 @@ function buildRuleViolationMessage(
         return translate('violations.ruleViolation.fallback');
     }
 
-    const adjectives: string[] = [];
     const phrases: string[] = [];
+    const adjectives: string[] = [];
+
     let isAnyExpense = false;
     let hasMerchant = false;
 
@@ -344,7 +358,7 @@ function buildRuleViolationMessage(
         const filterValuesString = values.join(` ${translate('common.or')} `);
         const op = filter.operator;
 
-        if (filterName === 'expenseType') {
+        if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
             const expenseTypesString = values.map((value) => (value === 'perDiem' ? translate('violations.ruleViolation.perDiem') : value)).join(` ${translate('common.or')} `);
             const capitalizedExpenseTypesString = `${expenseTypesString.charAt(0).toUpperCase()}${expenseTypesString.slice(1)}`;
             if (op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
@@ -352,18 +366,18 @@ function buildRuleViolationMessage(
             } else if (op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
                 phrases.push(translate('violations.ruleViolation.notExpenseType', capitalizedExpenseTypesString));
             }
-        } else if (filterName === 'billable' || filterName === 'reimbursable') {
+        } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE) {
             if (op !== CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && op !== CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
                 continue;
             }
 
             const isTrue = (firstValue === 'yes') !== (op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO);
-            if (filterName === 'billable') {
+            if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE) {
                 adjectives.push(translate(isTrue ? 'violations.ruleViolation.billable.enabled' : 'violations.ruleViolation.billable.disabled'));
             } else {
                 adjectives.push(translate(isTrue ? 'violations.ruleViolation.reimbursable.enabled' : 'violations.ruleViolation.reimbursable.disabled'));
             }
-        } else if (filterName === 'category') {
+        } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
             if (op !== CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
                 continue;
             }
@@ -373,7 +387,7 @@ function buildRuleViolationMessage(
             } else {
                 adjectives.push(filterValuesString);
             }
-        } else if (filterName === 'merchant') {
+        } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT) {
             if (op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && hasSingleValue && firstValue === '.') {
                 isAnyExpense = true;
             } else if (op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
@@ -389,7 +403,7 @@ function buildRuleViolationMessage(
                 phrases.push(translate('violations.ruleViolation.notFromMerchantsContaining', filterValuesString));
                 hasMerchant = true;
             }
-        } else if (filterName === 'vendor') {
+        } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR) {
             if (op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
                 const vendorTranslationKey = hasMerchant ? 'violations.ruleViolation.withVendor' : 'violations.ruleViolation.fromVendor';
                 phrases.push(translate(vendorTranslationKey, filterValuesString));
@@ -397,7 +411,7 @@ function buildRuleViolationMessage(
                 const vendorTranslationKey = hasMerchant ? 'violations.ruleViolation.withoutVendor' : 'violations.ruleViolation.notFromVendor';
                 phrases.push(translate(vendorTranslationKey, filterValuesString));
             }
-        } else if (filterName === 'amount') {
+        } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
             const formattedAmountsString = values.map((value) => convertToDisplayString(Math.abs(Number(value)), currency)).join(` ${translate('common.or')} `);
             if (op === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN) {
                 phrases.push(translate('violations.ruleViolation.overAmount', formattedAmountsString));
@@ -408,7 +422,7 @@ function buildRuleViolationMessage(
             } else if (op === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO) {
                 phrases.push(translate('violations.ruleViolation.amountOrLess', formattedAmountsString));
             }
-        } else if (filterName === 'tag') {
+        } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) {
             if (op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
                 phrases.push(
                     hasSingleValue && firstValue === CONST.SEARCH.TAG_EMPTY_VALUE
@@ -416,19 +430,19 @@ function buildRuleViolationMessage(
                         : translate('violations.ruleViolation.tagged', filterValuesString),
                 );
             }
-        } else if (filterName === 'currency') {
+        } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY) {
             if (op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
                 phrases.push(translate('violations.ruleViolation.inCurrency', filterValuesString));
             } else if (op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
                 phrases.push(translate('violations.ruleViolation.notInCurrency', filterValuesString));
             }
-        } else if (filterName === 'purchaseCurrency') {
+        } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY) {
             if (op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
                 phrases.push(translate('violations.ruleViolation.paidInCurrency', filterValuesString));
             } else if (op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
                 phrases.push(translate('violations.ruleViolation.notPaidInCurrency', filterValuesString));
             }
-        } else if (filterName === 'has') {
+        } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
             const isNegated = op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO || op === 'notContains';
             if (![CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS, 'notContains'].includes(op)) {
                 continue;
@@ -437,7 +451,7 @@ function buildRuleViolationMessage(
             const attributes = values.map((value) => (value === 'attachment' ? translate('violations.ruleViolation.attachment') : translate('violations.ruleViolation.attribute', value)));
             const attributesTranslationKey = isNegated ? 'violations.ruleViolation.withoutAttributes' : 'violations.ruleViolation.withAttributes';
             phrases.push(translate(attributesTranslationKey, attributes.join(` ${translate('common.or')} `)));
-        } else if (filterName === 'mcc' && op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+        } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.MCC && op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
             phrases.push(
                 translate('violations.ruleViolation.atMerchantCode', values.map((value) => translate('violations.ruleViolation.merchantCode', value)).join(` ${translate('common.or')} `)),
             );
