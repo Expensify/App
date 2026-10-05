@@ -48,8 +48,8 @@ const translations = {
         offer: {
             heading: 'Choose your discount',
             subtitle: 'Two sweet deals for you to choose from:',
-            oneYear: 'Renew for 1 year, get 1 month free',
-            twoYears: 'Renew for 2 years, get 2 months free',
+            oneYear: 'Renew for 1 year,\nget 1 month free',
+            twoYears: 'Renew for 2 years,\nget 2 months free',
             bestDeal: 'Best deal',
             disclaimer: 'The offer above will be applied as a 9% discount to your annual subscription. Overage charges are not included.',
             renewAndClaim: 'Renew and claim discount',
