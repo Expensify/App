@@ -24,6 +24,9 @@ type WidgetHeaderMenuProps = {
     /** Styles for the trigger button, replacing its default size and margins */
     iconStyles?: StyleProp<ViewStyle>;
 
+    /** Width and height of the three-dots icon */
+    iconSize?: number;
+
     testID?: string;
     sentryLabel?: string;
 };
@@ -32,7 +35,7 @@ type WidgetHeaderMenuProps = {
  * Widget header three-dots menu: a Ghost trigger whose negative margins let it overflow the header
  * rather than grow it, so every card header keeps the same height. Built on `ThreeDotsMenu`.
  */
-function WidgetHeaderMenu({menuItems, iconStyles, testID, sentryLabel}: WidgetHeaderMenuProps) {
+function WidgetHeaderMenu({menuItems, iconStyles, iconSize = variables.iconSizeSmall, testID, sentryLabel}: WidgetHeaderMenuProps) {
     const styles = useThemeStyles();
 
     return (
@@ -42,8 +45,8 @@ function WidgetHeaderMenu({menuItems, iconStyles, testID, sentryLabel}: WidgetHe
             anchorAlignment={ANCHOR_ALIGNMENT}
             iconStyles={iconStyles ?? [styles.widgetHeaderMenuButton, styles.widgetHeaderMenuButtonWrapper]}
             iconHoverStyle={styles.widgetHeaderMenuButtonHovered}
-            iconWidth={variables.iconSizeSmall}
-            iconHeight={variables.iconSizeSmall}
+            iconWidth={iconSize}
+            iconHeight={iconSize}
             shouldChangeFillOnOpen={false}
             testID={testID}
             sentryLabel={sentryLabel}

@@ -21,6 +21,8 @@ import InsightsGroupByDropdown from '@pages/Insights/controls/InsightsGroupByDro
 import type {InsightsChartSpec} from '@pages/Insights/dashboardSpecs';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {SearchResults} from '@src/types/onyx';
@@ -75,6 +77,7 @@ function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGr
         !!queryJSON && (state === INSIGHTS_CHART_STATE.READY || isLoading) ? (
             <WidgetHeaderMenu
                 iconStyles={[styles.widgetHeaderMenuButtonSmall, styles.widgetHeaderMenuButtonSmallWrapper]}
+                iconSize={variables.iconSizeExtraSmall}
                 testID={`insightsChartMenu-${chart.graphKey}`}
                 sentryLabel="InsightsChartMenu"
                 menuItems={[
