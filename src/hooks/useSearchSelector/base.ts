@@ -32,7 +32,12 @@ type SearchSelectorContext = (typeof CONST.SEARCH_SELECTOR)[keyof Pick<
 >];
 type SearchSelectorSelectionMode = (typeof CONST.SEARCH_SELECTOR)[keyof Pick<typeof CONST.SEARCH_SELECTOR, 'SELECTION_MODE_SINGLE' | 'SELECTION_MODE_MULTI'>];
 
-type UseSearchSelectorConfig = {
+/** Multi-select preserves each participant's fields while replacing its selection flag. */
+type NewlySelectedOption<TSelected extends Option> = TSelected extends Option ? Omit<TSelected, 'isSelected'> & {isSelected: true} : never;
+
+type SelectedOption<TSelected extends Option> = TSelected | NewlySelectedOption<TSelected> | OptionData;
+
+type UseSearchSelectorConfig<TSelected extends Option = OptionData> = {
     /** Selection mode - single or multiple selection */
     selectionMode: SearchSelectorSelectionMode;
 
@@ -68,13 +73,13 @@ type UseSearchSelectorConfig = {
     getValidOptionsConfig?: Partial<GetOptionsConfig>;
 
     /** Callback when selection changes (multi-select mode) */
-    onSelectionChange?: (selected: OptionData[]) => void;
+    onSelectionChange?: (selected: Array<SelectedOption<TSelected>>) => void;
 
     /** Callback when single option is selected (single-select mode) */
-    onSingleSelect?: (option: OptionData) => void;
+    onSingleSelect?: (option: SelectedOption<TSelected>) => void;
 
     /** Initial selected options */
-    initialSelected?: OptionData[];
+    initialSelected?: TSelected[];
 
     shouldInitialize?: boolean;
 
@@ -108,7 +113,7 @@ type ContactState = {
     setContactPermissionState: (status: PermissionStatus) => void;
 };
 
-type UseSearchSelectorReturn = {
+type UseSearchSelectorReturn<TSelected extends Option = OptionData> = {
     /** Current search term */
     searchTerm: string;
 
@@ -124,18 +129,18 @@ type UseSearchSelectorReturn = {
     availableOptions: Options;
 
     /** Currently selected options. This returns all selected options and are not affected by search term */
-    selectedOptions: OptionData[];
+    selectedOptions: Array<SelectedOption<TSelected>>;
 
     /** Currently selected options used for list display. This prop can be used in selection list to display selected options that are filtered by search term */
-    selectedOptionsForDisplay: OptionData[];
+    selectedOptionsForDisplay: Array<SelectedOption<TSelected>>;
 
     /** Selected options that are not present in availableOptions.personalDetails (e.g. non-existing users invited by email). Only populated when shouldSeparateNonExistingSelectedOptions is true */
-    selectedNonExistingOptions?: OptionData[];
+    selectedNonExistingOptions?: Array<SelectedOption<TSelected>>;
 
-    setSelectedOptions: (options: OptionData[]) => void;
+    setSelectedOptions: (options: Array<SelectedOption<TSelected>>) => void;
 
     /** Function to toggle selection state of an option */
-    toggleSelection: (option: OptionData) => void;
+    toggleSelection: (option: SelectedOption<TSelected>) => void;
 
     areOptionsInitialized: boolean;
 
@@ -153,9 +158,11 @@ const CONTEXTS_APPLYING_GET_VALID_OPTIONS_CONFIG: ReadonlySet<SearchSelectorCont
     CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES,
 ]);
 
-const doOptionsMatch = (option1: OptionData, option2: OptionData) => {
+const doOptionsMatch = (option1: Pick<Option, 'accountID' | 'reportID' | 'login'>, option2: Pick<Option, 'accountID' | 'reportID' | 'login'>) => {
     return (
-        (option1.accountID && option1.accountID === option2.accountID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Falsy identifiers and failed matches must fall through to the next identity comparison.
+        (option1.accountID && option1.accountID === option2.accountID) ||
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- A missing report or failed report match must fall through to login identity.
         (option1.reportID && option1.reportID !== '-1' && option1.reportID === option2.reportID) ||
         (option1.login && option1.login === option2.login)
     );
@@ -165,7 +172,7 @@ const doOptionsMatch = (option1: OptionData, option2: OptionData) => {
  * Base hook that provides search functionality with selection logic for option lists.
  * This contains the core logic without platform-specific dependencies.
  */
-function useSearchSelectorBase({
+function useSearchSelectorBase<TSelected extends Option = OptionData>({
     selectionMode,
     maxResultsPerPage = CONST.MAX_SELECTION_LIST_PAGE_LENGTH,
     maxRecentReportsToShow,
@@ -186,13 +193,13 @@ function useSearchSelectorBase({
     shouldAllowNameOnlyOptions = false,
     shouldKeepSelectedInAvailableOptions = false,
     shouldSeparateNonExistingSelectedOptions = false,
-}: UseSearchSelectorConfig): UseSearchSelectorReturn {
+}: UseSearchSelectorConfig<TSelected>): UseSearchSelectorReturn<TSelected> {
     const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const [selectedOptions, setSelectedOptions] = useState<OptionData[]>(initialSelected ?? []);
+    const [selectedOptions, setSelectedOptions] = useState<Array<SelectedOption<TSelected>>>(initialSelected ?? []);
     const [maxResults, setMaxResults] = useState(maxResultsPerPage);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
@@ -488,7 +495,7 @@ function useSearchSelectorBase({
     /**
      * Toggle selection state of option based on selection mode
      */
-    const toggleSelection = (option: OptionData) => {
+    const toggleSelection = (option: SelectedOption<TSelected>) => {
         if (selectionMode === CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE) {
             onSingleSelect?.(option);
             return;

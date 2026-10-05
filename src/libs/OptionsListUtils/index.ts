@@ -2738,11 +2738,51 @@ function getNoneOption(searchValue: string, isSelected: boolean, translate: Loca
 /**
  * Handles the logic for displaying selected participants from the search term
  */
+// eslint-disable-next-line @typescript-eslint/max-params -- Matches the existing formatter contract. Parameter refactoring is tracked in https://github.com/Expensify/App/issues/66415
+function formatSectionsFromSearchTerm(
+    searchTerm: string,
+    selectedOptions: Array<Participant | SearchOptionData>,
+    filteredRecentReports: SearchOptionData[],
+    filteredPersonalDetails: SearchOptionData[],
+    privateIsArchivedMap: Record<string, boolean>,
+    currentUserAccountID: number,
+    allPolicies: OnyxCollection<Policy>,
+    translate: LocalizedTranslate,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
+    dateFnsLocale: DateFnsLocale | undefined,
+    // Resolves a single report by ID instead of receiving the whole reports collection, so callers only subscribe to the reports they actually need.
+    getReportByID: (reportID: string | undefined) => OnyxEntry<Report>,
+    rules: OnyxCollection<Rule>,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+    shouldGetOptionDetails: true,
+    filteredWorkspaceChats?: SearchOptionData[],
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
+): SectionForSearchTerm;
+// eslint-disable-next-line @typescript-eslint/max-params -- Matches the existing formatter contract. Parameter refactoring is tracked in https://github.com/Expensify/App/issues/66415
+function formatSectionsFromSearchTerm(
+    searchTerm: string,
+    selectedOptions: SearchOptionData[],
+    filteredRecentReports: SearchOptionData[],
+    filteredPersonalDetails: SearchOptionData[],
+    privateIsArchivedMap: Record<string, boolean>,
+    currentUserAccountID: number,
+    allPolicies: OnyxCollection<Policy>,
+    translate: LocalizedTranslate,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
+    dateFnsLocale: DateFnsLocale | undefined,
+    // Resolves a single report by ID instead of receiving the whole reports collection, so callers only subscribe to the reports they actually need.
+    getReportByID: (reportID: string | undefined) => OnyxEntry<Report>,
+    rules: OnyxCollection<Rule>,
+    personalDetails?: OnyxEntry<PersonalDetailsList>,
+    shouldGetOptionDetails?: boolean,
+    filteredWorkspaceChats?: SearchOptionData[],
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
+): SectionForSearchTerm;
 // We'll refactor this function to have less parameters in the future (https://github.com/Expensify/App/issues/66415)
 // eslint-disable-next-line @typescript-eslint/max-params
 function formatSectionsFromSearchTerm(
     searchTerm: string,
-    selectedOptions: SearchOptionData[],
+    selectedOptions: Array<Participant | SearchOptionData>,
     filteredRecentReports: SearchOptionData[],
     filteredPersonalDetails: SearchOptionData[],
     privateIsArchivedMap: Record<string, boolean>,
@@ -2758,7 +2798,7 @@ function formatSectionsFromSearchTerm(
     shouldGetOptionDetails = false,
     filteredWorkspaceChats: SearchOptionData[] = [],
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
-): SectionForSearchTerm {
+): {section: Omit<SectionForSearchTerm['section'], 'data'> & {data: Array<Participant | SectionForSearchTerm['section']['data'][number]>}} {
     // We show the selected participants at the top of the list when there is no search term or maximum number of participants has already been selected
     // However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results
     // This clears up space on mobile views, where if you create a group with 4+ people you can't see the selected participants and the search results at the same time

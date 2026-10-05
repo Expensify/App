@@ -4253,7 +4253,7 @@ function sortIconsByName(icons: Icon[], personalDetails: OnyxInputOrEntry<Person
 }
 
 function getDisplayNamesWithTooltips(
-    personalDetailsList: PersonalDetails[] | PersonalDetailsList | OptionData[],
+    personalDetailsList: Array<Pick<Partial<OptionData>, 'accountID' | 'login' | 'avatar' | 'pronouns'>> | PersonalDetailsList,
     shouldUseShortForm: boolean,
     localeCompare: LocaleContextProps['localeCompare'],
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
