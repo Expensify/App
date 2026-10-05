@@ -133,7 +133,7 @@ const DISCONNECT_RESULT = {
 
     /**
      * The server ended the copilot session, but restoring the original session threw partway. SESSION is written first,
-     * so it most likely holds the original account already; if not, the next request reauthenticates with the stash.
+     * so it most likely holds the original account already. If not, the next request reauthenticates with the stash.
      */
     RESTORE_INTERRUPTED: 'restoreInterrupted',
 
@@ -371,7 +371,7 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams): Pro
                 return DISCONNECT_RESULT.RESTORE_INTERRUPTED;
             });
         },
-        // Only a failed request leaves the copilot session untouched; errors thrown while restoring are handled above
+        // Only a failed request leaves the copilot session untouched. Errors thrown while restoring are handled above.
         (error) => {
             Log.alert('[Delegate] Error disconnecting as a delegate', {error});
             return DISCONNECT_RESULT.FAILED;
