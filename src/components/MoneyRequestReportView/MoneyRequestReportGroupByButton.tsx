@@ -57,6 +57,7 @@ function MoneyRequestReportGroupByButton({currentSelection, onSelect}: MoneyRequ
         text: item.text,
         keyForList: item.value,
         isSelected: item.value === currentSelection,
+        itemStyle: shouldUseNarrowLayout ? undefined : styles.optionRowCompact,
     }));
 
     const groupByPopoverComponent = (props: {closeOverlay: () => void}) => (
@@ -81,7 +82,7 @@ function MoneyRequestReportGroupByButton({currentSelection, onSelect}: MoneyRequ
                         onSelect(item.keyForList);
                         props.closeOverlay();
                     }}
-                    style={{contentContainerStyle: [styles.pb0], listItemWrapperStyle: shouldUseNarrowLayout ? undefined : styles.optionRowCompact}}
+                    style={{contentContainerStyle: [styles.pb0]}}
                 />
             </View>
         </View>
