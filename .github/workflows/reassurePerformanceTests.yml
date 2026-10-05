@@ -12,10 +12,22 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Two shards per side. seedJestPerfCache.yml must use the same patterns (jestPerfCacheKey.test.ts checks).
+# The second is a complement, so new perf files need no edit here.
+# --testPathPattern, not --testPathIgnorePatterns: the latter changes the transform-cache key.
+env:
+  REASSURE_SHARD_SELECTION_LIST: '/SelectionList\.perf-test\.tsx$'
+  REASSURE_SHARD_ALL_EXCEPT_SELECTION_LIST: '^(?!.*/SelectionList\.perf-test\.tsx$)'
+
 jobs:
   baseline-perf-tests:
+    name: baseline-perf-tests (${{ matrix.shard }})
     if: ${{ github.actor != 'OSBotify' }}
     runs-on: blacksmith-4vcpu-ubuntu-2404
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [selection-list, all-except-selection-list]
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
@@ -47,7 +59,8 @@ jobs:
         uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb
         with:
           path: .reassure/baseline.perf
-          key: ${{ format('{0}-{1}-reassure-baseline-{2}', runner.os, runner.arch, steps.baselineCommit.outputs.sha) }}
+          # One entry per shard, written by the seed.
+          key: ${{ format('{0}-{1}-reassure-baseline-{2}-{3}', runner.os, runner.arch, steps.baselineCommit.outputs.sha, matrix.shard) }}
 
       # A miss is otherwise silent, and reads the same whether nothing was written or the key drifted.
       - name: Report where the baseline came from
@@ -55,11 +68,12 @@ jobs:
         env:
           BASELINE_SHA: ${{ steps.baselineCommit.outputs.sha }}
           CACHE_HIT: ${{ steps.restoreBaseline.outputs.cache-hit }}
+          SHARD: ${{ matrix.shard }}
         run: |
           if [[ "$CACHE_HIT" == "true" ]]; then
-            echo "::notice::Restored main's baseline for $BASELINE_SHA from the cache; not measuring it here."
+            echo "::notice::Restored main's $SHARD baseline for $BASELINE_SHA from the cache; not measuring it here."
           else
-            echo "::warning::No cached baseline for $BASELINE_SHA - measuring it in this job. Expected when the seed run on that commit has not finished or failed; otherwise seedJestPerfCache.yml has stopped writing the entry."
+            echo "::warning::No cached $SHARD baseline for $BASELINE_SHA - measuring it in this job. Expected when the seed run on that commit has not finished or failed; otherwise seedJestPerfCache.yml has stopped writing the entry."
           fi
 
       - name: Check out the baseline commit
@@ -103,7 +117,10 @@ jobs:
       - name: Run baseline performance tests
         if: steps.restoreBaseline.outputs.cache-hit != 'true'
         shell: bash
-        run: NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
+        env:
+          PATTERN: ${{ matrix.shard == 'selection-list' && env.REASSURE_SHARD_SELECTION_LIST || env.REASSURE_SHARD_ALL_EXCEPT_SELECTION_LIST }}
+        # Inner quotes needed: Reassure passes these args to /bin/sh unquoted.
+        run: NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline -- --testPathPattern "'$PATTERN'"
 
       # Compare against the seed job's notice on a recent push to main: near zero means the seed
       # stopped running, roughly double means a second transform set is being written.
@@ -120,13 +137,18 @@ jobs:
         # v6
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
-          name: reassure-baseline-results
+          name: reassure-baseline-results-${{ matrix.shard }}
           path: ./.reassure/baseline.perf
           include-hidden-files: true
 
   branch-perf-tests:
+    name: branch-perf-tests (${{ matrix.shard }})
     if: ${{ github.actor != 'OSBotify' }}
     runs-on: blacksmith-4vcpu-ubuntu-2404
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [selection-list, all-except-selection-list]
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
@@ -159,7 +181,9 @@ jobs:
         env:
           BRANCH: ${{ github.head_ref }}
           COMMIT_HASH: ${{ github.event.pull_request.head.sha }}
-        run: NODE_OPTIONS=--experimental-vm-modules npx reassure --branch="$BRANCH" --commit-hash="$COMMIT_HASH" --no-compare
+          PATTERN: ${{ matrix.shard == 'selection-list' && env.REASSURE_SHARD_SELECTION_LIST || env.REASSURE_SHARD_ALL_EXCEPT_SELECTION_LIST }}
+        # Quoting as in baseline-perf-tests.
+        run: NODE_OPTIONS=--experimental-vm-modules npx reassure --branch="$BRANCH" --commit-hash="$COMMIT_HASH" --no-compare -- --testPathPattern "'$PATTERN'"
 
       # Compare against the seed job's notice on a recent push to main: near zero means the seed
       # stopped running, roughly double means a second transform set is being written.
@@ -176,7 +200,7 @@ jobs:
         # v6
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
-          name: reassure-branch-results
+          name: reassure-branch-results-${{ matrix.shard }}
           path: ./.reassure/current.perf
           include-hidden-files: true
 
@@ -191,19 +215,56 @@ jobs:
       - name: Setup NodeJS
         uses: ./.github/actions/composite/setupNode
 
+      # One directory per shard artifact.
       - name: Download baseline performance results
         # v7
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
-          name: reassure-baseline-results
-          path: ./.reassure
+          pattern: reassure-baseline-results-*
+          path: ./shards/baseline
 
       - name: Download branch performance results
         # v7
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
-          name: reassure-branch-results
-          path: ./.reassure
+          pattern: reassure-branch-results-*
+          path: ./shards/branch
+
+      # compare() reports a scenario measured on one side only as Added/Removed, which nothing gates, so
+      # the merge checks the shard set itself: every shard present (a measure job that lost its matrix
+      # runs the complement pattern alone), every shard non-empty (a pattern no file matches), and no
+      # scenario in two shards (compare() keeps the last entry per name, which would hide the overlap).
+      - name: Merge the shard results
+        shell: bash
+        run: |
+          shopt -s nullglob
+          mkdir -p .reassure
+          # One REASSURE_SHARD_* variable per matrix entry; jestPerfCacheKey.test.ts keeps the two in step.
+          EXPECTED_SHARDS=$(compgen -v REASSURE_SHARD_ | wc -l | tr -d ' ')
+          merge() {
+            FILES=(shards/"$1"/*/"$2")
+            if [[ ${#FILES[@]} -ne "$EXPECTED_SHARDS" ]]; then
+              echo "::error::Expected $EXPECTED_SHARDS $1 shards, found ${#FILES[@]}: ${FILES[*]:-none}"
+              exit 1
+            fi
+            for FILE in "${FILES[@]}"; do
+              if ! grep -q '"meanDuration"' "$FILE"; then
+                echo "::error::$FILE holds no measurements: its shard pattern matched no test file"
+                exit 1
+              fi
+            done
+            # Keep the first header only.
+            cat "${FILES[@]}" | awk 'NR==1 || !/^\{"metadata"/' > ".reassure/$2"
+            # Annotations end at the first newline.
+            DUPLICATES=$(jq -r '.name // empty' ".reassure/$2" | sort | uniq -d | paste -sd ';' -)
+            if [[ -n "$DUPLICATES" ]]; then
+              echo "::error::$(tr ';' '\n' <<< "$DUPLICATES" | wc -l | tr -d ' ') scenarios measured in more than one $1 shard: ${DUPLICATES//;/, }"
+              exit 1
+            fi
+            echo "::notice::Merged $1: ${#FILES[@]} shards, $(grep -c '"meanDuration"' ".reassure/$2") scenarios"
+          }
+          merge baseline baseline.perf
+          merge branch current.perf
 
       - name: Compare performance results
         run: node -e "require('@callstack/reassure-compare').compare().catch((error) => { console.error(error); process.exit(1); })"
