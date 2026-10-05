@@ -671,7 +671,7 @@ describe('TodosUtils export bucket', () => {
     const OTHER_USER_EMAIL = 'other@mail.com';
 
     // Every connection but NetSuite counts as verified only once it has a lastSync
-    const LAST_SYNC = {isConnected: true, isSuccessful: true, isAuthenticationError: false, source: 'DIRECT'};
+    const LAST_SYNC = {isConnected: true, isSuccessful: true, isAuthenticationError: false, source: 'DIRECT'} as const;
 
     // Each integration keeps its exporter in a different place, so the rule has to read all of them.
     const EXPORTER_BUILDERS: Array<[string, (exporter: string) => Policy['connections']]> = [
