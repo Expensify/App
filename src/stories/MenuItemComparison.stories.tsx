@@ -1,12 +1,10 @@
 /* eslint-disable rulesdir/prefer-actions-set-data -- stories seed Onyx directly so the ID-driven avatar cases render real data */
 import UserAvatar from '@components/Avatar/UserAvatar';
 import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
-import Badge from '@components/Badge';
 import Button from '@components/Button';
 import CompactMenuContext from '@components/CompactMenuContext';
 import DisplayNames from '@components/DisplayNames';
 import type {DisplayNameWithTooltip} from '@components/DisplayNames/types';
-import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemAvatarNavigation from '@components/MenuItem/presets/MenuItemAvatarNavigation';
@@ -158,111 +156,6 @@ function Comparison() {
     return (
         <View style={[styles.p4, styles.flexRow, styles.flexWrap, styles.gap4]}>
             <SectionHeading title="Phase 4 - styles" />
-
-            <Card
-                title="Centered headline with further details (report name)"
-                note="titleContainerStyle is gone, so the legacy side can only show the shape without the centering column it gave the text"
-                legacy={
-                    <MenuItemWithTopDescription
-                        title="Weekend trip to the lake"
-                        titleStyle={[styles.newKansasLarge, styles.textAlignCenter]}
-                        furtherDetails="in #admins"
-                        shouldShowRightIcon
-                        onPress={noop}
-                        numberOfLinesTitle={0}
-                        shouldBreakWord
-                    />
-                }
-                composable={
-                    <MenuItem.Root
-                        onPress={noop}
-                        accessibilityLabel="Weekend trip to the lake"
-                    >
-                        <MenuItem.Row>
-                            <MenuItem.Content>
-                                <View style={[styles.gap1, styles.alignItemsCenter, styles.mrn3]}>
-                                    <Text style={[styles.popoverMenuText, styles.preWrap, styles.breakWord, styles.newKansasLarge, styles.textAlignCenter]}>Weekend trip to the lake</Text>
-                                    <Text
-                                        style={styles.textLabelSupporting}
-                                        numberOfLines={2}
-                                    >
-                                        in #admins
-                                    </Text>
-                                </View>
-                            </MenuItem.Content>
-                            <MenuItem.Trailing>
-                                <MenuItem.Chevron />
-                            </MenuItem.Trailing>
-                        </MenuItem.Row>
-                    </MenuItem.Root>
-                }
-            />
-
-            <Card
-                title="Avatar, badge, brick road, right component and error (receipt partner)"
-                note="titleContainerStyle is gone, so the legacy side shows the row without the pr2 the text column had"
-                legacy={
-                    <MenuItem
-                        icon={icons.FallbackAvatar}
-                        iconType={CONST.ICON_TYPE_AVATAR}
-                        interactive={false}
-                        title="Uber for Business"
-                        description="Automate travel and meal expenses"
-                        numberOfLinesDescription={5}
-                        badgeText="Save 5%"
-                        badgeStyle={styles.mr3}
-                        isBadgeSuccess
-                        brickRoadIndicator={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}
-                        shouldShowRightComponent
-                        rightComponent={
-                            <Button
-                                size={CONST.BUTTON_SIZE.SMALL}
-                                onPress={noop}
-                            >
-                                <Button.Text>Set up</Button.Text>
-                            </Button>
-                        }
-                        errorText="Authentication error"
-                        errorTextStyle={styles.mt3}
-                    />
-                }
-                composable={
-                    <MenuItem.Root>
-                        <MenuItem.Row>
-                            <MenuItem.Leading>
-                                <UserAvatar
-                                    source={icons.FallbackAvatar}
-                                    accountID={CONST.DEFAULT_NUMBER_ID}
-                                />
-                            </MenuItem.Leading>
-                            <MenuItem.Content>
-                                <MenuItem.Title>Uber for Business</MenuItem.Title>
-                                <MenuItem.Description numberOfLines={5}>Automate travel and meal expenses</MenuItem.Description>
-                            </MenuItem.Content>
-                            <MenuItem.Trailing>
-                                <Badge
-                                    text="Save 5%"
-                                    success
-                                    badgeStyles={[styles.ml0, styles.mr1]}
-                                />
-                                <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
-                                <Button
-                                    size={CONST.BUTTON_SIZE.SMALL}
-                                    onPress={noop}
-                                >
-                                    <Button.Text>Set up</Button.Text>
-                                </Button>
-                            </MenuItem.Trailing>
-                        </MenuItem.Row>
-                        <FormHelpMessage
-                            isError
-                            shouldShowRedDotIndicator={false}
-                            message="Authentication error"
-                            style={[styles.menuItemError, styles.mt3]}
-                        />
-                    </MenuItem.Root>
-                }
-            />
 
             <Card
                 title="description, numberOfLinesTitle, title"

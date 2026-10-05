@@ -1,3 +1,4 @@
+/** Contract between the receipt partners page and the per-partner connection rows it renders */
 import type CONST from '@src/CONST';
 
 import type {ComponentType} from 'react';
