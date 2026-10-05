@@ -155,12 +155,10 @@ function TagPicker({
         translate,
         shouldShowGLCode,
     });
-    const sections = shouldOrderListByTagName
-        ? tagSections.map((option) => ({
-              ...option,
-              data: option.data.sort((a, b) => localeCompare(a.text ?? '', b.text ?? '')),
-          }))
-        : tagSections;
+    const sections = tagSections.map((section) => ({
+        ...section,
+        data: (shouldOrderListByTagName ? section.data.sort((a, b) => localeCompare(a.text ?? '', b.text ?? '')) : section.data).map((tag) => ({...tag, titleStyles: styles.w100})),
+    }));
 
     const selectedOptionKey = sections.at(0)?.data?.find((policyTag) => policyTag.searchText === selectedTag)?.keyForList;
 
@@ -178,16 +176,12 @@ function TagPicker({
         <SelectionListWithSections
             sections={sections}
             ListItem={SingleSelectListItem}
-            style={{
-                sectionTitleStyles: styles.mt5,
-                listItemTitleStyles: styles.w100,
-            }}
+            style={{sectionTitleStyles: styles.mt5}}
             textInputOptions={textInputOptions}
             shouldShowTextInput={availableTagsCount >= CONST.STANDARD_LIST_ITEM_LIMIT}
             initiallyFocusedItemKey={selectedOptionKey}
             onSelectRow={onSubmit}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
-            isRowMultilineSupported
             titleNumberOfLines={CONST.TRANSACTION_TAG_AND_CATEGORY_PICKER_MAX_TITLE_LINES}
         />
     );
