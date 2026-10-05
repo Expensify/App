@@ -514,6 +514,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Vorheriges Jahr',
         nextYear: 'Nächstes Jahr',
         avatar: 'Avatar',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} von ${total}`,
         editor: 'Editor',
         restrictions: 'Beschränkungen',
         tryAgain: 'Erneut versuchen',
@@ -3161,6 +3162,8 @@ ${amount} für ${merchant} – ${date}`,
             updateAvatar: 'Beim Aktualisieren des Avatars dieser Vertretung ist ein Problem aufgetreten',
         },
     },
+    agentPromptUpdated: ({updatedBy, previousPrompt, newPrompt}: {updatedBy: string; previousPrompt: string; newPrompt: string}) =>
+        `${updatedBy} hat die Anweisungen dieses Agenten aktualisiert.\nVorherige Anweisungen:\n${previousPrompt}\nNeue Anweisungen:\n${newPrompt}`,
     newAgentPage: {
         title: 'Neue:r Agent:in',
         buildCustomAgent: 'Eigenen Agenten erstellen',
@@ -4697,21 +4700,21 @@ ${amount} für ${merchant} – ${date}`,
         },
         nudge: {
             airfareManual:
-                'Wussten Sie, dass Sie Flüge direkt in Expensify buchen und verwalten können? Vermeiden Sie beim nächsten Mal den Aufwand, Ihre Ausgabe manuell zu erstellen, und buchen Sie einfach über <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Wussten Sie, dass Sie Flüge direkt in Expensify buchen und trotzdem Meilen mit Ihren Vielfliegerprogrammen sammeln können? Sparen Sie sich beim nächsten Mal den Aufwand, Ihre Ausgabe manuell zu erstellen, und buchen Sie einfach über <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             airfareCard:
-                'Wussten Sie, dass Sie Flüge direkt in Expensify buchen und verwalten können? Und dass Belege dabei automatisch für Sie hochgeladen werden? Buchen Sie das nächste Mal einfach über <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Wussten Sie, dass Sie Flüge direkt in Expensify buchen und trotzdem Meilen mit Ihren Vielfliegerprogrammen sammeln können? Die Belege werden außerdem automatisch für Sie hochgeladen. Buchen Sie das nächste Mal einfach über <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             hotelManual:
-                'Wussten Sie, dass Sie Hotelaufenthalte direkt in Expensify buchen und verwalten können? Sparen Sie sich beim nächsten Mal den Aufwand, Ihre Ausgabe manuell zu erstellen, und buchen Sie einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Wussten Sie, dass Sie Hotelaufenthalte direkt in Expensify buchen und trotzdem Ihre Hotel-Treueprogramme nutzen können? Vermeiden Sie beim nächsten Mal den Aufwand, Ihre Ausgabe manuell zu erstellen, und buchen Sie einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             hotelCard:
-                'Wussten Sie, dass Sie Hotelaufenthalte direkt in Expensify buchen und verwalten können? Buchen Sie das nächste Mal einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Wussten Sie, dass Sie Hotelaufenthalte direkt in Expensify buchen und trotzdem Ihre Hotel-Treueprogramme nutzen können? Buchen Sie das nächste Mal einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             carManual:
-                'Wussten Sie, dass Sie Mietwagen direkt in Expensify buchen und verwalten können? Sparen Sie sich das nächste Mal den Aufwand, Ihre Ausgabe manuell zu erstellen, und buchen Sie einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+                'Wussten Sie, dass Sie Mietwagen direkt in Expensify buchen und trotzdem Ihre Bonusprogramme für Mietwagen nutzen können? Sparen Sie sich beim nächsten Mal den Aufwand, Ihre Ausgabe manuell zu erstellen, und buchen Sie einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             carCard:
-                'Wussten Sie, dass Sie Mietwagen direkt in Expensify buchen und verwalten können? Buchen Sie das nächste Mal einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+                'Wussten Sie, dass Sie Mietwagen direkt in Expensify buchen und trotzdem Ihre Mietwagen-Treueprogramme nutzen können? Buchen Sie das nächste Mal einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             railManual:
-                'Wussten Sie, dass Sie Zugfahrten direkt in Expensify buchen und verwalten können? Sparen Sie sich das nächste Mal den Aufwand, Ihre Ausgabe manuell zu erstellen, und buchen Sie einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+                'Wussten Sie, dass Sie Zugfahrten direkt in Expensify buchen können und trotzdem Ihre Bahn-Bonusprogramme und BahnCards nutzen können? Sparen Sie sich das nächste Mal den Aufwand, die Ausgabe manuell zu erstellen, und buchen Sie einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
-                'Wussten Sie, dass Sie Zugfahrten direkt in Expensify buchen und verwalten können? Und dass Belege dabei automatisch für Sie hochgeladen werden? Buchen Sie das nächste Mal einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+                'Wussten Sie, dass Sie Zugfahrten direkt in Expensify buchen und trotzdem Ihre Bahntreueprogramme und BahnCards nutzen können? Die Belege werden außerdem automatisch für Sie hochgeladen. Buchen Sie das nächste Mal einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             hotelBlockManual:
                 'Wussten Sie, dass Sie Gruppenreisen wie diese direkt in Expensify buchen und verwalten können? Sparen Sie sich beim nächsten Mal den Aufwand und probieren Sie unser Tool <a href="https://help.expensify.com/travel/hubs/event-management/">Reise-Events</a> aus.',
             hotelBlockCard:
@@ -8313,6 +8316,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 flagAmountsOver: 'Beträge kennzeichnen über',
                 flagAmountsOverDescription: (categoryName: string) => `Gilt für die Kategorie „${categoryName}“.`,
                 flagAmountsOverSubtitle: 'Dadurch wird der Höchstbetrag für alle Ausgaben überschrieben.',
+                expenseLimitType: 'Ausgabenlimit-Typ',
                 expenseLimitTypes: {
                     expense: 'Einzelne Ausgabe',
                     expenseSubtitle:
