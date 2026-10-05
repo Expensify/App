@@ -6928,7 +6928,6 @@ const dynamicStyles = (theme: ThemeColors) =>
                 bottom,
                 left: 0,
                 height: 0,
-                zIndex: 10,
             }) satisfies ViewStyle,
 
         // Covers Material's bar and the gesture inset under it, and casts the shadow up over the screen content.
