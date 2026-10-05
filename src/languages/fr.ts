@@ -7649,14 +7649,14 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                 workArrangement: {
                     title: 'Organisation de travail par défaut',
                     officeBasedTitle: 'Au bureau',
-                    officeBasedHelp: 'Le membre se rend habituellement au bureau. Les trajets domicile-travail ordinaires sont exclus du remboursement.',
+                    officeBasedHelp: 'Le membre se rend au bureau pour ses trajets domicile-travail. Les trajets habituels sont exclus du remboursement.',
                     noRegularWorkplaceTitle: 'À distance ou mobile',
                     noRegularWorkplaceHelp:
-                        'Le membre travaille à domicile ou se déplace entre plusieurs sites sans bureau fixe, donc les règles relatives aux trajets domicile-travail ne s’appliquent pas.',
+                        "Le membre travaille à domicile ou se déplace entre différents sites sans bureau fixe, donc les règles de trajet domicile-travail ne s'appliquent pas.",
                     startingPrompt: {
                         title: 'Définir une organisation de travail type',
-                        prompt: 'Choisissez l’organisation qui s’applique à la majorité des membres actuels. Vous pourrez mettre à jour les membres individuellement ou en masse plus tard.',
-                        officeBasedHelp: 'La plupart des membres se rendent au bureau. Les trajets domicile-travail ordinaires sont exclus.',
+                        prompt: 'Choisissez la disposition qui s’applique à la plupart des membres actuels. Vous pourrez mettre à jour les membres individuellement ou en masse plus tard.',
+                        officeBasedHelp: 'La plupart des membres se rendent au bureau. Les trajets domicile-travail habituels sont exclus.',
                         noRegularWorkplaceHelp: 'La plupart des membres travaillent à distance, donc les exclusions domicile-travail ne s’appliquent généralement pas.',
                         confirm: 'Appliquer',
                     },
@@ -9526,9 +9526,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `a ajouté « ${prohibitedExpense} » aux dépenses interdites`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `a supprimé « ${prohibitedExpense} » des dépenses interdites`,
         workArrangement: {
-            set: ({arrangement}: {arrangement: string}) => `définir l’organisation du travail par défaut sur ${arrangement}`,
+            set: ({arrangement}: {arrangement: string}) => `définir l’organisation de travail par défaut sur ${arrangement}`,
             changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
-                `a modifié l’accord de travail par défaut en ${arrangement} (auparavant ${previousArrangement})`,
+                `a modifié l’aménagement de travail par défaut en ${arrangement} (auparavant ${previousArrangement})`,
         },
         commuterExclusions: {
             changedToFixedDistance: ({previousMethod}: {previousMethod: string}) =>

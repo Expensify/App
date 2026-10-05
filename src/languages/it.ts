@@ -7587,14 +7587,13 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                     title: 'Impostazione di lavoro predefinita',
                     officeBasedTitle: 'In ufficio',
                     officeBasedHelp: 'Il membro si reca in ufficio per il tragitto casa-lavoro. I normali spostamenti casa-lavoro sono esclusi dal rimborso.',
-                    noRegularWorkplaceTitle: 'Remoto o mobile',
-                    noRegularWorkplaceHelp:
-                        'Il membro lavora da casa o si sposta tra diverse sedi senza un ufficio fisso, quindi le regole relative al tragitto casa-lavoro non si applicano.',
+                    noRegularWorkplaceTitle: 'In remoto o da mobile',
+                    noRegularWorkplaceHelp: 'La persona lavora da casa o si sposta tra diverse sedi senza un ufficio fisso, quindi le regole sul pendolarismo non si applicano.',
                     startingPrompt: {
-                        title: 'Imposta una tipica modalità di lavoro',
+                        title: 'Imposta un tipico accordo di lavoro',
                         prompt: 'Scegli la disposizione che si applica alla maggior parte dei membri attuali. Potrai aggiornare i membri singolarmente o in blocco in un secondo momento.',
-                        officeBasedHelp: 'La maggior parte dei membri fa il pendolare verso un ufficio. I tragitti ordinari casa-lavoro sono esclusi.',
-                        noRegularWorkplaceHelp: 'La maggior parte dei membri lavora da remoto, quindi le esclusioni casa-lavoro di solito non si applicano.',
+                        officeBasedHelp: 'La maggior parte dei membri si reca in ufficio. I tragitti ordinari casa-lavoro sono esclusi.',
+                        noRegularWorkplaceHelp: 'La maggior parte dei membri lavora da remoto, quindi di solito le esclusioni casa-lavoro non si applicano.',
                         confirm: 'Applica',
                     },
                 },
@@ -9456,7 +9455,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `imposta la modalità di lavoro predefinita su ${arrangement}`,
             changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
-                `ha modificato l’organizzazione di lavoro predefinita in ${arrangement} (in precedenza ${previousArrangement})`,
+                `ha modificato l’accordo di lavoro predefinito in ${arrangement} (in precedenza ${previousArrangement})`,
         },
         commuterExclusions: {
             changedToFixedDistance: ({previousMethod}: {previousMethod: string}) =>
