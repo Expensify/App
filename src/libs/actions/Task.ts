@@ -13,12 +13,13 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import Navigation from '@libs/Navigation/Navigation';
 import {getDBTimeWithSkew} from '@libs/NetworkState';
 import {addDomainToShortMention} from '@libs/ParsingUtils';
-import {getAllPersonalDetailLogins, getPersonalDetailByLogin} from '@libs/PersonalDetailsStore';
+import {getPersonalDetailByLogin} from '@libs/PersonalDetailsStore';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {buildOptimisticSnapshotData} from '@libs/SearchQueryUtils';
+import {getAllPersonalDetailLogins} from '@libs/ShortMentionLogins';
 import playSound, {SOUNDS} from '@libs/Sound';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import {generateAccountID} from '@libs/UserUtils';

@@ -39,38 +39,6 @@ function getStaticPropertyName(node) {
 }
 
 /**
- * Search snapshot payloads key their personal details by the same string as the Onyx key, so building one
- * (`data[ONYXKEYS.PERSONAL_DETAILS_LIST] = …`, `Object.assign(data, {[ONYXKEYS.PERSONAL_DETAILS_LIST]: …})`,
- * `{data: {[ONYXKEYS.PERSONAL_DETAILS_LIST]: …}}`) names a payload field rather than touching the Onyx key.
- *
- * @param {import('estree').MemberExpression & import('eslint').Rule.NodeParentExtension} node
- * @returns {boolean}
- */
-function isSnapshotPayloadKey(node) {
-    const parent = node.parent;
-    if (parent.type === 'MemberExpression') {
-        return parent.computed && parent.property === node && parent.parent.type === 'AssignmentExpression' && parent.parent.left === parent;
-    }
-    if (parent.type !== 'Property' || !parent.computed || parent.key !== node) {
-        return false;
-    }
-    const objectLiteral = parent.parent;
-    const container = objectLiteral.parent;
-    if (container.type === 'Property') {
-        return container.value === objectLiteral && !container.computed && container.key.type === 'Identifier' && container.key.name === 'data';
-    }
-    return (
-        container.type === 'CallExpression' &&
-        container.arguments.indexOf(objectLiteral) > 0 &&
-        container.callee.type === 'MemberExpression' &&
-        container.callee.object.type === 'Identifier' &&
-        container.callee.object.name === 'Object' &&
-        container.callee.property.type === 'Identifier' &&
-        container.callee.property.name === 'assign'
-    );
-}
-
-/**
  * @param {import('eslint').Rule.RuleContext} context
  * @returns {import('eslint').Rule.RuleListener}
  */
@@ -82,7 +50,7 @@ function create(context) {
             if (node.object.type !== 'Identifier' || node.object.name !== ONYXKEYS_IDENTIFIER) {
                 return;
             }
-            if (getStaticPropertyName(node) !== PERSONAL_DETAILS_LIST_PROPERTY || isSnapshotPayloadKey(node)) {
+            if (getStaticPropertyName(node) !== PERSONAL_DETAILS_LIST_PROPERTY) {
                 return;
             }
             context.report({node, messageId: 'directUsage'});

@@ -5,7 +5,6 @@ import {ExpensiMark} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
 import Log from './Log';
-import {getAccountIDToNameMap} from './PersonalDetailsStore';
 
 let reportIDToNameMap: Record<string, string> = {};
 Onyx.connect({
@@ -27,6 +26,22 @@ Onyx.connect({
     },
 });
 
+let accountIDToNameMap: Record<string, string> = {};
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    callback: (personalDetailsList) => {
+        // Clear the map so removed personal detail don’t linger
+        accountIDToNameMap = {};
+        for (const personalDetails of Object.values(personalDetailsList ?? {})) {
+            if (!personalDetails) {
+                continue;
+            }
+
+            accountIDToNameMap[personalDetails.accountID] = personalDetails.login ?? personalDetails.displayName ?? '';
+        }
+    },
+});
+
 type Extras = {
     reportIDToName?: Record<string, string>;
     accountIDToName?: Record<string, string>;
@@ -38,7 +53,7 @@ class ExpensiMarkWithContext extends ExpensiMark {
     htmlToMarkdown(htmlString: string, extras?: Extras): string {
         return super.htmlToMarkdown(htmlString, {
             reportIDToName: extras?.reportIDToName ?? reportIDToNameMap,
-            accountIDToName: extras?.accountIDToName ?? getAccountIDToNameMap(),
+            accountIDToName: extras?.accountIDToName ?? accountIDToNameMap,
             cacheVideoAttributes: extras?.cacheVideoAttributes,
         });
     }
@@ -46,7 +61,7 @@ class ExpensiMarkWithContext extends ExpensiMark {
     htmlToText(htmlString: string, extras?: Extras): string {
         return super.htmlToText(htmlString, {
             reportIDToName: extras?.reportIDToName ?? reportIDToNameMap,
-            accountIDToName: extras?.accountIDToName ?? getAccountIDToNameMap(),
+            accountIDToName: extras?.accountIDToName ?? accountIDToNameMap,
             cacheVideoAttributes: extras?.cacheVideoAttributes,
         });
     }
