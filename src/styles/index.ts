@@ -4295,6 +4295,26 @@ const staticStyles = (theme: ThemeColors) =>
             marginRight: (variables.widgetHeaderTitleLineHeight - variables.componentSizeNormal) / 2,
         },
 
+        widgetHeaderMenuButtonSmall: {
+            width: variables.componentSizeSmall,
+            height: variables.componentSizeSmall,
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: variables.buttonBorderRadius,
+        },
+
+        widgetHeaderMenuButtonSmallWrapper: {
+            // Same overflow trick as widgetHeaderMenuButtonWrapper, sized for the 28px Small Ghost trigger
+            marginTop: (variables.widgetHeaderTitleLineHeight - variables.componentSizeSmall) / 2,
+            marginBottom: (variables.widgetHeaderTitleLineHeight - variables.componentSizeSmall) / 2,
+            marginRight: (variables.widgetHeaderTitleLineHeight - variables.componentSizeSmall) / 2,
+        },
+
+        widgetHeaderGhostButtonWrapper: {
+            // Same overflow trick as widgetHeaderMenuButtonWrapper so the small ghost button doesn't grow the card header
+            marginVertical: (variables.widgetHeaderTitleLineHeight - variables.componentSizeSmall) / 2,
+        },
+
         widgetItemSubtitle: {
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeLabel,

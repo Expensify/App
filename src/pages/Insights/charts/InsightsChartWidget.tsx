@@ -74,6 +74,7 @@ function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGr
     const headerMenu =
         !!queryJSON && (state === INSIGHTS_CHART_STATE.READY || isLoading) ? (
             <WidgetHeaderMenu
+                isSmall
                 testID={`insightsChartMenu-${chart.graphKey}`}
                 sentryLabel="InsightsChartMenu"
                 menuItems={[

@@ -19,15 +19,18 @@ type WidgetHeaderMenuProps = {
     /** Items shown in the popover opened by the three-dots trigger */
     menuItems: PopoverMenuItem[];
 
+    /** Whether to render the 28px Small Ghost trigger instead of the 40px Medium Ghost one */
+    isSmall?: boolean;
+
     testID?: string;
     sentryLabel?: string;
 };
 
 /**
- * Widget header three-dots menu: a Medium Ghost trigger whose negative margins let it overflow the header
+ * Widget header three-dots menu: a Ghost trigger whose negative margins let it overflow the header
  * rather than grow it, so every card header keeps the same height. Built on `ThreeDotsMenu`.
  */
-function WidgetHeaderMenu({menuItems, testID, sentryLabel}: WidgetHeaderMenuProps) {
+function WidgetHeaderMenu({menuItems, isSmall = false, testID, sentryLabel}: WidgetHeaderMenuProps) {
     const styles = useThemeStyles();
 
     return (
@@ -35,7 +38,7 @@ function WidgetHeaderMenu({menuItems, testID, sentryLabel}: WidgetHeaderMenuProp
             menuItems={menuItems}
             shouldSelfPosition
             anchorAlignment={ANCHOR_ALIGNMENT}
-            iconStyles={[styles.widgetHeaderMenuButton, styles.widgetHeaderMenuButtonWrapper]}
+            iconStyles={isSmall ? [styles.widgetHeaderMenuButtonSmall, styles.widgetHeaderMenuButtonSmallWrapper] : [styles.widgetHeaderMenuButton, styles.widgetHeaderMenuButtonWrapper]}
             iconHoverStyle={styles.widgetHeaderMenuButtonHovered}
             iconWidth={variables.iconSizeSmall}
             iconHeight={variables.iconSizeSmall}
