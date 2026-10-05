@@ -79,7 +79,9 @@ function CategoryField({
     // The list marks and clears by the stored category name, not by the leaf name the row shows.
     const selectedCategory = isCategoryMissing(iouCategory) ? '' : iouCategory;
 
-    const shouldPromiseAutomaticCategory = willAutoFill && (isAutoFillFromReceipt || !isCategoryRequired);
+    // The workspace setting defaults to on. Turning it off means nothing will pick a category, so the row must not promise one.
+    const isAutoCategorizationEnabled = policy?.autoCategorizeNewExpenses !== false;
+    const shouldPromiseAutomaticCategory = isAutoCategorizationEnabled && willAutoFill && (isAutoFillFromReceipt || !isCategoryRequired);
 
     const getCategoryRightLabelIcon = () => (shouldPromiseAutomaticCategory ? icons.Sparkles : undefined);
     const getCategoryRightLabel = () => {
@@ -171,7 +173,7 @@ function CategoryField({
                 // On a scan, `Automatic` describes the category Concierge picked, so it has to outlive the field
                 // being filled in. On a manual expense it only promises a category for a field that is still
                 // empty, so there it goes the moment the field holds one, the same way `Required` does.
-                shouldKeepRightLabelWhenFilled={willAutoFill && isAutoFillFromReceipt}
+                shouldKeepRightLabelWhenFilled={shouldPromiseAutomaticCategory && isAutoFillFromReceipt}
                 errorText={shouldDisplayCategoryError ? translate(formError as TranslationPaths) : ''}
                 onPress={openCategoryPage}
                 shouldOpenInDropdown={shouldOpenInDropdown && !isReadOnly && !didConfirm}

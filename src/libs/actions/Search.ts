@@ -18,6 +18,7 @@ import type {
     OpenSearchPageParams,
     OpenSearchTagFiltersPageParams,
     OpenSearchTagFiltersPageResponse,
+    QueueBulkMarkAsExportedParams,
     QueueExportSearchItemsToCSVParams,
     QueueExportSearchWithTemplateParams,
     ReportExportParams,
@@ -38,6 +39,7 @@ import enhanceParameters from '@libs/Network/enhanceParameters';
 import {getIsOffline} from '@libs/NetworkState';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
+import {canAccessPolicyBankAccount} from '@libs/PolicyPaymentUtils';
 import {
     getAccountIDForSubmitManagerEmail,
     getSubmitReportManagerAccountID,
@@ -283,6 +285,7 @@ type HandleActionButtonPressParams = {
     rules: OnyxCollection<Rule>;
     conciergeChat: OnyxEntry<Report>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    bankAccountList: OnyxEntry<BankAccountList>;
 };
 
 function handleActionButtonPress({
@@ -325,6 +328,7 @@ function handleActionButtonPress({
     rules,
     conciergeChat,
     getCurrencyDecimals,
+    bankAccountList,
 }: HandleActionButtonPressParams) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
@@ -379,6 +383,7 @@ function handleActionButtonPress({
                 conciergeChat,
                 getCurrencyDecimals,
                 rules,
+                bankAccountList,
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
@@ -621,6 +626,7 @@ type GetPayActionCallbackParams = {
     conciergeChat: OnyxEntry<Report>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<Rule>;
+    bankAccountList: OnyxEntry<BankAccountList>;
 };
 
 function getPayActionCallback({
@@ -651,6 +657,7 @@ function getPayActionCallback({
     conciergeChat,
     getCurrencyDecimals,
     rules,
+    bankAccountList,
 }: GetPayActionCallbackParams) {
     if (!item.reportID) {
         Log.info('[SearchPay] Dropping row pay: item has no reportID');
@@ -663,9 +670,13 @@ function getPayActionCallback({
         return;
     }
 
+    const paymentPolicy = snapshotPolicy ?? policy;
+
     if (lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-        const hasVBBA = !!snapshotPolicy?.achAccount?.bankAccountID;
-        if (!hasVBBA) {
+        // One-tap pay here always funds the payment from the workspace bank account, so it's only valid for someone the
+        // account is actually shared with. Anyone else has to pay from an account of their own, so open the report and let
+        // them pick it instead of silently paying with (and reporting) the workspace one.
+        if (!canAccessPolicyBankAccount(paymentPolicy, bankAccountList)) {
             goToItem();
             return;
         }
@@ -687,14 +698,14 @@ function getPayActionCallback({
         currentUserAccountID: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
         currentUserLogin: currentUserLogin ?? '',
         activePolicy,
-        policy: snapshotPolicy ?? policy,
+        policy: paymentPolicy,
         chatReportPolicy: chatReportPolicyForPayment,
         isASAPSubmitBetaEnabled,
         isSelfTourViewed,
         userBillingGracePeriodEnds,
         amountOwed,
         ownerBillingGracePeriodEnd,
-        methodID: lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA ? snapshotPolicy?.achAccount?.bankAccountID : undefined,
+        methodID: lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA ? paymentPolicy?.achAccount?.bankAccountID : undefined,
         additionalOnyxData: getSearchPayOnyxData(hash, item.reportID, currentSearchKey),
         chatReportActions,
         delegateAccountID,
@@ -793,6 +804,12 @@ function getOnyxLoadingData(
     const isSearchRequest = isSearchAPI && !!queryJSON;
     const type = queryJSON?.type;
 
+    // Record the query string on the snapshot itself so IOU optimistic updates can later apply to every loaded
+    // snapshot whose query matches. Living on the snapshot means it is evicted together with it. It is written
+    // optimistically so snapshots first opened offline carry it, and again in finallyData because the SEARCH
+    // response can replace `snapshot.search`.
+    const inputQuery = isSearchRequest ? queryJSON.inputQuery : undefined;
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -801,6 +818,7 @@ function getOnyxLoadingData(
                 search: {
                     ...(isSearchAPI && shouldShowLoading && {isLoading: true}),
                     ...(isSearchRequest && {state: CONST.SEARCH.SNAPSHOT_STATE.LOADING}),
+                    ...(inputQuery && {inputQuery}),
                     ...(offset !== undefined ? {offset} : {}),
                     ...(shouldClearTotals ? {count: null, reportCount: null, total: null, currency: null} : {}),
                 },
@@ -817,14 +835,6 @@ function getOnyxLoadingData(
         },
     ];
 
-    // Side effect: record this query string under SEARCH_QUERY_BY_HASH so IOU optimistic updates
-    // can later fan to every loaded snapshot whose query matches. Done here (not via optimisticData)
-    // because this function's return type only allows snapshot keys; the matching eviction lives
-    // in the SNAPSHOT subscription in IOU/index.ts.
-    if (queryJSON?.inputQuery) {
-        Onyx.merge(ONYXKEYS.SEARCH_QUERY_BY_HASH, {[hash]: queryJSON.inputQuery});
-    }
-
     // finallyData runs for every HTTP response, including 460 responses that deliberately skip failureData.
     // It owns the terminal request state, while failureData separately records whether the request failed.
     const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
@@ -835,6 +845,7 @@ function getOnyxLoadingData(
                 search: {
                     ...(isSearchAPI && {isLoading: false}),
                     ...(isSearchRequest && {state: CONST.SEARCH.SNAPSHOT_STATE.LOADED, type, hash}),
+                    ...(inputQuery && {inputQuery}),
                 },
             },
         },
@@ -850,10 +861,7 @@ function getOnyxLoadingData(
                 search: {
                     type,
                     ...(isSearchAPI && {isLoading: false}),
-                    // NO_RESPONSE stands for "failed with no usable response code", which covers a network-level rejection
-                    // that never reaches the server. A real HTTP failure overwrites it below once the response lands. Every
-                    // write of `errors` carries a code this way, so the error view never has to guess.
-                    ...(isSearchRequest && {hash, responseJsonCode: CONST.JSON_CODE.NO_RESPONSE}),
+                    ...(isSearchRequest && {hash}),
                 },
                 errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
@@ -1078,6 +1086,34 @@ function openSearchCategoryFiltersPage() {
     ];
 
     read(READ_COMMANDS.OPEN_SEARCH_CATEGORY_FILTERS_PAGE, null, {optimisticData, successData, finallyData});
+}
+
+function openSearchVendorFiltersPage() {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_VENDOR_DATA>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_VENDOR_DATA,
+            value: true,
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_SEARCH_FILTERS_VENDOR_DATA_LOADED>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_SEARCH_FILTERS_VENDOR_DATA_LOADED,
+            value: true,
+        },
+    ];
+
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_VENDOR_DATA>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_VENDOR_DATA,
+            value: false,
+        },
+    ];
+
+    read(READ_COMMANDS.OPEN_SEARCH_VENDOR_FILTERS_PAGE, null, {optimisticData, successData, finallyData});
 }
 
 /**
@@ -1367,8 +1403,9 @@ function search({
 
                 // Store the failing code alongside the errors it produced. The snapshot is the only place this
                 // survives a reload, and the error view needs it to tell an invalid query apart from a retryable one.
-                if (typeof result?.jsonCode === 'number' && result.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                    Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`, {search: {responseJsonCode: result.jsonCode}}).catch((error: unknown) =>
+                if (result !== undefined && result.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                    const responseJsonCode = typeof result.jsonCode === 'number' ? result.jsonCode : CONST.JSON_CODE.NO_RESPONSE;
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`, {search: {responseJsonCode}}).catch((error: unknown) =>
                         Log.hmmm('[Search] failed to store the search response code', {error: String(error)}),
                     );
                 }
@@ -1408,8 +1445,16 @@ function search({
             .catch(async (error) => {
                 // A network-level rejection (no HTTP response at all, e.g. offline/timeout) never reaches
                 // SaveResponseInOnyx, so nothing else applies failureData/finallyData for it. Apply both here so
-                // the snapshot records the error and still reaches the terminal `loaded` state.
-                await Onyx.update(failureData ?? []);
+                // the snapshot records the error and still reaches the terminal `loaded` state. NO_RESPONSE stands for
+                // "failed with no usable response code", which is exactly this case.
+                await Onyx.update([
+                    ...(failureData ?? []),
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`,
+                        value: {search: {responseJsonCode: CONST.JSON_CODE.NO_RESPONSE}},
+                    },
+                ]);
                 await Onyx.update(finallyData ?? []);
                 throw error;
             })
@@ -2151,6 +2196,17 @@ function queueBulkPayReports(jsonQuery: string) {
     write(WRITE_COMMANDS.QUEUE_BULK_PAY_REPORTS, {jsonQuery});
 }
 
+/**
+ * Queues a manual bulk "Mark as exported" for every report matching the given search query on the given connection.
+ * The backend pages through all matches itself, so this covers reports beyond the currently loaded page(s) when
+ * "Select all" is checked in Search. connectionName scopes the resolved reports to a single accounting connection,
+ * since the button is per-integration and must never mix connections. qboIntegrationAlias further disambiguates an
+ * Intuit Enterprise Suite connection from a regular QBO connection, since both share the same connectionName.
+ */
+function queueBulkMarkAsExported(jsonQuery: string, connectionName: ConnectionName, qboIntegrationAlias?: QueueBulkMarkAsExportedParams['qboIntegrationAlias']) {
+    write(WRITE_COMMANDS.QUEUE_BULK_MARK_AS_EXPORTED, {jsonQuery, connectionName, qboIntegrationAlias});
+}
+
 /** Export templates pre-grouped for the Export menus: each group is sorted alphabetically and rendered with a divider between groups */
 type ExportTemplateGroups = {
     /** Custom templates (custom integrations + account/policy in-app templates) */
@@ -2513,6 +2569,7 @@ function setOptimisticDataForTransactionThreadPreview(
     item: TransactionListItemType,
     transactionPreviewData: TransactionPreviewData,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+    delegateAccountID: number | undefined,
     IOUTransactionID?: string,
 ) {
     const {reportID, report, amount, currency, transactionID, created, policyID, from} = item;
@@ -2544,8 +2601,7 @@ function setOptimisticDataForTransactionThreadPreview(
             linkedExpenseReportAction: {
                 childReportID: IOUTransactionID,
             } as ReportAction,
-            // delegateAccountIDParam: will be threaded in PR 15; buildOptimisticIOUReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
-            delegateAccountIDParam: undefined,
+            delegateAccountIDParam: delegateAccountID,
             getCurrencyDecimals,
         });
         optimisticIOUAction.pendingAction = undefined;
@@ -2586,6 +2642,7 @@ export {
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
     queueBulkPayReports,
+    queueBulkMarkAsExported,
     updateAdvancedFilters,
     setSearchContext,
     deleteSavedSearch,
@@ -2610,6 +2667,7 @@ export {
     handlePreventSearchAPI,
     openSearchCardFiltersPage,
     openSearchCategoryFiltersPage,
+    openSearchVendorFiltersPage,
     openSearchTagFiltersPage,
     setSearchTagFiltersPagination,
     clearSearchTagFiltersState,

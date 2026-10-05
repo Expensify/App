@@ -412,8 +412,6 @@ const translations: TranslationDeepObject<typeof en> = {
         minuteAbbreviation: 'm',
         secondAbbreviation: '秒',
         skip: '跳过',
-        chatWithAccountManager: (accountManagerDisplayName: string) => `有具体需求吗？请联系您的客户经理 ${accountManagerDisplayName}。`,
-        chatNow: '立即聊天',
         workEmail: '工作邮箱',
         destination: '目的地',
         subrate: '次级费率',
@@ -510,6 +508,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: '上一年',
         nextYear: '明年',
         avatar: '头像',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `第 ${current} 项（共 ${total} 项）`,
         editor: '编辑',
         restrictions: '限制',
         tryAgain: '重试',
@@ -519,6 +518,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noResultsFoundSubtitle: '无结果。请尝试调整筛选条件或搜索内容',
         unableToDisplayChart: '无法显示图表',
         webGLNotSupported: '您的浏览器不支持 WebGL。请启用该功能或更换浏览器。',
+        chartFailedToLoad: '无法加载图表。请刷新页面后重试。',
         apiKey: 'API 密钥',
         exportsTo: '导出到',
     },
@@ -1116,6 +1116,7 @@ const translations: TranslationDeepObject<typeof en> = {
         viewOnSpend: '在支出中查看',
         emptyState: {title: '没有可显示的内容', subtitle: '请尝试调整上面的条件'},
         noExpensesState: {title: '查看你的资金流向', subtitle: '添加报销后，您就能查看消费趋势、主要商家等更多信息。'},
+        compare: {label: '比较', previousPeriod: '上一期', average: '平均'},
     },
     allSettingsScreen: {
         subscription: '订阅',
@@ -1286,6 +1287,8 @@ const translations: TranslationDeepObject<typeof en> = {
                     : '在开始记录里程之前，您需要在个人资料中添加您的家庭住址。此工作区会使用该地址计算通勤扣除。',
             cta: '添加家庭住址',
         },
+        expenseAdded: '已添加支出',
+        invoiceSent: '已发送发票',
         amount: '金额',
         percent: '百分比',
         date: '日期',
@@ -1835,6 +1838,7 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmationSomePendingBYOC: '您确定要删除这些报销吗？其中一些处于待处理状态，如果入账后，我们可能会再次导入。',
         categoryDisabledAlert: {title: '类别已禁用', prompt: '在工作区中启用类别，以编辑报销详情或从此报销中删除该类别。', confirmText: '删除类别'},
         tagDisabledAlert: {title: '标签已停用', prompt: '请在工作区中启用标签，以便编辑该报销的详细信息或从此报销中删除该标签。', confirmText: '删除标签'},
+        undeletedExpense: '恢复了此报销单',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `已为新工作区更新里程报销标准 - ${policyName}`,
     },
     transactionMerge: {
@@ -2116,7 +2120,7 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: '个人头像',
         customInstructions: '自定义指令',
         copilotIntoAccount: 'Copilot 到账户',
-        viewMemberHistory: '查看成员历史记录',
+        seeChatHistory: '查看聊天记录',
         viewAgentHistory: '查看代理历史记录',
         publicSection: {
             title: '公开',
@@ -3038,6 +3042,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             updateAvatar: '更新此代理的头像时出现问题',
         },
     },
+    agentPromptUpdated: ({updatedBy, previousPrompt, newPrompt}: {updatedBy: string; previousPrompt: string; newPrompt: string}) =>
+        `${updatedBy} 更新了此智能体的指令。\n之前的指令：\n${previousPrompt}\n新的指令：\n${newPrompt}`,
     newAgentPage: {
         title: '新代理',
         buildCustomAgent: '构建自定义代理',
@@ -4526,15 +4532,20 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             error: {required: '请输入您的法人税号。'},
         },
         nudge: {
-            airfareManual: '你知道吗？你可以直接在 Expensify 中预订和管理机票！下次无需再手动创建报销，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 ✈️',
-            airfareCard: '你知道吗？你可以直接在 Expensify 预订和管理机票，而且还能自动为你上传收据。下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 ✈️',
+            airfareManual:
+                '你知道吗？你可以直接在 Expensify 预订机票，同时照常累积常旅客计划的里程！下次无需手动创建报销，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 ✈️',
+            airfareCard:
+                '你知道吗？你可以直接在 Expensify 中预订机票，同时照常累积常旅客里程！系统还会自动为你上传收据。下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 ✈️',
             hotelManual:
-                '你知道吗？你可以直接在 Expensify 中预订和管理酒店住宿！下次无需再手动创建报销，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 完成预订即可 🏨',
-            hotelCard: '你知道吗？你可以直接在 Expensify 中预订和管理酒店住宿！下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🏨',
-            carManual: '你知道吗？你可以直接在 Expensify 中预订和管理租车服务。下次就不用再手动创建报销了，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚗',
-            carCard: '你知道吗？你可以直接在 Expensify 中预订和管理租车！下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚗',
-            railManual: '你知道吗？你可以直接在 Expensify 中预订和管理火车行程！下次无需再手动创建报销，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚂',
-            railCard: '你知道吗？你可以直接在 Expensify 中预订和管理火车行程，而且还会自动为你上传收据。下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚂',
+                '你知道吗？你可以直接在 Expensify 预订酒店入住，同时照常累积酒店会员积分！下次无需再手动创建报销，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可。',
+            hotelCard: '你知道吗？你可以直接在 Expensify 预订酒店住宿，同时照常累积酒店会员积分。下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🏨',
+            carManual:
+                '你知道吗？你可以直接在 Expensify 预订租车，同时照常使用你的租车会员计划！下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订，就能省去手动创建报销的麻烦。',
+            carCard: '你知道吗？你可以直接在 Expensify 预订租车，并且照样使用你的租车会员计划。下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 进行预订 🚗',
+            railManual:
+                '你知道吗？你可以直接在 Expensify 中预订火车行程，同时照常使用你的铁路会员计划和铁路卡。下次就不用再手动创建报销了，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可。',
+            railCard:
+                '你知道吗？你可以直接在 Expensify 预订火车行程，同时照常使用铁路常旅客计划和铁路卡！系统还会自动为你上传收据。下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可。',
             hotelBlockManual:
                 '你知道吗？你可以直接在 Expensify 中预订和管理像这样的团队行程。下次就不用再费心了，试试我们的 <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> 工具吧。',
             hotelBlockCard:
@@ -5283,6 +5294,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             journalEntriesProvTaxPostingAccount: '日记账分录省税过账科目',
             foreignCurrencyAmount: '导出外币金额',
             exportToNextOpenPeriod: '导出到下一个未结会计期间',
+            exportToNextOpenPeriodLockedSubtitle: '要禁用导出到下一个未结会计期间，请先禁用按期间拆分不可报销导出。',
+            splitExportsByPostingPeriod: '按过账期间拆分导出',
+            splitExportsByPostingPeriodSubtitle: '启用导出到下一个未结会计期间，以在 NetSuite 中启用按期间拆分不可报销导出',
             nonReimbursableJournalPostingAccount: '不可报销日记账入账科目',
             reimbursableJournalPostingAccount: '可报销日记账过账科目',
             journalPostingPreference: {
@@ -6160,6 +6174,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             csvColumnType: '类型',
             csvColumnLimitType: '限额类型',
             csvColumnLimit: '限额',
+            noCardFeedsAvailable: '没有可用的卡片流水',
+            noCardFeedsAvailableDescription: '此工作区暂无可用的卡片流水。',
         },
         categories: {
             deleteCategories: '删除类别',
@@ -6376,7 +6392,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 corporate: '限制删除交易',
                 personal: '允许删除交易',
                 setFeedNameDescription: '为该卡片流水命名一个唯一名称，以便与其他区分',
-                setTransactionLiabilityDescription: '启用后，持卡人可以删除卡片交易。新的交易将遵循此规则。',
+                setTransactionLiabilityDescription: '持卡人可以删除交易。仅适用于新交易。',
                 emptyAddedFeedTitle: '此订阅源中没有卡片',
                 emptyAddedFeedDescription: '请确保在您银行的卡片交易流水中有可用的卡片。',
                 pendingFeedTitle: `我们正在审核你的请求…`,
@@ -7952,6 +7968,7 @@ ${reportName}`,
                 flagAmountsOver: '标记超过此金额的费用',
                 flagAmountsOverDescription: (categoryName: string) => `适用于类别“${categoryName}”。`,
                 flagAmountsOverSubtitle: '这将覆盖所有报销的最高金额限制。',
+                expenseLimitType: '报销限额类型',
                 expenseLimitTypes: {
                     expense: '单笔报销',
                     expenseSubtitle: '按类别标记报销金额。此规则会覆盖工作区的一般最高报销金额规则。多天预订将按每晚平均金额进行评估。',
@@ -8500,6 +8517,35 @@ ${reportName}`,
             syncTravelInvoicingSettlements: '同步差旅开票结算',
             travelInvoicingSettlementAccount: {label: '差旅开票结算账户', description: '选择您的结算账户，我们会在 Campfire 中创建这笔付款。'},
             travelInvoicingPayableAccount: {label: '差旅开票应付账户'},
+            exportToMultipleAccounts: '配置导出到多个账户',
+            cardProgramAccount: {
+                label: '卡计划账户',
+                description: '为这些卡计划覆盖工作区账户。',
+                descriptionLevel2: '覆盖此卡计划的工作区账户。',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return '所有方案使用默认账户';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} 个自定义账户的项目`;
+                    }
+                    return `${customAccountsCount} 个具有自定义科目的项目`;
+                },
+            },
+            cardAccount: {
+                label: '按卡计费账户',
+                description: '为单张卡片覆盖默认项目账户。',
+                descriptionLevel2: '为这些卡片覆盖默认项目账户。',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return '所有卡都使用项目账户';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} 张带有自定义账户的卡`;
+                    }
+                    return `${customAccountsCount} 张带有自定义账户的卡`;
+                },
+            },
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central 设置',
@@ -8516,6 +8562,51 @@ ${reportName}`,
             importDescription: '选择要从 Dynamics 365 Business Central 导入的编码配置。',
             items: '项目',
             enableNewCategories: '启用新导入的类别',
+            exportDescription: '配置 Expensify 数据导出到 Dynamics 365 Business Central 的方式。',
+            exportDate: {
+                label: '交易日期',
+                description: '将报表导出到 Dynamics 365 Business Central 时使用此日期。',
+                values: {
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: '最新支出日期',
+                        description: '报告中最近一次支出的日期。',
+                    },
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: '导出日期',
+                        description: '报告导出至 Dynamics 365 Business Central 的日期。',
+                    },
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: '提交日期',
+                        description: '报告提交审批的日期。',
+                    },
+                },
+            },
+            exportReimbursable: '将可报销费用导出为',
+            exportNonReimbursable: '导出公司卡费用为',
+            exportDestination: {
+                [CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.JOURNAL_ENTRY]: '普通日记账',
+                [CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE]: '采购发票',
+            },
+            reimbursableAccount: {
+                label: '可报销费用账户',
+                description: '选择可报销费用的导出位置。',
+            },
+            defaultCompanyCardVendor: {
+                label: '默认公司卡供应商',
+                description: '为未自动匹配的费用选择默认的 Dynamics 365 Business Central 供应商。',
+            },
+            companyCardAccount: {
+                label: '公司卡账户',
+                description: '选择公司卡交易的导出位置。',
+            },
+            paymentMethod: {
+                label: '付款方式',
+                description: '为采购发票选择付款方式，以便 Dynamics 365 Business Central 将其与您的银行进行对账。',
+            },
+            noBankAccountsFound: '未找到银行账户',
+            noBankAccountsFoundDescription: '请在 Dynamics 365 Business Central 中添加银行账户，然后重新同步连接',
+            noPaymentMethodsFound: '未找到付款方式',
+            noPaymentMethodsFoundDescription: '请在 Dynamics 365 Business Central 中添加付款方式，然后重新同步连接',
         },
     },
     getAssistancePage: {
@@ -9472,6 +9563,7 @@ ${reportName}`,
         noCategory: '无类别',
         noMerchant: '无商家',
         noTag: '无标签',
+        noVendor: '无供应商',
         expenseType: '报销类型',
         receiptType: '收据类型',
         receiptTypeValues: {
@@ -10548,7 +10640,18 @@ ${reportName}`,
                 invalid: '此代码无效',
             },
         },
-        paymentHistory: {title: '查看付款记录', subtitle: '此账户每月全部付款记录。'},
+        paymentHistory: {
+            title: '查看付款记录',
+            subtitle: '此账户每月全部付款记录。',
+            payments: '付款',
+            inclTax: '含税',
+            empty: '尚无付款。',
+            activeUsers: ({count}: {count: number}) => ({
+                one: '1 位活跃用户',
+                other: `${count} 名活跃用户`,
+            }),
+            state: {paid: '已支付', cleared: '已清算', failed: '失败', refunded: '已退款', disputed: '有争议', balanceTransfer: '余额转账'},
+        },
         subscriptionSettings: {
             title: '订阅设置',
             summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>
@@ -11099,6 +11202,13 @@ ${reportName}`,
             title: '构建你自己的代理',
             description: `<muted-text>创建自定义代理，根据你设置的规则审核、批准和分配报销。<a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">了解更多</a>。</muted-text>`,
         },
+    },
+    earlyRenewal: {
+        confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `将您的订阅续订为 12 个月期限，自 ${startDate} 至 ${endDate}。`,
+        title: '续订您的 Expensify 订阅',
+        subtitle: '在新年到来前又少了一件要做的事。',
+        confirmTitle: '确认续订',
+        renew: '续订',
     },
 };
 export default translations;
