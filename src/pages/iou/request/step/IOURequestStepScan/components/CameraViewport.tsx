@@ -88,9 +88,6 @@ type CameraViewportProps = {
 
     setFlash: (updater: (prev: boolean) => boolean) => void;
 
-    /** Trade-off between capture speed and still quality, defaults to "quality" */
-    photoQualityBalance?: CameraProps['photoQualityBalance'];
-
     /** Whether photos follow the device or the preview orientation, defaults to "device" */
     outputOrientation?: CameraProps['outputOrientation'];
 
@@ -120,7 +117,6 @@ function CameraViewport({
     flash,
     hasFlash,
     setFlash,
-    photoQualityBalance = 'quality',
     outputOrientation = 'device',
     children,
 }: CameraViewportProps) {
@@ -142,7 +138,6 @@ function CameraViewport({
                         style={styles.flex1}
                         zoom={device.neutralZoom}
                         photo
-                        photoQualityBalance={photoQualityBalance}
                         outputOrientation={outputOrientation}
                         cameraTabIndex={1}
                         forceInactive={isAttachmentPickerActive || (didCapturePhoto && !hasPendingPhotoCapture)}

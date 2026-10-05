@@ -84,10 +84,8 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         cameraFocusIndicatorAnimatedStyle,
     } = useNativeCamera({onFocusStart, onFocusCleanup});
 
-    // Prioritize photoResolution so the format selector picks the configured still size. iOS asks for 12 MP,
-    // because the upgraded still is what gets compared with the native Camera app. videoResolution is platform-specific:
-    //  - iOS: keep the 6 MP target — `takeSnapshot` reads from the video pipeline, so a smaller
-    //    video resolution would degrade the snapshot capture quality.
+    // photoResolution picks the format; videoResolution only breaks ties. videoResolution is platform-specific:
+    //  - iOS: `takeSnapshot` returns the raw video frame, so prefer a video size close to 6 MP.
     //  - Android: keep screen dimensions — `takeSnapshot` is a GPU screenshot of the preview surface
     //    and doesn't depend on video resolution; constraining to screen size avoids burning GPU on a
     //    higher-than-needed preview.
@@ -176,11 +174,6 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         const path = getReceiptsUploadFolderPath();
 
         const shouldUpgradeToPhoto = canUpgradeReceiptQuality && !isMultiScanEnabled && !shouldTakePhoto({flash, hasFlash, isInLandscapeMode});
-        // TEMP-UPGRADE-GATE
-        // eslint-disable-next-line no-console
-        console.log(
-            `[UPGRADE-GATE] upgrade=${shouldUpgradeToPhoto} canUpgrade=${canUpgradeReceiptQuality} multiScan=${isMultiScanEnabled} flash=${flash} hasFlash=${hasFlash} landscape=${isInLandscapeMode}`,
-        );
 
         // The snapshot goes first so its request reaches the native queue ahead of the still. On iOS it
         // reads the most recent video frame, which a photo capture can interrupt.

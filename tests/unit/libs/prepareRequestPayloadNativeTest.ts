@@ -159,7 +159,7 @@ describe('prepareRequestPayload (native)', () => {
         expect(formData.has('undefinedField')).toBe(false);
     });
 
-    describe('a receipt sent as a file object, the way ReplaceReceipt sends it', () => {
+    describe('a receipt sent as a file object without a source, as a request queued by an older app version sends it', () => {
         /** `clearAllMocks` keeps a `mockReturnValue`, so a deferred one would leak into the next test. */
         beforeEach(() => {
             mockSettle.mockReturnValue(Promise.resolve());
@@ -172,6 +172,7 @@ describe('prepareRequestPayload (native)', () => {
             });
 
         it('claims the file before reading it, and waits only while a claimed swap finishes renaming', async () => {
+            // Given a swap that has already committed to renaming the receipt file
             let releaseCommittedSwap: () => void = () => {};
             mockSettle.mockReturnValue(
                 new Promise<void>((resolve) => {
@@ -179,6 +180,7 @@ describe('prepareRequestPayload (native)', () => {
                 }),
             );
 
+            // When an old queued ReplaceReceipt request is prepared with only the file object
             let hasPrepared = false;
             const prepared = prepareRequestPayload(
                 'ReplaceReceipt',
@@ -193,6 +195,7 @@ describe('prepareRequestPayload (native)', () => {
             });
             await flushMicrotasks();
 
+            // Then the file is claimed by name and the payload waits for the swap to finish
             expect(mockSettle).toHaveBeenCalledWith('CAM-1.jpg');
             // `settle` only holds the payload while a swap has already committed to its two renames, since
             // reading the receipt mid-rename would send the old bytes, the new ones, or nothing at all.
@@ -205,6 +208,8 @@ describe('prepareRequestPayload (native)', () => {
         });
 
         it('never reaches locate, since a file object carries no receipt source to resolve', async () => {
+            // Given an old queued ReplaceReceipt request whose receipt has a uri but no source
+            // When the payload is prepared
             await prepareRequestPayload(
                 'ReplaceReceipt',
                 {
@@ -214,6 +219,7 @@ describe('prepareRequestPayload (native)', () => {
                 false,
             );
 
+            // Then nothing checks the filesystem or reports the receipt as dropped, because there is no source to locate
             expect(mockCheckFileExists).not.toHaveBeenCalled();
             expect(mockLogReceiptDropped).not.toHaveBeenCalled();
         });
