@@ -228,6 +228,9 @@ function getWorkspaceMenuItems({
         if (item.screenName === SCREENS.WORKSPACE.ROOMS) {
             return !isGuest;
         }
+        if (!policy) {
+            return true;
+        }
         return canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.MEMBERS);
     });
 

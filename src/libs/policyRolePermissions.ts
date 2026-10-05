@@ -7,19 +7,22 @@ type PolicyFeatureAccess = ValueOf<typeof CONST.POLICY.POLICY_FEATURE_ACCESS>;
 
 const ALL_POLICY_FEATURES = Object.values(CONST.POLICY.POLICY_FEATURE);
 
-const WRITE_ALL_POLICY_FEATURES = ALL_POLICY_FEATURES.reduce<Partial<Record<PolicyFeature, PolicyFeatureAccess>>>(
-    (features, feature) => ({...features, [feature]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}),
-    {},
-);
+function buildFeatureAccessMap(access: PolicyFeatureAccess, excludedFeature?: PolicyFeature): Partial<Record<PolicyFeature, PolicyFeatureAccess>> {
+    const features: Partial<Record<PolicyFeature, PolicyFeatureAccess>> = {};
+    for (const feature of ALL_POLICY_FEATURES) {
+        if (feature === excludedFeature) {
+            continue;
+        }
+        features[feature] = access;
+    }
+    return features;
+}
 
-const READ_ALL_POLICY_FEATURES = ALL_POLICY_FEATURES.reduce<Partial<Record<PolicyFeature, PolicyFeatureAccess>>>(
-    (features, feature) => ({...features, [feature]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ}),
-    {},
-);
+const WRITE_ALL_POLICY_FEATURES = buildFeatureAccessMap(CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE);
 
-const EDITOR_POLICY_FEATURES = ALL_POLICY_FEATURES.filter((feature) => feature !== CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES).reduce<
-    Partial<Record<PolicyFeature, PolicyFeatureAccess>>
->((features, feature) => ({...features, [feature]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}), {});
+const READ_ALL_POLICY_FEATURES = buildFeatureAccessMap(CONST.POLICY.POLICY_FEATURE_ACCESS.READ);
+
+const EDITOR_POLICY_FEATURES = buildFeatureAccessMap(CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE, CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES);
 
 const ROLE_PERMISSION_BUNDLES: Record<string, Partial<Record<PolicyFeature, PolicyFeatureAccess>>> = {
     [CONST.POLICY.ROLE.ADMIN]: WRITE_ALL_POLICY_FEATURES,
