@@ -23,6 +23,7 @@ function InvoiceConfirmationList(props: MoneyRequestConfirmationListProps) {
             {...data.confirmationFieldsProviderProps}
             isTypeInvoice
             onTaxAmountEmptyChange={data.setIsTaxAmountEmpty}
+            onDateValidationErrorChange={data.setHasDateValidationError}
         >
             <View>
                 <InvoiceFooter

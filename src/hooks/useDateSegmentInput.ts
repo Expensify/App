@@ -35,6 +35,7 @@ const LAST_SEGMENT_NAME = DATE_SEGMENT_NAMES[DATE_SEGMENT_NAMES.length - 1];
 const DELETE_KEY = 'Delete';
 const SELECT_ALL_KEY = 'a';
 const COPY_KEY = 'c';
+const CUT_KEY = 'x';
 const MOVE_KEYS = {
     [CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey]: -1,
     [CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey]: 1,
@@ -212,13 +213,22 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit}: Use
                 return;
             }
 
-            // Selecting the whole date selects nothing in the document, so the browser has nothing of its own to copy
-            if (key.toLowerCase() === COPY_KEY && isAllSelected) {
+            // Selecting the whole date selects nothing in the document, so the browser has neither anything of its own
+            // to put on the clipboard nor anything to remove from the field
+            if (isAllSelected && (key.toLowerCase() === COPY_KEY || key.toLowerCase() === CUT_KEY)) {
                 const isoDate = getISODateFromSegments(segments);
 
-                if (isoDate) {
-                    event.preventDefault();
-                    Clipboard.setString(isoDate);
+                if (!isoDate) {
+                    return;
+                }
+
+                event.preventDefault();
+                Clipboard.setString(isoDate);
+
+                if (key.toLowerCase() === CUT_KEY) {
+                    setIsAllSelected(false);
+                    applySegments(EMPTY_SEGMENTS);
+                    enterSegment(FIRST_SEGMENT_NAME);
                 }
                 return;
             }
@@ -285,8 +295,15 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit}: Use
             return;
         }
 
-        // A separator means the user is finished with this segment even if they only typed one digit into it
         event.preventDefault();
+
+        // A full segment hands the caret on by itself, so the separator typed after it arrives in a segment the user
+        // has not written in yet. Moving on again would step over that segment and leave it empty.
+        if (!segments[name]) {
+            return;
+        }
+
+        // A separator means the user is finished with this segment even if they only typed one digit into it
         enterSegment(getAdjacentSegmentName(name, 1));
     };
 

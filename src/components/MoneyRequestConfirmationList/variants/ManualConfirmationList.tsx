@@ -27,6 +27,7 @@ function ManualConfirmationList(props: MoneyRequestConfirmationListProps) {
             isPerDiemRequest={isPerDiemRequest}
             isTimeRequest={isTimeRequest}
             onTaxAmountEmptyChange={data.setIsTaxAmountEmpty}
+            onDateValidationErrorChange={data.setHasDateValidationError}
         >
             <View>
                 <ManualFooter

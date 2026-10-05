@@ -50,7 +50,7 @@ type DateFieldProps = {
 
 function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, transactionID, action, iouType, reportID, reportActionID}: DateFieldProps) {
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
-    const {isEditingSplitBill, canEnterScanFieldsManually} = useConfirmationFields();
+    const {isEditingSplitBill, canEnterScanFieldsManually, onDateValidationErrorChange} = useConfirmationFields();
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -85,6 +85,10 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
     // A draft always carries a date, so on a partially filled Scan the all-or-nothing rule stands in for `createdMissing`.
     const isDateRequiredMissing = isPartiallyEnteredScanExpense(dateState, canEnterScanFieldsManually) ? !dateState?.isCreatedSet : createdMissing;
     const inlineDateErrorText = formError === 'common.error.fieldRequired' && isDateRequiredMissing ? translate('common.error.fieldRequired') : '';
+
+    // The field holds back an entry it cannot read as a date, so it is the only thing that knows one is there. Pressing
+    // Create is what raises it, which is why the message is shown from the form error rather than as the user types.
+    const invalidDateErrorText = formError === 'common.error.dateInvalid' ? translate('common.error.dateInvalid') : '';
 
     const handleDateChange = (newDate: string) => {
         if (!transactionID) {
@@ -140,7 +144,8 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
                     maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                     onInputChange={handleDateChange}
                     disabled={didConfirm}
-                    errorText={inlineDateErrorText || dateErrorText}
+                    errorText={inlineDateErrorText || invalidDateErrorText || dateErrorText}
+                    onValidationErrorChange={(error) => onDateValidationErrorChange?.(!!error)}
                     shouldDeferShowUntilPositioned
                     // The hint only renders while the date is empty, and `TextInput` drops its right-hand-side
                     // component whenever the clear button can appear, which it can't without a value to clear.

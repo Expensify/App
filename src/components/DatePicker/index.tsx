@@ -275,7 +275,10 @@ function DatePicker({
         onValidationErrorChange?.(blockingError);
 
         // A field that is gone has nothing left to report, so its error must not outlive it and block the form
-        return () => setInputValidationError(inputID, '');
+        return () => {
+            setInputValidationError(inputID, '');
+            onValidationErrorChange?.('');
+        };
     }, [inputID, blockingError, setInputValidationError, onValidationErrorChange]);
 
     // Leaving the field is the point the user is finished with it, which is when a form lets a required error show

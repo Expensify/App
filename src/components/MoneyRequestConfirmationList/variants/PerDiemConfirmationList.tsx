@@ -19,6 +19,7 @@ function PerDiemConfirmationList(props: MoneyRequestConfirmationListProps) {
         <ConfirmationFieldsProvider
             {...data.confirmationFieldsProviderProps}
             isPerDiemRequest
+            onDateValidationErrorChange={data.setHasDateValidationError}
         >
             <View>
                 <PerDiemFooter

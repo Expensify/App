@@ -93,6 +93,7 @@ function DistanceConfirmationList(props: MoneyRequestConfirmationListProps) {
             isOdometerDistanceRequest={isOdometerDistanceRequest}
             isGPSDistanceRequest={isGPSDistanceRequest}
             onTaxAmountEmptyChange={data.setIsTaxAmountEmpty}
+            onDateValidationErrorChange={data.setHasDateValidationError}
         >
             <View>{renderFooter()}</View>
         </ConfirmationFieldsProvider>

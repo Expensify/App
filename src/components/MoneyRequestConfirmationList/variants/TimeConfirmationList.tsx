@@ -24,6 +24,7 @@ function TimeConfirmationList(props: MoneyRequestConfirmationListProps) {
         <ConfirmationFieldsProvider
             {...data.confirmationFieldsProviderProps}
             isTimeRequest
+            onDateValidationErrorChange={data.setHasDateValidationError}
         >
             <View>
                 <TimeFooter

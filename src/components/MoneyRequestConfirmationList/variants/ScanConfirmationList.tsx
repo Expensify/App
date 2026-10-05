@@ -48,6 +48,7 @@ function ScanConfirmationList(props: MoneyRequestConfirmationListProps) {
             isEditingSplitBill={isEditingSplitBill}
             isScanRequest
             onTaxAmountEmptyChange={data.setIsTaxAmountEmpty}
+            onDateValidationErrorChange={data.setHasDateValidationError}
         >
             <View style={isCompactMode ? styles.flex1 : undefined}>
                 <ScanFooter

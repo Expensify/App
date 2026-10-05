@@ -143,6 +143,7 @@ function useConfirmationListDataWithPolicy({
     const [didConfirm, setDidConfirm] = useState(isConfirmed);
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
     const [isTaxAmountEmpty, setIsTaxAmountEmpty] = useState(false);
+    const [hasDateValidationError, setHasDateValidationError] = useState(false);
 
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect -- reset the tax-empty flag whenever the transaction changes
@@ -180,6 +181,7 @@ function useConfirmationListDataWithPolicy({
         isDistanceRequest,
         isReadOnly,
         shouldShowDate,
+        hasDateValidationError,
     });
 
     const isCategoryRequired = !!policy?.requiresCategory && !isTypeInvoice;
@@ -248,6 +250,7 @@ function useConfirmationListDataWithPolicy({
         isReadOnly,
         shouldShowDate,
         isTaxAmountEmpty,
+        hasDateValidationError,
     });
 
     // The partially filled receipt may not be the one on screen, so bring it into view to show its inline errors.
@@ -344,6 +347,7 @@ function useConfirmationListDataWithPolicy({
         setFormError,
         clearFormErrors,
         setIsTaxAmountEmpty,
+        setHasDateValidationError,
 
         // Read from context by `ConfirmationFooterContent`, which owns the CTA label and the Test Drive tooltip
         confirm,
