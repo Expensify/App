@@ -1,9 +1,17 @@
+import FixedFooter from '@components/FixedFooter';
+import ImageSVG from '@components/ImageSVG';
+import Lottie from '@components/Lottie';
+import LottieAnimations from '@components/LottieAnimations';
+import type DotLottieAnimation from '@components/LottieAnimations/types';
+import Text from '@components/Text';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Accessibility from '@libs/Accessibility';
 import isIllustrationLottieAnimation from '@libs/isIllustrationLottieAnimation';
 
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
@@ -11,16 +19,9 @@ import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
 
-import type DotLottieAnimation from './LottieAnimations/types';
-
-import FixedFooter from './FixedFooter';
-import ImageSVG from './ImageSVG';
-import Lottie from './Lottie';
-import LottieAnimations from './LottieAnimations';
+import ConfirmationPageContent from './layout/Content';
 import ConfirmationPagePrimaryButton from './primitives/ConfirmationPagePrimaryButton';
 import ConfirmationPageSecondaryButton from './primitives/ConfirmationPageSecondaryButton';
-import ScrollView from './ScrollView';
-import Text from './Text';
 
 type ConfirmationPageProps = {
     illustration?: DotLottieAnimation | IconAsset;
@@ -70,7 +71,7 @@ type ConfirmationPageProps = {
     footerStyle?: ViewStyle;
 
     /** Component rendered inside the footer, above the buttons (e.g. an inline error message) */
-    footerComponent?: React.ReactNode;
+    requestErrors?: Errors | null;
 
     containerStyle?: ViewStyle;
     innerContainerStyle?: ViewStyle;
@@ -98,7 +99,7 @@ function ConfirmationPage({
     descriptionStyle,
     ctaStyle,
     footerStyle,
-    footerComponent,
+    requestErrors,
     containerStyle,
     innerContainerStyle,
 }: ConfirmationPageProps) {
@@ -110,52 +111,50 @@ function ConfirmationPage({
 
     return (
         <View style={[styles.flex1, containerStyle]}>
-            <View style={styles.flex1}>
-                <ScrollView contentContainerStyle={styles.flexGrow1}>
-                    <View style={[styles.screenCenteredContainer, styles.alignItemsCenter, innerContainerStyle]}>
-                        {(() => {
-                            if (shouldShowStaticFallback) {
-                                return (
-                                    <View style={[styles.confirmationAnimation, illustrationStyle]}>
-                                        <ImageSVG
-                                            src={illustrations.Fireworks}
-                                            contentFit="contain"
-                                        />
-                                    </View>
-                                );
-                            }
-                            if (isLottie) {
-                                return (
-                                    <Lottie
-                                        source={illustration}
-                                        autoPlay
-                                        loop
-                                        style={[styles.confirmationAnimation, illustrationStyle]}
-                                        webStyle={{
-                                            width: (StyleSheet.flatten(illustrationStyle)?.width as number) ?? styles.confirmationAnimation.width,
-                                            height: (StyleSheet.flatten(illustrationStyle)?.height as number) ?? styles.confirmationAnimation.height,
-                                        }}
-                                    />
-                                );
-                            }
-                            return (
-                                <View style={[styles.confirmationAnimation, illustrationStyle]}>
-                                    <ImageSVG
-                                        src={illustration}
-                                        contentFit="contain"
-                                    />
-                                </View>
-                            );
-                        })()}
-                        <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mv2, headingStyle]}>{heading}</Text>
-                        {!!descriptionComponent && descriptionComponent}
-                        {!!description && <Text style={[styles.textAlignCenter, descriptionStyle, styles.w100]}>{description}</Text>}
-                        {cta ? <Text style={[styles.textAlignCenter, ctaStyle]}>{cta}</Text> : null}
-                        {!!ctaComponent && ctaComponent}
-                    </View>
-                </ScrollView>
-                {!!footerComponent && <View style={[styles.pAbsolute, styles.b0, styles.l0, styles.r0, styles.ph5]}>{footerComponent}</View>}
-            </View>
+            <ConfirmationPageContent
+                style={innerContainerStyle}
+                requestErrors={requestErrors}
+            >
+                {(() => {
+                    if (shouldShowStaticFallback) {
+                        return (
+                            <View style={[styles.confirmationAnimation, illustrationStyle]}>
+                                <ImageSVG
+                                    src={illustrations.Fireworks}
+                                    contentFit="contain"
+                                />
+                            </View>
+                        );
+                    }
+                    if (isLottie) {
+                        return (
+                            <Lottie
+                                source={illustration}
+                                autoPlay
+                                loop
+                                style={[styles.confirmationAnimation, illustrationStyle]}
+                                webStyle={{
+                                    width: (StyleSheet.flatten(illustrationStyle)?.width as number) ?? styles.confirmationAnimation.width,
+                                    height: (StyleSheet.flatten(illustrationStyle)?.height as number) ?? styles.confirmationAnimation.height,
+                                }}
+                            />
+                        );
+                    }
+                    return (
+                        <View style={[styles.confirmationAnimation, illustrationStyle]}>
+                            <ImageSVG
+                                src={illustration}
+                                contentFit="contain"
+                            />
+                        </View>
+                    );
+                })()}
+                <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mv2, headingStyle]}>{heading}</Text>
+                {!!descriptionComponent && descriptionComponent}
+                {!!description && <Text style={[styles.textAlignCenter, descriptionStyle, styles.w100]}>{description}</Text>}
+                {cta ? <Text style={[styles.textAlignCenter, ctaStyle]}>{cta}</Text> : null}
+                {!!ctaComponent && ctaComponent}
+            </ConfirmationPageContent>
             {(shouldShowSecondaryButton || shouldShowButton) && (
                 <FixedFooter style={footerStyle}>
                     {shouldShowSecondaryButton && (
