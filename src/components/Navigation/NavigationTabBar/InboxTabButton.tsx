@@ -31,6 +31,7 @@ import React, {useEffect, useRef} from 'react';
 import getLastRoute from './getLastRoute';
 import getReusableReportsTabStateKey from './getReusableReportsTabStateKey';
 import getStringParam from './getStringParam';
+import navigateToInboxTab from './navigateToInboxTab';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import TabBarItem from './TabBarItem';
 
@@ -232,9 +233,7 @@ function InboxTabButton({selectedTab, isWideLayout}: InboxTabButtonProps) {
         if (selectedTab === NAVIGATION_TABS.INBOX) {
             return;
         }
-
-        startNavigateToInboxTabSpan({isWideLayout: false});
-        Navigation.navigate(ROUTES.INBOX);
+        navigateToInboxTab();
     };
 
     return (

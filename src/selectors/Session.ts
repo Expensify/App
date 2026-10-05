@@ -7,6 +7,8 @@ const isSupportalSessionSelector = (session: OnyxEntry<Session>) => session?.aut
 
 const isDelegateSessionSelector = (session: OnyxEntry<Session>) => session?.authTokenType === CONST.AUTH_TOKEN_TYPES.DELEGATE;
 
+const isAnonymousSessionSelector = (session: OnyxEntry<Session>) => session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
+
 const emailSelector = (session: OnyxEntry<Session>) => session?.email;
 
 const accountIDSelector = (session: OnyxEntry<Session>) => session?.accountID;
@@ -15,4 +17,4 @@ const sessionEmailAndAccountIDSelector = (session: OnyxEntry<Session>) => ({emai
 
 const authTokenSelector = (session: OnyxEntry<Session>) => session?.authToken;
 
-export {emailSelector, accountIDSelector, sessionEmailAndAccountIDSelector, authTokenSelector, isSupportalSessionSelector, isDelegateSessionSelector};
+export {emailSelector, accountIDSelector, sessionEmailAndAccountIDSelector, authTokenSelector, isSupportalSessionSelector, isDelegateSessionSelector, isAnonymousSessionSelector};

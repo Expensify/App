@@ -10,20 +10,14 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import isTabRouteAtRoot from '@libs/Navigation/helpers/isTabRouteAtRoot';
-import cancelTabNavigationSpans, {INBOX_TAB_SPAN_IDS, REPORTS_TAB_SPAN_IDS} from '@libs/telemetry/cancelTabNavigationSpans';
+import cancelTabNavigationSpans, {NAVIGATION_TAB_TO_SPANS} from '@libs/telemetry/cancelTabNavigationSpans';
 
 import SCREENS from '@src/SCREENS';
 
 import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
-import type {ValueOf} from 'type-fest';
 
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-
-const NAVIGATION_TAB_TO_SPANS: Partial<Record<ValueOf<typeof NAVIGATION_TABS>, readonly string[]>> = {
-    [NAVIGATION_TABS.INBOX]: INBOX_TAB_SPAN_IDS,
-    [NAVIGATION_TABS.SEARCH]: REPORTS_TAB_SPAN_IDS,
-};
 
 /**
  * Custom tab bar rendered by the BottomTabNavigator. Only receives `state` (not the
@@ -96,4 +90,3 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
 }
 
 export default TabNavigatorBar;
-export {NAVIGATION_TAB_TO_SPANS};

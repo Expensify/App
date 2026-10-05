@@ -4,6 +4,7 @@ import ROUTE_TO_NAVIGATION_TAB from '@components/Navigation/NavigationTabBar/ROU
 
 import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {useChatTabBrickRoad} from '@hooks/useSidebarOrderedReports';
@@ -11,20 +12,21 @@ import useTheme from '@hooks/useTheme';
 import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
 
 import {getPreservedNavigatorState, setPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
-import {NAVIGATION_TAB_TO_SPANS} from '@libs/Navigation/AppNavigator/Navigators/TabNavigatorBar';
 import isTabRouteAtRoot from '@libs/Navigation/helpers/isTabRouteAtRoot';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
-import cancelTabNavigationSpans from '@libs/telemetry/cancelTabNavigationSpans';
+import cancelTabNavigationSpans, {NAVIGATION_TAB_TO_SPANS} from '@libs/telemetry/cancelTabNavigationSpans';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import type {NavigationAction, NavigationState, PartialState, Router, TabNavigationState} from '@react-navigation/native';
 
 import {findFocusedRoute, useNavigation, useNavigationState, useRoute} from '@react-navigation/native';
+import {isAnonymousSessionSelector} from '@selectors/Session';
 import {useEffect} from 'react';
 
 import getTabWithoutBarItem from './getTabWithoutBarItem';
@@ -46,6 +48,7 @@ function useNativeTabNavigator() {
     const {isBlockingViewVisible} = useFullScreenBlockingViewState();
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const {translate} = useLocalize();
+    const [isAnonymousUser = false] = useOnyx(ONYXKEYS.SESSION, {selector: isAnonymousSessionSelector});
     const isInsightsTabVisible = isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE);
     const tabWithoutBarItem = getTabWithoutBarItem(isInsightsTabVisible);
     const theme = useTheme();
@@ -128,7 +131,7 @@ function useNativeTabNavigator() {
         },
     });
 
-    return {shouldShowNativeTabBar, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride};
+    return {shouldShowNativeTabBar, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isAnonymousUser};
 }
 
 export default useNativeTabNavigator;
