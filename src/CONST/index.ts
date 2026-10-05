@@ -1610,9 +1610,6 @@ const CONST = {
         // view shows real pixels instead of an upscaled low-resolution raster.
         HOVER_ZOOM_SCALE: 2.5,
 
-        // Elements with this data attribute pause the hover zoom while the pointer is over them
-        HOVER_ZOOM_EXCLUDED_ELEMENT: 'receipt-hover-zoom-excluded',
-
         // react-fast-pdf pads each page by this much. The single-page PDF layer matches it to stay framed the same.
         PDF_PAGE_BORDER: 9,
 

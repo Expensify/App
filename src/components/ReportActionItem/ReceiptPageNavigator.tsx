@@ -90,10 +90,7 @@ function ReceiptPageNavigator({page, pageCount, isLoading, onChangePage}: Receip
     const labelStyle = [styles.badgeText, styles.textStrong, styles.badgeDefaultText, styles.textNoWrap];
 
     return (
-        <View
-            style={styles.receiptPageNavigator}
-            dataSet={{[CONST.RECEIPT.HOVER_ZOOM_EXCLUDED_ELEMENT]: true}}
-        >
+        <View style={styles.receiptPageNavigator}>
             <PageButton
                 icon={icons.BackArrow}
                 label={translate('common.previous')}
