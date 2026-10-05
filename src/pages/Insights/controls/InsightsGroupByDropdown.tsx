@@ -12,6 +12,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 import DEFAULT_INSIGHTS_FILTERS, {INSIGHTS_GROUP_BY_OPTIONS} from '@pages/Insights/insightsFilters';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 
 import React from 'react';
@@ -53,17 +55,20 @@ function InsightsGroupByDropdown({groupBy, onChange}: InsightsGroupByDropdownPro
         <Button
             ref={ref}
             size={CONST.BUTTON_SIZE.SMALL}
-            style={styles.widgetHeaderGhostButtonWrapper}
-            innerStyles={[styles.bgTransparent, isExpanded && styles.widgetHeaderMenuButtonHovered]}
+            style={[styles.widgetHeaderGhostButtonWrapper, styles.flexShrink1]}
+            innerStyles={[styles.ph3, styles.bgTransparent, {maxWidth: variables.filterPillMaxWidth}, styles.flexShrink1, isExpanded && styles.widgetHeaderMenuButtonHovered]}
             hoverStyles={styles.widgetHeaderMenuButtonHovered}
             accessibilityLabel={buttonText}
             sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_GROUP_BY}
             onPress={onPress}
         >
-            <CaretWrapper isActive={isExpanded}>
+            <CaretWrapper
+                style={[styles.flexShrink1, styles.mw100]}
+                isActive={isExpanded}
+            >
                 <Text
                     numberOfLines={1}
-                    style={[styles.textMicroBold, styles.textSupporting]}
+                    style={[styles.textMicroBold, styles.textSupporting, styles.flexShrink1]}
                 >
                     {buttonText}
                 </Text>
@@ -73,6 +78,7 @@ function InsightsGroupByDropdown({groupBy, onChange}: InsightsGroupByDropdownPro
 
     return (
         <FilterPopupButton
+            wrapperStyle={styles.flexShrink1}
             popoverAnchorAlignment={INSIGHTS_CONTROL_ANCHOR_ALIGNMENT}
             PopoverComponent={groupByPopover}
             renderButton={groupByButton}

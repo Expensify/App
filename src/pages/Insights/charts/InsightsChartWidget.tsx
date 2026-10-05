@@ -93,7 +93,7 @@ function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGr
             title={translate(chart.titleKey)}
             titleRightContent={
                 !!groupByControl || !!headerMenu ? (
-                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.flexShrink1]}>
                         {groupByControl}
                         {headerMenu}
                     </View>
