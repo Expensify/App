@@ -110,6 +110,7 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, shouldShowNoneOpt
     const sectionsWithNoneOption =
         noneOption.length > 0 ? [...sections.slice(0, selectedCategorySectionIndex + 1), noneOptionSection, ...sections.slice(selectedCategorySectionIndex + 1)] : sections;
 
+    const sectionsWithTitleStyles = sectionsWithNoneOption.map((section) => ({...section, data: section.data.map((category) => ({...category, titleStyles: styles.w100}))}));
     const categoryData = sectionsWithNoneOption.flatMap((section) => section.data);
     const categoriesCount = getEnabledCategoriesCount(categories);
     const selectedOptionKey = categoryData.find((category) => category.searchText === selectedCategory)?.keyForList;
@@ -133,7 +134,7 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, shouldShowNoneOpt
         <SelectionListWithSections
             // The list only renders the skeleton when it has no items, so the sections have to be emptied too.
             // Otherwise the selected-only fallback row still shows while the fetch is in flight.
-            sections={isLoadingNewOptions ? getEmptyArray<never>() : sectionsWithNoneOption}
+            sections={isLoadingNewOptions ? getEmptyArray<never>() : sectionsWithTitleStyles}
             onSelectRow={onSubmit}
             ListItem={SingleSelectListItem}
             shouldShowTextInput={categoriesCount >= CONST.STANDARD_LIST_ITEM_LIMIT}
@@ -142,8 +143,6 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, shouldShowNoneOpt
             isLoadingNewOptions={isLoadingNewOptions}
             initiallyFocusedItemKey={selectedOptionKey}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
-            style={{listItemTitleStyles: styles.w100}}
-            isRowMultilineSupported
             titleNumberOfLines={CONST.TRANSACTION_TAG_AND_CATEGORY_PICKER_MAX_TITLE_LINES}
         />
     );

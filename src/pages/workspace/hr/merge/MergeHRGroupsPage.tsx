@@ -56,6 +56,7 @@ function MergeHRGroupsPage({
         keyForList: group.id,
         value: group.id,
         isSelected: selectedIds.has(group.id),
+        itemStyle: styles.pv4,
     }));
 
     const toggleItem = (item: GroupListItem) => {
@@ -117,7 +118,7 @@ function MergeHRGroupsPage({
                             onChangeText: setSearchText,
                             style: {containerStyle: styles.pb5},
                         }}
-                        style={{listHeaderSelectAllTextStyle: styles.textLabelSupporting, listItemWrapperStyle: styles.pv4}}
+                        style={{listHeaderSelectAllTextStyle: styles.textLabelSupporting}}
                     />
                     <FixedFooter
                         style={styles.mtAuto}
