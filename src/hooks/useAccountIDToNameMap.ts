@@ -26,3 +26,4 @@ function useAccountIDToNameMap(): AccountIDToNameMap {
 }
 
 export default useAccountIDToNameMap;
+export {buildAccountIDToNameMap};
