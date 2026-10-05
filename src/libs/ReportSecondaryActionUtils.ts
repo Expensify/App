@@ -2,6 +2,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     BankAccountList,
+    CardList,
     OutstandingReportsByPolicyIDDerivedValue,
     Policy,
     Report,
@@ -730,11 +731,12 @@ function isDeleteAction(
     reportTransactions: Transaction[],
     currentUserAccountID: number,
     rules: OnyxCollection<Rule>,
+    policy: OnyxEntry<Policy>,
+    cardList: OnyxEntry<CardList>,
     reportActions?: ReportAction[],
-    policy?: Policy,
     isReportLevelDelete = false,
 ): boolean {
-    return canDeleteMoneyRequestReport(report, reportTransactions, reportActions ?? [], currentUserAccountID, rules, policy, isReportLevelDelete);
+    return canDeleteMoneyRequestReport(report, reportTransactions, reportActions ?? [], currentUserAccountID, rules, policy, cardList, isReportLevelDelete);
 }
 
 function shouldShowEditSplitInDeleteAction(
@@ -743,7 +745,9 @@ function shouldShowEditSplitInDeleteAction(
     reportActions: ReportAction[] | undefined,
     originalTransaction: OnyxEntry<Transaction>,
     currentUserAccountID: number,
+    policy: OnyxEntry<Policy>,
     rules: OnyxCollection<Rule>,
+    cardList: OnyxEntry<CardList>,
 ): boolean {
     if (reportTransactions.length !== 1) {
         return false;
@@ -757,7 +761,7 @@ function shouldShowEditSplitInDeleteAction(
     const isSelfDMSplit = isSelfDMReportUtils(report);
     return (
         shouldRedirectDeleteToSplitExpenseEdit(reportTransaction, originalTransaction, isSelfDMSplit) &&
-        isDeleteAction(report, reportTransactions, currentUserAccountID, rules, reportActions)
+        isDeleteAction(report, reportTransactions, currentUserAccountID, rules, policy, cardList, reportActions)
     );
 }
 
@@ -1010,6 +1014,7 @@ function getSecondaryReportActions({
     parentReport,
     isOffline,
     rules,
+    cardList,
 }: {
     currentUserLogin: string;
     currentUserAccountID: number;
@@ -1032,6 +1037,7 @@ function getSecondaryReportActions({
     /** TODO: Should be a required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
     isOffline?: boolean;
     rules: OnyxCollection<Rule>;
+    cardList: OnyxEntry<CardList>;
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
     const reportNameValuePairs = moveExpenseReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
@@ -1137,7 +1143,7 @@ function getSecondaryReportActions({
 
     if (
         isSplitAction(report, reportTransactions, originalTransaction, currentUserLogin, currentUserAccountID, rules, submitterLogin, policy, parentReport) &&
-        !shouldShowEditSplitInDeleteAction(report, reportTransactions, reportActions, originalTransaction, currentUserAccountID, rules)
+        !shouldShowEditSplitInDeleteAction(report, reportTransactions, reportActions, originalTransaction, currentUserAccountID, policy, rules, cardList)
     ) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
     }
@@ -1200,7 +1206,7 @@ function getSecondaryReportActions({
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
 
-    if (isDeleteAction(report, reportTransactions, currentUserAccountID, rules, reportActions ?? [], policy, true)) {
+    if (isDeleteAction(report, reportTransactions, currentUserAccountID, rules, policy, cardList, reportActions ?? [], true)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);
     }
 
@@ -1246,6 +1252,7 @@ function getSecondaryTransactionThreadActions({
     grandParentReport,
     hasWorkspaceToSubmitTo = false,
     rules,
+    cardList,
 }: {
     currentUserLogin: string;
     currentUserAccountID: number;
@@ -1268,6 +1275,7 @@ function getSecondaryTransactionThreadActions({
     /** Whether the user belongs to a workspace they can submit an expense to (self-DM split expenses can only be submitted to a workspace). */
     hasWorkspaceToSubmitTo?: boolean;
     rules: OnyxCollection<Rule>;
+    cardList: OnyxEntry<CardList>;
 }): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
 
@@ -1285,7 +1293,7 @@ function getSecondaryTransactionThreadActions({
 
     if (
         isSplitAction(parentReport, [reportTransaction], originalTransaction, currentUserLogin, currentUserAccountID, rules, parentReportOwnerLogin, policy, grandParentReport) &&
-        !shouldShowEditSplitInDeleteAction(parentReport, [reportTransaction], reportAction ? [reportAction] : [], originalTransaction, currentUserAccountID, rules)
+        !shouldShowEditSplitInDeleteAction(parentReport, [reportTransaction], reportAction ? [reportAction] : [], originalTransaction, currentUserAccountID, policy, rules, cardList)
     ) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT);
     }
@@ -1336,7 +1344,7 @@ function getSecondaryTransactionThreadActions({
 
     options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS);
 
-    if (isDeleteAction(parentReport, [reportTransaction], currentUserAccountID, rules, reportAction ? [reportAction] : [], policy)) {
+    if (isDeleteAction(parentReport, [reportTransaction], currentUserAccountID, rules, policy, cardList, reportAction ? [reportAction] : [])) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE);
     }
 
