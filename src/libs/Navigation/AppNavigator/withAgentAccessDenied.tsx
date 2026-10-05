@@ -8,9 +8,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-import {accountIDSelector} from '@selectors/Session';
-
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useState} from 'react';
 
 function withAgentAccessDenied(getComponent: () => React.ComponentType): () => React.ComponentType {
