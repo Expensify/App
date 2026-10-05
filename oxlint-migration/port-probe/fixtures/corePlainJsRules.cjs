@@ -8,7 +8,7 @@ const readWithBrackets = target['literalKey']; // dot-notation
 
 function duplicated(sameName, sameName) {
     return sameName;
-} // no-dupe-args
+} // no-dupe-args, no-redeclare
 
 async function awaitedReturn() {
     return await Promise.resolve(1); // no-return-await

@@ -25,8 +25,8 @@ baseline over the whole repo in 33 seconds; ESLint takes 375 (section 3.1). The 
 shards plus one type-aware process (section 2.2) and reports the same findings as a single process.
 
 Every rule ESLint enables is either enabled in Oxlint or has a written reason not to be, and config
-drift is at 0 open differences (section 3.5). Rule evidence stops short of complete on purpose: 306
-fixtures, 305 identical and 1 pinned divergence, and 128 core rules left without one for the reasons in
+drift is at 0 open differences (section 3.5). Rule evidence stops short of complete on purpose: 307
+fixtures, 306 identical and 1 pinned divergence, and 128 core rules left without one for the reasons in
 section 4.1.
 
 Linux CI lints the real repo in 50 to 55 s on 8 vCPU, and a planted error comes back from both linters
@@ -51,7 +51,7 @@ Left to do:
 | Oxlint, whole repo, through the pipeline | `npm run lint -- --linter=oxlint` | exit 0, nothing above baseline; the same pipeline run takes **33 s** in `compare-oxlint` |
 | Types | `npm run typecheck` | **passed**, including `oxlint.config.mts` |
 | Tooling tests | `npm run test:bun` | **645 pass / 3 fail**, 48 files. The 3 are `SyncVersions.test.ts` git-fixture cases, failing identically at `HEAD` without any branch change and unrelated to linting |
-| Per-rule parity, all batches | `npm run oxlint-rule-fixtures` | **306 entries: 305 identical, 1 pinned divergence** |
+| Per-rule parity, all batches | `npm run oxlint-rule-fixtures` | **307 entries: 306 identical, 1 pinned divergence** |
 | Whole-repo parity | `bash oxlint-migration/compareFullRepo.sh --fresh` | section 3 |
 | Sidecar rule evidence | `npm run oxlint-sidecar-coverage` | **193 / 193 covered** |
 | Rule inventory | `npm run oxlint-rule-inventory` | **490 rules, fixture coverage 301 / 490** |
@@ -92,7 +92,7 @@ time. Exit codes are the process exits, not a reading of the output.
 | `oxlint-react-compiler-gate` | **0** | the gate matches the ESLint side: silent where both compilers memoize, live where they do not |
 | `oxlint-react-compiler-rust` | **0** | twelve fixtures self-report, one per `rc/*` rule; every category mapped |
 | `oxlint-rule-availability` | **0** | wrote `oxlint-migration/rule-availability.json`, byte-identical |
-| `oxlint-rule-fixtures` | **0** | 306 entries: 305 identical, 1 pinned divergence (`react/no-did-update-set-state`) |
+| `oxlint-rule-fixtures` | **0** | 307 entries: 306 identical, 1 pinned divergence (`react/no-did-update-set-state`) |
 | `oxlint-rule-inventory` | **0** | 490 rules, fixture coverage 301/490, 0 unproven. Wrote `rule-inventory.json`, byte-identical |
 | `oxlint-rule-tester` | **0** | all 35 custom rules identical across 463 harvested cases |
 | `oxlint-sidecar-coverage` | **0** | core 10/10, hosted 40/40, rulesdir 37/37, hand-hosted 87/87; all 193 enabled sidecar rules covered |
@@ -445,9 +445,16 @@ jest runs against ESLint only. `eslint-plugin-local-rules/tests/` holds the same
 `no-direct-personal-details-list` is covered that way. Jest does not collect `.test.js`, so the two
 harnesses do not double-run them.
 
-Native Rust rules, 288. `compareFixtures.py` carries 306 entries: 305 identical on both tools, 1
+Native Rust rules, 288. `compareFixtures.py` carries 307 entries: 306 identical on both tools, 1
 pinned intentional divergence (`react/no-did-update-set-state`, section 5.2). Each batch is checked
 red-green by emptying its fixtures and confirming every row flips to FAIL.
+
+A finding on a fixture file that no entry claims fails the run. It used to print as informational
+(oxlint=17, eslint=6), and every one of those was the two probe configs enabling different rules:
+the oxlint probe left the default `correctness` category on (production turns it off), and the
+ESLint probe ran `no-redeclare` and `no-unreachable` on TS fixtures from `js.configs.recommended`
+(production turns both off for TS). Both probes now match production, and the JS `no-redeclare`
+finding became its own entry.
 
 ### 4.1 Tier B is deliberately not covered
 

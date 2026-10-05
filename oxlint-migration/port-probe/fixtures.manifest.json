@@ -221,6 +221,12 @@
         "expected": 1,
         "why": "WIRED 2026-08-11, covered 2026-08-12. Natively oxlint has only typescript/return-await, off for plain JS along with the rest of the typed rules"
     },
+    "no-redeclare": {
+        "fixture": "fixtures/corePlainJsRules.cjs",
+        "oxlintRule": "eslint/no-redeclare",
+        "expected": 1,
+        "why": "covered 2026-10-05. Plain JS only, as in production: on TS ESLint runs @typescript-eslint/no-redeclare instead. The duplicate parameter in the no-dupe-args fixture is also a redeclaration on both tools"
+    },
     "import/no-useless-path-segments": {
         "fixture": "fixtures/importPathRules.ts",
         "oxlintRule": "hosted/no-useless-path-segments",

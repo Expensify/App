@@ -200,7 +200,9 @@
             "rules": {
                 "core/dot-notation": ["error", {"allowKeywords": true, "allowPattern": ""}],
                 "core/no-dupe-args": "error",
-                "core/no-return-await": "error"
+                "core/no-return-await": "error",
+                // Native, not hosted: the same JS-only options as the repo's plain-JS override.
+                "no-redeclare": ["error", {"builtinGlobals": false}]
             }
         },
         {

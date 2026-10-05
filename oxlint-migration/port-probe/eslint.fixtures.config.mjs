@@ -74,6 +74,10 @@ const shared = [
         // the repo's plain strings, react/prefer-exact-props stays inert on both tools.
         settings: {react: {version: 'detect'}, propWrapperFunctions: ['forbidExtraProps', 'exact', 'Object.freeze', {property: 'exact', exact: true}]},
         rules: {
+            // Off on TS files in production too (typescript-eslint's eslint-recommended), so
+            // js.configs.recommended must not run them on TS fixtures.
+            'no-redeclare': 'off',
+            'no-unreachable': 'off',
             'no-unreachable-loop': ['error', {ignore: []}],
             'react/jsx-no-bind': ['error', {ignoreRefs: true, allowArrowFunctions: true, allowFunctions: false, allowBind: false, ignoreDOMComponents: true}],
             'react/function-component-definition': ['error', {namedComponents: 'function-declaration', unnamedComponents: 'arrow-function'}],
@@ -245,6 +249,8 @@ const shared = [
             'dot-notation': ['error', {allowKeywords: true, allowPattern: ''}],
             'no-dupe-args': 'error',
             'no-return-await': 'error',
+            // builtinGlobals true is what production resolves for JS; oxlint runs false (checkConfigDrift LEDGER).
+            'no-redeclare': ['error', {builtinGlobals: true}],
             'no-undef': 'off',
             'no-unused-vars': 'off',
         },

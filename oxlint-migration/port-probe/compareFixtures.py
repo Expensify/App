@@ -118,6 +118,9 @@ def main():
     args = parser.parse_args()
 
     manifest, origin = load_manifest()
+    # Strays are judged against every entry, so a --filter run does not flag the other rules a
+    # shared fixture file trips.
+    claimed = {e['oxlintRule'] for e in manifest.values()} | set(manifest)
     if args.filter:
         manifest = {rule: entry for rule, entry in manifest.items() if args.filter in rule or args.filter in entry['fixture']}
     if not manifest:
@@ -213,11 +216,15 @@ def main():
         print(f'\nblessed {count} entries from the ESLint run into {len(blessed)} file(s).')
 
     print()
-    claimed = {e['oxlintRule'] for e in manifest.values()} | set(manifest)
     stray_ox = {f for f in ox if f[0] in linter_files and f[2] not in claimed}
     stray_es = {f for f in es if f[0] in linter_files and f[2] not in claimed}
+    # A finding no entry claims means the two probe configs enable different rules, which is the
+    # drift this harness exists to catch, so it fails instead of being counted and ignored.
+    for tool, strays in (('oxlint', stray_ox), ('eslint', stray_es)):
+        for file, line, rule in sorted(strays):
+            print(f'FAIL: {tool} reports {rule} at {file}:{line}, which no manifest entry claims')
     if stray_ox or stray_es:
-        print(f'Findings outside the manifest (harmless, but review): oxlint={len(stray_ox)}, eslint={len(stray_es)}')
+        failures.append(f'findings outside the manifest (oxlint={len(stray_ox)}, eslint={len(stray_es)})')
     if failures:
         print(f'{len(failures)}/{len(manifest)} rules FAILED: {", ".join(failures)}')
         sys.exit(1)
