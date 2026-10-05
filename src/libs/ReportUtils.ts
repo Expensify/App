@@ -14318,8 +14318,16 @@ function isWorkspaceMemberLeavingWorkspaceRoom(report: OnyxEntry<Report>, isPoli
     return (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || hasAccessPolicyExpenseChat) && isPolicyEmployee;
 }
 
+/**
+ * Checks whether a list report field has at least one enabled value.
+ * A value without a matching `disabledOptions` entry is treated as enabled.
+ */
+function hasEnabledListValue(reportField: PolicyReportField): boolean {
+    return reportField.values.some((_, index) => !reportField.disabledOptions.at(index));
+}
+
 function shouldHideSingleReportField(reportField: PolicyReportField) {
-    const hasEnableOption = reportField.type !== CONST.REPORT_FIELD_TYPES.LIST || reportField.disabledOptions.some((option) => !option);
+    const hasEnableOption = reportField.type !== CONST.REPORT_FIELD_TYPES.LIST || hasEnabledListValue(reportField);
 
     return isReportFieldOfTypeTitle(reportField) || !hasEnableOption;
 }
@@ -14783,6 +14791,7 @@ export {
     hasReportBeenForwardedSinceLastSubmit,
     hasAutomatedExpensifyAccountIDs,
     hasEmptyReportsForPolicy,
+    hasEnabledListValue,
     hasHeldExpenses,
     hasIOUWaitingOnCurrentUserBankAccount,
     hasOnlyHeldExpenses,
