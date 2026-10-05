@@ -301,9 +301,9 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         </Button>
     );
 
-    // The Concierge chat opens on its own in the side panel and on narrow layouts, with no list beside it, so the
-    // header opens the list over the chat rather than navigating away from it.
-    const shouldShowConciergeHistoryButton = isBetaEnabled(CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD) && isConciergeChat && (shouldUseNarrowLayout || isInSidePanel);
+    // A narrow layout opens the Concierge chat on its own, with no list beside it, so the header opens the list
+    // over the chat rather than navigating away from it. Wide layouts reach the list from the navigation bar.
+    const shouldShowConciergeHistoryButton = isBetaEnabled(CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD) && isConciergeChat && shouldUseNarrowLayout && !isInSidePanel;
 
     const conciergeHistoryButton = (
         <Tooltip text={translate('common.concierge.viewChatHistory')}>
