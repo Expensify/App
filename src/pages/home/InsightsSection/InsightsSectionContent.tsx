@@ -31,7 +31,7 @@ import useInsightData from './useInsightData';
 
 function InsightsSectionContent() {
     const styles = useThemeStyles();
-    const {cardPaddingHorizontal} = useLayoutSpacing();
+    const {cardPaddingHorizontal, cardPaddingBottom} = useLayoutSpacing();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Expand']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -91,7 +91,7 @@ function InsightsSectionContent() {
             {state === INSIGHTS_CHART_STATE.EMPTY && <ChartEmptyState testID="insightsSectionEmptyState" />}
             {state === INSIGHTS_CHART_STATE.ERROR && <ChartErrorState onRetry={retry} />}
             {(state === INSIGHTS_CHART_STATE.LOADING || state === INSIGHTS_CHART_STATE.READY) && (
-                <View style={[cardPaddingHorizontal, !shouldUseNarrowLayout && styles.pt3, view === CONST.SEARCH.VIEW.PIE && styles.pb6]}>
+                <View style={[cardPaddingHorizontal, cardPaddingBottom, !shouldUseNarrowLayout && styles.pt3]}>
                     <SearchChartView
                         queryJSON={queryJSON}
                         view={view}
