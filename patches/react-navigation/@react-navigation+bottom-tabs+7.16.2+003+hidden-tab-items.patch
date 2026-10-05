@@ -2,13 +2,12 @@ diff --git a/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/Nati
 index 303635c..6ccaad5 100644
 --- a/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
 +++ b/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
-@@ -4,11 +4,12 @@ import { getLabel, SafeAreaProviderCompat, Screen as ScreenContent } from '@reac
+@@ -4,11 +4,11 @@ import { getLabel, SafeAreaProviderCompat, Screen as ScreenContent } from '@reac
  import { CommonActions, NavigationMetaContext, StackActions, useTheme } from '@react-navigation/native';
  import Color from 'color';
  import * as React from 'react';
 -import { Platform, PlatformColor } from 'react-native';
 +import { Platform, PlatformColor, StyleSheet, View } from 'react-native';
-+import { Freeze } from 'react-freeze';
  import { Tabs } from 'react-native-screens';
  import { Deferred } from "./Deferred.js";
  import { NativeScreen } from "./NativeScreen/NativeScreen.js";
@@ -17,7 +16,7 @@ index 303635c..6ccaad5 100644
  const meta = {
    type: 'native-tabs'
  };
-@@ -32,9 +33,23 @@ export function NativeBottomTabView({
+@@ -32,9 +32,23 @@ export function NativeBottomTabView({
      fonts
    } = useTheme();
    const focusedRouteKey = state.routes[state.index].key;
@@ -30,7 +29,7 @@ index 303635c..6ccaad5 100644
 +    lastVisibleRouteKeyRef.current = focusedRouteKey;
 +  }
 +  const nativeSelectedRouteKey = isFocusedRouteHidden ? lastVisibleRouteKeyRef.current ?? state.routes.find(route => !isRouteHidden(route))?.key ?? focusedRouteKey : focusedRouteKey;
-+  // Hidden routes stay mounted once visited, frozen while another tab is focused, the same as the native tabs.
++  // Hidden routes stay mounted once visited, the same as the native tabs.
 +  const visitedHiddenRouteKeysRef = React.useRef(new Set());
 +  if (isFocusedRouteHidden) {
 +    visitedHiddenRouteKeysRef.current.add(focusedRouteKey);
@@ -42,7 +41,7 @@ index 303635c..6ccaad5 100644
        provenance: 0
      }
    });
-@@ -189,17 +204,17 @@ export function NativeBottomTabView({
+@@ -189,17 +203,17 @@ export function NativeBottomTabView({
    const tabBarMinimizeBehavior = currentOptions.tabBarMinimizeBehavior === 'auto' ? 'automatic' : currentOptions.tabBarMinimizeBehavior === 'none' ? 'never' : currentOptions.tabBarMinimizeBehavior;
    const shouldHideTabBar = currentOptions.tabBarStyle?.display === 'none';
    const bottomAccessory = currentOptions.bottomAccessory;
@@ -64,7 +63,7 @@ index 303635c..6ccaad5 100644
        colorScheme: dark ? 'dark' : 'light',
        ios: {
          bottomAccessory: bottomAccessory ? environment => bottomAccessory({
-@@ -210,6 +225,9 @@ export function NativeBottomTabView({
+@@ -210,6 +224,9 @@ export function NativeBottomTabView({
          tabBarTintColor: activeTintColor
        },
        children: state.routes.map((route, index) => {
@@ -74,7 +73,7 @@ index 303635c..6ccaad5 100644
          const {
            options,
            render,
-@@ -363,9 +381,43 @@ export function NativeBottomTabView({
+@@ -363,9 +380,40 @@ export function NativeBottomTabView({
            })
          }, route.key);
        })
@@ -94,17 +93,14 @@ index 303635c..6ccaad5 100644
 +          backgroundColor: colors.background
 +        }, !isFocused && styles.hiddenRoute],
 +        pointerEvents: isFocused ? 'auto' : 'none',
-+        children: /*#__PURE__*/_jsx(Freeze, {
-+          freeze: !isFocused,
-+          children: /*#__PURE__*/_jsx(ScreenWithHeader, {
-+            isFocused: isFocused,
-+            route: route,
-+            navigation: navigation,
-+            options: options,
-+            children: /*#__PURE__*/_jsx(NavigationMetaContext.Provider, {
-+              value: meta,
-+              children: render()
-+            })
++        children: /*#__PURE__*/_jsx(ScreenWithHeader, {
++          isFocused: isFocused,
++          route: route,
++          navigation: navigation,
++          options: options,
++          children: /*#__PURE__*/_jsx(NavigationMetaContext.Provider, {
++            value: meta,
++            children: render()
 +          })
 +        })
 +      }, route.key);

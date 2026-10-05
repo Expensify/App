@@ -1,4 +1,3 @@
-import {bottomTabScreenLayoutWrapper} from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
 
 import HomePage from '@pages/home/HomePage';
@@ -14,6 +13,7 @@ import React from 'react';
 import type {NativeTabLayoutProps} from './NativeTabNavigator/NativeTabLayout';
 
 import NativeTabLayout from './NativeTabNavigator/NativeTabLayout';
+import nativeTabScreenLayout from './NativeTabNavigator/nativeTabScreenLayout';
 import tabScreenListeners from './NativeTabNavigator/tabScreenListeners';
 import useNativeTabBarOptions from './NativeTabNavigator/useNativeTabBarOptions';
 import useNativeTabNavigator from './NativeTabNavigator/useNativeTabNavigator';
@@ -39,7 +39,7 @@ function TabNavigator() {
         <Tab.Navigator
             backBehavior="fullHistory"
             layout={renderNativeTabLayout}
-            screenLayout={bottomTabScreenLayoutWrapper}
+            screenLayout={nativeTabScreenLayout}
             screenOptions={screenOptions}
             UNSTABLE_router={tabRouterOverride}
             screenListeners={tabScreenListeners}
