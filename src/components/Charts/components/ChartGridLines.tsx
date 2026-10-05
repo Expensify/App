@@ -28,6 +28,9 @@ const DASH_INTERVALS = [Math.max(0, DASH_LENGTH - STROKE_WIDTH), DASH_GAP + STRO
 
 function ChartGridLines({yTicks, yScale, chartBounds, color}: ChartGridLinesProps) {
     return yTicks.map((tick) => {
+        if (tick === 0) {
+            return null;
+        }
         const y = yScale(tick);
         return (
             <Line
