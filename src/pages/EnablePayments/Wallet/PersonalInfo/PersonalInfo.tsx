@@ -1,6 +1,7 @@
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 
+import useInitialOnyxValue from '@hooks/useInitialOnyxValue';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
@@ -54,16 +55,21 @@ function PersonalInfoPage() {
         () => getPersonalInfoStepValues(walletAdditionalDetailsDraft, walletAdditionalDetails, privatePersonalDetails),
         [privatePersonalDetails, walletAdditionalDetails, walletAdditionalDetailsDraft],
     );
+    // Snapshot the sources once Onyx has loaded. Filling a page writes the wallet draft immediately, and a live skip
+    // list would make Back from the next page skip the page the user just completed.
+    const initialWalletAdditionalDetails = useInitialOnyxValue(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
+    const initialWalletAdditionalDetailsDraft = useInitialOnyxValue(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT);
+    const initialPrivatePersonalDetails = useInitialOnyxValue(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const skipPages = useMemo(
         () =>
             getSkippedBankAccountOwnerPages(
                 getBankAccountOwnerDetails({
-                    walletAdditionalDetailsDraft,
-                    walletAdditionalDetails,
-                    privatePersonalDetails,
+                    walletAdditionalDetailsDraft: initialWalletAdditionalDetailsDraft,
+                    walletAdditionalDetails: initialWalletAdditionalDetails,
+                    privatePersonalDetails: initialPrivatePersonalDetails,
                 }),
             ),
-        [privatePersonalDetails, walletAdditionalDetails, walletAdditionalDetailsDraft],
+        [initialPrivatePersonalDetails, initialWalletAdditionalDetails, initialWalletAdditionalDetailsDraft],
     );
 
     const submit = () => {

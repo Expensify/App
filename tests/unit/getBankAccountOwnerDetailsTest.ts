@@ -1,4 +1,9 @@
-import {getBankAccountOwnerDetails, getPersonalInfoStepValues, getSkippedBankAccountOwnerPages} from '@pages/EnablePayments/Wallet/utils/getBankAccountOwnerDetails';
+import {
+    getBankAccountOwnerDetails,
+    getPersonalInfoStepValues,
+    getSkippedBankAccountOwnerPages,
+    getWalletOwnerDraftValues,
+} from '@pages/EnablePayments/Wallet/utils/getBankAccountOwnerDetails';
 import getInitialSubstepForPersonalInfo from '@pages/EnablePayments/Wallet/utils/getInitialSubstepForPersonalInfo';
 
 import CONST from '@src/CONST';
@@ -32,6 +37,7 @@ describe('getBankAccountOwnerDetails', () => {
             addressState: '',
             addressZipCode: '',
             displayStreet: '',
+            formStreet: '',
             country: '',
             hasLegalName: false,
             hasAddress: false,
@@ -47,6 +53,7 @@ describe('getBankAccountOwnerDetails', () => {
         expect(owner.addressStreet).toBe('123 Main St');
         expect(owner.addressStreet2).toBe('Apt 4');
         expect(owner.displayStreet).toBe('123 Main St\nApt 4');
+        expect(owner.formStreet).toBe('123 Main St Apt 4');
         expect(owner.addressCity).toBe('Austin');
         expect(owner.addressState).toBe('TX');
         expect(owner.addressZipCode).toBe('78701');
@@ -151,12 +158,90 @@ describe('getBankAccountOwnerDetails', () => {
         const values = getPersonalInfoStepValues(undefined, undefined, completeProfile);
 
         expect(values.legalFirstName).toBe('Ada');
-        expect(values.addressStreet).toBe('123 Main St\nApt 4');
+        expect(values.addressStreet).toBe('123 Main St Apt 4');
         expect(values.dob).toBe('');
         expect(getInitialSubstepForPersonalInfo(values)).toBe(CONST.WALLET.SUBSTEP_INDEXES.PERSONAL_INFO.DATE_OF_BIRTH);
         expect(getSkippedBankAccountOwnerPages(getBankAccountOwnerDetails({privatePersonalDetails: completeProfile}))).toEqual([
             CONST.ENABLE_PAYMENTS.PERSONAL_INFO_STEP.SUB_PAGE_NAMES.LEGAL_NAME,
             CONST.ENABLE_PAYMENTS.PERSONAL_INFO_STEP.SUB_PAGE_NAMES.ADDRESS,
         ]);
+    });
+
+    it('does not treat a PO box as a complete address', () => {
+        const owner = getBankAccountOwnerDetails({
+            privatePersonalDetails: {
+                legalFirstName: 'Ada',
+                legalLastName: 'Lovelace',
+                addresses: [
+                    {
+                        street: 'PO Box 123',
+                        city: 'Austin',
+                        state: 'TX',
+                        zip: '78701',
+                        country: CONST.COUNTRY.US,
+                        current: true,
+                    },
+                ],
+            },
+        });
+
+        expect(owner.hasAddress).toBe(false);
+        expect(owner.country).toBe('');
+        expect(getSkippedBankAccountOwnerPages(owner)).toEqual([CONST.ENABLE_PAYMENTS.ADD_BANK_ACCOUNT_STEP.SUB_PAGE_NAMES.LEGAL_NAME]);
+    });
+
+    it('does not treat an invalid US ZIP as a complete address', () => {
+        const owner = getBankAccountOwnerDetails({
+            privatePersonalDetails: {
+                legalFirstName: 'Ada',
+                legalLastName: 'Lovelace',
+                addresses: [
+                    {
+                        street: '123 Main St',
+                        city: 'Austin',
+                        state: 'TX',
+                        zip: '7870',
+                        country: CONST.COUNTRY.US,
+                        current: true,
+                    },
+                ],
+            },
+        });
+
+        expect(owner.hasAddress).toBe(false);
+        expect(owner.country).toBe('');
+    });
+
+    it('does not turn a non-US profile into a US address when only one field comes from the wallet draft', () => {
+        const owner = getBankAccountOwnerDetails({
+            privatePersonalDetails: {
+                legalFirstName: 'Ada',
+                legalLastName: 'Lovelace',
+                addresses: [
+                    {
+                        street: '10 King St',
+                        city: 'Toronto',
+                        state: 'ON',
+                        zip: 'M5V 1A1',
+                        country: CONST.COUNTRY.CA,
+                        current: true,
+                    },
+                ],
+            },
+            walletAdditionalDetailsDraft: {
+                addressState: 'TX',
+            },
+        });
+
+        expect(owner.addressState).toBe('TX');
+        expect(owner.addressCity).toBe('Toronto');
+        expect(owner.hasAddress).toBe(false);
+        expect(owner.country).toBe('');
+    });
+
+    it('stores a single-line street in the wallet draft', () => {
+        const owner = getBankAccountOwnerDetails({privatePersonalDetails: completeProfile});
+
+        expect(getWalletOwnerDraftValues(owner).addressStreet).toBe('123 Main St Apt 4');
     });
 });

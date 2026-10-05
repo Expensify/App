@@ -77,32 +77,32 @@ function ConfirmationStep({onNext, onMove}: ConfirmationStepProps) {
                     )}
                 </MenuItem.Row>
             </MenuItem.Root>
-            <MenuItem.Root onPress={!isBankAccountAdded ? () => onMove(BANK_INFO_STEP_INDEXES.LEGAL_NAME) : undefined}>
-                <MenuItem.Row>
-                    <MenuItem.Content>
-                        <MenuItem.FieldName>{translate('personalInfoStep.legalName')}</MenuItem.FieldName>
-                        <MenuItem.FieldValue>{legalName}</MenuItem.FieldValue>
-                    </MenuItem.Content>
-                    {!isBankAccountAdded && (
-                        <MenuItem.Trailing>
-                            <MenuItem.Chevron />
-                        </MenuItem.Trailing>
-                    )}
-                </MenuItem.Row>
-            </MenuItem.Root>
-            <MenuItem.Root onPress={!isBankAccountAdded ? () => onMove(BANK_INFO_STEP_INDEXES.ADDRESS) : undefined}>
-                <MenuItem.Row>
-                    <MenuItem.Content>
-                        <MenuItem.FieldName>{translate('personalInfoStep.address')}</MenuItem.FieldName>
-                        <MenuItem.FieldValue>{address}</MenuItem.FieldValue>
-                    </MenuItem.Content>
-                    {!isBankAccountAdded && (
-                        <MenuItem.Trailing>
-                            <MenuItem.Chevron />
-                        </MenuItem.Trailing>
-                    )}
-                </MenuItem.Row>
-            </MenuItem.Root>
+            {!isBankAccountAdded && (
+                <>
+                    <MenuItem.Root onPress={() => onMove(BANK_INFO_STEP_INDEXES.LEGAL_NAME)}>
+                        <MenuItem.Row>
+                            <MenuItem.Content>
+                                <MenuItem.FieldName>{translate('personalInfoStep.legalName')}</MenuItem.FieldName>
+                                <MenuItem.FieldValue>{legalName}</MenuItem.FieldValue>
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <MenuItem.Chevron />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                    <MenuItem.Root onPress={() => onMove(BANK_INFO_STEP_INDEXES.ADDRESS)}>
+                        <MenuItem.Row>
+                            <MenuItem.Content>
+                                <MenuItem.FieldName>{translate('personalInfoStep.address')}</MenuItem.FieldName>
+                                <MenuItem.FieldValue>{address}</MenuItem.FieldValue>
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <MenuItem.Chevron />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                </>
+            )}
             <View style={[styles.ph5, styles.pb5, styles.flexGrow1, styles.justifyContentEnd]}>
                 {!!error && error.length > 0 && (
                     <DotIndicatorMessage

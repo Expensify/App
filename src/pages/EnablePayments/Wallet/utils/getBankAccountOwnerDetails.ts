@@ -1,4 +1,9 @@
+/**
+ * Resolves the legal name and address that back a personal bank account, picking from the wallet draft, saved wallet
+ * details, then the private profile, and derives which owner-detail pages the bank-account and KYC flows can skip.
+ */
 import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
+import {getInvalidAddressErrorTranslationPath, isValidZipCode} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import type {WalletAdditionalDetailsForm} from '@src/types/form';
@@ -34,8 +39,10 @@ type BankAccountOwnerDetails = {
     addressCity: string;
     addressState: string;
     addressZipCode: string;
-    /** Street stored on the wallet form, with street2 on the next line when present */
+    /** Street plus street2, so confirmation can show the second line after a comma */
     displayStreet: string;
+    /** Single-line street for the wallet address input. That input drops a newline, which would glue the two lines together. */
+    formStreet: string;
     /** US when the address is complete enough to submit; otherwise empty */
     country: typeof CONST.COUNTRY.US | '';
     hasLegalName: boolean;
@@ -65,10 +72,14 @@ function pickFilled(draft?: string, wallet?: string, profile?: string): {value: 
     return {value: '', source: 'none'};
 }
 
+function isPhysicalStreet(street: string): boolean {
+    return getInvalidAddressErrorTranslationPath(street) === undefined;
+}
+
 /**
  * Resolves the legal name and address to attach to a personal bank account.
  * Wallet draft wins, then saved wallet details, then the private profile.
- * This flow is US-only: a non-US profile address is not treated as complete.
+ * This flow is US-only: a non-US profile address is not treated as complete unless the wallet form replaced every address field.
  */
 function getBankAccountOwnerDetails({walletAdditionalDetailsDraft, walletAdditionalDetails, privatePersonalDetails}: BankAccountOwnerSources): BankAccountOwnerDetails {
     const legalFirstName = pickFilled(walletAdditionalDetailsDraft?.legalFirstName, walletAdditionalDetails?.legalFirstName, privatePersonalDetails?.legalFirstName).value;
@@ -93,11 +104,16 @@ function getBankAccountOwnerDetails({walletAdditionalDetailsDraft, walletAdditio
     const cityPick = pickFilled(walletAdditionalDetailsDraft?.addressCity, walletAdditionalDetails?.addressCity, profileAddress?.city);
     const statePick = pickFilled(walletAdditionalDetailsDraft?.addressState, walletAdditionalDetails?.addressState, profileAddress?.state);
     const zipPick = pickFilled(walletAdditionalDetailsDraft?.addressZipCode, walletAdditionalDetails?.addressZipCode, profileZip);
-    const usedWalletForm = [streetPick.source, cityPick.source, statePick.source, zipPick.source].some((source) => source === 'draft' || source === 'wallet');
-    const profileCountry = profileAddress?.country ?? '';
-    const addressCountry = usedWalletForm ? CONST.COUNTRY.US : profileCountry;
+    const addressSources = [streetPick.source, cityPick.source, statePick.source, zipPick.source];
+    const allFieldsFromWalletForm = addressSources.every((source) => source === 'draft' || source === 'wallet');
+    const profileCountry = filled(profileAddress?.country);
+    const legacyOrUsProfileCountry = !profileCountry || profileCountry === CONST.COUNTRY.US;
+    // A non-US profile stays incomplete until the wallet form supplies street, city, state, and ZIP.
+    const usAddressIsAllowed = allFieldsFromWalletForm || legacyOrUsProfileCountry;
     const hasAddressFields = !!addressStreet && !!cityPick.value && !!statePick.value && !!zipPick.value;
-    const hasAddress = hasAddressFields && (addressCountry === CONST.COUNTRY.US || addressCountry === '');
+    const hasPhysicalStreet = isPhysicalStreet(addressStreet) && (!addressStreet2 || isPhysicalStreet(addressStreet2));
+    const hasAddress = hasAddressFields && hasPhysicalStreet && isValidZipCode(zipPick.value) && usAddressIsAllowed;
+    const formStreet = addressStreet2 ? `${addressStreet} ${addressStreet2}` : addressStreet;
 
     return {
         legalFirstName,
@@ -108,6 +124,7 @@ function getBankAccountOwnerDetails({walletAdditionalDetailsDraft, walletAdditio
         addressState: statePick.value,
         addressZipCode: zipPick.value,
         displayStreet: addressStreet2 ? `${addressStreet}\n${addressStreet2}` : addressStreet,
+        formStreet,
         country: hasAddress ? CONST.COUNTRY.US : '',
         hasLegalName: !!legalFirstName && !!legalLastName,
         hasAddress,
@@ -131,7 +148,7 @@ function getWalletOwnerDraftValues(details: BankAccountOwnerDetails): Partial<Pe
     return {
         ...(details.legalFirstName ? {legalFirstName: details.legalFirstName} : {}),
         ...(details.legalLastName ? {legalLastName: details.legalLastName} : {}),
-        ...(details.displayStreet ? {addressStreet: details.displayStreet} : {}),
+        ...(details.formStreet ? {addressStreet: details.formStreet} : {}),
         ...(details.addressCity ? {addressCity: details.addressCity} : {}),
         ...(details.addressState ? {addressState: details.addressState} : {}),
         ...(details.addressZipCode ? {addressZipCode: details.addressZipCode} : {}),
@@ -153,7 +170,7 @@ function getPersonalInfoStepValues(
     return {
         [PERSONAL_INFO_STEP_KEYS.FIRST_NAME]: owner.legalFirstName,
         [PERSONAL_INFO_STEP_KEYS.LAST_NAME]: owner.legalLastName,
-        [PERSONAL_INFO_STEP_KEYS.STREET]: owner.displayStreet,
+        [PERSONAL_INFO_STEP_KEYS.STREET]: owner.formStreet,
         [PERSONAL_INFO_STEP_KEYS.CITY]: owner.addressCity,
         [PERSONAL_INFO_STEP_KEYS.STATE]: owner.addressState,
         [PERSONAL_INFO_STEP_KEYS.ZIP_CODE]: owner.addressZipCode,
@@ -164,4 +181,3 @@ function getPersonalInfoStepValues(
 }
 
 export {getBankAccountOwnerDetails, getPersonalInfoStepValues, getSkippedBankAccountOwnerPages, getWalletOwnerDraftValues};
-export type {BankAccountOwnerDetails, BankAccountOwnerSources, OwnerDetailPageName};

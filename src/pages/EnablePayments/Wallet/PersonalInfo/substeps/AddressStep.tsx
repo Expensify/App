@@ -34,7 +34,7 @@ function AddressStep({onNext, onMove, isEditing}: SubPageProps) {
     const defaultValues = useMemo(() => {
         const owner = getBankAccountOwnerDetails({walletAdditionalDetails, privatePersonalDetails});
         return {
-            street: owner.displayStreet,
+            street: owner.formStreet,
             city: owner.addressCity,
             state: owner.addressState,
             zipCode: owner.addressZipCode,

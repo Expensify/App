@@ -4,6 +4,7 @@ import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import useInitialOnyxValue from '@hooks/useInitialOnyxValue';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
@@ -27,7 +28,7 @@ import type {EnablePaymentsSubPageType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-import React, {useCallback, useContext} from 'react';
+import React, {useCallback, useContext, useMemo} from 'react';
 import {View} from 'react-native';
 
 import SetupMethod from './SetupMethod';
@@ -114,12 +115,21 @@ function AddBankAccount() {
 
     const isSetupTypeChosen = personalBankAccountDraft?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
 
-    const skipPages = getSkippedBankAccountOwnerPages(
-        getBankAccountOwnerDetails({
-            walletAdditionalDetailsDraft,
-            walletAdditionalDetails,
-            privatePersonalDetails,
-        }),
+    // Snapshot the sources once Onyx has loaded. The name and address inputs write the wallet draft on each keystroke,
+    // and a live skip list would make Back skip the page the user is filling in.
+    const initialWalletAdditionalDetails = useInitialOnyxValue(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
+    const initialWalletAdditionalDetailsDraft = useInitialOnyxValue(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT);
+    const initialPrivatePersonalDetails = useInitialOnyxValue(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const skipPages = useMemo(
+        () =>
+            getSkippedBankAccountOwnerPages(
+                getBankAccountOwnerDetails({
+                    walletAdditionalDetailsDraft: initialWalletAdditionalDetailsDraft,
+                    walletAdditionalDetails: initialWalletAdditionalDetails,
+                    privatePersonalDetails: initialPrivatePersonalDetails,
+                }),
+            ),
+        [initialPrivatePersonalDetails, initialWalletAdditionalDetails, initialWalletAdditionalDetailsDraft],
     );
 
     const {CurrentPage, isEditing, pageIndex, nextPage, prevPage, moveTo, isRedirecting} = useSubPage<SubPageProps, EnablePaymentsSubPageType>({
