@@ -453,6 +453,7 @@ describe('OnboardingWorkspaces Page', () => {
         await waitFor(() => {
             expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), {forceReplace: true});
         });
+        expect(screen.queryByTestId('BaseOnboardingWorkspaces')).not.toBeOnTheScreen();
 
         unmount();
         await waitForBatchedUpdatesWithAct();

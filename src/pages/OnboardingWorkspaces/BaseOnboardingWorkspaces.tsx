@@ -37,7 +37,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {JoinablePolicy} from '@src/types/onyx/JoinablePolicies';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useFocusEffect} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
@@ -61,10 +60,9 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         isSmallScreenWidth,
         shouldUseNarrowLayout,
     } = useResponsiveLayout();
-    const [joinablePolicies, joinablePoliciesMetadata] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
+    const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
     const [getAccessiblePoliciesAction] = useOnyx(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES);
 
-    const isLoadingJoinablePolicies = isLoadingOnyxValue(joinablePoliciesMetadata);
     const joinablePoliciesLoading = getAccessiblePoliciesAction?.loading;
     const joinablePoliciesErrors = getAccessiblePoliciesAction?.errors;
     const accessiblePoliciesActionRequestID = getAccessiblePoliciesAction?.requestID;
@@ -107,8 +105,8 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const createdEmptyWorkspaceContentDomains = useRef(new Set<string>());
     const createdJoinWorkspaceTask = useRef(false);
     const createdJoinWorkspaceTaskReportID = useRef<string | undefined>(undefined);
-    const hasRequestedAccessiblePolicies = useRef(false);
-    const accessiblePoliciesRequestID = useRef<string | undefined>(undefined);
+    const [hasRequestedAccessiblePolicies, setHasRequestedAccessiblePolicies] = useState(false);
+    const [accessiblePoliciesRequestID, setAccessiblePoliciesRequestID] = useState<string | undefined>();
     const isFinishingOnboarding = useRef(false);
     const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
 
@@ -249,8 +247,8 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     useFocusEffect(
         useCallback(
             () => () => {
-                hasRequestedAccessiblePolicies.current = false;
-                accessiblePoliciesRequestID.current = undefined;
+                setHasRequestedAccessiblePolicies(false);
+                setAccessiblePoliciesRequestID(undefined);
             },
             [],
         ),
@@ -260,7 +258,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         useCallback(() => {
             // Guarded by a ref instead of by omitting the loading/count dependencies: an empty response leaves the
             // count at 0, so reacting to those updates would immediately issue another request.
-            if (!isValidated || isLoadingJoinablePolicies || joinablePoliciesLength > 0 || hasRequestedAccessiblePolicies.current) {
+            if (!isValidated || joinablePoliciesLength > 0 || hasRequestedAccessiblePolicies) {
                 return;
             }
 
@@ -268,19 +266,19 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             // handled by the effect below instead of leaving the list on its loading placeholder indefinitely.
             if (joinablePoliciesLoading) {
                 if (accessiblePoliciesActionRequestID) {
-                    hasRequestedAccessiblePolicies.current = true;
-                    accessiblePoliciesRequestID.current = accessiblePoliciesActionRequestID;
+                    setHasRequestedAccessiblePolicies(true);
+                    setAccessiblePoliciesRequestID(accessiblePoliciesActionRequestID);
                 }
                 return;
             }
 
-            hasRequestedAccessiblePolicies.current = true;
-            accessiblePoliciesRequestID.current = getAccessiblePolicies();
-        }, [accessiblePoliciesActionRequestID, isValidated, isLoadingJoinablePolicies, joinablePoliciesLength, joinablePoliciesLoading]),
+            setHasRequestedAccessiblePolicies(true);
+            setAccessiblePoliciesRequestID(getAccessiblePolicies());
+        }, [accessiblePoliciesActionRequestID, hasRequestedAccessiblePolicies, isValidated, joinablePoliciesLength, joinablePoliciesLoading]),
     );
 
     useEffect(() => {
-        if (accessiblePoliciesActionRequestID !== accessiblePoliciesRequestID.current || joinablePoliciesLoading !== false || joinablePoliciesErrors || joinablePoliciesLength > 0) {
+        if (accessiblePoliciesActionRequestID !== accessiblePoliciesRequestID || joinablePoliciesLoading !== false || joinablePoliciesErrors || joinablePoliciesLength > 0) {
             return;
         }
 
@@ -306,6 +304,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         conciergeReportID,
         delegateAccountID,
         accessiblePoliciesActionRequestID,
+        accessiblePoliciesRequestID,
         isConciergeTaskFlow,
         isJoiningCompanyWorkspace,
         joinablePoliciesErrors,
@@ -328,7 +327,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     }, [conciergeChat, delegateAccountID, introSelected?.joinWorkspace, joinWorkspaceTaskReport, joinablePoliciesLength, session?.email, shouldCreateJoinWorkspaceTaskOnExit]);
 
     useEffect(() => {
-        if (isLoadingJoinablePolicies || joinablePoliciesLoading !== false || joinablePoliciesLength > 0 || !defaultPolicy?.id) {
+        if (joinablePoliciesLoading !== false || joinablePoliciesLength > 0 || !defaultPolicy?.id) {
             return;
         }
 
@@ -341,7 +340,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             automaticJoiningEnabled: false,
             policyType: defaultPolicy.type,
         });
-    }, [isLoadingJoinablePolicies, joinablePoliciesLoading, joinablePoliciesLength, defaultPolicy?.id, defaultPolicy?.name, defaultPolicy?.owner, defaultPolicy?.type]);
+    }, [joinablePoliciesLoading, joinablePoliciesLength, defaultPolicy?.id, defaultPolicy?.name, defaultPolicy?.owner, defaultPolicy?.type]);
 
     const skipJoiningWorkspaces = () => {
         if (isEmployerWithSubmit) {
@@ -391,9 +390,20 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
 
     const retryAccessiblePoliciesLookup = () => {
         clearGetAccessiblePoliciesErrors();
-        hasRequestedAccessiblePolicies.current = true;
-        accessiblePoliciesRequestID.current = getAccessiblePolicies();
+        setHasRequestedAccessiblePolicies(true);
+        setAccessiblePoliciesRequestID(getAccessiblePolicies());
     };
+
+    const shouldNavigateFromEmptyJoinWorkspaceList =
+        isJoiningCompanyWorkspace &&
+        !isConciergeTaskFlow &&
+        accessiblePoliciesActionRequestID === accessiblePoliciesRequestID &&
+        joinablePoliciesLoading === false &&
+        !joinablePoliciesErrors &&
+        joinablePoliciesLength === 0;
+    if (shouldNavigateFromEmptyJoinWorkspaceList) {
+        return null;
+    }
 
     return (
         <ScreenWrapper
@@ -416,7 +426,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                 style={{
                     listItemWrapperStyle: onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8, styles.cursorDefault] : [],
                 }}
-                shouldShowLoadingPlaceholder={isLoadingJoinablePolicies || !!joinablePoliciesLoading || policyIDItems.length === 0}
+                shouldShowLoadingPlaceholder={policyIDItems.length === 0 && (!hasRequestedAccessiblePolicies || joinablePoliciesLoading !== false)}
                 shouldStopPropagation
                 showScrollIndicator
                 customListHeader={
