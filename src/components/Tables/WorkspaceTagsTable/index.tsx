@@ -86,7 +86,7 @@ export default function WorkspaceTagsTable({
         {
             key: 'name',
             label: translate('common.name'),
-            sortable: true,
+            sortable: !isMultiLevelTags,
             styling: {
                 // editableCellHeader matches the padded name cell so the label and value share an edge.
                 containerStyles: [styles.editableCellHeader],
@@ -115,7 +115,7 @@ export default function WorkspaceTagsTable({
                   {
                       key: 'tagCount' as const,
                       label: translate('common.count'),
-                      sortable: true,
+                      sortable: !isMultiLevelTags,
                       width: variables.workspaceTagsTableCountColumnWidth,
                   },
               ]
@@ -172,7 +172,7 @@ export default function WorkspaceTagsTable({
             return localeCompare(glCode1, glCode2) * orderMultiplier;
         }
 
-        if (hasDependentTags) {
+        if (hasDependentTags || isMultiLevelTags) {
             return ((item1.orderWeight ?? 0) - (item2.orderWeight ?? 0)) * orderMultiplier;
         }
 
@@ -201,7 +201,7 @@ export default function WorkspaceTagsTable({
     return (
         <Table
             data={tags}
-            initialSortColumn="name"
+            initialSortColumn={isMultiLevelTags ? undefined : 'name'}
             selectionEnabled={selectionEnabled}
             title={translate('workspace.common.tags')}
             columns={tagTableColumns}
