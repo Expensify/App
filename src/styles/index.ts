@@ -4168,14 +4168,17 @@ const staticStyles = (theme: ThemeColors) =>
             ...RECEIPT_PAGE_BADGE_POSITION,
             flexDirection: 'row',
             alignItems: 'center',
-            justifyContent: 'center',
-            // Slightly wider than the content, so the pill doesn't visibly jump sideways as the page number grows
-            // or shrinks a digit (e.g. 9 -> 10). Content still grows past this if a locale's label needs more room.
-            minWidth: 108,
             minHeight: variables.componentSizeSmall,
             paddingHorizontal: 4,
             borderRadius: variables.componentBorderRadiusRounded,
             backgroundColor: theme.badgeDefaultBG,
+        },
+
+        // Keeps the buttons from shifting sideways as the page number's digit count changes: only the label grows
+        // or shrinks, centered within this floor, and only past it if a locale's text genuinely needs more room.
+        receiptPageNavigatorLabel: {
+            minWidth: 56,
+            textAlign: 'center',
         },
 
         // A real tap target around the small arrow glyph; react-native-web's Pressable doesn't support hitSlop
