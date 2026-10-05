@@ -115,8 +115,6 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
         // lingers in the stack and briefly flashes the "not found" page when the user taps back. Must be read pre-merge.
         const willDeleteTargetTransactionReport = Object.keys(targetReportTransactionsCollection ?? {}).length === 1;
 
-        // mergeTransactionRequest only ever needs the report that's about to lose its expense (whichever of
-        // target/source isn't the merge destination), so resolve that here instead of passing both collections.
         const transactionsOfDeletableReportCollection = mergeTransaction.reportID === targetTransaction.reportID ? sourceReportTransactionsCollection : targetReportTransactionsCollection;
 
         setIsMergingExpenses(true);
