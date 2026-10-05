@@ -28,6 +28,7 @@ import type {
     TransactionMonthGroupListItemType,
     TransactionQuarterGroupListItemType,
     TransactionTagGroupListItemType,
+    TransactionViolationApproverGroupListItemType,
     TransactionWeekGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
@@ -179,20 +180,13 @@ type SearchWithdrawalStatus = Array<ValueOf<typeof CONST.SEARCH.SETTLEMENT_STATU
 type SearchPaidStatus = Array<ValueOf<typeof CONST.SEARCH.PAID_STATUS>>;
 type SyntaxFilterKey = ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>;
 
-type SearchCustomColumnIds =
-    | ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE>
-    | ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE_REPORT>
-    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CARD>
-    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.FROM>
-    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WITHDRAWAL_ID>
-    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CATEGORY>
-    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MERCHANT>
-    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.TAG>
-    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.DAY>
-    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MONTH>
-    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WEEK>
-    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.YEAR>
-    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.QUARTER>;
+/** Column ids from one search column-picker map (`TYPE_CUSTOM_COLUMNS` or `GROUP_CUSTOM_COLUMNS`). */
+type CollectColumnIds<T> = {
+    [K in keyof T]: ValueOf<T[K]>;
+}[keyof T];
+
+// The union of every type-picker and group-picker column, so a new group by picks up its columns without another manual member.
+type SearchCustomColumnIds = CollectColumnIds<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS> | CollectColumnIds<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS>;
 
 type SearchQueryContextValue = {
     currentSearchHash: number;
@@ -475,7 +469,8 @@ type GroupedItem =
     | TransactionMonthGroupListItemType
     | TransactionWeekGroupListItemType
     | TransactionYearGroupListItemType
-    | TransactionQuarterGroupListItemType;
+    | TransactionQuarterGroupListItemType
+    | TransactionViolationApproverGroupListItemType;
 
 type SearchChartDataRow = {
     /** The point plotted on the chart */

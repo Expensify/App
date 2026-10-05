@@ -34,6 +34,7 @@ import type {
     SearchTagGroup,
     SearchTask,
     SearchTransactionAction,
+    SearchViolationApproverGroup,
     SearchWeekGroup,
     SearchWithdrawalIDGroup,
     SearchYearGroup,
@@ -477,6 +478,12 @@ type TransactionQuarterGroupListItemType = TransactionGroupListItemType & {group
         sortKey: number;
     };
 
+type TransactionViolationApproverGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER} & PersonalDetails &
+    SearchViolationApproverGroup & {
+        /** Final and formatted approver name used for displaying and sorting */
+        formattedViolationApprover?: string;
+    };
+
 type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
     SearchListActionProps & {
         /** Whether the item's action is loading */
@@ -543,6 +550,7 @@ type GroupHeaderItemType =
     | (TransactionWeekGroupListItemType & GroupHeaderListItemType)
     | (TransactionYearGroupListItemType & GroupHeaderListItemType)
     | (TransactionQuarterGroupListItemType & GroupHeaderListItemType)
+    | (TransactionViolationApproverGroupListItemType & GroupHeaderListItemType)
     | (TransactionGroupListItemType & GroupHeaderListItemType);
 
 type GroupChildrenContainerItemType = TransactionGroupListItemType & {
@@ -600,6 +608,7 @@ export type {
     TransactionWeekGroupListItemType,
     TransactionYearGroupListItemType,
     TransactionQuarterGroupListItemType,
+    TransactionViolationApproverGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionGroupListItemProps,
     TransactionGroupListExpandedProps,

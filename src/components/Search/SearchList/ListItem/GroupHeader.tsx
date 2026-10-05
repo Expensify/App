@@ -51,6 +51,7 @@ import QuarterListItemHeader from './QuarterListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
 import TagListItemHeader from './TagListItemHeader';
 import {useGroupCheckboxState} from './useGroupChildren';
+import ViolationApproverListItemHeader from './ViolationApproverListItemHeader';
 import WeekListItemHeader from './WeekListItemHeader';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
 import YearListItemHeader from './YearListItemHeader';
@@ -312,6 +313,14 @@ function GroupHeader({
                     <QuarterListItemHeader
                         quarter={groupItem}
                         {...commonProps}
+                    />
+                );
+            case CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER:
+                return (
+                    <ViolationApproverListItemHeader
+                        violationApprover={groupItem}
+                        {...commonProps}
+                        isLargeScreenWidth={isLargeScreenWidth}
                     />
                 );
             default:

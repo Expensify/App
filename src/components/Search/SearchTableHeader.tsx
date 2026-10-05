@@ -513,6 +513,31 @@ const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderI
                 },
                 ...commonGroupHeaders,
             ];
+        case CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER:
+            return [
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.AVATAR,
+                    translationKey: undefined,
+                    icon: icons.Profile,
+                    isColumnSortable: false,
+                },
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_VIOLATION_APPROVER,
+                    translationKey: 'search.filters.groupBy.violation-approver',
+                    isColumnSortable: true,
+                },
+                groupExpensesHeader,
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVAL_COUNT,
+                    translationKey: 'search.filters.approvalCount',
+                    isColumnSortable: true,
+                },
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVED_TOTAL,
+                    translationKey: 'search.filters.approvedTotal',
+                    isColumnSortable: true,
+                },
+            ];
         default:
             return [];
     }

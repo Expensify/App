@@ -3250,6 +3250,41 @@ describe('SearchQueryUtils', () => {
             expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK);
             expect(queryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.DESC);
         });
+
+        test('switching to violation-approver from the Display menu derives sort-by:group-expenses and sort-order:desc', () => {
+            // Given a category grouping whose sort is the category default
+            // When the Display menu switches group by to violation approver
+            const result = buildFilterQueryWithSortDefaults(
+                {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER, view: CONST.SEARCH.VIEW.TABLE},
+                {view: CONST.SEARCH.VIEW.TABLE, groupBy: CONST.SEARCH.GROUP_BY.CATEGORY},
+                {sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY, sortOrder: CONST.SEARCH.SORT_ORDER.ASC},
+            );
+            const queryJSON = buildSearchQueryJSON(result ?? '');
+
+            // Then the parser re-derives the violation-approver defaults from GROUP_BY_DEFAULT_SORT and GROUP_BY_DEFAULT_SORT_ORDER
+            expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES);
+            expect(queryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.DESC);
+        });
+    });
+
+    describe('group-by:violation-approver parser round trip', () => {
+        test('round-trips group-by:violation-approver and a customized group column list', () => {
+            // Given a query that groups by violation approver and customizes the new group columns
+            const query = `type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER} columns:group-violation-approver,group-approval-count,group-approved-total`;
+
+            // When it is parsed and then rebuilt into a query string and parsed again
+            const parsed = buildSearchQueryJSON(query);
+            const rebuilt = buildSearchQueryString(parsed);
+            const roundTripped = buildSearchQueryJSON(rebuilt);
+
+            // Then the group by and customized columns survive the round trip
+            expect(roundTripped?.groupBy).toBe(CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER);
+            expect(roundTripped?.columns).toEqual([
+                CONST.SEARCH.TABLE_COLUMNS.GROUP_VIOLATION_APPROVER,
+                CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVAL_COUNT,
+                CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVED_TOTAL,
+            ]);
+        });
     });
 
     describe('shouldResetSort', () => {
