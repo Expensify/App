@@ -32,7 +32,7 @@ const Tab = createNativeBottomTabNavigator<TabNavigatorParamList>();
 const renderNativeTabLayout = (props: NativeTabLayoutProps) => <NativeTabLayout {...props} />;
 
 function TabNavigator() {
-    const {shouldShowNativeTabBar, dotColors, tabLabels, isInsightsTabVisible, tabRouterOverride} = useNativeTabNavigator();
+    const {shouldShowNativeTabBar, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride} = useNativeTabNavigator();
     const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, dotColors, tabLabels});
 
     return (
@@ -64,7 +64,7 @@ function TabNavigator() {
                 component={InsightsPage}
                 // The Insights tab button opens the Spend dashboard, so a tap on the native tab lands on it too.
                 initialParams={{dashboardID: CONST.INSIGHTS.DASHBOARD.SPEND}}
-                options={{...getTabOptions(SCREENS.INSIGHTS), tabBarItemHidden: !isInsightsTabVisible}}
+                options={{...getTabOptions(SCREENS.INSIGHTS), tabBarItemHidden: tabWithoutBarItem === SCREENS.INSIGHTS}}
             />
             <Tab.Screen
                 name={NAVIGATORS.WORKSPACE_NAVIGATOR}
@@ -74,7 +74,7 @@ function TabNavigator() {
             <Tab.Screen
                 name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
                 component={SettingsSplitNavigator}
-                options={{...getTabOptions(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR), tabBarItemHidden: isInsightsTabVisible}}
+                options={{...getTabOptions(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR), tabBarItemHidden: tabWithoutBarItem === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}}
             />
         </Tab.Navigator>
     );

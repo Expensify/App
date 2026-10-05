@@ -11,6 +11,7 @@ import useTheme from '@hooks/useTheme';
 import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
 
 import {getPreservedNavigatorState, setPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+import getTabWithoutBarItem from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/getTabWithoutBarItem';
 import {NAVIGATION_TAB_TO_SPANS} from '@libs/Navigation/AppNavigator/Navigators/TabNavigatorBar';
 import isTabRouteAtRoot from '@libs/Navigation/helpers/isTabRouteAtRoot';
 import Navigation from '@libs/Navigation/Navigation';
@@ -44,8 +45,8 @@ function useNativeTabNavigator() {
     const {isBlockingViewVisible} = useFullScreenBlockingViewState();
     const {isBetaEnabled} = usePermissions();
     const {translate} = useLocalize();
-    // With the Insights beta, Insights takes the Account tab's place in the bar and Account moves to the top bar.
     const isInsightsTabVisible = isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE);
+    const tabWithoutBarItem = getTabWithoutBarItem(isInsightsTabVisible);
     const theme = useTheme();
     const chatTabBrickRoad = useChatTabBrickRoad();
     const {indicatorColor: workspacesIndicatorColor, status: workspacesIndicatorStatus} = useWorkspacesTabIndicatorStatus();
@@ -61,7 +62,7 @@ function useNativeTabNavigator() {
     const activeTabRoute = isRealizedNavigationState(tabState) ? tabState.routes[tabState.index] : undefined;
     const selectedTab = ROUTE_TO_NAVIGATION_TAB[activeTabRoute?.name ?? SCREENS.HOME] ?? NAVIGATION_TABS.HOME;
     // A tab with no item in the bar is drawn over the other tabs as a full screen, so the bar hides while it is focused.
-    const isActiveTabWithoutBarItem = isInsightsTabVisible ? activeTabRoute?.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR : activeTabRoute?.name === SCREENS.INSIGHTS;
+    const isActiveTabWithoutBarItem = activeTabRoute?.name === tabWithoutBarItem;
     const shouldShowNativeTabBar = shouldUseNarrowLayout && isTabRouteAtRoot(activeTabRoute) && !isBlockingViewVisible && !isActiveTabWithoutBarItem;
 
     let inboxDotColor: string | undefined;
@@ -126,7 +127,7 @@ function useNativeTabNavigator() {
         },
     });
 
-    return {shouldShowNativeTabBar, dotColors, tabLabels, isInsightsTabVisible, tabRouterOverride};
+    return {shouldShowNativeTabBar, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride};
 }
 
 export default useNativeTabNavigator;
