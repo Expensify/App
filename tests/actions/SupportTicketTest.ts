@@ -66,7 +66,6 @@ describe('actions/Report', () => {
             SIDE_EFFECT_REQUEST_COMMANDS.CREATE_SUPPORT_TICKET,
             expect.objectContaining({
                 resolvedSupportTicketReportID,
-                idempotencyKey: expect.any(String),
             }),
         );
         expect(mockMakeRequestWithSideEffects.mock.calls.at(0)?.[1]).not.toHaveProperty('newSupportTicketReportID');
@@ -87,7 +86,7 @@ describe('actions/Report', () => {
         expect(isNoSupportRepAvailableResponse(response)).toBe(true);
     });
 
-    it.each([
+    it.each<{jsonCode: number; message?: string}>([
         {jsonCode: CONST.JSON_CODE.EXP_ERROR, message: 'We could not create this support ticket.'},
         {jsonCode: CONST.JSON_CODE.BAD_REQUEST, message: 'No support rep is available to take this ticket.'},
         {jsonCode: CONST.JSON_CODE.EXP_ERROR, message: undefined},

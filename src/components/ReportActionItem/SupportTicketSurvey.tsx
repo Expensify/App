@@ -1,10 +1,9 @@
-import RenderHTML from '@components/RenderHTML';
+import Text from '@components/Text';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-
-import {getReportActionHtml} from '@libs/ReportActionsUtils';
 
 import ConciergeFeedbackPrompt from '@pages/inbox/report/actionContents/ConciergeFeedbackPrompt';
 
@@ -23,11 +22,11 @@ type SupportTicketSurveyProps = {
     reportID: string | undefined;
 };
 
-function getLatestSurveyAfterResolution(reportActions: OnyxEntry<ReportActions>): ReportAction | undefined {
+function getLatestSurveyAfterResolution(reportActions: OnyxEntry<ReportActions>, localeCompare: (firstString: string, secondString: string) => number): ReportAction | undefined {
     const actions = Object.values(reportActions ?? {}).filter((reportAction): reportAction is ReportAction => !!reportAction);
     const latestResolvedAction = actions
         .filter((reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED)
-        .sort((firstAction, secondAction) => firstAction.created.localeCompare(secondAction.created))
+        .sort((firstAction, secondAction) => localeCompare(firstAction.created, secondAction.created))
         .at(-1);
 
     if (!latestResolvedAction) {
@@ -36,16 +35,17 @@ function getLatestSurveyAfterResolution(reportActions: OnyxEntry<ReportActions>)
 
     return actions
         .filter((reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY && reportAction.created >= latestResolvedAction.created)
-        .sort((firstAction, secondAction) => firstAction.created.localeCompare(secondAction.created))
+        .sort((firstAction, secondAction) => localeCompare(firstAction.created, secondAction.created))
         .at(-1);
 }
 
 function SupportTicketSurvey({action, report, reportID}: SupportTicketSurveyProps) {
     const styles = useThemeStyles();
+    const {localeCompare} = useLocalize();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
-    const latestSurvey = useMemo(() => getLatestSurveyAfterResolution(reportActions), [reportActions]);
+    const latestSurvey = useMemo(() => getLatestSurveyAfterResolution(reportActions, localeCompare), [reportActions, localeCompare]);
     const canRateSurvey = report?.ownerAccountID === currentUserAccountID;
 
     if (
@@ -59,14 +59,16 @@ function SupportTicketSurvey({action, report, reportID}: SupportTicketSurveyProp
     }
 
     return (
-        <View style={styles.chatItemMessage}>
-            <RenderHTML html={getReportActionHtml(action)} />
+        <View style={[styles.chatItemMessage, styles.flexRow, styles.alignItemsCenter]}>
+            <Text style={styles.textLabelSupporting}>How was your support experience?</Text>
             {canRateSurvey && (
                 <ConciergeFeedbackPrompt
                     action={action}
                     reportID={reportID}
                     shouldShowPrompt={false}
                     shouldPersistAfterRating
+                    shouldShowTooltips={false}
+                    shouldRenderInline
                 />
             )}
         </View>

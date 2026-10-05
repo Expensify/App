@@ -1,6 +1,3 @@
-import Button from '@components/Button';
-import Text from '@components/Text';
-
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -9,7 +6,11 @@ import {openSupportTicket} from '@userActions/Report';
 import CONST from '@src/CONST';
 
 import React, {useState} from 'react';
-import {View} from 'react-native';
+
+import Banner from './Banner';
+import Button from './Button';
+import Checkbox from './Checkbox';
+import Text from './Text';
 
 type SupportTicketResolvedFooterProps = {
     reportID: string;
@@ -29,9 +30,24 @@ function SupportTicketResolvedFooter({reportID, isOffline}: SupportTicketResolve
     };
 
     return (
-        <View style={[styles.chatFooter, styles.ph5, styles.pv3]}>
-            <Text style={[styles.textLabelSupporting, styles.mb3]}>{translate('supportTicket.resolved')}</Text>
+        <Banner
+            containerStyles={styles.chatFooterBanner}
+            content={
+                <>
+                    <Checkbox
+                        isChecked
+                        disabled
+                        onPress={() => undefined}
+                        accessibilityLabel={translate('supportTicket.resolved')}
+                        accessible={false}
+                        style={styles.mr3}
+                    />
+                    <Text style={[styles.textLabel, styles.flex1]}>{translate('supportTicket.resolved')}</Text>
+                </>
+            }
+        >
             <Button
+                size={CONST.BUTTON_SIZE.SMALL}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 isDisabled={isOffline}
                 isLoading={isReopening}
@@ -39,7 +55,7 @@ function SupportTicketResolvedFooter({reportID, isOffline}: SupportTicketResolve
             >
                 <Button.Text>{translate('supportTicket.reopenTicket')}</Button.Text>
             </Button>
-        </View>
+        </Banner>
     );
 }
 
