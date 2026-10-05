@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
-index 70a24c4..874eb63 100644
+index 9238416..d7d2024 100644
 --- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
 +++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
-@@ -63,24 +63,10 @@ internal class TabsAppearanceApplicator(
+@@ -64,24 +64,10 @@ internal class TabsAppearanceApplicator(
          bottomNavigationView.itemTextColor = ColorStateList(states, fontColors)
  
          // Icon color

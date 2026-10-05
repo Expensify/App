@@ -1,7 +1,27 @@
 diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
+index 10cd91b..9238416 100644
 --- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
 +++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
-@@ -152,13 +152,18 @@
+@@ -3,6 +3,7 @@ package com.swmansion.rnscreens.gamma.tabs.appearance
+ import android.annotation.SuppressLint
+ import android.content.Context
+ import android.content.res.ColorStateList
++import android.graphics.Typeface
+ import android.graphics.drawable.StateListDrawable
+ import android.util.TypedValue
+ import android.view.MenuItem
+@@ -95,6 +96,10 @@ internal class TabsAppearanceApplicator(
+ 
+         bottomNavigationView.labelVisibilityMode = visibilityMode
+ 
++        // The selected tab's label is drawn bold, the way the app marks a selected tab everywhere else. Material re-applies
++        // its text appearance when enabling this, so it has to run before `updateFontStyles` sets the app's typeface.
++        bottomNavigationView.setItemTextAppearanceActiveBoldEnabled(true)
++
+         // Ripple color
+         val rippleColor =
+             tabBarAppearance?.tabBarItemRippleColor
+@@ -161,13 +166,18 @@ internal class TabsAppearanceApplicator(
                  tabBarAppearance?.tabBarItemTitleLargeLabelFontSize?.takeIf { it > 0 }?.let { PixelUtil.toPixelFromSP(it) }
                      ?: context.resources.getDimension(R.dimen.design_bottom_navigation_text_size)
  
@@ -15,12 +35,13 @@ diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansi
  
              // Active
              largeLabel.setTextSize(TypedValue.COMPLEX_UNIT_PX, largeFontSize)
-             largeLabel.setTypeface(fontFamily, Typeface.BOLD)
+-            largeLabel.typeface = fontFamily
++            largeLabel.setTypeface(fontFamily, Typeface.BOLD)
 +            largeLabel.letterSpacing = labelTracking / largeFontSize
          }
      }
  
-@@ -228,5 +233,7 @@
+@@ -237,5 +247,7 @@ internal class TabsAppearanceApplicator(
  
      companion object {
          const val TAG = "TabsAppearanceApplicator"
