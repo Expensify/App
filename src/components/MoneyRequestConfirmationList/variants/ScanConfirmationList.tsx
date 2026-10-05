@@ -19,7 +19,7 @@ import {View} from 'react-native';
  * screen and the optional fields collapse behind a show-more button, so it owns that state.
  */
 function ScanConfirmationList(props: MoneyRequestConfirmationListProps) {
-    const {selectedParticipants, isEditingSplitBill, isParticipantPickerVisible = false, onToggleBillable, onToggleReimbursable, receiptOptions} = props;
+    const {selectedParticipants, isEditingSplitBill, isParticipantPickerVisible = false, onToggleBillable, onToggleReimbursable, receiptOptions, partiallyManuallyFilledScanID} = props;
 
     const styles = useThemeStyles();
     const isInLandscapeMode = useIsInLandscapeMode();
@@ -31,7 +31,9 @@ function ScanConfirmationList(props: MoneyRequestConfirmationListProps) {
 
     // Reveal the collapsed fields when one of them raises an inline error, or opening the section and pressing
     // Create looks like it did nothing. Done during render so it survives the remount a multi-scan switch causes.
-    if (INLINE_FIELD_ERROR_KEYS.has(data.errorState.formError) && !showMoreFields) {
+    // In a multi-scan the error stays set while another receipt is partially filled, so only expand the receipt it belongs to.
+    const doesFormErrorBelongToThisReceipt = !partiallyManuallyFilledScanID || partiallyManuallyFilledScanID === transactionID;
+    if (INLINE_FIELD_ERROR_KEYS.has(data.errorState.formError) && doesFormErrorBelongToThisReceipt && !showMoreFields) {
         setShowMoreFields(true);
     }
 
