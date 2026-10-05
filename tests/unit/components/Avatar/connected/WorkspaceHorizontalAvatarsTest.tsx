@@ -1,6 +1,7 @@
 import {cleanup, render, screen} from '@testing-library/react-native';
 
 import WorkspaceHorizontalAvatars from '@components/Avatar/connected/WorkspaceHorizontalAvatars';
+import {PersonalDetailsContext} from '@components/OnyxListItemProvider';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -37,9 +38,10 @@ jest.mock('@hooks/useLocalize', () =>
     })),
 );
 
-jest.mock('@components/OnyxListItemProvider', () => ({
-    usePersonalDetails: () => ({[ACTOR_ACCOUNT_ID]: {accountID: ACTOR_ACCOUNT_ID, login: 'zoe@example.com', displayName: 'Zoe'}}),
-}));
+const PERSONAL_DETAILS = {[ACTOR_ACCOUNT_ID]: {accountID: ACTOR_ACCOUNT_ID, login: 'zoe@example.com', displayName: 'Zoe'}};
+
+/** Renders inside the live personal details context, which a name sort reads. */
+const renderWithPersonalDetails = (ui: React.ReactElement) => render(<PersonalDetailsContext.Provider value={PERSONAL_DETAILS}>{ui}</PersonalDetailsContext.Provider>);
 
 jest.mock('@components/Avatar/layouts/HorizontalAvatars', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -70,7 +72,7 @@ describe('WorkspaceHorizontalAvatars (connected)', () => {
     });
 
     it('should render the primary avatar and the workspace icon side by side with the stacking options spread', async () => {
-        render(
+        renderWithPersonalDetails(
             <WorkspaceHorizontalAvatars
                 report={report}
                 primaryAvatar={PRIMARY_AVATAR}
@@ -93,7 +95,7 @@ describe('WorkspaceHorizontalAvatars (connected)', () => {
     });
 
     it("should take the stack's defaults when stacking is requested with `true`", async () => {
-        render(
+        renderWithPersonalDetails(
             <WorkspaceHorizontalAvatars
                 report={report}
                 primaryAvatar={PRIMARY_AVATAR}
@@ -120,7 +122,7 @@ describe('WorkspaceHorizontalAvatars (connected)', () => {
         ['by name', CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME, [WORKSPACE_ICON, PRIMARY_AVATAR]],
         ['by name and then reversed', [CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME, CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE], [PRIMARY_AVATAR, WORKSPACE_ICON]],
     ])('should order the avatars %s', async (_case, sort, expectedIcons) => {
-        render(
+        renderWithPersonalDetails(
             <WorkspaceHorizontalAvatars
                 report={report}
                 primaryAvatar={PRIMARY_AVATAR}
