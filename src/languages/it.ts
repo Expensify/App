@@ -9963,6 +9963,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         noCategory: 'Nessuna categoria',
         noMerchant: 'Nessun esercente',
         noTag: 'Nessun tag',
+        noVendor: 'Nessun fornitore',
         expenseType: 'Tipo di spesa',
         receiptType: 'Tipo di ricevuta',
         receiptTypeValues: {
