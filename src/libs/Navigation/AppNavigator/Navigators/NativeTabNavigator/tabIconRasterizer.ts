@@ -1,15 +1,19 @@
+import ObjectUtils from '@src/types/utils/ObjectUtils';
+
 import type {NativeBottomTabIcon} from '@react-navigation/bottom-tabs/unstable';
 import type {SkCanvas, SkImage, SkSurface} from '@shopify/react-native-skia';
 import type {ImageSourcePropType} from 'react-native';
 
-import {BlendMode, ClipOp, ImageFormat, Skia} from '@shopify/react-native-skia';
+import {BlendMode, ClipOp, FilterMode, ImageFormat, MipmapMode, Skia} from '@shopify/react-native-skia';
 import {Image} from 'react-native';
 
 import NATIVE_TAB_ICONS from './NATIVE_TAB_ICONS';
 
 type TabIconPair = {active: NativeBottomTabIcon; inactive: NativeBottomTabIcon};
 
-const TAB_ICONS = Object.entries(NATIVE_TAB_ICONS).map(([name, icon]) => [name, icon.source] as const);
+type NativeTabName = keyof typeof NATIVE_TAB_ICONS;
+
+const TAB_NAMES = ObjectUtils.typedKeys(NATIVE_TAB_ICONS);
 
 /** Skia reads URLs, file paths and, in Android release builds, bundled assets that resolve to a drawable name. */
 async function decodeImage(uri: string): Promise<SkImage | null> {
@@ -39,10 +43,12 @@ function drawCircularImage(canvas: SkCanvas, image: SkImage, left: number, top: 
 
     canvas.save();
     canvas.clipPath(circle, ClipOp.Intersect, true);
-    canvas.drawImageRect(
+    canvas.drawImageRectOptions(
         image,
         Skia.XYWHRect((image.width() - sourceSize) / 2, (image.height() - sourceSize) / 2, sourceSize, sourceSize),
         Skia.XYWHRect(left, top, size, size),
+        FilterMode.Linear,
+        MipmapMode.Linear,
         Skia.Paint(),
     );
     canvas.restore();
@@ -58,12 +64,8 @@ function encodeSurface(surface: SkSurface): string {
     return `data:image/png;base64,${base64}`;
 }
 
-async function drawTabIconPairs(
-    drawIcon: (name: string, source: ImageSourcePropType, isSelected: boolean) => Promise<NativeBottomTabIcon | undefined>,
-): Promise<Record<string, TabIconPair>> {
-    const results = await Promise.all(
-        TAB_ICONS.map(([name, source]) => Promise.all([drawIcon(name, source, false), drawIcon(name, source, true)]).then(([inactive, active]) => ({name, inactive, active}))),
-    );
+async function drawTabIconPairs(drawIcon: (name: NativeTabName, isSelected: boolean) => Promise<NativeBottomTabIcon | undefined>): Promise<Record<string, TabIconPair>> {
+    const results = await Promise.all(TAB_NAMES.map((name) => Promise.all([drawIcon(name, false), drawIcon(name, true)]).then(([inactive, active]) => ({name, inactive, active}))));
     const icons: Record<string, TabIconPair> = {};
     for (const result of results) {
         if (result.inactive && result.active) {
@@ -73,7 +75,7 @@ async function drawTabIconPairs(
     return icons;
 }
 
-function getTabBarIcon(icons: Record<string, TabIconPair> | undefined, name: keyof typeof NATIVE_TAB_ICONS) {
+function getTabBarIcon(icons: Record<string, TabIconPair> | undefined, name: NativeTabName) {
     const pair = icons?.[name];
     if (!pair) {
         return NATIVE_TAB_ICONS[name];

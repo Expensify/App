@@ -10,15 +10,16 @@ import NAVIGATORS from '@src/NAVIGATORS';
 
 import type {NativeBottomTabIcon} from '@react-navigation/bottom-tabs/unstable';
 import type {SkCanvas} from '@shopify/react-native-skia';
-import type {ImageSourcePropType} from 'react-native';
 
-import {FontWeight, Skia} from '@shopify/react-native-skia';
+import {FillType, FontWeight, Skia} from '@shopify/react-native-skia';
 
+import type {NativeTabGlyph} from './NATIVE_TAB_GLYPHS';
 import type NATIVE_TAB_ICONS from './NATIVE_TAB_ICONS';
 import type {TabIconPair} from './tabIconRasterizer';
 import type {LastDrawnTabIcons} from './useRasterizedTabIcons';
 
-import {createTintPaint, decodeGlyph, decodeImage, drawCircularImage, drawTabIconPairs, encodeSurface, getTabBarIcon} from './tabIconRasterizer';
+import NATIVE_TAB_GLYPHS from './NATIVE_TAB_GLYPHS';
+import {decodeImage, drawCircularImage, drawTabIconPairs, encodeSurface, getTabBarIcon} from './tabIconRasterizer';
 import useRasterizedTabIcons from './useRasterizedTabIcons';
 
 /** The account tab's avatar in both selection states, with the URI it was drawn from. */
@@ -32,6 +33,29 @@ function drawStatusDot(canvas: SkCanvas, glyphRight: number, glyphTop: number, s
     const paint = Skia.Paint();
     paint.setColor(Skia.Color(color));
     canvas.drawCircle(glyphRight - radius, glyphTop + radius, radius, paint);
+}
+
+function drawGlyph(canvas: SkCanvas, glyph: NativeTabGlyph, left: number, top: number, size: number, color: string) {
+    const paint = Skia.Paint();
+    paint.setColor(Skia.Color(color));
+    paint.setAntiAlias(true);
+    const viewBoxScale = size / glyph.viewBoxSize;
+
+    canvas.save();
+    canvas.translate(left, top);
+    canvas.scale(viewBoxScale, viewBoxScale);
+    for (const {d, isEvenOdd} of glyph.paths) {
+        const path = Skia.Path.MakeFromSVGString(d);
+        if (!path) {
+            continue;
+        }
+        if (isEvenOdd) {
+            path.setFillType(FillType.EvenOdd);
+        }
+        canvas.drawPath(path, paint);
+        path.dispose();
+    }
+    canvas.restore();
 }
 
 function getLabelFont(isSelected: boolean, scale: number) {
@@ -63,24 +87,19 @@ function measureLabel(label: string, isSelected: boolean, scale: number) {
 
 /**
  * iOS 26 never applies the inactive icon color from `UITabBarItemAppearance`, and paints every badge in the color of
- * the selected tab (both `badgeBackgroundColor` and `UITabBarItem.badgeColor`), so the glyph is recolored and the
+ * the selected tab (both `badgeBackgroundColor` and `UITabBarItem.badgeColor`), so the glyph is drawn in its color and the
  * status dot drawn into the image. Both selection states go through this, because RNScreens rejects a tab whose
  * icon and selectedIcon differ in type.
  */
 async function createTabIcon(
-    source: ImageSourcePropType,
+    glyph: NativeTabGlyph,
     color: string,
     dotColor: string | undefined,
     label: string,
     labelColor: string,
     isSelected: boolean,
 ): Promise<NativeBottomTabIcon | undefined> {
-    const glyph = await decodeGlyph(source);
-    if (!glyph) {
-        return undefined;
-    }
-
-    const {image, scale} = glyph;
+    const scale = variables.nativeTabIconScale;
     const glyphSize = variables.iconNativeTabBarIOS * scale;
     // The account avatar is taller than a glyph, so every glyph sits this far down to share its centre, and
     // every label lands at the same height.
@@ -92,20 +111,18 @@ async function createTabIcon(
     const surface = Skia.Surface.MakeOffscreen(canvasWidth, canvasHeight);
 
     if (!surface) {
-        image.dispose();
         return undefined;
     }
 
     const canvas = surface.getCanvas();
     const glyphLeft = (canvasWidth - glyphSize) / 2;
-    canvas.drawImageRect(image, Skia.XYWHRect(0, 0, image.width(), image.height()), Skia.XYWHRect(glyphLeft, glyphTop, glyphSize, glyphSize), createTintPaint(color));
+    drawGlyph(canvas, glyph, glyphLeft, glyphTop, glyphSize, color);
 
     if (dotColor) {
         drawStatusDot(canvas, glyphLeft + glyphSize, glyphTop, scale, dotColor);
     }
 
     drawLabel(canvas, label, labelColor, isSelected, scale, canvasWidth, glyphTop + glyphSize + gap);
-    image.dispose();
 
     return {type: 'image', source: {uri: encodeSurface(surface), width: canvasWidth / scale, height: canvasHeight / scale, scale}, tinted: false};
 }
@@ -160,8 +177,15 @@ function useIOSTabIcons(dotColors: Record<string, string | undefined>, tabLabels
         lastTintedIcons,
         iconsSignature,
         () =>
-            drawTabIconPairs((name, source, isSelected) =>
-                createTabIcon(source, isSelected ? theme.iconMenu : theme.icon, dotColors[name], tabLabels[name], isSelected ? theme.text : theme.textSupporting, isSelected),
+            drawTabIconPairs((name, isSelected) =>
+                createTabIcon(
+                    NATIVE_TAB_GLYPHS[name],
+                    isSelected ? theme.iconMenu : theme.icon,
+                    dotColors[name],
+                    tabLabels[name],
+                    isSelected ? theme.text : theme.textSupporting,
+                    isSelected,
+                ),
             ),
         {},
     );

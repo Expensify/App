@@ -10,10 +10,10 @@ import type {ImageSourcePropType} from 'react-native';
 
 import {Skia} from '@shopify/react-native-skia';
 
-import type NATIVE_TAB_ICONS from './NATIVE_TAB_ICONS';
 import type {TabIconPair} from './tabIconRasterizer';
 import type {LastDrawnTabIcons} from './useRasterizedTabIcons';
 
+import NATIVE_TAB_ICONS from './NATIVE_TAB_ICONS';
 import {createTintPaint, decodeGlyph, decodeImage, drawCircularImage, drawTabIconPairs, encodeSurface, getTabBarIcon} from './tabIconRasterizer';
 import useRasterizedTabIcons from './useRasterizedTabIcons';
 
@@ -76,7 +76,7 @@ function useAndroidTabIcons() {
     const tintedIcons = useRasterizedTabIcons(
         lastTintedIcons,
         [inactiveColor, activeColor].join('|'),
-        () => drawTabIconPairs((name, source, isSelected) => createTintedGlyph(source, isSelected ? activeColor : inactiveColor)),
+        () => drawTabIconPairs((name, isSelected) => createTintedGlyph(NATIVE_TAB_ICONS[name].source, isSelected ? activeColor : inactiveColor)),
         {},
     );
 
