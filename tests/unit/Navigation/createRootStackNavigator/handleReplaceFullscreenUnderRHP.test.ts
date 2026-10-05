@@ -689,6 +689,22 @@ describe('removeStalePreMountsFromResetAction', () => {
         expect(reportsStack?.index).toBe(1);
     });
 
+    it('drops the state of a tab that held only a stale pre-mount, so the tab builds its initial route again', () => {
+        // Given a saved state where a never-visited tab was built only for an old pre-mount
+        const action = makeResetWithReportsStack([makeRoute(SCREENS.REPORT, {reportID: 'B'}, undefined, staleKey)], 0);
+
+        // When the root router sanitizes the RESET
+        const result = removeStalePreMountsFromResetAction(action);
+
+        // Then the tab has no state instead of an empty routes list, which no navigator can render
+        const payload = result.type === CONST.NAVIGATION.ACTION_TYPE.RESET ? result.payload : undefined;
+        const tabRoute = payload?.routes.at(0);
+        const tabState = tabRoute && 'state' in tabRoute ? tabRoute.state : undefined;
+        const reportsTabRoute = isResetStackState(tabState) ? tabState.routes.at(0) : undefined;
+        expect(reportsTabRoute?.key).toBe('reports-split-key');
+        expect(reportsTabRoute?.state).toBeUndefined();
+    });
+
     it('drops a stale pre-mount from the top of a covered tab and focuses the screen under it', () => {
         // Given a saved state where an old pre-mount sits on top of a tab that was covered when it was saved
         const action = makeResetWithReportsStack([makeRoute(SCREENS.INBOX, undefined, undefined, 'inbox-key'), makeRoute(SCREENS.REPORT, {reportID: 'B'}, undefined, staleKey)], 1);

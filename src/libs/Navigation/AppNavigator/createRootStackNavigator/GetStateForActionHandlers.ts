@@ -810,7 +810,8 @@ function removeStalePreMountsFromState<S extends ResetPayloadState>(state: S): S
             return route;
         }
         hasChangedNestedState = true;
-        return {...route, state: nestedState};
+        // A never-visited tab can hold only the pre-mount. Without a state, the navigator builds its initial route again.
+        return {...route, state: nestedState.routes.length ? nestedState : undefined};
     });
     const hasStalePreload = !!state.preloadedRouteKeys?.some(isStaleWideTabPreMountPreloadedRouteKey);
     const preloads = hasStalePreload ? {preloadedRouteKeys: state.preloadedRouteKeys?.filter((key) => !isStaleWideTabPreMountPreloadedRouteKey(key))} : {};
