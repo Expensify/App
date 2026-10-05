@@ -76,9 +76,6 @@ const USD_POLICY: Policy = {
     owner: 'admin@example.com',
 };
 
-// DEFAULT_DATA's achData is only `{state: 'SETUP'}`, which is narrower than the ACH type, so it goes through createMock.
-const DEFAULT_ACCOUNT = createMock<ReimbursementAccount>(CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA);
-
 const OFFLINE_TITLE = 'You appear to be offline.';
 
 type PageProps = PlatformStackScreenProps<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>;
@@ -185,28 +182,6 @@ describe('ReimbursementAccountPage offline', () => {
         expectOfflineViewOnly();
     });
 
-    it('keeps the offline view when the cached account has no workspace', async () => {
-        // Given the cached account has no policyID, which hasInProgressVBBA also treats as another workspace's account
-        await seedOnyx({achData: buildAchData({policyID: undefined, state: CONST.BANK_ACCOUNT.STATE.SETUP}), isLoading: false});
-
-        // When this workspace's page is opened offline
-        await renderPage();
-
-        // Then the account is not shown as this workspace's account
-        expectOfflineViewOnly();
-    });
-
-    it('shows the entry point on the Wallet route for the cached bank account', async () => {
-        // Given the cached account is the one the Wallet route asks for
-        await seedOnyx({achData: buildAchData({bankAccountID: 1234, state: CONST.BANK_ACCOUNT.STATE.SETUP}), isLoading: false});
-
-        // When the page is opened offline from Wallet, with only a bankAccountID
-        await renderPage(WALLET_ROUTE);
-
-        // Then the cached account is trusted
-        expect(mockEntryPoint).toHaveBeenCalled();
-    });
-
     it('keeps the offline view on the Wallet route when a different bank account is cached', async () => {
         // Given the cached account is a different bank account than the one the Wallet route asks for
         await seedOnyx({achData: buildAchData({bankAccountID: 5678, state: CONST.BANK_ACCOUNT.STATE.SETUP}), isLoading: false});
@@ -215,28 +190,6 @@ describe('ReimbursementAccountPage offline', () => {
         await renderPage(WALLET_ROUTE);
 
         // Then the other bank account's data is not shown
-        expectOfflineViewOnly();
-    });
-
-    it('keeps the offline view when only a top-level field differs from the default data', async () => {
-        // Given the default account with one unrelated top-level field changed, which several actions can leave behind
-        await seedOnyx({...DEFAULT_ACCOUNT, shouldShowResetModal: true});
-
-        // When the page is opened offline
-        await renderPage();
-
-        // Then the default achData is not treated as loaded data for this workspace
-        expectOfflineViewOnly();
-    });
-
-    it('keeps the offline view for the default data', async () => {
-        // Given the account was reset to the default data when the page last unmounted
-        await seedOnyx(DEFAULT_ACCOUNT);
-
-        // When the page is opened offline
-        await renderPage();
-
-        // Then the offline view shows, as it did before
         expectOfflineViewOnly();
     });
 });

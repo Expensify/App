@@ -621,7 +621,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
 
     // Matched the way fetchData opens the account. Like hasInProgressVBBA, an account without the route's ID counts as another one.
     const isOtherAccount = bankAccountIDParam ? achData?.bankAccountID !== Number(bankAccountIDParam) : !!policyIDParam && achData?.policyID !== policyIDParam;
-    // hasLoadedData only proves the account differs from DEFAULT_DATA, which the failed offline mount fetch can also cause.
+    // hasLoadedData only proves the account differs from DEFAULT_DATA. Offline, the mount effect's setBankAccountSubStep(null) and the
+    // failed OpenReimbursementAccountPage request also cause that, by leaving `{achData: {}, isLoading: false}` with nothing loaded.
     const hasAchDataForThisPage = !isEmptyObject(achData) && !deepEqual(achData, CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA.achData) && !isOtherAccount;
 
     if (isOffline && (!hasLoadedData || !hasAchDataForThisPage)) {
