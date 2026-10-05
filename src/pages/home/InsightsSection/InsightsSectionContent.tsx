@@ -17,6 +17,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import {INSIGHTS_CHART_STATE} from '@libs/resolveInsightsChartData';
 import type {SearchKey} from '@libs/SearchKeyUtils';
 
+import InsightsDataTable from '@pages/Insights/charts/InsightsDataTable';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -54,6 +56,9 @@ function InsightsSectionContent() {
         return null;
     }
 
+    const isLoading = state === INSIGHTS_CHART_STATE.LOADING;
+    const shouldShowTable = isInsightsPageEnabled && (view === CONST.SEARCH.VIEW.BAR || view === CONST.SEARCH.VIEW.PIE);
+
     return (
         <WidgetContainer
             titleContent={
@@ -89,14 +94,26 @@ function InsightsSectionContent() {
             {state === INSIGHTS_CHART_STATE.EMPTY && <ChartEmptyState testID="insightsSectionEmptyState" />}
             {state === INSIGHTS_CHART_STATE.ERROR && <ChartErrorState onRetry={retry} />}
             {(state === INSIGHTS_CHART_STATE.LOADING || state === INSIGHTS_CHART_STATE.READY) && (
-                <View style={shouldUseNarrowLayout ? [styles.ph5, styles.pb5] : [styles.ph8, styles.pt3, styles.pb8]}>
+                <View style={shouldUseNarrowLayout ? styles.pb5 : [styles.pt3, styles.pb8]}>
                     <SearchChartView
                         queryJSON={queryJSON}
                         view={view}
                         groupBy={groupBy}
                         data={data}
-                        isLoading={state === INSIGHTS_CHART_STATE.LOADING}
-                        color={config.color}
+                        isLoading={isLoading}
+                        chartContainerStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                        renderDetails={
+                            shouldShowTable
+                                ? (rows) => (
+                                      <InsightsDataTable
+                                          rows={rows}
+                                          view={view}
+                                          groupBy={groupBy}
+                                          isLoading={isLoading}
+                                      />
+                                  )
+                                : undefined
+                        }
                     />
                 </View>
             )}

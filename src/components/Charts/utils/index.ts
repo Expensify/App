@@ -1,3 +1,4 @@
+import BAR_INNER_PADDING, {BAR_GAP} from '@components/Charts/barChartConstants';
 import type {ChartDataPoint, LabelRotation, PieSlice} from '@components/Charts/types';
 import VictoryTheme, {CHART_Y_SCALE_HEIGHT, DIAGONAL_ANGLE_RADIAN_THRESHOLD, ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, MAX_X_AXIS_LABEL_WIDTH, SIN_45} from '@components/Charts/VictoryTheme';
 
@@ -147,22 +148,6 @@ function rotatedLabelYOffset(ascent: number, descent: number, angleRad: number):
         return descent;
     }
     return ascent * Math.cos(angleRad);
-}
-
-/**
- * Calculate minimum horizontal domainPadding so that edge data points
- * (and their centered labels) aren't clipped by the chart boundary.
- *
- * @param chartWidth - Total chart width in pixels
- * @param pointCount - Number of data points
- * @param innerPadding - Padding ratio between points (0 for line charts, ~0.3 for bar charts)
- */
-function calculateMinDomainPadding(chartWidth: number, pointCount: number, innerPadding = 0): number {
-    if (pointCount <= 1) {
-        return 0;
-    }
-    const minPaddingRatio = (1 - innerPadding) / (2 * (pointCount - 1 + innerPadding));
-    return Math.ceil(chartWidth * minPaddingRatio);
 }
 
 /**
@@ -441,76 +426,20 @@ function getNiceYAxisTicks(rawDataMax: number, rawDataMin: number, tickCount: nu
 }
 
 /**
- * Nice-rounded value domain for the horizontal bar chart's x-axis. victory-native only applies .nice() to the
- * y-axis, so we pre-round here (anchored at zero unless negatives) to keep the last tick past the longest bar. Returns undefined
- * for a degenerate domain, letting victory-native pick its own bounds.
+ * Bars fill the plot with BAR_GAP between them, and the gap shrinks when there are too many bars for it.
+ * The x-domain puts the outer bars flush with the plot edges.
  */
-function getNiceValueDomain(data: ChartDataPoint[], tickCount: number): [number, number] | undefined {
-    if (data.length === 0) {
-        return undefined;
+function getBarLayout(plotWidth: number, barCount: number): {barWidth: number; gap: number; xDomain: [number, number]} {
+    if (plotWidth <= 0 || barCount <= 0) {
+        return {barWidth: 0, gap: 0, xDomain: [-0.5, Math.max(0, barCount - 1) + 0.5]};
     }
-    const values = data.map((point) => point.total);
-    const min = Math.min(0, ...values);
-    const max = Math.max(0, ...values);
-    if (min === max) {
-        return undefined;
-    }
-    const [niceMin = min, niceMax = max] = scaleLinear().domain([min, max]).nice(tickCount).domain();
-    return [niceMin, niceMax];
-}
+    const gap = barCount > 1 ? Math.min(BAR_GAP, (plotWidth / barCount) * BAR_INNER_PADDING) : 0;
+    const barWidth = (plotWidth - gap * (barCount - 1)) / barCount;
 
-/** Tick values victory-native will render for a nice-rounded value domain, used to size the axis label gutter. */
-function getNiceValueTicks(domain: [number, number], tickCount: number): number[] {
-    return scaleLinear().domain(domain).ticks(tickCount);
-}
-
-/**
- * Horizontal plot bounds of a vertical bar chart for a container width, mirroring victory-native's layout.
- * Deriving it from the width (not post-mount) lets the wrapper re-decide orientation on every resize.
- */
-function getVerticalBarPlotBounds(chartWidth: number, paddingLeft: number): {left: number; right: number; width: number} {
-    const left = paddingLeft + VictoryTheme.axis.labelGap;
-    const right = Math.max(left, chartWidth - VictoryTheme.axis.padding.right);
-    return {left, right, width: right - left};
-}
-
-/**
- * Layout inputs shared by the vertical bar chart body and the orientation dispatcher, derived from the plot bounds.
- * The body passes its measured bounds and the dispatcher passes bounds predicted from the container width, so both
- * feed `useChartLabelLayout` the exact same geometry and cannot drift apart.
- */
-function getVerticalBarLabelLayoutInputs({
-    containerWidth,
-    plotLeft,
-    plotRight,
-    plotWidth,
-    dataLength,
-    innerPadding,
-}: {
-    containerWidth: number;
-    plotLeft: number;
-    plotRight: number;
-    plotWidth: number;
-    dataLength: number;
-    innerPadding: number;
-}): {tickSpacing: number; labelAreaWidth: number; firstTickLeftSpace: number; lastTickRightSpace: number} {
-    const domainPadding = containerWidth > 0 && dataLength > 0 ? calculateMinDomainPadding(containerWidth, dataLength, innerPadding) : 0;
-    const paddingScale = plotWidth > 0 ? plotWidth / (plotWidth + 2 * domainPadding) : 0;
-    return {
-        tickSpacing: plotWidth > 0 && dataLength > 0 ? plotWidth / dataLength : 0,
-        labelAreaWidth: plotWidth,
-        firstTickLeftSpace: plotLeft + domainPadding * paddingScale,
-        lastTickRightSpace: containerWidth > 0 ? containerWidth - plotRight + domainPadding * paddingScale : 0,
-    };
-}
-
-/**
- * Height of a horizontal bar chart. Grows with the row count so every category row gets at least
- * `minRowHeight` of vertical space, keeping all category labels visible instead of thinning them out.
- * Never smaller than `minHeight`, so small datasets keep the shared minimum.
- */
-function getHorizontalChartHeight(rowCount: number, minRowHeight: number, verticalPadding: number, minHeight: number): number {
-    return Math.max(minHeight, rowCount * minRowHeight + verticalPadding);
+    // Bars are centered on their x value, so the domain starts half a bar before the first one and ends half a bar after the last.
+    // One x unit spans a bar and a gap, which converts that half bar from px into x units.
+    const halfBar = barWidth / (2 * (barWidth + gap));
+    return {barWidth, gap, xDomain: [-halfBar, barCount - 1 + halfBar]};
 }
 
 /** Returns the pixel width needed for Y-axis labels given the chart data. */
@@ -543,7 +472,6 @@ export {
     getFontLineMetrics,
     rotatedLabelCenterCorrection,
     rotatedLabelYOffset,
-    calculateMinDomainPadding,
     normalizeAngle,
     isAngleInSlice,
     findSliceAtPosition,
@@ -559,12 +487,8 @@ export {
     isCursorInSkewedLabel,
     isCursorOverChartLabel,
     getNiceYAxisTicks,
-    getNiceValueDomain,
-    getNiceValueTicks,
     getYAxisLabelWidth,
-    getHorizontalChartHeight,
-    getVerticalBarPlotBounds,
-    getVerticalBarLabelLayoutInputs,
+    getBarLayout,
 };
 
 export type {ChartLabelHitTestParams};

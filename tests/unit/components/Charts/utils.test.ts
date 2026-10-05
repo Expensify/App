@@ -1,16 +1,14 @@
+import BAR_INNER_PADDING from '@components/Charts/barChartConstants';
 import type {ChartDataPoint, PieSlice} from '@components/Charts/types';
 import {
-    calculateMinDomainPadding,
     edgeLabelsFit,
     edgeMaxLabelWidth,
     effectiveHeight,
     effectiveWidth,
     findSliceAtPosition,
+    getBarLayout,
     getAdditionalOffset,
-    getHorizontalChartHeight,
     getNiceYAxisTicks,
-    getVerticalBarLabelLayoutInputs,
-    getVerticalBarPlotBounds,
     isAngleInSlice,
     isCursorInSkewedLabel,
     isCursorOverChartLabel,
@@ -638,37 +636,6 @@ describe('rotatedLabelYOffset', () => {
     });
 });
 
-describe('calculateMinDomainPadding', () => {
-    it('returns 0 for a single data point', () => {
-        expect(calculateMinDomainPadding(400, 1)).toBe(0);
-    });
-
-    it('returns 0 for zero data points', () => {
-        expect(calculateMinDomainPadding(400, 0)).toBe(0);
-    });
-
-    it('returns half the chart width for 2 points with no inner padding (line chart)', () => {
-        // minPaddingRatio = 1 / (2 * (1 + 0)) = 0.5 → ceil(100 * 0.5) = 50
-        expect(calculateMinDomainPadding(100, 2, 0)).toBe(50);
-    });
-
-    it('returns correct padding for multiple equally spaced points', () => {
-        // 5 points, no innerPadding: ratio = 1 / (2 * 4) = 0.125 → ceil(400 * 0.125) = 50
-        expect(calculateMinDomainPadding(400, 5, 0)).toBe(50);
-    });
-
-    it('uses innerPadding=0 as default', () => {
-        expect(calculateMinDomainPadding(400, 5)).toBe(calculateMinDomainPadding(400, 5, 0));
-    });
-
-    it('produces a smaller padding with inner padding (bar chart)', () => {
-        // innerPadding reduces the effective spacing between bars
-        const withoutPadding = calculateMinDomainPadding(400, 5, 0);
-        const withPadding = calculateMinDomainPadding(400, 5, 0.3);
-        expect(withPadding).toBeLessThan(withoutPadding);
-    });
-});
-
 // Bar chart domain padding constants, mirrored from BarChartContent.
 const BAR_PAD_TOP = 32;
 const BAR_PAD_BOTTOM = 1;
@@ -715,106 +682,54 @@ describe('getNiceYAxisTicks', () => {
     });
 });
 
-describe('getHorizontalChartHeight', () => {
-    const MIN_ROW_HEIGHT = 36;
-    const PADDING = 40;
-    const MIN_HEIGHT = 220;
+describe('getBarLayout', () => {
+    it('keeps a 16px gap and fills the rest of the plot with bars', () => {
+        // Given a 300px plot with 4 bars, wide enough for the full gap
+        // When computing the bar layout
+        const layout = getBarLayout(300, 4);
 
-    it('keeps the shared minimum height when few rows do not need the extra space', () => {
-        // Given 3 rows, 3 * 36 + 40 = 148 is below the 220 minimum
-        // When computing the height
-        // Then it stays at the minimum so small charts are not shrunk
-        expect(getHorizontalChartHeight(3, MIN_ROW_HEIGHT, PADDING, MIN_HEIGHT)).toBe(MIN_HEIGHT);
+        // Then the gaps take 3 * 16px and the bars split the remaining width evenly
+        expect(layout.gap).toBe(16);
+        expect(layout.barWidth).toBe((300 - 3 * 16) / 4);
     });
 
-    it('grows past the minimum once the rows need more than the minimum height', () => {
-        // Given 10 rows, 10 * 36 + 40 = 400 exceeds the 220 minimum
-        // When computing the height
-        // Then it grows so every row keeps its full MIN_ROW_HEIGHT and no label is thinned out
-        expect(getHorizontalChartHeight(10, MIN_ROW_HEIGHT, PADDING, MIN_HEIGHT)).toBe(400);
+    it('puts the outer bars flush with the plot edges', () => {
+        // Given a 300px plot with 4 bars
+        const plotWidth = 300;
+        const {barWidth, xDomain} = getBarLayout(plotWidth, 4);
+
+        // When mapping the x-domain onto the plot width
+        const pxPerUnit = plotWidth / (xDomain[1] - xDomain[0]);
+
+        // Then the first bar starts at the left edge and the last one ends at the right edge
+        expect((0 - xDomain[0]) * pxPerUnit - barWidth / 2).toBeCloseTo(0, 5);
+        expect((3 - xDomain[0]) * pxPerUnit + barWidth / 2).toBeCloseTo(plotWidth, 5);
     });
 
-    it('reserves at least one row of space per row as the count increases', () => {
-        // Given the row count grows by one
-        // When comparing consecutive grown heights
-        // Then each extra row adds exactly MIN_ROW_HEIGHT of space
-        const ten = getHorizontalChartHeight(10, MIN_ROW_HEIGHT, PADDING, MIN_HEIGHT);
-        const eleven = getHorizontalChartHeight(11, MIN_ROW_HEIGHT, PADDING, MIN_HEIGHT);
-        expect(eleven - ten).toBe(MIN_ROW_HEIGHT);
+    it('shrinks the gap when there are too many bars for it', () => {
+        // Given 50 bars in a 300px plot, where 16px gaps alone would be wider than the plot
+        // When computing the bar layout
+        const layout = getBarLayout(300, 50);
+
+        // Then the gap takes the same share of each slot as BAR_INNER_PADDING, so bars keep a positive width
+        expect(layout.gap).toBeCloseTo((300 / 50) * BAR_INNER_PADDING, 5);
+        expect(layout.barWidth).toBeGreaterThan(0);
     });
 
-    it('returns the minimum height when there are no rows', () => {
-        // Given an empty dataset
-        // When computing the height
-        // Then it falls back to the minimum rather than collapsing to just the padding
-        expect(getHorizontalChartHeight(0, MIN_ROW_HEIGHT, PADDING, MIN_HEIGHT)).toBe(MIN_HEIGHT);
-    });
-});
+    it('does not count a gap when there is only one bar', () => {
+        // Given one bar, which has no neighbor to keep a gap from
+        // When computing the bar layout
+        const layout = getBarLayout(300, 1);
 
-describe('getVerticalBarPlotBounds', () => {
-    // labelGap = 12, padding.right = 5 (from VictoryTheme.axis)
-    const LABEL_GAP = VictoryTheme.axis.labelGap;
-    const PADDING_RIGHT = VictoryTheme.axis.padding.right;
-
-    it('reserves the left gutter for labels and the right base padding', () => {
-        // Given a 300px container with a 30px left gutter
-        // When computing the plot bounds
-        // Then the plot starts past the gutter+labelGap and ends before the right padding
-        expect(getVerticalBarPlotBounds(300, 30)).toEqual({left: 30 + LABEL_GAP, right: 300 - PADDING_RIGHT, width: 300 - PADDING_RIGHT - (30 + LABEL_GAP)});
+        // Then the gap is 0, so the bar stays centered in the plot instead of being offset by a gap that isn't drawn
+        expect(layout.gap).toBe(0);
+        expect(layout.xDomain).toEqual([-0.5, 0.5]);
     });
 
-    it('grows the plot width one-for-one with the container width', () => {
-        // Given the same left gutter but a wider container
-        // When comparing plot widths
-        // Then every extra container pixel becomes plot width (lets a horizontal chart switch back to vertical as it grows)
-        const narrow = getVerticalBarPlotBounds(300, 30).width;
-        const wide = getVerticalBarPlotBounds(360, 30).width;
-        expect(wide - narrow).toBe(60);
-    });
-
-    it('clamps to a zero-width plot when the container is too small for the gutters', () => {
-        // Given a container narrower than the left gutter itself
-        // When computing the plot bounds
-        // Then the right edge clamps to the left edge instead of going negative
-        const bounds = getVerticalBarPlotBounds(10, 30);
-        expect(bounds.left).toBe(30 + LABEL_GAP);
-        expect(bounds.right).toBe(30 + LABEL_GAP);
-        expect(bounds.width).toBe(0);
-    });
-});
-
-describe('getVerticalBarLabelLayoutInputs', () => {
-    it('derives the label layout geometry from the plot bounds', () => {
-        // Given a 400px container with 2 points and the resolved plot bounds
-        // When computing the label layout inputs
-        // Then tick spacing, label area, and edge spaces follow from the bounds and the domain padding
-        // (domainPadding = calculateMinDomainPadding(400, 2, 0) = 200, paddingScale = 200 / (200 + 2*200) = 1/3)
-        const inputs = getVerticalBarLabelLayoutInputs({containerWidth: 400, plotLeft: 40, plotRight: 380, plotWidth: 200, dataLength: 2, innerPadding: 0});
-        expect(inputs.tickSpacing).toBe(100);
-        expect(inputs.labelAreaWidth).toBe(200);
-        expect(inputs.firstTickLeftSpace).toBeCloseTo(40 + 200 / 3, 5);
-        expect(inputs.lastTickRightSpace).toBeCloseTo(20 + 200 / 3, 5);
-    });
-
-    it('returns zeros before the container is measured', () => {
-        // Given a container width of 0 (chart not yet laid out)
-        // When computing the label layout inputs
-        // Then every geometry input is 0 so the layout hook takes its empty-layout early return
-        expect(getVerticalBarLabelLayoutInputs({containerWidth: 0, plotLeft: 0, plotRight: 0, plotWidth: 0, dataLength: 2, innerPadding: 0})).toEqual({
-            tickSpacing: 0,
-            labelAreaWidth: 0,
-            firstTickLeftSpace: 0,
-            lastTickRightSpace: 0,
-        });
-    });
-
-    it('drops the domain padding for a single data point', () => {
-        // Given a single-point chart where there are no adjacent bars to pad against
-        // When computing the label layout inputs
-        // Then domain padding is 0, so the edge spaces equal the raw distances to the container edges
-        const inputs = getVerticalBarLabelLayoutInputs({containerWidth: 300, plotLeft: 50, plotRight: 280, plotWidth: 230, dataLength: 1, innerPadding: 0.3});
-        expect(inputs.tickSpacing).toBe(230);
-        expect(inputs.firstTickLeftSpace).toBe(50);
-        expect(inputs.lastTickRightSpace).toBe(20);
+    it('keeps every bar inside the plot before the plot is measured', () => {
+        // Given a plot width of 0 (chart not yet laid out)
+        // When computing the bar layout
+        // Then barWidth is 0 so victory-native sizes the bars itself, and the domain gives each bar a slot centered on its x value
+        expect(getBarLayout(0, 3)).toEqual({barWidth: 0, gap: 0, xDomain: [-0.5, 2.5]});
     });
 });
