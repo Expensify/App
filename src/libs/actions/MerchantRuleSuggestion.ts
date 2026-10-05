@@ -6,11 +6,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {MerchantRuleSuggestion, Policy, PolicyCategories, Report, Transaction} from '@src/types/onyx';
 import type {MerchantRuleSuggestionField} from '@src/types/onyx/MerchantRuleSuggestion';
 
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
 type TrackMerchantRuleSuggestionParams = {
+    /** The server's answer on whether this edit repeats often enough to be worth a rule */
+    suggestNewRuleCreation: boolean | undefined;
+
     /** The edited expense */
     transactionID: string | undefined;
 
@@ -34,26 +37,21 @@ type TrackMerchantRuleSuggestionParams = {
 
     /** Which levels of a multi-level tag were edited */
     editedTagLevels?: number[];
-
-    /**
-     * Whether the edit was made straight from a list of expenses, rather than from the expense itself. Such an edit
-     * records no offer, because the callout has nowhere to appear at the moment it is made.
-     */
-    isEditedFromExpenseList?: boolean;
 };
 
 /**
  * Records an edit that could become a merchant rule, so the expense can offer to create one.
  *
- * Written optimistically rather than from `successData`, so the offer appears at once, offline included: a queued
- * write has no response to key off until reconnect, and this app works offline. `getMerchantRuleSuggestionRollback`
- * is the failure-side counterpart.
+ * Driven by the server's `suggestNewRuleCreation`, which counts how often the same merchant has been given the same
+ * value for the same field. An edit nobody repeats is not worth a rule, so one edit alone records nothing. The offer
+ * is therefore lost while offline, since there is no response to read until the queued write reaches the server.
  *
  * Edits accumulate per expense until the offer is taken, so one rule can carry category, tag and tax together. Only
  * the most recently edited expense offers. Recorded for anyone on the workspace; `useMerchantRuleSuggestion` decides
  * who actually sees the callout.
  */
 function trackMerchantRuleSuggestion({
+    suggestNewRuleCreation,
     transactionID,
     field,
     reportID,
@@ -62,18 +60,15 @@ function trackMerchantRuleSuggestion({
     transaction,
     parentReport,
     editedTagLevels,
-    isEditedFromExpenseList = false,
 }: TrackMerchantRuleSuggestionParams) {
+    if (!suggestNewRuleCreation) {
+        return;
+    }
+
     // Skip workspaces that could not hold a merchant rule, otherwise an edit made with Rules off would surface the
     // moment somebody turned Rules on. Control only, matching the rule page the callout leads to, so an edit on a
     // Collect workspace does not pay for a write that could never be shown.
     if (!transactionID || !reportID || !isControlPolicy(policy) || !arePolicyRulesEnabled(policy, policyCategories)) {
-        return;
-    }
-
-    // An offer nothing can show is an offer nobody asked for. Editing from a list of expenses leaves no expense detail
-    // on screen, so the record would sit there unseen and fire on whatever expense the user opened next.
-    if (isEditedFromExpenseList) {
         return;
     }
 
@@ -101,36 +96,6 @@ function trackMerchantRuleSuggestion({
         seenInReportID: null,
         isRetired: null,
     });
-}
-
-/**
- * The rollback for a tracked edit, to sit in an update's `failureData`. A rejected edit puts the old value back, and
- * an offer left behind would seed a rule from a value the expense no longer holds. Forgetting the field is enough:
- * once an expense has none left, it stops offering.
- *
- * Known limitation: if this field was already tracked from an earlier, successful edit, this still forgets it rather
- * than restoring that earlier state, since the flag carries no history to restore. Narrower than the offline case
- * above, and self-heals on the next edit, so it is left as is.
- *
- * @param editedTagLevels - the levels recorded alongside a tag edit, forgotten with it
- */
-function getMerchantRuleSuggestionRollback(
-    transactionID: string | undefined,
-    field: MerchantRuleSuggestionField,
-    editedTagLevels?: number[],
-): OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION> | undefined {
-    if (!transactionID) {
-        return undefined;
-    }
-
-    return {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION,
-        value: {
-            editedFields: {[transactionID]: {[field]: null}},
-            ...(editedTagLevels?.length ? {editedTagLevels: {[transactionID]: Object.fromEntries(editedTagLevels.map((level) => [level, null]))}} : {}),
-        },
-    };
 }
 
 /**
@@ -165,11 +130,4 @@ function retireMerchantRuleSuggestion() {
     Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {isRetired: true});
 }
 
-export {
-    trackMerchantRuleSuggestion,
-    getMerchantRuleSuggestionRollback,
-    dismissMerchantRuleSuggestion,
-    markMerchantRuleSuggestionSeen,
-    retireMerchantRuleSuggestion,
-    clearMerchantRuleSuggestionFields,
-};
+export {trackMerchantRuleSuggestion, dismissMerchantRuleSuggestion, markMerchantRuleSuggestionSeen, retireMerchantRuleSuggestion, clearMerchantRuleSuggestionFields};
