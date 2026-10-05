@@ -120,8 +120,6 @@ export default {
     nativeTabIconDotRadius: 4,
     // Gap between the glyph and the label baked under it, matching the spacing the JS bar uses.
     nativeTabIconLabelGap: 6,
-    /** Pixel density the native tab bar icons are rasterized at. */
-    nativeTabIconScale: 3,
     /** Material's BottomNavigationView row, without the gesture inset under it. */
     androidNativeTabBarHeight,
     /** Material's bar row plus the 16 dp Material keeps between a FAB and the bar. */

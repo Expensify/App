@@ -1,8 +1,6 @@
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
-import type NATIVE_TAB_ICONS from './NATIVE_TAB_ICONS';
-
 type NativeTabGlyphPath = {
     d: string;
     isEvenOdd?: boolean;
@@ -15,8 +13,8 @@ type NativeTabGlyph = {
 };
 
 /**
- * Vector copies of the tab bar SVGs in `assets/images`, so Skia draws each glyph at the bar's size instead of resampling
- * a bitmap. They have to be kept in sync with those files.
+ * Vector copies of the tab bar SVGs in `assets/images`, so Skia draws each glyph at the bar's size and the device's
+ * density on both platforms. They have to be kept in sync with those files.
  */
 const NATIVE_TAB_GLYPHS = {
     // home.svg
@@ -77,7 +75,10 @@ const NATIVE_TAB_GLYPHS = {
             {d: 'M10 1c-5 0-9 4-9 9s4 9 9 9 9-4 9-9-4-9-9-9m5.9 12.7C14.6 12.1 12.4 11 10 11s-4.6 1.1-5.9 2.7C3.4 12.6 3 11.4 3 10c0-3.9 3.1-7 7-7s7 3.1 7 7c0 1.4-.4 2.6-1.1 3.7'},
         ],
     },
-} as const satisfies Record<keyof typeof NATIVE_TAB_ICONS, NativeTabGlyph>;
+} as const satisfies Record<string, NativeTabGlyph>;
+
+/** A tab of the native tab bar, by its route name. */
+type NativeTabName = keyof typeof NATIVE_TAB_GLYPHS;
 
 export default NATIVE_TAB_GLYPHS;
-export type {NativeTabGlyph};
+export type {NativeTabGlyph, NativeTabName};

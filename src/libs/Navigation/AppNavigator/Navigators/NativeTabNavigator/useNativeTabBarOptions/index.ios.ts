@@ -1,7 +1,9 @@
 import useTheme from '@hooks/useTheme';
 
-import type NATIVE_TAB_ICONS from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/NATIVE_TAB_ICONS';
-import useIOSTabIcons from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/useIOSTabIcons';
+import type {NativeTabName} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/NATIVE_TAB_GLYPHS';
+import getTabIcon from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer';
+import type {TabIconLayout} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer';
+import useTabAvatarImage from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/useTabAvatarImage';
 
 import variables from '@styles/variables';
 
@@ -13,9 +15,23 @@ import type NativeTabBarOptionsParams from './types';
 
 const getFloatingButtonsBottom = () => variables.iosNativeTabBarFloatingButtonsBottom;
 
+const TAB_ICON_LAYOUT: TabIconLayout = {
+    glyphSize: variables.iconNativeTabBarIOS,
+    // A circle reads smaller than a glyph of the same box, so the avatar is drawn a little larger than the glyphs.
+    avatarSize: variables.avatarNativeTabBarIOS,
+    dotRadius: variables.nativeTabIconDotRadius,
+    labelGap: variables.nativeTabIconLabelGap,
+    labelFontSize: variables.fontSizeSmall,
+};
+
+/**
+ * iOS 26 never applies the inactive icon color or the title color from `UITabBarItemAppearance`, and paints every badge
+ * in the color of the selected tab, so each icon is drawn with its own colors, its status dot and its label. Both
+ * selection states are images, because RNScreens rejects a tab whose icon and selectedIcon differ in type.
+ */
 function useNativeTabBarOptions({shouldShowNativeTabBar, dotColors, tabLabels}: NativeTabBarOptionsParams) {
     const theme = useTheme();
-    const {getTabBarIcon, accountAvatarIcon, areTabIconsReady} = useIOSTabIcons(dotColors, tabLabels);
+    const avatar = useTabAvatarImage();
 
     const screenOptions: NativeBottomTabNavigationOptions = {
         headerShown: false,
@@ -25,15 +41,25 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, dotColors, tabLabels}: 
         tabBarInactiveTintColor: theme.icon,
         // Every tab shares one style, so the bar reads the current visibility in the same render that changed it.
         // The background only lands on iOS 18 and below; iOS 26 keeps its own glass material.
-        tabBarStyle: {display: shouldShowNativeTabBar && areTabIconsReady ? 'flex' : 'none', backgroundColor: theme.appBG},
+        tabBarStyle: {display: shouldShowNativeTabBar ? 'flex' : 'none', backgroundColor: theme.appBG},
         tabBarControllerMode: 'tabBar',
         // The bar stays put while the content scrolls, instead of collapsing the way iOS 26 does by default.
         tabBarMinimizeBehavior: 'none',
     };
 
-    const getTabOptions = (name: keyof typeof NATIVE_TAB_ICONS): NativeBottomTabNavigationOptions => ({
-        tabBarIcon: name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR && accountAvatarIcon ? accountAvatarIcon : getTabBarIcon(name),
-    });
+    const getTabOptions = (name: NativeTabName): NativeBottomTabNavigationOptions => {
+        const getIcon = (isSelected: boolean) =>
+            getTabIcon(TAB_ICON_LAYOUT, {
+                name,
+                color: isSelected ? theme.iconMenu : theme.icon,
+                avatar: name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR ? avatar : undefined,
+                dotColor: dotColors[name],
+                label: {text: tabLabels[name], color: isSelected ? theme.text : theme.textSupporting, isBold: isSelected},
+            });
+        const inactiveIcon = getIcon(false);
+        const activeIcon = getIcon(true);
+        return {tabBarIcon: inactiveIcon && activeIcon ? ({focused}) => (focused ? activeIcon : inactiveIcon) : undefined};
+    };
 
     return {screenOptions, getTabOptions};
 }
