@@ -126,7 +126,7 @@ describe('Deep linking', () => {
                 },
                 [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]: 'randomID',
             });
-            return originalSignInWithShortLivedAuthToken(TEST_AUTH_TOKEN_1, undefined);
+            return originalSignInWithShortLivedAuthToken(TEST_AUTH_TOKEN_1, undefined, undefined);
         });
 
         // Set the keys the app needs to finish loading rather than going through
@@ -523,7 +523,7 @@ describe('signInWithShortLivedAuthToken', () => {
             }),
         );
 
-        Session.signInWithShortLivedAuthToken('token', undefined, true);
+        Session.signInWithShortLivedAuthToken('token', undefined, true, undefined, undefined);
         await waitForBatchedUpdates();
 
         let isAuthenticating: boolean | undefined;
