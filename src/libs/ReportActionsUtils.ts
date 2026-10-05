@@ -211,6 +211,7 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
 
     // for report actions with this type we get an empty array as message by design
     if (
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER ||
@@ -2767,6 +2768,25 @@ function getReportActionMessageText(reportAction: OnyxEntry<ReportAction>): stri
     return reportAction?.message?.reduce((acc, curr) => `${acc}${getTextFromHtml(curr?.html || curr?.text)}`, '') ?? '';
 }
 
+function getAgentPromptUpdatedMessage(translate: LocalizedTranslate, reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED>): string {
+    const originalMessage = getOriginalMessage(reportAction);
+    return originalMessage ? translate('agentPromptUpdated', originalMessage) : getReportActionMessageText(reportAction);
+}
+
+function getAgentPromptUpdatedMessageHTML(translate: LocalizedTranslate, reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED>): string {
+    const originalMessage = getOriginalMessage(reportAction);
+    if (!originalMessage) {
+        return Str.htmlEncode(getReportActionMessageText(reportAction));
+    }
+
+    return translate('agentPromptUpdated', {
+        ...originalMessage,
+        updatedBy: `<mention-user accountID="${originalMessage.updatedByAccountID}"/>`,
+        previousPrompt: Str.htmlEncode(originalMessage.previousPrompt),
+        newPrompt: Str.htmlEncode(originalMessage.newPrompt),
+    });
+}
+
 function getDismissedViolationMessageText(translate: LocalizedTranslate, originalMessage: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION>['originalMessage']): string {
     const reason = originalMessage?.reason;
     const violationName = originalMessage?.violationName;
@@ -2822,6 +2842,43 @@ function getIOUActionForTransactionID(reportActions: ReportAction[], transaction
     // Deleting blanks the message, so a missing message doesn't mean the action is deleted
     const isLive = (reportAction: ReportAction) => reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && (!reportAction.message || !isDeletedAction(reportAction));
     return reportActions.find((reportAction) => isMatch(reportAction) && isLive(reportAction)) ?? firstMatch;
+}
+
+/** IOU action types that reference a transaction without being the action that created the expense. */
+const nonExpenseCreationIOUTypes = new Set<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>>([
+    CONST.IOU.REPORT_ACTION_TYPE.PAY,
+    CONST.IOU.REPORT_ACTION_TYPE.APPROVE,
+    CONST.IOU.REPORT_ACTION_TYPE.REJECT,
+    CONST.IOU.REPORT_ACTION_TYPE.CANCEL,
+    CONST.IOU.REPORT_ACTION_TYPE.DELETE,
+]);
+
+/**
+ * The transaction an action created, or undefined when the action merely references one.
+ *
+ * Several IOU actions carry the same `IOUTransactionID`. Paying, approving or rejecting an expense all reference
+ * the transaction they act on, and each has its own thread. Callers that want the expense itself (to open it, or
+ * to page to it in the prev/next carousel) must not match those, or they land the user on, say, the
+ * "marked as paid" system message thread instead of the expense.
+ *
+ * Actions with no `type` are kept: legacy IOU actions predate the field and are expense-creating.
+ */
+function getExpenseCreationTransactionID(reportAction: ReportAction): string | undefined {
+    if (!isMoneyRequestAction(reportAction)) {
+        return undefined;
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    if (!originalMessage?.IOUTransactionID) {
+        return undefined;
+    }
+    return !originalMessage.type || !nonExpenseCreationIOUTypes.has(originalMessage.type) ? originalMessage.IOUTransactionID : undefined;
+}
+
+/**
+ * Get the action that created an expense, for a transactionID, from the given reportActions.
+ */
+function getExpenseCreationIOUActionForTransactionID(reportActions: ReportAction[], transactionID: string): OnyxEntry<ReportAction> {
+    return reportActions.find((reportAction) => getExpenseCreationTransactionID(reportAction) === transactionID);
 }
 
 /**
@@ -5250,6 +5307,8 @@ export {
     isReportActionUnread,
     getHtmlWithAttachmentID,
     getActionableMentionWhisperMessage,
+    getAgentPromptUpdatedMessage,
+    getAgentPromptUpdatedMessageHTML,
     getAllReportActions,
     getCombinedReportActions,
     getDismissedViolationMessageText,
@@ -5258,6 +5317,8 @@ export {
     getLatestConciergeFeedbackActionIDFromReportActions,
     getIOUActionForReportID,
     getIOUActionForTransactionID,
+    getExpenseCreationIOUActionForTransactionID,
+    getExpenseCreationTransactionID,
     getIOUReportIDFromReportActionPreview,
     getLastVisibleAction,
     getLastVisibleActionIncludingTransactionThread,
@@ -5379,7 +5440,6 @@ export {
     shouldHideNewMarker,
     shouldReportActionBeVisible,
     isReportActionVisible,
-    isReportActionVisibleAsLastAction,
     wasActionTakenByCurrentUser,
     isInviteOrRemovedAction,
     isActionableAddPaymentCard,
