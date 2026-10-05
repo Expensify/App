@@ -24,6 +24,13 @@ jest.mock('@hooks/useLocalize', () => () => ({
 jest.mock('@hooks/useOnyx', () => jest.fn());
 const mockUseOnyx = jest.mocked(useOnyx);
 
+// The hook reads policies through the snapshot-free useOnyx from react-native-onyx; serve them from the same mock.
+jest.mock('react-native-onyx', () => ({
+    __esModule: true,
+    ...jest.requireActual<Record<string, unknown>>('react-native-onyx'),
+    useOnyx: (...args: Parameters<typeof mockUseOnyx>) => mockUseOnyx(...args),
+}));
+
 jest.mock('@hooks/useShouldShowEmptyReportConfirmation', () => jest.fn(() => false));
 
 const mockUseShouldShowEmptyReportConfirmation = jest.mocked(useShouldShowEmptyReportConfirmation);

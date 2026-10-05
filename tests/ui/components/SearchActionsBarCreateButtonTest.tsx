@@ -57,6 +57,13 @@ jest.mock('@hooks/useCreateEmptyReportConfirmation', () => () => ({
 
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => () => true);
 
+// Real usePreferredPolicy, with a switch to report the domain security group as still loading
+const mockSecurityGroupLoading = {value: false};
+jest.mock('@hooks/usePreferredPolicy', () => {
+    const {default: actualUsePreferredPolicy} = jest.requireActual<{default: () => Record<string, unknown>}>('@hooks/usePreferredPolicy');
+    return () => ({...actualUsePreferredPolicy(), ...(mockSecurityGroupLoading.value ? {isLoadingPreferredPolicy: true} : {})});
+});
+
 const mockNavigate = jest.mocked(Navigation.navigate);
 const mockCreateNewReport = jest.mocked(createNewReport);
 const mockInterceptAnonymousUser = jest.mocked(interceptAnonymousUser);
@@ -115,13 +122,14 @@ describe('SearchActionsBarCreateButton', () => {
 
     afterEach(async () => {
         jest.clearAllMocks();
+        mockSecurityGroupLoading.value = false;
         await act(async () => {
             await Onyx.clear();
         });
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should always show the "Create report" menu item', async () => {
+    it('should show the "Create report" menu item once workspaces and domain settings have loaded', async () => {
         // When component is rendered
         renderComponent();
         await waitForBatchedUpdatesWithAct();
@@ -133,6 +141,21 @@ describe('SearchActionsBarCreateButton', () => {
 
         // Then "Create report" option is visible
         expect(screen.getByText(translateLocal('report.newReport.createReport'))).toBeOnTheScreen();
+    });
+
+    it('should hide the "Create report" menu item while the domain security group is still loading', async () => {
+        // Given the domain security group has not loaded yet, so a preferred-workspace lock would read as "not restricted"
+        mockSecurityGroupLoading.value = true;
+
+        // When component is rendered and the Create menu is opened
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText(translateLocal('common.create')));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then "Create report" is not offered, so it can't create on the wrong workspace or silently do nothing
+        expect(screen.queryByText(translateLocal('report.newReport.createReport'))).not.toBeOnTheScreen();
+        expect(screen.getByText(translateLocal('iou.createExpense'))).toBeOnTheScreen();
     });
 
     it('should navigate to upgrade path when no valid policy exists', async () => {

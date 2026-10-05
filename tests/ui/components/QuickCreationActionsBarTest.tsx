@@ -53,6 +53,13 @@ jest.mock('@hooks/useConfirmModal', () => jest.fn().mockImplementation(() => ({s
 
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => () => false);
 
+// Real usePreferredPolicy, with a switch to report the domain security group as still loading
+const mockSecurityGroupLoading = {value: false};
+jest.mock('@hooks/usePreferredPolicy', () => {
+    const {default: actualUsePreferredPolicy} = jest.requireActual<{default: () => Record<string, unknown>}>('@hooks/usePreferredPolicy');
+    return () => ({...actualUsePreferredPolicy(), ...(mockSecurityGroupLoading.value ? {isLoadingPreferredPolicy: true} : {})});
+});
+
 const CURRENT_USER_ACCOUNT_ID = 1;
 const CURRENT_USER_EMAIL = 'user@test.com';
 const CURRENT_USER_DOMAIN = 'test.com';
@@ -320,10 +327,30 @@ describe('QuickCreationActionsBar - domain preferred workspace', () => {
 
     afterEach(async () => {
         jest.clearAllMocks();
+        mockSecurityGroupLoading.value = false;
         await act(async () => {
             await Onyx.clear();
         });
         await waitForBatchedUpdatesWithAct();
+    });
+
+    it('keeps the Report button in place but disabled while the domain security group is still loading', async () => {
+        // Given a user with a workspace whose domain security group has not loaded yet, so a lock would read as "not restricted"
+        mockSecurityGroupLoading.value = true;
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: CURRENT_USER_EMAIL});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}`, makeTeamPolicy(MOCK_POLICY_ID));
+            await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, MOCK_POLICY_ID);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the Home quick actions render
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the Report button stays in the bar (no reflow) but is disabled, so a press can't create on the wrong workspace
+        expect(screen.getByTestId(CONST.TEST_ID.QUICK_CREATION_ACTIONS_BAR.REPORT)).toBeDisabled();
+        expect(mockCreateNewReport).not.toHaveBeenCalled();
     });
 
     it('creates the report on the preferred workspace without opening the selector', async () => {

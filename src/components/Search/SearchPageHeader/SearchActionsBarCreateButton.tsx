@@ -82,7 +82,7 @@ function SearchActionsBarCreateButton() {
         [currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, isTrackIntentUser, getCurrencyDecimals, rules],
     );
 
-    const {createReport} = useCreateReport({onCreateReport: handleCreateWorkspaceReport});
+    const {createReport, isVisible: isCreateReportVisible} = useCreateReport({onCreateReport: handleCreateWorkspaceReport});
 
     const hideCreateMenu = useCallback(() => setIsCreateMenuActive(false), []);
     const showCreateMenu = useCallback(() => {
@@ -116,13 +116,17 @@ function SearchActionsBarCreateButton() {
                         startDistanceRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs);
                     }),
             },
-            {
-                icon: expensifyIcons.Document,
-                text: translate('report.newReport.createReport'),
-                onSelected: createReport,
-            },
+            ...(isCreateReportVisible
+                ? [
+                      {
+                          icon: expensifyIcons.Document,
+                          text: translate('report.newReport.createReport'),
+                          onSelected: createReport,
+                      },
+                  ]
+                : []),
         ],
-        [translate, expensifyIcons, draftTransactionIDs, createReport],
+        [translate, expensifyIcons, draftTransactionIDs, createReport, isCreateReportVisible],
     );
 
     return (

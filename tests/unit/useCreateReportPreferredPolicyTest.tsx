@@ -1,5 +1,9 @@
 import {act, renderHook, waitFor} from '@testing-library/react-native';
 
+import {SearchQueryContext} from '@components/Search/SearchContext';
+import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
+import type {SearchQueryContextValue} from '@components/Search/types';
+
 import useCreateReport from '@hooks/useCreateReport';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -7,6 +11,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
+
+import type {PropsWithChildren, ReactNode} from 'react';
 
 import Onyx from 'react-native-onyx';
 
@@ -29,6 +35,7 @@ const DOMAIN_ACCOUNT_ID = 42;
 const ACTIVE_POLICY_ID = 'active-1';
 const PREFERRED_POLICY_ID = 'preferred-1';
 const OTHER_POLICY_ID = 'other-1';
+const SEARCH_HASH = 987654;
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
@@ -91,9 +98,18 @@ async function setWorkspaces(preferredPolicy: Policy) {
     await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${PREFERRED_POLICY_ID}`, preferredPolicy);
 }
 
-async function renderAndPress() {
+/** Mirrors the Reports empty view, which renders the create flow inside SearchScopeProvider with an active search hash */
+function SearchScopeWrapper({children}: PropsWithChildren) {
+    return (
+        <SearchScopeProvider>
+            <SearchQueryContext.Provider value={createMock<SearchQueryContextValue>({currentSearchHash: SEARCH_HASH})}>{children}</SearchQueryContext.Provider>
+        </SearchScopeProvider>
+    );
+}
+
+async function renderAndPress(wrapper?: (props: PropsWithChildren) => ReactNode) {
     const onCreateReport = jest.fn();
-    const {result} = renderHook(() => useCreateReport({onCreateReport}));
+    const {result} = renderHook(() => useCreateReport({onCreateReport}), {wrapper});
     await waitFor(() => expect(result.current.isVisible).toBe(true));
 
     act(() => {
@@ -152,6 +168,22 @@ describe('useCreateReport domain preferred workspace (real Onyx)', () => {
 
         // Then the lock cannot be honoured and the normal rules apply: the eligible active workspace is used
         expect(onCreateReport).toHaveBeenCalledWith(expect.objectContaining({id: ACTIVE_POLICY_ID}), false);
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('creates on the preferred workspace when rendered inside the Search scope whose snapshot lacks it', async () => {
+        // Given a domain-locked user, and a Search snapshot (what the Reports empty view reads from) that only holds the active
+        // workspace, so a snapshot-backed read would miss the preferred workspace and silently drop the lock
+        await setSecurityGroup({membershipShape: 'sharedNVP', isRestrictionEnabled: true});
+        await setWorkspaces(makeTeamPolicy(PREFERRED_POLICY_ID));
+        const activePolicySnapshotKey = `${ONYXKEYS.COLLECTION.POLICY}${ACTIVE_POLICY_ID}` as const;
+        await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${SEARCH_HASH}`, {data: {[activePolicySnapshotKey]: makeTeamPolicy(ACTIVE_POLICY_ID)}});
+
+        // When they press "Create report" from inside the Search scope
+        const onCreateReport = await renderAndPress(SearchScopeWrapper);
+
+        // Then the hook reads live policies and the report still goes to the preferred workspace
+        expect(onCreateReport).toHaveBeenCalledWith(expect.objectContaining({id: PREFERRED_POLICY_ID}), false);
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 });

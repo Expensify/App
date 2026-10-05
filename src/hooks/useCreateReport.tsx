@@ -15,6 +15,8 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {useCallback} from 'react';
+// eslint-disable-next-line no-restricted-imports -- Need original useOnyx to avoid reading partial Search snapshot policy data.
+import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -58,18 +60,20 @@ export default function useCreateReport({
     shouldSkipEmptyReportConfirmation = false,
 }: UseCreateReportParams): UseCreateReportResult {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
+    // Policies are read live: inside SearchScopeProvider (Reports empty view) the App useOnyx would serve them from the
+    // search snapshot, which can hold a partial or missing policy and silently skip the preferred-workspace lock.
+    const [activePolicy] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const {accountID, login} = useCurrentUserPersonalDetails();
     const defaultChatEnabledPolicySelector = (policies: OnyxCollection<OnyxTypes.Policy>) => getDefaultChatEnabledPolicySelection(policies, login, activePolicyID);
-    const [defaultChatEnabledPolicySelection, policiesLoadStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: defaultChatEnabledPolicySelector});
-    const [defaultChatEnabledPolicyByKey] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(defaultChatEnabledPolicySelection?.defaultChatEnabledPolicyID)}`);
+    const [defaultChatEnabledPolicySelection, policiesLoadStatus] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.POLICY, {selector: defaultChatEnabledPolicySelector});
+    const [defaultChatEnabledPolicyByKey] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(defaultChatEnabledPolicySelection?.defaultChatEnabledPolicyID)}`);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const {isRestrictedToPreferredPolicy, preferredPolicyID, isLoadingPreferredPolicy} = usePreferredPolicy();
     // Read the preferred workspace by key rather than searching the caller's list, so the lock does not depend on
     // how (or whether) a caller filtered its candidates. Same pattern as useDefaultExpensePolicy.
-    const [preferredPolicy, preferredPolicyLoadStatus] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(preferredPolicyID)}`);
+    const [preferredPolicy, preferredPolicyLoadStatus] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(preferredPolicyID)}`);
 
     // Gate visibility and routing on policy hydration. Without this, during Onyx cold-start
     // the selection would report no eligible workspace even for users who actually have
