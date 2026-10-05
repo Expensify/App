@@ -33,6 +33,8 @@ const MASK_LETTER_REGEX = /\p{L}/u;
 
 const NON_DIGIT_REGEX = /\D/g;
 
+const DIGIT_GROUP_REGEX = /\d+/g;
+
 type DateSegmentName = TupleToUnion<typeof DATE_SEGMENT_NAMES>;
 
 /** The digits typed into each segment, empty when the segment has not been filled in yet */
@@ -316,36 +318,49 @@ function getFirstUnfilledSegmentName(segments: DateSegments): DateSegmentName | 
     return DATE_SEGMENT_NAMES.find((name) => segments[name].length < getSegmentLength(name));
 }
 
+/** Splits one run of digits across the segments in turn, which is how a date written without separators is read */
+function splitDigitsBySegmentLength(digits: string, names: DateSegmentName[]): string[] {
+    let remaining = digits;
+
+    return names.map((name) => {
+        const taken = remaining.slice(0, getSegmentLength(name));
+        remaining = remaining.slice(getSegmentLength(name));
+
+        return taken;
+    });
+}
+
 /**
  * Fills the segments from arbitrary text, so pasting a date works without going through it a keystroke at a time.
  *
  * The digits land in `startName` first and carry into the segments after it, so pasting a month leaves a year that is
  * already there alone. A segment keeps what it held until the digits actually reach it, and is then replaced rather
  * than extended. Text holding no digits at all returns `baseSegments` itself, so a caller can tell nothing was pasted.
+ *
+ * What was pasted is taken at its word rather than read a digit at a time the way typing is. Typing offers to finish a
+ * segment early when the digit is too big to start a longer number, which would quietly turn a pasted 31st of February
+ * into the 3rd instead of reporting a date that does not exist. Separators say where each segment ends, and text
+ * without them is divided by how much each segment holds.
  */
 function getSegmentsFromText(text: string, startName: DateSegmentName, baseSegments: DateSegments): DateSegments {
-    const digits = text.replaceAll(NON_DIGIT_REGEX, '');
-    let filled = baseSegments;
-    let name = startName;
-    let shouldOverwrite = true;
+    const digitGroups = text.match(DIGIT_GROUP_REGEX);
 
-    for (const digit of digits) {
-        const previousSegments = filled;
-        const result = typeDigitIntoSegments(previousSegments, name, digit, shouldOverwrite);
-        filled = result.segments;
-        shouldOverwrite = false;
+    if (!digitGroups) {
+        return baseSegments;
+    }
 
-        if (!result.nextSegmentName) {
-            // The last segment is full and there is nowhere left to carry to, so the rest of the text is dropped
-            if (filled[name].length >= getSegmentLength(name)) {
-                break;
-            }
+    const names = DATE_SEGMENT_NAMES.slice(DATE_SEGMENT_NAMES.indexOf(startName));
+    const digitsBySegment = digitGroups.length > 1 ? digitGroups : splitDigitsBySegmentLength(digitGroups[0], names);
+    const filled = {...baseSegments};
+
+    for (const [index, name] of names.entries()) {
+        const digits = digitsBySegment.at(index);
+
+        if (!digits) {
             continue;
         }
 
-        // A digit too big for its own segment is carried into the next one, which has then already been written
-        shouldOverwrite = filled[result.nextSegmentName] === previousSegments[result.nextSegmentName];
-        name = result.nextSegmentName;
+        filled[name] = digits.slice(0, getSegmentLength(name));
     }
 
     return filled;

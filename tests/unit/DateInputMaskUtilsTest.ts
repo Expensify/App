@@ -303,11 +303,26 @@ describe('DateInputMaskUtils', () => {
             expect(getSegmentsFromText('', 'month', baseSegments)).toBe(baseSegments);
         });
 
-        it('carries a digit too big for its segment into the next one', () => {
+        it('keeps a pasted day its month does not have, rather than reading it as another day', () => {
+            // Given the 31st of a February, which is not a date
+            // When it is pasted
+            // Then the segments hold what was pasted, so the field can report it instead of showing the 3rd
+            expect(getSegmentsFromText('1990-02-31', 'year', EMPTY)).toEqual(segments('1990', '02', '31'));
+            expect(getSegmentsFromText('19900231', 'year', EMPTY)).toEqual(segments('1990', '02', '31'));
+        });
+
+        it('keeps a pasted number no segment could hold', () => {
             // Given a month that cannot read as 13
-            // When the second digit overflows it
-            // Then the month keeps the first digit and the overflow lands in the day, rather than being dropped
-            expect(getSegmentsFromText('13', 'month', EMPTY)).toEqual(segments('', '01', '3'));
+            // When it is pasted
+            // Then the month holds it and reads as the impossible date it is, rather than becoming January the 3rd
+            expect(getSegmentsFromText('13', 'month', EMPTY)).toEqual(segments('', '13', ''));
+        });
+
+        it('reads a separated date that pads neither its month nor its day', () => {
+            // Given a date written the short way
+            // When it is pasted
+            // Then the separators say where each segment ends, so the month and the day are not run together
+            expect(getSegmentsFromText('1990-2-3', 'year', EMPTY)).toEqual(segments('1990', '2', '3'));
         });
     });
 
