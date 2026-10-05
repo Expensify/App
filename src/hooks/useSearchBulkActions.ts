@@ -2765,7 +2765,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
                         if (snapshotReport) {
                             openSearchReportSubmitToPopover(reportIDForSubmit, {
-                                onSubmitWithManagerEmail: (managerEmail, managerAccountID, shouldResolveAcknowledgedViolations) => {
+                                onSubmitWithManagerEmail: (managerEmail, managerAccountID, shouldResolveViolations) => {
                                     submitMoneyRequestOnSearch({
                                         hash,
                                         reportList: [snapshotReport],
@@ -2776,7 +2776,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                                         currentSearchKey,
                                         managerEmail,
                                         managerAccountID,
-                                        shouldResolveAcknowledgedViolations,
+                                        shouldResolveAcknowledgedViolations: shouldResolveViolations,
                                     });
                                     refreshSearchAfterReportAction({
                                         currentSearchQueryJSON,
@@ -2823,7 +2823,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     });
                     const summary = mergeReportSubmitViolationSummaries(perReportSummaries);
 
-                    const runSubmit = (shouldResolveAcknowledgedViolations?: boolean) => {
+                    const runSubmit = (shouldResolveViolations?: boolean) => {
                         for (const item of itemsToSubmit) {
                             const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
                             if (policy) {
@@ -2834,7 +2834,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                                     submitterLogin: getLoginByAccountID(item.ownerAccountID, personalDetails),
                                     getCurrencyDecimals,
                                     rules,
-                                    shouldResolveAcknowledgedViolations,
+                                    shouldResolveAcknowledgedViolations: shouldResolveViolations,
                                 });
                             } else {
                                 Log.info('[BulkSubmit] Skipping report: policy not found in Onyx', false, {reportID: item?.reportID, policyID: item?.policyID});

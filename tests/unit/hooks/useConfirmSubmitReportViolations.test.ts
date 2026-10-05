@@ -10,8 +10,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
 
-import type {OnyxEntry} from 'react-native-onyx';
-
 import type * as MockUseConfirmModalUtil from '../../utils/mockUseConfirmModal';
 
 import createMock from '../../utils/createMock';
@@ -75,7 +73,8 @@ function violation(name: TransactionViolation['name'], data?: TransactionViolati
 
 const transaction1 = createMock<Transaction>({transactionID: '1'});
 const reportActions: ReportAction[] = [];
-const report: OnyxEntry<Report> = undefined;
+// A reportID with no corresponding report in Onyx, used by every test below that doesn't need real report data.
+const NO_REPORT_ID = '1';
 
 /** The hook passes a <SubmitViolationsList violations={...} /> element as `prompt`; this reads its violations prop back out. */
 function getPromptViolations(): string[] {
@@ -93,7 +92,7 @@ describe('useConfirmSubmitReportViolations', () => {
     it('calls onProceed immediately with no flag when there are no violations', () => {
         // Given a report with no transaction violations at all
         const {result} = renderHook(() =>
-            useConfirmSubmitReportViolations({reportID: report?.reportID, report, policy: undefined, transactions: [transaction1], violationsCollection: {}, reportActions}),
+            useConfirmSubmitReportViolations({reportID: NO_REPORT_ID, report: undefined, policy: undefined, transactions: [transaction1], violationsCollection: {}, reportActions}),
         );
         const onProceed = jest.fn();
 
@@ -109,7 +108,7 @@ describe('useConfirmSubmitReportViolations', () => {
         // Given a report whose only transaction has a rejected-expense violation
         const violationsCollection = {[violationsKey('1')]: [violation(CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE)]};
         const {result} = renderHook(() =>
-            useConfirmSubmitReportViolations({reportID: report?.reportID, report, policy: undefined, transactions: [transaction1], violationsCollection, reportActions}),
+            useConfirmSubmitReportViolations({reportID: NO_REPORT_ID, report: undefined, policy: undefined, transactions: [transaction1], violationsCollection, reportActions}),
         );
         const onProceed = jest.fn();
 
@@ -127,7 +126,7 @@ describe('useConfirmSubmitReportViolations', () => {
         // Given a report with a pending RTER card-match violation
         const violationsCollection = {[violationsKey('1')]: [violation(CONST.VIOLATIONS.RTER, {pendingPattern: true})]};
         const {result} = renderHook(() =>
-            useConfirmSubmitReportViolations({reportID: report?.reportID, report, policy: undefined, transactions: [transaction1], violationsCollection, reportActions}),
+            useConfirmSubmitReportViolations({reportID: NO_REPORT_ID, report: undefined, policy: undefined, transactions: [transaction1], violationsCollection, reportActions}),
         );
         const onProceed = jest.fn();
 
@@ -150,7 +149,7 @@ describe('useConfirmSubmitReportViolations', () => {
         // Given a report with a pending RTER card-match violation
         const violationsCollection = {[violationsKey('1')]: [violation(CONST.VIOLATIONS.RTER, {pendingPattern: true})]};
         const {result} = renderHook(() =>
-            useConfirmSubmitReportViolations({reportID: report?.reportID, report, policy: undefined, transactions: [transaction1], violationsCollection, reportActions}),
+            useConfirmSubmitReportViolations({reportID: NO_REPORT_ID, report: undefined, policy: undefined, transactions: [transaction1], violationsCollection, reportActions}),
         );
         const onProceed = jest.fn();
 
@@ -173,7 +172,7 @@ describe('useConfirmSubmitReportViolations', () => {
         // and has nothing for the backend to resolve, unlike rejected-expense or pending-card-match
         const violationsCollection = {[violationsKey('1')]: [violation(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT)]};
         const {result} = renderHook(() =>
-            useConfirmSubmitReportViolations({reportID: report?.reportID, report, policy: undefined, transactions: [transaction1], violationsCollection, reportActions}),
+            useConfirmSubmitReportViolations({reportID: NO_REPORT_ID, report: undefined, policy: undefined, transactions: [transaction1], violationsCollection, reportActions}),
         );
         const onProceed = jest.fn();
 
@@ -193,7 +192,7 @@ describe('useConfirmSubmitReportViolations', () => {
         // Given a report whose only transaction has a rejected-expense violation
         const violationsCollection = {[violationsKey('1')]: [violation(CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE)]};
         const {result} = renderHook(() =>
-            useConfirmSubmitReportViolations({reportID: report?.reportID, report, policy: undefined, transactions: [transaction1], violationsCollection, reportActions}),
+            useConfirmSubmitReportViolations({reportID: NO_REPORT_ID, report: undefined, policy: undefined, transactions: [transaction1], violationsCollection, reportActions}),
         );
         const onProceed = jest.fn();
 

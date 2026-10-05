@@ -82,17 +82,20 @@ describe('getReportSubmitViolationSummary', () => {
 
     it('buckets a broken-connection RTER violation as an "other" violation instead of dropping it', () => {
         // Given a transaction with an RTER violation caused by a broken bank connection rather than a pending card match
-        // (regression test: a prior version of the loop skipped every RTER-named violation, silently dropping this one)
+        // (regression test: a prior version of the loop skipped every RTER-named violation, silently dropping this one).
+        // RTER is only shown to the report's submitter, so the report must be owned by the current test user.
+        const currentUserAccountID = 1;
+        const ownedReport = createMock<Report>({ownerAccountID: currentUserAccountID});
         const rterViolation = violation(CONST.VIOLATIONS.RTER, {pendingPattern: true, rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION});
         const summary = getReportSubmitViolationSummary(
             [transaction('1')],
             {
                 [violationsKey('1')]: [rterViolation],
             },
-            undefined,
+            ownedReport,
             undefined,
             '',
-            0,
+            currentUserAccountID,
         );
 
         // When the summary is built

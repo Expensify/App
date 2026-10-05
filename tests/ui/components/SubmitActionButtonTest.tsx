@@ -118,7 +118,7 @@ jest.mock('@libs/ReportUtils', () => {
 // The violations confirmation gate itself is exercised by its own tests; here it just proceeds straight to the
 // submission. The mock is still spied on so a test can assert which violations collection reached it, since it must
 // agree with the strict-policy-rules gate below on which violations are dismissed.
-const mockedUseConfirmSubmitReportViolations = jest.fn((_params: unknown) => (proceed: (shouldResolveAcknowledgedViolations?: boolean) => void) => proceed());
+const mockedUseConfirmSubmitReportViolations = jest.fn<(proceed: (shouldResolveAcknowledgedViolations?: boolean) => void) => void, [unknown]>(() => (proceed) => proceed());
 jest.mock('@hooks/useConfirmSubmitReportViolations', () => ({
     __esModule: true,
     default: (params: unknown) => mockedUseConfirmSubmitReportViolations(params),
