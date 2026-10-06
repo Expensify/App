@@ -11,7 +11,7 @@ import type {InvitedEmailsToAccountIDs, PolicyEmployeeList, Policy as PolicyType
 import type {NetSuiteConnection, NetSuiteConnectionConfig, NetSuiteConnectionData} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -1429,6 +1429,23 @@ describe('actions/PolicyMember', () => {
             expect(draft).toBeDefined();
             expect(draft?.[user1Email]).toBe(user1AccountID);
             expect(draft?.[user2Email]).toBe(user2AccountID);
+        });
+
+        it('should clear the previous arrangement choice when starting a new invite selection', async () => {
+            // Given a work-arrangement selection left by a previous invite for this workspace
+            const policyID = '1';
+            // The type for this collection key is represented by the collection prefix, not its generated member keys.
+            const arrangementDraftKey = `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_WORK_ARRANGEMENT_DRAFT}${policyID}` as OnyxKey;
+            const inviteeEmail = 'new-user@example.com';
+            await Onyx.set(arrangementDraftKey, true);
+            await waitForBatchedUpdates();
+
+            // When a new set of invitees is selected
+            Member.setWorkspaceInviteMembersDraft(policyID, {[inviteeEmail]: 1234});
+            await waitForBatchedUpdates();
+
+            // Then the new invite falls back to the workspace arrangement default
+            expect(await getOnyxValue(arrangementDraftKey)).toBeFalsy();
         });
 
         it('should update existing draft with new selections', async () => {
