@@ -439,7 +439,7 @@ function IOURequestEditReportCommon({
             <SelectionList
                 data={reportOptions}
                 onSelectRow={handleSelectReport}
-                isRowMultilineSupported
+                titleNumberOfLines={2}
                 shouldShowTextInput={!hasMultipleSubmitters && outstandingReports.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
                 textInputOptions={{
                     value: searchValue,
