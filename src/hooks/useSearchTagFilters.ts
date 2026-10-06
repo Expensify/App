@@ -1,4 +1,4 @@
-import {openSearchTagFiltersPage, setSearchTagFiltersPagination} from '@libs/actions/Search';
+import {ALL_POLICY_IDS_KEY, openSearchTagFiltersPage, setSearchTagFiltersPagination} from '@libs/actions/Search';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -46,7 +46,7 @@ type UseSearchTagFiltersResult = {
  */
 function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
     const {isOffline} = useNetwork();
-    const policyIDsKey = policyIDs || 'all';
+    const policyIDsKey = policyIDs || ALL_POLICY_IDS_KEY;
     const [searchResults] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS}${policyIDsKey}`);
     const [paginationState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION}${policyIDsKey}`);
     const [isSearching, setIsSearching] = useState(false);

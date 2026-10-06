@@ -1399,7 +1399,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
 }
 
 function isPolicyCollection(key: OnyxCollectionKey, data: unknown): data is OnyxCollection<OnyxTypes.Policy> {
-    return key === ONYXKEYS.COLLECTION.POLICY && typeof data === 'object';
+    return key === ONYXKEYS.COLLECTION.POLICY;
 }
 
 function getAllPolicyValues<T extends OnyxCollectionKey>(

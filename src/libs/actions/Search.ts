@@ -1106,6 +1106,8 @@ function openSearchVendorFiltersPage() {
     read(READ_COMMANDS.OPEN_SEARCH_VENDOR_FILTERS_PAGE, null, {optimisticData, successData, finallyData});
 }
 
+const ALL_POLICY_IDS_KEY = 'all';
+
 /**
  * Fetches a page of tag filter search results from the server.
  * Returns pagination metadata (hasMore, nextCursor) for infinite scroll.
@@ -1121,7 +1123,7 @@ function openSearchTagFiltersPage(
         HttpUtils.cancelPendingRequests(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_TAG_FILTERS_PAGE);
     }
 
-    const policyIDsKey = !params.policyIDs ? 'all' : params.policyIDs;
+    const policyIDsKey = !params.policyIDs ? ALL_POLICY_IDS_KEY : params.policyIDs;
     const resultsKey: `${typeof ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS}${string}` = `${ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS}${policyIDsKey}`;
 
     const optimisticData: AnyOnyxUpdate[] = shouldCancelPendingRequests
@@ -1161,7 +1163,7 @@ function setSearchTagFiltersPagination(
     baseHasMore?: boolean,
     baseCursor?: string,
 ) {
-    const policyIDsKey = !policyIDs ? 'all' : policyIDs;
+    const policyIDsKey = !policyIDs ? ALL_POLICY_IDS_KEY : policyIDs;
     Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION}${policyIDsKey}`, {
         hasMore,
         nextCursor,
@@ -2668,6 +2670,7 @@ export {
     openSearchCategoryFiltersPage,
     openSearchVendorFiltersPage,
     openSearchTagFiltersPage,
+    ALL_POLICY_IDS_KEY,
     setSearchTagFiltersPagination,
     getPolicyFromSearchSnapshot,
     getReportFromSearchSnapshot,
