@@ -13,6 +13,7 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
+import useHasTabBeenShown from '@hooks/useHasTabBeenShown';
 import useIsSettingsDrawnOverTabs from '@hooks/useIsSettingsDrawnOverTabs';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -90,9 +91,13 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         Navigation.clearPreloadedRoutes();
     }, [hasAccountBeenSwitched]);
 
+    const hasAccountBeenShown = useHasTabBeenShown(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
     useEffect(() => {
+        if (!hasAccountBeenShown) {
+            return;
+        }
         openInitialSettingsPage();
-    }, []);
+    }, [hasAccountBeenShown]);
 
     const getMenuItemsSection = (menuItemsData: MenuSection, sectionStyle: StyleProp<ViewStyle>) => {
         return (

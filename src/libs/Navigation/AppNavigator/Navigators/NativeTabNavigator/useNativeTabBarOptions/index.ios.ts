@@ -32,9 +32,9 @@ const TAB_ICON_LAYOUT: TabIconLayout = {
  * in the color of the selected tab, so each icon is drawn with its own colors, its status dot and its label. Both
  * selection states are images, because RNScreens rejects a tab whose icon and selectedIcon differ in type.
  */
-function useNativeTabBarOptions({shouldShowNativeTabBar, dotColors, tabLabels}: NativeTabBarOptionsParams) {
+function useNativeTabBarOptions({shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels}: NativeTabBarOptionsParams) {
     const theme = useTheme();
-    const avatar = useTabAvatarImage();
+    const avatar = useTabAvatarImage(isAccountAvatarShown);
 
     const screenOptions: NativeBottomTabNavigationOptions = {
         headerShown: false,

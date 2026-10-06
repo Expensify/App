@@ -27,7 +27,7 @@ import type {NavigationAction, NavigationState, PartialState, Router, TabNavigat
 
 import {findFocusedRoute, useNavigation, useNavigationState, useRoute} from '@react-navigation/native';
 import {isAnonymousSessionSelector} from '@selectors/Session';
-import {useEffect} from 'react';
+import {useEffect, useState} from 'react';
 
 import getTabWithoutBarItem from './getTabWithoutBarItem';
 
@@ -68,6 +68,11 @@ function useNativeTabNavigator() {
     // A tab with no item in the bar is drawn over the other tabs as a full screen, so the bar hides while it is focused.
     const isActiveTabWithoutBarItem = activeTabRoute?.name === tabWithoutBarItem;
     const shouldShowNativeTabBar = shouldUseNarrowLayout && isTabRouteAtRoot(activeTabRoute) && !isBlockingViewVisible && !isActiveTabWithoutBarItem;
+    const isSpendSelected = activeTabRoute?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR;
+    const [hasSpendBeenSelected, setHasSpendBeenSelected] = useState(isSpendSelected);
+    if (isSpendSelected && !hasSpendBeenSelected) {
+        setHasSpendBeenSelected(true);
+    }
 
     let inboxDotColor: string | undefined;
     if (chatTabBrickRoad) {
@@ -134,7 +139,9 @@ function useNativeTabNavigator() {
         },
     });
 
-    return {shouldShowNativeTabBar, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isAnonymousUser};
+    const isAccountAvatarShown = shouldUseNarrowLayout && tabWithoutBarItem !== NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR;
+
+    return {shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isAnonymousUser, hasSpendBeenSelected};
 }
 
 export default useNativeTabNavigator;

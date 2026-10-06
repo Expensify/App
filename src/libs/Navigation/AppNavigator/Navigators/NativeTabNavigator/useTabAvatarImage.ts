@@ -13,23 +13,25 @@ type TabAvatarImage = {uri: string; image: SkImage};
 let lastDecodedAvatar: TabAvatarImage | undefined;
 
 /**
- * The current user's avatar, decoded once per URI for the account tab icon. Until it is decoded, and for avatars that
- * are not a remote image, the account glyph stands in.
+ * The current user's avatar, decoded once per URI for the account tab icon while that icon is shown. Until it is
+ * decoded, and for avatars that are not a remote image, the account glyph stands in.
  */
-function useTabAvatarImage(): TabAvatarImage | undefined {
+function useTabAvatarImage(isShown: boolean): TabAvatarImage | undefined {
     const {avatar, accountID} = useCurrentUserPersonalDetails();
     const avatarSource = getAvatarURL({avatarSource: avatar, accountID});
     const uri = typeof avatarSource === 'string' ? avatarSource : undefined;
     const [decodedAvatar, setDecodedAvatar] = useState(lastDecodedAvatar);
+    const decodedUri = decodedAvatar?.uri;
 
     useEffect(() => {
-        if (!uri || decodedAvatar?.uri === uri) {
+        if (!isShown || !uri || decodedUri === uri) {
             return;
         }
         let isActive = true;
         Skia.Data.fromURI(uri)
             .then((data) => {
                 const image = Skia.Image.MakeImageFromEncoded(data);
+                data.dispose();
                 if (!image) {
                     return;
                 }
@@ -43,9 +45,7 @@ function useTabAvatarImage(): TabAvatarImage | undefined {
         return () => {
             isActive = false;
         };
-        // Only a new URI needs decoding; the decoded avatar is compared to skip one that is already decoded.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [uri]);
+    }, [isShown, uri, decodedUri]);
 
     return decodedAvatar?.uri === uri ? decodedAvatar : undefined;
 }

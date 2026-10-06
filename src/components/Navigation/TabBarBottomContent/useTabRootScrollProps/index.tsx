@@ -3,16 +3,13 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import variables from '@styles/variables';
 
-import type {StyleProp, ViewStyle} from 'react-native';
-
-import type TabRootScrollProps from './types';
+import type {UseTabRootScrollProps} from './types';
 
 /**
  * The content of a narrow tab root screen runs under the floating tab bar, so a list's content container ends with
- * room for the bar, letting its last row scroll out from under it. A list that already adds the bottom safe area
- * passes `hasBottomSafeAreaPadding`, so the safe area is not added twice.
+ * room for the bar, letting its last row scroll out from under it.
  */
-function useTabRootScrollProps(style?: StyleProp<ViewStyle>, hasBottomSafeAreaPadding = false): TabRootScrollProps {
+const useTabRootScrollProps: UseTabRootScrollProps = (style, hasBottomSafeAreaPadding = false) => {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const insetStyle = useBottomSafeSafeAreaPaddingStyle({
         style,
@@ -22,6 +19,6 @@ function useTabRootScrollProps(style?: StyleProp<ViewStyle>, hasBottomSafeAreaPa
     });
 
     return {contentContainerStyle: shouldUseNarrowLayout ? insetStyle : style};
-}
+};
 
 export default useTabRootScrollProps;

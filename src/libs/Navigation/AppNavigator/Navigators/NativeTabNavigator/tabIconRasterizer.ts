@@ -148,7 +148,7 @@ function drawTabIcon(layout: TabIconLayout, {name, color, avatar, dotColor, labe
     const canvasWidth = Math.ceil(Math.max(contentSize, labelWidth));
     const canvasHeight = Math.ceil(label ? labelTop + labelHeight : rowSize);
 
-    const surface = Skia.Surface.MakeOffscreen(canvasWidth, canvasHeight);
+    const surface = Skia.Surface.Make(canvasWidth, canvasHeight);
     if (!surface) {
         return undefined;
     }

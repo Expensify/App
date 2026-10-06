@@ -2,6 +2,7 @@ import type {NavBarButtonStyle} from '@libs/NavBarManager/types';
 
 import type CONST from '@src/CONST';
 
+import type {ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import type {ColorScheme, StatusBarStyle} from '..';
@@ -67,7 +68,8 @@ type ThemeColors = {
     sidebarHover: Color;
     floatingTabBarSelectedBG: Color;
     androidTabBarActiveIndicatorBG: Color;
-    androidTabBarShadow: Color;
+    /** A CSS box-shadow, not a color. */
+    androidTabBarShadow: NonNullable<ViewStyle['boxShadow']>;
     heading: Color;
     textLight: Color;
     textDark: Color;

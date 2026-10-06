@@ -35,11 +35,11 @@ const HIDDEN_TAB_OPTIONS = {tabBarItemHidden: true};
 const renderNativeTabLayout = (props: NativeTabLayoutProps) => <NativeTabLayout {...props} />;
 
 function TabNavigator() {
-    const {shouldShowNativeTabBar, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isAnonymousUser} = useNativeTabNavigator();
-    const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, dotColors, tabLabels});
+    const {shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isAnonymousUser, hasSpendBeenSelected} = useNativeTabNavigator();
+    const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels});
     // A tab with no bar item draws no icon.
     const getOptions = (name: NativeTabName) =>
-        name === tabWithoutBarItem ? HIDDEN_TAB_OPTIONS : {...getTabOptions(name), tabBarSelectionEnabled: isNativeTabSelectionEnabled(name, isAnonymousUser)};
+        name === tabWithoutBarItem ? HIDDEN_TAB_OPTIONS : {...getTabOptions(name), tabBarSelectionEnabled: isNativeTabSelectionEnabled(name, {isAnonymousUser, hasSpendBeenSelected})};
 
     return (
         <Tab.Navigator

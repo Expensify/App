@@ -67,6 +67,8 @@ jest.mock('@userActions/App', () => ({
 
 jest.mock('@libs/Navigation/helpers/useIsSidebarRouteActive', () => jest.fn(() => false));
 
+jest.mock('@hooks/useHasTabBeenShown', () => jest.fn(() => true));
+
 jest.mock('@hooks/useSubscriptionPlan', () => jest.fn(() => null));
 
 jest.mock('@components/AccountSwitcher', () => {
