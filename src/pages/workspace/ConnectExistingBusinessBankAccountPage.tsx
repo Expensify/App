@@ -142,6 +142,8 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
                         excludeStates={[CONST.BANK_ACCOUNT.STATE.LOCKED]}
                         excludeBankAccountID={isChangingBankAccount ? connectedAccountBankAccountID : undefined}
                         shouldHideDefaultBadge
+                        // The workspace bank account flow asks for the magic code itself and keeps the policyID after validation
+                        shouldSkipDefaultAccountValidation
                     />
                 </ScrollView>
             )}
