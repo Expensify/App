@@ -32,6 +32,7 @@ import {
     isNewerReportAction,
     isReversedTransaction,
     isTransactionThread,
+    shouldHidePayAction,
 } from '@libs/ReportActionsUtils';
 import {
     chatIncludesChronosWithID,
@@ -124,13 +125,19 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         parentReportActionForTransactionThread,
         treatAsNoPaginationAnchor,
         parentReportAction,
-        sortedReportActions,
-        sortedVisibleReportActions,
+        sortedReportActions: unfilteredReportActions,
+        sortedVisibleReportActions: unfilteredVisibleReportActions,
         isConciergeHiddenHistory,
         showFullHistory,
         hasPreviousMessages,
         allReportActionIDs,
     } = useReportActionsListState();
+
+    // Remove rows hidden by the renderer before calculating summary counts, headers, and scroll positions.
+    const sortedReportActions = report?.isWaitingOnBankAccount ? unfilteredReportActions.filter((action) => !shouldHidePayAction(action, true)) : unfilteredReportActions;
+    const sortedVisibleReportActions = report?.isWaitingOnBankAccount
+        ? unfilteredVisibleReportActions.filter((action) => !shouldHidePayAction(action, true))
+        : unfilteredVisibleReportActions;
 
     const {setTreatAsNoPaginationAnchor, loadOlderChats, loadNewerChats, handleShowPreviousMessages} = useReportActionsListActions();
 

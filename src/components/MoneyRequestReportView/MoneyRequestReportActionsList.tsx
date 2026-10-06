@@ -141,6 +141,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         canPerformWriteAction: !!canPerformWriteAction,
         shouldShowHarvestCreatedAction,
         isOffline,
+        isWaitingOnBankAccount: !!report?.isWaitingOnBankAccount,
     });
 
     const listRef = useActionListRef();

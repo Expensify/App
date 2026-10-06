@@ -7,7 +7,10 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 
+import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
+
+import DateUtils from '@libs/DateUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,12 +35,14 @@ const EMAIL = 'testuser@example.com';
 type MockReportActionRendererProps = {
     reportAction: ReportAction;
     displayAsGroup: boolean;
+    shouldDisplayNewMarker: boolean;
 };
 
 const mockReportActionRenderer = jest.fn((props: MockReportActionRendererProps) => (
     <View
         testID={`report-action-${props.reportAction.reportActionID}`}
         accessibilityLabel={props.displayAsGroup ? 'grouped' : 'single'}
+        accessibilityHint={props.shouldDisplayNewMarker ? 'unread' : undefined}
     />
 ));
 
@@ -59,6 +64,7 @@ jest.mock('@react-navigation/core', () => ({
 
 jest.mock('@hooks/useRootNavigationState', () => jest.fn((selector: (state: undefined) => unknown) => selector(undefined)));
 jest.mock('@hooks/usePaginatedReportActions', () => jest.fn());
+jest.mock('@hooks/useNetworkWithOfflineStatus', () => jest.fn());
 jest.mock('@hooks/useResponsiveLayoutOnWideRHP', () => jest.fn(() => ({shouldUseNarrowLayout: true})));
 jest.mock('@hooks/useLoadReportActions', () => jest.fn(() => ({loadOlderChats: jest.fn(), loadNewerChats: jest.fn()})));
 jest.mock('@hooks/useParentReportAction', () => jest.fn(() => undefined));
@@ -98,6 +104,7 @@ jest.mock('@components/MoneyRequestReportView/MoneyRequestReportTransactionList'
 });
 
 const mockUsePaginatedReportActions = jest.mocked(usePaginatedReportActions);
+const mockUseNetworkWithOfflineStatus = jest.mocked(useNetworkWithOfflineStatus);
 
 const report: Report = {
     reportID: REPORT_ID,
@@ -182,6 +189,7 @@ describe('MoneyRequestReportActionsList system-message presentation', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        mockUseNetworkWithOfflineStatus.mockReturnValue({isOffline: false, lastOfflineAt: {current: undefined}, lastOnlineAt: {current: undefined}});
         jest.spyOn(NativeNavigation, 'useIsFocused').mockReturnValue(true);
         mockUsePaginatedReportActions.mockReturnValue({
             reportActions: [
@@ -209,6 +217,147 @@ describe('MoneyRequestReportActionsList system-message presentation', () => {
             await waitForBatchedUpdatesWithAct();
         });
     });
+
+    it.each([false, true])('counts and expands only visible payment updates when waiting for a bank account is %s', async (isWaitingOnBankAccount) => {
+        // Given an expense payment between the two oldest system updates
+        const payment: ReportAction = {
+            ...makeAction('expense-payment', CONST.REPORT.ACTIONS.TYPE.IOU, '2026-08-02 00:00:01.500'),
+            originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY},
+        };
+        mockUsePaginatedReportActions.mockReturnValue({
+            reportActions: [
+                makeAction('system-singleton', CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, '2026-08-02 00:00:04.000'),
+                makeAction('chat-boundary', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2026-08-02 00:00:03.000'),
+                makeAction('legacy-system', CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD, '2026-08-02 00:00:02.000'),
+                payment,
+                makeAction('system-anchor', CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, '2026-08-02 00:00:01.000'),
+            ],
+            linkedAction: undefined,
+            oldestUnreadReportAction: undefined,
+            sortedAllReportActions: undefined,
+            hasNewerActions: false,
+            hasOlderActions: false,
+            report: undefined,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {isWaitingOnBankAccount});
+
+        // When the real money-request audit list constructs its summary
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+        const count = isWaitingOnBankAccount ? 2 : 3;
+        const control = screen.getByRole('button', {name: `show ${count} updates`});
+        expect(screen.queryByRole('button', {name: `show ${isWaitingOnBankAccount ? 3 : 2} updates`})).toBeNull();
+
+        // Then expansion reveals exactly that many updates and uses normal row grouping
+        fireEvent.press(control);
+        await waitForBatchedUpdatesWithAct();
+        expect(getRenderedActionIDs()).toEqual(
+            isWaitingOnBankAccount
+                ? ['report-action-system-anchor', 'report-action-legacy-system', 'report-action-chat-boundary', 'report-action-system-singleton']
+                : ['report-action-system-anchor', 'report-action-expense-payment', 'report-action-legacy-system', 'report-action-chat-boundary', 'report-action-system-singleton'],
+        );
+        expect(screen.getByTestId('report-action-system-anchor').props.accessibilityLabel).toBe('single');
+        expect(screen.getByTestId('report-action-legacy-system').props.accessibilityLabel).toBe('grouped');
+        expect(screen.queryByRole('button', {name: /updates|Hide/})).toBeNull();
+    });
+
+    it.each([
+        {
+            hasPendingDeletion: false,
+            manualAnchor: 'new-comment',
+            lastReadTime: '2026-08-02 00:00:03.999',
+            expectedMarker: 'new-comment',
+            offlineStart: '2026-08-02 00:00:01.000',
+            paymentCreated: '2026-08-02 00:00:03.000',
+        },
+        {
+            hasPendingDeletion: true,
+            manualAnchor: 'new-comment',
+            lastReadTime: '2026-08-02 00:00:03.999',
+            expectedMarker: 'new-comment',
+            offlineStart: '2026-08-02 00:00:01.000',
+            paymentCreated: '2026-08-02 00:00:00.500',
+        },
+        {
+            hasPendingDeletion: true,
+            manualAnchor: null,
+            lastReadTime: '2026-08-02 00:00:00.999',
+            expectedMarker: 'old-comment',
+            offlineStart: '2026-08-02 00:00:01.000',
+            paymentCreated: '2026-08-02 00:00:00.500',
+        },
+        {
+            hasPendingDeletion: true,
+            manualAnchor: 'old-comment',
+            lastReadTime: '2026-08-02 00:00:01.999',
+            expectedMarker: 'old-comment',
+            offlineStart: '2026-08-02 00:00:03.000',
+            paymentCreated: '2026-08-02 00:00:00.500',
+        },
+        {
+            hasPendingDeletion: true,
+            manualAnchor: 'hidden-payment',
+            lastReadTime: '2026-08-02 00:00:00.499',
+            expectedMarker: 'old-comment',
+            offlineStart: '2026-08-02 00:00:01.000',
+            paymentCreated: '2026-08-02 00:00:00.500',
+        },
+        {
+            hasPendingDeletion: false,
+            manualAnchor: null,
+            lastReadTime: '2026-08-02 00:00:00.999',
+            expectedMarker: 'old-comment',
+            offlineStart: '2026-08-02 00:00:03.000',
+            paymentCreated: '2026-08-02 00:00:00.500',
+        },
+    ])(
+        'keeps a visible unread marker with hidden payment: $expectedMarker, pending deletion: $hasPendingDeletion',
+        async ({hasPendingDeletion, manualAnchor, lastReadTime, expectedMarker, offlineStart, paymentCreated}) => {
+            // Given persisted messages received during an offline window, optionally with a visible comment manually marked unread
+            const otherAccountID = ACCOUNT_ID + 1;
+            const actions: ReportAction[] = [
+                {...makeAction('new-comment', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2026-08-02 00:00:04.000'), actorAccountID: otherAccountID},
+                ...(hasPendingDeletion
+                    ? [{...makeAction('hidden-deleted-comment', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2026-08-02 00:00:03.500'), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}]
+                    : []),
+                {
+                    ...makeAction('hidden-payment', CONST.REPORT.ACTIONS.TYPE.IOU, paymentCreated),
+                    actorAccountID: otherAccountID,
+                    originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY},
+                },
+                {...makeAction('old-comment', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2026-08-02 00:00:02.000'), actorAccountID: otherAccountID},
+                makeAction('created', CONST.REPORT.ACTIONS.TYPE.CREATED, '2026-08-02 00:00:00.000'),
+            ];
+            mockUsePaginatedReportActions.mockReturnValue({
+                reportActions: actions.sort((a, b) => b.created.localeCompare(a.created)),
+                linkedAction: undefined,
+                oldestUnreadReportAction: undefined,
+                sortedAllReportActions: undefined,
+                hasNewerActions: false,
+                hasOlderActions: false,
+                report: undefined,
+            });
+            mockUseNetworkWithOfflineStatus.mockReturnValue({
+                isOffline: false,
+                lastOfflineAt: {current: DateUtils.getLocalDateFromDatetime(CONST.LOCALES.EN, CONST.DEFAULT_TIME_ZONE.selected, offlineStart)},
+                lastOnlineAt: {current: DateUtils.getLocalDateFromDatetime(CONST.LOCALES.EN, CONST.DEFAULT_TIME_ZONE.selected, '2026-08-02 00:00:05.000')},
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+                isWaitingOnBankAccount: true,
+                lastReadTime,
+                manuallyMarkedUnreadReportActionID: manualAnchor,
+            });
+
+            // When the real list and unread hook scan the oldest-first visible action chain
+            renderComponent();
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the hidden row does not shift the offline boundary past the visible list or remove the New divider
+            expect(getRenderedActionIDs()).toEqual(['report-action-old-comment', 'report-action-new-comment']);
+            expect(screen.getByTestId(`report-action-${expectedMarker}`).props.accessibilityHint).toBe('unread');
+            expect(screen.getByTestId(`report-action-${expectedMarker === 'new-comment' ? 'old-comment' : 'new-comment'}`).props.accessibilityHint).toBeUndefined();
+        },
+    );
 
     it('expands the real audit list into normal rows and removes the control', async () => {
         renderComponent();

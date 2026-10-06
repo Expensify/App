@@ -423,6 +423,58 @@ describe('ReportActionsList (body)', () => {
 
         afterEach(() => {
             mockReport.type = undefined;
+            mockReport.isWaitingOnBankAccount = undefined;
+        });
+
+        it.each([false, true])('counts only visible payment updates when waiting for a bank account is %s', (isWaitingOnBankAccount) => {
+            // Given an expense payment between two visible system updates by the same user
+            const payment: OnyxTypes.ReportAction = {
+                ...getSystemAction(0),
+                reportActionID: 'expense-payment',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: '2023-01-01 00:02:30.000',
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY},
+            };
+            mockReport.type = CONST.REPORT.TYPE.EXPENSE;
+            mockReport.isWaitingOnBankAccount = isWaitingOnBankAccount;
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            mockUsePaginatedReportActions.mockReturnValue({...defaultPaginatedReportActionsResult, reportActions: [getSystemAction(0), payment, getSystemAction(1), getSystemAction(2)]});
+
+            // When the standard report list constructs its summary
+            renderReportActionsList();
+            const collapsedAnchor = getCapturedListProps()?.renderItem?.({item: getSystemAction(0), index: 0});
+            const summary = findRenderedElement<React.ComponentProps<typeof CollapsedSystemMessages>>(collapsedAnchor, CollapsedSystemMessages);
+
+            // Then the count matches the rows the renderer can show, and expansion preserves normal headers
+            expect(summary?.props).toMatchObject({count: isWaitingOnBankAccount ? 2 : 3, earliestReportAction: getSystemAction(1)});
+            act(() => summary?.props.onPress());
+            expect(getCapturedVisibleActions()?.map((action) => action.reportActionID)).toEqual(
+                isWaitingOnBankAccount ? ['system-newer', 'system-older', 'chat-boundary'] : ['system-newer', 'expense-payment', 'system-older', 'chat-boundary'],
+            );
+            expect(getRenderedReportActionsListItemProps(getSystemAction(0), 0)).toMatchObject({displayAsGroup: true});
+        });
+
+        it('does not create a summary from one visible update and a hidden payment', () => {
+            // Given a hidden payment that would otherwise be the oldest member and header of a two-update group
+            const payment: OnyxTypes.ReportAction = {
+                ...getSystemAction(1),
+                reportActionID: 'hidden-payment',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY},
+            };
+            const created: OnyxTypes.ReportAction = {...getSystemAction(2), actionName: CONST.REPORT.ACTIONS.TYPE.CREATED, reportActionID: 'created'};
+            mockReport.type = CONST.REPORT.TYPE.EXPENSE;
+            mockReport.isWaitingOnBankAccount = true;
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            mockUsePaginatedReportActions.mockReturnValue({...defaultPaginatedReportActionsResult, reportActions: [getSystemAction(0), payment, created]});
+
+            // When the visible list is built, only the real update remains, with its normal header
+            renderReportActionsList();
+            expect(getCapturedVisibleActions()?.map((action) => action.reportActionID)).toEqual(['system-newer', 'created']);
+            const item = getCapturedListProps()?.renderItem?.({item: getSystemAction(0), index: 0});
+            expect(findRenderedElement(item, CollapsedSystemMessages)).toBeUndefined();
+            expect(getRenderedReportActionsListItemProps(getSystemAction(0), 0)).toMatchObject({displayAsGroup: false});
+            expect(findRenderedElement<React.ComponentProps<typeof ReportActionsListItemRenderer>>(item, ReportActionsListItemRenderer)?.props.isFirstVisibleReportAction).toBe(true);
         });
 
         it('collapses and re-expands passive system runs in the standard expense-report list', () => {

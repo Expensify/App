@@ -2275,6 +2275,13 @@ function isPayAction(reportAction: OnyxInputOrEntry<ReportAction | OptimisticIOU
 }
 
 /**
+ * Expense payments waiting for a bank account or wallet use a separate status message. Direct-send payments still render.
+ */
+function shouldHidePayAction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>, isWaitingOnBankAccount: boolean): boolean {
+    return isWaitingOnBankAccount && isPayAction(reportAction) && !isSentMoneyReportAction(reportAction);
+}
+
+/**
  * A cancellation, failed reimbursement, or workflow reset separates payment attempts on the same report.
  */
 function isPaymentAttemptBoundary(action: OnyxEntry<ReportAction>): boolean {
@@ -5778,6 +5785,7 @@ export {
     isMoneyRequestAction,
     isOldDotReportAction,
     isPayAction,
+    shouldHidePayAction,
     isPendingRemove,
     getModerationFlagState,
     isReimbursementDeQueuedOrCanceledAction,
