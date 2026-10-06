@@ -474,10 +474,10 @@ describe('LHNOptionsList', () => {
     });
 
     describe('Task report avatar rendering', () => {
-        it('should render a subscript avatar for a workspace task report (owner + workspace)', async () => {
+        it('should render a single avatar for a workspace task report (owner only)', async () => {
             // Given a task report inside a workspace (chatType policyExpenseChat).
-            // shouldReportShowSubscript returns true, and workspace tasks are excluded
-            // from taskSuppression. The icons show subscript (Large User + Small Workspace).
+            // A task always shows its owner alone, like the task header, even though
+            // shouldReportShowSubscript returns true for a workspace task.
             const policyID = 'taskTestPolicy';
             const parentReportID = 'taskParentReport';
             const reportID = 'taskTestReport';
@@ -531,10 +531,11 @@ describe('LHNOptionsList', () => {
             // When the LHNOptionsList renders the task report
             render(getLHNOptionsListElement({data: [taskReport]}));
 
-            // Then it should render a subscript avatar (Large User + Small Workspace)
+            // Then it should render the owner alone, without the workspace subscript
             await waitFor(() => {
-                expect(screen.getByTestId('ReportActionAvatars-Subscript')).toBeTruthy();
+                expect(screen.getByTestId('SingleAvatar')).toBeTruthy();
             });
+            expect(screen.queryByTestId('ReportActionAvatars-Subscript')).toBeNull();
         });
     });
 
