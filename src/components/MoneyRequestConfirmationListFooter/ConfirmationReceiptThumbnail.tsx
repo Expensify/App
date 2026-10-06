@@ -75,7 +75,7 @@ type ConfirmationReceiptThumbnailProps = {
     /** Whether the active transaction is a distance request (drives object-position behaviour) */
     isDistanceRequest: boolean;
 
-    /** Whether the active transaction is a manual distance request */
+    /** Manual distance receipts can be user-uploaded PDFs, so they keep the page count that generated map receipts hide */
     isManualDistanceRequest: boolean;
 
     /** Compact-mode container style (undefined when not in compact mode) */
