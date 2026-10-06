@@ -1,5 +1,6 @@
-import CONST from '@src/CONST';
 import {buildSpendRuleAST} from '@libs/SpendRulesUtils';
+
+import CONST from '@src/CONST';
 
 describe('buildSpendRuleAST', () => {
     it('returns no rule when no criteria or cards are supplied', () => {
@@ -19,15 +20,18 @@ describe('buildSpendRuleAST', () => {
 
     it.each([CONST.SPEND_RULES.ACTION.ALLOW, CONST.SPEND_RULES.ACTION.BLOCK])('preserves mixed criteria grouping for %s', (action) => {
         // Given all conditional nodes, when building a rule, then every node is present in the intended grouping.
-        const rule = buildSpendRuleAST({
-            cardIDs: ['card-1'],
-            merchantNames: ['Exact', 'Contains'],
-            merchantMatchTypes: [CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS],
-            categories: ['Food'],
-            currencies: ['USD'],
-            maxAmount: '100',
-            restrictionAction: action,
-        }, '2025-01-01');
+        const rule = buildSpendRuleAST(
+            {
+                cardIDs: ['card-1'],
+                merchantNames: ['Exact', 'Contains'],
+                merchantMatchTypes: [CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS],
+                categories: ['Food'],
+                currencies: ['USD'],
+                maxAmount: '100',
+                restrictionAction: action,
+            },
+            '2025-01-01',
+        );
         expect(rule?.created).toBe('2025-01-01');
         expect(rule?.action).toBe(action);
         expect(rule?.filters).toMatchObject({

@@ -1,15 +1,21 @@
 import {renderHook} from '@testing-library/react-native';
-import usePaymentOptions from '@hooks/usePaymentOptions';
+
 import useOnyx from '@hooks/useOnyx';
+import usePaymentOptions from '@hooks/usePaymentOptions';
+
 import {formatPaymentMethods} from '@libs/PaymentUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, FundList, Report} from '@src/types/onyx';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
+
 import createMock from '../../utils/createMock';
 
 jest.mock('@hooks/useOnyx', () => ({__esModule: true, default: jest.fn()}));
-jest.mock('@hooks/useLazyAsset', () => ({useMemoizedLazyExpensifyIcons: () => ({Building: 'building', User: 'user', ThumbsUp: 'approve', Bank: 'bank', Wallet: 'wallet', Cash: 'cash', CheckCircle: 'check'})}));
+jest.mock('@hooks/useLazyAsset', () => ({
+    useMemoizedLazyExpensifyIcons: () => ({Building: 'building', User: 'user', ThumbsUp: 'approve', Bank: 'bank', Wallet: 'wallet', Cash: 'cash', CheckCircle: 'check'}),
+}));
 jest.mock('@hooks/useThemeStyles', () => ({__esModule: true, default: () => ({})}));
 jest.mock('@hooks/useLocalize', () => ({__esModule: true, default: () => ({translate: (key: string) => key})}));
 jest.mock('@hooks/usePermissions', () => ({__esModule: true, default: () => ({isBetaEnabled: () => true})}));
@@ -35,7 +41,10 @@ const setup = createMock<PaymentMethod>({methodID: 3, title: 'Setup', accountDat
 const verifying = createMock<PaymentMethod>({methodID: 4, title: 'Verifying', accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, state: CONST.BANK_ACCOUNT.STATE.VERIFYING}});
 const pending = createMock<PaymentMethod>({methodID: 5, title: 'Pending', accountData: {type: CONST.BANK_ACCOUNT.TYPE.PERSONAL, state: CONST.BANK_ACCOUNT.STATE.PENDING}});
 const fund = createMock<PaymentMethod>({methodID: fundMethodID, title: 'Debit card', accountData: {fundID: fundMethodID}});
-const bankAccounts = createMock<BankAccountList>({[personalMethodID]: {accountData: {type: CONST.BANK_ACCOUNT.TYPE.PERSONAL}}, [businessMethodID]: {accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS}}});
+const bankAccounts = createMock<BankAccountList>({
+    [personalMethodID]: {accountData: {type: CONST.BANK_ACCOUNT.TYPE.PERSONAL}},
+    [businessMethodID]: {accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS}},
+});
 const funds = createMock<FundList>({[fundMethodID]: {accountData: {fundID: fundMethodID}}});
 
 function menuTitles(options: ReturnType<typeof usePaymentOptions>, index: number): string[] {

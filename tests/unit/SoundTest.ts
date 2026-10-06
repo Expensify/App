@@ -1,6 +1,8 @@
 import {waitFor} from '@testing-library/react-native';
+
 import Log from '@libs/Log';
 import type * as SoundModule from '@libs/Sound';
+
 import {Howl} from 'howler';
 
 const {default: playSound, clearSoundAssetsCache, SOUNDS} = jest.requireActual<typeof SoundModule>('@libs/Sound/index.ts');

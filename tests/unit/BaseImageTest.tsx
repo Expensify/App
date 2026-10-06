@@ -1,10 +1,15 @@
 import {act, render, renderHook} from '@testing-library/react-native';
+
 import Image from '@components/Image';
-import BaseImageNative from '@components/Image/BaseImage.native';
 import type * as BaseImageModule from '@components/Image/BaseImage';
+import BaseImageNative from '@components/Image/BaseImage.native';
+
 import useCachedImageSource from '@hooks/useCachedImageSource';
+
 import AttachmentStateContextProvider, {AttachmentStateContext} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/AttachmentStateContextProvider';
+
 import type {ImageLoadEventData, ImageProps as ExpoImageProps} from 'expo-image';
+
 import React, {useContext} from 'react';
 import {StyleSheet, View} from 'react-native';
 
@@ -55,7 +60,16 @@ describe('BaseImage platform siblings', () => {
         const registered = StyleSheet.create({image: {height: 14}}).image;
         const readonlySegment = [registered, false] as const;
         const style: ExpoImageProps['style'] = [{width: 12}, readonlySegment, null, '', undefined];
-        render(withContext(<BaseImage source={source} style={style} onLoad={onLoad} onLoadStart={onLoadStart} />));
+        render(
+            withContext(
+                <BaseImage
+                    source={source}
+                    style={style}
+                    onLoad={onLoad}
+                    onLoadStart={onLoadStart}
+                />,
+            ),
+        );
         const props = lastImageProps();
         expect(props.source).toBe(cached);
         expect(props.style).toBe(style);
@@ -72,7 +86,16 @@ describe('BaseImage platform siblings', () => {
         // Given a supported style array, when Image renders, then Expo receives the same caller style in its first outer-array position.
         const registered = StyleSheet.create({image: {height: 14}}).image;
         const callerStyle: ExpoImageProps['style'] = [registered, [{width: 12}, false] as const, null, '', undefined];
-        render(withContext(<View accessibilityIgnoresInvertColors><Image source={{uri: 'https://example.com/wrapped.png'}} style={callerStyle} /></View>));
+        render(
+            withContext(
+                <View accessibilityIgnoresInvertColors>
+                    <Image
+                        source={{uri: 'https://example.com/wrapped.png'}}
+                        style={callerStyle}
+                    />
+                </View>,
+            ),
+        );
         const receivedStyle = lastImageProps().style;
         expect(Array.isArray(receivedStyle)).toBe(true);
         if (!Array.isArray(receivedStyle)) {
@@ -100,12 +123,28 @@ describe('BaseImage platform siblings', () => {
         const first = {uri: 'first'};
         const second = {uri: 'second'};
         const style: ExpoImageProps['style'] = [StyleSheet.create({image: {width: 10}}).image, false, null];
-        const {rerender} = render(withContext(<BaseImageNative source={first} style={style} onLoad={onLoad} />));
+        const {rerender} = render(
+            withContext(
+                <BaseImageNative
+                    source={first}
+                    style={style}
+                    onLoad={onLoad}
+                />,
+            ),
+        );
         expect(lastImageProps().style).toBe(style);
         lastImageProps().onLoad?.(loadEvent(10, 20));
         lastImageProps().onLoad?.(loadEvent(10, 20));
         expect(onLoad).toHaveBeenCalledTimes(1);
-        rerender(withContext(<BaseImageNative source={second} style={style} onLoad={onLoad} />));
+        rerender(
+            withContext(
+                <BaseImageNative
+                    source={second}
+                    style={style}
+                    onLoad={onLoad}
+                />,
+            ),
+        );
         lastImageProps().onLoad?.(loadEvent(30, 40));
         expect(onLoad).toHaveBeenCalledTimes(2);
         expect(onLoad).toHaveBeenLastCalledWith({nativeEvent: {width: 30, height: 40}});
