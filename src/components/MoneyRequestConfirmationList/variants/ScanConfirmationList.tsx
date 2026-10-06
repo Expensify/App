@@ -35,25 +35,28 @@ function ScanConfirmationList(props: MoneyRequestConfirmationListProps) {
     const styles = useThemeStyles();
     const isInLandscapeMode = useIsInLandscapeMode();
 
-    // An expense whose amount / merchant / date the user already filled in starts expanded, so those values stay
-    // on screen when multi-scan brings it back instead of hiding behind "Show more".
-    const hasManuallyEnteredFields = canEnterScanFieldsManually && hasAnyManuallyEnteredScanField(transaction);
-    const [showMoreFields, setShowMoreFields] = useState(hasManuallyEnteredFields);
-
     const data = useConfirmationListData(props);
-    const {transactionID} = data.layoutProps;
+    const revealKey = data.layoutProps.transactionID ?? '';
 
-    // Reset the section on a transaction switch, done during render so the new expense never paints collapsed first.
-    const [previousTransactionID, setPreviousTransactionID] = useState(transactionID);
-    if (previousTransactionID !== transactionID) {
-        setPreviousTransactionID(transactionID);
-        setShowMoreFields(hasManuallyEnteredFields);
-    }
+    // Multi-scan switches between expenses on the same list, so remember which ones have their fields revealed
+    // instead of holding one flag for the whole surface; an expense the user opened stays open when they come back.
+    const [revealedTransactionIDs, setRevealedTransactionIDs] = useState<string[]>([]);
+    const showMoreFields = revealedTransactionIDs.includes(revealKey);
+    const setShowMoreFields = (shouldShowMoreFields: boolean) => {
+        setRevealedTransactionIDs((previousIDs) => {
+            if (previousIDs.includes(revealKey) === shouldShowMoreFields) {
+                return previousIDs;
+            }
+            return shouldShowMoreFields ? [...previousIDs, revealKey] : previousIDs.filter((id) => id !== revealKey);
+        });
+    };
 
-    // Reveal the collapsed fields when one of them raises an inline error, or opening the section and pressing
-    // Create looks like it did nothing. Done during render so it survives the remount a multi-scan switch causes.
-    if (INLINE_FIELD_ERROR_KEYS.has(data.errorState.formError) && !showMoreFields) {
-        setShowMoreFields(true);
+    // Reveal the collapsed fields when the user already filled one of them in, so those values aren't hidden behind
+    // "Show more", or when one of them raises an inline error, or opening the section and pressing Create looks like
+    // it did nothing. Done during render so the expense never paints collapsed first and it survives a remount.
+    const hasManuallyEnteredFields = canEnterScanFieldsManually && hasAnyManuallyEnteredScanField(transaction);
+    if (!showMoreFields && (hasManuallyEnteredFields || INLINE_FIELD_ERROR_KEYS.has(data.errorState.formError))) {
+        setRevealedTransactionIDs([...revealedTransactionIDs, revealKey]);
     }
 
     const isCompactMode = !showMoreFields && !isInLandscapeMode;
