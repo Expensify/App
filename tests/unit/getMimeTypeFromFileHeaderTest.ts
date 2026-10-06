@@ -1,5 +1,8 @@
 import getMimeTypeFromHeaderBytes from '@libs/getMimeTypeFromFileHeader/getMimeTypeFromHeaderBytes';
-import getMimeTypeFromFileHeader from '@libs/getMimeTypeFromFileHeader/index.native';
+import getMimeTypeFromFileHeaderAndroid from '@libs/getMimeTypeFromFileHeader/index.android';
+import getMimeTypeFromFileHeaderIOS from '@libs/getMimeTypeFromFileHeader/index.ios';
+
+import type ReactNativeBlobUtil from 'react-native-blob-util';
 
 import {Buffer} from 'buffer';
 import RNFS from 'react-native-fs';
@@ -8,6 +11,20 @@ import RNFS from 'react-native-fs';
 
 jest.mock('react-native-fs', () => ({
     read: jest.fn(),
+}));
+
+type BlobUtilFs = typeof ReactNativeBlobUtil.fs;
+const mockSlice = jest.fn<ReturnType<BlobUtilFs['slice']>, Parameters<BlobUtilFs['slice']>>();
+const mockReadFile = jest.fn<Promise<string>, [string, string]>();
+const mockUnlink = jest.fn<ReturnType<BlobUtilFs['unlink']>, Parameters<BlobUtilFs['unlink']>>();
+
+jest.mock('react-native-blob-util', () => ({
+    fs: {
+        dirs: {CacheDir: '/cache'},
+        slice: (...args: Parameters<BlobUtilFs['slice']>) => mockSlice(...args),
+        readFile: (...args: [string, string]) => mockReadFile(...args),
+        unlink: (...args: Parameters<BlobUtilFs['unlink']>) => mockUnlink(...args),
+    },
 }));
 
 const mockRead = jest.mocked(RNFS.read);
@@ -60,7 +77,7 @@ describe('getMimeTypeFromHeaderBytes', () => {
     });
 });
 
-describe('getMimeTypeFromFileHeader (native)', () => {
+describe('getMimeTypeFromFileHeader (Android)', () => {
     beforeEach(() => {
         mockRead.mockReset();
     });
@@ -70,7 +87,7 @@ describe('getMimeTypeFromFileHeader (native)', () => {
         mockRead.mockResolvedValue(Buffer.from(ftypHeader('isom')).toString('base64'));
 
         // When its type is detected
-        const mimeType = await getMimeTypeFromFileHeader({name: 'recording', uri: 'file:///data/user/0/recording'});
+        const mimeType = await getMimeTypeFromFileHeaderAndroid({name: 'recording', uri: 'file:///data/user/0/recording'});
 
         // Then only a small byte range is read from the decoded path, and the type is identified
         expect(mockRead).toHaveBeenCalledWith('/data/user/0/recording', 32, 0, 'base64');
@@ -82,7 +99,7 @@ describe('getMimeTypeFromFileHeader (native)', () => {
         mockRead.mockRejectedValue(new Error('ENOENT'));
 
         // When its type is detected
-        const mimeType = await getMimeTypeFromFileHeader({name: 'recording', uri: 'content://missing/1'});
+        const mimeType = await getMimeTypeFromFileHeaderAndroid({name: 'recording', uri: 'content://missing/1'});
 
         // Then detection fails quietly so validation can continue with the original type
         expect(mimeType).toBeUndefined();
@@ -91,10 +108,57 @@ describe('getMimeTypeFromFileHeader (native)', () => {
     it('returns undefined when the file has no uri', async () => {
         // Given a file object without a uri
         // When its type is detected
-        const mimeType = await getMimeTypeFromFileHeader({name: 'recording'});
+        const mimeType = await getMimeTypeFromFileHeaderAndroid({name: 'recording'});
 
         // Then nothing is read
         expect(mockRead).not.toHaveBeenCalled();
+        expect(mimeType).toBeUndefined();
+    });
+});
+
+describe('getMimeTypeFromFileHeader (iOS)', () => {
+    beforeEach(() => {
+        mockSlice.mockReset();
+        mockReadFile.mockReset();
+        mockUnlink.mockReset();
+        mockUnlink.mockResolvedValue();
+    });
+
+    it('copies the first bytes into a temp file, reads them back, and removes the temp file', async () => {
+        // Given an extensionless QuickTime movie picked from a file:// uri
+        mockSlice.mockImplementation((src, dest) => Promise.resolve(dest));
+        mockReadFile.mockResolvedValue(Buffer.from(ftypHeader('qt  ')).toString('base64'));
+
+        // When its type is detected
+        const mimeType = await getMimeTypeFromFileHeaderIOS({name: 'recording', uri: 'file:///var/mobile/recording'});
+
+        // Then only a small byte range is copied from the decoded path into the cache, read back, and cleaned up
+        expect(mockSlice).toHaveBeenCalledWith('/var/mobile/recording', expect.stringMatching(/^\/cache\/mime-sniff-head-/), 0, 32);
+        const tempPath = mockSlice.mock.calls.at(0)?.at(1);
+        expect(mockReadFile).toHaveBeenCalledWith(tempPath, 'base64');
+        expect(mockUnlink).toHaveBeenCalledWith(tempPath);
+        expect(mimeType).toBe('video/quicktime');
+    });
+
+    it('returns undefined when the file cannot be read', async () => {
+        // Given a uri the file system can't copy from
+        mockSlice.mockRejectedValue(new Error('ENOENT'));
+
+        // When its type is detected
+        const mimeType = await getMimeTypeFromFileHeaderIOS({name: 'recording', uri: 'file:///var/mobile/missing'});
+
+        // Then detection fails quietly so validation can continue with the original type
+        expect(mockReadFile).not.toHaveBeenCalled();
+        expect(mimeType).toBeUndefined();
+    });
+
+    it('returns undefined when the file has no uri', async () => {
+        // Given a file object without a uri
+        // When its type is detected
+        const mimeType = await getMimeTypeFromFileHeaderIOS({name: 'recording'});
+
+        // Then nothing is copied
+        expect(mockSlice).not.toHaveBeenCalled();
         expect(mimeType).toBeUndefined();
     });
 });
