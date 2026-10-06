@@ -1170,6 +1170,8 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS);
     }
 
+    options.push(CONST.REPORT.SECONDARY_ACTIONS.SHARE);
+
     if (!isOpenReportUtils(report)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.PRINT);
     }
