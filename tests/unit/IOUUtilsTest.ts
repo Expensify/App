@@ -1220,6 +1220,32 @@ describe('formatCurrentUserToAttendee', () => {
     });
 });
 
+describe('isP2PRecipient', () => {
+    const CURRENT_USER_ACCOUNT_ID = 1;
+
+    it('returns true for another user', () => {
+        // Given a participant that is another user
+        const participant = {accountID: 2, isPolicyExpenseChat: false};
+
+        // When checking whether the expense goes 1:1 to that user
+        // Then it does, so the expense can't hold a negative amount
+        expect(IOUUtils.isP2PRecipient(participant, CURRENT_USER_ACCOUNT_ID)).toBe(true);
+    });
+
+    it.each([
+        ['a workspace chat', {accountID: 0, isPolicyExpenseChat: true, policyID: 'policy1'}],
+        ['the self DM', {accountID: CURRENT_USER_ACCOUNT_ID, isSelfDM: true}],
+        ['the current user seeded before the self-DM flag is set', {accountID: CURRENT_USER_ACCOUNT_ID}],
+        ['an invoice sender', {accountID: 2, isSender: true}],
+        ['no participant', undefined],
+    ])('returns false for %s', (_case, participant) => {
+        // Given a participant that isn't another user's 1:1 chat
+        // When checking whether the expense goes 1:1 to that participant
+        // Then it doesn't, so negative amounts stay governed by the destination's own rules
+        expect(IOUUtils.isP2PRecipient(participant, CURRENT_USER_ACCOUNT_ID)).toBe(false);
+    });
+});
+
 describe('isParticipantP2P', () => {
     it('should return true for P2P participant with accountID and isPolicyExpenseChat false', () => {
         const participant = {

@@ -630,6 +630,15 @@ function isSelfDMParticipant(participant: Participant | undefined, currentUserAc
 }
 
 /**
+ * Whether the expense is addressed 1:1 to another user (a P2P IOU). P2P chats don't support negative amounts, so the
+ * amount input and the confirmation validation both rely on this. Unlike `isParticipantP2P`, it also excludes a raw
+ * current-user participant (self-DM seeded before the flag is set) and an invoice sender.
+ */
+function isP2PRecipient(participant: Participant | undefined, currentUserAccountID: number | undefined): boolean {
+    return isParticipantP2P(participant) && !participant?.isSender && !isSelfDMParticipant(participant, currentUserAccountID);
+}
+
+/**
  * An expense targets the current user's self-DM (and therefore must be tracked rather than requested) when it has a
  * single selected participant that resolves to the current user's self-DM. SPLIT/INVOICE/PAY are never self-DM
  * destinations. This is the single source of truth shared by the confirmation step (to resolve the destination report)
@@ -692,6 +701,7 @@ export {
     getIsWorkspacesOnlyForTransaction,
     getReusableP2PReportID,
     isParticipantP2P,
+    isP2PRecipient,
     isSelfDMSoleDestination,
     isLookingAroundSearchRoutingActive,
     resolveOptimisticChatReportID,

@@ -12,7 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearMoneyRequestAmount, getMoneyRequestParticipantsFromReport, setMoneyRequestAmount, setMoneyRequestTaxAmount, setMoneyRequestTaxRate} from '@libs/actions/IOU/MoneyRequest';
 import {convertToBackendAmount, convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {calculateAmount, isMovingTransactionFromTrackExpense, isParticipantP2P} from '@libs/IOUUtils';
+import {calculateAmount, isMovingTransactionFromTrackExpense, isP2PRecipient, isParticipantP2P} from '@libs/IOUUtils';
 import {isConfirmationAmountMissing} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldEnableNegative} from '@libs/ReportUtils';
@@ -133,7 +133,10 @@ function AmountField({
     const shouldShowAutomaticHint = canEnterScanFieldsManually && !isAmountInputFocused && !hasAnyManuallyEnteredScanField(transactionSlice);
     // The hint and the buttons share the right-hand side, so the field shows one or the other.
     const shouldShowAmountButtons = !shouldShowAutomaticHint;
-    const allowNegative = shouldEnableNegative(report, policy, iouType, transactionSlice?.participants);
+    // The route report doesn't reflect a recipient picked from the confirmation page's "To" field, so a 1:1 recipient is
+    // read from the transaction participants: P2P chats don't support negative amounts.
+    const allowNegative =
+        shouldEnableNegative(report, policy, iouType, transactionSlice?.participants) && !isP2PRecipient(transactionSlice?.participants?.at(0), currentUserPersonalDetails.accountID);
 
     // `autoFocus` on our TextInput only runs on mount. Closing and reopening the RHP often keeps the same mounted
     // instance, so autofocus does not run again. We re-focus when the parent-owned participant picker closes
