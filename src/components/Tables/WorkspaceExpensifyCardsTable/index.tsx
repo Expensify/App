@@ -59,11 +59,9 @@ type WorkspaceExpensifyCardTableRowData = TableData & {
     frozenDate?: string;
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
-    canEditName?: boolean;
     canEditLimitType?: boolean;
     canEditLimit?: boolean;
     action: () => void;
-    onRenameName?: (newName: string) => void;
     onChangeLimitType?: (limitType: CardLimitType) => void;
     /** Return false, or a promise of false, to keep the limit editor open until a confirm modal resolves. */
     onChangeLimit?: (newLimit: string) => InlineEditSaveResult;

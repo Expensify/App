@@ -1,5 +1,4 @@
 import UserAvatar from '@components/Avatar/UserAvatar';
-import {InlineTextEditCell} from '@components/EditableCell';
 import Icon from '@components/Icon';
 import {useSession} from '@components/OnyxListItemProvider';
 import Table from '@components/Table';
@@ -147,15 +146,12 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                                     style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mr3]}
                                 />
                             ) : (
-                                <View style={[styles.editableCellFlushWithSibling, !!frozenByText && styles.editableCellFrozenFooterOffset]}>
-                                    <InlineTextEditCell
-                                        value={item.name}
-                                        accessibilityLabel={translate('workspace.card.issueNewCard.cardName')}
-                                        canEdit={!!item.canEditName}
-                                        onSave={item.onRenameName}
-                                        displayTextStyle={[styles.textLabelSupporting, styles.lh16]}
-                                    />
-                                </View>
+                                <TextWithTooltip
+                                    shouldShowTooltip
+                                    numberOfLines={1}
+                                    text={item.name}
+                                    style={styles.textLabelSupporting}
+                                />
                             )}
                         </View>
                     </View>
