@@ -2535,34 +2535,6 @@ type BusinessCentralDimension = {
 };
 
 /**
- * Customer retrieved from Business Central.
- */
-type BusinessCentralCustomer = {
-    /** Unique identifier of the customer */
-    id: string;
-
-    /** Customer number shown in Business Central */
-    number: string;
-
-    /** Name of the customer */
-    name: string;
-};
-
-/**
- * Project retrieved from Business Central.
- */
-type BusinessCentralProject = {
-    /** Unique identifier of the project */
-    id: string;
-
-    /** Project number shown in Business Central */
-    number: string;
-
-    /** Name of the project */
-    name: string;
-};
-
-/**
  * Vendor retrieved from Business Central.
  */
 type BusinessCentralVendor = {
@@ -2626,12 +2598,6 @@ type BusinessCentralConnectionData = {
     /** Dimensions of the selected company */
     dimensions?: BusinessCentralDimension[];
 
-    /** Customers of the selected company */
-    customers?: BusinessCentralCustomer[];
-
-    /** Projects of the selected company */
-    projects?: BusinessCentralProject[];
-
     /** Vendors of the selected company */
     vendors?: BusinessCentralVendor[];
 
@@ -2690,11 +2656,22 @@ type BusinessCentralCoding = {
      */
     fieldMappings?: Record<string, ValueOf<typeof CONST.BUSINESS_CENTRAL_MAPPING_VALUE>>;
 
+    /** How Business Central customers and projects are imported into Expensify */
+    customerMappings?: BusinessCentralCustomerMappings;
+
     /** Whether VAT posting setups are imported as tax rates */
     syncTaxRates: boolean;
 
     /** Whether items are imported */
     syncItems: boolean;
+};
+
+/**
+ * How Business Central customers and projects are imported into Expensify.
+ */
+type BusinessCentralCustomerMappings = {
+    customers?: ValueOf<typeof CONST.BUSINESS_CENTRAL_MAPPING_VALUE>;
+    projects?: ValueOf<typeof CONST.BUSINESS_CENTRAL_MAPPING_VALUE>;
 };
 
 /** Offline feedback key for field mapping */
@@ -2703,7 +2680,10 @@ type BusinessCentralCodingFieldMappingsOfflineFeedbackKey = `${typeof CONST.BUSI
 /**
  * Offline feedback keys for `BusinessCentralCoding`
  */
-type BusinessCentralCodingOfflineFeedbackKeys = keyof Omit<BusinessCentralCoding, 'fieldMappings'> | BusinessCentralCodingFieldMappingsOfflineFeedbackKey;
+type BusinessCentralCodingOfflineFeedbackKeys =
+    | keyof Omit<BusinessCentralCoding, 'fieldMappings' | 'customerMappings'>
+    | BusinessCentralCodingFieldMappingsOfflineFeedbackKey
+    | keyof BusinessCentralCustomerMappings;
 
 /**
  * Export configuration for Business Central.
@@ -3919,8 +3899,7 @@ export type {
     CampfireSync,
     BusinessCentralCompany,
     BusinessCentralCoding,
-    BusinessCentralCustomer,
+    BusinessCentralCustomerMappings,
     BusinessCentralExport,
     BusinessCentralCodingOfflineFeedbackKeys,
-    BusinessCentralProject,
 };
