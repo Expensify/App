@@ -8243,6 +8243,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 flagAmountsOver: 'Markeer bedragen boven',
                 flagAmountsOverDescription: (categoryName: string) => `Is van toepassing op de categorie “${categoryName}”.`,
                 flagAmountsOverSubtitle: 'Dit overschrijft het maximale bedrag voor alle onkosten.',
+                expenseLimitType: 'Type onkostenlimiet',
                 expenseLimitTypes: {
                     expense: 'Individuele uitgave',
                     expenseSubtitle:

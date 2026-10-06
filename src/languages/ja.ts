@@ -8161,6 +8161,7 @@ ${reportName}`,
                 flagAmountsOver: '超過金額にフラグを付ける',
                 flagAmountsOverDescription: (categoryName: string) => `カテゴリ「${categoryName}」に適用されます。`,
                 flagAmountsOverSubtitle: 'これは、すべての経費の上限金額を上書きします。',
+                expenseLimitType: '経費上限の種類',
                 expenseLimitTypes: {
                     expense: '個別経費',
                     expenseSubtitle:
