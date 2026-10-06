@@ -206,6 +206,16 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
                         leftAlign
                     />
                 )}
+                <ActivePointIndicator
+                    position={activePointPosition}
+                    isActive={isTooltipActive}
+                    top={args.chartBounds.top}
+                    bottom={chartBoundsBottom}
+                    dotRadius={VictoryTheme.line.activeDotRadius}
+                    dotColor={VictoryTheme.colors.default}
+                    guidelineColor={VictoryTheme.colors.default}
+                    guidelineOpacity={VictoryTheme.line.guidelineOpacity}
+                />
             </>
         );
     };
@@ -267,7 +277,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
                         frame={{lineWidth: 0}}
                         data={chartData}
                     >
-                        {({points, yScale, yTicks, chartBounds}) => (
+                        {({points, yScale, yTicks}) => (
                             <>
                                 <AreaGradient
                                     points={points.y}
@@ -281,15 +291,6 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
                                     strokeCap="round"
                                     strokeJoin="round"
                                     curveType="linear"
-                                />
-                                <ActivePointIndicator
-                                    position={activePointPosition}
-                                    isActive={isTooltipActive}
-                                    top={chartBounds.top}
-                                    bottom={yScale(Math.min(...yTicks))}
-                                    dotRadius={VictoryTheme.line.activeDotRadius}
-                                    dotColor={VictoryTheme.colors.default}
-                                    guidelineColor={theme.border}
                                 />
                             </>
                         )}

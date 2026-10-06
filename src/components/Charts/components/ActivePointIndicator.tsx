@@ -19,11 +19,12 @@ type ActivePointIndicatorProps = {
     dotRadius: number;
     dotColor: string;
     guidelineColor: string;
+    guidelineOpacity: number;
 };
 
 const GUIDELINE_WIDTH = 2;
 
-function ActivePointIndicator({position, isActive, top, bottom, dotRadius, dotColor, guidelineColor}: ActivePointIndicatorProps) {
+function ActivePointIndicator({position, isActive, top, bottom, dotRadius, dotColor, guidelineColor, guidelineOpacity}: ActivePointIndicatorProps) {
     const opacity = useDerivedValue(() => (isActive.get() ? 1 : 0));
     const guidelineStart = useDerivedValue(() => ({x: position.get().x, y: top}));
     const guidelineEnd = useDerivedValue(() => ({x: position.get().x, y: bottom}));
@@ -36,6 +37,7 @@ function ActivePointIndicator({position, isActive, top, bottom, dotRadius, dotCo
                 p1={guidelineStart}
                 p2={guidelineEnd}
                 color={guidelineColor}
+                opacity={guidelineOpacity}
                 strokeWidth={GUIDELINE_WIDTH}
                 strokeCap="round"
             />

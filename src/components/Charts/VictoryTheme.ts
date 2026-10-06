@@ -74,6 +74,8 @@ const VictoryTheme = {
         strokeWidth: 4,
         /** Radius of the dot drawn on the line at the hovered data point */
         activeDotRadius: 6,
+        /** Opacity of the vertical guideline drawn at the hovered data point */
+        guidelineOpacity: 0.2,
         /** Base domain padding applied to all sides */
         domainPadding: {top: 16, bottom: 16, left: 0, right: 0},
     },
