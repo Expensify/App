@@ -26,10 +26,17 @@ type PerDiemTableRowData = TableData & {
     destination: string;
     subRateName: string;
     rate: number;
+    currency: string;
     formattedAmount: string;
     disabled?: boolean;
     pendingAction?: OnyxCommon.PendingAction;
+    canEditDestination: boolean;
+    canEditSubrate: boolean;
+    canEditAmount: boolean;
     action: () => void;
+    onRenameDestination: (newName: string) => void;
+    onRenameSubrate: (newName: string) => void;
+    onChangeAmount: (newAmount: string) => void;
 };
 
 type WorkspacePerDiemTableProps = {
@@ -48,14 +55,30 @@ export default function WorkspacePerDiemTable({perDiemData, selectionEnabled, se
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
     const columns: Array<TableColumn<PerDiemTableColumnKey>> = [
-        {key: 'destination', label: translate('common.destination'), sortable: true},
-        {key: 'subrate', label: translate('common.subrate'), sortable: true},
+        {
+            key: 'destination',
+            label: translate('common.destination'),
+            sortable: true,
+            styling: {
+                // editableCellHeader matches the padded destination cell so the label and value share an edge.
+                containerStyles: [styles.editableCellHeader],
+            },
+        },
+        {
+            key: 'subrate',
+            label: translate('common.subrate'),
+            sortable: true,
+            styling: {
+                containerStyles: [styles.editableCellHeader],
+            },
+        },
         {
             key: 'amount',
             label: translate('workspace.perDiem.amount'),
             sortable: true,
             styling: {
-                containerStyles: [styles.justifyContentEnd],
+                // Keep the amount right-aligned, inset by the same chrome as the padded amount cell.
+                containerStyles: [styles.justifyContentEnd, styles.editableCellHeader],
             },
         },
         {key: 'actions', label: '', sortable: false, width: variables.tableCaretColumnWidth},
