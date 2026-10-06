@@ -33,16 +33,13 @@ type DropdownButtonProps = WithSentryLabel &
         labelStyle?: StyleProp<TextStyle>;
         caretWrapperStyle?: StyleProp<ViewStyle>;
 
-        /** Styles applied to the button while it is hovered */
+        /** Styles applied while the button is hovered or its popover is open */
         hoverStyles?: StyleProp<ViewStyle>;
-
-        /** Styles applied to the button while its popover is open */
-        expandedStyles?: StyleProp<ViewStyle>;
 
         onClosePress?: () => void;
     };
 
-function DropdownButton({label, value, medium = false, labelStyle, innerStyles, caretWrapperStyle, hoverStyles, expandedStyles, sentryLabel, onClosePress, ...props}: DropdownButtonProps) {
+function DropdownButton({label, value, medium = false, labelStyle, innerStyles, caretWrapperStyle, hoverStyles, sentryLabel, onClosePress, ...props}: DropdownButtonProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['Close']);
@@ -77,7 +74,7 @@ function DropdownButton({label, value, medium = false, labelStyle, innerStyles, 
                             {maxWidth: variables.filterPillMaxWidth},
                             styles.flexShrink1,
                             innerStyles,
-                            isExpanded && expandedStyles,
+                            isExpanded && hoverStyles,
                             shouldShowCloseButton && styles.pr2,
                         ]}
                         hoverStyles={hoverStyles}

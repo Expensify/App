@@ -9,6 +9,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 import DEFAULT_INSIGHTS_FILTERS, {INSIGHTS_GROUP_BY_OPTIONS} from '@pages/Insights/insightsFilters';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 
 import React from 'react';
@@ -50,10 +52,9 @@ function InsightsGroupByDropdown({groupBy, onChange}: InsightsGroupByDropdownPro
             label={label}
             value={selectedItem?.text ?? null}
             sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_GROUP_BY}
-            wrapperStyle={[styles.widgetHeaderGhostButtonWrapper, styles.flexShrink1]}
+            wrapperStyle={[styles.getWidgetHeaderButtonOverflowStyle(variables.componentSizeSmall), styles.flexShrink1]}
             innerStyles={styles.bgTransparent}
             hoverStyles={styles.widgetHeaderMenuButtonHovered}
-            expandedStyles={styles.widgetHeaderMenuButtonHovered}
             labelStyle={styles.textSupporting}
             popoverAnchorAlignment={INSIGHTS_CONTROL_ANCHOR_ALIGNMENT}
             PopoverComponent={groupByPopover}

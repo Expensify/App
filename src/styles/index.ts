@@ -111,6 +111,11 @@ const getReceiptDropZoneViewStyle = (theme: ThemeColors, margin: number, padding
     flex: 1,
 });
 
+// Negative margins let a widget header button overflow the header instead of growing it, so all card headers keep the same height
+const getWidgetHeaderButtonOverflowStyle = (buttonSize: number): ViewStyle => ({
+    marginVertical: (variables.widgetHeaderTitleLineHeight - buttonSize) / 2,
+});
+
 type WebViewStyle = {
     tagStyles: MixedStyleRecord;
     baseFontStyle: MixedStyleDeclaration;
@@ -4274,45 +4279,8 @@ const staticStyles = (theme: ThemeColors) =>
             paddingVertical: 12,
         },
 
-        widgetHeaderMenuButton: {
-            width: variables.componentSizeNormal,
-            height: variables.componentSizeNormal,
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: variables.buttonBorderRadius,
-        },
-
         widgetHeaderMenuButtonHovered: {
             backgroundColor: theme.hoverComponentBG,
-        },
-
-        widgetHeaderMenuButtonWrapper: {
-            // The 40px ghost button overflows the header instead of growing it: these negative margins shrink its
-            // vertical footprint to the title line-height so every card header keeps the same height. The matching
-            // negative right margin keeps the icon's spacing to the card's right edge equal to its top spacing.
-            marginTop: (variables.widgetHeaderTitleLineHeight - variables.componentSizeNormal) / 2,
-            marginBottom: (variables.widgetHeaderTitleLineHeight - variables.componentSizeNormal) / 2,
-            marginRight: (variables.widgetHeaderTitleLineHeight - variables.componentSizeNormal) / 2,
-        },
-
-        widgetHeaderMenuButtonSmall: {
-            width: variables.componentSizeSmall,
-            height: variables.componentSizeSmall,
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: variables.buttonBorderRadius,
-        },
-
-        widgetHeaderMenuButtonSmallWrapper: {
-            // Same overflow trick as widgetHeaderMenuButtonWrapper, sized for the 28px Small Ghost trigger
-            marginTop: (variables.widgetHeaderTitleLineHeight - variables.componentSizeSmall) / 2,
-            marginBottom: (variables.widgetHeaderTitleLineHeight - variables.componentSizeSmall) / 2,
-            marginRight: (variables.widgetHeaderTitleLineHeight - variables.componentSizeSmall) / 2,
-        },
-
-        widgetHeaderGhostButtonWrapper: {
-            // Same overflow trick as widgetHeaderMenuButtonWrapper so the small ghost button doesn't grow the card header
-            marginVertical: (variables.widgetHeaderTitleLineHeight - variables.componentSizeSmall) / 2,
         },
 
         widgetItemSubtitle: {
@@ -7495,6 +7463,20 @@ const plainStyles = (theme: ThemeColors) =>
             }) satisfies TextStyle,
 
         getWidgetContainerBottomPaddingStyle: (shouldUseNarrowLayout: boolean): ViewStyle => (shouldUseNarrowLayout ? spacing.pb2 : spacing.pb5),
+
+        getWidgetHeaderButtonOverflowStyle,
+
+        // Negative right margin matches the vertical ones so the icon's spacing to the card edge equals its top spacing
+        getWidgetHeaderMenuButtonStyle: (buttonSize: number) =>
+            ({
+                width: buttonSize,
+                height: buttonSize,
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: variables.buttonBorderRadius,
+                ...getWidgetHeaderButtonOverflowStyle(buttonSize),
+                marginRight: (variables.widgetHeaderTitleLineHeight - buttonSize) / 2,
+            }) satisfies ViewStyle,
 
         getWidgetContainerHeaderStyle: (shouldUseNarrowLayout: boolean) =>
             ({

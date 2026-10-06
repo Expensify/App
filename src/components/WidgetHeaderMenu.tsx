@@ -4,8 +4,6 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import type {StyleProp, ViewStyle} from 'react-native';
-
 import React from 'react';
 
 import type {PopoverMenuItem} from './PopoverMenu';
@@ -21,11 +19,8 @@ type WidgetHeaderMenuProps = {
     /** Items shown in the popover opened by the three-dots trigger */
     menuItems: PopoverMenuItem[];
 
-    /** Styles for the trigger button, replacing its default size and margins */
-    iconStyles?: StyleProp<ViewStyle>;
-
-    /** Width and height of the three-dots icon */
-    iconSize?: number;
+    /** Size of the three-dots button */
+    size?: typeof CONST.BUTTON_SIZE.SMALL | typeof CONST.BUTTON_SIZE.MEDIUM;
 
     testID?: string;
     sentryLabel?: string;
@@ -35,15 +30,17 @@ type WidgetHeaderMenuProps = {
  * Widget header three-dots menu: a Ghost trigger whose negative margins let it overflow the header
  * rather than grow it, so every card header keeps the same height. Built on `ThreeDotsMenu`.
  */
-function WidgetHeaderMenu({menuItems, iconStyles, iconSize = variables.iconSizeSmall, testID, sentryLabel}: WidgetHeaderMenuProps) {
+function WidgetHeaderMenu({menuItems, size = CONST.BUTTON_SIZE.MEDIUM, testID, sentryLabel}: WidgetHeaderMenuProps) {
     const styles = useThemeStyles();
+    const isSmall = size === CONST.BUTTON_SIZE.SMALL;
+    const iconSize = isSmall ? variables.iconSizeExtraSmall : variables.iconSizeSmall;
 
     return (
         <ThreeDotsMenu
             menuItems={menuItems}
             shouldSelfPosition
             anchorAlignment={ANCHOR_ALIGNMENT}
-            iconStyles={iconStyles ?? [styles.widgetHeaderMenuButton, styles.widgetHeaderMenuButtonWrapper]}
+            iconStyles={styles.getWidgetHeaderMenuButtonStyle(isSmall ? variables.componentSizeSmall : variables.componentSizeNormal)}
             iconHoverStyle={styles.widgetHeaderMenuButtonHovered}
             iconWidth={iconSize}
             iconHeight={iconSize}
