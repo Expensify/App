@@ -72,7 +72,7 @@ function useInlineEditState<T>(
             return;
         }
 
-        // The confirm modal blurs this input. Leave it mounted so the typed amount stays visible until the modal closes.
+        // The confirm modal blurs this input. Leave it mounted so the typed value stays visible until the modal closes.
         setIsAwaitingConfirm(true);
         result.then(
             (shouldClose) => {
