@@ -2374,14 +2374,14 @@ function isXeroActiveMatchingSource(policy: OnyxEntry<Policy>): boolean {
  * the field.
  *
  * The `vendorMatching` beta only gates the integrations that haven't reached GA yet, so
- * `isVendorMatchingBetaEnabled` is consulted on every branch but QBO, Sage Intacct, Xero, Rillet, and DualEntry:
+ * `isVendorMatchingBetaEnabled` is consulted on every branch but QBO, Sage Intacct, Xero, Rillet, DualEntry, and Campfire:
  *   - QBO (R1) with non-reimbursable export = Credit Card or Debit Card. GA, so no beta required
  *   - Sage Intacct (R2) with non-reimbursable export = Credit Card Charge. GA, so no beta required
  *   - Xero (R3) has no export destination enum, so a configured connection is enough. GA, so no beta required
  *   - Rillet (R4) configured connection. GA, so no beta required
  *   - DualEntry configured connection. GA, so no beta required
  *   - Business Central configured connection. Beta required
- *   - Campfire has no export destination enum, so a configured connection is enough. Beta required
+ *   - Campfire has no export destination enum, so a configured connection is enough. GA, so no beta required
  *   - Certinia FFA configured connection. Beta required
  */
 function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
@@ -2393,11 +2393,12 @@ function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled
         isIntacctVendorMatchingActive(policy) ||
         isXeroVendorMatchingActive(policy) ||
         isRilletVendorMatchingActive(policy) ||
-        isDualEntryVendorMatchingActive(policy)
+        isDualEntryVendorMatchingActive(policy) ||
+        isCampfireVendorMatchingActive(policy)
     ) {
         return true;
     }
-    return isVendorMatchingBetaEnabled && (isBusinessCentralVendorMatchingActive(policy) || isCampfireVendorMatchingActive(policy) || isCertiniaVendorMatchingActive(policy));
+    return isVendorMatchingBetaEnabled && (isBusinessCentralVendorMatchingActive(policy) || isCertiniaVendorMatchingActive(policy));
 }
 
 /**
