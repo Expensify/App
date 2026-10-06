@@ -37,7 +37,6 @@ import {
 } from '@libs/PolicyUtils';
 import {getAllPolicyExpenseChatReportActions} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
-import {getSearchParamFromPath} from '@libs/Url';
 
 import variables from '@styles/variables';
 
@@ -225,14 +224,7 @@ function WorkspaceInviteMessageComponent({
         }
 
         if (isWorkflowApprovalExpensesFromRoute) {
-            const nestedBackTo = getSearchParamFromPath(backTo?.toString() ?? '', 'backTo');
-            if (nestedBackTo) {
-                Navigation.goBack(nestedBackTo as Routes);
-            } else {
-                // forceReplace so the invite page is removed from the stack. Otherwise it stays
-                // underneath the Approver page and an iOS swipe-back reopens the invite confirm page.
-                Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, 0), {forceReplace: true});
-            }
+            Navigation.goBack(backTo);
             return;
         }
 
