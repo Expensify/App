@@ -49,7 +49,7 @@ If multiple workflows are detected → split into multiple articles.
 
 ## Capitalization
 
-- Use title case for the article title (the frontmatter `title` and the `#` title).
+- Use title case for the article title (the metadata `title` and the `#` title).
 - Use sentence case for every `##` heading.
 - Capitalize proper nouns, product names, plan names, and acronyms. Write `# FAQ` in all caps.
 - Lowercase roles and generic terms (for example, workspace admin, workspace, expense report) unless quoting a UI label.

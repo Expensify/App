@@ -408,7 +408,7 @@ Always reference the exact UI label, icon, or navigation path.
 
 ## Article Titles and Headings
 
-- Use title case for the article title: the frontmatter `title` and the `#` title.
+- Use title case for the article title: the metadata `title` and the `#` title.
 - Use sentence case for every `##` heading.
 - Capitalize proper nouns and product names inside headings.
 - `# FAQ` is always written in all caps as an acronym.
