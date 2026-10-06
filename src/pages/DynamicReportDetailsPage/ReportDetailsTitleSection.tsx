@@ -119,7 +119,7 @@ function ReportDetailsTitleSectionContent({report}: ReportDetailsTitleSectionCon
                 </View>
             </OfflineWithFeedback>
             {shouldShowFurtherDetailsContent && (
-                <MenuItem.Root>
+                <MenuItem.Root accessibilityLabel={translate('threads.from')}>
                     <MenuItem.Row>
                         <MenuItemField.Content name={translate('threads.from')}>
                             <ParentNavigationSubtitle
