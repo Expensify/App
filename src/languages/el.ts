@@ -1055,6 +1055,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({date}: {date: string}) => `Η συνδρομή λήγει στις ${date}`,
                 cta: 'Διαχείριση',
             },
+            emailDeliveryFailure: {title: 'Δεν μπορούμε να σας στέλνουμε ειδοποιήσεις μέσω email', subtitle: 'Λογαρια​σμός'},
         },
         freeTrialSection: {
             title: ({count}: {count: number}) => ({
@@ -3072,7 +3073,7 @@ ${amount} για ${merchant} - ${date}`,
             `Ο/Η ${memberName} βρίσκεται ήδη σε ροή έγκρισης που υποβάλλεται σε ${approverName}. Η προσθήκη τους εδώ θα τους μετακινήσει σε αυτήν τη ροή.`,
         moveEveryoneToThisWorkflowTitle: 'Μετακινήστε όλους σε αυτήν τη ροή εργασίας',
         moveEveryoneToThisWorkflowPrompt:
-            'Πρόκειται να μετακινήσετε όλους/όλες σε αυτήν τη ροή έγκρισης. Αυτό θα διαγράψει όλες τις άλλες ροές έγκρισης και θα μετακινήσει όλους/όλες σε αυτήν. Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.',
+            'Πρόκειται να μετακινήσετε όλους/όλες σε αυτήν τη νέα ροή έγκρισης. Με την αποθήκευση θα διαγραφούν όλες οι άλλες ροές έγκρισης. Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.',
     },
     workflowsApproverPage: {
         genericErrorMessage: 'Δεν ήταν δυνατή η αλλαγή του εγκρίνοντα. Δοκιμάστε ξανά ή επικοινωνήστε με την υποστήριξη.',
@@ -3477,9 +3478,9 @@ ${amount} για ${merchant} - ${date}`,
             otherAccountingSoftware: 'Όνομα λογισμικού',
         },
         interestedFeatures: {
-            title: 'Σε ποιες δυνατότητες ενδιαφέρεστε;',
-            featuresAlreadyEnabled: 'Αυτά είναι τα πιο δημοφιλή χαρακτηριστικά μας:',
-            featureYouMayBeInterestedIn: 'Ενεργοποιήστε πρόσθετες λειτουργίες:',
+            title: 'Επιλέξτε τις λειτουργίες που θέλετε',
+            featuresAlreadyEnabled: 'Ο χώρος εργασίας σας έχει ήδη ενεργοποιημένα τα εξής:',
+            featureYouMayBeInterestedIn: 'Ενεργοποιήστε πρόσθετες λειτουργίες που μπορεί να σας ενδιαφέρουν:',
         },
         error: {
             requiredFirstName: 'Παρακαλούμε εισαγάγετε το μικρό σας όνομα για να συνεχίσετε',
@@ -4849,6 +4850,12 @@ ${amount} για ${merchant} - ${date}`,
             settlementFrequency: 'Συχνότητα εκκαθάρισης',
             setAsDefault: 'Ορισμός ως προεπιλεγμένου χώρου εργασίας',
             defaultNote: `Οι αποδείξεις που αποστέλλονται στο ${CONST.EMAIL.RECEIPTS} θα εμφανίζονται σε αυτόν τον χώρο εργασίας.`,
+            archive: 'Αρχειοθέτηση χώρου εργασίας',
+            archiveConfirmation: 'Είστε βέβαιοι ότι θέλετε να αρχειοθετήσετε αυτόν τον χώρο εργασίας;',
+            archiveWithThirdPartyCardsConfirmation:
+                'Είστε βέβαιοι ότι θέλετε να αρχειοθετήσετε αυτόν τον χώρο εργασίας; Θα καταργηθεί η ανάθεση όλων των πιστωτικών καρτών από τους χρήστες και θα διαγραφούν οριστικά όσες δαπάνες καρτών δεν έχουν υποβληθεί.',
+            archiveWithExpensifyCardsConfirmation:
+                'Είστε βέβαιοι ότι θέλετε να αρχειοθετήσετε αυτόν τον χώρο εργασίας; Όλα τα όρια των Expensify Card θα οριστούν σε $0 και κάθε νέα απόπειρα αγοράς θα απορρίπτεται αυτόματα.',
             deleteWorkspaceTitle: (workspaceName: string) => `Διαγραφή του ${workspaceName};`,
             deleteConfirmation: 'Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτόν τον χώρο εργασίας;',
             deleteWithCardsConfirmation: 'Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτόν τον χώρο εργασίας; Θα αφαιρεθούν όλες οι ροές καρτών και οι ανατεθειμένες κάρτες.',
@@ -5150,7 +5157,7 @@ ${amount} για ${merchant} - ${date}`,
                 autoSyncDescription: 'Το Expensify θα συγχρονίζεται αυτόματα με το QuickBooks Desktop κάθε μέρα.',
                 createEntities: 'Αυτόματη δημιουργία οντοτήτων',
                 createEntitiesDescription: 'Η Expensify θα δημιουργεί αυτόματα προμηθευτές στο QuickBooks Desktop, αν δεν υπάρχουν ήδη.',
-                fxExpenseAccount: 'Λογαριασμός προμήθειας μετατροπής συναλλάγματος',
+                fxExpenseAccount: 'Λογαριασμός προμήθειας μετατροπής νομίσματος',
                 fxExpenseAccountDescription:
                     'Όταν η εταιρεία σας καλύπτει το κόστος μετατροπής νομίσματος σε μια αποζημίωση που καταβάλλεται στο εξωτερικό, θα το προσθέτουμε στην εξαγωγή ως επιπλέον γραμμή που θα κωδικοποιείται σε αυτόν τον λογαριασμό.',
             },
@@ -6130,6 +6137,11 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                     }
                     return `${customAccountsCount} κάρτες με προσαρμοσμένους λογαριασμούς`;
                 },
+            },
+            fxExpenseAccount: {
+                label: 'Λογαριασμός προμήθειας μετατροπής νομίσματος Rillet',
+                description:
+                    'Όταν η εταιρεία σας καλύπτει το κόστος μετατροπής νομίσματος για μια πληρωμή στο εξωτερικό, θα καταχωρούμε αυτό το κόστος σε αυτόν τον λογαριασμό στο Rillet ως λογιστική εγγραφή.',
             },
         },
         dualEntry: {
@@ -10223,7 +10235,6 @@ ${reportName}`,
         noCategory: 'Χωρίς κατηγορία',
         noMerchant: 'Χωρίς έμπορο',
         noTag: 'Χωρίς ετικέτα',
-        noVendor: 'Χωρίς προμηθευτή',
         expenseType: 'Τύπος εξόδου',
         receiptType: 'Τύπος απόδειξης',
         receiptTypeValues: {
@@ -10273,7 +10284,12 @@ ${reportName}`,
             title: 'Λήψη κατάστασης',
             oneFeedAtATime: 'Παρακαλούμε επιλέγετε διακανονισμούς από μία ροή Κάρτας Expensify κάθε φορά.',
         },
-        percentOfSpend: ({percent}: {percent: string}) => `${percent} των δαπανών`,
+        saveEdits: {
+            title: 'Αποθήκευση αλλαγών',
+            prompt: ({name}: {name: string}) => `Θέλετε να ενημερώσετε τις αλλαγές στο «${name}» ή να δημιουργήσετε νέο;`,
+            createNew: 'Δημιουργία νέου',
+            updateExisting: 'Ενημέρωση υπάρχοντος',
+        },
     },
     genericErrorPage: {
         title: 'Ωχ, κάτι πήγε στραβά!',
@@ -10640,6 +10656,12 @@ ${reportName}`,
     distance: {
         addStop: 'Προσθήκη στάσης',
         address: 'Διεύθυνση',
+        reuseRoute: 'Επαναχρησιμοποίηση διαδρομής',
+        reusePriorRoute: 'Επαναχρησιμοποίηση προηγούμενης διαδρομής',
+        choosePreviousRoute: 'Επιλέξτε μια προηγούμενη διαδρομή παρακάτω:',
+        findARoute: 'Βρείτε διαδρομή',
+        lastUsed: ({date}: {date: string}) => `Τελευταία χρήση ${date}`,
+        end: 'Τέλος',
         waypointDescription: {
             start: 'Έναρξη',
             stop: 'Διακοπή',
@@ -11952,6 +11974,19 @@ ${reportName}`,
         companyPays: 'Η εταιρεία πληρώνει',
         employeePays: 'Ο εργαζόμενος πληρώνει',
         errorMessage: 'Δεν ήταν δυνατή η αλλαγή της προτίμησης χρέωσης μετατροπής νομίσματος. Παρακαλούμε δοκιμάστε ξανά ή επικοινωνήστε με την υποστήριξη.',
+    },
+    emailIssuePage: {
+        title: 'Πρόβλημα email',
+        intro: (login: string) => `Ο πάροχος email μας διέκοψε την αποστολή προς τη διεύθυνση <strong>${login}</strong> λόγω προβλημάτων παράδοσης. Για να διορθώσετε αυτό το ζήτημα:`,
+        confirmEmailTitle: 'Επιβεβαιώστε τη διεύθυνση email σας',
+        confirmEmailDescription: (login: string) =>
+            `Βεβαιωθείτε ότι το <strong>${login}</strong> είναι σωστά γραμμένο και αντιστοιχεί σε πραγματικά εισερχό​μενα. Τα ψευδώνυμα όπως «expenses@domain.com» χρειάζονται τα δικά τους λειτουργικά εισερχό​μενα για να συνδεθούν στο Expensify.`,
+        allowlistTitle: 'Προσθέστε το expensify.com στη λίστα επιτρεπόμενων',
+        allowlistDescription: `Προσθέστε το <strong>expensify.com</strong> στη λίστα επιτρεπόμενων του προγράμματος ηλεκτρονικής αλληλογραφίας σας. Ίσως χρειαστείτε το τμήμα IT για να προσαρμόσει τις ρυθμίσεις διακομιστή μέσω <a href="${CONST.SET_NOTIFICATION_LINK}">αυτών των οδηγιών</a>.`,
+        getHelpFromConcierge: 'Λάβετε βοήθεια από το Concierge',
+        completedSteps: 'Ολοκλήρωσα τα παραπάνω βήματα',
+        errorTitle: 'Κάτι πήγε στραβά. Δοκιμάστε ξανά',
+        errorPrompt: 'Φαίνεται πως κάτι δεν λειτούργησε. Δοκιμάστε ξανά. Αν το πρόβλημα συνεχιστεί, επικοινωνήστε με το Concierge.',
     },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Ανανεώστε τη συνδρομή σας για περίοδο 12 μηνών, από ${startDate} έως ${endDate}.`,
