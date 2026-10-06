@@ -6,8 +6,6 @@ import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Icon from '@components/Icon';
 import ImageSVG from '@components/ImageSVG';
-import {PressableWithFeedback} from '@components/Pressable';
-import RadioButton from '@components/RadioButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -25,25 +23,14 @@ import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
+import EarlyRenewalOfferTile from './EarlyRenewalOfferTile';
+
 type IncentivizedOfferID = typeof CONST.SUBSCRIPTION.EARLY_RENEWAL.OFFER_ID.INCENTIVIZED_ONE_YEAR | typeof CONST.SUBSCRIPTION.EARLY_RENEWAL.OFFER_ID.INCENTIVIZED_TWO_YEARS;
-
-type Offer = {
-    offerID: IncentivizedOfferID;
-    label: TranslationPaths;
-    illustration: 'IceCreamNumberOne' | 'IceCreamNumberTwo';
-    isBestDeal: boolean;
-};
-
-const OFFERS: Offer[] = [
-    {offerID: CONST.SUBSCRIPTION.EARLY_RENEWAL.OFFER_ID.INCENTIVIZED_ONE_YEAR, label: 'earlyRenewal.offer.oneYear', illustration: 'IceCreamNumberOne', isBestDeal: false},
-    {offerID: CONST.SUBSCRIPTION.EARLY_RENEWAL.OFFER_ID.INCENTIVIZED_TWO_YEARS, label: 'earlyRenewal.offer.twoYears', illustration: 'IceCreamNumberTwo', isBestDeal: true},
-];
 
 function EarlyRenewalOfferPage() {
     const styles = useThemeStyles();
@@ -110,49 +97,25 @@ function EarlyRenewalOfferPage() {
                         role={CONST.ROLE.RADIOGROUP}
                         accessibilityLabel={translate('earlyRenewal.offer.heading')}
                     >
-                        {OFFERS.map((offer) => {
-                            const isSelected = selectedOfferID === offer.offerID;
-                            return (
-                                <PressableWithFeedback
-                                    key={offer.offerID}
-                                    onPress={() => selectOffer(offer.offerID)}
-                                    role={CONST.ROLE.RADIO}
-                                    accessibilityState={{checked: isSelected}}
-                                    accessibilityLabel={translate(offer.label)}
-                                    wrapperStyle={styles.flex1}
-                                    style={[styles.earlyRenewalOfferOption, isSelected && styles.earlyRenewalOfferOptionSelected]}
-                                    sentryLabel={CONST.SENTRY_LABEL.EARLY_RENEWAL_OFFER.OPTION}
-                                >
-                                    {/* The whole tile is the radio for assistive tech, so this one is only visual. */}
-                                    <View
-                                        style={styles.earlyRenewalOfferOptionRadio}
-                                        aria-hidden
-                                        importantForAccessibility="no-hide-descendants"
-                                    >
-                                        <RadioButton
-                                            isChecked={isSelected}
-                                            onPress={() => selectOffer(offer.offerID)}
-                                            accessibilityLabel={translate(offer.label)}
-                                            tabIndex={-1}
-                                        />
-                                    </View>
-                                    {offer.isBestDeal && (
-                                        <Badge
-                                            success
-                                            isCondensed
-                                            text={translate('earlyRenewal.offer.bestDeal')}
-                                            badgeStyles={styles.earlyRenewalOfferOptionBadge}
-                                        />
-                                    )}
-                                    <Icon
-                                        src={illustrations[offer.illustration]}
-                                        width={variables.earlyRenewalOfferOptionIllustrationSize}
-                                        height={variables.earlyRenewalOfferOptionIllustrationSize}
-                                    />
-                                    <Text style={[styles.textStrong, styles.textAlignCenter]}>{translate(offer.label)}</Text>
-                                </PressableWithFeedback>
-                            );
-                        })}
+                        <EarlyRenewalOfferTile
+                            label={translate('earlyRenewal.offer.oneYear')}
+                            illustration={illustrations.IceCreamNumberOne}
+                            isSelected={selectedOfferID === CONST.SUBSCRIPTION.EARLY_RENEWAL.OFFER_ID.INCENTIVIZED_ONE_YEAR}
+                            onSelect={() => selectOffer(CONST.SUBSCRIPTION.EARLY_RENEWAL.OFFER_ID.INCENTIVIZED_ONE_YEAR)}
+                        />
+                        <EarlyRenewalOfferTile
+                            label={translate('earlyRenewal.offer.twoYears')}
+                            illustration={illustrations.IceCreamNumberTwo}
+                            isSelected={selectedOfferID === CONST.SUBSCRIPTION.EARLY_RENEWAL.OFFER_ID.INCENTIVIZED_TWO_YEARS}
+                            onSelect={() => selectOffer(CONST.SUBSCRIPTION.EARLY_RENEWAL.OFFER_ID.INCENTIVIZED_TWO_YEARS)}
+                        >
+                            <Badge
+                                success
+                                isCondensed
+                                text={translate('earlyRenewal.offer.bestDeal')}
+                                badgeStyles={styles.earlyRenewalOfferOptionBadge}
+                            />
+                        </EarlyRenewalOfferTile>
                     </View>
                 </ScrollView>
                 <FixedFooter addBottomSafeAreaPadding>
