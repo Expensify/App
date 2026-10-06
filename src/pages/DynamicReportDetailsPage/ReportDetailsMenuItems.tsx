@@ -16,7 +16,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Permissions from '@libs/Permissions';
 import {getTrackExpenseActionableWhisper} from '@libs/ReportActionsUtils';
 import {getOriginalReportID, isArchivedNonExpenseReport, isSelfDM as isSelfDMUtil, isTrackExpenseReportNew as isTrackExpenseReportUtil} from '@libs/ReportUtils';
-import {getOriginalTransactionWithSplitInfo} from '@libs/TransactionUtils';
+import {getOriginalTransactionWithSplitInfo, isPerDiemRequest, isTimeRequest} from '@libs/TransactionUtils';
 
 import {createDraftTransactionAndNavigateToParticipantSelector} from '@userActions/IOU/StartExpenseFlows';
 
@@ -127,8 +127,9 @@ function ReportDetailsMenuItems({reportID, requestData}: ReportDetailsMenuItemsP
             submitItems = (
                 <>
                     {/* Self-DM split expenses can only be submitted to a workspace, so the "a friend" destination is omitted here
-                    just like it is on the track-expense whisper. */}
-                    {!isSelfDMExpenseSplit && (
+                    just like it is on the track-expense whisper. A DM is not a valid destination for per diem and time expenses,
+                    nor for a user restricted to one workspace. */}
+                    {!isSelfDMExpenseSplit && !isRestrictedToPreferredPolicy && !isPerDiemRequest(iouTransaction) && !isTimeRequest(iouTransaction) && (
                         <MenuItem
                             title={translate('actionableMentionTrackExpense.submitToFriend')}
                             icon={expensifyIcons.Send}
