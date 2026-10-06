@@ -37,7 +37,7 @@ import type {Locale as DateFnsLocale} from 'date-fns';
 import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {differenceInCalendarDays, isValid, parseISO} from 'date-fns';
+import {differenceInCalendarDays, format, isValid, parse, parseISO} from 'date-fns';
 import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 
@@ -56,7 +56,6 @@ import {
     removeTransactionFromDuplicateTransactionViolation,
 } from './duplicates';
 import getDistanceInMeters from './getDistanceInMeters';
-import formatPostedDate from './getFormattedPostedDate';
 import getSelectedRouteKey from './getSelectedRouteKey';
 // eslint-disable-next-line import/no-cycle
 import {getClearedPendingFields, getDistanceMerchantForTransaction, getUpdatedTransaction} from './getUpdatedTransaction';
@@ -565,12 +564,13 @@ function getPostedDate(transaction: OnyxInputOrEntry<Transaction>): string {
  * Return the formatted posted date from the transaction.
  */
 function getFormattedPostedDate(transaction: OnyxInputOrEntry<Transaction>, dateFormat: MachineDateFormat = CONST.DATE.FNS_FORMAT_STRING): string {
-    const postedDate = formatPostedDate(getPostedDate(transaction));
+    const postedDate = getPostedDate(transaction);
+    const parsedDate = parse(postedDate.slice(0, 8), 'yyyyMMdd', new Date());
 
-    if (!postedDate) {
-        return '';
+    if (isValid(parsedDate)) {
+        return DateUtils.formatMachineDateWithUTCTimeZone(format(parsedDate, 'yyyy-MM-dd'), dateFormat);
     }
-    return DateUtils.formatMachineDateWithUTCTimeZone(postedDate, dateFormat);
+    return '';
 }
 
 /**

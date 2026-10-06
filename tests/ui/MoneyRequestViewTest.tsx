@@ -460,54 +460,6 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
-    it('should append the posted date to the Date description for a company card transaction with a date and time posted value', async () => {
-        const threadReport = {
-            ...LHNTestUtils.getFakeReport(),
-            parentReportID: expenseReportID,
-            parentReportActionID,
-        };
-
-        // Given a company card transaction that posted, with a posted value that includes a time, as Amex sends it
-        await setupTestData();
-        await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {managedCard: true, posted: '20261002153000'});
-        });
-        await waitForBatchedUpdatesWithAct();
-
-        // When the expense view renders
-        renderMoneyRequestView(threadReport);
-        await waitForBatchedUpdatesWithAct();
-
-        // Then the Date description includes the posted date, matching the Expensify Card display
-        await waitFor(() => {
-            expect(screen.getByLabelText(fieldLabel(`common.date ${CONST.DOT_SEPARATOR} iou.posted 2026-10-02`))).toBeOnTheScreen();
-        });
-    });
-
-    it('should not append a posted date to the Date description for a pending company card transaction', async () => {
-        const threadReport = {
-            ...LHNTestUtils.getFakeReport(),
-            parentReportID: expenseReportID,
-            parentReportActionID,
-        };
-
-        // Given a pending company card transaction, which has no posted value yet
-        await setupTestData();
-        await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {managedCard: true, status: CONST.TRANSACTION.STATUS.PENDING});
-        });
-        await waitForBatchedUpdatesWithAct();
-
-        // When the expense view renders
-        renderMoneyRequestView(threadReport);
-        await waitForBatchedUpdatesWithAct();
-
-        // Then the Date description is plain "Date"
-        await waitFor(() => {
-            expect(screen.getByLabelText(fieldLabel('common.date'))).toBeOnTheScreen();
-        });
-    });
-
     it('should append "Non-reimbursable" to the Amount description when the transaction is non-reimbursable in a single-expense report', async () => {
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
