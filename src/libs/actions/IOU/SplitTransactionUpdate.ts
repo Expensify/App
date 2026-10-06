@@ -705,10 +705,7 @@ function updateSplitTransactions({
                 selfDMReportID,
             },
             // For selfDM, use the selfDM report as the parent chat report so report actions are stored there
-            parentChatReport:
-                isSelfDMSplit && selfDMReportID
-                    ? getReportOrDraftReport(selfDMReportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${selfDMReportID}`] ?? {})
-                    : fallbackPolicyParentChatReport,
+            parentChatReport: isSelfDMSplit && selfDMReportID ? getReportOrDraftReport(selfDMReportID, undefined, undefined, {}) : fallbackPolicyParentChatReport,
             existingTransaction: originalTransaction,
             isASAPSubmitBetaEnabled,
             currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
