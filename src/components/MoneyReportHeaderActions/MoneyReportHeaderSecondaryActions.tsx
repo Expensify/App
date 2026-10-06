@@ -313,7 +313,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             ? sortPoliciesByName(activeAdminPolicies, localeCompare)
             : [];
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Info', 'Cash', 'ArrowRight', 'Building', 'Table']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Info', 'Cash', 'ArrowRight', 'Building', 'Columns']);
 
     // Build PAY action sub-items. Workspace-policy entries carry the policy as data and have no onSelected;
     // MoneyReportHeaderKYCDropdown picks them up via onSubItemSelected where triggerKYCFlow is in scope.
@@ -419,7 +419,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         [CONST.REPORT.SECONDARY_ACTIONS.CUSTOMIZE_FIELDS]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.CUSTOMIZE_FIELDS,
             text: translate('search.customizeFields'),
-            icon: expensifyIcons.Table,
+            icon: expensifyIcons.Columns,
             onSelected: () => {
                 if (!reportID) {
                     return;

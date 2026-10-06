@@ -135,7 +135,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         'DocumentMerge',
         'ExpenseCopy',
         'Info',
-        'Table',
+        'Columns',
         'Send',
         'Stopwatch',
         'ThumbsDown',
@@ -543,7 +543,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.CUSTOMIZE_FIELDS]: {
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.CUSTOMIZE_FIELDS,
             text: translate('search.customizeFields'),
-            icon: expensifyIcons.Table,
+            icon: expensifyIcons.Columns,
             onSelected: () => {
                 if (!parentReport?.reportID) {
                     return;
