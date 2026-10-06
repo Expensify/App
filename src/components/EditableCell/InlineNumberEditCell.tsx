@@ -14,7 +14,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
+import {getLocalizedCurrencySymbol, hasSpaceBetweenSymbolAndAmount} from '@libs/CurrencyUtils';
 
 import CONST from '@src/CONST';
 
@@ -72,6 +72,7 @@ function InlineNumberEditCell({
     const isRightAligned = textAlign === 'right';
 
     const {isEditing, setLocalValue, startEditing, save, cancelEditing} = useInlineEditState(canEdit, value, onSave, isEqual);
+    const hasSymbolSpaceInPreview = hasSpaceBetweenSymbolAndAmount(preferredLocale, currency);
 
     const focusOnMount = (ref: BaseTextInputRef | null) => {
         inputRef.current = ref;
@@ -115,7 +116,7 @@ function InlineNumberEditCell({
                     containerStyle={[styles.editableCellInputStyle]}
                     touchableInputWrapperStyle={styles.editableCellInputStyle}
                     scrollViewStyle={[styles.flexRow, styles.alignItemsCenter, isRightAligned && styles.justifyContentEnd]}
-                    symbolTextStyle={styles.editableCellSymbolStyle}
+                    symbolTextStyle={[styles.editableCellSymbolStyle, hasSymbolSpaceInPreview && styles.pr1]}
                 />
             }
         >
