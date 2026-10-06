@@ -22,11 +22,9 @@ Expensify also supports Agent rules, which are workspace-level AI automations en
 
 ## Who can use Agents
 
-Agents are currently available through an open beta program. If you’d like to try Agents and provide feedback, contact Concierge to request access.
+Agents are available for all members, and anyone can create an agent.
 
-If the beta is enabled on your account, you can create an agent. When the feature is available to you, an **Agents** option appears in your **Account** settings
-
-If you don't see **Agents** in your **Account** settings, the Beta isn't enabled on your account yet.
+**Agents** appears under **Account** with a **Beta** badge. The badge means the feature is still being improved, not that you need access granted.
 
 ---
 
@@ -207,7 +205,7 @@ For details on configuring approval workflows generally, see [Learn how to add a
 
 ## Why can't I see Agents in my Account settings?
 
-Agents are in **Beta** and may not be enabled on your account yet. When the feature is available, an **Agents** option appears in your **Account** settings with a **Beta** badge.
+**Agents** is hidden while you’re Copiloting into an agent’s account, because an agent can’t create its own agents. Return to your own account to access **Agents**. [Learn how to exit a Copilot account and return to your own account](/articles/new-expensify/settings/Act-as-a-Copilot)).
 
 ## What's the difference between building a custom agent and starting from a template?
 
