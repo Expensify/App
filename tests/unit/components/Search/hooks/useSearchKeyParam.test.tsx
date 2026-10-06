@@ -107,6 +107,17 @@ describe('useSearchKeyParam', () => {
             expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
         });
 
+        it('resolves an existing Violations by submitter query to its search key', () => {
+            // Given Violations by submitter is no longer a Spend menu entry, but the suggested search is still defined
+            const violationsQuery = getSuggestedSearches()[CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER].searchQuery;
+
+            // When that query is the current search
+            const {result} = renderSearchKeyParam(violationsQuery);
+
+            // Then it keeps the Violations by submitter key instead of falling back to Expenses
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER);
+        });
+
         it('matches a suggested search by its last (SEARCH_FILTERS) query', () => {
             mockOnyx({[ONYXKEYS.SEARCH_FILTERS]: {[CONST.SEARCH.SEARCH_KEYS.SUBMIT]: mockSearchFilter(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} merchant:Zulu`)}});
 
