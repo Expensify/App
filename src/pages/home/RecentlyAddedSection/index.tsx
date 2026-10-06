@@ -68,8 +68,11 @@ function RecentlyAddedSection() {
         };
         const reportID = getReportIDToOpenForExpense(expense, resolveContext);
 
-        const siblingTransactionIDs = transactions.map((sibling) => sibling.transactionID);
-        const siblingDescriptorsByTransactionID = transactions.reduce<Record<string, TransactionThreadNavigationDescriptor>>((map, sibling) => {
+        // A pending-delete row can't be opened from Home, so keep it out of the carousel too. Otherwise its
+        // descriptor would keep it in the arrows after the delete syncs and the arrow would land on "not here".
+        const navigableSiblings = transactions.filter((sibling) => sibling.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const siblingTransactionIDs = navigableSiblings.map((sibling) => sibling.transactionID);
+        const siblingDescriptorsByTransactionID = navigableSiblings.reduce<Record<string, TransactionThreadNavigationDescriptor>>((map, sibling) => {
             // eslint-disable-next-line no-param-reassign
             map[sibling.transactionID] = {
                 reportID: sibling.reportID,

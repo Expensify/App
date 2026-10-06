@@ -431,6 +431,43 @@ describe('RecentlyAddedSection', () => {
             });
         });
 
+        it('leaves a pending-delete expense out of the prev/next carousel', async () => {
+            // Given an expense deleted offline, which stays in the list with strikethrough
+            setWideLayout();
+            const pendingDeleteRow = {...ROW_1, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+            mockUseRecentlyAddedData.mockReturnValue({transactions: [pendingDeleteRow, ROW_2], isAwaitingFirstResult: false});
+
+            renderRecentlyAddedSection();
+            await waitForBatchedUpdatesWithAct();
+
+            // When the user opens the expense next to it
+            fireEvent.press(screen.getByTestId('recentlyAddedRow-t2'));
+            await waitForBatchedUpdatesWithAct();
+
+            const seededIDs = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+            const seededDescriptors = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+            // Then the deleted expense gets neither an ID nor a descriptor, so the arrows can't land on its "not here" page
+            expect(seededIDs).toEqual([ROW_2.transactionID]);
+            expect(seededDescriptors).not.toHaveProperty(ROW_1.transactionID);
+        });
+
         it('resolves only the tapped expense and creates no threads for siblings (lazy carousel)', async () => {
             setWideLayout();
             const parentReportID = 'report_multi_lazy';
