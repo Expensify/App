@@ -219,7 +219,7 @@ describe('NetSuiteTokenInputPage', () => {
         expect(mockStepNames.current).toBe(CONST.NETSUITE_CONFIG.TOKEN_INPUT.STEP_INDEX_LIST);
     });
 
-    it('shows the TBA credentials form when reconnecting after an auth error on a TBA connection', () => {
+    it('shows the OAuth credentials form when reconnecting after an auth error on a TBA connection (migration)', () => {
         // Given an existing TBA connection (tokenID present) that has an auth error
         setEnvironment(CONST.ENVIRONMENT.PRODUCTION);
         mockedIsAuthenticationError.mockReturnValue(true);
@@ -228,9 +228,9 @@ describe('NetSuiteTokenInputPage', () => {
         // When the credentials page is rendered for reconnection
         renderPage(PAGE_NAME.CREDENTIALS, undefined, policy);
 
-        // Then the TBA credentials form is shown (OAuth not used for TBA reconnect until Release 5)
-        expect(screen.getByTestId('token-form')).toBeOnTheScreen();
-        expect(mockStepNames.current).toBe(CONST.NETSUITE_CONFIG.TOKEN_INPUT.STEP_INDEX_LIST);
+        // Then the OAuth form is shown — TBA auth errors now migrate through OAuth
+        expect(screen.getByTestId('oauth-form')).toBeOnTheScreen();
+        expect(mockStepNames.current).toBe(CONST.NETSUITE_CONFIG.TOKEN_INPUT.OAUTH_STEP_INDEX_LIST);
     });
 
     it('shows the OAuth credentials form when reconnecting after an auth error on an OAuth connection', () => {

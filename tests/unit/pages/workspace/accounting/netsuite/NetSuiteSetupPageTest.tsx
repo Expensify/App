@@ -84,7 +84,7 @@ describe('NetSuiteSetupPage', () => {
     it('opens a WebView pointing at the authenticated setup URL for the entered account', async () => {
         renderNetSuiteSetupPage(ACCOUNT_ID);
 
-        expect(mockedGetNetSuiteSetupLink).toHaveBeenCalledWith(POLICY_ID, ACCOUNT_ID);
+        expect(mockedGetNetSuiteSetupLink).toHaveBeenCalledWith(POLICY_ID, ACCOUNT_ID, false);
         expect(mockedGetShortLivedAuthTokenURL).toHaveBeenCalledWith(`https://netsuite-setup.example/${POLICY_ID}/${ACCOUNT_ID}`);
         expect(await screen.findByTestId('netsuite-webview')).toBeOnTheScreen();
     });

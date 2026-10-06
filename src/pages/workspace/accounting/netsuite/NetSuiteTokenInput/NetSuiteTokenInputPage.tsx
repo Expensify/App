@@ -56,10 +56,14 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
     // Only dev and staging can switch back to the token-based (TBA/SOAP) flow via route param for testing.
     const canSwitchToTokenAuthentication = !isProduction;
     const isTokenAuthenticationSelected = canSwitchToTokenAuthentication && authType === CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.TBA;
-    // TBA connections store a tokenID while OAuth connections do not, so this is used to pick the correct credentials
-    // form upon reconnection. Fresh connections will always use the OAuth wizard.
     const netSuiteConnection = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE];
-    const isOAuthFlow = !(hasAuthError && !!netSuiteConnection?.tokenID) && !isTokenAuthenticationSelected;
+    const isOAuthFlow = !isTokenAuthenticationSelected;
+
+    // isMigration is true when set explicitly via route param (e.g. from a nudge button) or when the
+    // page is opened directly and there is an existing TBA connection (tokenID present).
+    const isMigrationFromParam = params.isMigration === 'true';
+    const isMigrationFromConnection = !!netSuiteConnection?.tokenID;
+    const isMigration = isMigrationFromParam || isMigrationFromConnection;
     const pages = isOAuthFlow ? oauthPages : tokenPages;
     const stepNames = isOAuthFlow ? CONST.NETSUITE_CONFIG.TOKEN_INPUT.OAUTH_STEP_INDEX_LIST : CONST.NETSUITE_CONFIG.TOKEN_INPUT.STEP_INDEX_LIST;
 
@@ -81,7 +85,7 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
         prevPage();
     };
 
-    const shouldPageBeBlocked = !isEmptyObject(policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]) && !hasAuthError;
+    const shouldPageBeBlocked = !isEmptyObject(policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]) && !hasAuthError && !isMigration;
 
     return (
         <ConnectionLayout
@@ -113,6 +117,7 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
                 currentPageName={currentPageName}
                 policyID={policyID}
                 isOAuthFlow={isOAuthFlow}
+                isMigration={isMigration}
                 shouldShowTokenAuthenticationLink={canSwitchToTokenAuthentication && isOAuthFlow}
             />
         </ConnectionLayout>

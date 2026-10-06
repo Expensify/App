@@ -81,7 +81,7 @@ const mockedUpdateNetSuiteTokens = jest.mocked(updateNetSuiteTokens);
 const mockedConnectToNetSuiteOAuthSetup = jest.mocked(connectToNetSuiteOAuthSetup);
 const mockedOnNext = jest.fn();
 
-function renderForm(isOAuthFlow: boolean) {
+function renderForm(isOAuthFlow: boolean, isMigration = false) {
     render(
         <NetSuiteTokenInputForm
             policyID={POLICY_ID}
@@ -90,6 +90,7 @@ function renderForm(isOAuthFlow: boolean) {
             onMove={jest.fn()}
             currentPageName={CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.CREDENTIALS}
             isOAuthFlow={isOAuthFlow}
+            isMigration={isMigration}
             shouldShowTokenAuthenticationLink={false}
         />,
     );
@@ -111,7 +112,7 @@ describe('NetSuiteTokenInputForm', () => {
             renderForm(true);
             submitForm();
 
-            expect(mockedConnectToNetSuiteOAuthSetup).toHaveBeenCalledWith(POLICY_ID, ACCOUNT_ID, ENVIRONMENT_URL);
+            expect(mockedConnectToNetSuiteOAuthSetup).toHaveBeenCalledWith(POLICY_ID, ACCOUNT_ID, ENVIRONMENT_URL, false);
         });
 
         it('does not write the token-based credentials', () => {

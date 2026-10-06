@@ -44,7 +44,7 @@ describe('connectToNetSuiteOAuthSetup (web)', () => {
     it('opens the NetSuite setup link built from the policy and account ID', () => {
         connectToNetSuiteOAuthSetup(POLICY_ID, ACCOUNT_ID, ENVIRONMENT_URL);
 
-        expect(mockedGetNetSuiteSetupLink).toHaveBeenCalledWith(POLICY_ID, ACCOUNT_ID);
+        expect(mockedGetNetSuiteSetupLink).toHaveBeenCalledWith(POLICY_ID, ACCOUNT_ID, undefined);
         expect(mockedOpenLink).toHaveBeenCalledWith(SETUP_LINK, ENVIRONMENT_URL);
     });
 
