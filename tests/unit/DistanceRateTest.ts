@@ -130,7 +130,7 @@ describe('DistanceRate', () => {
     });
 
     describe('setPolicyDistanceRatesEnabled', () => {
-        it('should write customUnitOutOfPolicy into TRANSACTION_VIOLATIONS when disabling an in-use rate', async () => {
+        it('should not write customUnitOutOfPolicy into TRANSACTION_VIOLATIONS when disabling an in-use rate', async () => {
             const customUnitID = '5A55C2B68DDCB';
             const customUnitRateID = '7255CA72C7E7B';
             const policy: Policy = {
@@ -204,8 +204,8 @@ describe('DistanceRate', () => {
                 });
             });
 
-            expect(transactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]).toEqual(
-                expect.arrayContaining([expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION})]),
+            expect(transactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? []).not.toEqual(
+                expect.arrayContaining([expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY})]),
             );
         });
 

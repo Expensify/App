@@ -264,7 +264,7 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).not.toContainEqual(customUnitOutOfPolicyViolation);
         });
 
-        it('should keep the customUnitOutOfPolicy violation if the rate exists but is disabled', () => {
+        it('should remove the customUnitOutOfPolicy violation if the rate exists but is disabled', () => {
             const customUnitRateID = 'rate_id';
             policy.customUnits = {
                 unitId: {
@@ -296,7 +296,7 @@ describe('getViolationsOnyxData', () => {
                 isInvoiceTransaction: false,
             });
 
-            expect(result.value).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+            expect(result.value).not.toContainEqual(customUnitOutOfPolicyViolation);
         });
     });
 
@@ -866,6 +866,17 @@ describe('getViolationsOnyxData', () => {
                     showInReview: true,
                 }),
             );
+        });
+
+        it('should not add customUnitOutOfPolicy for a self-DM distance expense with a disabled workspace rate', () => {
+            const rate = policy.customUnits?.unitId.rates[customUnitRateID];
+            if (rate) {
+                rate.enabled = false;
+            }
+
+            const result = syncCustomUnitOutOfPolicyViolation(transactionViolations, transaction, policy, undefined, true);
+
+            expect(result).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
         });
 
         it('should remove the customUnitOutOfPolicy violation when the distance rate is re-enabled', () => {

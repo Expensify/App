@@ -454,6 +454,7 @@ function syncCustomUnitOutOfPolicyViolation(
     transaction: OnyxEntry<Transaction>,
     policy: OnyxEntry<Policy>,
     distanceOriginalPolicy?: OnyxEntry<Policy>,
+    isSelfDM = false,
 ): TransactionViolation[] {
     const isPerDiem = !!transaction && TransactionUtils.isPerDiemRequest(transaction);
     if (!transaction || (!TransactionUtils.isDistanceRequest(transaction) && !isPerDiem)) {
@@ -492,6 +493,12 @@ function syncCustomUnitOutOfPolicyViolation(
     const hasViolation = violations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
 
     if (customRate.enabled === false) {
+        // A deleted rate on a self-DM is already cleared by getViolationsOnyxData. A disabled workspace
+        // rate on that same personal expense must stay clear too.
+        if (isSelfDM) {
+            return violations.filter((violation) => violation.name !== CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
+        }
+
         return hasViolation
             ? violations
             : [
@@ -721,10 +728,9 @@ const ViolationsUtils = {
                 }
 
                 const customRate = isPerDiem ? getPerDiemRateCustomUnitRate(policy, customUnitRateID) : getDistanceRateCustomUnitRate(policyForCustomUnitRate, customUnitRateID);
-                // A missing rate, a rate pending deletion, or a disabled rate is not valid. Disabled distance
-                // rates must surface customUnitOutOfPolicy the same way a disabled category, tag, or tax does.
-                const isRateValid = !!customRate && customRate.enabled !== false && customRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-                if (isRateValid) {
+                // The backend only flags a rate that's gone from the policy (or pending deletion here), a disabled rate is still valid
+                const isRateValid = customRate?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                if (customRate && isRateValid) {
                     newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
                     newTransactionViolations = syncCustomUnitRateOutOfDateRangeViolation(newTransactionViolations, updatedTransaction, policyForCustomUnitRate);
                 } else if (isSelfDM && isDistanceRequestForCustomUnit) {
