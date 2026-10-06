@@ -17,11 +17,14 @@ const captureReceipt: CaptureReceipt = (camera, photoOutput, {flash, hasFlash, i
         return captureSnapshotToPath(camera, filePath);
     }
 
+    const isUsingFlash = flash && hasFlash;
+    const isSnapshotReplacement = Platform.OS === 'ios' && !isUsingFlash && !isInLandscapeMode;
+
     return capturePhotoToPath(
         photoOutput,
         {
-            flashMode: flash && hasFlash ? 'on' : 'off',
-            enableShutterSound: Platform.OS === 'ios' ? false : !isPlatformMuted,
+            flashMode: isUsingFlash ? 'on' : 'off',
+            enableShutterSound: isSnapshotReplacement ? false : !isPlatformMuted,
         },
         filePath,
     );

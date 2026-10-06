@@ -22,7 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {capturePhotoToPath} from '@libs/cameraCapture';
-import getWideLensZoom from '@libs/cameraCapture/getWideLensZoom';
+import {getZoomProp} from '@libs/cameraCapture/getWideLensZoom';
 import selectWideCameraDevice from '@libs/cameraCapture/selectWideCameraDevice';
 import {getFileName} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
@@ -280,7 +280,7 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
                                             onConfigured={updatePhotoResolution}
                                             onStarted={updatePhotoResolution}
                                             style={styles.flex1}
-                                            zoom={getWideLensZoom(device)}
+                                            zoom={getZoomProp(device)}
                                             isActive={isVisible}
                                             onError={handleCameraError}
                                         />

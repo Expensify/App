@@ -7,7 +7,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import getWideLensZoom from '@libs/cameraCapture/getWideLensZoom';
+import {getZoomProp} from '@libs/cameraCapture/getWideLensZoom';
 import Log from '@libs/Log';
 
 import variables from '@styles/variables';
@@ -134,7 +134,7 @@ function CameraViewport({
                         outputs={outputs}
                         constraints={constraints}
                         style={styles.flex1}
-                        zoom={getWideLensZoom(device)}
+                        zoom={getZoomProp(device)}
                         cameraTabIndex={1}
                         forceInactive={isAttachmentPickerActive || didCapturePhoto}
                         onConfigured={onConfigured}

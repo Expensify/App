@@ -1,4 +1,4 @@
-import getWideLensZoom from '@libs/cameraCapture/getWideLensZoom';
+import getWideLensZoom, {getZoomProp} from '@libs/cameraCapture/getWideLensZoom';
 import selectWideCameraDevice from '@libs/cameraCapture/selectWideCameraDevice';
 
 import type {CameraDevice, CameraPosition, DeviceType} from 'react-native-vision-camera';
@@ -72,5 +72,19 @@ describe('selectWideCameraDevice', () => {
         // When the back camera is chosen
         // Then the default back camera is used, and a front device is never picked for the back
         expect(selectWideCameraDevice([singleLens, frontDualWide], 'back', fallback)?.id).toBe('default');
+    });
+});
+
+describe('getZoomProp', () => {
+    it('leaves zoom unset when the wide lens is already zoom 1, and sets it when the camera would open on the ultra-wide', () => {
+        // Given an Android-style device with no switch factors, and an iPhone dual-wide device that switches at 2
+        const android = createDevice({id: 'android'});
+        const dualWide = createDevice({id: 'dual-wide', lensTypes: ['ultra-wide-angle', 'wide-angle'], zoomLensSwitchFactors: [2]});
+
+        // When the zoom prop is derived
+        // Then Android gets none, so VisionCamera skips the setZoom call that fails before the camera starts,
+        // while the iPhone still opens on the wide lens
+        expect(getZoomProp(android)).toBeUndefined();
+        expect(getZoomProp(dualWide)).toBe(2);
     });
 });

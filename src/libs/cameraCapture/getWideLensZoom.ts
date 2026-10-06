@@ -12,4 +12,14 @@ function getWideLensZoom(device: Pick<CameraDevice, 'physicalDevices' | 'zoomLen
     return device.zoomLensSwitchFactors.at(wideLensIndex - 1) ?? 1;
 }
 
+/**
+ * Unset when it would be 1: VisionCamera re-applies `zoom` from JS after configuring, and on Android that call can land
+ * before the camera starts, so CameraX rejects it with "Camera is not active" through `onError`.
+ */
+function getZoomProp(device: Pick<CameraDevice, 'physicalDevices' | 'zoomLensSwitchFactors'>): number | undefined {
+    const zoom = getWideLensZoom(device);
+    return zoom === 1 ? undefined : zoom;
+}
+
 export default getWideLensZoom;
+export {getZoomProp};
