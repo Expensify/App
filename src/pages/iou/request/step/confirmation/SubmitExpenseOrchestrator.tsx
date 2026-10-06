@@ -350,11 +350,15 @@ function SubmitExpenseOrchestrator({
             return;
         }
 
-        // Search refocuses mid slide and its write re-renders the whole list, so the release is deferred until the RHP closed.
-        holdPendingSearchWriteFlush();
+        // Wide Search refocuses mid slide and its write re-renders the whole list, so the release is deferred until the RHP closed.
+        if (!isNarrow) {
+            holdPendingSearchWriteFlush();
+        }
         Navigation.dismissModal({
             afterTransition: () => {
-                runAfterClosingScreenUnmount(releasePendingSearchWriteFlush);
+                if (!isNarrow) {
+                    runAfterClosingScreenUnmount(releasePendingSearchWriteFlush);
+                }
                 runAfterSearchDismissRecovery(() => {
                     if (!shouldNavigateToSearch) {
                         return;
