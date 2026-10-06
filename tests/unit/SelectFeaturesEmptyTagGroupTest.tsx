@@ -112,7 +112,6 @@ const POLICY_TAGS_WITH_EMPTY_GROUP = createMock<PolicyTagLists>({
 describe('Select features pages with an empty tag group', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
-        global.fetch = getGlobalFetchMock();
     });
 
     beforeEach(async () => {
