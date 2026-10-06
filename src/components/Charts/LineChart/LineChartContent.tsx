@@ -1,10 +1,10 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import ActivePointIndicator from '@components/Charts/components/ActivePointIndicator';
 import AreaGradient from '@components/Charts/components/AreaGradient';
+import ChartGridLines from '@components/Charts/components/ChartGridLines';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
-import LeftFrameLine from '@components/Charts/components/LeftFrameLine';
 import type {HitTestArgs} from '@components/Charts/hooks';
 import {
     ChartFontsProvider,
@@ -16,7 +16,7 @@ import {
     useDynamicYDomain,
     useLabelHitTesting,
 } from '@components/Charts/hooks';
-import {getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
+import {getDomainPaddingForEdgeSpace, getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
 import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING, LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
 
 import useTheme from '@hooks/useTheme';
@@ -84,7 +84,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
     const yAxisLabelWidth = getYAxisLabelWidth(data, formatCompactValue, fontManager, variables.iconSizeExtraSmall, VictoryTheme.line.domainPadding);
 
     const tickSpacing = plotAreaWidth > 0 && data.length > 0 ? plotAreaWidth / data.length : 0;
-    const chartPaddingLeft = yAxisLabelWidth + GLYPH_PADDING;
+    const chartPaddingRight = yAxisLabelWidth + GLYPH_PADDING;
 
     const domainPadding = (() => {
         if (!firstLabelWidth || !lastLabelWidth) {
@@ -100,11 +100,11 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
             rightOverhang = lineHeight / 2;
         }
 
-        return {
-            ...VictoryTheme.line.domainPadding,
-            left: Math.max(0, leftOverhang - chartPaddingLeft),
-            right: rightOverhang,
+        const edgeSpace = {
+            left: Math.max(0, leftOverhang - VictoryTheme.axis.padding.left),
+            right: Math.max(0, rightOverhang - chartPaddingRight - VictoryTheme.axis.labelGap),
         };
+        return {...VictoryTheme.line.domainPadding, ...getDomainPaddingForEdgeSpace(edgeSpace, plotAreaWidth)};
     })();
 
     const totalDomainPadding = domainPadding.left + domainPadding.right;
@@ -172,12 +172,6 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
         chartBottom.set(chartBoundsBottom);
         return (
             <>
-                <LeftFrameLine
-                    chartBounds={args.chartBounds}
-                    yTicks={args.yTicks}
-                    yScale={args.yScale}
-                    color={theme.border}
-                />
                 {xAxisLabelHeight !== undefined && !!fontManager && (
                     <ChartXAxisLabels
                         labels={originalLabels}
@@ -190,7 +184,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
                         labelSkipInterval={labelSkipInterval}
                         fontSize={variables.iconSizeExtraSmall}
                         fontManager={fontManager}
-                        labelColor={theme.textSupporting}
+                        labelColor={theme.icon}
                         xScale={args.xScale}
                         chartBoundsBottom={chartBoundsBottom}
                     />
@@ -199,12 +193,11 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
                     <ChartYAxisLabels
                         yTicks={args.yTicks}
                         yScale={args.yScale}
-                        chartBounds={args.chartBounds}
+                        canvasWidth={args.canvasSize.width}
                         fontSize={variables.iconSizeExtraSmall}
                         fontManager={fontManager}
-                        labelColor={theme.textSupporting}
+                        labelColor={theme.icon}
                         formatValue={formatCompactValue}
-                        leftAlign
                     />
                 )}
                 <ActivePointIndicator
@@ -221,12 +214,12 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
         );
     };
 
-    const labelSpace = VictoryTheme.axis.labelGap + (xAxisLabelHeight ?? 0);
+    const labelSpace = VictoryTheme.axis.xAxisLabelGap + (xAxisLabelHeight ?? 0);
     const dynamicChartStyle = {height: CHART_CONTENT_MIN_HEIGHT + labelSpace};
     const chartPadding = {
         ...VictoryTheme.axis.padding,
         bottom: labelSpace + VictoryTheme.axis.padding.bottom,
-        left: chartPaddingLeft,
+        right: chartPaddingRight,
     };
 
     if (isLoading || !fontManager) {
@@ -269,8 +262,8 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
                         yAxis={[
                             {
                                 tickCount: VictoryTheme.axis.tickCount,
-                                lineWidth: VictoryTheme.axis.yLineWidth,
-                                lineColor: theme.border,
+                                axisSide: 'right',
+                                lineWidth: 0,
                                 labelOffset: VictoryTheme.axis.labelGap,
                                 domain: yAxisDomain,
                             },
@@ -278,8 +271,14 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
                         frame={{lineWidth: 0}}
                         data={chartData}
                     >
-                        {({points, yScale, yTicks}) => (
+                        {({points, yScale, yTicks, chartBounds}) => (
                             <>
+                                <ChartGridLines
+                                    yTicks={yTicks}
+                                    yScale={yScale}
+                                    chartBounds={chartBounds}
+                                    color={theme.border}
+                                />
                                 <AreaGradient
                                     points={points.y}
                                     baselineY={yScale(Math.min(...yTicks))}

@@ -5939,6 +5939,10 @@ const CONST = {
     // Use the same value as MAX_COMMENT_LENGTH to ensure the entire comment is parsed. Note that applying markup is very resource-consuming.
     MAX_MARKUP_LENGTH: 10000,
 
+    // WebKit renders only the ellipsis when a single-line text with text-overflow: ellipsis is longer than 10,240 characters (https://bugs.webkit.org/show_bug.cgi?id=267226).
+    // One line never shows this many characters, so we cut single-line texts to this length on mobile WebKit.
+    MAX_SINGLE_LINE_TEXT_LENGTH: 1000,
+
     MAX_THREAD_REPLIES_PREVIEW: 99,
 
     // Character Limits
@@ -9452,6 +9456,7 @@ const CONST = {
             SAVED_SEARCH_MENU_ITEM: 'Search-SavedSearchMenuItem',
             SAVE_VIEW_BUTTON: 'Search-SaveViewButton',
             RESET_FILTERS_BUTTON: 'Search-ResetFiltersButton',
+            SAVE_FILTERS_BUTTON: 'Search-SaveFiltersButton',
             ACTION_CELL_VIEW: 'Search-ActionCellView',
             ACTION_CELL_PAY: 'Search-ActionCellPay',
             ACTION_CELL_ACTION: 'Search-ActionCellAction',
