@@ -7,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {UseTabRootScreenWrapperProps} from './types';
+import type UseTabRootScreenWrapperProps from './types';
 
 /**
  * Material's bar is drawn over the full-height tab screen, so a narrow tab root screen reserves the bar's row under its

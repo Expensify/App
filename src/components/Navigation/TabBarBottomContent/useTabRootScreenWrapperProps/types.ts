@@ -5,5 +5,4 @@ type TabRootScreenWrapperProps = Pick<ScreenWrapperContainerProps, 'bottomConten
 
 type UseTabRootScreenWrapperProps = (selectedTab: TabBarBottomContentProps['selectedTab']) => TabRootScreenWrapperProps;
 
-export default TabRootScreenWrapperProps;
-export type {UseTabRootScreenWrapperProps};
+export default UseTabRootScreenWrapperProps;

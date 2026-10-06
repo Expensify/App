@@ -3,7 +3,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import variables from '@styles/variables';
 
-import type {UseTabRootScrollProps} from './types';
+import type UseTabRootScrollProps from './types';
 
 /**
  * The content of a narrow tab root screen runs under the floating tab bar, so a list's content container ends with

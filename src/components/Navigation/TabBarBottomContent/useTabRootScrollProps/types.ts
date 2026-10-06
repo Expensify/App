@@ -5,5 +5,4 @@ type TabRootScrollProps = Pick<ScrollViewProps, 'contentContainerStyle' | 'conte
 /** A list that already adds the bottom safe area passes `hasBottomSafeAreaPadding`, so the safe area is not added twice. */
 type UseTabRootScrollProps = (style?: StyleProp<ViewStyle>, hasBottomSafeAreaPadding?: boolean) => TabRootScrollProps;
 
-export default TabRootScrollProps;
-export type {UseTabRootScrollProps};
+export default UseTabRootScrollProps;

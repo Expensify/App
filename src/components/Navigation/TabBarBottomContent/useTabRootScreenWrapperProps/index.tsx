@@ -3,7 +3,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import React from 'react';
 
-import type {UseTabRootScreenWrapperProps} from './types';
+import type UseTabRootScreenWrapperProps from './types';
 
 import TabBarBottomContent from '..';
 

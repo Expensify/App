@@ -1,4 +1,4 @@
-import type {UseTabRootScrollProps} from './types';
+import type UseTabRootScrollProps from './types';
 
 /**
  * UIKit insets the end of the list past the translucent iOS tab bar that the content runs under, and Android reserves
