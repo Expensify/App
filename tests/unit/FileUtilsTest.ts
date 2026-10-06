@@ -535,7 +535,6 @@ describe('FileUtils', () => {
             const file = new File(['content'], 'image.jpeg', {type: 'image/jpeg'});
             file.uri = 'blob:http://localhost/image';
 
-            // When the file is cloned
             const clonedFile = createFile(file);
 
             // Then the clone keeps the uri, because attachment previews read it to display the image
@@ -547,15 +546,12 @@ describe('FileUtils', () => {
         });
 
         it('should keep the uri when cloning a file on native', () => {
-            // Given a native file with a file uri
             jest.mocked(getPlatform).mockReturnValue(CONST.PLATFORM.IOS);
             const file = new File(['content'], 'image.jpeg', {type: 'image/jpeg'});
             file.uri = 'file://image.jpeg';
 
-            // When the file is cloned
             const clonedFile = createFile(file);
 
-            // Then the clone is a plain object that keeps the uri, name, and type
             expect(clonedFile).toEqual({uri: 'file://image.jpeg', name: 'image.jpeg', type: 'image/jpeg'});
         });
     });
@@ -575,7 +571,6 @@ describe('FileUtils', () => {
             jest.mocked(getImageManipulator).mockResolvedValue(resizedFile);
             const file = {uri: 'file://large.jpg', name: 'large.jpg', type: 'image/jpeg', size: CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE + 1};
 
-            // When the image is resized
             const result = await resizeImageIfNeeded(file);
 
             // Then the result keeps the resized blob uri, so the attachment preview can load it instead of spinning forever
