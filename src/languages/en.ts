@@ -7951,6 +7951,7 @@ const translations = {
             },
             approverFields: {
                 recruiter: 'Recruiter',
+                hiringManager: 'Hiring manager',
                 recruitingCoordinator: 'Recruiting coordinator',
             },
             filters: {
