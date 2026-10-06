@@ -79,7 +79,7 @@ function Wrapper({children}: {children: React.ReactNode}) {
 }
 
 const renderApprovalWorkflows = async (policy: Policy) => {
-    const hook = renderHook(() => useApprovalWorkflows(policy, POLICY_ID), {wrapper: Wrapper});
+    const hook = renderHook(() => useApprovalWorkflows(policy), {wrapper: Wrapper});
     await act(async () => {
         await waitForBatchedUpdates();
     });

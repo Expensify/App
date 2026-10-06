@@ -49,7 +49,8 @@ type UseApprovalWorkflowsResult = {
  * optimistically by many code paths and drifts from the real workflow structure, so it can say ADVANCED for a
  * workspace with no custom workflow (e.g. right after an upgrade) and stay BASIC for one that has several.
  */
-function useApprovalWorkflows(policy: OnyxEntry<Policy>, policyID: string | undefined): UseApprovalWorkflowsResult {
+function useApprovalWorkflows(policy: OnyxEntry<Policy>): UseApprovalWorkflowsResult {
+    const policyID = policy?.id;
     const {localeCompare} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();

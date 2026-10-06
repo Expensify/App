@@ -126,7 +126,7 @@ function WorkspaceInviteMessageComponent({
     // Derive whether a custom approval workflow exists instead of trusting `policy.approvalMode`: that flag is
     // written optimistically by several paths and drifts from the real workflow structure, so it can say ADVANCED
     // for a freshly upgraded workspace with no custom workflow, and stay BASIC for one that has several.
-    const {isAdvanceApproval, rulesCollection} = useApprovalWorkflows(policy, policyID);
+    const {isAdvanceApproval, rulesCollection} = useApprovalWorkflows(policy);
     const shouldShowApproverRow = isAdvanceApproval && !!policy?.areWorkflowsEnabled;
 
     const isApproverValid = !!workspaceInviteApproverDraft && workspaceInviteApproverDraft in (policy?.employeeList ?? {});
