@@ -2670,8 +2670,8 @@ type BusinessCentralCoding = {
  * How Business Central customers and projects are imported into Expensify.
  */
 type BusinessCentralCustomerMappings = {
-    CUSTOMER?: ValueOf<typeof CONST.BUSINESS_CENTRAL_MAPPING_VALUE>;
-    PROJECT?: ValueOf<typeof CONST.BUSINESS_CENTRAL_MAPPING_VALUE>;
+    customers?: ValueOf<typeof CONST.BUSINESS_CENTRAL_MAPPING_VALUE>;
+    projects?: ValueOf<typeof CONST.BUSINESS_CENTRAL_MAPPING_VALUE>;
 };
 
 /** Offline feedback key for field mapping */

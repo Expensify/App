@@ -4037,8 +4037,8 @@ const CONST = {
     },
 
     BUSINESS_CENTRAL_FIELD_MAPPING: {
-        CUSTOMERS: 'CUSTOMER',
-        PROJECTS: 'PROJECT',
+        CUSTOMERS: 'customers',
+        PROJECTS: 'projects',
     },
 
     /**

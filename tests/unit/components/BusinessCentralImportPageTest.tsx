@@ -82,8 +82,8 @@ describe('BusinessCentralImportPage', () => {
                     config: {
                         coding: {
                             customerMappings: {
-                                CUSTOMER: CONST.BUSINESS_CENTRAL_MAPPING_VALUE.NONE,
-                                PROJECT: CONST.BUSINESS_CENTRAL_MAPPING_VALUE.NONE,
+                                customers: CONST.BUSINESS_CENTRAL_MAPPING_VALUE.NONE,
+                                projects: CONST.BUSINESS_CENTRAL_MAPPING_VALUE.NONE,
                             },
                         },
                         export: {
