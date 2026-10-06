@@ -5,6 +5,7 @@ keywords: [suggested Agent rules, Agent rules, RuleBot, AI rules, workspace auto
 internalScope: Audience is Workspace Admins. Covers the available suggested Agent rules, what each one does, and when to use it. Does not cover creating custom Agent rules, personal Agents, or writing Agent instructions.
 retrievalIntent: Which suggested Agent rule should I use?
 contentType: topic
+order: 4
 ---
 
 # Use Suggested Agent Rules
