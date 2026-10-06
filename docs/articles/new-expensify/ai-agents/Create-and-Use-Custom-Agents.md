@@ -205,7 +205,7 @@ For details on configuring approval workflows generally, see [Learn how to add a
 
 ## Why can't I see Agents in my Account settings?
 
-**Agents** is hidden while you’re Copiloting into an agent’s account, because an agent can’t create its own agents. Return to your own account to access **Agents**. [Learn how to exit a Copilot account and return to your own account](/articles/new-expensify/settings/Act-as-a-Copilot)).
+**Agents** is hidden while you’re Copiloting into an agent’s account, because an agent can’t create its own agents. Return to your own account to access **Agents**. [Learn how to exit a Copilot account and return to your own account]([url](/articles/new-expensify/settings/Act-as-a-Copilot#how-to-exit-a-copilot-account-and-return-to-your-own-account)).
 
 ## What's the difference between building a custom agent and starting from a template?
 
