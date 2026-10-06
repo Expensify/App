@@ -15,7 +15,6 @@ import CONST from '@src/CONST';
 
 import type {ComponentRef} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
@@ -166,8 +165,7 @@ function GenericPressable({
         [onPressHandler],
     );
 
-    const {shortcutKey, descriptionKey, modifiers} = keyboardShortcut ?? {};
-    useKeyboardShortcut({shortcutKey, descriptionKey, modifiers} as ValueOf<typeof CONST.KEYBOARD_SHORTCUTS>, onKeyboardShortcutPressHandler, {
+    useKeyboardShortcut(keyboardShortcut ?? CONST.KEYBOARD_SHORTCUTS.ENTER, onKeyboardShortcutPressHandler, {
         isActive: !!keyboardShortcut,
         shouldBubble: false,
         shouldPreventDefault: false,
@@ -184,13 +182,13 @@ function GenericPressable({
     const handleKeyDown = useCallback(
         (event: React.KeyboardEvent) => {
             if (onKeyDown) {
-                onKeyDown(event as unknown as React.KeyboardEvent<Element>);
+                onKeyDown(event);
                 return;
             }
 
             if (isRoleLink && event.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
                 event.preventDefault();
-                onPressHandler(event.nativeEvent as unknown as KeyboardEvent);
+                onPressHandler(event.nativeEvent);
             }
         },
         [onKeyDown, isRoleLink, onPressHandler],
