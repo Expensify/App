@@ -828,10 +828,35 @@ describe('reportAttributes compute — policy change code flow', () => {
             state: CONST.EXPENSIFY_CARD.STATE.OPEN,
             possibleFraud: {triggerAmount: 5663, triggerMerchant: 'WAL-MART #2366', currency: 'USD', fraudAlertReportID: Number(FRAUD_REPORT_ID)},
         });
+        const FRAUD_ACTION_ID = '1001';
+        const APPROVE_ACTION_ID = '1002';
+        const cardReportActions: OnyxCollection<ReportActions> = {
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FRAUD_REPORT_ID}`]: {
+                [FRAUD_ACTION_ID]: createMock<ReportAction>({reportActionID: FRAUD_ACTION_ID, actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT}),
+            },
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${OTHER_REPORT_ID}`]: {
+                [APPROVE_ACTION_ID]: createMock<ReportAction>({reportActionID: APPROVE_ACTION_ID, actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW}),
+            },
+        };
         const seededValue: ReportAttributesDerivedValue = {
             reports: {
-                [FRAUD_REPORT_ID]: {reportName: 'Stale', isEmpty: false, brickRoadStatus: CONST.BRICK_ROAD_INDICATOR_STATUS.INFO, requiresAttention: true, reportErrors: {}},
-                [OTHER_REPORT_ID]: {reportName: 'Stale', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
+                [FRAUD_REPORT_ID]: {
+                    reportName: 'Stale',
+                    isEmpty: false,
+                    brickRoadStatus: CONST.BRICK_ROAD_INDICATOR_STATUS.INFO,
+                    requiresAttention: true,
+                    actionTargetReportActionID: FRAUD_ACTION_ID,
+                    reportErrors: {},
+                },
+                [OTHER_REPORT_ID]: {
+                    reportName: 'Stale',
+                    isEmpty: false,
+                    brickRoadStatus: CONST.BRICK_ROAD_INDICATOR_STATUS.INFO,
+                    requiresAttention: true,
+                    actionBadge: CONST.REPORT.ACTION_BADGE.APPROVE,
+                    actionTargetReportActionID: APPROVE_ACTION_ID,
+                    reportErrors: {},
+                },
             },
             locale: null,
         };
@@ -884,19 +909,47 @@ describe('reportAttributes compute — policy change code flow', () => {
         it.each([
             ['a card list without fraud', {[CARD_ID]: createRandomExpensifyCard(CARD_ID, {state: CONST.EXPENSIFY_CARD.STATE.OPEN})}],
             ['no card list', undefined],
-        ])('recomputes persisted green dots on the first compute after app start with %s', (_, cardList: CardList | undefined) => {
+        ])('recomputes persisted fraud alert green dots on the first compute after app start with %s', (_, cardList: CardList | undefined) => {
             const {generateReportAttributes} = jest.requireMock<{generateReportAttributes: jest.Mock}>('@libs/ReportUtils');
+            const computeReportNameMock = jest.mocked(jest.requireMock<typeof ReportNameUtils>('@libs/ReportNameUtils').computeReportName);
+            computeReportNameMock.mockClear();
 
-            // Given REPORT_ATTRIBUTES restored from disk with a green dot on the fraud report, and no card pointing at it anymore
+            // Given REPORT_ATTRIBUTES restored from disk with a fraud alert green dot no card points at anymore, and an approval green dot
             const args = buildArgs(policies, cardReports);
+            args[3] = cardReportActions;
             args[15] = cardList;
 
             // When the first compute after app start runs without source values
-            config.compute(args, {currentValue: seededValue, sourceValues: undefined});
+            const result = config.compute(args, {currentValue: seededValue, sourceValues: undefined});
 
-            // Then only the report with the stored green dot is recomputed, so a stale fraud alert dot can clear
+            // Then only the fraud report is recomputed, so app start stays cheap for approvers with many green dots
             expect(generateReportAttributes).toHaveBeenCalledTimes(1);
             expect(generateReportAttributes).toHaveBeenCalledWith(expect.objectContaining({report: fraudChatReport}));
+
+            // And a card change can't move the report name, so the cached name is reused
+            expect(computeReportNameMock).not.toHaveBeenCalled();
+            expect(result.reports[FRAUD_REPORT_ID]?.reportName).toBe('Stale');
+        });
+
+        it("doesn't recompute the parent chat when only the card's fraud changes", () => {
+            const {generateReportAttributes} = jest.requireMock<{generateReportAttributes: jest.Mock}>('@libs/ReportUtils');
+
+            // Given a fraud alert report that has a parent chat, and a first compute that saw the card's live fraud
+            const childFraudReport = {...fraudChatReport, chatReportID: OTHER_REPORT_ID};
+            const reportsWithParent: OnyxCollection<Report> = {...cardReports, [`${ONYXKEYS.COLLECTION.REPORT}${FRAUD_REPORT_ID}`]: childFraudReport};
+            const initialArgs = buildArgs(policies, reportsWithParent);
+            initialArgs[15] = {[CARD_ID]: cardWithFraud};
+            config.compute(initialArgs, {currentValue: undefined, sourceValues: undefined});
+            generateReportAttributes.mockClear();
+
+            // When the backend clears possibleFraud on the card
+            const args = buildArgs(policies, reportsWithParent);
+            args[15] = {[CARD_ID]: createRandomExpensifyCard(CARD_ID, {state: CONST.EXPENSIFY_CARD.STATE.OPEN})};
+            config.compute(args, {currentValue: seededValue, triggeredKeys: new Set<OnyxKey>([ONYXKEYS.CARD_LIST])});
+
+            // Then only the fraud report is recomputed, since the fraud alert dot doesn't feed the parent chat
+            expect(generateReportAttributes).toHaveBeenCalledTimes(1);
+            expect(generateReportAttributes).toHaveBeenCalledWith(expect.objectContaining({report: childFraudReport}));
         });
     });
 });

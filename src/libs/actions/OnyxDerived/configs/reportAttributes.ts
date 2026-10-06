@@ -9,7 +9,7 @@ import {getIsOffline} from '@libs/NetworkState';
 import {format, formatToParts} from '@libs/NumberFormatUtils';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {isPolicyFieldListEmpty} from '@libs/PolicyUtils';
-import {getLinkedTransactionID, isDeletedAction} from '@libs/ReportActionsUtils';
+import {getLinkedTransactionID, isActionableCardFraudAlert, isDeletedAction} from '@libs/ReportActionsUtils';
 import {computeReportName} from '@libs/ReportNameUtils';
 import {
     generateIsEmptyReport,
@@ -422,11 +422,16 @@ export default createOnyxDerivedValueConfig({
                 }
             }
             // REPORT_ATTRIBUTES is persisted, so on the first compute after app start a stored fraud alert green dot
-            // may point at a report no card references anymore. Recheck every stored green dot once.
+            // may point at a report no card references anymore. A fraud alert dot stores the alert as its target action.
             const firstComputeReportIDs =
                 previousFraudAlertReportIDs === undefined
                     ? Object.entries(currentValue?.reports ?? {})
-                          .filter(([, attributes]) => attributes.requiresAttention)
+                          .filter(
+                              ([reportID, attributes]) =>
+                                  attributes.requiresAttention &&
+                                  !!attributes.actionTargetReportActionID &&
+                                  isActionableCardFraudAlert(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]?.[attributes.actionTargetReportActionID]),
+                          )
                           .map(([reportID]) => reportID)
                     : [];
             for (const reportID of new Set([...(previousFraudAlertReportIDs ?? []), ...firstComputeReportIDs, ...fraudAlertReportIDs])) {
@@ -494,14 +499,18 @@ export default createOnyxDerivedValueConfig({
             ...personalDetailsChangedReportKeys,
         ];
 
-        // Card changes don't feed report names, so they stay out of nonPolicyUpdates like policy changes.
-        const updates = [...nonPolicyUpdates, ...policyChangedReportKeys, ...cardChangedReportKeys];
+        const nameAndParentUpdates = [...nonPolicyUpdates, ...policyChangedReportKeys];
+        const updates = [...nameAndParentUpdates, ...cardChangedReportKeys];
 
-        // Keys that reuse their cached name. Starts as the name-irrelevant policy reports; every other change
+        // Keys that reuse their cached name. Starts as the name-irrelevant policy and card reports; every other change
         // source (report/action/nvp/personal-details updates here, transactions and policy tags below) deletes
-        // its keys, so a report skips computeReportName only when a name-irrelevant policy change is its sole
+        // its keys, so a report skips computeReportName only when a name-irrelevant change is its sole
         // reason to be here. Parent-chat enqueues don't delete: a child update never feeds the parent chat's own name.
-        const nameSkipKeys = new Set(prepareReportKeys(nameSkipPolicyReportKeys));
+        const nameRelevantPolicyReportKeys = new Set(policyChangedReportKeys);
+        for (const key of nameSkipPolicyReportKeys) {
+            nameRelevantPolicyReportKeys.delete(key);
+        }
+        const nameSkipKeys = new Set(prepareReportKeys([...nameSkipPolicyReportKeys, ...cardChangedReportKeys.filter((key) => !nameRelevantPolicyReportKeys.has(key))]));
         for (const key of prepareReportKeys(nonPolicyUpdates)) {
             nameSkipKeys.delete(key);
         }
@@ -514,8 +523,9 @@ export default createOnyxDerivedValueConfig({
                     dataToIterate = prepareReportKeys(updates);
 
                     // When an IOU report changes, we need to re-evaluate its parent chat report as well.
+                    // A card's fraud alert dot only affects the report holding the alert, so card changes don't enqueue parents.
                     const parentChatReportIDsToUpdate = new Set<string>();
-                    for (const reportKey of dataToIterate) {
+                    for (const reportKey of prepareReportKeys(nameAndParentUpdates)) {
                         const report = reports[reportKey];
                         if (report?.chatReportID && report.reportID !== report.chatReportID) {
                             parentChatReportIDsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`);
