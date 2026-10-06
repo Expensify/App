@@ -233,8 +233,6 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
                                 showTooltip={false}
                                 item={item}
                                 onSelectRow={selectOtherFeed}
-                                isMultilineSupported
-                                isAlternateTextMultilineSupported
                                 alternateTextNumberOfLines={2}
                                 titleNumberOfLines={2}
                                 wrapperStyle={[styles.flexReset, styles.w100]}
