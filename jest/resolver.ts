@@ -7,7 +7,7 @@
 // export, and both resolvers are untyped CommonJS loaded through `createRequire`.
 import {createRequire} from 'node:module';
 
-type ResolverOptions = Record<string, unknown> & {
+type ResolverOptions = {
     defaultResolver: SyncResolver;
 };
 
