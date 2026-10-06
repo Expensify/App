@@ -4,7 +4,7 @@ import useChartLabelFormats from '@components/Charts/hooks/useChartLabelFormats'
 import type {ChartDataPoint, UnitPosition, UnitWithFallback} from '@components/Charts/types';
 import type * as ChartUtils from '@components/Charts/utils';
 
-import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
+import type {SkTypeface, SkTypefaceFontProvider} from '@shopify/react-native-skia';
 
 import createMock from '../../../utils/createMock';
 
@@ -32,8 +32,9 @@ beforeEach(() => {
 
 describe('useChartLabelFormats', () => {
     it('uses an object fallback but omits an unrenderable plain-string unit', () => {
-        // Given a font manager that lacks the symbol glyph, and equivalent object and string units
-        const fontManager = createMock<SkTypefaceFontProvider>({matchFamilyStyle: () => null});
+        // Given a simulated glyph check that rejects the symbol, and equivalent object and string units
+        const typeface = createMock<SkTypeface>({getGlyphIDs: (text: string) => [...text].map((char) => (char === '€' ? 0 : 1))});
+        const fontManager = createMock<SkTypefaceFontProvider>({matchFamilyStyle: () => typeface});
 
         // When the production hook formats both unit categories
         const objectFormat = renderHook(() => useChartLabelFormats({data: SAMPLE_DATA, unit: {value: '€', fallback: 'EUR'}, unitPosition: 'right', fontManager}));
