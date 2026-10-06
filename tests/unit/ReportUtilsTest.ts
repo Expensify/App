@@ -14655,6 +14655,34 @@ describe('ReportUtils', () => {
             expect(canLeaveChat(report, undefined, currentUserAccountID, false)).toBe(false);
         });
 
+        it('should return true for the same public room when the user is not anonymous', async () => {
+            // Given a public policy room the current user participates in, with a regular (non-anonymous) session
+            const report: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_ROOM),
+                visibility: CONST.REPORT.VISIBILITY.PUBLIC,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID]),
+            };
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+
+            // When checking whether the user can leave it
+            // Then the user can leave it, which is what makes the anonymous-guest case meaningful
+            expect(canLeaveChat(report, undefined, currentUserAccountID, false)).toBe(true);
+        });
+
+        it('should return false for that public room once the session is anonymous', async () => {
+            // Given the same public room, but the session is anonymous (signed-out visitor)
+            const report: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_ROOM),
+                visibility: CONST.REPORT.VISIBILITY.PUBLIC,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID]),
+            };
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID, authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+
+            // When checking whether the user can leave it
+            // Then the anonymous check blocks leaving, read from the session mirror in CurrentUserStore
+            expect(canLeaveChat(report, undefined, currentUserAccountID, false)).toBe(false);
+        });
+
         it('should return false if the report is hidden for the current user', async () => {
             const report: Report = {
                 ...createRandomReport(1, undefined),

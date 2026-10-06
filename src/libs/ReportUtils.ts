@@ -110,12 +110,12 @@ import {getBankAccountFromID} from './actions/BankAccounts';
 import {unholdRequest} from './actions/IOU/Hold';
 import {canApproveIOU, canIOUBePaid, canSubmitReport, getBadgeFromIOUReport, getIOUReportActionWithBadge} from './actions/IOU/ReportWorkflow';
 import hasCreditBankAccount from './actions/ReimbursementAccount/hasCreditBankAccount';
-import {isAnonymousUser as isAnonymousUserSession} from './actions/Session';
 import {getOnboardingMessages} from './actions/Welcome/OnboardingFlow';
 import {convertAttendeesToArray, normalizeAttendees} from './AttendeeUtils';
 import {isCardWithPotentialFraud} from './CardUtils';
 import {getCategoryGLCode} from './CategoryUtils';
 import {convertToDisplayStringEnLocale} from './CurrencyUtils';
+import {isAnonymousUser} from './CurrentUserStore';
 import DateUtils from './DateUtils';
 import {getEnvironmentURL} from './Environment/Environment';
 import {getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from './ErrorUtils';
@@ -2509,7 +2509,7 @@ function hasExpensifyGuidesEmails(accountIDs: number[], guideAccountIDs: GuideAc
 
 function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, lastVisitTimes: Record<string, string>): OnyxEntry<Report> {
     const filteredReports = reports.filter((report) => {
-        if (!report?.isPinned && isHiddenForCurrentUser(report) && !(isPublicRoom(report) && isAnonymousUserSession())) {
+        if (!report?.isPinned && isHiddenForCurrentUser(report) && !(isPublicRoom(report) && isAnonymousUser())) {
             return false;
         }
         return !!report?.reportID && !!(lastVisitTimes?.[report.reportID] ?? report?.lastReadTime);
@@ -2584,7 +2584,7 @@ function findLastAccessedReport(
     // Return the most recently visited report. Get the last read report from the last-visit-times map.
     // If we have no visit data we'll return most recent report owned by user.
     if (isEmptyObject(allReportLastVisitTimes)) {
-        const visibleReports = reportsValues.filter((report) => !!report?.isPinned || !isHiddenForCurrentUser(report) || (isPublicRoom(report) && isAnonymousUserSession()));
+        const visibleReports = reportsValues.filter((report) => !!report?.isPinned || !isHiddenForCurrentUser(report) || (isPublicRoom(report) && isAnonymousUser()));
         const ownedReports = visibleReports.filter((report) => report?.ownerAccountID === deprecatedCurrentUserAccountID);
         if (ownedReports.length > 0) {
             return toLastAccessedReport(lodashMaxBy(ownedReports, (a) => a?.lastReadTime ?? ''));
@@ -12424,7 +12424,7 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, curr
         return true;
     }
 
-    if (isPublicRoom(report) && isAnonymousUserSession()) {
+    if (isPublicRoom(report) && isAnonymousUser()) {
         return false;
     }
 
