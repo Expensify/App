@@ -70,8 +70,24 @@ function WorkspaceDistanceRatesTable({
             width: variables.tableStatusColumnWidth,
             styling: {containerStyles: [styles.justifyContentCenter]},
         },
-        {key: 'name', label: translate('common.name'), sortable: true},
-        {key: 'rate', label: translate('workspace.distanceRates.rate'), sortable: true},
+        {
+            key: 'name',
+            label: translate('common.name'),
+            sortable: true,
+            styling: {
+                // editableCellHeader matches the padded name cell so the label and value share an edge.
+                containerStyles: [styles.editableCellHeader],
+            },
+        },
+        {
+            key: 'rate',
+            label: translate('workspace.distanceRates.rate'),
+            sortable: true,
+            styling: {
+                // Same chrome as the name column so the rate label lines up with the padded rate cell.
+                containerStyles: [styles.editableCellHeader],
+            },
+        },
         ...(hasAnyDateBound
             ? ([
                   {key: 'startDate', label: translate('workspace.distanceRates.startDate'), sortable: true},

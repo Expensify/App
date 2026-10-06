@@ -38,7 +38,8 @@ function ExportIntegration({action, originalReport}: ExportIntegrationProps) {
     const integrationName = getOriginalMessage(action)?.label;
 
     if (hasReasoning(action)) {
-        const message = getExportIntegrationMessageHTML(translate, action, integrationName);
+        // Omit the period inside the expense link because AskToExplain supplies it.
+        const message = getExportIntegrationMessageHTML(translate, action, integrationName, true);
         return (
             <ReportActionItemMessageWithExplain
                 message={message}

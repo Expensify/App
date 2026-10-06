@@ -16,7 +16,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
+import usePersonalDetailByLogin, {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -24,6 +24,7 @@ import {clearDraftValues} from '@libs/actions/FormActions';
 import {openExternalLink} from '@libs/actions/Link';
 import {addMembersToWorkspace, clearWorkspaceInviteApproverDraft, clearWorkspaceInviteRoleDraft} from '@libs/actions/Policy/Member';
 import {openPolicyWorkflowsPage, setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
+import {saveFastEditApprovalWorkflow} from '@libs/actions/Workflow';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getNewAccountIDsAndLogins, getPersonalDetailsForAccountIDs, getPersonalDetailsOnyxDataForOptimisticUsers, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -97,6 +98,8 @@ function WorkspaceInviteMessageComponent({
     const [allPersonalDetails] = useAllPersonalDetails();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+    // Only used when this page finishes a "+N more" workflow edit, which has no edit page behind it to save the workflow.
+    const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
 
     const [welcomeNote, setWelcomeNote] = useState<string>();
 
@@ -118,6 +121,7 @@ function WorkspaceInviteMessageComponent({
     const [approverDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`);
     const workspaceInviteApproverDraft = approverDraft ?? defaultApprover;
     const approverDetails = usePersonalDetailByLogin(workspaceInviteApproverDraft);
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
 
     // Under the `MULTIPLE_APPROVERS` beta the approval workflows live in the `RULE` collection, which is only
     // fetched by the Workflows page. Reaching the invite flow through Members would otherwise derive the Approver
@@ -133,7 +137,7 @@ function WorkspaceInviteMessageComponent({
     // Derive whether a custom approval workflow exists instead of trusting `policy.approvalMode`: that flag is
     // written optimistically by several paths and drifts from the real workflow structure, so it can say ADVANCED
     // for a freshly upgraded workspace with no custom workflow, and stay BASIC for one that has several.
-    const {isAdvanceApproval} = useApprovalWorkflows(policy, policyID);
+    const {isAdvanceApproval, rulesCollection} = useApprovalWorkflows(policy, policyID);
     const shouldShowApproverRow = isAdvanceApproval && !!policy?.areWorkflowsEnabled;
 
     const isApproverValid = !!workspaceInviteApproverDraft && workspaceInviteApproverDraft in (policy?.employeeList ?? {});
@@ -199,7 +203,7 @@ function WorkspaceInviteMessageComponent({
     const sendInvitation = () => {
         Keyboard.dismiss();
         const filteredReportActions = getAllPolicyExpenseChatReportActions(allReports, allReportActions);
-        const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
+        const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails, false, false));
         const {newAccountIDs, newLogins} = getNewAccountIDsAndLogins(invitedEmailsToAccountIDsDraft, allPersonalDetails);
         // Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
         // See https://github.com/Expensify/App/blob/main/README.md#workspace, we set conditions about who can leave the workspace
@@ -231,6 +235,11 @@ function WorkspaceInviteMessageComponent({
             const nestedBackTo = getSearchParamFromPath(backTo?.toString() ?? '', 'backTo');
             if (nestedBackTo) {
                 Navigation.goBack(nestedBackTo as Routes);
+            } else if (approvalWorkflow?.isFastEdit) {
+                Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID), {
+                    afterTransition: () =>
+                        saveFastEditApprovalWorkflow({approvalWorkflow, policy, rules: rulesCollection, isMultipleApproversBetaEnabled: isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS)}),
+                });
             } else {
                 // forceReplace so the invite page is removed from the stack. Otherwise it stays
                 // underneath the Approver page and an iOS swipe-back reopens the invite confirm page.

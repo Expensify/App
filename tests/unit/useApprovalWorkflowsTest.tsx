@@ -63,20 +63,20 @@ const createApprovalWorkflowRules = async (submitters: string[], approver: strin
     await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}rule1`, {
         scope: CONST.RULES.SCOPE.POLICY,
         scopeID: POLICY_ID,
-        triggers: indexMap(CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT),
+        triggers: indexMap(CONST.RULES.TRIGGERS.REPORT_SUBMIT),
         filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: submitters},
-        actions: indexMap({name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver}),
+        actions: indexMap({name: CONST.RULES.ACTIONS.FORWARD_TO, approver}),
     });
     await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}rule2`, {
         scope: CONST.RULES.SCOPE.POLICY,
         scopeID: POLICY_ID,
-        triggers: indexMap(CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE),
+        triggers: indexMap(CONST.RULES.TRIGGERS.REPORT_APPROVE),
         filters: {
             operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
             left: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: submitters},
             right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, right: approver},
         },
-        actions: indexMap({name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.APPROVE_REPORT}),
+        actions: indexMap({name: CONST.RULES.ACTIONS.APPROVE_REPORT}),
     });
 };
 
