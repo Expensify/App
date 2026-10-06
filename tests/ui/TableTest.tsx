@@ -29,6 +29,8 @@ import {Keyboard, Platform, StyleSheet, View} from 'react-native';
 import Onyx from 'react-native-onyx';
 import waitForBatchedUpdatesWithAct from 'tests/utils/waitForBatchedUpdatesWithAct';
 
+import createMock from '../utils/createMock';
+
 type TestInstance = ReturnType<typeof screen.getByTestId>;
 
 type MockViewToken<T> = {
@@ -1105,7 +1107,7 @@ describe('Table', () => {
                 );
                 fireEvent(screen.getByTestId('search-input'), 'focus');
                 fireEvent.changeText(screen.getByTestId('search-input'), 'apple');
-                const event = {nativeEvent: {contentOffset: {x: 0, y: 80}}} as NativeSyntheticEvent<NativeScrollEvent>;
+                const event = createMock<NativeSyntheticEvent<NativeScrollEvent>>({nativeEvent: {contentOffset: {x: 0, y: 80}}});
 
                 // When the list scrolls without a drag, focus remains available for keyboard navigation and query resets.
                 act(() => mockFlashListProps.at(-1)?.onScroll?.(event));
@@ -1145,7 +1147,7 @@ describe('Table', () => {
                         <Table.Body />
                     </Table>,
                 );
-                const event = {nativeEvent: {contentOffset: {x: 0, y: 20}}} as NativeSyntheticEvent<NativeScrollEvent>;
+                const event = createMock<NativeSyntheticEvent<NativeScrollEvent>>({nativeEvent: {contentOffset: {x: 0, y: 20}}});
 
                 // When the empty-state content is dragged, use the same callback path as a populated list.
                 fireEvent(screen.getByTestId('table-empty-state-scroll-view'), 'scrollBeginDrag', event);
