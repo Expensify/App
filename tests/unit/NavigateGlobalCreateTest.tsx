@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-type-assertion -- minimal test fixtures; casting via `as unknown` keeps the test focused on the draft flags instead of dragging in every field of the full types */
-import {render} from '@testing-library/react-native';
+import {renderHook} from '@testing-library/react-native';
 
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 
@@ -40,13 +40,6 @@ jest.mock('@userActions/Transaction', () => ({setTransactionReport: jest.fn()}))
 type NavigateGlobalCreateFn = ReturnType<typeof useNavigateGlobalCreate>;
 
 async function renderProvider(transaction: Partial<Transaction> | undefined): Promise<NavigateGlobalCreateFn> {
-    let navigateGlobalCreate: NavigateGlobalCreateFn = () => {};
-
-    function Consumer() {
-        navigateGlobalCreate = useNavigateGlobalCreate();
-        return null;
-    }
-
     const props = {
         iouType: CONST.IOU.TYPE.CREATE,
         // The camera button starts the scan with the default workspace chat as the route reportID
@@ -63,17 +56,15 @@ async function renderProvider(transaction: Partial<Transaction> | undefined): Pr
         backToReport: undefined;
     };
 
-    render(
-        <NavigateGlobalCreateProvider {...props}>
-            <Consumer />
-        </NavigateGlobalCreateProvider>,
-    );
+    const {result} = renderHook(() => useNavigateGlobalCreate(), {
+        wrapper: ({children}: {children: React.ReactNode}) => <NavigateGlobalCreateProvider {...props}>{children}</NavigateGlobalCreateProvider>,
+    });
 
     // Wait for the Provider's one-tick setIsReady and the Subscriber's fnRef publish
     await waitForBatchedUpdates();
     await waitForBatchedUpdates();
 
-    return navigateGlobalCreate;
+    return result.current;
 }
 
 describe('navigateGlobalCreate', () => {
