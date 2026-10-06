@@ -10105,7 +10105,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             createNew: 'Créer nouveau',
             updateExisting: 'Mettre à jour l’existant',
         },
-        percentOfSpend: ({percent}: {percent: string}) => `${percent} des dépenses`,
     },
     genericErrorPage: {
         title: 'Oups, quelque chose s’est mal passé !',
@@ -10468,6 +10467,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
     distance: {
         addStop: 'Ajouter un arrêt',
         address: 'Adresse',
+        reuseRoute: 'Réutiliser l’itinéraire',
+        reusePriorRoute: 'Réutiliser l’itinéraire précédent',
+        choosePreviousRoute: 'Choisissez un itinéraire précédent ci-dessous :',
+        findARoute: 'Trouver un itinéraire',
+        lastUsed: ({date}: {date: string}) => `Dernière utilisation le ${date}`,
+        end: 'Fin',
         waypointDescription: {
             start: 'Démarrer',
             stop: 'Arrêter',
