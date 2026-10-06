@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "target": "es2024",
+        "lib": ["es2024"],
+        "module": "nodenext",
+        "moduleResolution": "nodenext",
+        "types": ["node"],
+        "strict": true,
+        "noEmit": true,
+        "skipLibCheck": true,
+        "allowImportingTsExtensions": true,
+        "erasableSyntaxOnly": true,
+        "verbatimModuleSyntax": true
+    },
+    "include": [".", "../scripts"]
+}

@@ -846,6 +846,8 @@ const config = defineConfig([
         '**/vendor',
         'modules/group-ib-fp/**/*',
         'web/snippets/gib.js',
+        // Standalone npm package with its own dependencies and typecheck (see web/cloudflare-worker/README.md)
+        'web/cloudflare-worker/**/*',
         // Generated language files - excluded from ESLint but still type-checked
         'src/languages/de.ts',
         'src/languages/el.ts',

@@ -42,6 +42,7 @@
                 ".github/actions/**/index.js",
                 "tests/perf-test/**",
                 "web/snippets/gib.js",
+                "web/cloudflare-worker/**",
                 "src/libs/actions/connections/FinancialForce.ts",
                 "src/setup/telemetry/noopExpoUpdates.ts"
             ],

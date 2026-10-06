@@ -1,0 +1,38 @@
+{
+    "$schema": "node_modules/wrangler/config-schema.json",
+    // The top level only configures `wrangler dev`. Deploys always pass `--env staging` or `--env production`.
+    "name": "new-expensify-assets-local",
+    "main": "src/index.ts",
+    "compatibility_date": "2026-09-26",
+    "workers_dev": false,
+    "preview_urls": false,
+    "observability": {
+        "enabled": true,
+    },
+    "assets": {
+        "directory": "../../dist",
+        "binding": "ASSETS",
+        "not_found_handling": "single-page-application",
+        // Serve exact paths like the S3 origin does, so `/index.html` is not redirected to `/`.
+        "html_handling": "none",
+        // Every response needs security headers, and HTML needs a per-request CSP nonce, including SPA navigations.
+        "run_worker_first": true,
+    },
+    "vars": {
+        "ENVIRONMENT": "staging",
+    },
+    "env": {
+        "staging": {
+            "name": "staging-new-expensify-assets",
+            "vars": {
+                "ENVIRONMENT": "staging",
+            },
+        },
+        "production": {
+            "name": "new-expensify-assets",
+            "vars": {
+                "ENVIRONMENT": "production",
+            },
+        },
+    },
+}
