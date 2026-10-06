@@ -6,6 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import {sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatToParts} from '@libs/NumberFormatUtils';
+import {getDateFilterRange} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -60,6 +61,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, rend
     const {getLabel, getShortLabel, getFilterQuery} = CHART_GROUP_BY_CONFIG[groupBy];
 
     const today = format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
+    const dateFilterRange = queryJSON ? getDateFilterRange(queryJSON) : {};
     const rows = buildChartSeries({
         data,
         view,
@@ -67,7 +69,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, rend
         getShortLabel,
         getCurrencyDecimals,
         color,
-        getInProgressLabel: (item) => getInProgressBucketLabel({groupBy, item, today, dateFnsLocale, translate}),
+        getInProgressLabel: (item) => getInProgressBucketLabel({groupBy, item, today, dateFnsLocale, dateFilterRange, translate}),
     });
     const points = rows.map((row) => row.point);
 
