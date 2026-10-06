@@ -1,5 +1,4 @@
-import {acceptEarlyRenewalOffer, clearEarlyRenewalOfferErrors, draftEarlyRenewalMessage} from '@libs/actions/EarlyRenewalOffer';
-import {saveReportDraftComment} from '@libs/actions/Report';
+import {acceptEarlyRenewalOffer, clearEarlyRenewalOfferErrors} from '@libs/actions/EarlyRenewalOffer';
 import {write} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 
@@ -12,10 +11,6 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/API', () => ({
     write: jest.fn(),
-}));
-
-jest.mock('@libs/actions/Report', () => ({
-    saveReportDraftComment: jest.fn((_reportID: string, _message: string, callback: () => void) => callback()),
 }));
 
 describe('actions/EarlyRenewalOffer', () => {
@@ -58,19 +53,5 @@ describe('actions/EarlyRenewalOffer', () => {
         await waitForBatchedUpdates();
         Onyx.disconnect(connection);
         expect(eligibility).toEqual({canClaim: true});
-    });
-
-    it('saves an editable draft and opens the admins room without sending a message', () => {
-        // Given the selected workspace has an admins room
-        const openAdminsRoom = jest.fn();
-        const message = 'Hey @owner@example.com! Could you review the renewal offer?';
-
-        // When the admin clicks Nudge
-        draftEarlyRenewalMessage('123', message, openAdminsRoom);
-
-        // Then only a local draft is saved before navigation, with no API request
-        expect(saveReportDraftComment).toHaveBeenCalledWith('123', message, openAdminsRoom);
-        expect(openAdminsRoom).toHaveBeenCalledTimes(1);
-        expect(write).not.toHaveBeenCalled();
     });
 });

@@ -14,7 +14,8 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {clearEarlyRenewalOfferErrors, draftEarlyRenewalMessage} from '@libs/actions/EarlyRenewalOffer';
+import {clearEarlyRenewalOfferErrors} from '@libs/actions/EarlyRenewalOffer';
+import {saveReportDraftComment} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 
 import variables from '@styles/variables';
@@ -51,7 +52,7 @@ function EarlyRenewalOfferSection() {
             billingOwnerEmail: policy.owner,
             subscriptionURL: `${CONST.NEW_EXPENSIFY_URL}${ROUTES.SETTINGS_SUBSCRIPTION.route}`,
         });
-        draftEarlyRenewalMessage(adminsRoomReportID, message, () => {
+        saveReportDraftComment(adminsRoomReportID, message, () => {
             Navigation.navigate(
                 shouldUseNarrowLayout
                     ? ROUTES.REPORT_WITH_ID.getRoute(adminsRoomReportID, undefined, undefined, ROUTES.HOME)
