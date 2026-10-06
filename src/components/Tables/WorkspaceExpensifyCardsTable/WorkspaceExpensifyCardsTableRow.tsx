@@ -147,7 +147,7 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                                     style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mr3]}
                                 />
                             ) : (
-                                <View style={styles.editableCellFlushWithSibling}>
+                                <View style={[styles.editableCellFlushWithSibling, !!frozenByText && styles.editableCellFrozenFooterOffset]}>
                                     <InlineTextEditCell
                                         value={item.name}
                                         accessibilityLabel={translate('workspace.card.issueNewCard.cardName')}

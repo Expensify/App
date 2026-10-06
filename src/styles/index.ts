@@ -1323,11 +1323,17 @@ const staticStyles = (theme: ThemeColors) =>
         /**
          * Cancels editableCell's horizontal chrome so the value lines up with a
          * sibling that has no edit padding, such as a card title under a cardholder name.
-         * The bottom margin removes the space the cell adds under its label, so the
-         * freeze message keeps the gap it had before this wrapper.
          */
         editableCellFlushWithSibling: {
             marginHorizontal: -(variables.editableCellChromeWidth / 2),
+        },
+
+        /**
+         * The card name cell is taller than its label. On a frozen card that extra
+         * space opens a gap above the freeze message, so pull the message back up.
+         * Rows without a message keep the normal padding under the field.
+         */
+        editableCellFrozenFooterOffset: {
             marginBottom: -((variables.editableCellHeight - variables.lineHeightNormal) / 2),
         },
 
