@@ -1,6 +1,7 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
@@ -25,6 +26,7 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
     const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
+    const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const navigateRef = useRef<(event: MessageEvent<WalletStatementMessage>) => void>(null);
 
     /**
@@ -34,9 +36,9 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
         (event: MessageEvent<WalletStatementMessage>) => {
             const {data} = event;
             const {type, url} = data || {};
-            handleWalletStatementNavigation(conciergeReportID, introSelected, session?.accountID, isSelfTourViewed, hasCompletedGuidedSetupFlow, type, url);
+            handleWalletStatementNavigation(conciergeReportID, introSelected, session?.accountID, isSelfTourViewed, hasCompletedGuidedSetupFlow, conciergePersonalDetails, type, url);
         },
-        [conciergeReportID, introSelected, session?.accountID, isSelfTourViewed, hasCompletedGuidedSetupFlow],
+        [conciergeReportID, introSelected, session?.accountID, isSelfTourViewed, hasCompletedGuidedSetupFlow, conciergePersonalDetails],
     );
 
     useEffect(() => {

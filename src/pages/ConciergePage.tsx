@@ -4,6 +4,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 
 import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {navigateToConciergeChat} from '@libs/actions/Report';
@@ -31,6 +32,7 @@ function ConciergePage() {
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
     const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
@@ -49,6 +51,7 @@ function ConciergePage() {
                         currentUserAccountID: session.accountID ?? CONST.DEFAULT_NUMBER_ID,
                         isSelfTourViewed,
                         hasCompletedGuidedSetupFlow,
+                        conciergePersonalDetails,
                         shouldDismissModal: true,
                         checkIfCurrentPageActive: () => !isUnmounted.current,
                     });
@@ -56,7 +59,7 @@ function ConciergePage() {
             } else {
                 Navigation.navigate(ROUTES.INBOX);
             }
-        }, [session, isLoadingReportData, conciergeReportID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow]),
+        }, [session, isLoadingReportData, conciergeReportID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, conciergePersonalDetails]),
     );
 
     useEffect(() => {
