@@ -50,7 +50,7 @@ type ReportDetailsTitleSectionContentProps = {
 
 function ReportDetailsTitleSectionContent({report}: ReportDetailsTitleSectionContentProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails?.accountID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`);
@@ -71,7 +71,7 @@ function ReportDetailsTitleSectionContent({report}: ReportDetailsTitleSectionCon
         isMoneyRequest,
         isTrackExpenseReport: isTrackExpenseReportUtil(report, parentReport, parentReportAction),
     });
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(report, policy, conciergeReportID, translate, derivedParentReportName, isParentReportArchived);
+    const parentNavigationSubtitleData = getParentNavigationSubtitle(report, policy, conciergeReportID, translate, formatPhoneNumber, derivedParentReportName, isParentReportArchived);
 
     const titleField: OnyxTypes.PolicyReportField | undefined = (() => {
         const fields = getAvailableReportFields(report, Object.values(policy?.fieldList ?? {}));
