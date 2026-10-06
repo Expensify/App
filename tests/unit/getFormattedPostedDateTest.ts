@@ -7,7 +7,14 @@ describe('getFormattedPostedDate', () => {
     });
 
     it('converts a raw YYYYMMDDHHmmss card posted date to YYYY-MM-DD', () => {
-        expect(getFormattedPostedDate('20261002153000')).toBe('2026-10-02');
+        // Given a posted value with a time, as sent by feeds like Amex
+        const posted = '20261002153000';
+
+        // When it is formatted
+        const result = getFormattedPostedDate(posted);
+
+        // Then only the date part is kept, so the posted date shows instead of being dropped
+        expect(result).toBe('2026-10-02');
         expect(getFormattedPostedDate('20251231235959')).toBe('2025-12-31');
     });
 
@@ -16,6 +23,9 @@ describe('getFormattedPostedDate', () => {
     });
 
     it('drops the time from an ISO date with a time', () => {
+        // Given ISO posted values that include a time
+        // When they are formatted
+        // Then only the date part is kept
         expect(getFormattedPostedDate('2026-10-02 15:30:00')).toBe('2026-10-02');
         expect(getFormattedPostedDate('2026-10-02T15:30:00Z')).toBe('2026-10-02');
     });
@@ -26,12 +36,18 @@ describe('getFormattedPostedDate', () => {
     });
 
     it('returns an empty string for an unsupported format', () => {
+        // Given posted values that don't match any card feed format
+        // When they are formatted
+        // Then nothing is returned, so the expense view and the Posted column never show a raw value
         expect(getFormattedPostedDate('2026-7-1')).toBe('');
         expect(getFormattedPostedDate('not-a-date')).toBe('');
         expect(getFormattedPostedDate('202610021530')).toBe('');
     });
 
     it('returns an empty string for a date that does not exist', () => {
+        // Given posted values with the right shape but an impossible month or day
+        // When they are formatted
+        // Then nothing is returned, because the date isn't real
         expect(getFormattedPostedDate('20260230')).toBe('');
         expect(getFormattedPostedDate('20261340153000')).toBe('');
         expect(getFormattedPostedDate('2026-02-30')).toBe('');

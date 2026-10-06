@@ -295,6 +295,7 @@ describe('TransactionUtils', () => {
         });
 
         describe('when posted date has value with format YYYYMMddHHmmss', () => {
+            // Given a card transaction whose feed sends the posted date with a time, like Amex
             const transaction = generateTransaction({
                 posted: '20261002153000',
             });
@@ -302,13 +303,16 @@ describe('TransactionUtils', () => {
             it('returns the posted date with the correct format YYYY-MM-dd', () => {
                 const expectedResult = '2026-10-02';
 
+                // When the posted date is formatted for the expense view
                 const result = TransactionUtils.getFormattedPostedDate(transaction);
 
+                // Then the date part is returned so the expense view can show it
                 expect(result).toEqual(expectedResult);
             });
         });
 
         describe('when posted date is not a valid date', () => {
+            // Given a transaction with a posted value that isn't a date
             const transaction = generateTransaction({
                 posted: 'not-a-date',
             });
@@ -316,8 +320,10 @@ describe('TransactionUtils', () => {
             it('returns an empty string', () => {
                 const expectedResult = '';
 
+                // When the posted date is formatted for the expense view
                 const result = TransactionUtils.getFormattedPostedDate(transaction);
 
+                // Then nothing is returned, so no posted date shows
                 expect(result).toEqual(expectedResult);
             });
         });
