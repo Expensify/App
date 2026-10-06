@@ -91,7 +91,7 @@ describe('staging worker', () => {
     });
 
     test('serves /index.html without redirecting to /', async () => {
-        // Given the service worker precaches the shell by its file name
+        // Given the service worker caches the shell ahead of time by its file name
         // When /index.html is requested
         const response = await server.fetch('/index.html');
 
