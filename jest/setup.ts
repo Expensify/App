@@ -146,23 +146,7 @@ jest.mock('react-native-share', () => ({
     default: jest.fn(),
 }));
 
-jest.mock('react-native-reanimated', () => ({
-    ...jest.requireActual<typeof Animated>('react-native-reanimated/mock'),
-    createAnimatedPropAdapter: jest.fn,
-    // react-native-reanimated/mock leaves dispatchCommand out (see its own "ADD ME IF NEEDED" comment). forceClearInput
-    // (src/libs/ComponentUtils) dispatches it from a UI-thread worklet, so any test exercising that path needs it mocked.
-    dispatchCommand: jest.fn(),
-    // react-native-reanimated/mock also leaves out useComposedEventHandler, useHandler and isSharedValue, which Gesture Handler 3
-    // calls from its detectors (including the ones behind its ScrollView / FlatList wrappers).
-    useComposedEventHandler: jest.fn(() => () => {}),
-    useHandler: jest.fn(() => ({context: {}, doDependenciesDiffer: false})),
-    isSharedValue: jest.fn((value: unknown) => typeof value === 'object' && value !== null && 'value' in value && 'get' in value && typeof value.get === 'function'),
-    useReducedMotion: jest.fn,
-    useScrollViewOffset: jest.fn(() => 0),
-    useAnimatedRef: jest.fn(() => jest.fn()),
-    LayoutAnimationConfig: ({children}: {children: React.ReactNode}) => children,
-    makeShareableCloneRecursive: jest.fn,
-}));
+jest.mock('react-native-reanimated', () => jest.requireActual<typeof Animated>('react-native-reanimated/mock'));
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-return
 jest.mock('react-native-worklets', () => require('react-native-worklets/src/mock'));
