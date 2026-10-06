@@ -11,9 +11,10 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {isPolicyAdmin as isPolicyAdminUtil} from '@libs/PolicyUtils';
 import {getOneTransactionThreadReportID, getOriginalMessage, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
-    canDeleteCardTransactionByLiabilityType,
+    canDeleteCardTransaction,
     canDeleteTransaction,
     isInvoiceReport as isInvoiceReportUtil,
     isMoneyRequest as isMoneyRequestUtil,
@@ -21,7 +22,7 @@ import {
     isSelfDM as isSelfDMUtil,
     isTrackExpenseReportNew as isTrackExpenseReportUtil,
 } from '@libs/ReportUtils';
-import {isDemoTransaction} from '@libs/TransactionUtils';
+import {isDemoTransaction, isManagedCardTransaction} from '@libs/TransactionUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -48,6 +49,8 @@ function useReportDetailsRequestData(reportID: string): ReportDetailsRequestData
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails?.accountID;
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const isPolicyAdmin = isPolicyAdminUtil(policy);
     const isMoneyRequestReport = isMoneyRequestReportUtil(report);
     const isMoneyRequest = isMoneyRequestUtil(report);
     const isInvoiceReport = isInvoiceReportUtil(report);
@@ -78,7 +81,6 @@ function useReportDetailsRequestData(reportID: string): ReportDetailsRequestData
     const isMoneyRequestReportArchived = useReportIsArchived(moneyRequestReport?.reportID);
     const [moneyRequestReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(moneyRequestReport?.reportID)}`);
 
-    const canDeleteRequest = isActionOwner && (canDeleteTransaction(moneyRequestReport, rules, isMoneyRequestReportArchived) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
     const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const [iouOriginalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransaction?.comment?.originalTransactionID)}`);
@@ -88,8 +90,11 @@ function useReportDetailsRequestData(reportID: string): ReportDetailsRequestData
         reportActions: requestParentReportAction ? [requestParentReportAction] : [],
         policy,
     });
-    const isCardTransactionCanBeDeleted = canDeleteCardTransactionByLiabilityType(iouTransaction);
-    const shouldShowDeleteButton = (canDeleteRequest && isCardTransactionCanBeDeleted) || isDemoTransaction(iouTransaction);
+    const canDeleteRequest =
+        (isActionOwner || (isPolicyAdmin && isManagedCardTransaction(iouTransaction))) &&
+        (canDeleteTransaction(moneyRequestReport, rules, isMoneyRequestReportArchived) || isSelfDMTrackExpenseReport) &&
+        !isDeletedParentAction;
+    const shouldShowDeleteButton = (canDeleteRequest && canDeleteCardTransaction(iouTransaction, policy, cardList)) || isDemoTransaction(iouTransaction);
     const shouldShowEditSplitOnDeleteAction = iouTransactionID ? shouldOpenSplitExpenseEditFlowOnDelete([iouTransactionID]) : false;
     const deleteMenuItemTitle = shouldShowEditSplitOnDeleteAction ? translate('iou.editSplits') : translate('reportActionContextMenu.deleteAction', requestParentReportAction);
 

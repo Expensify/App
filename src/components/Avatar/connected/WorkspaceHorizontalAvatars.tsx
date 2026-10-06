@@ -1,21 +1,16 @@
 import HorizontalAvatars from '@components/Avatar/layouts/HorizontalAvatars';
 import type {HorizontalStackingOptions} from '@components/Avatar/layouts/HorizontalAvatars';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
-import useLocalize from '@hooks/useLocalize';
-
-import {sortIconsByName} from '@libs/ReportUtils';
-
-import CONST from '@src/CONST';
+import type CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 
 import type {ReportAvatarFields} from '@selectors/Report';
 import type {ValueOf} from 'type-fest';
 
-import lodashSortBy from 'lodash/sortBy';
 import React from 'react';
 
 import useReportWorkspaceIcon from './useReportWorkspaceIcon';
+import useSortedIcons from './useSortedIcons';
 
 type SortingOption = ValueOf<typeof CONST.REPORT_ACTION_AVATARS.SORT_BY>;
 
@@ -41,21 +36,9 @@ type WorkspaceHorizontalAvatarsProps = {
 
 /** Renders the given account and the report's workspace icon side by side, in the requested order. */
 function WorkspaceHorizontalAvatars({report, primaryAvatar, size, horizontalStacking, sort, fallbackDisplayName}: WorkspaceHorizontalAvatarsProps) {
-    const {localeCompare} = useLocalize();
-    const personalDetails = usePersonalDetails();
     const workspaceIcon = useReportWorkspaceIcon(report);
     const {isHovered = false, ...stackingOptions} = horizontalStacking === true ? {} : horizontalStacking;
-    const sortBy: SortingOption[] = sort === undefined ? [] : [sort].flat();
-
-    let icons: Icon[] = [primaryAvatar, workspaceIcon];
-    if (sortBy.includes(CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME)) {
-        icons = sortIconsByName(icons, personalDetails, localeCompare);
-    } else if (sortBy.includes(CONST.REPORT_ACTION_AVATARS.SORT_BY.ID)) {
-        icons = lodashSortBy(icons, (icon) => icon.id);
-    }
-    if (sortBy.includes(CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE)) {
-        icons = [...icons].reverse();
-    }
+    const icons = useSortedIcons([primaryAvatar, workspaceIcon], sort);
 
     return (
         <HorizontalAvatars
