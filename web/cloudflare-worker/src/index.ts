@@ -19,22 +19,14 @@ function isHTMLResponse(response: Response): boolean {
     return response.headers.get('Content-Type')?.startsWith('text/html') ?? false;
 }
 
-/**
- * HTML gets a fresh nonce on every request, so a 304 would pair a cached body with a new CSP. Only plain
- * static files are allowed to revalidate.
- */
 function buildAssetRequest(request: Request, url: URL): Request {
-    const assetURL = new URL(url);
-    if (assetURL.pathname === LEGACY_AASA_PATH) {
-        assetURL.pathname = AASA_PATH;
+    if (url.pathname !== LEGACY_AASA_PATH) {
+        return request;
     }
 
-    const assetRequest = new Request(assetURL, request);
-    if (!STATIC_FILE_PATH.test(url.pathname)) {
-        assetRequest.headers.delete('If-None-Match');
-        assetRequest.headers.delete('If-Modified-Since');
-    }
-    return assetRequest;
+    const assetURL = new URL(url);
+    assetURL.pathname = AASA_PATH;
+    return new Request(assetURL, request);
 }
 
 function setSecurityHeaders(headers: Headers, environment: Env['ENVIRONMENT'], nonce: string) {
@@ -76,6 +68,7 @@ export default {
             return response;
         }
 
+        // The nonce changes per request, so a 304 would pair a cached body with a CSP that no longer matches it.
         response.headers.set('Cache-Control', 'no-cache');
         response.headers.delete('ETag');
         response.headers.delete('Last-Modified');
