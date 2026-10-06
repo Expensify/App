@@ -978,6 +978,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({date}: {date: string}) => `订阅将于 ${date} 结束`,
                 cta: '管理',
             },
+            emailDeliveryFailure: {title: '我们无法向你发送电子邮件通知', subtitle: '账户'},
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -11212,6 +11213,19 @@ ${reportName}`,
             title: '构建你自己的代理',
             description: `<muted-text>创建自定义代理，根据你设置的规则审核、批准和分配报销。<a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">了解更多</a>。</muted-text>`,
         },
+    },
+    emailIssuePage: {
+        title: '邮件问题',
+        intro: (login: string) => `由于投递问题，我们的邮件服务提供商已暂停向 <strong>${login}</strong> 发送邮件。要解决此问题：`,
+        confirmEmailTitle: '确认您的邮箱地址',
+        confirmEmailDescription: (login: string) =>
+            `请确保 <strong>${login}</strong> 拼写正确且是一个真实存在的收件箱。像“expenses@domain.com”这样的别名也需要有各自可正常使用的收件箱才能登录 Expensify。`,
+        allowlistTitle: '将 expensify.com 加入允许列表',
+        allowlistDescription: `将 <strong>expensify.com</strong> 添加到您的邮箱客户端的允许列表中。您可能需要 IT 通过<a href="${CONST.SET_NOTIFICATION_LINK}">这些说明</a>调整服务器设置。`,
+        getHelpFromConcierge: '向 Concierge 寻求帮助',
+        completedSteps: '我已完成以上步骤',
+        errorTitle: '出现问题。请重试',
+        errorPrompt: '好像出了点问题。请重试。如果问题仍然存在，请联系 Concierge。',
     },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `将您的订阅续订为 12 个月期限，自 ${startDate} 至 ${endDate}。`,
