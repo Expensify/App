@@ -2260,6 +2260,9 @@ type ReportDetailsNavigatorParamList = {
         policyID: string;
         connectionName: ConnectionName;
     };
+    [SCREENS.REPORT_DETAILS.DYNAMIC_SHARE_REPORT]: {
+        reportID: string;
+    };
 };
 
 type ReportCardActivateNavigatorParamList = {
