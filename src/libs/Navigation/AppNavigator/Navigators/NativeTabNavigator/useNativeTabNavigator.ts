@@ -27,9 +27,11 @@ import type {NavigationAction, NavigationState, PartialState, Router, TabNavigat
 
 import {findFocusedRoute, useNavigation, useNavigationState, useRoute} from '@react-navigation/native';
 import {isAnonymousSessionSelector} from '@selectors/Session';
-import {useEffect, useState} from 'react';
+import {useEffect} from 'react';
 
 import getTabWithoutBarItem from './getTabWithoutBarItem';
+import {isInboxTabAtChatList} from './tabScreenListeners';
+import useIsWorkspacesTabRestored from './useIsWorkspacesTabRestored';
 
 /**
  * Root-level tab screens where the swipe-back gesture should be disabled.
@@ -68,11 +70,9 @@ function useNativeTabNavigator() {
     // A tab with no item in the bar is drawn over the other tabs as a full screen, so the bar hides while it is focused.
     const isActiveTabWithoutBarItem = activeTabRoute?.name === tabWithoutBarItem;
     const shouldShowNativeTabBar = shouldUseNarrowLayout && isTabRouteAtRoot(activeTabRoute) && !isBlockingViewVisible && !isActiveTabWithoutBarItem;
-    const isSpendSelected = activeTabRoute?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR;
-    const [hasSpendBeenSelected, setHasSpendBeenSelected] = useState(isSpendSelected);
-    if (isSpendSelected && !hasSpendBeenSelected) {
-        setHasSpendBeenSelected(true);
-    }
+    const getTabRoute = (tabName: string) => (isRealizedNavigationState(tabState) ? tabState.routes.find((tabRoute) => tabRoute.name === tabName) : undefined);
+    const isInboxAtChatList = isInboxTabAtChatList(getTabRoute(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR));
+    const isWorkspacesTabRestored = useIsWorkspacesTabRestored(getTabRoute(NAVIGATORS.WORKSPACE_NAVIGATOR));
 
     let inboxDotColor: string | undefined;
     if (chatTabBrickRoad) {
@@ -141,7 +141,7 @@ function useNativeTabNavigator() {
 
     const isAccountAvatarShown = shouldUseNarrowLayout && tabWithoutBarItem !== NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR;
 
-    return {shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isAnonymousUser, hasSpendBeenSelected};
+    return {shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isAnonymousUser, isInboxAtChatList, isWorkspacesTabRestored};
 }
 
 export default useNativeTabNavigator;

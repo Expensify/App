@@ -3,49 +3,68 @@ import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_
 import ROUTE_TO_NAVIGATION_TAB from '@components/Navigation/NavigationTabBar/ROUTE_TO_NAVIGATION_TAB';
 
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import getFocusedLeafScreenName from '@libs/Navigation/helpers/getFocusedLeafScreenName';
+import {startNavigateToInboxTabSpan, startNavigateToReportsTabSpans} from '@libs/telemetry/startTabNavigationSpans';
 
-import NAVIGATORS from '@src/NAVIGATORS';
+import SCREENS from '@src/SCREENS';
 
+import type {NavigationState, PartialState} from '@react-navigation/native';
 import type {ValueOf} from 'type-fest';
 
 type NavigationTab = ValueOf<typeof NAVIGATION_TABS>;
 
 /** Tabs the JS tab buttons keep from anonymous users, who get the sign-in modal instead. */
-const ANONYMOUS_GATED_TABS = new Set<NavigationTab>([NAVIGATION_TABS.SEARCH, NAVIGATION_TABS.INSIGHTS, NAVIGATION_TABS.SETTINGS]);
+const ANONYMOUS_GATED_TABS = new Set<NavigationTab>([NAVIGATION_TABS.SEARCH, NAVIGATION_TABS.INSIGHTS, NAVIGATION_TABS.WORKSPACES, NAVIGATION_TABS.SETTINGS]);
 
-/**
- * Tabs switched by their own JS navigation rather than by the native selection, as their JS tab buttons do: Inbox opens
- * at its chat list, and Workspaces restores the last workspace or falls back to the list.
- */
-const JS_SWITCHED_TABS = new Set<NavigationTab>([NAVIGATION_TABS.INBOX, NAVIGATION_TABS.WORKSPACES]);
+type TabRoute = {
+    name: string;
+    state?: NavigationState | PartialState<NavigationState>;
+};
+
+/** Whether Inbox shows its chat list, which is where its JS tab button opens it. */
+function isInboxTabAtChatList(inboxRoute: TabRoute | undefined) {
+    return getFocusedLeafScreenName(inboxRoute?.state) === SCREENS.INBOX;
+}
 
 /**
  * What a tap on the native bar does on top of the tab switch, mirroring the JS tab buttons the native bar replaces.
- * Spend and Workspaces are handled by TabPressListeners, which need Onyx data.
+ * Workspaces is handled by TabPressListeners, which needs Onyx data.
  */
-const NAVIGATION_TAB_PRESS_HANDLERS: Partial<Record<NavigationTab, () => void>> = {
-    [NAVIGATION_TABS.INBOX]: navigateToInboxTab,
+const NAVIGATION_TAB_PRESS_HANDLERS: Partial<Record<NavigationTab, (route: TabRoute) => void>> = {
+    [NAVIGATION_TABS.INBOX]: (route) => (isInboxTabAtChatList(route) ? startNavigateToInboxTabSpan({isWideLayout: false}) : navigateToInboxTab()),
+    [NAVIGATION_TABS.SEARCH]: () => interceptAnonymousUser(startNavigateToReportsTabSpans),
     [NAVIGATION_TABS.INSIGHTS]: () => interceptAnonymousUser(() => {}),
     [NAVIGATION_TABS.SETTINGS]: () => interceptAnonymousUser(() => {}),
 };
 
 type NativeTabSelectionParams = {
     isAnonymousUser: boolean;
-    /** Spend's first visit opens the latest search kept in Onyx, which the tab mounted at startup does not show yet. */
-    hasSpendBeenSelected: boolean;
+    isInboxAtChatList: boolean;
+    /** Whether Workspaces shows what its JS tab button restores, see useIsWorkspacesTabRestored. */
+    isWorkspacesTabRestored: boolean;
 };
 
-/** Whether the native bar switches to the tab itself, or leaves the switch to the tab's press handler. */
-function isNativeTabSelectionEnabled(routeName: string, {isAnonymousUser, hasSpendBeenSelected}: NativeTabSelectionParams) {
-    if (routeName === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR && !hasSpendBeenSelected) {
+/**
+ * Whether the native bar switches to the tab itself, or leaves the switch to the tab's press handler. The native switch
+ * is kept whenever the tab already shows what its JS tab button opens, because a prevented selection makes the iOS bar
+ * slide back to the current tab before JS moves it to the new one.
+ */
+function isNativeTabSelectionEnabled(routeName: string, {isAnonymousUser, isInboxAtChatList, isWorkspacesTabRestored}: NativeTabSelectionParams) {
+    const tab = ROUTE_TO_NAVIGATION_TAB[routeName];
+    if (isAnonymousUser && ANONYMOUS_GATED_TABS.has(tab)) {
         return false;
     }
-    const tab = ROUTE_TO_NAVIGATION_TAB[routeName];
-    return !JS_SWITCHED_TABS.has(tab) && !(isAnonymousUser && ANONYMOUS_GATED_TABS.has(tab));
+    if (tab === NAVIGATION_TABS.INBOX) {
+        return isInboxAtChatList;
+    }
+    if (tab === NAVIGATION_TABS.WORKSPACES) {
+        return isWorkspacesTabRestored;
+    }
+    return true;
 }
 
 type TabScreenListenerProps = {
-    route: {name: string};
+    route: TabRoute;
     navigation: {isFocused: () => boolean};
 };
 
@@ -59,10 +78,10 @@ function tabScreenListeners({route, navigation}: TabScreenListenerProps) {
             if (navigation.isFocused()) {
                 return;
             }
-            NAVIGATION_TAB_PRESS_HANDLERS[ROUTE_TO_NAVIGATION_TAB[route.name]]?.();
+            NAVIGATION_TAB_PRESS_HANDLERS[ROUTE_TO_NAVIGATION_TAB[route.name]]?.(route);
         },
     };
 }
 
 export default tabScreenListeners;
-export {isNativeTabSelectionEnabled};
+export {isInboxTabAtChatList, isNativeTabSelectionEnabled};

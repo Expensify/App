@@ -15,16 +15,16 @@ import type {OnyxEntry} from 'react-native-onyx';
 import getLastRoute from './getLastRoute';
 
 /** The latest Spend search kept in Onyx, for a Spend tab that has not shown a search yet. */
-function getStoredSearchTabRoute(lastSearchParams: OnyxEntry<LastSearchParams>, lastExpensesSearchQuery: string | undefined) {
+function getStoredSearchTabParams(lastSearchParams: OnyxEntry<LastSearchParams>, lastExpensesSearchQuery: string | undefined) {
     const lastQueryJSON = lastSearchParams?.queryJSON;
     const lastQueryFromOnyx = lastQueryJSON ? buildSearchQueryString(lastQueryJSON) : undefined;
     if (lastQueryFromOnyx) {
         // The persisted search key belongs to the persisted query, so it only travels with it.
-        return ROUTES.SEARCH_ROOT.getRoute({query: lastQueryFromOnyx, searchKey: lastSearchParams?.searchKey});
+        return {query: lastQueryFromOnyx, searchKey: lastSearchParams?.searchKey};
     }
 
     const defaultSearchQuery = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE});
-    return ROUTES.SEARCH_ROOT.getRoute({query: getValidLastQuery(lastExpensesSearchQuery, defaultSearchQuery), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES});
+    return {query: getValidLastQuery(lastExpensesSearchQuery, defaultSearchQuery), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES};
 }
 
 function getSearchTabRoute(rootState: NavigationState, lastSearchParams: OnyxEntry<LastSearchParams>, lastExpensesSearchQuery: string | undefined) {
@@ -41,8 +41,8 @@ function getSearchTabRoute(rootState: NavigationState, lastSearchParams: OnyxEnt
         }
     }
 
-    return getStoredSearchTabRoute(lastSearchParams, lastExpensesSearchQuery);
+    return ROUTES.SEARCH_ROOT.getRoute(getStoredSearchTabParams(lastSearchParams, lastExpensesSearchQuery));
 }
 
 export default getSearchTabRoute;
-export {getStoredSearchTabRoute};
+export {getStoredSearchTabParams};

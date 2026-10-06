@@ -35,11 +35,14 @@ const HIDDEN_TAB_OPTIONS = {tabBarItemHidden: true};
 const renderNativeTabLayout = (props: NativeTabLayoutProps) => <NativeTabLayout {...props} />;
 
 function TabNavigator() {
-    const {shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isAnonymousUser, hasSpendBeenSelected} = useNativeTabNavigator();
+    const {shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isAnonymousUser, isInboxAtChatList, isWorkspacesTabRestored} =
+        useNativeTabNavigator();
     const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels});
     // A tab with no bar item draws no icon.
     const getOptions = (name: NativeTabName) =>
-        name === tabWithoutBarItem ? HIDDEN_TAB_OPTIONS : {...getTabOptions(name), tabBarSelectionEnabled: isNativeTabSelectionEnabled(name, {isAnonymousUser, hasSpendBeenSelected})};
+        name === tabWithoutBarItem
+            ? HIDDEN_TAB_OPTIONS
+            : {...getTabOptions(name), tabBarSelectionEnabled: isNativeTabSelectionEnabled(name, {isAnonymousUser, isInboxAtChatList, isWorkspacesTabRestored})};
 
     return (
         <Tab.Navigator
