@@ -373,6 +373,9 @@
     "wait-port": "^0.2.9"
   },
   "overrides": {
+    "@rock-js/plugin-repack": {
+      "@callstack/repack": "$@callstack/repack"
+    },
     "typescript": "$typescript",
     "@typescript-eslint/eslint-plugin": "8.58.1",
     "@typescript-eslint/parser": "8.58.1",
