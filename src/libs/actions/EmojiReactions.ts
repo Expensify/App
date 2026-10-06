@@ -171,4 +171,4 @@ function toggleEmojiReaction(
     addEmojiReaction(originalReportID, reportAction.reportActionID, emoji, skinTone, currentUserAccountID);
 }
 
-export {toggleEmojiReaction};
+export default toggleEmojiReaction;

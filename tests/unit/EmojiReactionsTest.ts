@@ -6,7 +6,7 @@
 import {write} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 
-import {toggleEmojiReaction} from '@userActions/EmojiReactions';
+import toggleEmojiReaction from '@userActions/EmojiReactions';
 
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';

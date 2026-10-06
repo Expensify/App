@@ -213,7 +213,7 @@ import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils
 import {isExpenseSplit, isPerDiemRequest} from '@libs/TransactionUtils';
 
 import {setDownload} from '@userActions/Download';
-import {toggleEmojiReaction} from '@userActions/EmojiReactions';
+import toggleEmojiReaction from '@userActions/EmojiReactions';
 import {openOldDotLink} from '@userActions/Link';
 import {
     explain,
