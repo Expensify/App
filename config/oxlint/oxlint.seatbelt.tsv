@@ -2142,6 +2142,8 @@
 "../../tests/perf-test/DynamicReportDetailsPage.perf-test.tsx"	"@typescript-eslint/no-deprecated/originalMessage"	1
 "../../tests/perf-test/DynamicReportDetailsPage.perf-test.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	2
 "../../tests/perf-test/MoneyRequestReportActionsList.perf-test.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
+"../../tests/perf-test/OptionsListChatPreview.perf-test.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	5
+"../../tests/perf-test/OptionsListChatPreview.perf-test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/perf-test/ReportActionCompose.perf-test.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/ui/AgentRulesSectionTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	2
 "../../tests/ui/AgentsPromoBannersTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
@@ -2304,6 +2306,8 @@
 "../../tests/unit/IOUUtilsTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/LastVisitedPathOnBackgroundTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	2
 "../../tests/unit/LHNAvatarPipelineTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	7
+"../../tests/unit/LhnSearchPreviewParityTest.ts"	"@typescript-eslint/no-deprecated/originalMessage"	25
+"../../tests/unit/LhnSearchPreviewParityTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	2
 "../../tests/unit/libs/TransactionThreadNavigationUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/MerchantRuleSuggestionUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/MergeTransactionUtilsTest.ts"	"@typescript-eslint/no-deprecated/originalMessage"	1
@@ -2364,6 +2368,7 @@
 "../../tests/unit/Search/ExpenseReportSearchViewTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/Search/LazyGroupSelectionTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/Search/LazyGroupSelectionTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	5
+"../../tests/unit/Search/SearchColumnsPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/Search/SearchQueryUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	3
 "../../tests/unit/Search/SearchUIUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	4
 "../../tests/unit/Search/seedMyExpensesSearchTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
