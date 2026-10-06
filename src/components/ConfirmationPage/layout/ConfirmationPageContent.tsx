@@ -12,6 +12,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 
 type ConfirmationPageContentProps = {
+    /** Errors rendered as a message inside the footer, above the button */
     requestErrors?: Errors | null;
     style?: StyleProp<ViewStyle>;
     children?: React.ReactNode;

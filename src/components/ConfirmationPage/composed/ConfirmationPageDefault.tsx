@@ -1,5 +1,5 @@
 import ConfirmationPage from '@components/ConfirmationPage/ConfirmationPage';
-import ConfirmationPageContent from '@components/ConfirmationPage/layout/Content';
+import ConfirmationPageContent from '@components/ConfirmationPage/layout/ConfirmationPageContent';
 import ConfirmationPageDescription from '@components/ConfirmationPage/primitives/ConfirmationPageDescription';
 import ConfirmationPageHeading from '@components/ConfirmationPage/primitives/ConfirmationPageHeading';
 import ConfirmationPageIllustration from '@components/ConfirmationPage/primitives/ConfirmationPageIllustration';
@@ -18,27 +18,27 @@ type ConfirmationPageProps = {
     heading: string;
     description: string;
 
-    /** The text for the primary button label */
+    /** The text for the button label */
     buttonText?: string;
 
-    /** A function that is called when the primary button is clicked on */
+    /** A function that is called when the button is clicked on */
     onButtonPress?: () => void;
 
-    /** Whether the primary confirmation button should be disabled */
+    /** Whether the button should be disabled */
     isButtonDisabled?: boolean;
 
-    /** Whether the primary confirmation button should show a loading spinner */
+    /** Whether the button should show a loading spinner */
     isButtonLoading?: boolean;
 
-    /** Component rendered inside the footer, above the buttons (e.g. an inline error message) */
+    /** Errors rendered as a message inside the footer, above the button */
     requestErrors?: Errors | null;
 
-    containerStyle?: ViewStyle;
-    innerContainerStyle?: ViewStyle;
+    containerStyle?: StyleProp<ViewStyle>;
+    innerContainerStyle?: StyleProp<ViewStyle>;
     illustrationStyle?: StyleProp<ViewStyle>;
-    headingStyle?: TextStyle;
+    headingStyle?: StyleProp<TextStyle>;
     descriptionStyle?: StyleProp<TextStyle>;
-    footerStyle?: ViewStyle;
+    footerStyle?: StyleProp<ViewStyle>;
 };
 
 function ConfirmationPageDefault({

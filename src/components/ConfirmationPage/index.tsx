@@ -25,7 +25,7 @@
 import React from 'react';
 
 import ConfirmationPageComponent from './ConfirmationPage';
-import ConfirmationPageContent from './layout/Content';
+import ConfirmationPageContent from './layout/ConfirmationPageContent';
 import ConfirmationPageDescription from './primitives/ConfirmationPageDescription';
 import ConfirmationPageHeading from './primitives/ConfirmationPageHeading';
 import ConfirmationPageIllustration from './primitives/ConfirmationPageIllustration';
