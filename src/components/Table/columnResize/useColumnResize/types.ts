@@ -10,6 +10,9 @@ type UseColumnResizeParams = {
     /** Each column's resolved width, which a drag starts from. A new object means React rendered new widths. */
     resolvedColumnWidths: Record<string, number>;
 
+    /** The narrowest width a drag may take a column to, for columns tighter than the default drag bound. */
+    dragMinWidths?: Record<string, number>;
+
     /** Gap between columns, so handles can be centred in it. */
     columnGap: number;
 };

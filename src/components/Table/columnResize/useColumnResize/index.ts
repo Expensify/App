@@ -41,7 +41,7 @@ type Drag = {
     startWidth: number;
 };
 
-function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnWidths, columnGap}: UseColumnResizeParams): ColumnResizeController | undefined {
+function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnWidths, dragMinWidths, columnGap}: UseColumnResizeParams): ColumnResizeController | undefined {
     const dragRef = useRef<Drag | null>(null);
     const {scopeElementRef, setScopeElement, writeColumnWidth, readColumnWidth, clearLiveWidths} = useLiveColumnWidths({resolvedColumnWidths, dragRef});
     const {revealIndicator, hideIndicator} = useResizeIndicator(scopeElementRef);
@@ -98,7 +98,7 @@ function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnW
         }
 
         // The line rides the handle, so it follows the clamped width, not the pointer.
-        writeColumnWidth(drag.columnKey, getDraggedColumnWidth(drag.startWidth, drag.startClientX, event.clientX));
+        writeColumnWidth(drag.columnKey, getDraggedColumnWidth(drag.startWidth, drag.startClientX, event.clientX, dragMinWidths?.[drag.columnKey]));
     };
 
     const handlePointerUp = (event: React.PointerEvent<HTMLDivElement>) => {

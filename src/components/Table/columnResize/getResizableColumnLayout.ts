@@ -1,6 +1,7 @@
 /** Lays a resizable table's columns out as custom property expressions, so a drag repaints the header, rows and scroller without a render. */
 import type {TableColumn, TableData} from '@components/Table/types';
 
+import CONST from '@src/CONST';
 import type {ColumnWidthOverrides} from '@src/types/onyx/TableColumnWidths';
 
 import applyColumnWidthOverrides from './applyColumnWidthOverrides';
@@ -49,28 +50,15 @@ type ResizableColumnLayout = {
     /** Keys of the columns whose right edge the user can drag, in render order. */
     resizableColumnKeys: string[];
 
-    /** Widths after stored overrides, which drags start from. */
+    /** Width drags start from: stored overrides applied, and the growable column at its painted width. */
     resolvedColumnWidths: Record<string, number>;
+
+    /** The narrowest width a drag may take a column to, for columns tighter than the default drag bound. */
+    dragMinWidths: Record<string, number>;
 };
 
-/**
- * First column of the trailing headless run, like an arrow, menu or icon, which absorbs leftover width to stay pinned right.
- * `undefined` when the last column has a heading, and leftover room then stays empty.
- */
-function getGrowableColumnKey<DataType extends TableData, ColumnKey extends string>(columns: Array<TableColumn<ColumnKey, DataType>>): ColumnKey | undefined {
-    let growableColumnKey: ColumnKey | undefined;
-
-    for (let index = columns.length - 1; index >= 0; index--) {
-        const column = columns.at(index);
-
-        if (!column || column.label) {
-            break;
-        }
-
-        growableColumnKey = column.key;
-    }
-
-    return growableColumnKey;
+function getColumnsWidthSum<DataType extends TableData, ColumnKey extends string>(columns: Array<TableColumn<ColumnKey, DataType>>, columnWidths: Record<string, number>): number {
+    return columns.reduce((total, column) => total + (columnWidths[column.key] ?? 0), 0);
 }
 
 function getResizableColumnLayout<DataType extends TableData, ColumnKey extends string>({
@@ -80,7 +68,8 @@ function getResizableColumnLayout<DataType extends TableData, ColumnKey extends 
     tableWidth,
     rowChromeWidths: {selectionColumnWidth, totalGapWidth, rowMarginWidth, rowPaddingWidth},
 }: GetResizableColumnLayoutParams<DataType, ColumnKey>): ResizableColumnLayout {
-    const growableColumnKey = getGrowableColumnKey(columns);
+    // Absorbs leftover width, so trailing headless columns like an arrow, menu or icon keep their size and stay pinned right.
+    const growableColumnKey = columns.findLast((column) => !!column.label)?.key;
 
     const {columnWidths, columnWidthValues, resizableColumnKeys} = applyColumnWidthOverrides({
         columns: columns.map((column) => ({
@@ -97,6 +86,24 @@ function getResizableColumnLayout<DataType extends TableData, ColumnKey extends 
 
     const rowWidthValues = selectionColumnWidth > 0 ? [`${selectionColumnWidth}px`, ...columnWidthValues] : columnWidthValues;
 
+    const rowContentWidth = getColumnsWidthSum(columns, columnWidths) + selectionColumnWidth + totalGapWidth + rowPaddingWidth;
+    const overflowWidth = rowContentWidth - (tableWidth - rowMarginWidth);
+    const dragStartWidths = {...columnWidths};
+    const dragMinWidths: Record<string, number> = {};
+
+    if (growableColumnKey && resizableColumnKeys.includes(growableColumnKey)) {
+        // Drags start from the painted track, which includes the leftover it grew into, so the first pixels of travel aren't dead.
+        const paintedWidth = (columnWidths[growableColumnKey] ?? 0) + Math.max(-overflowWidth, 0);
+        dragStartWidths[growableColumnKey] = paintedWidth;
+
+        // Shrinking may only take back the overflow. Anything more would stretch the trailing headless columns or leave
+        // empty room at the row's end. Rounded up so the row never ends a fraction of a pixel short of the table.
+        const minWidth = Math.max(Math.ceil(paintedWidth - Math.max(overflowWidth, 0)), CONST.TABLES.COLUMN_RESIZE.MIN_WIDTH);
+
+        // A width already below the drag bound stays put rather than jumping wider.
+        dragMinWidths[growableColumnKey] = Math.min(minWidth, paintedWidth);
+    }
+
     // Scroll at the live column sum, so a drag that widens a column past the table's edge starts scrolling mid-drag.
     return {
         gridTemplateColumns,
@@ -104,7 +111,8 @@ function getResizableColumnLayout<DataType extends TableData, ColumnKey extends 
         // Without the outer margin. Floored at px because `100%` resolves against the list cell, which includes the margin.
         rowWidth: getColumnsWidthExpression(rowWidthValues, totalGapWidth + rowPaddingWidth, `${tableWidth - rowMarginWidth}px`),
         resizableColumnKeys,
-        resolvedColumnWidths: columnWidths,
+        resolvedColumnWidths: dragStartWidths,
+        dragMinWidths,
     };
 }
 

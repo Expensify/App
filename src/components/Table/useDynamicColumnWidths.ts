@@ -58,6 +58,9 @@ type UseDynamicColumnWidthsResult = {
 
     /** Each column's resolved width, which a drag starts from. */
     resolvedColumnWidths: Record<string, number>;
+
+    /** Narrowest width a drag may take a column to, for columns tighter than the default drag bound. */
+    dragMinWidths: Record<string, number>;
 };
 
 /**
@@ -139,6 +142,7 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
         rowWidth: undefined,
         resizableColumnKeys: [],
         resolvedColumnWidths: {},
+        dragMinWidths: {},
     };
 
     // Checked before anything else, so native never walks the data to gather text that it can't measure anyway.

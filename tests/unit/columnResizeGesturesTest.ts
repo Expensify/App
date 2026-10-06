@@ -13,7 +13,7 @@ describe('columnResizeGestures', () => {
             const fractional = 150.6;
 
             // When they are clamped
-            const clamped = [tooNarrow, tooWide, fractional].map(clampColumnWidth);
+            const clamped = [tooNarrow, tooWide, fractional].map((width) => clampColumnWidth(width));
 
             // Then each lands inside the bounds as whole px, so a column can neither vanish nor push the rest out of reach
             expect(clamped).toEqual([MIN_WIDTH, MAX_WIDTH, 151]);
@@ -47,6 +47,18 @@ describe('columnResizeGestures', () => {
             // Then the width stops at the bounds, so the edge stays reachable however far the pointer goes
             expect(narrowestWidth).toBe(MIN_WIDTH);
             expect(widestWidth).toBe(MAX_WIDTH);
+        });
+
+        it('stops at a tighter floor when given one', () => {
+            // Given a 200px column that may not shrink below 180px
+            const startWidth = 200;
+            const startClientX = 100;
+
+            // When the pointer travels 100px left
+            const narrowedWidth = getDraggedColumnWidth(startWidth, startClientX, 0, 180);
+
+            // Then the width stops at that floor rather than the default bound
+            expect(narrowedWidth).toBe(180);
         });
     });
 });
