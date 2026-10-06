@@ -835,7 +835,6 @@ function IOURequestStepConfirmationContent({
             if (isConfirmed) {
                 return;
             }
-
             if (paymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && paymentMethod !== CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
                 sendMoney(paymentMethod);
                 return;
@@ -851,7 +850,8 @@ function IOURequestStepConfirmationContent({
                 ? {optimisticChatReportID: optimisticP2PDestinationReportID, chatReportID: optimisticP2PDestinationReportID}
                 : resolveOptimisticChatReportID([participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID], report);
             const payDestinationReportID = optimisticP2PDestinationReportID ?? destinationReportID ?? resolvedReportIDs.chatReportID;
-            if (!payDestinationReportID || Navigation.getTopmostReportId() === payDestinationReportID) {
+            // A wide pre-mount puts the destination on top of a background Reports stack, so the topmost check only counts without one.
+            if (!payDestinationReportID || (!Navigation.getIsFullscreenPreInsertedUnderRHP() && Navigation.getTopmostReportId() === payDestinationReportID)) {
                 sendMoney(paymentMethod, {resolvedReportIDs});
                 return;
             }
