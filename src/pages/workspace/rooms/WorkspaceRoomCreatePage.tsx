@@ -2,7 +2,7 @@ import usePolicy from '@hooks/usePolicy';
 
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {isArchivedPolicy} from '@libs/PolicyUtils';
+import {isArchivedPolicy, isPolicyGuest} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspaceNewRoomPage from '@pages/workspace/WorkspaceNewRoomPage';
@@ -18,7 +18,7 @@ function WorkspaceRoomCreatePage({route}: WorkspaceRoomCreatePageProps) {
     return (
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
-            shouldBeBlocked={isArchivedPolicy(policy)}
+            shouldBeBlocked={isArchivedPolicy(policy) || isPolicyGuest(policy)}
         >
             <WorkspaceNewRoomPage policyID={route.params.policyID} />
         </AccessOrNotFoundWrapper>
