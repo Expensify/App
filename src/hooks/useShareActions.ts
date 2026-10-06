@@ -48,7 +48,7 @@ function useShareActions({reportID, policy}: UseShareActionsParams): UseShareAct
             onSelected: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS_SHARE_CODE.path)),
         },
         {
-            text: translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND}.buttonText`),
+            text: translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND}.header`),
             icon: expensifyIcons.Cash,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.REFER_FRIEND,
             onSelected: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REFERRAL_DETAILS.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND))),
