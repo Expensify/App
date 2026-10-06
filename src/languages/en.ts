@@ -380,6 +380,8 @@ const translations = {
         automatic: 'Automatic',
         showing: 'Showing',
         of: 'of',
+        // @context Carousel pagination counter showing the current item's position out of the total (e.g. "3 of 50").
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} of ${total}`,
         default: 'Default',
         update: 'Update',
         member: 'Member',
@@ -1785,6 +1787,7 @@ const translations = {
         unholdExpense: 'Unhold expense',
         heldExpense: 'held this expense',
         unheldExpense: 'unheld this expense',
+        undeletedExpense: 'undeleted this expense',
         moveUnreportedExpense: 'Move unreported expense',
         addExistingExpense: 'Add existing expense',
         selectExistingExpense: 'Select at least one expense to add to the report.',
@@ -3128,8 +3131,7 @@ const translations = {
         memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
             `${memberName} is already in an approval workflow that submits to ${approverName}. Adding them here will move them to this workflow.`,
         moveEveryoneToThisWorkflowTitle: 'Move everyone to this workflow',
-        moveEveryoneToThisWorkflowPrompt:
-            'You’re about to move everyone to this approval workflow. This will delete all other approval workflows and move everyone to this one. This action can’t be undone.',
+        moveEveryoneToThisWorkflowPrompt: 'You’re about to move everyone to this new approval workflow. Saving it will delete all other approval workflows. This action can’t be undone.',
     },
     workflowsApproverPage: {
         genericErrorMessage: "The approver couldn't be changed. Please try again or contact support.",
@@ -3263,6 +3265,8 @@ const translations = {
             updateAvatar: "There was a problem updating this agent's avatar",
         },
     },
+    agentPromptUpdated: ({updatedBy, previousPrompt, newPrompt}: {updatedBy: string; previousPrompt: string; newPrompt: string}) =>
+        `${updatedBy} updated this agent's instructions.\nPrevious instructions:\n${previousPrompt}\nNew instructions:\n${newPrompt}`,
     newAgentPage: {
         title: 'New agent',
         buildCustomAgent: 'Build custom agent',
@@ -3538,9 +3542,9 @@ const translations = {
             otherAccountingSoftware: 'Name of software',
         },
         interestedFeatures: {
-            title: 'What features are you interested in?',
-            featuresAlreadyEnabled: 'Here are our most popular features:',
-            featureYouMayBeInterestedIn: 'Enable additional features:',
+            title: 'Select the features you want',
+            featuresAlreadyEnabled: 'Your workspace already has the following enabled:',
+            featureYouMayBeInterestedIn: 'Enable additional features you may be interested in:',
         },
         error: {
             requiredFirstName: 'Please input your first name to continue',
@@ -4813,23 +4817,25 @@ const translations = {
         },
         nudge: {
             airfareManual:
-                'Did you know you can book and manage flights right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Did you know you can book flights right in Expensify and still earn miles with your frequent flyer programs? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             airfareCard:
-                'Did you know you can book and manage flights right in Expensify? And it automatically uploads receipts for you? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Did you know you can book flights right in Expensify and still earn miles with your frequent flyer programs? It automatically uploads receipts for you, too. Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             hotelManual:
-                'Did you know you can book and manage hotel stays right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
-            hotelCard: 'Did you know you can book and manage hotel stays right in Expensify? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Did you know you can book hotel stays right in Expensify and still use your hotel loyalty programs? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+            hotelCard:
+                'Did you know you can book hotel stays right in Expensify and still use your hotel loyalty programs? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             hotelBlockManual:
                 'Did you know you can book and manage group trips like this right in Expensify? Save yourself the hassle next time and try out our <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> tool.',
             hotelBlockCard:
                 'Did you know you can book and manage group trips like this right in Expensify? Save yourself the hassle next time and try out our <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> tool.',
             carManual:
-                'Did you know you can book and manage car rentals right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
-            carCard: 'Did you know you can book and manage car rentals right in Expensify? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+                'Did you know you can book car rentals right in Expensify and still use your rental car loyalty programs? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+            carCard:
+                'Did you know you can book car rentals right in Expensify and still use your rental car loyalty programs? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             railManual:
-                'Did you know you can book and manage train rides right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+                'Did you know you can book train rides right in Expensify and still use your rail loyalty programs and railcards? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
-                'Did you know you can book and manage train rides right in Expensify? And it automatically uploads receipts for you? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+                'Did you know you can book train rides right in Expensify and still use your rail loyalty programs and railcards? It automatically uploads receipts for you, too. Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
         },
         flightTo: 'Flight to',
         trainTo: 'Train to',
@@ -6959,7 +6965,7 @@ const translations = {
                 corporate: 'Restrict deleting transactions',
                 personal: 'Allow deleting transactions',
                 setFeedNameDescription: 'Give the card feed a unique name so you can tell it apart from the others',
-                setTransactionLiabilityDescription: 'When enabled, cardholders can delete card transactions. New transactions will follow this rule.',
+                setTransactionLiabilityDescription: 'Cardholders can delete transactions. Applies to new transactions only.',
                 emptyAddedFeedTitle: 'No cards in this feed',
                 emptyAddedFeedDescription: "Make sure there are cards in your bank's card feed.",
                 pendingFeedTitle: `We're reviewing your request...`,
@@ -8932,6 +8938,7 @@ const translations = {
                 flagAmountsOver: 'Flag amounts over',
                 flagAmountsOverDescription: (categoryName: string) => `Applies to the category “${categoryName}”.`,
                 flagAmountsOverSubtitle: 'This overrides the max amount for all expenses.',
+                expenseLimitType: 'Expense limit type',
                 expenseLimitTypes: {
                     expense: 'Individual expense',
                     expenseSubtitle:
@@ -10209,8 +10216,6 @@ const translations = {
             line: 'Line',
             pie: 'Pie',
         },
-        // @context Chart label showing a segment's share of total spending. "percent" already includes the percent sign (e.g. "42%").
-        percentOfSpend: ({percent}: {percent: string}) => `${percent} of spend`,
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'From',
             [CONST.SEARCH.GROUP_BY.CARD]: 'Cards',
@@ -10231,6 +10236,7 @@ const translations = {
         noCategory: 'No category',
         noMerchant: 'No merchant',
         noTag: 'No tag',
+        noVendor: 'No vendor',
         expenseType: 'Expense type',
         receiptType: 'Receipt type',
         receiptTypeValues: {
@@ -10631,6 +10637,12 @@ const translations = {
     distance: {
         addStop: 'Add stop',
         address: 'Address',
+        reuseRoute: 'Reuse route',
+        reusePriorRoute: 'Reuse prior route',
+        choosePreviousRoute: 'Choose a previous route below:',
+        findARoute: 'Find a route',
+        lastUsed: ({date}: {date: string}) => `Last used ${date}`,
+        end: 'End',
         waypointDescription: {
             start: 'Start',
             stop: 'Stop',

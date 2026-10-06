@@ -516,6 +516,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Poprzedni rok',
         nextYear: 'W przyszłym roku',
         avatar: 'Avatar',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} z ${total}`,
         editor: 'Edytor',
         restrictions: 'Ograniczenia',
         tryAgain: 'Spróbuj ponownie',
@@ -1948,6 +1949,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Włącz tagi w przestrzeni roboczej, aby edytować szczegóły wydatku lub usunąć ten tag z tego wydatku.',
             confirmText: 'Usuń znacznik',
         },
+        undeletedExpense: 'przywrócił ten wydatek',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `stawki za przejechany dystans zaktualizowane dla nowej przestrzeni roboczej – ${policyName}`,
     },
     transactionMerge: {
@@ -3045,7 +3047,7 @@ ${amount} dla ${merchant} - ${date}`,
             `${memberName} jest już w procesie zatwierdzania, który przesyła do ${approverName}. Dodanie go tutaj przeniesie go do tego procesu.`,
         moveEveryoneToThisWorkflowTitle: 'Przenieś wszystkich do tego przepływu pracy',
         moveEveryoneToThisWorkflowPrompt:
-            'Za chwilę przeniesiesz wszystkich do tego schematu zatwierdzania. Spowoduje to usunięcie wszystkich innych schematów zatwierdzania i przeniesienie wszystkich do tego jednego. Tej czynności nie da się cofnąć.',
+            'Za chwilę przeniesiesz wszystkich do tego nowego schematu zatwierdzania. Zapisanie go spowoduje usunięcie wszystkich innych schematów zatwierdzania. Tej czynności nie da się cofnąć.',
     },
     workflowsApproverPage: {
         genericErrorMessage: 'Nie udało się zmienić osoby zatwierdzającej. Spróbuj ponownie lub skontaktuj się z pomocą techniczną.',
@@ -3179,6 +3181,8 @@ ${amount} dla ${merchant} - ${date}`,
             updateAvatar: 'Wystąpił problem z aktualizacją awatara tego agenta',
         },
     },
+    agentPromptUpdated: ({updatedBy, previousPrompt, newPrompt}: {updatedBy: string; previousPrompt: string; newPrompt: string}) =>
+        `${updatedBy} zaktualizował(-a) instrukcje tego agenta.\nPoprzednie instrukcje:\n${previousPrompt}\nNowe instrukcje:\n${newPrompt}`,
     newAgentPage: {
         title: 'Nowy agent',
         buildCustomAgent: 'Utwórz własnego agenta',
@@ -3446,9 +3450,9 @@ ${amount} dla ${merchant} - ${date}`,
             otherAccountingSoftware: 'Nazwa oprogramowania',
         },
         interestedFeatures: {
-            title: 'Jakie funkcje Cię interesują?',
-            featuresAlreadyEnabled: 'Oto nasze najpopularniejsze funkcje:',
-            featureYouMayBeInterestedIn: 'Włącz dodatkowe funkcje:',
+            title: 'Wybierz funkcje, których potrzebujesz',
+            featuresAlreadyEnabled: 'W Twojej przestrzeni roboczej są już włączone następujące funkcje:',
+            featureYouMayBeInterestedIn: 'Włącz dodatkowe funkcje, które mogą Cię zainteresować:',
         },
         error: {
             requiredFirstName: 'Podaj swoje imię, aby kontynuować',
@@ -4697,21 +4701,21 @@ ${amount} dla ${merchant} - ${date}`,
         },
         nudge: {
             airfareManual:
-                'Czy wiesz, że możesz rezerwować i zarządzać lotami bezpośrednio w Expensify? Następnym razem uniknij kłopotu ręcznego tworzenia wydatku i po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Wiesz, że możesz rezerwować loty bezpośrednio w Expensify i nadal zbierać mile w swoich programach lojalnościowych dla często podróżujących? Następnym razem uniknij kłopotu ręcznego tworzenia wydatku i po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             airfareCard:
-                'Wiesz, że możesz rezerwować i zarządzać lotami bezpośrednio w Expensify? I że paragony są automatycznie przesyłane za ciebie? Następnym razem po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Wiesz, że możesz rezerwować loty bezpośrednio w Expensify i nadal zbierać mile w swoich programach lojalnościowych linii lotniczych? Paragony też są automatycznie przesyłane za Ciebie. Następnym razem po prostu zarezerwuj lot przez <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             hotelManual:
-                'Czy wiesz, że możesz rezerwować i zarządzać pobytami w hotelach bezpośrednio w Expensify? Następnym razem uniknij kłopotu ręcznego tworzenia wydatku i po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Wiesz, że możesz rezerwować pobyty w hotelach bezpośrednio w Expensify i nadal korzystać ze swoich programów lojalnościowych hoteli? Następnym razem uniknij kłopotu z ręcznym tworzeniem wydatku i po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             hotelCard:
-                'Wiesz, że możesz rezerwować i zarządzać pobytami w hotelach bezpośrednio w Expensify? Następnym razem po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Wiesz, że możesz rezerwować pobyty w hotelach bezpośrednio w Expensify i nadal korzystać ze swoich programów lojalnościowych hoteli? Następnym razem po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             carManual:
-                'Wiesz, że możesz rezerwować i zarządzać wynajmem samochodów bezpośrednio w Expensify? Następnym razem uniknij kłopotu ręcznego tworzenia wydatku i po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+                'Wiesz, że możesz rezerwować wynajem samochodów bezpośrednio w Expensify i nadal korzystać ze swoich programów lojalnościowych wypożyczalni? Następnym razem uniknij kłopotu z ręcznym tworzeniem wydatku i po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             carCard:
-                'Wiesz, że możesz rezerwować i zarządzać wynajmem samochodów bezpośrednio w Expensify? Następnym razem po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+                'Wiesz, że możesz rezerwować samochody w Expensify i nadal korzystać ze swoich programów lojalnościowych wypożyczalni? Następnym razem po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             railManual:
-                'Wiesz, że możesz rezerwować i zarządzać przejazdami pociągiem bezpośrednio w Expensify? Następnym razem uniknij kłopotu z ręcznym tworzeniem wydatku i po prostu zarezerwuj przejazd przez <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+                'Wiesz, że możesz rezerwować przejazdy pociągiem bezpośrednio w Expensify i nadal korzystać ze swoich programów lojalnościowych kolei oraz kart zniżkowych? Następnym razem uniknij kłopotu ręcznego tworzenia wydatku i po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
-                'Wiesz, że możesz rezerwować i zarządzać przejazdami pociągiem bezpośrednio w Expensify? I że paragony są automatycznie przesyłane za Ciebie? Następnym razem po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a>',
+                'Wiesz, że możesz rezerwować przejazdy pociągiem bezpośrednio w Expensify i wciąż korzystać ze swoich programów lojalnościowych kolei oraz kart zniżkowych? Paragony też są automatycznie przesyłane za ciebie. Następnym razem po prostu zarezerwuj podróż przez <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             hotelBlockManual:
                 'Wiesz, że możesz rezerwować i zarządzać takimi wyjazdami grupowymi bezpośrednio w Expensify? Oszczędź sobie zachodu następnym razem i wypróbuj nasze narzędzie <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a>.',
             hotelBlockCard:
@@ -6640,7 +6644,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 corporate: 'Ogranicz usuwanie transakcji',
                 personal: 'Zezwól na usuwanie transakcji',
                 setFeedNameDescription: 'Nadaj kanałowi karty unikalną nazwę, aby odróżnić go od pozostałych',
-                setTransactionLiabilityDescription: 'Po włączeniu posiadacze kart mogą usuwać transakcje kartą. Nowe transakcje będą podlegać tej zasadzie.',
+                setTransactionLiabilityDescription: 'Posiadacze karty mogą usuwać transakcje. Dotyczy tylko nowych transakcji.',
                 emptyAddedFeedTitle: 'Brak kart w tym kanale',
                 emptyAddedFeedDescription: 'Upewnij się, że w strumieniu kart Twojego banku znajdują się karty.',
                 pendingFeedTitle: `Przeglądamy Twoje zgłoszenie…`,
@@ -8264,6 +8268,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 flagAmountsOver: 'Oznaczaj kwoty powyżej',
                 flagAmountsOverDescription: (categoryName: string) => `Dotyczy kategorii „${categoryName}”.`,
                 flagAmountsOverSubtitle: 'To zastępuje maksymalną kwotę dla wszystkich wydatków.',
+                expenseLimitType: 'Typ limitu wydatków',
                 expenseLimitTypes: {
                     expense: 'Pojedynczy wydatek',
                     expenseSubtitle:
@@ -9942,6 +9947,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         noCategory: 'Brak kategorii',
         noMerchant: 'Brak sprzedawcy',
         noTag: 'Brak tagu',
+        noVendor: 'Brak dostawcy',
         expenseType: 'Typ wydatku',
         receiptType: 'Typ paragonu',
         receiptTypeValues: {
@@ -10003,7 +10009,6 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             violationsBySubmitter: 'Naruszenia przez zgłaszającego',
         },
         mergeReports: {title: 'Połącz raporty', description: 'Wybierz raport, który chcesz zachować. Wszystkie wydatki zostaną do niego przeniesione, a pozostałe raporty zostaną usunięte.'},
-        percentOfSpend: ({percent}: {percent: string}) => `${percent} wydatków`,
     },
     genericErrorPage: {
         title: 'Ups, coś poszło nie tak!',
@@ -10367,6 +10372,12 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
     distance: {
         addStop: 'Dodaj przystanek',
         address: 'Adres',
+        reuseRoute: 'Użyj ponownie trasy',
+        reusePriorRoute: 'Użyj poprzedniej trasy',
+        choosePreviousRoute: 'Wybierz jedną z poprzednich tras:',
+        findARoute: 'Znajdź trasę',
+        lastUsed: ({date}: {date: string}) => `Ostatnio użyto ${date}`,
+        end: 'Koniec',
         waypointDescription: {
             start: 'Start',
             stop: 'Zatrzymaj',

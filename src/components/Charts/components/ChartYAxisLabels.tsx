@@ -1,9 +1,9 @@
 import {useChartParagraphs} from '@components/Charts/hooks';
 import {getFontLineMetrics, measureTextWidth, truncateLabel} from '@components/Charts/utils';
-import VictoryTheme, {ELLIPSIS, GLYPH_PADDING, LABEL_PADDING, MAX_X_AXIS_LABEL_WIDTH, MAX_Y_AXIS_LABEL_WIDTH} from '@components/Charts/VictoryTheme';
+import {ELLIPSIS, GLYPH_PADDING, LABEL_PADDING, MAX_X_AXIS_LABEL_WIDTH, MAX_Y_AXIS_LABEL_WIDTH} from '@components/Charts/VictoryTheme';
 
 import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
-import type {ChartBounds, Scale} from 'victory-native';
+import type {Scale} from 'victory-native';
 
 import {Paragraph} from '@shopify/react-native-skia';
 import React from 'react';
@@ -15,8 +15,8 @@ type ChartYAxisLabelsProps = {
     /** Maps a tick value to its y-pixel position. */
     yScale: Scale;
 
-    /** Chart plot area bounds. */
-    chartBounds: ChartBounds;
+    /** Width of the whole canvas, which right-aligned labels end at. */
+    canvasWidth: number;
 
     /** Font size used for rendering labels. */
     fontSize: number;
@@ -30,38 +30,37 @@ type ChartYAxisLabelsProps = {
     /** Formats a tick value to its display string. */
     formatValue: (value: number) => string;
 
-    /** When true, labels are left-aligned starting at the left edge of the chart instead of right-aligned. */
+    /** When true, labels are left-aligned at the left edge of the chart instead of right-aligned at its right edge. */
     leftAlign?: boolean;
-
-    /** Horizontal gap between the labels and the chart's left edge. Defaults to the shared axis gap. */
-    labelGap?: number;
 
     /** When true, thin out labels so vertically stacked rows never overlap (used by the horizontal chart's category axis). */
     avoidOverlap?: boolean;
+
+    /** Width (px) labels truncate to. Must match the left padding the caller reserves for them. */
+    maxLabelWidth?: number;
 };
 
 function ChartYAxisLabels({
     yTicks,
     yScale,
-    chartBounds,
+    canvasWidth,
     fontSize,
     fontManager,
     labelColor,
     formatValue,
     leftAlign = false,
-    labelGap = VictoryTheme.axis.labelGap,
     avoidOverlap = false,
+    maxLabelWidth = MAX_Y_AXIS_LABEL_WIDTH,
 }: ChartYAxisLabelsProps) {
     const formattedLabels = yTicks.map((tick) => formatValue(tick));
 
     // Truncate to a single line: labels wider than the max would otherwise wrap onto a second line and
     // overflow the row height (positioning below assumes one line).
     const ellipsisWidth = measureTextWidth(ELLIPSIS, fontManager, fontSize);
-    const truncatedLabels = formattedLabels.map((label) => truncateLabel(label, measureTextWidth(label, fontManager, fontSize), MAX_Y_AXIS_LABEL_WIDTH, ellipsisWidth));
+    const truncatedLabels = formattedLabels.map((label) => truncateLabel(label, measureTextWidth(label, fontManager, fontSize), maxLabelWidth, ellipsisWidth));
 
     // Lay out at the wide width so the already-truncated labels never wrap.
     const paragraphs = useChartParagraphs(truncatedLabels, fontManager, fontSize, labelColor, MAX_X_AXIS_LABEL_WIDTH);
-    const maxWidth = Math.max(0, ...paragraphs.map((item) => item.width));
 
     const {ascent, descent} = getFontLineMetrics(fontManager, fontSize);
     const lineHeight = ascent + descent;
@@ -94,7 +93,8 @@ function ChartYAxisLabels({
             return null;
         }
 
-        const x = chartBounds.left - labelGap + GLYPH_PADDING - (leftAlign ? maxWidth : paraData.width);
+        // Labels sit on the canvas edges so they line up with the card content above the chart.
+        const x = leftAlign ? 0 : canvasWidth - GLYPH_PADDING - paraData.width;
         const tickY = yScale(tick);
 
         return (

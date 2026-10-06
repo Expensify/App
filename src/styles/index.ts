@@ -493,6 +493,10 @@ const staticStyles = (theme: ThemeColors) =>
             textAlignVertical: 'top',
         },
 
+        textAlignVerticalCenter: {
+            textAlignVertical: 'center',
+        },
+
         lineHeightUndefined: {
             lineHeight: undefined,
         },
@@ -532,6 +536,11 @@ const staticStyles = (theme: ThemeColors) =>
             color: theme.textSupporting,
             fontSize: fontScale.label,
             lineHeight: lineHeightScale.label,
+        },
+
+        /** Gives every digit the same advance so a counter doesn't shift sideways as its digits change. */
+        tabularNums: {
+            fontVariant: ['tabular-nums'],
         },
 
         mutedNormalTextLabel: {
@@ -1309,6 +1318,14 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadius,
             borderColor: 'transparent',
             paddingHorizontal: 4,
+        },
+
+        /**
+         * Cancels editableCell's horizontal chrome so the value lines up with a
+         * sibling that has no edit padding, such as a card title under a cardholder name.
+         */
+        editableCellFlushWithSibling: {
+            marginHorizontal: -(variables.editableCellChromeWidth / 2),
         },
 
         editableCell: {
@@ -4154,6 +4171,39 @@ const staticStyles = (theme: ThemeColors) =>
             marginLeft: 0,
         },
 
+        reuseRouteCard: {
+            ...spacing.mh5,
+            ...spacing.mb3,
+            borderRadius: variables.componentBorderRadiusLarge,
+            backgroundColor: theme.cardBG,
+        },
+
+        reuseRouteThumbnailWrapper: {
+            ...spacing.p1,
+        },
+
+        reuseRouteThumbnail: {
+            width: '100%',
+            aspectRatio: 1.84,
+            borderRadius: 12,
+            overflow: 'hidden',
+            backgroundColor: theme.border,
+        },
+
+        // Floats above the map thumbnail so the date stays readable over the map image.
+        reuseRouteLastUsedBadge: {
+            position: 'absolute',
+            top: 12,
+            left: 12,
+            marginLeft: 0,
+            backgroundColor: colors.productDark400,
+            borderColor: colors.productDark400,
+        },
+
+        reuseRouteLastUsedBadgeText: {
+            color: colors.productDark900,
+        },
+
         receiptActionButton: {
             width: 40,
             height: 40,
@@ -5790,14 +5840,13 @@ const staticStyles = (theme: ThemeColors) =>
             marginTop: 12,
         },
 
-        onboardingAccountingItem: {
+        onboardingTile: {
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusNormal,
             // Keeps "Intuit Enterprise Suite" on one line in narrow tiles.
             paddingHorizontal: 8,
             paddingVertical: 20,
             alignItems: 'center',
-            justifyContent: 'center',
             flexGrow: 1,
             flexShrink: 1,
         },
@@ -5809,32 +5858,26 @@ const staticStyles = (theme: ThemeColors) =>
             maxWidth: '32%',
         },
 
-        onboardingAccountingItemNarrow: {
+        onboardingTileNarrow: {
             width: '45%',
             maxWidth: '48.5%',
         },
 
-        onboardingAccountingItemSelected: {
+        onboardingTileSelected: {
             backgroundColor: theme.selectedOptionBG,
         },
 
         // Positioned via the wrapper, since `SelectionButton` applies `style` to the inner pressable.
-        onboardingAccountingItemSelectionButton: {
+        onboardingTileSelectionButton: {
             position: 'absolute',
             top: 12,
             left: 12,
         },
 
-        onboardingInterestedFeaturesItem: {
-            backgroundColor: theme.cardBG,
-            borderRadius: variables.componentBorderRadiusNormal,
-            padding: 16,
-            display: 'flex',
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexGrow: 1,
-            flexShrink: 1,
+        // Four 23.4% tiles plus gaps fill the 576px row exactly, so wrap at 22% to survive the scrollbar.
+        onboardingInterestedFeaturesItemWide: {
+            width: '22%',
+            maxWidth: '23.4%',
         },
 
         checkboxWithLabelCheckboxStyle: {
@@ -6845,6 +6888,8 @@ const staticStyles = (theme: ThemeColors) =>
             marginTop: variables.qrShareHorizontalPadding,
             flexDirection: 'row',
             flexWrap: 'wrap',
+            rowGap: 8,
+            columnGap: 16,
         },
         pieChartCenterLabel: {
             position: 'absolute',
@@ -6862,7 +6907,18 @@ const staticStyles = (theme: ThemeColors) =>
             height: 12,
         },
         chartInlineTable: {
-            marginTop: 20,
+            marginTop: 32,
+            rowGap: 24,
+        },
+        chartInlineTableDot: {
+            borderRadius: '50%',
+            width: 16,
+            height: 16,
+            margin: 2,
+        },
+        chartInlineTableAvatarBorder: {
+            borderWidth: 2,
+            borderRadius: '50%',
         },
         homeWidgetIconContainer: {
             width: variables.iconSizeExtraLarge,
@@ -7201,11 +7257,11 @@ const dynamicStyles = (theme: ThemeColors) =>
             isNegatable,
             extraHeight = 0,
         }: SelectionListPopover) => {
-            const MODAL_VERTICAL_PADDING = 32;
+            const MODAL_VERTICAL_PADDING = variables.popoverVerticalPadding;
             const BUTTON_HEIGHT = hasButton ? 48 : 0;
             const HEADER_HEIGHT = hasHeader ? 48 : 0;
             const TITLE_HEIGHT = hasTitle ? 34 : 0;
-            const SEARCHBAR_HEIGHT = isSearchable ? 64 : 0;
+            const SEARCHBAR_HEIGHT = isSearchable ? variables.popoverSearchInputHeight : 0;
             const NEGATION_TOGGLE_BORDER_WIDTH = 1;
             const NEGATION_TOGGLE_HEIGHT = isNegatable ? variables.componentSizeSmall + NEGATION_TOGGLE_BORDER_WIDTH * 2 + spacing.gap3.gap : 0;
 
