@@ -4569,22 +4569,18 @@ type ReasonAndReportActionThatRequiresAttention = {
 };
 
 /**
- * Returns the unresolved card fraud alert action for a given report.
+ * Returns the card's unresolved fraud alert action in the given report, if the card still has live potential fraud tied to that report.
  */
-function getUnresolvedCardFraudAlertAction(reportID: string, reportActions?: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> {
-    const actions = reportActions ?? getAllReportActions(reportID);
-    return Object.values(actions).find((action): action is ReportAction => isActionableCardFraudAlert(action) && !getOriginalMessage(action)?.resolution);
-}
-
-/**
- * Checks if the card has live potential fraud whose alert, posted to the given report, is still unresolved.
- */
-function isCardFraudAlertUnresolved(card: OnyxEntry<Card>, reportID: string | undefined, reportActions?: OnyxEntry<ReportActions>): boolean {
+function getUnresolvedCardFraudAlertAction(card: OnyxEntry<Card>, reportID: string | undefined, reportActions?: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> {
     const fraudAlertReportID = card?.nameValuePairs?.possibleFraud?.fraudAlertReportID;
     if (!card || !reportID || !fraudAlertReportID || String(fraudAlertReportID) !== reportID || !isCardWithPotentialFraud(card)) {
-        return false;
+        return undefined;
     }
-    return !!getUnresolvedCardFraudAlertAction(reportID, reportActions);
+    const actions = reportActions ?? getAllReportActions(reportID);
+    return Object.values(actions).find(
+        (action): action is ReportAction =>
+            isActionableCardFraudAlert(action) && !getOriginalMessage(action)?.resolution && String(getOriginalMessage(action)?.cardID) === String(card.cardID),
+    );
 }
 
 /**
@@ -4650,16 +4646,19 @@ function getReasonAndReportActionThatRequiresAttention(
         }
     }
 
-    // CARD_LIST only holds the current user's cards, so a card match also limits the green dot to the cardholder.
-    if (!isReportArchived && Object.values(cardList ?? {}).some((card) => isCardFraudAlertUnresolved(card, optionOrReport.reportID, reportActions))) {
-        return {
-            reason: CONST.REQUIRES_ATTENTION_REASONS.HAS_UNRESOLVED_CARD_FRAUD_ALERT,
-            reportAction: getUnresolvedCardFraudAlertAction(optionOrReport.reportID, reportActions),
-        };
-    }
-
     if (isReportArchived) {
         return null;
+    }
+
+    // CARD_LIST only holds the current user's cards, so a card match also limits the green dot to the cardholder.
+    for (const card of Object.values(cardList ?? {})) {
+        const fraudAlertAction = getUnresolvedCardFraudAlertAction(card, optionOrReport.reportID, reportActions);
+        if (fraudAlertAction) {
+            return {
+                reason: CONST.REQUIRES_ATTENTION_REASONS.HAS_UNRESOLVED_CARD_FRAUD_ALERT,
+                reportAction: fraudAlertAction,
+            };
+        }
     }
 
     if (isJoinRequestInAdminRoom(optionOrReport, currentUserLogin)) {
@@ -14934,7 +14933,7 @@ export {
     hasOutstandingChildRequest,
     reasonForReportToBeInOptionList,
     getReasonAndReportActionThatRequiresAttention,
-    isCardFraudAlertUnresolved,
+    getUnresolvedCardFraudAlertAction,
     buildOptimisticChangeFieldAction,
     isPolicyRelatedReport,
     hasReportErrorsOtherThanFailedReceipt,

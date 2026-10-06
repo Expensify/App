@@ -880,5 +880,23 @@ describe('reportAttributes compute — policy change code flow', () => {
             expect(generateReportAttributes).toHaveBeenCalledTimes(1);
             expect(generateReportAttributes).toHaveBeenCalledWith(expect.objectContaining({report: fraudChatReport}));
         });
+
+        it.each([
+            ['a card list without fraud', {[CARD_ID]: createRandomExpensifyCard(CARD_ID, {state: CONST.EXPENSIFY_CARD.STATE.OPEN})}],
+            ['no card list', undefined],
+        ])('recomputes persisted green dots on the first compute after app start with %s', (_, cardList: CardList | undefined) => {
+            const {generateReportAttributes} = jest.requireMock<{generateReportAttributes: jest.Mock}>('@libs/ReportUtils');
+
+            // Given REPORT_ATTRIBUTES restored from disk with a green dot on the fraud report, and no card pointing at it anymore
+            const args = buildArgs(policies, cardReports);
+            args[15] = cardList;
+
+            // When the first compute after app start runs without source values
+            config.compute(args, {currentValue: seededValue, sourceValues: undefined});
+
+            // Then only the report with the stored green dot is recomputed, so a stale fraud alert dot can clear
+            expect(generateReportAttributes).toHaveBeenCalledTimes(1);
+            expect(generateReportAttributes).toHaveBeenCalledWith(expect.objectContaining({report: fraudChatReport}));
+        });
     });
 });
