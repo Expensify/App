@@ -32,13 +32,14 @@ jest.mock(
             children,
 );
 jest.mock('@pages/workspace/withPolicyConnections', () => (WrappedComponent: React.ComponentType<WithPolicyConnectionsProps>) => {
-    function MockPolicyConnections({route}: Pick<WithPolicyConnectionsProps, 'route'>) {
+    function MockPolicyConnections({route, isConnectionDataFetchNeeded}: Pick<WithPolicyConnectionsProps, 'route' | 'isConnectionDataFetchNeeded'>) {
         return (
             <WrappedComponent
                 policy={mockPolicy}
                 policyDraft={undefined}
                 isLoadingPolicy={false}
                 route={route}
+                isConnectionDataFetchNeeded={isConnectionDataFetchNeeded}
             />
         );
     }
@@ -63,7 +64,12 @@ jest.mock('@pages/workspace/workflows/ToggleSettingsOptionRow', () => ({isActive
 ));
 
 function renderImportPage() {
-    return render(<BusinessCentralImportPage route={createMock<WithPolicyConnectionsProps['route']>({params: {policyID: POLICY_ID}})} />);
+    return render(
+        <BusinessCentralImportPage
+            route={createMock<WithPolicyConnectionsProps['route']>({params: {policyID: POLICY_ID}})}
+            isConnectionDataFetchNeeded={false}
+        />,
+    );
 }
 
 describe('BusinessCentralImportPage', () => {
@@ -76,8 +82,8 @@ describe('BusinessCentralImportPage', () => {
                     config: {
                         coding: {
                             customerMappings: {
-                                customers: CONST.BUSINESS_CENTRAL_MAPPING_VALUE.NONE,
-                                projects: CONST.BUSINESS_CENTRAL_MAPPING_VALUE.NONE,
+                                CUSTOMER: CONST.BUSINESS_CENTRAL_MAPPING_VALUE.NONE,
+                                PROJECT: CONST.BUSINESS_CENTRAL_MAPPING_VALUE.NONE,
                             },
                         },
                         export: {

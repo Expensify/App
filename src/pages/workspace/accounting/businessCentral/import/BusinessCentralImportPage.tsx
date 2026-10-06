@@ -26,8 +26,28 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 
 import CONST from '@src/CONST';
 
+import type {ValueOf} from 'type-fest';
+
 import React from 'react';
 import {View} from 'react-native';
+
+type CustomerMappingName = ValueOf<typeof CONST.BUSINESS_CENTRAL_FIELD_MAPPING>;
+
+type CustomerMappingTagRow = {
+    id: CustomerMappingName;
+    name: string;
+    isLocked: boolean;
+    isCustomerMapping: true;
+};
+
+type DimensionTagRow = {
+    id: string;
+    name: string;
+    isLocked: false;
+    isCustomerMapping: false;
+};
+
+type TagRow = CustomerMappingTagRow | DimensionTagRow;
 
 function BusinessCentralImportPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
@@ -56,7 +76,7 @@ function BusinessCentralImportPage({policy}: WithPolicyConnectionsProps) {
             shouldShowCancelButton: false,
         });
     };
-    const tagRows = [
+    const tagRows: TagRow[] = [
         {
             id: CONST.BUSINESS_CENTRAL_FIELD_MAPPING.PROJECTS,
             name: translate('workspace.businessCentral.projects'),
@@ -69,7 +89,7 @@ function BusinessCentralImportPage({policy}: WithPolicyConnectionsProps) {
             isLocked: !hasPurchaseInvoiceExport,
             isCustomerMapping: true,
         },
-        ...(businessCentralData?.dimensions ?? []).map((dimension) => ({id: dimension.id, name: dimension.name, isLocked: false, isCustomerMapping: false})),
+        ...(businessCentralData?.dimensions ?? []).map((dimension) => ({id: dimension.id, name: dimension.name, isLocked: false as const, isCustomerMapping: false as const})),
     ];
 
     // A US company has no VAT posting setup that can become a tax rate, so it has no tax row to offer.
@@ -130,13 +150,9 @@ function BusinessCentralImportPage({policy}: WithPolicyConnectionsProps) {
                         <Text>{translate('workspace.businessCentral.dimensionsImportAsTags')}</Text>
                     </View>
                     {tagRows.map((tagRow) => {
-                        const customerMappingName =
-                            tagRow.id === CONST.BUSINESS_CENTRAL_FIELD_MAPPING.CUSTOMERS ? CONST.BUSINESS_CENTRAL_FIELD_MAPPING.CUSTOMERS : CONST.BUSINESS_CENTRAL_FIELD_MAPPING.PROJECTS;
-                        const mapping = tagRow.isCustomerMapping
-                            ? businessCentralConfig?.coding?.customerMappings?.[customerMappingName]
-                            : businessCentralConfig?.coding?.fieldMappings?.[tagRow.id];
+                        const mapping = tagRow.isCustomerMapping ? businessCentralConfig?.coding?.customerMappings?.[tagRow.id] : businessCentralConfig?.coding?.fieldMappings?.[tagRow.id];
                         const isImported = mapping === CONST.BUSINESS_CENTRAL_MAPPING_VALUE.TAG;
-                        const pendingField = tagRow.isCustomerMapping ? customerMappingName : `${CONST.BUSINESS_CENTRAL_CONFIG.FIELD_MAPPING_PREFIX}${tagRow.id}`;
+                        const pendingField = tagRow.isCustomerMapping ? tagRow.id : `${CONST.BUSINESS_CENTRAL_CONFIG.FIELD_MAPPING_PREFIX}${tagRow.id}`;
                         return (
                             <ToggleSettingOptionRow
                                 key={tagRow.id}
@@ -152,7 +168,7 @@ function BusinessCentralImportPage({policy}: WithPolicyConnectionsProps) {
 
                                     const updatedMapping = isImported ? CONST.BUSINESS_CENTRAL_MAPPING_VALUE.NONE : CONST.BUSINESS_CENTRAL_MAPPING_VALUE.TAG;
                                     if (tagRow.isCustomerMapping) {
-                                        updateBusinessCentralCustomerMapping(policyID, customerMappingName, updatedMapping, mapping);
+                                        updateBusinessCentralCustomerMapping(policyID, tagRow.id, updatedMapping, mapping);
                                         return;
                                     }
 
