@@ -31,7 +31,7 @@ beforeEach(() => {
 });
 
 describe('useChartLabelFormats', () => {
-    it('uses an object fallback but omits an unrenderable plain-string unit', () => {
+    it('uses an object fallback but omits an unsupported plain-string unit', () => {
         // Given a simulated glyph check that rejects the symbol, and equivalent object and string units
         const typeface = createMock<SkTypeface>({getGlyphIDs: (text: string) => [...text].map((char) => (char === '€' ? 0 : 1))});
         const fontManager = createMock<SkTypefaceFontProvider>({matchFamilyStyle: () => typeface});
