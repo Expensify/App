@@ -513,7 +513,9 @@ export default createOnyxDerivedValueConfig({
         for (const key of nameSkipPolicyReportKeys) {
             nameRelevantPolicyReportKeys.delete(key);
         }
-        const nameSkipKeys = new Set(prepareReportKeys([...nameSkipPolicyReportKeys, ...cardChangedReportKeys.filter((key) => !nameRelevantPolicyReportKeys.has(key))]));
+        const nameSkipKeys = new Set(
+            prepareReportKeys([...nameSkipPolicyReportKeys, ...(useIncrementalUpdates ? cardChangedReportKeys.filter((key) => !nameRelevantPolicyReportKeys.has(key)) : [])]),
+        );
         for (const key of prepareReportKeys(nonPolicyUpdates)) {
             nameSkipKeys.delete(key);
         }

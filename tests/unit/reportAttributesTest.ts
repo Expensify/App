@@ -931,6 +931,27 @@ describe('reportAttributes compute — policy change code flow', () => {
             expect(result.reports[FRAUD_REPORT_ID]?.reportName).toBe('Stale');
         });
 
+        it.each([
+            ['a locale change', ONYXKEYS.NVP_PREFERRED_LOCALE],
+            ['a currency list load', ONYXKEYS.CURRENCY_LIST],
+        ])('recomputes the fraud alert report name when %s runs in the same compute as a card change', (_, triggeredKey: OnyxKey) => {
+            const computeReportNameMock = jest.mocked(jest.requireMock<typeof ReportNameUtils>('@libs/ReportNameUtils').computeReportName);
+            computeReportNameMock.mockClear();
+
+            // Given a stored fraud alert report with a stale name that the card's live fraud points at
+            const args = buildArgs(policies, cardReports);
+            args[1] = CONST.LOCALES.ES;
+            args[15] = {[CARD_ID]: cardWithFraud};
+
+            // When a full recompute runs in the same compute as the card change
+            const result = config.compute(args, {currentValue: seededValue, triggeredKeys: new Set<OnyxKey>([triggeredKey, ONYXKEYS.CARD_LIST])});
+
+            // Then the fraud report gets a fresh name like every other report, since a full recompute can change any name
+            expect(computeReportNameMock).toHaveBeenCalledWith(expect.objectContaining({report: fraudChatReport}));
+            expect(result.reports[FRAUD_REPORT_ID]?.reportName).toBe('Test Report');
+            expect(result.reports[OTHER_REPORT_ID]?.reportName).toBe('Test Report');
+        });
+
         it("doesn't recompute the parent chat when only the card's fraud changes", () => {
             const {generateReportAttributes} = jest.requireMock<{generateReportAttributes: jest.Mock}>('@libs/ReportUtils');
 
