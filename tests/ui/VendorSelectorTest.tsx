@@ -97,6 +97,24 @@ describe('VendorSelector', () => {
         expect(getItemTexts()).toEqual(['search.noVendor', 'Acme Tools', 'Zeta Supply Co']);
     });
 
+    it('falls back to the connections when the loaded vendor list is empty', () => {
+        // Given a workspace whose loaded vendor list was built empty before the vendor feature was turned on, while its connections carry the synced vendors
+        mockOnyxData[ONYXKEYS.COLLECTION.POLICY] = {[`${ONYXKEYS.COLLECTION.POLICY}qbo`]: buildQBOPolicy('qbo', ['Acme Tools', 'Zeta Supplies'])};
+        mockOnyxData[ONYXKEYS.COLLECTION.POLICY_VENDORS] = {[`${ONYXKEYS.COLLECTION.POLICY_VENDORS}qbo`]: {}};
+
+        // When the vendor picker renders
+        render(
+            <VendorSelector
+                policyID={undefined}
+                value={[]}
+                onChange={jest.fn()}
+            />,
+        );
+
+        // Then the vendors from the connections are offered, because the empty list is stale until the next sync rebuilds it
+        expect(getItemTexts()).toEqual(['search.noVendor', 'Acme Tools', 'Zeta Supplies']);
+    });
+
     it('only lists the vendors of the selected workspaces', () => {
         // Given two vendor workspaces and a workspace filter that selects only the first one
         mockOnyxData[ONYXKEYS.COLLECTION.POLICY] = {

@@ -60,15 +60,16 @@ function VendorSelector({value = [], policyID, selectionListTextInputStyle, sele
 
     // The loaded vendor list is rebuilt and pushed after every sync, so it wins over the cached connections. The connections
     // are the fallback for workspaces without one, which is how members get their vendors since the bulk vendor load only
-    // covers workspaces the user administers.
+    // covers workspaces the user administers. An empty loaded list also falls back, because a list built while the vendor
+    // feature was off stays empty after the export type is switched on.
     const isPolicySelected = (id: string) => !policyID?.value?.length || policyID.isNegated !== policyID.value.includes(id);
     const vendorItems = [{text: noVendorLabel, value: CONST.SEARCH.VENDOR_EMPTY_VALUE as string}];
     const uniqueVendorNames = new Set<string>(
         Object.entries(connectionVendorNamesByPolicyID)
             .filter(([id]) => isPolicySelected(id))
             .flatMap(([id, connectionVendorNames]) => {
-                const loadedVendors = allPolicyVendors[`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${id}`];
-                return loadedVendors ? Object.values(loadedVendors).map((vendor) => vendor.name) : connectionVendorNames;
+                const loadedVendorNames = Object.values(allPolicyVendors[`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${id}`] ?? {}).map((vendor) => vendor.name);
+                return loadedVendorNames.length > 0 ? loadedVendorNames : connectionVendorNames;
             }),
     );
     vendorItems.push(
