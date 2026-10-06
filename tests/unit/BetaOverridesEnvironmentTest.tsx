@@ -26,15 +26,10 @@ const mockEnvironmentDeferred: {promise: Promise<string>; resolve: (environment:
     promise: Promise.resolve(CONST.ENVIRONMENT.DEV),
     resolve: () => {},
 };
-jest.mock('@libs/Environment/getEnvironment', () => {
-    // CONST cannot be referenced from a mock factory, so it is required inside it
-    const {ENVIRONMENT} = jest.requireActual<{default: {ENVIRONMENT: Record<string, string>}}>('@src/CONST').default;
-    return {
-        __esModule: true,
-        // The fallback matters: anything calling this at module scope runs before the deferred is initialized
-        default: () => mockEnvironmentDeferred?.promise ?? Promise.resolve(ENVIRONMENT.DEV),
-    };
-});
+jest.mock('@libs/Environment/getEnvironment', () => ({
+    __esModule: true,
+    default: () => mockEnvironmentDeferred.promise,
+}));
 
 type ChildrenProps = {
     children: React.ReactNode;
