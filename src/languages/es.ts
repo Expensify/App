@@ -10712,6 +10712,12 @@ ${reportName}`,
     distance: {
         addStop: 'Añadir parada',
         address: 'Dirección',
+        reuseRoute: 'Reutilizar ruta',
+        reusePriorRoute: 'Reutilizar ruta anterior',
+        choosePreviousRoute: 'Elige una ruta anterior a continuación:',
+        findARoute: 'Buscar ruta',
+        lastUsed: ({date}: {date: string}) => `Último uso: ${date}`,
+        end: 'Fin',
         waypointDescription: {
             start: 'Comienzo',
             stop: 'Parada',

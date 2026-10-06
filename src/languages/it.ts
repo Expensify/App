@@ -10388,6 +10388,12 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
     distance: {
         addStop: 'Aggiungi fermata',
         address: 'Indirizzo',
+        reuseRoute: 'Riusa percorso',
+        reusePriorRoute: 'Riusa percorso precedente',
+        choosePreviousRoute: 'Scegli un percorso precedente qui sotto:',
+        findARoute: 'Trova un percorso',
+        lastUsed: ({date}: {date: string}) => `Ultimo utilizzo ${date}`,
+        end: 'Fine',
         waypointDescription: {
             start: 'Avvia',
             stop: 'Interrompi',
