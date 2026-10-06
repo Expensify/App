@@ -29,6 +29,8 @@ type ViolationMessagesProps = {
     distanceUnit?: Unit;
 };
 
+export type {ViolationMessagesProps};
+
 export default function ViolationMessages({
     violations,
     isLast,

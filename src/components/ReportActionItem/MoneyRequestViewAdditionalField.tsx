@@ -22,6 +22,7 @@ import {
     getReimbursable,
     getTag,
     isPerDiemRequest,
+    isScanning,
     isTimeRequest,
 } from '@libs/TransactionUtils';
 import getFormattedPostedDate from '@libs/TransactionUtils/getFormattedPostedDate';
@@ -79,6 +80,10 @@ function MoneyRequestViewAdditionalField({column, transaction, report, policy, p
             break;
         }
         case CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE:
+            if (attendeeCount && isScanning(transaction)) {
+                value = translate('iou.receiptStatusTitle');
+                break;
+            }
             value = attendeeCount ? convertToDisplayString(getAmount(transaction, isFromExpenseReport) / attendeeCount, getCurrency(transaction)) : '';
             break;
         case CONST.SEARCH.TABLE_COLUMNS.POSTED:

@@ -8,12 +8,10 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
 import type {SearchColumnType} from '@components/Search/types';
 import Text from '@components/Text';
-import ViolationMessages from '@components/ViolationMessages';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 
 import useActiveRoute from '@hooks/useActiveRoute';
@@ -49,7 +47,6 @@ import type {ViolationField} from '@hooks/useViolations';
 import useViolations from '@hooks/useViolations';
 
 import {updateMoneyRequestBillable, updateMoneyRequestCategory, updateMoneyRequestReimbursable, updateMoneyRequestTag, updateMoneyRequestTaxRate} from '@libs/actions/IOU/UpdateMoneyRequest';
-import {openExternalLink} from '@libs/actions/Link';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {enrichAndSortAttendees, getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {getBrokenConnectionUrlToFixPersonalCard, getCommercialFeedCardDescription, getCompanyCardDescription} from '@libs/CardUtils';
@@ -143,8 +140,6 @@ import Navigation from '@navigation/Navigation';
 
 import AnimatedEmptyStateBackground from '@pages/inbox/report/AnimatedEmptyStateBackground';
 
-import variables from '@styles/variables';
-
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
@@ -171,8 +166,12 @@ import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 import MoneyRequestReceiptView from './MoneyRequestReceiptView';
 import MoneyRequestViewAdditionalField from './MoneyRequestViewAdditionalField';
+import MoneyRequestAmountField from './MoneyRequestViewFields/AmountField';
 import MoneyRequestAttendeesField from './MoneyRequestViewFields/AttendeesField';
+import MoneyRequestBillableField from './MoneyRequestViewFields/BillableField';
+import MoneyRequestDescriptionField from './MoneyRequestViewFields/DescriptionField';
 import MoneyRequestEditableField from './MoneyRequestViewFields/EditableField';
+import MoneyRequestMerchantField from './MoneyRequestViewFields/MerchantField';
 import MoneyRequestToggleField from './MoneyRequestViewFields/ToggleField';
 
 type MoneyRequestViewProps = {
@@ -219,7 +218,7 @@ function MoneyRequestView({
     isFromReviewDuplicates = false,
     mergeTransactionID,
 }: MoneyRequestViewProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Checkmark', 'Suitcase', 'NewWindow']);
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Suitcase']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -689,34 +688,6 @@ function MoneyRequestView({
     const originalMerchantForGoogleSearch = isInvalidMerchantValue(onyxTransaction?.merchant) ? '' : Str.recapitalize(onyxTransaction?.merchant ?? '');
     const shouldShowGoogleMerchantSearchLink = !!originalMerchantForGoogleSearch && !isTransactionScanning && isFromCardImport;
 
-    const renderGoogleMerchantSearchLink = () => (
-        <PressableWithoutFeedback
-            accessibilityLabel={translate('common.searchOnGoogle', {
-                merchant: originalMerchantForGoogleSearch,
-            })}
-            role={CONST.ROLE.BUTTON}
-            sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.GOOGLE_MERCHANT_SEARCH_BUTTON}
-            onPress={(event) => {
-                event?.stopPropagation();
-                openExternalLink(`${CONST.GOOGLE_SEARCH_URL}${encodeURIComponent(originalMerchantForGoogleSearch)}`);
-            }}
-            style={[styles.flexRow, styles.alignItemsCenter, styles.mt1, styles.alignSelfStart]}
-        >
-            <Text style={styles.textLabelSupporting}>
-                {translate('common.googleThisMerchant', {
-                    merchant: originalMerchantForGoogleSearch,
-                })}
-            </Text>
-            <Icon
-                src={icons.NewWindow}
-                height={variables.iconSizeExtraSmall}
-                width={variables.iconSizeExtraSmall}
-                fill={theme.textSupporting}
-                additionalStyles={styles.ml1}
-            />
-        </PressableWithoutFeedback>
-    );
-
     const shouldShowConvertedAmount =
         transactionConvertedAmount &&
         currency !== moneyRequestReport?.currency &&
@@ -898,6 +869,7 @@ function MoneyRequestView({
     };
 
     const dateError = getErrorForField('date');
+    const billableViolations = getErrorForField('billable') ? getViolationsForField('billable') : [];
 
     const showTaxDisabledAlert = () => {
         showConfirmModal({
@@ -1422,68 +1394,44 @@ function MoneyRequestView({
         switch (column) {
             case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
                 return (
-                    <OfflineWithFeedback pendingAction={getPendingFieldAction('amount') ?? (amountTitle ? getPendingFieldAction('customUnitRateID') : undefined)}>
-                        <MenuItemWithTopDescription
-                            title={amountTitle}
-                            shouldShowTitleIcon={shouldShowPaid}
-                            titleIcon={icons.Checkmark}
-                            description={amountDescription}
-                            hintText={amountHintText}
-                            titleStyle={styles.textHeadlineH2}
-                            numberOfLinesTitle={2}
-                            interactive={canEditAmount}
-                            shouldShowRightIcon={canEditAmount}
-                            onPress={editOrSplitAmount}
-                            brickRoadIndicator={getErrorForField('amount') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            errorText={getErrorForField('amount')}
-                            copyValue={amountCopyValue}
-                            copyable={!!amountCopyValue}
-                        />
-                    </OfflineWithFeedback>
+                    <MoneyRequestAmountField
+                        pendingAction={getPendingFieldAction('amount') ?? (amountTitle ? getPendingFieldAction('customUnitRateID') : undefined)}
+                        title={amountTitle}
+                        shouldShowPaid={shouldShowPaid}
+                        description={amountDescription}
+                        hintText={amountHintText}
+                        canEdit={canEditAmount}
+                        onPress={editOrSplitAmount}
+                        errorText={getErrorForField('amount')}
+                        copyValue={amountCopyValue}
+                    />
                 );
             case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
                 return (
                     !shouldHideEmptyDescription && (
-                        <OfflineWithFeedback pendingAction={getPendingFieldAction('comment')}>
-                            <MenuItemWithTopDescription
-                                description={translate('common.description')}
-                                shouldRenderAsHTML
-                                title={updatedTransactionDescription ?? transactionDescription}
-                                interactive={canEdit}
-                                shouldShowRightIcon={canEdit}
-                                titleStyle={styles.flex1}
-                                onPress={editDescription}
-                                wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
-                                brickRoadIndicator={getErrorForField('comment') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                errorText={getErrorForField('comment')}
-                                numberOfLinesTitle={0}
-                                copyValue={descriptionCopyValue}
-                                copyable={!!descriptionCopyValue}
-                            />
-                        </OfflineWithFeedback>
+                        <MoneyRequestDescriptionField
+                            pendingAction={getPendingFieldAction('comment')}
+                            title={updatedTransactionDescription ?? transactionDescription}
+                            canEdit={canEdit}
+                            onPress={editDescription}
+                            errorText={getErrorForField('comment')}
+                            copyValue={descriptionCopyValue}
+                        />
                     )
                 );
             case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
                 return isManualDistanceRequest || isGPSDistanceRequest || isOdometerDistanceRequest || (isMapDistanceRequest && transaction?.comment?.waypoints) ? (
                     distanceRequestFields
                 ) : (
-                    <OfflineWithFeedback pendingAction={getPendingFieldAction('merchant')}>
-                        <MenuItemWithTopDescription
-                            description={translate('common.merchant')}
-                            title={updatedMerchantTitle}
-                            interactive={canEditMerchant}
-                            shouldShowRightIcon={canEditMerchant}
-                            titleStyle={styles.flex1}
-                            onPress={editMerchant}
-                            wrapperStyle={[styles.taskDescriptionMenuItem]}
-                            furtherDetailsComponent={shouldShowGoogleMerchantSearchLink ? renderGoogleMerchantSearchLink() : undefined}
-                            brickRoadIndicator={getErrorForField('merchant') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            errorText={getErrorForField('merchant')}
-                            numberOfLinesTitle={0}
-                            copyValue={merchantCopyValue}
-                            copyable={!!merchantCopyValue}
-                        />
-                    </OfflineWithFeedback>
+                    <MoneyRequestMerchantField
+                        pendingAction={getPendingFieldAction('merchant')}
+                        title={updatedMerchantTitle}
+                        canEdit={canEditMerchant}
+                        onPress={editMerchant}
+                        googleSearchMerchant={shouldShowGoogleMerchantSearchLink ? originalMerchantForGoogleSearch : undefined}
+                        errorText={getErrorForField('merchant')}
+                        copyValue={merchantCopyValue}
+                    />
                 );
             case CONST.SEARCH.TABLE_COLUMNS.DATE:
                 return (
@@ -1600,28 +1548,18 @@ function MoneyRequestView({
                 }
                 return (
                     shouldShowBillable && (
-                        <MoneyRequestToggleField
+                        <MoneyRequestBillableField
                             pendingAction={getPendingFieldAction('billable')}
-                            accessibilityLabel={translate('common.billable')}
                             isOn={updatedTransaction?.billable ?? !!transactionBillable}
                             onToggle={saveBillable}
-                            disabled={!canEdit}
-                        >
-                            {!!getErrorForField('billable') && (
-                                <ViolationMessages
-                                    violations={getViolationsForField('billable')}
-                                    containerStyle={[styles.mt1]}
-                                    textStyle={[styles.ph0]}
-                                    isLast
-                                    isMarkAsCash={isMarkAsCash}
-                                    canEdit={canEdit}
-                                    companyCardPageURL={companyCardPageURL}
-                                    connectionLink={connectionLink}
-                                    routeDistanceMeters={transaction?.comment?.customUnit?.routeDistanceMeters}
-                                    distanceUnit={transaction?.comment?.customUnit?.distanceUnit}
-                                />
-                            )}
-                        </MoneyRequestToggleField>
+                            violations={billableViolations}
+                            isMarkAsCash={isMarkAsCash}
+                            canEdit={canEdit}
+                            companyCardPageURL={companyCardPageURL}
+                            connectionLink={connectionLink}
+                            routeDistanceMeters={transaction?.comment?.customUnit?.routeDistanceMeters}
+                            distanceUnit={transaction?.comment?.customUnit?.distanceUnit}
+                        />
                     )
                 );
             default:

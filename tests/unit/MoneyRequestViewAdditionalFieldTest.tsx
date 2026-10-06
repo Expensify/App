@@ -69,6 +69,30 @@ describe('additional expense field values', () => {
         expect(field?.title).toBe('EUR:900');
     });
 
+    it.each([CONST.IOU.RECEIPT_STATE.SCAN_READY, CONST.IOU.RECEIPT_STATE.SCANNING])('shows the scanning status instead of a per-attendee amount for %s receipts', (state) => {
+        // Given a receipt with no extracted merchant or amount yet.
+        const transaction = {amount: 0, merchant: '', receipt: {receiptID: 123, state}};
+
+        // When total per attendee is selected while SmartScan is processing the receipt.
+        const field = renderField(CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, transaction);
+
+        // Then the field matches the table's scanning status instead of presenting a zero expense.
+        expect(field?.title).toBe('iou.receiptStatusTitle');
+    });
+
+    it.each([
+        [{amount: -1800, merchant: 'Merchant', receipt: {receiptID: 123, state: CONST.IOU.RECEIPT_STATE.OPEN}}, 'EUR:900'],
+        [{amount: 0, merchant: '', modifiedAmount: -2400, receipt: {receiptID: 123, state: CONST.IOU.RECEIPT_STATE.SCANNING}}, 'EUR:1200'],
+        [{amount: 0}, 'EUR:0'],
+    ])('displays the per-attendee amount once it is known (%j)', (transaction, expected) => {
+        // Given a completed scan, a manual correction during scanning, or a legitimate zero amount.
+        // When total per attendee is displayed.
+        const field = renderField(CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, transaction);
+
+        // Then the scanning placeholder does not hide a known amount.
+        expect(field?.title).toBe(expected);
+    });
+
     it('reads payroll information from the parent report', () => {
         // Given a selected report-level field while viewing an individual expense.
         const column = CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID;
