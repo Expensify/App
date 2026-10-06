@@ -4,6 +4,7 @@ description: Create and manage Agent rules that use AI to automate expense revie
 keywords: [Agent rules, RuleBot, AI automation, workspace automation, workflow automation, expense approvals, report routing, AI rules, edit agent rule, agent rule history, admins room audit trail, suggested rule, pre-written rule, rule template]
 internalScope: Audience is Workspace Admins. Covers creating, managing, and deleting Agent rules, how RuleBot enforces them, how to use RuleBot as a workspace approver, and how to review Agent rule changes in the #admins room. Does not cover personal Agents, Agent templates, general approval workflow configuration, or best practices for writing Agent instructions.
 contentType: task
+order: 3
 ---
 
 # Automate Workflows with Agent Rules
@@ -14,7 +15,7 @@ You can use one of Expensify's suggested Agent rules as a starting point or crea
 
 When you create your first Agent rule, Expensify automatically creates RuleBot, an AI-powered workspace agent that evaluates reports and enforces your Agent rules.
 
-To learn how Agent rules work, how they differ from personal Agents, and how RuleBot uses your instructions, see [Learn About Agents](/articles/new-expensify/ai-agents/Learn-About-Agents).
+To learn how Agent rules work, how they differ from personal Agents, and how RuleBot uses your instructions, see [Understand How Agents Work](/articles/new-expensify/ai-agents/Understand-How-Agents-Work).
 
 ---
 
