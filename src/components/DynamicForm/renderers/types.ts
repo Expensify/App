@@ -1,25 +1,22 @@
 import type {DynamicFormFieldsProps} from '@components/DynamicForm/components/DynamicFormFields';
-import type {DynamicFormFieldOfType, DynamicFormValues} from '@components/DynamicForm/types';
+import type {DynamicFormFieldOfType} from '@components/DynamicForm/types';
 import type {InputComponentBaseProps} from '@components/Form/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
 import type {ThemeStyles} from '@src/styles';
-import type {DynamicFormField, DynamicFormFieldType} from '@src/types/onyx';
+import type {DynamicFormFieldType} from '@src/types/onyx';
 
-import type {ReactElement, ReactNode} from 'react';
+import type {ReactElement} from 'react';
 
-type DynamicFieldContext = Pick<DynamicFormFieldsProps, 'values' | 'onOpenListItemEditor'> &
+type DynamicFieldContext = Pick<DynamicFormFieldsProps, 'values'> &
     Required<Pick<DynamicFormFieldsProps, 'currency'>> & {
         translate: LocalizedTranslate;
         styles: ThemeStyles;
 
         /** The field is the page's only question, so a choice is drawn as the page itself instead of as a row */
         isLoneField: boolean;
-
-        /** Draws a list entry's fields in the modal editor used outside DynamicFormFlow */
-        renderFields: (fields: DynamicFormField[], values: DynamicFormValues) => ReactNode;
     };
 
 /** Props every input gets from the renderer */

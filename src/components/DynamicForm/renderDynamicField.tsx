@@ -3,18 +3,12 @@ import type {DynamicFormFieldType} from '@src/types/onyx';
 import type {DynamicFieldContext, DynamicFieldInput, DynamicFieldInputProps, DynamicFieldRenderer, DynamicFieldRendererMap} from './renderers/types';
 import type {DynamicFormFieldOfType} from './types';
 
-import renderAddress from './renderers/addressRenderer';
 import CHOICE_RENDERERS from './renderers/choiceRenderers';
-import renderFile from './renderers/fileRenderer';
-import renderList from './renderers/listRenderer';
 import TEXT_RENDERERS from './renderers/textRenderers';
 
 const RENDERERS: DynamicFieldRendererMap = {
     ...TEXT_RENDERERS,
     ...CHOICE_RENDERERS,
-    address: renderAddress,
-    file: renderFile,
-    list: renderList,
 };
 
 /** The input for one field, and how the renderer lays it out */

@@ -4102,12 +4102,7 @@ const translations = {
             invalidFormat: ({example}: {example?: string}) => (example ? `Invalid format. Example: ${example}` : 'Invalid format'),
             invalidOption: 'Choose one of the available options',
             outOfRange: ({min, max}: {min: number; max: number}) => `Enter a value between ${min} and ${max}`,
-            tooFewItems: ({min}: {min: number}) => `Add at least ${min}`,
-            tooManyItems: ({max}: {max: number}) => `Add at most ${max}`,
         },
-        addItem: ({item}: {item: string}) => `Add ${item}`,
-        removeItemTitle: ({name}: {name: string}) => `Remove ${name}?`,
-        removeItemPrompt: ({name}: {name: string}) => `Are you sure you want to remove ${name}?`,
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC must be 8 or 11 characters long, with 6 letters followed by 2 or 5 letters or numbers.',

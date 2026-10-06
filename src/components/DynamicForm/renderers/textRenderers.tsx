@@ -1,11 +1,8 @@
-import AmountForm from '@components/AmountForm';
-import CurrencyPicker from '@components/CurrencyPicker';
 import DatePicker from '@components/DatePicker';
 import type {DynamicFormValues} from '@components/DynamicForm/types';
 import getLocalizedText, {getFieldLabel} from '@components/DynamicForm/utils/getLocalizedText';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-import PercentageForm from '@components/PercentageForm';
 import TextInput from '@components/TextInput';
 
 import getTextInputAutocorrectProps from '@libs/getTextInputAutocorrectProps';
@@ -16,7 +13,6 @@ import type {DynamicFormNumberField, DynamicFormTextField} from '@src/types/onyx
 import type {InputModeOptions} from 'react-native';
 
 import React from 'react';
-import {View} from 'react-native';
 
 import type {DynamicFieldContext, DynamicFieldInput, DynamicFieldInputProps, DynamicFieldRendererMap} from './types';
 
@@ -75,7 +71,7 @@ function renderTextInput(
 }
 
 /** Fields the user types or picks a single value for */
-const TEXT_RENDERERS: Pick<DynamicFieldRendererMap, 'text' | 'number' | 'date' | 'amount' | 'percent'> = {
+const TEXT_RENDERERS: Pick<DynamicFieldRendererMap, 'text' | 'number' | 'date'> = {
     text: (field, context, inputProps) => renderTextInput(field, context, inputProps, getTextInputMode(field), field.multiline),
     number: (field, context, inputProps) => renderTextInput(field, context, inputProps, CONST.INPUT_MODE.NUMERIC),
     date: (field, {translate}, inputProps) => ({
@@ -86,50 +82,6 @@ const TEXT_RENDERERS: Pick<DynamicFieldRendererMap, 'text' | 'number' | 'date' |
                 {...inputProps}
                 label={getFieldLabel(field, translate)}
                 placeholder={translate('common.dateFormat')}
-            />
-        ),
-    }),
-    amount: (field, {values, translate, styles, currency}, inputProps) => {
-        const chosenCurrency = field.currencyKey ? values[field.currencyKey] : undefined;
-        const amountInput = (
-            <InputWrapper
-                InputComponent={AmountForm}
-                {...inputProps}
-                label={getFieldLabel(field, translate)}
-                currency={typeof chosenCurrency === 'string' && chosenCurrency !== '' ? chosenCurrency : currency}
-                displayAsTextInput
-                isCurrencyPressable={false}
-            />
-        );
-        if (!field.currencyKey) {
-            return {isMenuRow: false, input: amountInput};
-        }
-        return {
-            isMenuRow: false,
-            input: (
-                <>
-                    <View style={[styles.mhn5, styles.mb2]}>
-                        <InputWrapper
-                            InputComponent={CurrencyPicker}
-                            inputID={field.currencyKey}
-                            shouldSaveDraft={inputProps.shouldSaveDraft}
-                            forwardedFSClass={inputProps.forwardedFSClass}
-                            defaultValue={currency}
-                            label={translate('common.currency')}
-                        />
-                    </View>
-                    {amountInput}
-                </>
-            ),
-        };
-    },
-    percent: (field, {translate}, inputProps) => ({
-        isMenuRow: false,
-        input: (
-            <InputWrapper
-                InputComponent={PercentageForm}
-                {...inputProps}
-                label={getFieldLabel(field, translate)}
             />
         ),
     }),

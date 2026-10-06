@@ -1,21 +1,11 @@
 import {render, screen} from '@testing-library/react-native';
 
-import AddressSearch from '@components/AddressSearch';
-import AmountForm from '@components/AmountForm';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import CountryPicker from '@components/CountryPicker';
 import CurrencyPicker from '@components/CurrencyPicker';
 import DatePicker from '@components/DatePicker';
-import CurrencyInlineListAdapter from '@components/DynamicForm/adapters/CurrencyInlineListAdapter';
-import FileUploadAdapter from '@components/DynamicForm/adapters/FileUploadAdapter';
-import InlineSelectionListAdapter from '@components/DynamicForm/adapters/InlineSelectionListAdapter';
-import ListFieldAdapter from '@components/DynamicForm/adapters/ListFieldAdapter';
-import TabsAdapter from '@components/DynamicForm/adapters/TabsAdapter';
-import YesNoAdapter from '@components/DynamicForm/adapters/YesNoAdapter';
 import DynamicFormFields from '@components/DynamicForm/components/DynamicFormFields';
 import type {DynamicFormValues} from '@components/DynamicForm/types';
-import getAddressInputKeys from '@components/DynamicForm/utils/getAddressInputKeys';
-import PercentageForm from '@components/PercentageForm';
 import PushRowWithModal from '@components/PushRowWithModal';
 import RadioButtons from '@components/RadioButtons';
 import TextInput from '@components/TextInput';
@@ -62,17 +52,15 @@ jest.mock('@hooks/useLocalize', () =>
 jest.mock('@hooks/useThemeStyles', () => jest.fn(() => new Proxy({}, {get: () => ({})})));
 
 type RenderFieldsOptions = {
-    allFields?: DynamicFormField[];
     currency?: string;
     onRefreshRequirements?: (inputID: string, value: unknown) => void;
 };
 
-function renderFields(fields: DynamicFormSchemaField[], values: DynamicFormValues = {}, {allFields, currency, onRefreshRequirements}: RenderFieldsOptions = {}) {
+function renderFields(fields: DynamicFormSchemaField[], values: DynamicFormValues = {}, {currency, onRefreshRequirements}: RenderFieldsOptions = {}) {
     mockInputWrapper.mockClear();
     render(
         <DynamicFormFields
             fields={fields}
-            allFields={allFields}
             values={values}
             currency={currency}
             onRefreshRequirements={onRefreshRequirements}
@@ -93,13 +81,6 @@ const EXPECTED_INPUT_BY_TYPE: Record<DynamicFormFieldType, ComponentType<never>>
     boolean: CheckboxWithLabel,
     country: CountryPicker,
     currency: CurrencyPicker,
-    address: AddressSearch,
-    multiselect: PushRowWithModal,
-    countryMultiselect: PushRowWithModal,
-    file: FileUploadAdapter,
-    amount: AmountForm,
-    percent: PercentageForm,
-    list: ListFieldAdapter,
 };
 
 const FIELD_TYPES = Object.keys(EXPECTED_INPUT_BY_TYPE).filter((type): type is DynamicFormFieldType => Object.hasOwn(EXPECTED_INPUT_BY_TYPE, type));
@@ -107,7 +88,7 @@ const FIELD_TYPES = Object.keys(EXPECTED_INPUT_BY_TYPE).filter((type): type is D
 describe('DynamicFormFields', () => {
     it.each(FIELD_TYPES)('renders a %s field with its input', (type) => {
         // Given a field of one type with nothing but the required properties, next to another question so it is drawn as a row
-        const field: DynamicFormField = type === 'list' ? {key: 'answer', type, required: false, itemFields: []} : {key: 'answer', type, required: false};
+        const field: DynamicFormField = {key: 'answer', type, required: false};
 
         // When it renders
         const rendered = renderFields([field, otherQuestion]);
@@ -180,24 +161,6 @@ describe('DynamicFormFields', () => {
         expect(rendered.get('accountNumber')?.hint).toBe('dynamicForm.exampleHint:12345678');
     });
 
-    it('stores address parts under the field key and drops the parts the form has no use for', () => {
-        // Given an address field
-        const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: true};
-
-        // When the fields render
-        const rendered = renderFields([homeAddress]);
-
-        // Then the street is the field's own value, the other parts are keyed under it, and coordinates are dropped
-        expect(rendered.get('homeAddress')?.renamedInputKeys).toMatchObject({
-            street: 'homeAddress',
-            city: 'homeAddress.city',
-            zipCode: 'homeAddress.zipCode',
-            country: 'homeAddress.country',
-            lat: '',
-            lng: '',
-        });
-    });
-
     it('renders neither hidden fields nor fields of an unknown type', () => {
         // Given a regular field, a field hidden for private recipients and a field of a type this App version does not know
         const email: DynamicFormField = {key: 'email', type: 'text', required: true};
@@ -250,59 +213,6 @@ describe('DynamicFormFields', () => {
         expect(screen.getAllByText('Legal name')).toHaveLength(1);
     });
 
-    it('lets the user tick several options of a multiselect and starts it as an empty list', () => {
-        // Given a multiselect field next to another question
-        const industries: DynamicFormField = {key: 'industries', label: 'Industries', type: 'multiselect', required: true, values: [{key: 'RETAIL', label: 'Retail'}]};
-
-        // When it renders
-        const rendered = renderFields([industries, otherQuestion]);
-
-        // Then the push row allows several choices, and FormProvider starts the answer as a list
-        expect(rendered.get('industries')).toMatchObject({canSelectMultiple: true, valueType: 'stringList', optionsList: {RETAIL: 'Retail'}});
-    });
-
-    it('takes one file unless the schema allows more, and names the field above the upload button', () => {
-        // Given a file field with no file limit, alone in the list like the source of funds page, and one allowing three files
-        const proofOfFunds: DynamicFormField = {key: 'proofOfFunds', label: 'Source of funds document', type: 'file', required: true};
-        const idDocument: DynamicFormField = {key: 'idDocument', type: 'file', required: true, maxFiles: 3};
-
-        // When each renders
-        const rendered = renderFields([proofOfFunds]);
-        const isLabelShown = screen.queryByText('Source of funds document') !== null;
-        const severalFiles = renderFields([idDocument]);
-
-        // Then the first takes a single file and the second up to its limit, and the label stays visible as a heading
-        expect(rendered.get('proofOfFunds')).toMatchObject({valueType: 'files', fileLimit: 1, buttonText: 'common.chooseFile'});
-        expect(severalFiles.get('idDocument')).toMatchObject({fileLimit: 3, buttonText: 'common.chooseFiles'});
-        expect(isLabelShown).toBe(true);
-    });
-
-    it('prices an amount in the currency the user picked, falling back to the screen currency', () => {
-        // Given an amount whose currency the user picks under another key
-        const expectedVolume: DynamicFormField = {key: 'expectedVolume', type: 'amount', required: true, currencyKey: 'expectedVolumeCurrency'};
-
-        // When it renders before and after a currency is picked
-        const beforePick = renderFields([expectedVolume], {}, {currency: CONST.CURRENCY.GBP});
-        const afterPick = renderFields([expectedVolume], {expectedVolumeCurrency: CONST.CURRENCY.EUR}, {currency: CONST.CURRENCY.GBP});
-
-        // Then the currency picker starts on the screen currency, so the form submits a currency even if the user never opens it, and the amount follows the pick
-        expect(beforePick.get('expectedVolumeCurrency')).toMatchObject({InputComponent: CurrencyPicker, defaultValue: CONST.CURRENCY.GBP});
-        expect(beforePick.get('expectedVolume')).toMatchObject({InputComponent: AmountForm, currency: CONST.CURRENCY.GBP});
-        expect(afterPick.get('expectedVolume')?.currency).toBe(CONST.CURRENCY.EUR);
-    });
-
-    it('draws the full address form with a country picker', () => {
-        // Given an address field
-        const homeAddress: DynamicFormField = {key: 'homeAddress', label: 'Home address', type: 'address', required: true};
-
-        // When it renders
-        const rendered = renderFields([homeAddress]);
-
-        // Then the user sees and can correct every part, each stored under the field key
-        expect([...rendered.keys()]).toEqual(['homeAddress', 'homeAddress.city', 'homeAddress.state', 'homeAddress.zipCode', 'homeAddress.country']);
-        expect(screen.getByText('Home address')).toBeOnTheScreen();
-    });
-
     it('opens the numeric keyboard for a text field whose regex takes digits only', () => {
         // Given a sort code that must be six digits, and a reference that takes letters too
         const sortCode: DynamicFormField = {key: 'sortCode', type: 'text', required: true, regex: '^\\d{6}$'};
@@ -340,100 +250,6 @@ describe('DynamicFormFields', () => {
         // Then the screen is told which answer changed, and the other field has no such hook
         expect(onRefreshRequirements).toHaveBeenCalledWith('payoutCurrency', 'EUR');
         expect(rendered.get('nickname')?.onValueChange).toBeUndefined();
-    });
-
-    it('shows a readonly address as one line', () => {
-        // Given a readonly, prefilled address
-        const officeAddress: DynamicFormField = {key: 'office', type: 'address', required: true, readonly: true};
-        const addressKeys = getAddressInputKeys(officeAddress.key);
-        const values = {office: '224 Main Street', [addressKeys.city]: 'San Francisco', [addressKeys.state]: 'CA', [addressKeys.zipCode]: '94123'};
-
-        // When it renders
-        renderFields([officeAddress], values);
-
-        // Then the row reads like a postal address
-        expect(screen.getByText('224 Main Street, San Francisco, CA 94123')).toBeOnTheScreen();
-    });
-
-    it.each([
-        ['select', InlineSelectionListAdapter],
-        ['multiselect', InlineSelectionListAdapter],
-        ['country', InlineSelectionListAdapter],
-        ['countryMultiselect', InlineSelectionListAdapter],
-        ['currency', CurrencyInlineListAdapter],
-    ] as const)('draws a %s field alone on its page as the page itself', (type, ExpectedInput) => {
-        // Given the only question on the page
-        const field: DynamicFormField = {key: 'answer', label: 'The question', type, required: true};
-
-        // When it renders
-        const rendered = renderFields([field]);
-
-        // Then the choice is drawn as the page itself, and the label is left to the page title instead of repeating it
-        expect(rendered.get('answer')?.InputComponent).toBe(ExpectedInput);
-        expect(screen.queryByText('The question')).not.toBeOnTheScreen();
-    });
-
-    it('keeps a lone list as the page when it reveals a follow-up field', () => {
-        // Given a source of wealth list whose "Other" answer reveals a description field
-        const sourceOfWealth: DynamicFormField = {key: 'sourceOfWealth', type: 'select', required: true, values: [{key: 'SAVINGS'}, {key: 'OTHER'}]};
-        const otherDescription: DynamicFormField = {key: 'otherDescription', type: 'text', required: true, showWhen: {key: 'sourceOfWealth', equals: ['OTHER']}};
-
-        // When the user picks Other, so both fields are visible
-        const rendered = renderFields([sourceOfWealth, otherDescription], {sourceOfWealth: 'OTHER'});
-
-        // Then the list stays the page, with the description below it, instead of turning into a picker row
-        expect(rendered.get('sourceOfWealth')?.InputComponent).toBe(InlineSelectionListAdapter);
-        expect(rendered.get('otherDescription')?.InputComponent).toBe(TextInput);
-    });
-
-    it('draws a choice with the tabs presentation as a tab row', () => {
-        // Given a recipient type select presented as tabs, next to another question
-        const legalType: DynamicFormField = {key: 'legalType', type: 'select', required: true, presentation: 'tabs', values: [{key: 'PRIVATE'}, {key: 'BUSINESS'}]};
-
-        // When it renders
-        const rendered = renderFields([legalType, otherQuestion]);
-
-        // Then it is a tab row, as the schema asked
-        expect(rendered.get('legalType')?.InputComponent).toBe(TabsAdapter);
-    });
-
-    it('asks a lone boolean as Yes/No, and a boolean among other fields as a checkbox', () => {
-        // Given a consent boolean next to another question, and a boolean alone on its page
-        const acceptTerms: DynamicFormField = {key: 'acceptTerms', type: 'boolean', required: true};
-        const isUSCitizen: DynamicFormField = {key: 'isUSCitizen', type: 'boolean', required: true};
-
-        // When each renders
-        const consent = renderFields([acceptTerms, otherQuestion]);
-        const question = renderFields([isUSCitizen]);
-
-        // Then the consent is a checkbox the user must tick, and the lone question offers No as an answer
-        expect(consent.get('acceptTerms')?.InputComponent).toBe(CheckboxWithLabel);
-        expect(question.get('isUSCitizen')?.InputComponent).toBe(YesNoAdapter);
-    });
-
-    it('hides a field whose controlling field is hidden on another page', () => {
-        // Given a proof upload on its own page, revealed by a source of funds that is only asked for risky industries
-        const industry: DynamicFormField = {key: 'industry', type: 'select', required: true, group: 'Business', values: [{key: 'SAFE'}, {key: 'RISKY'}]};
-        const sourceOfFunds: DynamicFormField = {key: 'sourceOfFunds', type: 'select', required: true, group: 'Funds', showWhen: {key: 'industry', equals: ['RISKY']}};
-        const proof: DynamicFormField = {key: 'proof', type: 'file', required: true, group: 'Proof', showWhen: {key: 'sourceOfFunds', equals: ['SALARY']}};
-
-        // When the proof page renders for a safe industry, with a source of funds left from an earlier risky answer
-        const rendered = renderFields([proof], {industry: 'SAFE', sourceOfFunds: 'SALARY'}, {allFields: [industry, sourceOfFunds, proof]});
-
-        // Then the proof is not asked, as the submission would leave it out
-        expect(rendered.size).toBe(0);
-    });
-
-    it('asks for the state only in countries the state picker covers', () => {
-        // Given an address in the UK
-        const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: true};
-        const addressKeys = getAddressInputKeys(homeAddress.key);
-
-        // When it renders
-        const rendered = renderFields([homeAddress], {[addressKeys.country]: 'GB'});
-
-        // Then there is no state input, since the picker only lists US states and Canadian provinces
-        expect(rendered.has(addressKeys.state)).toBe(false);
     });
 
     it('asks a typed field that changes the requirements to refetch them when the user leaves it, not on every keystroke', () => {

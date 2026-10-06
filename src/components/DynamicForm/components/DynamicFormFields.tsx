@@ -22,9 +22,6 @@ type DynamicFormFieldsProps = {
     /** Fields to render, in order. Fields of a type this App version does not know are left out. */
     fields: DynamicFormSchemaField[];
 
-    /** The whole form, when `fields` is one page of it, so a field can depend on an answer asked on another page */
-    allFields?: DynamicFormSchemaField[];
-
     /** Current answers, from FormProvider's render-prop `inputValues`, so showWhen and dependsOn follow the user's typing */
     values: DynamicFormValues;
 
@@ -33,21 +30,18 @@ type DynamicFormFieldsProps = {
 
     /** Called when the user changes a field marked `refreshOnChange`, with the draft key that changed, so the screen can fetch the schema again */
     onRefreshRequirements?: (inputID: string, value: FormValue) => void;
-
-    /** Opens the editor page of a list entry, or of a new one without `itemID`. DynamicFormFlow passes it; without it list entries are edited in a modal. */
-    onOpenListItemEditor?: (listKey: string, itemID?: string) => void;
 };
 
 /** Typed answers change on every keystroke, so they ask for new requirements when the user leaves the input instead */
 function isTypedField(field: DynamicFormField): boolean {
-    return field.type === 'text' || field.type === 'number' || field.type === 'amount' || field.type === 'percent';
+    return field.type === 'text' || field.type === 'number';
 }
 
 /** The inputs of a schema-driven form. Render it inside a FormProvider and validate with getDynamicFieldErrors. */
-function DynamicFormFields({fields, allFields = fields, values, currency = CONST.CURRENCY.USD, onRefreshRequirements, onOpenListItemEditor}: DynamicFormFieldsProps) {
+function DynamicFormFields({fields, values, currency = CONST.CURRENCY.USD, onRefreshRequirements}: DynamicFormFieldsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const visibleFields = getVisibleFields(fields.filter(isSupportedField), values, allFields.filter(isSupportedField));
+    const visibleFields = getVisibleFields(fields.filter(isSupportedField), values);
     const loneField = getLoneField(visibleFields);
 
     const refreshRequirements = (inputID: string) => {
@@ -56,14 +50,6 @@ function DynamicFormFields({fields, allFields = fields, values, currency = CONST
             onRefreshRequirements?.(inputID, value);
         }
     };
-
-    const renderFields = (itemFields: DynamicFormField[], itemValues: DynamicFormValues) => (
-        <DynamicFormFields
-            fields={itemFields}
-            values={itemValues}
-            currency={currency}
-        />
-    );
 
     return visibleFields.map((field, index) => {
         const label = getFieldLabel(field, translate);
@@ -91,7 +77,7 @@ function DynamicFormFields({fields, allFields = fields, values, currency = CONST
         const shouldRefreshOnChange = !!field.refreshOnChange && !isTypedField(field);
         const {input, isMenuRow, labelAbove, showsDescription} = renderDynamicField(
             field,
-            {values, translate, styles, currency, isLoneField: field === loneField, onOpenListItemEditor, renderFields},
+            {values, translate, styles, currency, isLoneField: field === loneField},
             {
                 inputID: field.key,
                 shouldSaveDraft: !isSensitiveField(field),

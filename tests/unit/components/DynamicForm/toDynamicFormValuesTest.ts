@@ -8,7 +8,6 @@ describe('toDynamicFormValues', () => {
             accepted: true,
             countries: ['GB', 'US'],
             files: [{name: 'passport.pdf'}],
-            directors: [{id: 'jane', firstName: 'Jane'}],
             errors: {name: 'Required'},
             errorList: [{message: 'Required'}],
             mixedList: ['GB', 1],
@@ -19,7 +18,7 @@ describe('toDynamicFormValues', () => {
         const values = toDynamicFormValues(draft);
 
         // Then only the answers remain
-        expect(values).toEqual({name: 'Jane', accepted: true, countries: ['GB', 'US'], files: [{name: 'passport.pdf'}], directors: [{id: 'jane', firstName: 'Jane'}]});
+        expect(values).toEqual({name: 'Jane', accepted: true, countries: ['GB', 'US'], files: [{name: 'passport.pdf'}]});
     });
 
     it('returns no answers for a missing draft', () => {

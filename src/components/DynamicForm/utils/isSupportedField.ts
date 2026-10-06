@@ -11,13 +11,6 @@ const SUPPORTED_FIELD_TYPES: Record<DynamicFormFieldType, true> = {
     boolean: true,
     country: true,
     currency: true,
-    address: true,
-    multiselect: true,
-    countryMultiselect: true,
-    file: true,
-    amount: true,
-    percent: true,
-    list: true,
 };
 
 /** A field of a type this App version does not know is left out, so it neither renders nor blocks submission */

@@ -1,8 +1,6 @@
-import getAddressInputKeys from '@components/DynamicForm/utils/getAddressInputKeys';
 import getDynamicFieldErrors from '@components/DynamicForm/utils/getDynamicFieldErrors';
 
 import Log from '@libs/Log';
-import {getCountryZipRegexDetails} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -132,25 +130,6 @@ describe('getDynamicFieldErrors', () => {
         });
     });
 
-    it('checks the zip code against the chosen country', () => {
-        // Given an optional address field with the zip code rule, answered with a UK address and a US zip code
-        const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: false, rule: 'zipCode'};
-        const addressKeys = getAddressInputKeys(homeAddress.key);
-        const values = {
-            homeAddress: '1 High Street',
-            [addressKeys.zipCode]: '10001',
-            [addressKeys.country]: 'GB',
-        };
-
-        // When the form is validated
-        const errors = getDynamicFieldErrors([homeAddress], values, translateLocal);
-
-        // Then the zip code input is flagged with the UK format
-        expect(errors).toEqual({
-            [addressKeys.zipCode]: translateLocal('privatePersonalDetails.error.incorrectZipFormat', getCountryZipRegexDetails(CONST.COUNTRY.GB)?.samples),
-        });
-    });
-
     it('skips hidden and readonly fields', () => {
         // Given a required field hidden by showWhen and a required readonly field, both unanswered
         const hidden: DynamicFormField = {
@@ -210,68 +189,6 @@ describe('getDynamicFieldErrors', () => {
         });
     });
 
-    it('accepts a percent from 1 to 100', () => {
-        // Given an ownership percentage
-        const ownership: DynamicFormField = {key: 'ownership', type: 'percent', required: true};
-
-        // When it is 0, 50 and 101
-        const zeroErrors = getDynamicFieldErrors([ownership], {ownership: '0'}, translateLocal);
-        const validErrors = getDynamicFieldErrors([ownership], {ownership: '50'}, translateLocal);
-        const tooHighErrors = getDynamicFieldErrors([ownership], {ownership: '101'}, translateLocal);
-
-        // Then only 50 passes, since an owner with no share or more than the whole company is a typo
-        const outOfRange = translateLocal('dynamicForm.error.outOfRange', {min: 1, max: 100});
-        expect(zeroErrors).toEqual({ownership: outOfRange});
-        expect(validErrors).toEqual({});
-        expect(tooHighErrors).toEqual({ownership: outOfRange});
-    });
-
-    it('flags a multiselect choice the options no longer offer', () => {
-        // Given a required multiselect whose options depend on the business type
-        const industries: DynamicFormField = {
-            key: 'industries',
-            type: 'multiselect',
-            required: true,
-            dependsOn: {key: 'businessType', valuesBy: {RETAIL: [{key: 'CLOTHING'}], SERVICES: [{key: 'CONSULTING'}]}},
-        };
-
-        // When it is left empty, when it keeps a retail choice after the business type changed to services, and when it holds only a services choice
-        const emptyErrors = getDynamicFieldErrors([industries], {businessType: 'RETAIL', industries: []}, translateLocal);
-        const staleErrors = getDynamicFieldErrors([industries], {businessType: 'SERVICES', industries: ['CLOTHING', 'CONSULTING']}, translateLocal);
-        const validErrors = getDynamicFieldErrors([industries], {businessType: 'SERVICES', industries: ['CONSULTING']}, translateLocal);
-
-        // Then an empty list is required, a stale choice asks the user to pick from the available options, and a valid list passes
-        expect(emptyErrors).toEqual({industries: translateLocal('common.error.fieldRequired')});
-        expect(staleErrors).toEqual({industries: translateLocal('dynamicForm.error.invalidOption')});
-        expect(validErrors).toEqual({});
-    });
-
-    it('flags each missing part of a required address on its own input', () => {
-        // Given a required address with only the street filled in
-        const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: true};
-        const addressKeys = getAddressInputKeys(homeAddress.key);
-
-        // When the form is validated
-        const errors = getDynamicFieldErrors([homeAddress], {homeAddress: '1 High Street'}, translateLocal);
-
-        // Then city, state, zip and country are each flagged, so every empty input shows its own error
-        const required = translateLocal('common.error.fieldRequired');
-        expect(errors).toEqual({[addressKeys.city]: required, [addressKeys.state]: required, [addressKeys.zipCode]: required, [addressKeys.country]: required});
-    });
-
-    it('requires the state only in countries the state picker covers', () => {
-        // Given a required UK address with every part but the state
-        const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: true};
-        const addressKeys = getAddressInputKeys(homeAddress.key);
-        const values = {homeAddress: '1 High Street', [addressKeys.city]: 'London', [addressKeys.zipCode]: 'SW1A 1AA', [addressKeys.country]: 'GB'};
-
-        // When the form is validated
-        const errors = getDynamicFieldErrors([homeAddress], values, translateLocal);
-
-        // Then nothing is flagged, since the picker only lists US states and Canadian provinces
-        expect(errors).toEqual({});
-    });
-
     it('accepts US and international phone numbers and rejects incomplete ones', () => {
         // Given a phone field
         const phone: DynamicFormField = {key: 'phone', type: 'text', required: true, rule: 'phone'};
@@ -302,40 +219,5 @@ describe('getDynamicFieldErrors', () => {
         expect(noErrors).toEqual({});
         expect(unansweredErrors).toEqual({hasOtherOwners: translateLocal('common.error.fieldRequired')});
         expect(consentErrors).toEqual({acceptTerms: translateLocal('common.error.fieldRequired')});
-    });
-
-    it('checks a list for its size and for the first entry with a problem', () => {
-        // Given a list of at least two directors, whose entries need a first name and may hold a sensitive SSN
-        const directors: DynamicFormField = {
-            key: 'directors',
-            type: 'list',
-            required: true,
-            minItems: 2,
-            itemFields: [
-                {key: 'firstName', type: 'text', required: true},
-                {key: 'ssn', type: 'text', required: true, sensitive: true},
-            ],
-        };
-
-        // When it holds no entry, and when it holds one entry without a first name
-        const emptyErrors = getDynamicFieldErrors([directors], {directors: []}, translateLocal);
-        const shortErrors = getDynamicFieldErrors([directors], {directors: [{id: 'jane', firstName: ''}]}, translateLocal);
-
-        // Then the empty list is required, and the short list shows both the size and the entry's missing name, while the SSN kept outside the entry is not checked
-        expect(emptyErrors).toEqual({directors: translateLocal('common.error.fieldRequired')});
-        expect(shortErrors).toEqual({directors: `${translateLocal('dynamicForm.error.tooFewItems', {min: 2})}\n${translateLocal('common.error.fieldRequired')}`});
-    });
-
-    it('skips a field whose controlling field is hidden on another page', () => {
-        // Given a proof upload revealed by a source of funds, which is only asked for risky industries, each on its own page
-        const industry: DynamicFormField = {key: 'industry', type: 'select', required: true, values: [{key: 'SAFE'}, {key: 'RISKY'}]};
-        const sourceOfFunds: DynamicFormField = {key: 'sourceOfFunds', type: 'select', required: true, showWhen: {key: 'industry', equals: ['RISKY']}};
-        const proof: DynamicFormField = {key: 'proof', type: 'file', required: true, showWhen: {key: 'sourceOfFunds', equals: ['SALARY']}};
-
-        // When the proof page is validated for a safe industry, with a source of funds left from an earlier risky answer
-        const errors = getDynamicFieldErrors([proof], {industry: 'SAFE', sourceOfFunds: 'SALARY'}, translateLocal, [industry, sourceOfFunds, proof]);
-
-        // Then the proof is not required, since it is not asked
-        expect(errors).toEqual({});
     });
 });
