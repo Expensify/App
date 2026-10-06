@@ -13,7 +13,7 @@ import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 
 import React from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 
 import type {SortOrder} from './types';
 
@@ -54,6 +54,8 @@ export default function SortableHeaderText({
     const icons = useMemoizedLazyExpensifyIcons(['ArrowDownLong', 'ArrowUpLong']);
     const styles = useThemeStyles();
     const theme = useTheme();
+    // The pressable stretches across the cell, so it carries the cell's own alignment to keep the content in place.
+    const pressableStyle = [styles.searchTableHeaderPressable, {alignItems: StyleSheet.flatten(containerStyle)?.alignItems}];
 
     if (!isSortable) {
         const content = (
@@ -85,7 +87,8 @@ export default function SortableHeaderText({
                 {onSecondaryInteraction ? (
                     <PressableWithSecondaryInteraction
                         onSecondaryInteraction={onSecondaryInteraction}
-                        style={styles.cursorDefault}
+                        wrapperStyle={styles.searchTableHeaderPressableWrapper}
+                        style={[pressableStyle, styles.cursorDefault]}
                         accessibilityLabel={text}
                         sentryLabel={sentryLabel}
                     >
@@ -112,6 +115,8 @@ export default function SortableHeaderText({
             <PressableWithSecondaryInteraction
                 onPress={() => onPress(nextSortOrder)}
                 onSecondaryInteraction={onSecondaryInteraction}
+                wrapperStyle={styles.searchTableHeaderPressableWrapper}
+                style={pressableStyle}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={CONST.ROLE.BUTTON}
                 accessible

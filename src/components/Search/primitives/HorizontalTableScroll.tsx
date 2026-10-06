@@ -1,7 +1,7 @@
 import ScrollView from '@components/ScrollView';
-import {useFrozenColumnState} from '@components/Search/FrozenColumnContext';
+import {hasPinnedColumns, PIN_SIDE, useFrozenColumnState} from '@components/Search/FrozenColumnContext';
 import {getFrozenEdgeOverlayStyle, getFrozenMarginOverlayStyle, measureFrozenEdge, setFrozenScrollOffset, syncFrozenScrollTimeline} from '@components/Search/frozenColumnUtils';
-import type {FrozenEdgePosition} from '@components/Search/frozenColumnUtils/types';
+import type {FrozenEdgePosition, FrozenSide} from '@components/Search/frozenColumnUtils/types';
 import type {SearchColumnType, SearchQueryJSON} from '@components/Search/types';
 
 import useTheme from '@hooks/useTheme';
@@ -84,25 +84,29 @@ function HorizontalTableScroll({children, columns, type, isActionColumnWide, isH
     const horizontalScrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
 
     const theme = useTheme();
-    const {frozenColumn} = useFrozenColumnState();
+    const {pinnedColumns} = useFrozenColumnState();
+    const hasFrozenColumns = hasPinnedColumns(pinnedColumns);
     const tableContainerRef = useRef<View>(null);
-    const [frozenEdgePosition, setFrozenEdgePosition] = useState<FrozenEdgePosition | null>(null);
+    const [frozenEdgePositions, setFrozenEdgePositions] = useState<Record<FrozenSide, FrozenEdgePosition | null>>({left: null, right: null});
 
     const updateFrozenEdgePosition = useCallback(() => {
         requestAnimationFrame(() => {
             const scrollableNode: unknown = horizontalScrollViewRef.current?.getScrollableNode();
             syncFrozenScrollTimeline(scrollableNode);
-            setFrozenEdgePosition(measureFrozenEdge(tableContainerRef.current, scrollableNode, variables.searchTableHeaderPaddingVertical));
+            setFrozenEdgePositions({
+                left: measureFrozenEdge(tableContainerRef.current, scrollableNode, variables.searchTableHeaderPaddingVertical, PIN_SIDE.LEFT),
+                right: measureFrozenEdge(tableContainerRef.current, scrollableNode, variables.searchTableHeaderPaddingVertical, PIN_SIDE.RIGHT),
+            });
         });
     }, []);
 
     // Rows and column widths settle after the first layout, so the edge is measured again whenever they may have moved.
     useLayoutEffect(() => {
-        if (!frozenColumn) {
+        if (!hasFrozenColumns) {
             return;
         }
         updateFrozenEdgePosition();
-    }, [frozenColumn, columns, dataKey, shouldScrollHorizontally, updateFrozenEdgePosition]);
+    }, [hasFrozenColumns, pinnedColumns, columns, dataKey, shouldScrollHorizontally, updateFrozenEdgePosition]);
 
     const handleHorizontalScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
         savedHorizontalScrollOffset = event.nativeEvent.contentOffset.x;
@@ -126,7 +130,7 @@ function HorizontalTableScroll({children, columns, type, isActionColumnWide, isH
             contentContainerStyle={{width: contentTableWidth}}
             contentOffset={{x: savedHorizontalScrollOffset, y: 0}}
             onScroll={handleHorizontalScroll}
-            onContentSizeChange={frozenColumn ? updateFrozenEdgePosition : undefined}
+            onContentSizeChange={hasFrozenColumns ? updateFrozenEdgePosition : undefined}
             scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
         >
             {children}
@@ -135,7 +139,7 @@ function HorizontalTableScroll({children, columns, type, isActionColumnWide, isH
         children
     );
 
-    if (!frozenColumn) {
+    if (!hasFrozenColumns) {
         return table;
     }
 
@@ -146,12 +150,18 @@ function HorizontalTableScroll({children, columns, type, isActionColumnWide, isH
             onLayout={updateFrozenEdgePosition}
         >
             {table}
-            {!!frozenEdgePosition && (
-                <>
-                    <View style={getFrozenMarginOverlayStyle(frozenEdgePosition, theme.appBG)} />
-                    <View style={getFrozenEdgeOverlayStyle(frozenEdgePosition, theme.border)} />
-                </>
-            )}
+            {[PIN_SIDE.LEFT, PIN_SIDE.RIGHT].map((side) => {
+                const position = frozenEdgePositions[side];
+                if (!position) {
+                    return null;
+                }
+                return (
+                    <React.Fragment key={side}>
+                        <View style={getFrozenMarginOverlayStyle(position, theme.appBG, side)} />
+                        <View style={getFrozenEdgeOverlayStyle(position, theme.border, side)} />
+                    </React.Fragment>
+                );
+            })}
         </View>
     );
 }

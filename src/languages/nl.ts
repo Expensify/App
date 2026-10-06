@@ -9905,8 +9905,11 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             sortOrder: 'Sorteervolgorde',
             groupBy: 'Groeperen op',
             limitResults: 'Resultaten beperken',
-            freezeColumn: 'Freeze column',
-            unfreezeColumns: 'Unfreeze columns',
+        },
+        pinColumn: {
+            pinLeft: 'Pin left',
+            pinRight: 'Pin right',
+            unpin: 'Unpin',
         },
         has: 'Heeft',
         view: {

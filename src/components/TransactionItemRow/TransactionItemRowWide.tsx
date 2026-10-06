@@ -2,8 +2,15 @@ import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import RadioButton from '@components/RadioButton';
-import {useFrozenColumnState} from '@components/Search/FrozenColumnContext';
-import {FROZEN_CELL_DATA_KEY, FROZEN_ROW_DATA_KEY, getFrozenCellStyle, getFrozenTranslateStyle} from '@components/Search/frozenColumnUtils';
+import {getFrozenCellPosition, hasPinnedColumns, PIN_SIDE, useFrozenColumnState} from '@components/Search/FrozenColumnContext';
+import {
+    FROZEN_CELL_DATA_KEY,
+    FROZEN_RIGHT_CELL_DATA_KEY,
+    FROZEN_ROW_DATA_KEY,
+    FROZEN_ROW_MESSAGE_DATA_KEY,
+    getFrozenCellStyle,
+    getFrozenTranslateStyle,
+} from '@components/Search/frozenColumnUtils';
 import {useSearchColumnStyles} from '@components/Search/SearchColumnWidthsContext';
 import DeferredActionCell from '@components/Search/SearchList/ListItem/ActionCell/DeferredActionCell';
 import AttendeesCell from '@components/Search/SearchList/ListItem/AttendeesCell';
@@ -155,8 +162,10 @@ function TransactionItemRowWide({
     const StyleUtils = useStyleUtils();
     const getSearchColumnStyles = useSearchColumnStyles();
     const theme = useTheme();
-    const {frozenColumn} = useFrozenColumnState();
-    const frozenIndex = frozenColumn ? (columns?.indexOf(frozenColumn) ?? -1) : -1;
+    const {pinnedColumns} = useFrozenColumnState();
+    const hasFrozenColumns = hasPinnedColumns(pinnedColumns);
+    const hasLeftFrozenColumns = pinnedColumns.left.length > 0;
+    const hasRightFrozenColumns = pinnedColumns.right.length > 0;
     let frozenBackgroundColor = theme.highlightBG;
     if (isSelected) {
         frozenBackgroundColor = theme.activeComponentBG;
@@ -191,10 +200,31 @@ function TransactionItemRowWide({
     if (shouldUseFullHeightEditableCellHoverTarget) {
         rbrContainerStyles.push(styles.pb2);
     }
-    if (frozenIndex >= 0) {
-        // Keeps the violation message in place under the frozen cells instead of scrolling with the rest of the row.
+    if (hasLeftFrozenColumns) {
+        // Keeps the violation message in place under the left-frozen cells instead of scrolling with the rest of the row.
         rbrContainerStyles.push(getFrozenTranslateStyle());
     }
+
+    const arrowRightCell = onArrowRightPress ? (
+        <PressableWithFeedback
+            disabled={!!isDisabled}
+            onPress={onArrowRightPress}
+            style={[styles.pv2, styles.justifyContentCenter, styles.alignItemsEnd]}
+            accessibilityRole={CONST.ROLE.BUTTON}
+            accessibilityLabel={CONST.ROLE.BUTTON}
+            sentryLabel={CONST.SENTRY_LABEL.TRANSACTION_ITEM_ROW.ARROW_RIGHT}
+        >
+            <Icon
+                src={expensicons.ArrowRight}
+                fill={theme.icon}
+                additionalStyles={!isHover && styles.opacitySemiTransparent}
+                width={variables.iconSizeNormal}
+                height={variables.iconSizeNormal}
+            />
+        </PressableWithFeedback>
+    ) : (
+        <View style={[styles.p3Half, styles.pl0half, styles.pr0half, {width: variables.iconSizeNormal}]} />
+    );
 
     const renderColumn = (column: SearchColumnType): React.ReactNode => {
         const shouldHideTaxValueByRequestType = isTimeRequest(transactionItem) || isPerDiemRequest(transactionItem);
@@ -739,13 +769,13 @@ function TransactionItemRowWide({
                     style,
                 ]}
                 testID="transaction-item-row"
-                dataSet={frozenIndex >= 0 ? {[FROZEN_ROW_DATA_KEY]: true} : undefined}
+                dataSet={hasFrozenColumns ? {[FROZEN_ROW_DATA_KEY]: true, [FROZEN_ROW_MESSAGE_DATA_KEY]: hasLeftFrozenColumns} : undefined}
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, fullHeightMainRowStyle]}>
                     {!shouldShowRadioButton && (
                         <View
-                            style={frozenIndex >= 0 && getFrozenCellStyle({backgroundColor: frozenBackgroundColor, isLastFrozen: false})}
-                            dataSet={frozenIndex >= 0 ? {[FROZEN_CELL_DATA_KEY]: true} : undefined}
+                            style={hasLeftFrozenColumns && getFrozenCellStyle({backgroundColor: frozenBackgroundColor, side: PIN_SIDE.LEFT, isEdge: false})}
+                            dataSet={hasLeftFrozenColumns ? {[FROZEN_CELL_DATA_KEY]: true} : undefined}
                         >
                             <Checkbox
                                 disabled={isDisabled}
@@ -760,18 +790,25 @@ function TransactionItemRowWide({
                             />
                         </View>
                     )}
-                    {columns?.map((column, index) => {
+                    {columns?.map((column) => {
                         const cell = renderColumn(column);
-                        if (index > frozenIndex || !React.isValidElement<{style?: StyleProp<ViewStyle>; dataSet?: Record<string, boolean>}>(cell)) {
+                        const frozenPosition = hasFrozenColumns ? getFrozenCellPosition(column, columns, pinnedColumns) : null;
+                        if (!frozenPosition || !React.isValidElement<{style?: StyleProp<ViewStyle>; dataSet?: Record<string, boolean>}>(cell)) {
                             return cell;
                         }
+                        const cellStyle = StyleSheet.flatten(cell.props.style);
                         const frozenStyle = getFrozenCellStyle({
                             backgroundColor: frozenBackgroundColor,
-                            isLastFrozen: index === frozenIndex,
-                            isRowDirection: StyleSheet.flatten(cell.props.style)?.flexDirection === 'row',
+                            side: frozenPosition.side,
+                            isEdge: frozenPosition.isEdge,
+                            isRowDirection: cellStyle?.flexDirection === 'row',
+                            sizing: cellStyle,
                         });
                         // Every column renders a single View, so the frozen style is appended to its own style.
-                        return React.cloneElement(cell, {style: [cell.props.style, frozenStyle], dataSet: {[FROZEN_CELL_DATA_KEY]: true}});
+                        return React.cloneElement(cell, {
+                            style: [cell.props.style, frozenStyle],
+                            dataSet: {[frozenPosition.side === PIN_SIDE.LEFT ? FROZEN_CELL_DATA_KEY : FROZEN_RIGHT_CELL_DATA_KEY]: true},
+                        });
                     })}
                     {shouldShowRadioButton && (
                         <View style={[styles.ml1, styles.justifyContentCenter, radioButtonContainerStyle]}>
@@ -784,25 +821,16 @@ function TransactionItemRowWide({
                             />
                         </View>
                     )}
-                    {onArrowRightPress ? (
-                        <PressableWithFeedback
-                            disabled={!!isDisabled}
-                            onPress={onArrowRightPress}
-                            style={[styles.pv2, styles.justifyContentCenter, styles.alignItemsEnd]}
-                            accessibilityRole={CONST.ROLE.BUTTON}
-                            accessibilityLabel={CONST.ROLE.BUTTON}
-                            sentryLabel={CONST.SENTRY_LABEL.TRANSACTION_ITEM_ROW.ARROW_RIGHT}
+                    {hasRightFrozenColumns ? (
+                        // The chevron stays at the far right with the right-frozen cells, covering the row's trailing padding.
+                        <View
+                            style={getFrozenCellStyle({backgroundColor: frozenBackgroundColor, side: PIN_SIDE.RIGHT, isEdge: false})}
+                            dataSet={{[FROZEN_RIGHT_CELL_DATA_KEY]: true}}
                         >
-                            <Icon
-                                src={expensicons.ArrowRight}
-                                fill={theme.icon}
-                                additionalStyles={!isHover && styles.opacitySemiTransparent}
-                                width={variables.iconSizeNormal}
-                                height={variables.iconSizeNormal}
-                            />
-                        </PressableWithFeedback>
+                            {arrowRightCell}
+                        </View>
                     ) : (
-                        <View style={[styles.p3Half, styles.pl0half, styles.pr0half, {width: variables.iconSizeNormal}]} />
+                        arrowRightCell
                     )}
                 </View>
                 {shouldShowErrors && (

@@ -9985,8 +9985,11 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             sortOrder: 'Sortierreihenfolge',
             groupBy: 'Gruppieren nach',
             limitResults: 'Ergebnisse einschränken',
-            freezeColumn: 'Freeze column',
-            unfreezeColumns: 'Unfreeze columns',
+        },
+        pinColumn: {
+            pinLeft: 'Pin left',
+            pinRight: 'Pin right',
+            unpin: 'Unpin',
         },
         has: 'Hat',
         view: {

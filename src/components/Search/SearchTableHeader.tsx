@@ -20,7 +20,7 @@ import React, {useCallback, useMemo, useRef, useState} from 'react';
 
 import type {SearchColumnType, SearchGroupBy, SearchSortBy, SortOrder} from './types';
 
-import {MAX_FREEZABLE_COLUMNS, useFrozenColumnActions, useFrozenColumnState} from './FrozenColumnContext';
+import {isAnchoredLeftColumn, PIN_SIDE, useFrozenColumnActions, useFrozenColumnState} from './FrozenColumnContext';
 import SortableTableHeader from './SortableTableHeader';
 
 type SearchColumnConfig = {
@@ -592,17 +592,15 @@ function SearchTableHeader({
 }: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {frozenColumn, canFreezeColumns} = useFrozenColumnState();
-    const {setFrozenColumn} = useFrozenColumnActions();
+    const {pinnedColumns, canPinColumns} = useFrozenColumnState();
+    const {pinColumn, unpinColumn} = useFrozenColumnActions();
     const [columnMenu, setColumnMenu] = useState<{
         columnName: SearchColumnType;
         anchorPosition: AnchorPosition;
     } | null>(null);
     const columnMenuAnchorRef = useRef<View>(null);
-    const isFreezableColumn = (columnName: SearchColumnType) => {
-        const index = columns.indexOf(columnName);
-        return index >= 0 && index < MAX_FREEZABLE_COLUMNS;
-    };
+    const isMenuColumnPinnedLeft = !!columnMenu && pinnedColumns.left.includes(columnMenu.columnName);
+    const isMenuColumnPinnedRight = !!columnMenu && pinnedColumns.right.includes(columnMenu.columnName);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const displayNarrowVersion = isMediumScreenWidth || isSmallScreenWidth;
@@ -685,10 +683,10 @@ function SearchTableHeader({
                     onSortPress(columnName, order);
                 }}
                 onColumnSecondaryInteraction={
-                    canFreezeColumns && !isExpenseReportView
+                    canPinColumns && !isExpenseReportView
                         ? (columnName, event) => {
-                              // Past the freezable columns there's nothing to offer unless something can be unfrozen.
-                              if (!isFreezableColumn(columnName) && !frozenColumn) {
+                              // Anchored columns lead the table like the checkbox, so they can't be pinned.
+                              if (isAnchoredLeftColumn(columnName)) {
                                   return;
                               }
                               const {pageX, pageY} = 'nativeEvent' in event ? event.nativeEvent : event;
@@ -710,24 +708,17 @@ function SearchTableHeader({
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                 }}
                 anchorRef={columnMenuAnchorRef}
-                menuItems={[
-                    ...(columnMenu && isFreezableColumn(columnMenu.columnName)
+                menuItems={
+                    columnMenu
                         ? [
-                              {
-                                  text: translate('search.display.freezeColumn'),
-                                  onSelected: () => setFrozenColumn(columnMenu.columnName),
-                              },
+                              ...(isMenuColumnPinnedLeft ? [] : [{text: translate('search.pinColumn.pinLeft'), onSelected: () => pinColumn(columnMenu.columnName, PIN_SIDE.LEFT)}]),
+                              ...(isMenuColumnPinnedRight ? [] : [{text: translate('search.pinColumn.pinRight'), onSelected: () => pinColumn(columnMenu.columnName, PIN_SIDE.RIGHT)}]),
+                              ...(isMenuColumnPinnedLeft || isMenuColumnPinnedRight
+                                  ? [{text: translate('search.pinColumn.unpin'), onSelected: () => unpinColumn(columnMenu.columnName)}]
+                                  : []),
                           ]
-                        : []),
-                    ...(frozenColumn
-                        ? [
-                              {
-                                  text: translate('search.display.unfreezeColumns'),
-                                  onSelected: () => setFrozenColumn(null),
-                              },
-                          ]
-                        : []),
-                ]}
+                        : []
+                }
             />
         </>
     );

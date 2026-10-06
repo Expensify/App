@@ -9903,8 +9903,11 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             sortOrder: 'Ordem de classificação',
             groupBy: 'Agrupar por',
             limitResults: 'Limitar resultados',
-            freezeColumn: 'Freeze column',
-            unfreezeColumns: 'Unfreeze columns',
+        },
+        pinColumn: {
+            pinLeft: 'Pin left',
+            pinRight: 'Pin right',
+            unpin: 'Unpin',
         },
         has: 'Tem',
         view: {

@@ -12,12 +12,12 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 
 import type {SearchColumnType, SearchSortBy, SortOrder, TableColumnSize} from './types';
 
-import {useFrozenColumnState} from './FrozenColumnContext';
-import {FROZEN_CELL_DATA_KEY, FROZEN_EDGE_DATA_KEY, getFrozenCellStyle} from './frozenColumnUtils';
+import {getFrozenCellPosition, hasPinnedColumns, PIN_SIDE, useFrozenColumnState} from './FrozenColumnContext';
+import {FROZEN_CELL_DATA_KEY, FROZEN_EDGE_LEFT_DATA_KEY, FROZEN_EDGE_RIGHT_DATA_KEY, FROZEN_RIGHT_CELL_DATA_KEY, getFrozenCellStyle} from './frozenColumnUtils';
 import {useSearchColumnStyles} from './SearchColumnWidthsContext';
 import SortableHeaderText from './SortableHeaderText';
 
@@ -55,6 +55,14 @@ type SearchTableHeaderProps = {
     onColumnSecondaryInteraction?: (columnName: SearchColumnType, event: GestureResponderEvent | MouseEvent) => void;
 };
 
+/** Marks a frozen header cell for the stylesheet that moves it, and the edge cell for the overlay measured from it. */
+function getFrozenHeaderDataSet(isLeft: boolean, isEdge: boolean): Record<string, boolean> {
+    if (isLeft) {
+        return {[FROZEN_CELL_DATA_KEY]: true, [FROZEN_EDGE_LEFT_DATA_KEY]: isEdge};
+    }
+    return {[FROZEN_RIGHT_CELL_DATA_KEY]: true, [FROZEN_EDGE_RIGHT_DATA_KEY]: isEdge};
+}
+
 function SortableTableHeader({
     columns,
     sortBy,
@@ -78,15 +86,14 @@ function SortableTableHeader({
 }: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {frozenColumn} = useFrozenColumnState();
+    const {pinnedColumns} = useFrozenColumnState();
     const visibleColumnNames = columns.filter(({columnName}) => shouldShowColumn(columnName)).map(({columnName}) => columnName);
-    const frozenIndex = frozenColumn ? visibleColumnNames.indexOf(frozenColumn) : -1;
     const StyleUtils = useStyleUtils();
     const getSearchColumnStyles = useSearchColumnStyles();
     const {translate} = useLocalize();
 
     return (
-        <View style={[styles.flex1, frozenIndex >= 0 && styles.alignSelfStretch]}>
+        <View style={[styles.flex1, hasPinnedColumns(pinnedColumns) && styles.alignSelfStretch]}>
             <View style={[styles.flex1, styles.flexRow, styles.gap3, containerStyles]}>
                 {columns.map(({columnName, translationKey, icon, isColumnSortable, sortColumnName, canEdit}) => {
                     if (!shouldShowColumn(columnName)) {
@@ -94,8 +101,20 @@ function SortableTableHeader({
                     }
 
                     const isSortable = shouldShowSorting && isColumnSortable;
-                    const visibleIndex = visibleColumnNames.indexOf(columnName);
-                    const isFrozen = visibleIndex <= frozenIndex;
+                    const frozenPosition = getFrozenCellPosition(columnName, visibleColumnNames, pinnedColumns);
+                    const columnStyle = getSearchColumnStyles(columnName, {
+                        isDateColumnWide: dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                        isDateColumnCreated,
+                        isSubmittedColumnWide: submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                        isApprovedColumnWide: approvedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                        isPostedColumnWide: postedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                        isExportedColumnWide: exportedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                        isTaxAmountColumnWide: taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                        isAmountColumnWide: amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                        shouldRemoveTotalColumnFlex,
+                        isWithdrawnColumnWide: withdrawnColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                        isActionColumnWide,
+                    });
                     const sortByColumnName = sortColumnName ?? columnName;
                     const isActive = sortBy === sortByColumnName;
                     const isReimbursableOrBillableColumn = columnName === CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE || columnName === CONST.SEARCH.TABLE_COLUMNS.BILLABLE;
@@ -120,33 +139,38 @@ function SortableTableHeader({
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.SORTABLE_HEADER}
                             innerContainerStyle={canEdit && styles.editableCellHeader}
                             containerStyle={[
-                                getSearchColumnStyles(columnName, {
-                                    isDateColumnWide: dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
-                                    isDateColumnCreated,
-                                    isSubmittedColumnWide: submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
-                                    isApprovedColumnWide: approvedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
-                                    isPostedColumnWide: postedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
-                                    isExportedColumnWide: exportedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
-                                    isTaxAmountColumnWide: taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
-                                    isAmountColumnWide: amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
-                                    shouldRemoveTotalColumnFlex,
-                                    isWithdrawnColumnWide: withdrawnColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
-                                    isActionColumnWide,
-                                }),
-                                isFrozen &&
+                                columnStyle,
+                                !!frozenPosition &&
                                     getFrozenCellStyle({
                                         backgroundColor: theme.highlightBG,
-                                        isLastFrozen: visibleIndex === frozenIndex,
+                                        side: frozenPosition.side,
+                                        isEdge: frozenPosition.isEdge,
                                         verticalBleed: variables.searchTableHeaderPaddingVertical,
+                                        sizing: StyleSheet.flatten(columnStyle),
                                     }),
                             ]}
                             isSortable={isSortable}
                             onPress={(order: SortOrder) => onSortPress(sortByColumnName, order)}
-                            dataSet={isFrozen ? {[FROZEN_CELL_DATA_KEY]: true, [FROZEN_EDGE_DATA_KEY]: visibleIndex === frozenIndex} : undefined}
+                            dataSet={frozenPosition ? getFrozenHeaderDataSet(frozenPosition.side === PIN_SIDE.LEFT, frozenPosition.isEdge) : undefined}
                             onSecondaryInteraction={onColumnSecondaryInteraction ? (event) => onColumnSecondaryInteraction(columnName, event) : undefined}
                         />
                     );
                 })}
+                {pinnedColumns.right.length > 0 && (
+                    // Lines up with the rows' trailing arrow, which stays frozen at the far right with the right-pinned columns.
+                    <View
+                        style={[
+                            {width: variables.iconSizeNormal},
+                            getFrozenCellStyle({
+                                backgroundColor: theme.highlightBG,
+                                side: PIN_SIDE.RIGHT,
+                                isEdge: false,
+                                verticalBleed: variables.searchTableHeaderPaddingVertical,
+                            }),
+                        ]}
+                        dataSet={{[FROZEN_RIGHT_CELL_DATA_KEY]: true}}
+                    />
+                )}
             </View>
         </View>
     );

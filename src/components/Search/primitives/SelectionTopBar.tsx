@@ -62,7 +62,8 @@ function SelectionTopBar({
 }: SelectionTopBarProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {frozenColumn} = useFrozenColumnState();
+    const {pinnedColumns} = useFrozenColumnState();
+    const isCheckboxFrozen = pinnedColumns.left.length > 0;
 
     return (
         <View
@@ -74,12 +75,13 @@ function SelectionTopBar({
         >
             {canSelectMultiple && (
                 <View
-                    dataSet={frozenColumn ? {[FROZEN_CELL_DATA_KEY]: true} : undefined}
+                    dataSet={isCheckboxFrozen ? {[FROZEN_CELL_DATA_KEY]: true} : undefined}
                     style={
-                        !!frozenColumn &&
+                        isCheckboxFrozen &&
                         getFrozenCellStyle({
                             backgroundColor: theme.highlightBG,
-                            isLastFrozen: false,
+                            side: 'left',
+                            isEdge: false,
                             verticalBleed: variables.searchTableHeaderPaddingVertical,
                         })
                     }

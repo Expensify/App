@@ -3961,6 +3961,23 @@ const staticStyles = (theme: ThemeColors) =>
             fontWeight: FontUtils.fontWeight.bold,
         },
 
+        // Fills the header cell and reaches over the header's vertical padding and half the gap to each neighboring cell,
+        // so the whole area around a heading is pressable. The pressable's padding offsets the wrapper's negative margins,
+        // so the content stays exactly where it was.
+        searchTableHeaderPressableWrapper: {
+            flexGrow: 1,
+            alignSelf: 'stretch',
+            marginVertical: -variables.searchTableHeaderPaddingVertical,
+            marginHorizontal: -variables.searchTableHeaderCellGap / 2,
+        },
+
+        searchTableHeaderPressable: {
+            flexGrow: 1,
+            justifyContent: 'center',
+            paddingVertical: variables.searchTableHeaderPaddingVertical,
+            paddingHorizontal: variables.searchTableHeaderCellGap / 2,
+        },
+
         zIndex10: {
             zIndex: 10,
         },

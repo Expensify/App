@@ -110,6 +110,7 @@ import ChatSearchView from './ChatSearchView';
 import ExpenseFlatSearchView from './ExpenseFlatSearchView';
 import ExpenseGroupedSearchView from './ExpenseGroupedSearchView';
 import ExpenseReportSearchView from './ExpenseReportSearchView';
+import {orderColumnsByPin, useFrozenColumnState} from './FrozenColumnContext';
 import useLiveRowLimit from './hooks/useLiveRowLimit';
 import useSearchSnapshot from './hooks/useSearchSnapshot';
 import useShouldShowBulkActionBar from './hooks/useShouldShowBulkActionBar';
@@ -912,7 +913,8 @@ function Search({
     // getColumnsToShow allocates a fresh array on every call; preserve the previous reference
     // when contents are equal so downstream consumers don't re-render on Onyx snapshot churn
     // (e.g. opening a report bumps searchResults.data) that doesn't actually change the columns.
-    const currentColumns = useStableArrayReference(computedColumns);
+    const {pinnedColumns} = useFrozenColumnState();
+    const currentColumns = useStableArrayReference(orderColumnsByPin(computedColumns, pinnedColumns));
 
     const opacity = useSharedValue(1);
     const animatedStyle = useAnimatedStyle(() => ({
@@ -1452,7 +1454,8 @@ function Search({
     const isTransactionListView = type !== CONST.SEARCH.DATA_TYPES.CHAT && type !== CONST.SEARCH.DATA_TYPES.TASK && type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
     let searchTablePaddingRightStyle;
-    if (!isTask) {
+    // With columns pinned right, the header renders a frozen spacer over the arrow instead, so the padding can't show through.
+    if (!isTask && pinnedColumns.right.length === 0) {
         searchTablePaddingRightStyle = isTransactionListView && validGroupBy ? styles.pr9 : styles.pr8;
     }
     const searchTableHeader = !shouldShowTableHeader ? undefined : (

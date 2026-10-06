@@ -149,6 +149,7 @@ export default {
     tableHeaderContentHeight: 20,
     tableRowHeight: 56,
     searchTableHeaderPaddingVertical: 8,
+    searchTableHeaderCellGap: 12,
     tableRowHeightCompact: 60,
     tableRowPaddingVertical: 8,
     tableRowPaddingVerticalCompact: 16,
