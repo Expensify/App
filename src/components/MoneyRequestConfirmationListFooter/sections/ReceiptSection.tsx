@@ -117,6 +117,7 @@ function ReceiptSection({
                 receiptPageCount={transaction?.receipt?.pageCount ?? 0}
                 isOdometerDistanceRequest={isOdometerDistanceRequest}
                 isDistanceRequest={isDistanceRequest}
+                isManualDistanceRequest={isManualDistanceRequest}
                 compactReceiptContainerStyle={compact.compactReceiptContainerStyle}
                 onPDFLoadError={onPDFLoadError}
                 onPDFPassword={onPDFPassword}

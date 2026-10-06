@@ -75,6 +75,9 @@ type ConfirmationReceiptThumbnailProps = {
     /** Whether the active transaction is a distance request (drives object-position behaviour) */
     isDistanceRequest: boolean;
 
+    /** Whether the active transaction is a manual distance request */
+    isManualDistanceRequest: boolean;
+
     /** Compact-mode container style (undefined when not in compact mode) */
     compactReceiptContainerStyle: StyleProp<ViewStyle> | undefined;
 
@@ -112,6 +115,7 @@ function ConfirmationReceiptThumbnail({
     receiptPageCount,
     isOdometerDistanceRequest,
     isDistanceRequest,
+    isManualDistanceRequest,
     compactReceiptContainerStyle,
     onPDFLoadError,
     onPDFPassword,
@@ -140,7 +144,8 @@ function ConfirmationReceiptThumbnail({
     const receiptThumbnailStyle = [styles.h100, styles.flex1];
     const isPDF = isLocalFile && Str.isPDF(receiptFilename);
     const effectiveReceiptPageCount = receiptPageCount || (detectedPDF.source === resolvedReceiptImage ? detectedPDF.pageCount : 0);
-    const shouldShowReceiptPageCount = effectiveReceiptPageCount > 1 && Str.isPDF(receiptFilename) && !isLoadingReceipt && isReceiptLoaded;
+    const isMapDistanceRequest = isDistanceRequest && !isOdometerDistanceRequest && !isManualDistanceRequest;
+    const shouldShowReceiptPageCount = effectiveReceiptPageCount > 1 && Str.isPDF(receiptFilename) && !isLoadingReceipt && isReceiptLoaded && !isMapDistanceRequest;
 
     const resetDetectedPDF = () => {
         setIsReceiptLoaded(false);
