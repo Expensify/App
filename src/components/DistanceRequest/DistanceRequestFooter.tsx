@@ -120,7 +120,7 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
                         accessibilityRole={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('distance.addStop')}
                         sentryLabel="DistanceRequestFooter-AddStop"
-                        style={[styles.searchFiltersResetButton]}
+                        style={[styles.searchFiltersBarButton]}
                         hoverStyle={isAddStopDisabled ? undefined : styles.hoveredComponentBG}
                         disabledStyle={styles.buttonOpacityDisabled}
                     >
@@ -137,7 +137,7 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('distance.reuseRoute')}
                             sentryLabel="DistanceRequestFooter-ReuseRoute"
-                            style={[styles.searchFiltersResetButton]}
+                            style={[styles.searchFiltersBarButton]}
                             hoverStyle={styles.hoveredComponentBG}
                         >
                             <Icon

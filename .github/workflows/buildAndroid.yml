@@ -206,6 +206,9 @@ jobs:
           mkdir -p /tmp/android-artifacts
 
           AAB_FILE=$(find Mobile-Expensify/Android -path '*/outputs/bundle/*/*.aab' -print -quit 2>/dev/null || true)
+          if [ -z "$AAB_FILE" ] && [ -f "${ARTIFACT_PATH:-}" ]; then
+            AAB_FILE="$ARTIFACT_PATH"
+          fi
           if [ -n "$AAB_FILE" ]; then
             echo "Found AAB: $AAB_FILE"
             cp "$AAB_FILE" /tmp/android-artifacts/
@@ -215,7 +218,11 @@ jobs:
               echo "APK_FILENAME=Expensify.apk"
             } >> "$GITHUB_OUTPUT"
           else
-            echo "::warning::No AAB file found (expected for remote-cache hits on Adhoc builds)"
+            if [ "${{ inputs.variant }}" == 'Release' ]; then
+              echo '::error::No AAB file found for Release build'
+              exit 1
+            fi
+            echo '::warning::No AAB file found for Adhoc build'
             echo "HAS_AAB=false" >> "$GITHUB_OUTPUT"
           fi
 
@@ -275,7 +282,7 @@ jobs:
       - name: Generate APK from AAB
         if: steps.collectArtifacts.outputs.HAS_AAB == 'true'
         run: |
-          AAB_PATH=$(find Mobile-Expensify/Android -path '*/outputs/bundle/*/*.aab' | head -1)
+          AAB_PATH="/tmp/android-artifacts/${{ steps.collectArtifacts.outputs.AAB_FILENAME }}"
           java -jar bundletool.jar build-apks --bundle="$AAB_PATH" --output=Expensify.apks \
             --mode=universal \
             --ks=upload-key.keystore \

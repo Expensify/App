@@ -234,9 +234,20 @@ function WorkspaceInviteMessageComponent({
 
         if (isWorkflowApprovalExpensesFromRoute) {
             if (approvalWorkflow?.isFastEdit) {
+                const invitedEmails = new Set(Object.keys(invitedEmailsToAccountIDsDraft ?? {}));
+                const shouldExcludeInvitedMembers = shouldShowApproverRow && !!approverDraft && !!validatedApprover && validatedApprover !== approvalWorkflow.approvers.at(0)?.email;
+                // An explicit approver choice owns the invited members. Saving them with the edited workflow would overwrite that choice.
+                const approvalWorkflowToSave = shouldExcludeInvitedMembers
+                    ? {...approvalWorkflow, members: approvalWorkflow.members.filter((member) => !invitedEmails.has(member.email))}
+                    : approvalWorkflow;
                 Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID), {
                     afterTransition: () =>
-                        saveFastEditApprovalWorkflow({approvalWorkflow, policy, rules: rulesCollection, isMultipleApproversBetaEnabled: isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS)}),
+                        saveFastEditApprovalWorkflow({
+                            approvalWorkflow: approvalWorkflowToSave,
+                            policy,
+                            rules: rulesCollection,
+                            isMultipleApproversBetaEnabled: isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS),
+                        }),
                 });
             } else if (approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && approvalWorkflow.isInitialFlow) {
                 Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, 0), {forceReplace: true});

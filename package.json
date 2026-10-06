@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.5.3-0",
+  "version": "9.5.3-4",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -166,7 +166,7 @@
     "htmlparser2": "10.0.0",
     "idb-keyval": "^6.2.1",
     "json5": "2.2.2",
-    "lodash-es": "4.17.21",
+    "lodash-es": "4.18.1",
     "lottie-react-native": "7.3.8",
     "mapbox-gl": "^3.24.0",
     "metro": "0.84.5",
@@ -390,7 +390,7 @@
     "json5": "2.2.2",
     "loader-utils": "2.0.4",
     "follow-redirects": "1.15.6",
-    "fast-xml-parser": "4.4.1",
+    "fast-xml-parser": "5.11.1",
     "express": "4.20.0",
     "elliptic": "6.5.7",
     "fast-json-patch": "3.1.1",
@@ -422,9 +422,6 @@
       "expo": "57.0.8"
     },
     "@react-native-firebase/app": {
-      "expo": "57.0.8"
-    },
-    "@react-native-firebase/perf": {
       "expo": "57.0.8"
     },
     "@react-native-google-signin/google-signin": {
