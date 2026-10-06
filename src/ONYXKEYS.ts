@@ -519,10 +519,8 @@ const ONYXKEYS = {
     RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA: 'isLoadingSearchFiltersCategoryData',
 
     /** Set whether the search filters vendor data has loaded */
-    IS_SEARCH_FILTERS_VENDOR_DATA_LOADED: 'isSearchFiltersVendorDataLoaded',
 
     /** Set while search filter vendor data is loading */
-    RAM_ONLY_IS_LOADING_SEARCH_FILTERS_VENDOR_DATA: 'isLoadingSearchFiltersVendorData',
 
     HAS_LOADED_APP: 'hasLoadedApp',
 
@@ -1797,8 +1795,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_LOADING_RULES]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA]: boolean;
-    [ONYXKEYS.IS_SEARCH_FILTERS_VENDOR_DATA_LOADED]: boolean;
-    [ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_VENDOR_DATA]: boolean;
     [ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA]: boolean;
     [ONYXKEYS.IS_PENDING_UPDATE_PERSONAL_KARMA]: boolean;
     [ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN]: boolean;
