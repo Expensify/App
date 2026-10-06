@@ -515,6 +515,65 @@ describe('TransactionUtils', () => {
             expect(updatedTransaction.taxValue).toBe('5%');
         });
 
+        it('should keep the existing tax when clearing the category on a server backed edit', () => {
+            // Given an expense carrying the tax of a category that has its own rule
+            const category = 'Advertising';
+            const taxCode = 'id_TAX_RATE_1';
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                taxRates: CONST.DEFAULT_TAX,
+                rules: {expenseRules: createCategoryTaxExpenseRules(category, taxCode)},
+            };
+            const transaction = generateTransaction({category, taxCode, taxAmount: 5, taxValue: '5%'});
+
+            // When the category is cleared
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: true,
+                policy: fakePolicy,
+                transactionChanges: {category: ''},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            // Then the tax is left untouched, because the API is not told to change it and the server keeps its own
+            expect(updatedTransaction.category).toBe('');
+            expect(updatedTransaction.taxCode).toBe(taxCode);
+            expect(updatedTransaction.taxAmount).toBe(5);
+            expect(updatedTransaction.taxValue).toBe('5%');
+        });
+
+        it('should reset to the workspace default tax when clearing the category on a split draft', () => {
+            // Given a split draft carrying the tax of a category that has its own rule
+            const category = 'Advertising';
+            const taxCode = 'id_TAX_RATE_1';
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                taxRates: CONST.DEFAULT_TAX,
+                rules: {expenseRules: createCategoryTaxExpenseRules(category, taxCode)},
+            };
+            const transaction = generateTransaction({category, taxCode, taxAmount: 5, taxValue: '5%'});
+
+            // When the category is cleared on the draft
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                isSplitTransaction: true,
+                policy: fakePolicy,
+                transactionChanges: {category: ''},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            // Then the draft falls back to the workspace default, since the draft tax is what gets sent
+            expect(updatedTransaction.category).toBe('');
+            expect(updatedTransaction.taxCode).toBe('id_TAX_EXEMPT');
+            expect(updatedTransaction.taxAmount).toBe(0);
+            expect(updatedTransaction.taxValue).toBe('0%');
+        });
+
         it('should update transaction when distance is changed', () => {
             // Given: a policy with a mileage rate
             const fakePolicy: Policy = {
@@ -3487,6 +3546,101 @@ describe('TransactionUtils', () => {
             const policy = {...createRandomPolicy(0), autoCategorizeNewExpenses: true};
 
             expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined, policy)).toBe(true);
+        });
+
+        it('should return false when the expense was created while auto-categorize was off, even after it is turned on', () => {
+            // Given an expense created offline while auto-categorize was off, which the workspace then turned on
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Starbucks',
+                amount: 100,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                wasAutoCategorizeEnabledOnCreation: false,
+            });
+            const policy = {...createRandomPolicy(0), autoCategorizeNewExpenses: true};
+
+            // When checking whether the category is being analyzed
+            // Then it is not, because turning the setting on does not categorize an expense that already exists
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined, policy)).toBe(false);
+        });
+
+        it('should return true for an expense created while auto-categorize was already on', () => {
+            // Given an expense created once auto-categorize was on
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Starbucks',
+                amount: 100,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                wasAutoCategorizeEnabledOnCreation: true,
+            });
+            const policy = {...createRandomPolicy(0), autoCategorizeNewExpenses: true};
+
+            // When checking whether the category is being analyzed
+            // Then it is, because this expense will get a category
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined, policy)).toBe(true);
+        });
+
+        it('should record the auto-categorize value on a new expense', () => {
+            // Given a workspace that does not auto-categorize new expenses
+            const policy = {...createRandomPolicy(0), autoCategorizeNewExpenses: false};
+
+            // When the expense is created optimistically
+            const transaction = TransactionUtils.buildOptimisticTransaction({
+                policy,
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: '1',
+                    merchant: 'Starbucks',
+                    created: '2026-01-15',
+                },
+            });
+
+            // Then the value is stored on the expense, which is what the category row reads later
+            expect(transaction.wasAutoCategorizeEnabledOnCreation).toBe(false);
+        });
+
+        it('should omit the auto-categorize snapshot when the setting is on', () => {
+            // Given a workspace that auto-categorizes new expenses
+            const policy = {...createRandomPolicy(0), autoCategorizeNewExpenses: true};
+
+            // When the expense is created optimistically
+            const transaction = TransactionUtils.buildOptimisticTransaction({
+                policy,
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: '1',
+                    merchant: 'Starbucks',
+                    created: '2026-01-15',
+                },
+            });
+
+            // Then the field is absent, because the category row treats a missing value as enabled
+            expect(transaction.wasAutoCategorizeEnabledOnCreation).toBeUndefined();
+        });
+
+        it('should keep a recorded auto-categorize value when a rebuild has no policy', () => {
+            // Given an expense created while auto-categorize was off, rebuilt the way a split does, with the original expense and no policy
+            const existingTransaction = generateTransaction({
+                merchant: 'Starbucks',
+                wasAutoCategorizeEnabledOnCreation: false,
+            });
+
+            // When the expense is rebuilt
+            const transaction = TransactionUtils.buildOptimisticTransaction({
+                existingTransaction,
+                transactionParams: {
+                    amount: 50,
+                    currency: 'USD',
+                    reportID: '1',
+                    merchant: 'Starbucks',
+                    created: '2026-01-15',
+                },
+            });
+
+            // Then the recorded value survives, so the category row still does not show Analyzing
+            expect(transaction.wasAutoCategorizeEnabledOnCreation).toBe(false);
         });
 
         it('should return true when within auto-categorization grace period', () => {
