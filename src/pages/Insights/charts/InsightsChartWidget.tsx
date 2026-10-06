@@ -74,6 +74,7 @@ function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGr
     const headerMenu =
         !!queryJSON && (state === INSIGHTS_CHART_STATE.READY || isLoading) ? (
             <WidgetHeaderMenu
+                size={CONST.BUTTON_SIZE.SMALL}
                 testID={`insightsChartMenu-${chart.graphKey}`}
                 sentryLabel="InsightsChartMenu"
                 menuItems={[
@@ -92,7 +93,7 @@ function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGr
             title={translate(chart.titleKey)}
             titleRightContent={
                 !!groupByControl || !!headerMenu ? (
-                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.flexShrink1]}>
                         {groupByControl}
                         {headerMenu}
                     </View>
