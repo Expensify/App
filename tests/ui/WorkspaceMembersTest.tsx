@@ -640,6 +640,35 @@ describe('WorkspaceMembers', () => {
         });
     });
 
+    describe('Secondary login invite', () => {
+        it('hides an empty employeeList entry and still shows a member whose personal details are missing', async () => {
+            // Given a secondary login left as an empty object after the backend nulls it and successData clears pendingAction,
+            // plus a real member who has no personal details
+            const secondaryEmail = 'secondary@example.com';
+            const memberWithoutDetails = 'nodetails@example.com';
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    employeeList: {
+                        [secondaryEmail]: {},
+                        [memberWithoutDetails]: {email: memberWithoutDetails, role: CONST.POLICY.ROLE.USER},
+                    },
+                });
+            });
+
+            // When the members page renders
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the empty secondary entry is not a row, and the member without personal details still is
+            await waitFor(() => {
+                expect(screen.getAllByText(memberWithoutDetails).length).toBeGreaterThan(0);
+            });
+            expect(screen.queryAllByText(secondaryEmail)).toHaveLength(0);
+
+            unmount();
+        });
+    });
+
     describe('Role display on Submit workspaces', () => {
         it('should show the workspace owner as Editor instead of Owner', async () => {
             // Given a Submit workspace, where every member (including the owner) uses the flat Editor role

@@ -1,3 +1,4 @@
+import type {TransactionMonthGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import {getGroupPendingDeleteOnyxUpdate, getSearchOnyxUpdate, shouldOptimisticallyUpdateSearch} from '@libs/actions/IOU/SearchUpdate';
@@ -5,13 +6,15 @@ import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import '@libs/actions/IOU/MoneyRequest';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import type * as SearchQueryUtils from '@libs/SearchQueryUtils';
+import {isTransactionMatchWithGroupItem} from '@libs/SearchUIUtils';
+import {hasMissingSmartscanFields} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import {buildCannedSearchQuery, buildSearchQueryJSON, getCurrentSearchQueryJSON} from '@src/libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Policy, Report, Transaction} from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -23,6 +26,7 @@ import currencyList from '../../unit/currencyList.json';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import createMock from '../../utils/createMock';
+import getOnyxValue from '../../utils/getOnyxValue';
 import {getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -585,7 +589,7 @@ describe('actions/IOU', () => {
             expect(result).toBeUndefined();
         });
 
-        it('patches the default Spend > Expenses snapshot even when the page was never visited', async () => {
+        it('patches the default Spend > Expenses snapshot even when the page was never visited', () => {
             // Compute the real canned Expenses hash from the unmocked helpers.
             const actualSearchQueryUtils = jest.requireActual<typeof SearchQueryUtils>('@src/libs/SearchQueryUtils');
             const cannedExpensesQuery = actualSearchQueryUtils.buildCannedSearchQuery();
@@ -595,11 +599,8 @@ describe('actions/IOU', () => {
             // register the canned hashes (the mock returns undefined by default).
             jest.mocked(buildCannedSearchQuery).mockImplementation(actualSearchQueryUtils.buildCannedSearchQuery);
 
-            // Simulate a never-visited Spend > Expenses page: SEARCH_QUERY_BY_HASH holds no entry for the
-            // canned hash and the active search (mocked) is a different hash.
-            await Onyx.set(ONYXKEYS.SEARCH_QUERY_BY_HASH, {});
-            await waitForBatchedUpdates();
-
+            // Simulate a never-visited Spend > Expenses page: no snapshot records a query for the
+            // canned hash (Onyx is cleared before each test) and the active search (mocked) is a different hash.
             const iouReport: Report = {
                 ...createRandomReport(2, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
@@ -627,7 +628,7 @@ describe('actions/IOU', () => {
             expect(cannedUpdate?.value).toHaveProperty('search.hash', cannedExpensesHash);
         });
 
-        it('writes the group-by:from drill-down snapshot under a hash that excludes the group limit', async () => {
+        it('writes the group-by:from drill-down snapshot under a hash that excludes the group limit', () => {
             // Given an active `group-by:from` search whose `limit` is meant to bound how many member groups show.
             // `limit` is part of the query hash, so if the optimistic per-member snapshot kept it, the snapshot
             // would land on a hash the group row never reads and expanding the row would show nothing.
@@ -659,10 +660,8 @@ describe('actions/IOU', () => {
             expect(hashWithoutLimit).toBeDefined();
             expect(hashWithoutLimit).not.toBe(hashWithLimit);
 
-            // Only the active search should be patched, so no other recorded query can write the same hash.
-            await Onyx.set(ONYXKEYS.SEARCH_QUERY_BY_HASH, {});
-            await waitForBatchedUpdates();
-
+            // Only the active search should be patched. Onyx is cleared before each test, so no snapshot
+            // records another query that could write the same hash.
             const iouReport: Report = {
                 ...createRandomReport(2, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
@@ -733,17 +732,134 @@ describe('actions/IOU', () => {
         // Repro of #99500: a self-DM split submitted to a workspace inherits a stale `(none)`/`Expense` placeholder
         // `modifiedMerchant` in its snapshot at split-creation time. Because `isMerchantMissing` reads
         // `modifiedMerchant` before `merchant`, spreading the fresh transaction via Onyx.merge would keep the stale
-        // placeholder and show a false "Missing Merchant". The snapshot write must clear it with `null` (which
-        // Onyx.merge honors) so `isMerchantMissing` falls through to the merchant the user actually entered.
+        // placeholder and show a false "Missing Merchant". The snapshot write must clear it with `''` (which
+        // Onyx.merge honors and every reader treats as "not set") so `isMerchantMissing` falls through to the
+        // merchant the user actually entered, while keeping the key for later merges to land on (#101700).
         it.each([undefined, '', CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, CONST.TRANSACTION.DEFAULT_MERCHANT])(
-            'clears a non-genuine modifiedMerchant (%s) with null so the stale placeholder cannot survive the Onyx.merge',
+            'clears a non-genuine modifiedMerchant (%s) with an empty string so the stale placeholder cannot survive the Onyx.merge',
             (modifiedMerchant) => {
+                // Given a transaction whose modifiedMerchant is absent or a placeholder
+                // When the optimistic snapshot update is built for it
                 const {update, transactionKey} = getSnapshotUpdateForModifiedMerchant(modifiedMerchant);
+
+                // Then the snapshot keeps the entered merchant and resets modifiedMerchant to the "not set" value
                 expect(update).toBeDefined();
                 expect(update?.value).toHaveProperty(['data', transactionKey, 'merchant'], 'Coffee Shop');
-                expect(update?.value).toHaveProperty(['data', transactionKey, 'modifiedMerchant'], null);
+                expect(update?.value).toHaveProperty(['data', transactionKey, 'modifiedMerchant'], '');
             },
         );
+
+        it('lets the SmartScan result reach the optimistic snapshot entry so Spend does not show Missing merchant', async () => {
+            // Given a scanned expense whose optimistic snapshot entry is written by the client, before the scan
+            // result exists. Onyx only mirrors keys that already exist on a snapshot entry into it, so the entry
+            // must carry the modified* keys for the SmartScan result to reach Spend > Expenses (#101700).
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: iouReport.reportID,
+                reimbursable: true,
+                amount: 0,
+                currency: 'UZS',
+                created: '2026-09-28',
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                modifiedMerchant: undefined,
+                modifiedAmount: undefined,
+                modifiedCurrency: undefined,
+                modifiedCreated: undefined,
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING},
+            };
+            const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}` as const;
+            const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${unapprovedCashHash}` as const;
+            const result = getSearchOnyxUpdate({
+                transaction,
+                participant: {accountID: 42, login: 'test@test.com'},
+                iouReport,
+                iouAction: undefined,
+                policy: undefined,
+                transactionThreadReportID: undefined,
+                isFromOneTransactionReport: false,
+                isInvoice: false,
+            });
+            await Onyx.set(transactionKey, transaction);
+            await Onyx.update(result?.optimisticData ?? []);
+            await waitForBatchedUpdates();
+
+            // When SmartScan completes and the server merges its result into the live transaction
+            await Onyx.update([
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: transactionKey,
+                    value: {
+                        modifiedMerchant: 'Blue Bottle Coffee',
+                        modifiedAmount: -3114,
+                        modifiedCurrency: 'USD',
+                        modifiedCreated: '2026-09-15 10:42:00',
+                        receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE},
+                    },
+                },
+            ]);
+            await waitForBatchedUpdates();
+
+            // Then the snapshot entry carries the scanned values and no longer reports missing SmartScan fields
+            const snapshot = await getOnyxValue(snapshotKey);
+            const snapshotTransaction = snapshot?.data?.[transactionKey];
+            expect(snapshotTransaction?.modifiedMerchant).toBe('Blue Bottle Coffee');
+            expect(snapshotTransaction?.modifiedAmount).toBe(-3114);
+            expect(snapshotTransaction?.modifiedCurrency).toBe('USD');
+            expect(snapshotTransaction?.modifiedCreated).toBe('2026-09-15 10:42:00');
+            expect(snapshotTransaction?.receipt?.state).toBe(CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE);
+            expect(hasMissingSmartscanFields(snapshotTransaction, iouReport)).toBe(false);
+        });
+
+        it('seeds modifiedCreated with created so the snapshot row stays in its group-by date bucket before the scan lands', async () => {
+            // Given a scanned expense that has no modifiedCreated yet. The group-by date buckets read
+            // `modifiedCreated ?? created`, so an empty-string seed would win over `created` and drop the row out of its bucket.
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                reimbursable: true,
+                created: '2026-09-18',
+                modifiedCreated: undefined,
+            };
+
+            // When the optimistic snapshot update is built for it
+            const result = getSearchOnyxUpdate({
+                transaction,
+                participant: {accountID: 42, login: 'test@test.com'},
+                iouReport,
+                iouAction: undefined,
+                policy: undefined,
+                transactionThreadReportID: undefined,
+                isFromOneTransactionReport: false,
+                isInvoice: false,
+            });
+
+            // Then the snapshot row carries the creation date as modifiedCreated and still matches its month bucket
+            const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${unapprovedCashHash}` as const;
+            const update = result?.optimisticData?.find((u) => u.key === snapshotKey);
+            const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}` as const;
+            expect(update?.value).toHaveProperty(['data', transactionKey, 'modifiedCreated'], '2026-09-18');
+            await Onyx.update(result?.optimisticData ?? []);
+            await waitForBatchedUpdates();
+            const snapshot = await getOnyxValue(snapshotKey);
+            const snapshotTransaction = snapshot?.data?.[transactionKey];
+            expect(snapshotTransaction).toBeDefined();
+            if (!snapshotTransaction) {
+                return;
+            }
+            const monthGroup = createMock<TransactionMonthGroupListItemType>({groupedBy: CONST.SEARCH.GROUP_BY.MONTH, year: 2026, month: 9});
+            expect(isTransactionMatchWithGroupItem(snapshotTransaction, monthGroup, CONST.SEARCH.GROUP_BY.MONTH)).toBe(true);
+        });
 
         it('preserves a genuinely edited modifiedMerchant in the snapshot', () => {
             // The clear must only apply to an absent/placeholder modifiedMerchant. A real edited merchant is a
@@ -840,7 +956,6 @@ describe('actions/IOU', () => {
                 }),
             );
 
-            await Onyx.set(ONYXKEYS.SEARCH_QUERY_BY_HASH, {});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupHash}`, {
                 search: {hash: groupHash, type: CONST.SEARCH.DATA_TYPES.EXPENSE, hasResults: true},
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- fixture mixes transaction + group keys; TS widens computed keys into one signature
@@ -869,6 +984,75 @@ describe('actions/IOU', () => {
             expect(snapshotUpdate).toBeDefined();
             expect(snapshotUpdate?.value).not.toHaveProperty(['data', groupKey]);
             expect(snapshotUpdate?.value).toHaveProperty(['data', transactionKey, 'reportID'], CONST.REPORT.UNREPORTED_REPORT_ID);
+        });
+
+        it('uses cached group totals and patches an active canned snapshot only once', async () => {
+            // Given a loaded grouped search and an active canned search that is also cached
+            const actualSearchQueryUtils = jest.requireActual<typeof SearchQueryUtils>('@src/libs/SearchQueryUtils');
+            jest.mocked(buildCannedSearchQuery).mockImplementation(actualSearchQueryUtils.buildCannedSearchQuery);
+            const cannedQuery = actualSearchQueryUtils.buildCannedSearchQuery();
+            const cannedQueryJSON = actualSearchQueryUtils.buildSearchQueryJSON(cannedQuery);
+            const groupedQuery = `type:expense group-by:from from:${RORY_ACCOUNT_ID}`;
+            const groupedQueryJSON = actualSearchQueryUtils.buildSearchQueryJSON(groupedQuery);
+            if (!cannedQueryJSON || !groupedQueryJSON) {
+                throw new Error('Failed to parse the canned or grouped search query');
+            }
+            const cannedSnapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${cannedQueryJSON.hash}` as const;
+            const groupedSnapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${groupedQueryJSON.hash}` as const;
+            const groupKey = `${CONST.SEARCH.GROUP_PREFIX}${RORY_ACCOUNT_ID}` as const;
+            await Onyx.merge(cannedSnapshotKey, {search: {hash: cannedQueryJSON.hash, inputQuery: cannedQuery}});
+            await Onyx.merge(groupedSnapshotKey, {
+                search: {hash: groupedQueryJSON.hash, inputQuery: groupedQuery},
+                data: {[groupKey]: {accountID: RORY_ACCOUNT_ID, count: 3, total: -15000, currency: CONST.CURRENCY.USD}},
+            });
+            await waitForBatchedUpdates();
+
+            // When a new expense matches both searches
+            jest.mocked(getCurrentSearchQueryJSON).mockReturnValueOnce(cannedQueryJSON);
+            const result = getSearchOnyxUpdate({
+                transaction: {...createRandomTransaction(1), amount: -5000, reportID: CONST.REPORT.UNREPORTED_REPORT_ID},
+                participant: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+                transactionThreadReportID: undefined,
+            });
+
+            // Then each snapshot is written once and the grouped update adds to the cached count and total
+            const cannedUpdates = result?.optimisticData?.filter((update) => update.key === cannedSnapshotKey);
+            const groupedUpdates = result?.optimisticData?.filter((update) => update.key === groupedSnapshotKey);
+            expect(cannedUpdates).toHaveLength(1);
+            expect(groupedUpdates).toHaveLength(1);
+            expect(groupedUpdates?.at(0)?.value).toHaveProperty(['data', groupKey, 'count'], 4);
+            expect(groupedUpdates?.at(0)?.value).toHaveProperty(['data', groupKey, 'total'], -20000);
+        });
+
+        it('patches a loaded snapshot that is not the active search using the query recorded on it', async () => {
+            // Given a loaded `from:<me>` snapshot that is not the active search, with its query recorded on the
+            // snapshot by the search() action, and a second loaded snapshot for the same query that has no recorded query
+            jest.mocked(buildCannedSearchQuery).mockReturnValue('');
+            const actualSearchQueryUtils = jest.requireActual<typeof SearchQueryUtils>('@src/libs/SearchQueryUtils');
+            const fromMeQuery = `type:expense from:${RORY_ACCOUNT_ID}`;
+            const fromMeHash = actualSearchQueryUtils.buildSearchQueryJSON(fromMeQuery)?.hash;
+            const unrecordedHash = 515151;
+            if (fromMeHash === undefined) {
+                throw new Error('Failed to parse the from:<me> search query');
+            }
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${fromMeHash}`, {search: {hash: fromMeHash, type: CONST.SEARCH.DATA_TYPES.EXPENSE, inputQuery: fromMeQuery}});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${unrecordedHash}`, {search: {hash: unrecordedHash, type: CONST.SEARCH.DATA_TYPES.EXPENSE}});
+            await waitForBatchedUpdates();
+
+            // When the user creates an expense from a chat
+            const result = getSearchOnyxUpdate({
+                transaction: {...createRandomTransaction(1), reportID: CONST.REPORT.UNREPORTED_REPORT_ID},
+                participant: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+                iouReport: undefined,
+                iouAction: undefined,
+                policy: undefined,
+                transactionThreadReportID: undefined,
+            });
+
+            // Then the snapshot with a recorded query receives the expense, and the one without a recorded query is left alone
+            const optimisticKeys = result?.optimisticData?.map((update) => update.key) ?? [];
+            expect(optimisticKeys).toContain(`${ONYXKEYS.COLLECTION.SNAPSHOT}${fromMeHash}`);
+            expect(optimisticKeys).not.toContain(`${ONYXKEYS.COLLECTION.SNAPSHOT}${unrecordedHash}`);
         });
     });
 

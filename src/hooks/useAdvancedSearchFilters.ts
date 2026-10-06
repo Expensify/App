@@ -1,5 +1,5 @@
 import {isFilterableBankAccount} from '@libs/BankAccountUtils';
-import {isPolicyFeatureEnabled} from '@libs/PolicyUtils';
+import {hasVendorFeatureOnAnyPolicy, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -11,9 +11,11 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {filterCardsHiddenFromSearch} from '@selectors/Card';
 import {emailSelector} from '@selectors/Session';
+import {useCallback} from 'react';
 
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
+import usePermissions from './usePermissions';
 import useWorkspaceList from './useWorkspaceList';
 
 /**
@@ -38,6 +40,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE,
@@ -315,6 +318,13 @@ function useAdvancedSearchFilters(type: SearchDataTypes | undefined) {
     const [shouldDisplayCardFilter] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: shouldDisplayCardFilterSelector});
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: advancedSearchPoliciesSelector});
     const [policyDerived] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policyDerivedSelector});
+    const {isBetaEnabled} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
+    const isVendorFilterAvailableSelector = useCallback(
+        (allPolicies: OnyxCollection<Policy>) => hasVendorFeatureOnAnyPolicy(allPolicies, isVendorMatchingBetaEnabled),
+        [isVendorMatchingBetaEnabled],
+    );
+    const [isVendorFilterAvailable = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: isVendorFilterAvailableSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const {workspaces} = useAdvancedSearchFiltersWorkspaces(policies);
@@ -337,6 +347,9 @@ function useAdvancedSearchFilters(type: SearchDataTypes | undefined) {
             section
                 .map((key) => {
                     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG && !shouldDisplayTagFilter) {
+                        return;
+                    }
+                    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR && !isVendorFilterAvailable) {
                         return;
                     }
                     if (
