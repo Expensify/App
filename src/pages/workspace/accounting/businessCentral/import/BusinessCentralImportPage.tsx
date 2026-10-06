@@ -47,6 +47,7 @@ function CustomerMappingToggleRow({isLocked, label, mappingName, onLockedPress, 
     const config = policy?.connections?.businessCentral?.config;
     const mapping = config?.coding?.customerMappings?.[mappingName];
     const isImported = mapping === CONST.BUSINESS_CENTRAL_MAPPING_VALUE.TAG;
+    const isDisabled = isLocked && !isImported;
 
     return (
         <ToggleSettingOptionRow
@@ -59,9 +60,9 @@ function CustomerMappingToggleRow({isLocked, label, mappingName, onLockedPress, 
                 policyID &&
                 updateBusinessCentralCustomerMapping(policyID, mappingName, isImported ? CONST.BUSINESS_CENTRAL_MAPPING_VALUE.NONE : CONST.BUSINESS_CENTRAL_MAPPING_VALUE.TAG, mapping)
             }
-            disabled={isLocked}
-            showLockIcon={isLocked}
-            disabledAction={isLocked ? onLockedPress : undefined}
+            disabled={isDisabled}
+            showLockIcon={isDisabled}
+            disabledAction={isDisabled ? onLockedPress : undefined}
             pendingAction={settingsPendingAction([mappingName], config?.pendingFields)}
             errors={getLatestErrorField(config ?? {}, mappingName)}
             onCloseError={() => policyID && clearBusinessCentralErrorField(policyID, mappingName)}

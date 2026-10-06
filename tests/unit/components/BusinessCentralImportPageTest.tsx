@@ -4,6 +4,8 @@ import type ConnectionLayout from '@components/ConnectionLayout';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 
+import * as BusinessCentral from '@libs/actions/connections/BusinessCentral';
+
 import BusinessCentralImportPage from '@pages/workspace/accounting/businessCentral/import/BusinessCentralImportPage';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import type {ToggleSettingOptionRowProps} from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -113,5 +115,27 @@ describe('BusinessCentralImportPage', () => {
             confirmText: 'common.buttonConfirm',
             shouldShowCancelButton: false,
         });
+    });
+
+    it('allows an active Project mapping to be disabled while both destinations are General Journal', () => {
+        // Given Projects is imported as a tag before both export destinations change to General Journal.
+        const customerMappings = mockPolicy.connections?.businessCentral?.config?.coding?.customerMappings;
+        if (!customerMappings) {
+            throw new Error('Expected Business Central customer mappings');
+        }
+        customerMappings.projects = CONST.BUSINESS_CENTRAL_MAPPING_VALUE.TAG;
+        renderImportPage();
+
+        // When the active Project row is pressed.
+        fireEvent.press(screen.getByRole('button', {name: 'workspace.businessCentral.projects'}));
+
+        // Then the mapping is cleared instead of reopening the Purchase Invoice explanation modal.
+        expect(BusinessCentral.updateBusinessCentralCustomerMapping).toHaveBeenCalledWith(
+            POLICY_ID,
+            CONST.BUSINESS_CENTRAL_FIELD_MAPPING.PROJECTS,
+            CONST.BUSINESS_CENTRAL_MAPPING_VALUE.NONE,
+            CONST.BUSINESS_CENTRAL_MAPPING_VALUE.TAG,
+        );
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
     });
 });
