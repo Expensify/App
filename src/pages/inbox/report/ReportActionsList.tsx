@@ -231,6 +231,11 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         // Insert the synthetic draft into the already-descending render list without treating it as a persisted report action.
         for (const [index, action] of sortedVisibleReportActions.entries()) {
             if (action.reportActionID === draftReportAction.reportActionID) {
+                // Completed local replies can retain their pending add flag after the server merges followups.
+                if (!isDraftPendingCompletion) {
+                    return sortedVisibleReportActions;
+                }
+
                 const visibleReportActionsWithDraft = [...sortedVisibleReportActions];
                 visibleReportActionsWithDraft[index] = draftReportAction;
                 return visibleReportActionsWithDraft;
