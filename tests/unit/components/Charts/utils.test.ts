@@ -8,6 +8,7 @@ import {
     findSliceAtPosition,
     getBarLayout,
     getAdditionalOffset,
+    getDomainPaddingForEdgeSpace,
     getNiceYAxisTicks,
     isAngleInSlice,
     isCursorInSkewedLabel,
@@ -731,5 +732,28 @@ describe('getBarLayout', () => {
         // When computing the bar layout
         // Then barWidth is 0 so victory-native sizes the bars itself, and the domain gives each bar a slot centered on its x value
         expect(getBarLayout(0, 3)).toEqual({barWidth: 0, gap: 0, xDomain: [-0.5, 2.5]});
+    });
+});
+
+describe('getDomainPaddingForEdgeSpace', () => {
+    it('returns the padding victory-native shrinks back to the requested edge space', () => {
+        // Given a 200px plot and the space wanted before the first and after the last point
+        const plotWidth = 200;
+        const edgeSpace = {left: 40, right: 10};
+
+        // When converting it to domain padding
+        const padding = getDomainPaddingForEdgeSpace(edgeSpace, plotWidth);
+
+        // Then victory-native's scaling (padding * plotWidth / (plotWidth + both paddings)) lands back on the requested space
+        const scale = plotWidth / (plotWidth + padding.left + padding.right);
+        expect(padding.left * scale).toBeCloseTo(edgeSpace.left, 5);
+        expect(padding.right * scale).toBeCloseTo(edgeSpace.right, 5);
+    });
+
+    it('returns the edge space unchanged when it leaves no room for the points', () => {
+        // Given edge space that covers the whole plot (or a plot that is not measured yet)
+        // When converting it to domain padding
+        // Then it is returned as is instead of dividing by zero or going negative
+        expect(getDomainPaddingForEdgeSpace({left: 30, right: 0}, 0)).toEqual({left: 30, right: 0});
     });
 });

@@ -3,7 +3,7 @@ import {getFontLineMetrics, measureTextWidth, truncateLabel} from '@components/C
 import {ELLIPSIS, GLYPH_PADDING, MAX_X_AXIS_LABEL_WIDTH, MAX_Y_AXIS_LABEL_WIDTH} from '@components/Charts/VictoryTheme';
 
 import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
-import type {ChartBounds, Scale} from 'victory-native';
+import type {Scale} from 'victory-native';
 
 import {Paragraph} from '@shopify/react-native-skia';
 import React from 'react';
@@ -15,8 +15,8 @@ type ChartYAxisLabelsProps = {
     /** Maps a tick value to its y-pixel position. */
     yScale: Scale;
 
-    /** Chart plot area bounds. */
-    chartBounds: ChartBounds;
+    /** Width of the whole canvas, which right-aligned labels end at. */
+    canvasWidth: number;
 
     /** Font size used for rendering labels. */
     fontSize: number;
@@ -30,11 +30,11 @@ type ChartYAxisLabelsProps = {
     /** Formats a tick value to its display string. */
     formatValue: (value: number) => string;
 
-    /** When true, labels are left-aligned starting at the left edge of the chart instead of right-aligned. */
+    /** When true, labels are left-aligned at the left edge of the chart instead of right-aligned at its right edge. */
     leftAlign?: boolean;
 };
 
-function ChartYAxisLabels({yTicks, yScale, chartBounds, fontSize, fontManager, labelColor, formatValue, leftAlign = false}: ChartYAxisLabelsProps) {
+function ChartYAxisLabels({yTicks, yScale, canvasWidth, fontSize, fontManager, labelColor, formatValue, leftAlign = false}: ChartYAxisLabelsProps) {
     const formattedLabels = yTicks.map((tick) => formatValue(tick));
 
     // Truncate to a single line: labels wider than the max would otherwise wrap onto a second line and
@@ -54,9 +54,8 @@ function ChartYAxisLabels({yTicks, yScale, chartBounds, fontSize, fontManager, l
             return null;
         }
 
-        // Left-aligned labels start at the canvas origin so they sit on the same left
-        // key line as the chart title. Right-aligned labels end just inside the plot's left edge.
-        const x = leftAlign ? 0 : chartBounds.left + GLYPH_PADDING - paraData.width;
+        // Labels sit on the canvas edges so they line up with the card content above the chart.
+        const x = leftAlign ? 0 : canvasWidth - GLYPH_PADDING - paraData.width;
         const tickY = yScale(tick);
 
         return (

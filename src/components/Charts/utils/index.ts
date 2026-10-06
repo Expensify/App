@@ -442,6 +442,18 @@ function getBarLayout(plotWidth: number, barCount: number): {barWidth: number; g
     return {barWidth, gap, xDomain: [-halfBar, barCount - 1 + halfBar]};
 }
 
+/**
+ * Domain padding that leaves `edgeSpace` px between the plot edges and the first and last points.
+ * victory-native fits the padded domain back into the plot width, so the space on screen is smaller than the padding.
+ */
+function getDomainPaddingForEdgeSpace(edgeSpace: {left: number; right: number}, plotWidth: number): {left: number; right: number} {
+    const pointsSpan = plotWidth - edgeSpace.left - edgeSpace.right;
+    if (pointsSpan <= 0) {
+        return edgeSpace;
+    }
+    return {left: (edgeSpace.left * plotWidth) / pointsSpan, right: (edgeSpace.right * plotWidth) / pointsSpan};
+}
+
 /** Returns the pixel width needed for Y-axis labels given the chart data. */
 function getYAxisLabelWidth(
     data: ChartDataPoint[],
@@ -489,6 +501,7 @@ export {
     getNiceYAxisTicks,
     getYAxisLabelWidth,
     getBarLayout,
+    getDomainPaddingForEdgeSpace,
 };
 
 export type {ChartLabelHitTestParams};

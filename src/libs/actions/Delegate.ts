@@ -152,7 +152,7 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
     Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, credentials ?? {});
     Onyx.set(ONYXKEYS.STASHED_SESSION, session ?? {});
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.IS_SWITCHING_TO_DELEGATOR>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -165,6 +165,11 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
                     },
                 },
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.IS_SWITCHING_TO_DELEGATOR,
+            value: true,
         },
     ];
 
@@ -184,7 +189,7 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.IS_SWITCHING_TO_DELEGATOR>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -197,6 +202,11 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
                     },
                 },
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.IS_SWITCHING_TO_DELEGATOR,
+            value: false,
         },
     ];
 
