@@ -10,6 +10,7 @@ import CONST from '@src/CONST';
 import type {ColumnWidthOverrides} from '@src/types/onyx/TableColumnWidths';
 
 import type {DynamicColumnConstraints} from './calculateDynamicColumnWidths';
+import type {ResizableColumn} from './columnResize/types';
 import type {TableColumn, TableData} from './types';
 
 import calculateDynamicColumnWidths, {distributeEqualWidths} from './calculateDynamicColumnWidths';
@@ -53,8 +54,8 @@ type UseDynamicColumnWidthsResult = {
     /** Row box width while resizable, which is `scrollWidth` minus the outer margin. `undefined` otherwise. */
     rowWidth: string | undefined;
 
-    /** Keys of the columns whose right edge the user can drag, in column order. Empty unless the columns are resizable. */
-    resizableColumnKeys: string[];
+    /** Columns whose right edge the user can drag, in column order. Empty unless the columns are resizable. */
+    resizableColumns: ResizableColumn[];
 
     /** Each column's resolved width, which a drag starts from. */
     resolvedColumnWidths: Record<string, number>;
@@ -137,7 +138,7 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
         gridTemplateColumns: undefined,
         scrollWidth: undefined,
         rowWidth: undefined,
-        resizableColumnKeys: [],
+        resizableColumns: [],
         resolvedColumnWidths: {},
     };
 
@@ -183,6 +184,7 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
     }
 
     const constraints: DynamicColumnConstraints[] = [];
+    const fitColumnWidths: Record<string, number> = {};
 
     for (const column of dynamicColumns) {
         const contentWidth = measureColumnContentWidth(column, data);
@@ -196,6 +198,7 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
         // A column has to fit its header label as well as its cells, so the label is part of what its content needs
         // rather than a separate floor.
         const columnContentWidth = Math.max(contentWidth, headerLabelWidth);
+        fitColumnWidths[column.key] = columnContentWidth;
 
         // A column holding a known, short set of values is never squeezed below its content, so it never truncates.
         // A free-text column is squeezed no further than a readable width, or its content when that is narrower.
@@ -250,6 +253,7 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
         columns,
         resolvedColumnWidths,
         columnWidthOverrides,
+        fitColumnWidths,
         tableWidth,
         rowChromeWidths: {selectionColumnWidth, totalGapWidth, rowMarginWidth, rowPaddingWidth},
     });

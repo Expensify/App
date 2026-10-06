@@ -1,11 +1,13 @@
+import type {ResizableColumn} from '@components/Table/columnResize/types';
+
 import type React from 'react';
 
 type UseColumnResizeParams = {
     /** Key the column widths persist under. `undefined` disables resizing on native, in narrow layouts and for tables that didn't opt in. */
     columnResizingID: string | undefined;
 
-    /** Keys of the columns whose right edge the user can drag. */
-    resizableColumnKeys: string[];
+    /** Columns whose right edge the user can drag. */
+    resizableColumns: ResizableColumn[];
 
     /** Each column's resolved width, which a drag starts from. A new object means React rendered new widths. */
     resolvedColumnWidths: Record<string, number>;

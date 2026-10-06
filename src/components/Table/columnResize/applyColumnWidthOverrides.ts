@@ -1,18 +1,16 @@
 /** Merges stored drag widths into a table's resolved column widths, and decides which column edges can be dragged. */
 import type {ColumnWidthOverrides} from '@src/types/onyx/TableColumnWidths';
 
+import type {OverridableColumn} from './resolveOverriddenColumnWidths';
+import type {ResizableColumn} from './types';
+
 import {getColumnWidthValue} from './columnWidthExpressions';
+import resolveOverriddenColumnWidths from './resolveOverriddenColumnWidths';
 
 /** What resizing needs to know about a column, whatever lays the columns out. */
-type ColumnWidthOverrideColumn = {
-    /** Key a stored width is filed under. */
-    key: string;
-
+type ColumnWidthOverrideColumn = OverridableColumn & {
     /** Headless columns hold fixed-size content like an icon, checkbox or arrow, so they get no edge. */
     label: string;
-
-    /** Columns with a declared width aren't resizable. */
-    hasDeclaredWidth: boolean;
 };
 
 type ApplyColumnWidthOverridesParams = {
@@ -23,6 +21,9 @@ type ApplyColumnWidthOverridesParams = {
     baseColumnWidths: Record<string, number>;
 
     columnWidthOverrides: ColumnWidthOverrides | undefined;
+
+    /** Column absorbing the row's leftover width, if any. It never pays a share of a resize. */
+    growableColumnKey: string | undefined;
 };
 
 type AppliedColumnWidthOverrides = {
@@ -32,38 +33,27 @@ type AppliedColumnWidthOverrides = {
     /** Each column's custom property CSS value with `columnWidths` as the fallback, in render order. */
     columnWidthValues: string[];
 
-    /** Keys of the columns whose right edge the user can drag, in render order. */
-    resizableColumnKeys: string[];
+    /** Columns whose right edge the user can drag, in render order. */
+    resizableColumns: ResizableColumn[];
 };
 
-/** Whole px, deliberately not clamped: stored widths may legitimately fall outside drag bounds. */
-function getStoredColumnWidth(width: number): number {
-    return Math.max(Math.round(width), 0);
-}
-
 /** Layout-agnostic, so it serves grid tracks and flex basis alike. */
-function applyColumnWidthOverrides({columns, baseColumnWidths, columnWidthOverrides}: ApplyColumnWidthOverridesParams): AppliedColumnWidthOverrides {
-    const columnWidths = {...baseColumnWidths};
-    const resizableColumnKeys: string[] = [];
+function applyColumnWidthOverrides({columns, baseColumnWidths, columnWidthOverrides, growableColumnKey}: ApplyColumnWidthOverridesParams): AppliedColumnWidthOverrides {
+    const {columnWidths, payingColumnsByIndex} = resolveOverriddenColumnWidths({columns, baseColumnWidths, columnWidthOverrides, growableColumnKey});
 
-    for (const column of columns) {
+    const columnWidthValues = columns.map((column) => getColumnWidthValue(column.key, columnWidths[column.key] ?? 0));
+    const resizableColumns: ResizableColumn[] = [];
+
+    for (const [index, column] of columns.entries()) {
         // Only headed, content-sized columns drag. Columns with a declared width, like a switch, status or count, hold fixed-size content.
         if (!column.label || column.hasDeclaredWidth) {
             continue;
         }
 
-        const overriddenWidth = columnWidthOverrides?.[column.key];
-
-        if (overriddenWidth !== undefined) {
-            columnWidths[column.key] = getStoredColumnWidth(overriddenWidth);
-        }
-
-        resizableColumnKeys.push(column.key);
+        resizableColumns.push({columnKey: column.key, absorbers: payingColumnsByIndex.at(index) ?? []});
     }
 
-    const columnWidthValues = columns.map((column) => getColumnWidthValue(column.key, columnWidths[column.key] ?? 0));
-
-    return {columnWidths, columnWidthValues, resizableColumnKeys};
+    return {columnWidths, columnWidthValues, resizableColumns};
 }
 
 export default applyColumnWidthOverrides;

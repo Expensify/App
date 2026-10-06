@@ -46,7 +46,7 @@ function renderColumnResize() {
 
     const initialProps: UseColumnResizeParams = {
         columnResizingID: COLUMN_RESIZING_ID,
-        resizableColumnKeys: [NAME_COLUMN_KEY],
+        resizableColumns: [{columnKey: NAME_COLUMN_KEY, absorbers: []}],
         resolvedColumnWidths,
         columnGap: 12,
     };
@@ -83,7 +83,7 @@ describe('useColumnResize', () => {
 
     it('returns no controller when resizing is off', () => {
         // Given a table with no resizing ID, which is how native, narrow layouts and tables that didn't opt in render it
-        const params: UseColumnResizeParams = {columnResizingID: undefined, resizableColumnKeys: [NAME_COLUMN_KEY], resolvedColumnWidths, columnGap: 12};
+        const params: UseColumnResizeParams = {columnResizingID: undefined, resizableColumns: [{columnKey: NAME_COLUMN_KEY, absorbers: []}], resolvedColumnWidths, columnGap: 12};
 
         // When the hook runs
         const {result} = renderHook(() => useColumnResize(params));
@@ -94,7 +94,7 @@ describe('useColumnResize', () => {
 
     it('returns a controller before the columns are measured', () => {
         // Given a resizable table on its first render, before layout, when no column is resizable yet
-        const params: UseColumnResizeParams = {columnResizingID: COLUMN_RESIZING_ID, resizableColumnKeys: [], resolvedColumnWidths: {}, columnGap: 12};
+        const params: UseColumnResizeParams = {columnResizingID: COLUMN_RESIZING_ID, resizableColumns: [], resolvedColumnWidths: {}, columnGap: 12};
 
         // When the hook runs
         const {result} = renderHook(() => useColumnResize(params));

@@ -1,8 +1,10 @@
 /**
- * Web column resizing: dragging a column's right edge sets its width. Widths live in CSS custom properties so React
- * doesn't render mid-drag. Only the dragged column's final width is stored in Onyx.
+ * Web column resizing: dragging a column's right edge sets its width, paid by the columns to its right. Widths live in
+ * CSS custom properties so React doesn't render mid-drag. Only the dragged column's final width is stored in Onyx.
  */
-import {getDraggedColumnWidth} from '@components/Table/columnResize/columnResizeGestures';
+import type {AbsorberWidths} from '@components/Table/columnResize/columnResizeGestures';
+import {getDraggedColumnWidth, getResizedColumnWidths} from '@components/Table/columnResize/columnResizeGestures';
+import type {ResizableColumn} from '@components/Table/columnResize/types';
 
 import {setTableColumnWidth} from '@libs/actions/TableColumnWidths';
 
@@ -32,16 +34,19 @@ function getHandleStyle(columnGap: number): React.CSSProperties {
 }
 
 type Drag = {
-    columnKey: string;
+    column: ResizableColumn;
 
     /** Where the pointer went down. */
     startClientX: number;
 
     /** The column's width when the drag started. */
     startWidth: number;
+
+    /** Paying columns' widths when the drag started, read once so shares don't compound across moves. */
+    absorberStartWidths: AbsorberWidths;
 };
 
-function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnWidths, columnGap}: UseColumnResizeParams): ColumnResizeController | undefined {
+function useColumnResize({columnResizingID, resizableColumns, resolvedColumnWidths, columnGap}: UseColumnResizeParams): ColumnResizeController | undefined {
     const dragRef = useRef<Drag | null>(null);
     const {scopeElementRef, setScopeElement, writeColumnWidth, readColumnWidth, clearLiveWidths} = useLiveColumnWidths({resolvedColumnWidths, dragRef});
     const {revealIndicator, hideIndicator} = useResizeIndicator(scopeElementRef);
@@ -51,12 +56,29 @@ function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnW
         document.body.style.cursor = '';
     };
 
+    /** Paying columns with their painted widths. Unreadable ones are skipped rather than pinned at zero. */
+    const readAbsorberWidths = (column: ResizableColumn): AbsorberWidths => {
+        const absorberWidths: AbsorberWidths = [];
+
+        for (const absorber of column.absorbers) {
+            const startWidth = readColumnWidth(absorber.columnKey);
+
+            if (startWidth === undefined) {
+                continue;
+            }
+
+            absorberWidths.push({...absorber, startWidth});
+        }
+
+        return absorberWidths;
+    };
+
     // Shared by pointerup, lost capture and cancel, so every way a drag can end keeps the width the user sees.
     const endDrag = (drag: Drag) => {
         resetDrag();
         hideIndicator();
 
-        const width = readColumnWidth(drag.columnKey) ?? drag.startWidth;
+        const width = readColumnWidth(drag.column.columnKey) ?? drag.startWidth;
 
         // Nothing gets stored, so no render follows to clear the live widths.
         if (!columnResizingID || width === drag.startWidth) {
@@ -64,10 +86,11 @@ function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnW
             return;
         }
 
-        setTableColumnWidth(columnResizingID, drag.columnKey, width);
+        // Only the dragged column is stored. The resolver re-derives the payers, and storing them would mark them as user-sized.
+        setTableColumnWidth(columnResizingID, drag.column.columnKey, width);
     };
 
-    const handlePointerDown = (columnKey: string, event: React.PointerEvent<HTMLDivElement>) => {
+    const handlePointerDown = (column: ResizableColumn, event: React.PointerEvent<HTMLDivElement>) => {
         // Secondary buttons open context menus rather than dragging.
         if (event.button !== 0) {
             return;
@@ -83,9 +106,10 @@ function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnW
         revealIndicator(event.currentTarget);
 
         dragRef.current = {
-            columnKey,
+            column,
             startClientX: event.clientX,
-            startWidth: readColumnWidth(columnKey) ?? 0,
+            startWidth: readColumnWidth(column.columnKey) ?? 0,
+            absorberStartWidths: readAbsorberWidths(column),
         };
         document.body.style.cursor = CONST.TABLES.COLUMN_RESIZE.CURSOR;
     };
@@ -97,8 +121,12 @@ function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnW
             return;
         }
 
+        const width = getDraggedColumnWidth(drag.startWidth, drag.startClientX, event.clientX);
+
         // The line rides the handle, so it follows the clamped width, not the pointer.
-        writeColumnWidth(drag.columnKey, getDraggedColumnWidth(drag.startWidth, drag.startClientX, event.clientX));
+        for (const [columnKey, resizedWidth] of Object.entries(getResizedColumnWidths(drag.column.columnKey, width, drag.startWidth, drag.absorberStartWidths))) {
+            writeColumnWidth(columnKey, resizedWidth);
+        }
     };
 
     const handlePointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -143,13 +171,15 @@ function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnW
     }
 
     const getHandleProps = (columnKey: string): ColumnResizeHandleDOMProps | undefined => {
-        if (!resizableColumnKeys.includes(columnKey)) {
+        const column = resizableColumns.find((resizableColumn) => resizableColumn.columnKey === columnKey);
+
+        if (!column) {
             return undefined;
         }
 
         return {
             style: getHandleStyle(columnGap),
-            onPointerDown: (event) => handlePointerDown(columnKey, event),
+            onPointerDown: (event) => handlePointerDown(column, event),
             onPointerMove: handlePointerMove,
             onPointerUp: handlePointerUp,
             onPointerCancel: handleLostPointerCapture,
