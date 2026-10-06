@@ -38,14 +38,6 @@ function SearchFiltersBarNarrow({queryJSON}: SearchFiltersBarNarrowProps) {
 
     const renderFilterItem = ({item}: {item: SearchFilter & FilterItem}) => <SearchFilterBar item={item} />;
 
-    if (hasErrors) {
-        return null;
-    }
-
-    if (shouldShowFiltersBarLoading) {
-        return <SearchFiltersSkeleton shouldAnimate />;
-    }
-
     return (
         <FlatList
             horizontal
@@ -54,11 +46,12 @@ function SearchFiltersBarNarrow({queryJSON}: SearchFiltersBarNarrowProps) {
             contentContainerStyle={[styles.flexRow, styles.flexGrow0, styles.gap2, styles.ph5, styles.alignItemsCenter]}
             ref={scrollRef}
             showsHorizontalScrollIndicator={false}
-            data={filters}
+            data={shouldShowFiltersBarLoading || hasErrors ? [] : filters}
             keyExtractor={(item) => item.key}
             renderItem={renderFilterItem}
             onEndReached={adjustScroll}
             onEndReachedThreshold={0.75}
+            ListHeaderComponent={shouldShowFiltersBarLoading ? <SearchFiltersSkeleton shouldAnimate /> : null}
             ListFooterComponent={
                 <SearchFiltersActionButtons
                     hasFiltersChanged={hasFiltersChanged}

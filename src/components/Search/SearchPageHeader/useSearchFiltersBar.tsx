@@ -237,4 +237,4 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
 }
 
 export default useSearchFiltersBar;
-export type {FilterItem};
+export type {FilterItem, UseSearchFiltersBarResult};

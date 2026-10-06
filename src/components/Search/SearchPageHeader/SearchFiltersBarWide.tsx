@@ -3,17 +3,23 @@ import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
 
 import React from 'react';
 
+import type {UseSearchFiltersBarResult} from './useSearchFiltersBar';
+
 import SearchFilterBar from './SearchFilterBar';
 import SearchFiltersActionButtons from './SearchFiltersActionButtons';
 import useSearchFiltersBar from './useSearchFiltersBar';
+
+type SearchFiltersBarWideContentProps = {
+    hasErrors: boolean;
+    shouldShowFiltersBarLoading: boolean;
+    filters: UseSearchFiltersBarResult['filters'];
+};
 
 type SearchFiltersBarWideProps = {
     queryJSON: SearchQueryJSON;
 };
 
-function SearchFiltersBarWide({queryJSON}: SearchFiltersBarWideProps) {
-    const {filters, hasErrors, shouldShowFiltersBarLoading, hasFiltersChanged, hasFiltersOrKeywordChanged, resetFilters} = useSearchFiltersBar(queryJSON);
-
+function SearchFiltersBarWideContent({hasErrors, shouldShowFiltersBarLoading, filters}: SearchFiltersBarWideContentProps) {
     if (hasErrors) {
         return null;
     }
@@ -22,14 +28,24 @@ function SearchFiltersBarWide({queryJSON}: SearchFiltersBarWideProps) {
         return <SearchFiltersSkeleton shouldAnimate />;
     }
 
+    return filters.map((item) => (
+        <SearchFilterBar
+            key={item.key}
+            item={item}
+        />
+    ));
+}
+
+function SearchFiltersBarWide({queryJSON}: SearchFiltersBarWideProps) {
+    const {filters, hasErrors, shouldShowFiltersBarLoading, hasFiltersChanged, hasFiltersOrKeywordChanged, resetFilters} = useSearchFiltersBar(queryJSON);
+
     return (
         <>
-            {filters.map((item) => (
-                <SearchFilterBar
-                    key={item.key}
-                    item={item}
-                />
-            ))}
+            <SearchFiltersBarWideContent
+                hasErrors={hasErrors}
+                shouldShowFiltersBarLoading={shouldShowFiltersBarLoading}
+                filters={filters}
+            />
             <SearchFiltersActionButtons
                 hasFiltersChanged={hasFiltersChanged}
                 hasFiltersOrKeywordChanged={hasFiltersOrKeywordChanged}
