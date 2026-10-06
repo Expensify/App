@@ -3,7 +3,7 @@
  */
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SingleSelectWithAvatarListItem from '@components/SelectionList/ListItem/SingleSelectWithAvatarListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
@@ -134,7 +134,7 @@ function DynamicReportDetailsShareReportPage({report, policy}: DynamicReportDeta
             onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
         >
             <FullPageNotFoundView shouldShow={!canShareReport(report, policy, currentUserAccountID)}>
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('common.shareReport')}
                     subtitle={getReportName(report)}
                     onBackButtonPress={() => Navigation.goBack(backPath)}
