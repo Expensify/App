@@ -204,4 +204,4 @@ function getTabIcon(layout: TabIconLayout, params: TabIconParams): NativeBottomT
 }
 
 export default getTabIcon;
-export type {TabIconLayout, TabIconParams};
+export type {TabIconLayout};

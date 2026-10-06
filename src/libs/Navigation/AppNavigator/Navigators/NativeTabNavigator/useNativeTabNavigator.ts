@@ -112,11 +112,14 @@ function useNativeTabNavigator() {
         Navigation.navigate(ROUTES.HOME, {forceReplace: true});
     }, [isInsightsTabFocusedWithoutBeta]);
 
-    // Cancel any in-flight tab-navigation span that doesn't match the new focused tab.
-    // The span for the new tab is started by the tab button before navigation, so we keep it via `except`.
+    // Cancel any in-flight tab-navigation span that doesn't match the new focused tab. The new tab's span is started at
+    // the tap, before navigation, so it is kept. On wide layouts the JS side bar does this.
     useEffect(() => {
+        if (!shouldUseNarrowLayout) {
+            return;
+        }
         cancelTabNavigationSpans(NAVIGATION_TAB_TO_SPANS[selectedTab]);
-    }, [selectedTab]);
+    }, [selectedTab, shouldUseNarrowLayout]);
 
     // The slicing optimization in useCustomRootStackNavigatorState can unmount and later remount
     // this TAB_NAVIGATOR. Without restoration it would default to index 0. We restore the saved

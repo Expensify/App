@@ -46,7 +46,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const [personalDetails] = useAllPersonalDetails();
 
     const styles = useThemeStyles();
-    const tabRootScrollProps = useTabRootScrollProps(contentContainerStyles);
+    const tabRootScrollProps = useTabRootScrollProps(contentContainerStyles, true);
     const estimatedItemSize = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
 
     // When the first item renders we want to call the onFirstItemRendered callback.

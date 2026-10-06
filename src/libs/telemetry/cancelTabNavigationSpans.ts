@@ -34,4 +34,4 @@ function cancelTabNavigationSpans(preserve: readonly string[] = []) {
 }
 
 export default cancelTabNavigationSpans;
-export {REPORTS_TAB_SPAN_IDS, INBOX_TAB_SPAN_IDS, TAB_NAVIGATION_SPAN_IDS, NAVIGATION_TAB_TO_SPANS};
+export {TAB_NAVIGATION_SPAN_IDS, NAVIGATION_TAB_TO_SPANS};
