@@ -470,7 +470,7 @@ function buildRuleViolationMessage(
     }
 
     const message = translate('violations.ruleViolation.expense', adjectives.join(' '));
-    return translate('violations.ruleViolation.message', message, phrases.join(' '));
+    return phrases.length === 0 ? message : `${message} ${phrases.join(' ')}`;
 }
 
 /**

@@ -4238,9 +4238,15 @@ describe('getViolationTranslation', () => {
         const testPolicyID = 'test-policy-123';
         const companyCardPageURL = `workspaces/${testPolicyID}/company-cards`;
         const brokenCardConnectionViolationExpected = translateLocal('violations.rter', true, true, false, undefined, CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION, companyCardPageURL);
-        expect(ViolationsUtils.getViolationTranslation({dateFnsLocale: undefined, violation: brokenCardConnectionViolation, translate: translateLocal, convertToDisplayString})).toBe(
-            brokenCardConnectionViolationExpected,
-        );
+        expect(
+            ViolationsUtils.getViolationTranslation({
+                dateFnsLocale: undefined,
+                violation: brokenCardConnectionViolation,
+                translate: translateLocal,
+                convertToDisplayString,
+                companyCardPageURL,
+            }),
+        ).toBe(brokenCardConnectionViolationExpected);
         const brokenCardConnection530ViolationExpected = translateLocal(
             'violations.rter',
             true,
@@ -4267,9 +4273,15 @@ describe('getViolationTranslation', () => {
             CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH,
             companyCardPageURL,
         );
-        expect(ViolationsUtils.getViolationTranslation({dateFnsLocale: undefined, violation: brokenCardConnectionReauthViolation, translate: translateLocal, convertToDisplayString})).toBe(
-            brokenCardConnectionReauthViolationExpected,
-        );
+        expect(
+            ViolationsUtils.getViolationTranslation({
+                dateFnsLocale: undefined,
+                violation: brokenCardConnectionReauthViolation,
+                translate: translateLocal,
+                convertToDisplayString,
+                companyCardPageURL,
+            }),
+        ).toBe(brokenCardConnectionReauthViolationExpected);
     });
 
     describe('per-night over limit messages', () => {

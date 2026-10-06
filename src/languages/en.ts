@@ -10950,7 +10950,6 @@ const translations = {
             fallback: 'Violates expense policy',
             anyExpense: 'Any expense',
             expense: (adjectives: string) => (adjectives ? `${adjectives} expense` : 'Expense'),
-            message: (expense: string, phrases: string) => (phrases ? `${expense} ${phrases}` : expense),
             perDiem: 'per diem',
             notExpenseType: (expenseType: string) => `not a ${expenseType}`,
             billable: {
