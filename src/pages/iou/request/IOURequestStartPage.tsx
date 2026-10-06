@@ -230,17 +230,7 @@ function IOURequestStartPage({
     const isDiscardNavigationPendingRef = useRef(false);
     const focusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const isPayFlow = iouType === CONST.IOU.TYPE.PAY;
-    const [payAmountBaseline, setPayAmountBaseline] = useState<{isAmountSet: boolean; amount: number | undefined}>();
-    // `isLoadingTransaction` only describes the Onyx subscription state. It can already be false while
-    // `initMoneyRequest()` has not yet created this route's draft. Waiting for the draft ID avoids treating
-    // its normal empty initialization (`undefined` -> `0`) as a user amount change.
-    if (isPayFlow && !isLoadingTransaction && transaction?.transactionID && !payAmountBaseline) {
-        setPayAmountBaseline({isAmountSet: transaction?.isAmountSet === true, amount: transaction?.amount});
-    }
-    const hasAmountChanged = isPayFlow
-        ? !!payAmountBaseline && ((transaction?.isAmountSet === true && !payAmountBaseline.isAmountSet) || transaction?.amount !== payAmountBaseline.amount)
-        : transaction?.isAmountSet === true;
+    const hasAmountChanged = transaction?.isAmountSet === true;
 
     useFocusEffect(
         useCallback(() => {
