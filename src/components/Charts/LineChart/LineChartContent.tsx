@@ -155,7 +155,8 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
 
     const handleScaleChange = (xScale: Scale, yScale: Scale) => {
         updateTickPositions(xScale, data.length);
-        bandHalfWidth.set(data.length > 1 ? Math.abs(xScale(1) - xScale(0)) / 2 : plotAreaWidth / 2);
+        const [rangeStart, rangeEnd] = xScale.range();
+        bandHalfWidth.set(data.length > 1 ? Math.abs(xScale(1) - xScale(0)) / 2 : Math.abs(rangeEnd - rangeStart));
         setPointPositions(
             chartData.map((point) => xScale(point.x)),
             chartData.map((point) => yScale(point.y)),
