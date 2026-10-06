@@ -1,8 +1,11 @@
-import {act, renderHook} from '@testing-library/react-native';
+import {act, render, renderHook} from '@testing-library/react-native';
 
 import useListKeyboardNav from '@hooks/useListKeyboardNav';
 
 import type Navigation from '@libs/Navigation/Navigation';
+
+import {createElement, createRef} from 'react';
+import {View} from 'react-native';
 
 type ShortcutCallback = () => void;
 type ShortcutConfig = {isActive?: boolean};
@@ -330,6 +333,36 @@ describe('useListKeyboardNav', () => {
 
         child.remove();
         cleanup();
+    });
+
+    it('maps an SVG focus target and retains the index during internal focus transfer', () => {
+        // Given a DOM list with SVG and HTML children, both valid Element targets
+        const {ref, cleanup} = createContainerRef();
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.id = 'b';
+        const button = document.createElement('button');
+        ref.current.append(svg, button);
+        const {result} = renderHook(() => useListKeyboardNav({isActive: true, itemKeys: ['a', 'b'], disabledIndexes: [], containerRef: ref}));
+
+        // When focus moves onto the SVG and then to another child of the container
+        act(() => svg.dispatchEvent(new FocusEvent('focusin', {bubbles: true})));
+        act(() => svg.dispatchEvent(new FocusEvent('focusout', {bubbles: true, relatedTarget: button})));
+
+        // Then the SVG ID maps to index one and internal transfer does not clear it
+        expect(result.current.focusedIndex).toBe(1);
+        cleanup();
+    });
+
+    it('skips a native View ref without DOM listener capability', () => {
+        // Given a native View ref without DOM listener capability
+        const ref = createRef<View>();
+        const native = render(createElement(View, {ref}));
+        // When the hook mounts with that ref
+        const {result} = renderHook(() => useListKeyboardNav({isActive: true, itemKeys: ['a'], disabledIndexes: [], containerRef: ref}));
+        // Then keyboard navigation remains available without registering DOM focus listeners
+        pressArrowDown();
+        expect(result.current.focusedIndex).toBe(0);
+        native.unmount();
     });
 
     it('should scan backward when all items after focused index are disabled', () => {
