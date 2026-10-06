@@ -228,9 +228,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 return undefined;
             }
             let reportForContextualSearch = recentReports.find((option) => option.reportID === contextualReportID);
-            const reportForContextualSearchReport = reportForContextualSearch ? contextualReport : undefined;
-            const reportAction = getReportAction(reportForContextualSearchReport?.parentReportID, reportForContextualSearchReport?.parentReportActionID);
-            const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
+            const reportAction = getReportAction(contextualReport?.parentReportID, contextualReport?.parentReportActionID);
+            const shouldParserToHTML = !!reportAction && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
             if (!reportForContextualSearch) {
                 if (!contextualReport || isHiddenForCurrentUser(contextualReport)) {
                     return undefined;
@@ -298,7 +297,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                             singleIcon: expensifyIcons.MagnifyingGlass,
                             searchQuery: reportQueryValue,
                             autocompleteID,
-                            itemStyle: styles.activeComponentBG,
                             keyForList: 'contextualSearch',
                             searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION,
                             roomType,
@@ -317,7 +315,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             isSearchRouterScreen,
             translate,
             expensifyIcons.MagnifyingGlass,
-            styles.activeComponentBG,
             contextualReport,
             personalDetails,
             sortedActions,
@@ -342,7 +339,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                   text: textInputValue,
                   singleIcon: expensifyIcons.MagnifyingGlass,
                   searchQuery: textInputValue,
-                  itemStyle: styles.activeComponentBG,
                   keyForList: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM,
                   searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
               },
@@ -353,7 +349,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                             singleIcon: expensifyIcons.ConciergeAvatar,
                             shouldIconApplyFill: false,
                             searchQuery: textInputValue,
-                            itemStyle: styles.activeComponentBG,
                             keyForList: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.ASK_CONCIERGE,
                             searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.ASK_CONCIERGE,
                         },

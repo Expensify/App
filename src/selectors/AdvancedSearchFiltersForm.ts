@@ -8,9 +8,9 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 const columnsSelector = (form: OnyxEntry<SearchAdvancedFiltersForm>) => form?.columns;
 
-const hasFilterBarsSelector = (form: OnyxEntry<SearchAdvancedFiltersForm>) => {
+const hasVisibleFilterChipsSelector = (form: OnyxEntry<SearchAdvancedFiltersForm>) => {
     const type = form?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
     return Object.entries(form ?? {}).some(([key, value]) => shouldShowFilter(SKIPPED_SEARCH_FILTERS, key as SearchAdvancedFiltersKey, value, type));
 };
 
-export {columnsSelector, hasFilterBarsSelector};
+export {columnsSelector, hasVisibleFilterChipsSelector};
