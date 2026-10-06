@@ -97,13 +97,19 @@ function EmailIssuePage() {
                         <RenderHTML html={translate('emailIssuePage.intro', login ?? '')} />
                     </View>
                     <View style={styles.gap1}>
-                        <Text style={styles.textHeadlineH2}>{`1. ${translate('emailIssuePage.confirmEmailTitle')}`}</Text>
+                        <Text
+                            accessibilityRole={CONST.ROLE.HEADER}
+                            style={styles.textHeadlineH2}
+                        >{`1. ${translate('emailIssuePage.confirmEmailTitle')}`}</Text>
                         <View style={[styles.renderHTML, styles.webViewStyles.baseFontStyle]}>
                             <RenderHTML html={translate('emailIssuePage.confirmEmailDescription', login ?? '')} />
                         </View>
                     </View>
                     <View style={styles.gap1}>
-                        <Text style={styles.textHeadlineH2}>{`2. ${translate('emailIssuePage.allowlistTitle')}`}</Text>
+                        <Text
+                            accessibilityRole={CONST.ROLE.HEADER}
+                            style={styles.textHeadlineH2}
+                        >{`2. ${translate('emailIssuePage.allowlistTitle')}`}</Text>
                         <View style={[styles.renderHTML, styles.webViewStyles.baseFontStyle]}>
                             <RenderHTML html={translate('emailIssuePage.allowlistDescription')} />
                         </View>
