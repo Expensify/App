@@ -4,7 +4,7 @@ type CreateBillParams = {
     reportID: string;
     invoiceReportID: string;
     domain: string;
-    vendorEmail: string;
+    submitterEmail: string;
     merchant: string;
     amount: number;
     currency: string;

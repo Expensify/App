@@ -21,6 +21,8 @@ import Onyx from 'react-native-onyx';
 import mergeAdditionalPayOnyxData from './IOU/mergeAdditionalPayOnyxData';
 import {getSearchPayOnyxData} from './Search';
 
+type CreateBillInput = Omit<CreateBillParams, 'reportID' | 'invoiceReportID' | 'submitterEmail'> & {vendorEmail: string};
+
 function payBill(report: OnyxEntry<Report>, paymentMethodType: PaymentMethodType, bankAccountID?: number, searchHash?: number, searchKey?: SearchKey) {
     if (!report || (paymentMethodType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && !bankAccountID)) {
         return;
@@ -61,13 +63,14 @@ function payBill(report: OnyxEntry<Report>, paymentMethodType: PaymentMethodType
     }
 }
 
-function createBill(params: Omit<CreateBillParams, 'reportID' | 'invoiceReportID'>, accountID: number) {
+function createBill(params: CreateBillInput, accountID: number) {
+    const {vendorEmail, ...requestParams} = params;
     const reportID = generateReportID();
     const invoiceReportID = generateReportID();
     const key = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
     write(
         WRITE_COMMANDS.CREATE_BILL,
-        {...params, reportID, invoiceReportID},
+        {...requestParams, submitterEmail: vendorEmail, reportID, invoiceReportID},
         {
             optimisticData: [
                 {

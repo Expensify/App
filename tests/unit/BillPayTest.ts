@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, SearchResults} from '@src/types/onyx';
+import type {Policy, Report, SearchResults, Transaction} from '@src/types/onyx';
 
 import createMock from '../utils/createMock';
 
@@ -28,6 +28,7 @@ describe('Bill Pay', () => {
         owner: email,
         reimburser: email,
         reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+        approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
         outputCurrency: CONST.CURRENCY.USD,
     };
     const bill: Report = {
@@ -50,6 +51,72 @@ describe('Bill Pay', () => {
         expect(canPayBill(approved, policy, accountID, email)).toBe(true);
         expect(canPayBill({...approved, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED}, policy, accountID, email)).toBe(false);
         expect(canPayBill({...approved, isWaitingOnBankAccount: true}, policy, accountID, email)).toBe(false);
+    });
+
+    it.each([
+        [CONST.REPORT.STATE_NUM.SUBMITTED, CONST.REPORT.STATUS_NUM.SUBMITTED, CONST.REPORT.PRIMARY_ACTIONS.APPROVE],
+        [CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.APPROVED, CONST.REPORT.PRIMARY_ACTIONS.PAY],
+    ] as const)('shows the bill header action for state %s and status %s', (stateNum, statusNum, expectedAction) => {
+        // Given an approver who is also the payer, only the bill's workflow stage determines the header action.
+        const report: Report = {...bill, stateNum, statusNum};
+        const transaction = createMock<Transaction>({transactionID: '300', reportID: bill.reportID, amount: 125, currency: CONST.CURRENCY.USD});
+
+        // When the report header resolves its primary action with the bill transaction loaded.
+        const action = getReportPrimaryAction({
+            report,
+            currentUserAccountID: accountID,
+            currentUserLogin: email,
+            policy,
+            ownerLogin: email,
+            reportTransactions: [transaction],
+            violations: {},
+            bankAccountList: {},
+            chatReport: undefined,
+            isChatReportArchived: false,
+            rules: undefined,
+        });
+
+        // Then Submitted offers Approve and final approval replaces it with Pay.
+        expect(action).toBe(expectedAction);
+    });
+
+    it.each([
+        [CONST.REPORT.STATE_NUM.SUBMITTED, CONST.REPORT.STATUS_NUM.SUBMITTED, CONST.SEARCH.ACTION_TYPES.APPROVE],
+        [CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.APPROVED, CONST.SEARCH.ACTION_TYPES.PAY],
+    ] as const)('shows the Bills table action for state %s and status %s', (stateNum, statusNum, expectedAction) => {
+        // Given an accessible bill with an approver who can pay after final approval.
+        const vendorAccountID = 456;
+        const report: Report = {...bill, stateNum, statusNum, billSenderAccountID: vendorAccountID, transactionCount: 1};
+        const transaction = createMock<Transaction>({transactionID: '300', reportID: bill.reportID, amount: 125, currency: CONST.CURRENCY.USD});
+        const data = createMock<SearchResults['data']>({
+            personalDetailsList: {
+                [accountID]: {accountID, login: email, displayName: 'Receiver'},
+                [vendorAccountID]: {accountID: vendorAccountID, login: 'billing@vendor.com', displayName: 'Vendor'},
+            },
+        });
+        data[`${ONYXKEYS.COLLECTION.REPORT}${bill.reportID}`] = report;
+        data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
+        data[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`] = policy;
+
+        // When Bills builds its report row using the current workflow stage.
+        const [sections] = getSections({
+            type: CONST.SEARCH.DATA_TYPES.BILL,
+            data,
+            currentAccountID: accountID,
+            currentUserEmail: email,
+            queryJSON: buildSearchQueryJSON('type:bill'),
+            translate: <TPath extends TranslationPaths>(key: TPath, ...parameters: TranslationParameters<TPath>) => translate(CONST.LOCALES.EN, key, ...parameters),
+            formatPhoneNumber: (phone) => phone,
+            convertToDisplayString: (amount) => String(amount),
+            bankAccountList: {},
+            rules: undefined,
+            conciergeReportID: undefined,
+            dateFnsLocale: undefined,
+            reportAttributesDerivedValue: {},
+        });
+
+        // Then the table offers Approve before approval and Pay only after approval.
+        expect(sections.filter(isTransactionReportGroupListItemType)).toEqual([expect.objectContaining({reportID: bill.reportID, action: expectedAction})]);
     });
 
     it('only offers payment to the authorized payer, even when another user is an admin', () => {
