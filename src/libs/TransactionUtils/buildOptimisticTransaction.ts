@@ -244,6 +244,8 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         cardName: existingTransaction?.cardName,
         cardNumber: existingTransaction?.cardNumber,
         ...(existingTransaction?.iouRequestType ? {iouRequestType: existingTransaction.iouRequestType} : {}),
+        // Only false changes the category row, since a missing value is treated as enabled. A split rebuild has no policy, so it must copy a recorded false.
+        ...((policy ? policy.autoCategorizeNewExpenses === false : existingTransaction?.wasAutoCategorizeEnabledOnCreation === false) ? {wasAutoCategorizeEnabledOnCreation: false} : {}),
         routes,
     };
 }
