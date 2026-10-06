@@ -1,7 +1,8 @@
-import {READ_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import SaveResponseInOnyx from '@libs/Middleware/SaveResponseInOnyx';
 
 import CONST from '@src/CONST';
+import * as App from '@src/libs/actions/App';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
 import type MoveIOUReportToExistingPolicyParams from '@src/libs/API/parameters/MoveIOUReportToExistingPolicyParams';
 import HttpUtils from '@src/libs/HttpUtils';
@@ -119,6 +120,69 @@ describe('Middleware', () => {
             expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN)).toBe(false);
             expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_FROM_SERVER)).toBeUndefined();
             expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(clientLastUpdateID);
+        });
+
+        describe('when the server no longer knows the client lastUpdateID', () => {
+            beforeEach(() => {
+                jest.spyOn(App, 'reconnectApp').mockImplementation(() => {});
+            });
+
+            afterEach(() => {
+                jest.restoreAllMocks();
+            });
+
+            test('applies the response and runs a full ReconnectApp to cover the gap', async () => {
+                // Given a device that was backgrounded for a long time, so the server no longer has its lastUpdateIDAppliedToClient
+                await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 100);
+                await waitForBatchedUpdates();
+
+                Request.addMiddleware(SaveResponseInOnyx);
+
+                // When a write returns a lastUpdateID but no previousUpdateID
+                jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce({jsonCode: 200, lastUpdateID: 5001});
+                const result = await Request.processWithMiddleware({
+                    command: 'AddComment',
+                    data: {apiRequestType: CONST.API_REQUEST_TYPE.WRITE},
+                    successData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.IS_LOADING_APP, value: false}],
+                });
+                await waitForBatchedUpdates();
+
+                // Then the response is applied without pausing the queue
+                expect(result?.shouldPauseQueue).toBeUndefined();
+                expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_FROM_SERVER)).toBeUndefined();
+
+                // And a full ReconnectApp runs, because an incremental one would start after the skipped updates
+                expect(App.reconnectApp).toHaveBeenCalledTimes(1);
+                expect(App.reconnectApp).toHaveBeenCalledWith();
+            });
+
+            test.each([
+                ['the response has a previousUpdateID', 100, 'AddComment', {lastUpdateID: 101, previousUpdateID: 100}],
+                ['the client has no lastUpdateID yet', undefined, 'AddComment', {lastUpdateID: 5001}],
+                ['the response is not newer than the client', 100, 'AddComment', {lastUpdateID: 100}],
+                ['the request is a ReconnectApp', 100, SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, {lastUpdateID: 5001}],
+                ['the request is an OpenApp', 100, WRITE_COMMANDS.OPEN_APP, {lastUpdateID: 5001}],
+            ])('does not run a full ReconnectApp when %s', async (_case, clientLastUpdateID, command, updateIDs) => {
+                // Given a client whose lastUpdateID is either still known to the server or has nothing to lose
+                if (clientLastUpdateID) {
+                    await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, clientLastUpdateID);
+                }
+                await waitForBatchedUpdates();
+
+                Request.addMiddleware(SaveResponseInOnyx);
+                jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce({jsonCode: 200, ...updateIDs});
+
+                // When the response comes back
+                await Request.processWithMiddleware({
+                    command,
+                    data: {apiRequestType: CONST.API_REQUEST_TYPE.WRITE},
+                    successData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.IS_LOADING_APP, value: false}],
+                });
+                await waitForBatchedUpdates();
+
+                // Then no extra full ReconnectApp runs, since no updates were skipped or the request already returns full data
+                expect(App.reconnectApp).not.toHaveBeenCalled();
+            });
         });
     });
 

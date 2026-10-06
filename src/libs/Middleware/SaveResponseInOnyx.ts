@@ -1,5 +1,7 @@
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import Log from '@libs/Log';
 
+import {reconnectApp} from '@userActions/App';
 import * as OnyxUpdates from '@userActions/OnyxUpdates';
 
 import CONST from '@src/CONST';
@@ -43,6 +45,31 @@ const SaveResponseInOnyx: Middleware = <TKey extends OnyxKey>(requestResponse: P
         };
 
         const shouldApplyWithoutAdvancingLastUpdateID = requestsToApplyWithoutAdvancingLastUpdateID.has(request.command);
+
+        // The server only keeps recent update IDs. When a client comes back after a long time, the server no longer knows its
+        // lastUpdateIDAppliedToClient and answers a request with a lastUpdateID but no previousUpdateID. Applying that response moves
+        // the client's lastUpdateID forward past updates it never received, so an incremental ReconnectApp can't recover them.
+        // Run a full ReconnectApp after applying so the client gets everything in the gap.
+        const clientLastUpdateID = OnyxUpdates.getPersistedLastUpdateID();
+        const responseLastUpdateID = Number(response?.lastUpdateID ?? CONST.DEFAULT_NUMBER_ID);
+        const shouldFullReconnectAfterApply =
+            !shouldApplyWithoutAdvancingLastUpdateID &&
+            !requestsToIgnoreLastUpdateID.has(request.command) &&
+            !!clientLastUpdateID &&
+            responseLastUpdateID > clientLastUpdateID &&
+            !Number(response?.previousUpdateID ?? CONST.DEFAULT_NUMBER_ID);
+
+        if (shouldFullReconnectAfterApply) {
+            Log.info('[SaveResponseInOnyx] Response has a lastUpdateID but no previousUpdateID, running a full ReconnectApp after applying it', false, {
+                command: request.command,
+                clientLastUpdateID,
+                responseLastUpdateID,
+            });
+            return OnyxUpdates.apply(responseToApply).then((appliedResponse) => {
+                reconnectApp();
+                return appliedResponse;
+            });
+        }
 
         if (
             shouldApplyWithoutAdvancingLastUpdateID ||
