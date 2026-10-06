@@ -9,7 +9,7 @@
         "dev": "npm run prepare-dist && wrangler dev",
         "dev:production": "npm run prepare-dist && wrangler dev --env production",
         "types": "wrangler types",
-        "typecheck": "npm run types && tsc -p . && tsc -p tests",
+        "typecheck": "npm run types > /dev/null && tsc -p . && tsc -p tests",
         "test": "node --test 'tests/**/*.test.ts'",
         "compare-headers": "node scripts/compareHeaders.ts"
     },
