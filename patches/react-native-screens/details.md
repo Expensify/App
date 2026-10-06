@@ -14,4 +14,4 @@
 
 - Upstream PR/issue: https://github.com/software-mansion/react-native-screens/issues/4156, https://github.com/software-mansion/react-native-screens/pull/4157
 - E/App issue: https://github.com/Expensify/App/issues/102046
-- PR introducing patch: 🛑
+- PR introducing patch: https://github.com/Expensify/App/pull/103126
