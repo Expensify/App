@@ -5,13 +5,16 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setNewRoomFormLoading} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
+import {getPoliciesForRoomCreation} from '@libs/PolicyUtils';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import KeyboardUtils from '@src/utils/keyboard';
 
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -30,6 +33,15 @@ function NewChatSelectorPage() {
     const [activeTabContainerElement, setActiveTabContainerElement] = useState<HTMLElement | null>(null);
     const chatPageInputRef = useRef<AnimatedTextInputRef | null>(null);
     const roomPageInputRef = useRef<WorkspaceNewRoomPageRef | null>(null);
+
+    // The Room tab is only useful when the user can create a room in at least one workspace.
+    // Guests can only see policies where they cannot create rooms, so they get no Room tab.
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const canCreateRooms = useMemo(
+        () => getPoliciesForRoomCreation(policies, session?.email).length > 0,
+        [policies, session?.email],
+    );
 
     // Theoretically, the focus trap container element can be null (due to component unmount/remount), so we filter out the null elements
     const containerElements = useMemo(() => {
@@ -100,13 +112,15 @@ function NewChatSelectorPage() {
                         </TabScreenWithFocusTrapWrapper>
                     )}
                 </TopTab.Screen>
-                <TopTab.Screen name={CONST.TAB.NEW_ROOM}>
-                    {() => (
-                        <TabScreenWithFocusTrapWrapper>
-                            <WorkspaceNewRoomPage ref={roomPageInputRef} />
-                        </TabScreenWithFocusTrapWrapper>
-                    )}
-                </TopTab.Screen>
+                {canCreateRooms && (
+                    <TopTab.Screen name={CONST.TAB.NEW_ROOM}>
+                        {() => (
+                            <TabScreenWithFocusTrapWrapper>
+                                <WorkspaceNewRoomPage ref={roomPageInputRef} />
+                            </TabScreenWithFocusTrapWrapper>
+                        )}
+                    </TopTab.Screen>
+                )}
             </OnyxTabNavigator>
         </ScreenWrapper>
     );

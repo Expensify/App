@@ -137,6 +137,16 @@ function getActivePolicies(policies: OnyxCollection<Policy> | null, currentUserL
 }
 
 /**
+ * Get the active group policies where the current user can create policy rooms.
+ * Guests cannot create policy rooms, so policies where they only have the guest role are excluded.
+ */
+function getPoliciesForRoomCreation(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
+    return getActivePolicies(policies, currentUserLogin).filter(
+        (policy) => policy.type !== CONST.POLICY.TYPE.PERSONAL && !isPolicyGuest(policy, currentUserLogin),
+    );
+}
+
+/**
  * Filter out the active policies, which will exclude policies with pending deletion
  * and policies the current user doesn't belong to.
  * These will be policies that has expense chat enabled.
@@ -3394,6 +3404,7 @@ export {
     hasDynamicExternalWorkflow,
     shouldHideDynamicExternalWorkflowPeople,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
+    getPoliciesForRoomCreation,
     isPerDiemEnabled,
     isPerDiemEligiblePolicy,
     isInvoiceFieldsEnabled,
