@@ -76,4 +76,3 @@ function SupportTicketSurvey({action, report, reportID}: SupportTicketSurveyProp
 }
 
 export default SupportTicketSurvey;
-export {getLatestSurveyAfterResolution};
