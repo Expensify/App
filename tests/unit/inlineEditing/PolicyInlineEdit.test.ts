@@ -115,6 +115,15 @@ describe('PolicyInlineEdit', () => {
             expect(mockRenamePolicyCategory).not.toHaveBeenCalled();
         });
 
+        it('does not persist an HTML-like name', () => {
+            // Given a category renamed from the table rather than the Name page
+            // When the new name contains an HTML-like token the Name page rejects
+            // Then the rename is dropped, because that token must not be saved from the table either
+            renameCategoryInline(policyData, 'Food', '</>', true);
+
+            expect(mockRenamePolicyCategory).not.toHaveBeenCalled();
+        });
+
         it('delegates a valid rename to the canonical action', () => {
             renameCategoryInline(policyData, 'Food', '  Meals  ', true);
 
