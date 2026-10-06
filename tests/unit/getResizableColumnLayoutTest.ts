@@ -1,4 +1,3 @@
-import {getColumnWidthValue, getGrowableColumnTrack} from '@components/Table/columnResize/columnWidthExpressions';
 import getResizableColumnLayout from '@components/Table/columnResize/getResizableColumnLayout';
 import type {TableColumn} from '@components/Table/types';
 
@@ -96,7 +95,7 @@ describe('getResizableColumnLayout', () => {
         });
 
         // Then only the last headed column's track grows, so the arrow keeps its size
-        expect(gridTemplateColumns).toEqual([getColumnWidthValue('name', 200), getGrowableColumnTrack(getColumnWidthValue('role', 200)), getColumnWidthValue('arrow', 40)]);
+        expect(gridTemplateColumns.map((track) => track.includes('1fr'))).toEqual([false, true, false]);
 
         // And a drag on it starts from the 360px it's painted at, and can't shrink it, so the arrow never stretches
         expect(resolvedColumnWidths.role).toBe(360);

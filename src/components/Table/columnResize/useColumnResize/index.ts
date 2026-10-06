@@ -2,7 +2,7 @@
  * Web column resizing: dragging a column's right edge sets its width. Widths live in CSS custom properties so React
  * doesn't render mid-drag. Only the dragged column's final width is stored in Onyx.
  */
-import {getDraggedColumnWidth} from '@components/Table/columnResize/columnResizeGestures';
+import getDraggedColumnWidth from '@components/Table/columnResize/columnResizeGestures';
 
 import {setTableColumnWidth} from '@libs/actions/TableColumnWidths';
 

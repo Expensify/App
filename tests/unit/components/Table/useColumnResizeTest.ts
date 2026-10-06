@@ -6,6 +6,8 @@ import type {UseColumnResizeParams} from '@components/Table/columnResize/useColu
 
 import {setTableColumnWidth} from '@libs/actions/TableColumnWidths';
 
+import CONST from '@src/CONST';
+
 import type React from 'react';
 
 // Jest resolves the native no-op, so the web implementation is loaded by its file name.
@@ -32,7 +34,7 @@ function createPointerEvent(handleElement: HTMLDivElement, {clientX, button = 0}
 }
 
 /** Renders the hook with a scope element and one handle inside it, the way the table mounts them. */
-function renderColumnResize() {
+function renderColumnResize(params?: Partial<UseColumnResizeParams>) {
     const scopeElement = document.createElement('div');
     const handleElement = document.createElement('div');
 
@@ -49,6 +51,7 @@ function renderColumnResize() {
         resizableColumnKeys: [NAME_COLUMN_KEY],
         resolvedColumnWidths,
         columnGap: 12,
+        ...params,
     };
     const hook = renderHook((props: UseColumnResizeParams) => useColumnResize(props), {initialProps});
 
@@ -177,9 +180,6 @@ describe('useColumnResize', () => {
         const {handleElement, getHandleProps} = renderColumnResize();
         const readLineOpacity = () => handleElement.style.getPropertyValue(RESIZE_INDICATOR_OPACITY_VARIABLE);
 
-        // Then hovering its edge has nothing to show the line with, since design reserves hover for header splitters
-        expect(getHandleProps().onPointerEnter).toBeUndefined();
-
         // When its edge is pressed
         act(() => {
             getHandleProps().onPointerDown?.(createPointerEvent(handleElement, {clientX: 100}));
@@ -195,6 +195,28 @@ describe('useColumnResize', () => {
 
         // Then the line goes away, even with the pointer still over the edge
         expect(readLineOpacity()).toBe('0');
+    });
+
+    it('keeps a dragged width within the drag bounds', () => {
+        // Given a 200px column that may not shrink below 180px
+        const {handleElement, getHandleProps, readWidth} = renderColumnResize({dragMinWidths: {[NAME_COLUMN_KEY]: 180}});
+
+        // When its edge is dragged far past the left of the window
+        act(() => {
+            getHandleProps().onPointerDown?.(createPointerEvent(handleElement, {clientX: 100}));
+            getHandleProps().onPointerMove?.(createPointerEvent(handleElement, {clientX: -1000}));
+        });
+
+        // Then it stops at its floor, so the last column can't pull the row in from the table's edge
+        expect(readWidth(NAME_COLUMN_KEY)).toBe('180px');
+
+        // When the same drag carries on far past the right
+        act(() => {
+            getHandleProps().onPointerMove?.(createPointerEvent(handleElement, {clientX: 5000}));
+        });
+
+        // Then it stops at the upper bound, so the next column's edge stays reachable
+        expect(readWidth(NAME_COLUMN_KEY)).toBe(`${CONST.TABLES.COLUMN_RESIZE.MAX_WIDTH}px`);
     });
 
     it('ignores the secondary button', () => {

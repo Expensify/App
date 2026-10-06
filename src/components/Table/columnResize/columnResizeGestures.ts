@@ -12,4 +12,4 @@ function getDraggedColumnWidth(startWidth: number, startClientX: number, clientX
     return clampColumnWidth(startWidth + (clientX - startClientX), minWidth);
 }
 
-export {clampColumnWidth, getDraggedColumnWidth};
+export default getDraggedColumnWidth;
