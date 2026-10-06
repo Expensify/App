@@ -33,21 +33,41 @@ import {View} from 'react-native';
 
 type CustomerMappingName = ValueOf<typeof CONST.BUSINESS_CENTRAL_FIELD_MAPPING>;
 
-type CustomerMappingTagRow = {
-    id: CustomerMappingName;
-    name: string;
+type CustomerMappingToggleRowProps = {
     isLocked: boolean;
-    isCustomerMapping: true;
+    label: string;
+    mappingName: CustomerMappingName;
+    onLockedPress: () => void;
+    policy: WithPolicyConnectionsProps['policy'];
+    policyID: string | undefined;
 };
 
-type DimensionTagRow = {
-    id: string;
-    name: string;
-    isLocked: false;
-    isCustomerMapping: false;
-};
+function CustomerMappingToggleRow({isLocked, label, mappingName, onLockedPress, policy, policyID}: CustomerMappingToggleRowProps) {
+    const styles = useThemeStyles();
+    const config = policy?.connections?.businessCentral?.config;
+    const mapping = config?.coding?.customerMappings?.[mappingName];
+    const isImported = mapping === CONST.BUSINESS_CENTRAL_MAPPING_VALUE.TAG;
 
-type TagRow = CustomerMappingTagRow | DimensionTagRow;
+    return (
+        <ToggleSettingOptionRow
+            title={label}
+            switchAccessibilityLabel={label}
+            shouldPlaceSubtitleBelowSwitch
+            wrapperStyle={[styles.mv3, styles.mh5]}
+            isActive={isImported}
+            onToggle={() =>
+                policyID &&
+                updateBusinessCentralCustomerMapping(policyID, mappingName, isImported ? CONST.BUSINESS_CENTRAL_MAPPING_VALUE.NONE : CONST.BUSINESS_CENTRAL_MAPPING_VALUE.TAG, mapping)
+            }
+            disabled={isLocked}
+            showLockIcon={isLocked}
+            disabledAction={isLocked ? onLockedPress : undefined}
+            pendingAction={settingsPendingAction([mappingName], config?.pendingFields)}
+            errors={getLatestErrorField(config ?? {}, mappingName)}
+            onCloseError={() => policyID && clearBusinessCentralErrorField(policyID, mappingName)}
+        />
+    );
+}
 
 function BusinessCentralImportPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
@@ -76,22 +96,6 @@ function BusinessCentralImportPage({policy}: WithPolicyConnectionsProps) {
             shouldShowCancelButton: false,
         });
     };
-    const tagRows: TagRow[] = [
-        {
-            id: CONST.BUSINESS_CENTRAL_FIELD_MAPPING.PROJECTS,
-            name: translate('workspace.businessCentral.projects'),
-            isLocked: !hasPurchaseInvoiceExport,
-            isCustomerMapping: true,
-        },
-        {
-            id: CONST.BUSINESS_CENTRAL_FIELD_MAPPING.CUSTOMERS,
-            name: translate('workspace.businessCentral.customers'),
-            isLocked: !hasPurchaseInvoiceExport,
-            isCustomerMapping: true,
-        },
-        ...(businessCentralData?.dimensions ?? []).map((dimension) => ({id: dimension.id, name: dimension.name, isLocked: false as const, isCustomerMapping: false as const})),
-    ];
-
     // A US company has no VAT posting setup that can become a tax rate, so it has no tax row to offer.
     const hasVATPostingSetups = !!businessCentralData?.hasVATPostingSetups;
     const sectionTitleStyle = [styles.textLabel, styles.textStrong, styles.lh16, styles.ph5, styles.pt4, styles.pb2];
@@ -149,34 +153,43 @@ function BusinessCentralImportPage({policy}: WithPolicyConnectionsProps) {
                     <View style={[styles.mv3, styles.mh5]}>
                         <Text>{translate('workspace.businessCentral.dimensionsImportAsTags')}</Text>
                     </View>
-                    {tagRows.map((tagRow) => {
-                        const mapping = tagRow.isCustomerMapping ? businessCentralConfig?.coding?.customerMappings?.[tagRow.id] : businessCentralConfig?.coding?.fieldMappings?.[tagRow.id];
+                    <CustomerMappingToggleRow
+                        isLocked={!hasPurchaseInvoiceExport}
+                        label={translate('workspace.businessCentral.projects')}
+                        mappingName={CONST.BUSINESS_CENTRAL_FIELD_MAPPING.PROJECTS}
+                        onLockedPress={showPurchaseInvoiceRequiredModal}
+                        policy={policy}
+                        policyID={policyID}
+                    />
+                    <CustomerMappingToggleRow
+                        isLocked={!hasPurchaseInvoiceExport}
+                        label={translate('workspace.businessCentral.customers')}
+                        mappingName={CONST.BUSINESS_CENTRAL_FIELD_MAPPING.CUSTOMERS}
+                        onLockedPress={showPurchaseInvoiceRequiredModal}
+                        policy={policy}
+                        policyID={policyID}
+                    />
+                    {(businessCentralData?.dimensions ?? []).map((dimension) => {
+                        const mapping = businessCentralConfig?.coding?.fieldMappings?.[dimension.id];
                         const isImported = mapping === CONST.BUSINESS_CENTRAL_MAPPING_VALUE.TAG;
-                        const pendingField = tagRow.isCustomerMapping ? tagRow.id : `${CONST.BUSINESS_CENTRAL_CONFIG.FIELD_MAPPING_PREFIX}${tagRow.id}`;
+                        const pendingField = `${CONST.BUSINESS_CENTRAL_CONFIG.FIELD_MAPPING_PREFIX}${dimension.id}`;
                         return (
                             <ToggleSettingOptionRow
-                                key={tagRow.id}
-                                title={tagRow.name}
-                                switchAccessibilityLabel={tagRow.name}
+                                key={dimension.id}
+                                title={dimension.name}
+                                switchAccessibilityLabel={dimension.name}
                                 shouldPlaceSubtitleBelowSwitch
                                 wrapperStyle={toggleRowStyle}
                                 isActive={isImported}
-                                onToggle={() => {
-                                    if (!policyID) {
-                                        return;
-                                    }
-
-                                    const updatedMapping = isImported ? CONST.BUSINESS_CENTRAL_MAPPING_VALUE.NONE : CONST.BUSINESS_CENTRAL_MAPPING_VALUE.TAG;
-                                    if (tagRow.isCustomerMapping) {
-                                        updateBusinessCentralCustomerMapping(policyID, tagRow.id, updatedMapping, mapping);
-                                        return;
-                                    }
-
-                                    updateBusinessCentralFieldMapping(policyID, tagRow.id, updatedMapping, mapping);
-                                }}
-                                disabled={tagRow.isLocked}
-                                showLockIcon={tagRow.isLocked}
-                                disabledAction={tagRow.isLocked ? showPurchaseInvoiceRequiredModal : undefined}
+                                onToggle={() =>
+                                    policyID &&
+                                    updateBusinessCentralFieldMapping(
+                                        policyID,
+                                        dimension.id,
+                                        isImported ? CONST.BUSINESS_CENTRAL_MAPPING_VALUE.NONE : CONST.BUSINESS_CENTRAL_MAPPING_VALUE.TAG,
+                                        mapping,
+                                    )
+                                }
                                 pendingAction={settingsPendingAction([pendingField], businessCentralConfig?.pendingFields)}
                                 errors={getLatestErrorField(businessCentralConfig ?? {}, pendingField)}
                                 onCloseError={() => policyID && clearBusinessCentralErrorField(policyID, pendingField)}
