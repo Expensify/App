@@ -388,6 +388,7 @@ function buildRuleViolationMessage(
                 adjectives.push(filterValuesString);
             }
         } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT) {
+            // If the merchant filter equals '.', we match on any merchant
             if (op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && hasSingleValue && firstValue === '.') {
                 isAnyExpense = true;
             } else if (op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
