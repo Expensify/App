@@ -202,6 +202,22 @@ describe('MoneyRequestView edit fields', () => {
         return transaction;
     };
 
+    it('does not treat the fallback report owner as an enabled attendee on Collect', async () => {
+        // Given a Collect workspace with no explicit attendees and a selected total-per-attendee column.
+        const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
+        await setupTestData();
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE]);
+        });
+
+        // When the expense derives the report owner as its fallback attendee.
+        renderMoneyRequestView(threadReport);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the selected field stays empty, matching the report table's policy restriction.
+        expect(screen.getByTestId('menu-item-title-iou.totalPerAttendee')).toHaveTextContent(/^$/);
+    });
+
     it.each([
         [CONST.SEARCH.TABLE_COLUMNS.BILLABLE, 'common.billable', false, {disabledFields: {defaultBillable: true}}],
         [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE, 'common.reimbursable', false, {disabledFields: {reimbursable: true}, defaultReimbursable: false}],

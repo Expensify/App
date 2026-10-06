@@ -5,9 +5,11 @@ import MoneyRequestViewAdditionalField from '@components/ReportActionItem/MoneyR
 import type {SearchColumnType} from '@components/Search/types';
 
 import CONST from '@src/CONST';
-import type {Transaction} from '@src/types/onyx';
+import type {Policy, Transaction} from '@src/types/onyx';
 
 import React from 'react';
+
+import createMock from '../utils/createMock';
 
 jest.mock('@components/MenuItemWithTopDescription', () => jest.fn(() => null));
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
@@ -15,22 +17,46 @@ jest.mock('@hooks/useCurrencyList', () => ({
     useCurrencyListActions: () => ({convertToDisplayString: (amount: number, currency: string) => `${currency}:${amount}`}),
 }));
 
-function renderField(column: SearchColumnType, overrides: Partial<Transaction> = {}) {
+const attendeesEnabledPolicy = createMock<Policy>({id: 'policy-1', type: CONST.POLICY.TYPE.CORPORATE, isAttendeeTrackingEnabled: true});
+
+function renderField(
+    column: SearchColumnType,
+    overrides: Partial<Transaction> = {},
+    {policy, attendeeCount}: {policy: Policy | undefined; attendeeCount: number} = {policy: attendeesEnabledPolicy, attendeeCount: 2},
+) {
     render(
         <MoneyRequestViewAdditionalField
             column={column}
             transaction={{transactionID: '1', reportID: '2', amount: -1000, currency: 'EUR', created: '2026-09-01', merchant: 'Merchant', ...overrides}}
             report={{reportID: '2', type: CONST.REPORT.TYPE.EXPENSE, currency: 'USD', submitterPayrollID: 'payroll-123'}}
-            policy={undefined}
+            policy={policy}
             policyCategories={undefined}
             policyTagLists={undefined}
-            attendeeCount={2}
+            attendeeCount={attendeeCount}
         />,
     );
     return jest.mocked(MenuItemWithTopDescription).mock.calls.at(-1)?.at(0);
 }
 
 describe('additional expense field values', () => {
+    it.each([
+        ['Collect', createMock<Policy>({id: 'policy-1', type: CONST.POLICY.TYPE.TEAM}), 1],
+        ['Control with tracking disabled', {...attendeesEnabledPolicy, isAttendeeTrackingEnabled: false}, 2],
+        ['missing policy', undefined, 1],
+        ['no attendees', attendeesEnabledPolicy, 0],
+    ] as const)('leaves total per attendee empty for %s', (_scenario, policy, attendeeCount) => {
+        // Given a policy or attendee count for which the report table leaves the cell empty.
+        const options = {policy, attendeeCount};
+
+        // When the selected field is displayed for a known amount or a receipt still scanning.
+        for (const transaction of [{}, {amount: 0, merchant: '', receipt: {receiptID: 123, state: CONST.IOU.RECEIPT_STATE.SCANNING}}]) {
+            const field = renderField(CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, transaction, options);
+
+            // Then neither an amount nor a scanning placeholder is shown or offered for copying.
+            expect(field).toEqual(expect.objectContaining({title: '', copyable: false, copyValue: ''}));
+        }
+    });
+
     it.each([
         [undefined, 'EUR:1000'],
         [-1250, 'USD:1250'],

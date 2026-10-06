@@ -24,6 +24,7 @@ import {
     isPerDiemRequest,
     isScanning,
     isTimeRequest,
+    shouldShowAttendees,
 } from '@libs/TransactionUtils';
 import getFormattedPostedDate from '@libs/TransactionUtils/getFormattedPostedDate';
 
@@ -80,11 +81,15 @@ function MoneyRequestViewAdditionalField({column, transaction, report, policy, p
             break;
         }
         case CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE:
-            if (attendeeCount && isScanning(transaction)) {
+            if (!shouldShowAttendees(CONST.IOU.TYPE.SUBMIT, policy) || !attendeeCount) {
+                value = '';
+                break;
+            }
+            if (isScanning(transaction)) {
                 value = translate('iou.receiptStatusTitle');
                 break;
             }
-            value = attendeeCount ? convertToDisplayString(getAmount(transaction, isFromExpenseReport) / attendeeCount, getCurrency(transaction)) : '';
+            value = convertToDisplayString(getAmount(transaction, isFromExpenseReport) / attendeeCount, getCurrency(transaction));
             break;
         case CONST.SEARCH.TABLE_COLUMNS.POSTED:
             value = transaction.posted ? DateUtils.formatWithUTCTimeZone(getFormattedPostedDate(transaction.posted), CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, dateFnsLocale) : '';
