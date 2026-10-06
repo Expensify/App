@@ -13,6 +13,7 @@ import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
 import type {SearchColumnType} from '@components/Search/types';
 import Text from '@components/Text';
+import ViolationMessages from '@components/ViolationMessages';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 
 import useActiveRoute from '@hooks/useActiveRoute';
@@ -172,7 +173,6 @@ import MoneyRequestReceiptView from './MoneyRequestReceiptView';
 import MoneyRequestViewAdditionalField from './MoneyRequestViewAdditionalField';
 import MoneyRequestAttendeesField from './MoneyRequestViewFields/AttendeesField';
 import MoneyRequestEditableField from './MoneyRequestViewFields/EditableField';
-import MoneyRequestTextField from './MoneyRequestViewFields/TextField';
 import MoneyRequestToggleField from './MoneyRequestViewFields/ToggleField';
 
 type MoneyRequestViewProps = {
@@ -1288,7 +1288,7 @@ function MoneyRequestView({
         : [];
     const fieldsToShow = getMoneyRequestViewFields(tableColumns, savedColumns.length > 0);
 
-    const handleAmountPress = () => {
+    const editOrSplitAmount = () => {
         if (!transaction?.transactionID || !transactionThreadReport?.reportID) {
             return;
         }
@@ -1312,25 +1312,25 @@ function MoneyRequestView({
         );
     };
 
-    const handleDescriptionPress = () => {
+    const editDescription = () => {
         Navigation.navigate(
             createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID)),
         );
     };
 
-    const handleMerchantPress = () => {
+    const editMerchant = () => {
         Navigation.navigate(
             createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID)),
         );
     };
 
-    const handleDatePress = callFunctionIfActionIsAllowed(() => {
+    const editDate = callFunctionIfActionIsAllowed(() => {
         Navigation.navigate(
             createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID)),
         );
     });
 
-    const handleCategoryPress = callFunctionIfActionIsAllowed(() => {
+    const editCategory = callFunctionIfActionIsAllowed(() => {
         if (shouldShowCategoryDisabledAlert) {
             showCategoryDisabledAlert();
             return;
@@ -1383,7 +1383,7 @@ function MoneyRequestView({
         }
     });
 
-    const handleVendorPress = callFunctionIfActionIsAllowed(() => {
+    const editVendor = callFunctionIfActionIsAllowed(() => {
         if (!transactionThreadReport?.reportID) {
             return;
         }
@@ -1392,7 +1392,7 @@ function MoneyRequestView({
         );
     });
 
-    const handleTaxRatePress = callFunctionIfActionIsAllowed(() => {
+    const editTaxRate = callFunctionIfActionIsAllowed(() => {
         if (shouldShowTaxDisabledAlert) {
             showTaxDisabledAlert();
             return;
@@ -1403,7 +1403,7 @@ function MoneyRequestView({
         );
     });
 
-    const handleTaxAmountPress = callFunctionIfActionIsAllowed(() => {
+    const editTaxAmount = callFunctionIfActionIsAllowed(() => {
         if (shouldShowTaxDisabledAlert) {
             showTaxDisabledAlert();
             return;
@@ -1414,7 +1414,7 @@ function MoneyRequestView({
         );
     });
 
-    const handleAttendeesPress = () => {
+    const editAttendees = () => {
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID)));
     };
 
@@ -1422,90 +1422,93 @@ function MoneyRequestView({
         switch (column) {
             case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
                 return (
-                    <MoneyRequestTextField
-                        pendingAction={getPendingFieldAction('amount') ?? (amountTitle ? getPendingFieldAction('customUnitRateID') : undefined)}
-                        title={amountTitle}
-                        shouldShowTitleIcon={shouldShowPaid}
-                        titleIcon={icons.Checkmark}
-                        description={amountDescription}
-                        hintText={amountHintText}
-                        titleStyle={styles.textHeadlineH2}
-                        numberOfLinesTitle={2}
-                        interactive={canEditAmount}
-                        shouldShowRightIcon={canEditAmount}
-                        onPress={handleAmountPress}
-                        brickRoadIndicator={getErrorForField('amount') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        errorText={getErrorForField('amount')}
-                        copyValue={amountCopyValue}
-                        copyable={!!amountCopyValue}
-                    />
+                    <OfflineWithFeedback pendingAction={getPendingFieldAction('amount') ?? (amountTitle ? getPendingFieldAction('customUnitRateID') : undefined)}>
+                        <MenuItemWithTopDescription
+                            title={amountTitle}
+                            shouldShowTitleIcon={shouldShowPaid}
+                            titleIcon={icons.Checkmark}
+                            description={amountDescription}
+                            hintText={amountHintText}
+                            titleStyle={styles.textHeadlineH2}
+                            numberOfLinesTitle={2}
+                            interactive={canEditAmount}
+                            shouldShowRightIcon={canEditAmount}
+                            onPress={editOrSplitAmount}
+                            brickRoadIndicator={getErrorForField('amount') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            errorText={getErrorForField('amount')}
+                            copyValue={amountCopyValue}
+                            copyable={!!amountCopyValue}
+                        />
+                    </OfflineWithFeedback>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
                 return (
                     !shouldHideEmptyDescription && (
-                        <MoneyRequestTextField
-                            pendingAction={getPendingFieldAction('comment')}
-                            description={translate('common.description')}
-                            shouldRenderAsHTML
-                            title={updatedTransactionDescription ?? transactionDescription}
-                            interactive={canEdit}
-                            shouldShowRightIcon={canEdit}
-                            titleStyle={styles.flex1}
-                            onPress={handleDescriptionPress}
-                            wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
-                            brickRoadIndicator={getErrorForField('comment') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            errorText={getErrorForField('comment')}
-                            numberOfLinesTitle={0}
-                            copyValue={descriptionCopyValue}
-                            copyable={!!descriptionCopyValue}
-                        />
+                        <OfflineWithFeedback pendingAction={getPendingFieldAction('comment')}>
+                            <MenuItemWithTopDescription
+                                description={translate('common.description')}
+                                shouldRenderAsHTML
+                                title={updatedTransactionDescription ?? transactionDescription}
+                                interactive={canEdit}
+                                shouldShowRightIcon={canEdit}
+                                titleStyle={styles.flex1}
+                                onPress={editDescription}
+                                wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
+                                brickRoadIndicator={getErrorForField('comment') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                errorText={getErrorForField('comment')}
+                                numberOfLinesTitle={0}
+                                copyValue={descriptionCopyValue}
+                                copyable={!!descriptionCopyValue}
+                            />
+                        </OfflineWithFeedback>
                     )
                 );
             case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
                 return isManualDistanceRequest || isGPSDistanceRequest || isOdometerDistanceRequest || (isMapDistanceRequest && transaction?.comment?.waypoints) ? (
                     distanceRequestFields
                 ) : (
-                    <MoneyRequestTextField
-                        pendingAction={getPendingFieldAction('merchant')}
-                        description={translate('common.merchant')}
-                        title={updatedMerchantTitle}
-                        interactive={canEditMerchant}
-                        shouldShowRightIcon={canEditMerchant}
-                        titleStyle={styles.flex1}
-                        onPress={handleMerchantPress}
-                        wrapperStyle={[styles.taskDescriptionMenuItem]}
-                        furtherDetailsComponent={shouldShowGoogleMerchantSearchLink ? renderGoogleMerchantSearchLink() : undefined}
-                        brickRoadIndicator={getErrorForField('merchant') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        errorText={getErrorForField('merchant')}
-                        numberOfLinesTitle={0}
-                        copyValue={merchantCopyValue}
-                        copyable={!!merchantCopyValue}
-                    />
+                    <OfflineWithFeedback pendingAction={getPendingFieldAction('merchant')}>
+                        <MenuItemWithTopDescription
+                            description={translate('common.merchant')}
+                            title={updatedMerchantTitle}
+                            interactive={canEditMerchant}
+                            shouldShowRightIcon={canEditMerchant}
+                            titleStyle={styles.flex1}
+                            onPress={editMerchant}
+                            wrapperStyle={[styles.taskDescriptionMenuItem]}
+                            furtherDetailsComponent={shouldShowGoogleMerchantSearchLink ? renderGoogleMerchantSearchLink() : undefined}
+                            brickRoadIndicator={getErrorForField('merchant') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            errorText={getErrorForField('merchant')}
+                            numberOfLinesTitle={0}
+                            copyValue={merchantCopyValue}
+                            copyable={!!merchantCopyValue}
+                        />
+                    </OfflineWithFeedback>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.DATE:
                 return (
                     <MoneyRequestEditableField
                         pendingAction={getPendingFieldAction('created')}
-                        onPress={canEditDate ? handleDatePress : undefined}
+                        onPress={canEditDate ? editDate : undefined}
                         name={dateDescription}
                         value={actualTransactionDate}
-                        canEdit={canEditDate}
-                        copyValue={dateCopyValue}
                         error={dateError}
-                    />
+                    >
+                        {!!dateCopyValue && <MenuItem.Copy value={dateCopyValue} />}
+                    </MoneyRequestEditableField>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
                 return (
                     !!shouldShowCategory && (
                         <MoneyRequestEditableField
                             pendingAction={getPendingFieldAction('category')}
-                            onPress={canEdit ? handleCategoryPress : undefined}
+                            onPress={canEdit ? editCategory : undefined}
                             name={translate('common.category')}
                             value={shouldShowCategoryAnalyzing ? translate('common.analyzing') : decodedCategoryName}
-                            canEdit={canEdit}
-                            copyValue={categoryCopyValue}
                             error={getErrorForField('category')}
-                        />
+                        >
+                            {!!categoryCopyValue && <MenuItem.Copy value={categoryCopyValue} />}
+                        </MoneyRequestEditableField>
                     )
                 );
             case CONST.SEARCH.TABLE_COLUMNS.VENDOR:
@@ -1513,10 +1516,9 @@ function MoneyRequestView({
                     shouldShowVendor && (
                         <MoneyRequestEditableField
                             pendingAction={getPendingFieldAction('vendor')}
-                            onPress={canEdit ? handleVendorPress : undefined}
+                            onPress={canEdit ? editVendor : undefined}
                             name={vendorFieldLabel}
                             value={transactionVendorName}
-                            canEdit={canEdit}
                             error={getErrorForField('vendor')}
                         />
                     )
@@ -1530,8 +1532,9 @@ function MoneyRequestView({
                             pendingAction={getPendingFieldAction('cardID')}
                             name={translate('iou.card')}
                             value={cardCopyValue}
-                            copyValue={cardCopyValue}
-                        />
+                        >
+                            {!!cardCopyValue && <MenuItem.Copy value={cardCopyValue} />}
+                        </MoneyRequestEditableField>
                     )
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
@@ -1539,13 +1542,13 @@ function MoneyRequestView({
                     shouldShowTax && (
                         <MoneyRequestEditableField
                             pendingAction={getPendingFieldAction('taxCode')}
-                            onPress={canEditTaxFields ? handleTaxRatePress : undefined}
+                            onPress={canEditTaxFields ? editTaxRate : undefined}
                             name={taxRatesDescription ?? translate('common.tax')}
                             value={taxRateValue}
-                            canEdit={canEditTaxFields}
-                            copyValue={taxRateCopyValue}
                             error={getErrorForField('tax')}
-                        />
+                        >
+                            {!!taxRateCopyValue && <MenuItem.Copy value={taxRateCopyValue} />}
+                        </MoneyRequestEditableField>
                     )
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
@@ -1553,12 +1556,12 @@ function MoneyRequestView({
                     shouldShowTax && (
                         <MoneyRequestEditableField
                             pendingAction={getPendingFieldAction('taxAmount')}
-                            onPress={canEditTaxFields ? handleTaxAmountPress : undefined}
+                            onPress={canEditTaxFields ? editTaxAmount : undefined}
                             name={taxAmountDescription}
                             value={taxAmountTitle}
-                            canEdit={canEditTaxFields}
-                            copyValue={taxAmountCopyValue}
-                        />
+                        >
+                            {!!taxAmountCopyValue && <MenuItem.Copy value={taxAmountCopyValue} />}
+                        </MoneyRequestEditableField>
                     )
                 );
             case CONST.SEARCH.TABLE_COLUMNS.ATTENDEES:
@@ -1570,7 +1573,7 @@ function MoneyRequestView({
                             title={getAttendeesTitle}
                             formattedPerAttendeeAmount={formattedPerAttendeeAmount}
                             canEdit={canEdit}
-                            onPress={handleAttendeesPress}
+                            onPress={editAttendees}
                             errorText={getErrorForField('attendees')}
                             copyValue={attendeesCopyValue}
                         />
@@ -1603,20 +1606,22 @@ function MoneyRequestView({
                             isOn={updatedTransaction?.billable ?? !!transactionBillable}
                             onToggle={saveBillable}
                             disabled={!canEdit}
-                            violationProps={
-                                getErrorForField('billable')
-                                    ? {
-                                          violations: getViolationsForField('billable'),
-                                          isMarkAsCash,
-                                          canEdit,
-                                          companyCardPageURL,
-                                          connectionLink,
-                                          routeDistanceMeters: transaction?.comment?.customUnit?.routeDistanceMeters,
-                                          distanceUnit: transaction?.comment?.customUnit?.distanceUnit,
-                                      }
-                                    : undefined
-                            }
-                        />
+                        >
+                            {!!getErrorForField('billable') && (
+                                <ViolationMessages
+                                    violations={getViolationsForField('billable')}
+                                    containerStyle={[styles.mt1]}
+                                    textStyle={[styles.ph0]}
+                                    isLast
+                                    isMarkAsCash={isMarkAsCash}
+                                    canEdit={canEdit}
+                                    companyCardPageURL={companyCardPageURL}
+                                    connectionLink={connectionLink}
+                                    routeDistanceMeters={transaction?.comment?.customUnit?.routeDistanceMeters}
+                                    distanceUnit={transaction?.comment?.customUnit?.distanceUnit}
+                                />
+                            )}
+                        </MoneyRequestToggleField>
                     )
                 );
             default:
