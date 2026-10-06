@@ -424,9 +424,6 @@
     "@react-native-firebase/app": {
       "expo": "57.0.8"
     },
-    "@react-native-firebase/perf": {
-      "expo": "57.0.8"
-    },
     "@react-native-google-signin/google-signin": {
       "expo": "57.0.8"
     },
