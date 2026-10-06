@@ -2464,11 +2464,11 @@ function getActiveVendorMatchingIntegration(policy: OnyxEntry<Policy>): Connecti
     if (isDualEntryVendorMatchingActive(policy)) {
         return CONST.POLICY.CONNECTIONS.NAME.DUALENTRY;
     }
-    if (isBusinessCentralVendorMatchingActive(policy)) {
-        return CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL;
-    }
     if (isCampfireVendorMatchingActive(policy)) {
         return CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE;
+    }
+    if (isBusinessCentralVendorMatchingActive(policy)) {
+        return CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL;
     }
     if (isCertiniaVendorMatchingActive(policy)) {
         return CONST.POLICY.CONNECTIONS.NAME.CERTINIA;
@@ -2517,6 +2517,9 @@ function getActiveVendorMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] | u
     if (isDualEntryVendorMatchingActive(policy)) {
         return policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]?.data?.vendors === undefined ? undefined : getDualEntryVendors(policy);
     }
+    if (isCampfireVendorMatchingActive(policy)) {
+        return policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]?.data?.vendors === undefined ? undefined : getCampfireVendors(policy);
+    }
     if (isBusinessCentralVendorMatchingActive(policy)) {
         const businessCentralVendors = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]?.data?.vendors;
         if (businessCentralVendors === undefined) {
@@ -2534,9 +2537,6 @@ function getActiveVendorMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] | u
                 currency: '',
                 email: vendor.email,
             }));
-    }
-    if (isCampfireVendorMatchingActive(policy)) {
-        return policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]?.data?.vendors === undefined ? undefined : getCampfireVendors(policy);
     }
     if (isCertiniaVendorMatchingActive(policy)) {
         return policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]?.data?.vendors === undefined ? undefined : getCertiniaVendors(policy);
