@@ -353,65 +353,62 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                     headerText={menuHeaderText}
                     shouldUseScrollView={shouldPopoverUseScrollView}
                     containerStyles={containerStyles}
-                    menuItems={options.map((item, index) => ({
-                        ...item,
-                        ...(item.switchProps
-                            ? {
-                                  shouldShowRightComponent: true,
-                                  // The row IS the toggle: it's the single focus target, so it carries the switch semantics
-                                  // (role + checked) and announces the on/off state. The Switch is a decorative indicator.
-                                  role: CONST.ROLE.SWITCH,
-                                  accessibilityState: {checked: item.switchProps.isOn, disabled: item.disabled ?? item.switchProps.disabled},
-                                  // Mirror the Switch's disabled state onto the row so a disabled toggle can't be flipped by
-                                  // pressing the row (or Enter) — only the Switch carried `disabled` before.
-                                  disabled: item.disabled ?? item.switchProps.disabled,
-                                  // `isNested` lets the Switch handle its own press (so it animates) while stopping the event from
-                                  // bubbling to the row — no double-toggle. `shouldAnimateOnExternalChange` makes the thumb also
-                                  // animate when the row/keyboard toggles it. `focusable={false}` stops the Switch from being a
-                                  // second tab stop — the row owns keyboard focus and toggling. The wrapper is aria-hidden so
-                                  // the Switch isn't announced separately from the row.
-                                  rightComponent: (
-                                      <View
-                                          style={styles.justifyContentCenter}
-                                          aria-hidden
-                                          accessibilityElementsHidden
-                                          importantForAccessibility="no-hide-descendants"
-                                      >
-                                          <Switch
-                                              {...item.switchProps}
-                                              isNested
-                                              shouldAnimateOnExternalChange
-                                              focusable={false}
-                                          />
-                                      </View>
-                                  ),
-                              }
-                            : {}),
-                        onSelected: item.onSelected
-                            ? () => {
-                                  // Enter routes here directly (bypassing the row's disabled press-guard), so block a disabled toggle.
-                                  if (item.switchProps?.disabled) {
-                                      return;
+                    menuItems={options.map((item, index) => {
+                        const isSwitchDisabled = item.disabled ?? item.switchProps?.disabled;
+                        return {
+                            ...item,
+                            ...(item.switchProps
+                                ? {
+                                      shouldShowRightComponent: true,
+                                      // The row is the toggle and the only focus target, so it owns the switch role and state.
+                                      role: CONST.ROLE.SWITCH,
+                                      accessibilityState: {checked: item.switchProps.isOn, disabled: isSwitchDisabled},
+                                      // Mirror the disabled state so the row (and Enter) can't flip a disabled toggle.
+                                      disabled: isSwitchDisabled,
+                                      // Decorative Switch: isNested lets it animate without double-toggling, focusable={false} keeps the row the only tab stop, and the wrapper is aria-hidden.
+                                      rightComponent: (
+                                          <View
+                                              style={styles.justifyContentCenter}
+                                              aria-hidden
+                                              accessibilityElementsHidden
+                                              importantForAccessibility="no-hide-descendants"
+                                          >
+                                              <Switch
+                                                  {...item.switchProps}
+                                                  isNested
+                                                  shouldAnimateOnExternalChange
+                                                  focusable={false}
+                                              />
+                                          </View>
+                                      ),
                                   }
-                                  item.onSelected?.();
-                                  if (item.shouldUpdateSelectedIndex) {
-                                      setSelectedItemIndex(index);
+                                : {}),
+                            onSelected: item.onSelected
+                                ? () => {
+                                      // Enter routes here directly, bypassing the row's disabled press-guard, so block a disabled toggle.
+                                      if (item.switchProps?.disabled) {
+                                          return;
+                                      }
+                                      item.onSelected?.();
+                                      if (item.shouldUpdateSelectedIndex) {
+                                          setSelectedItemIndex(index);
+                                      }
                                   }
-                              }
-                            : () => {
-                                  onOptionSelected?.(item);
-                                  if (item.shouldUpdateSelectedIndex === false) {
-                                      return;
-                                  }
+                                : () => {
+                                      onOptionSelected?.(item);
+                                      if (item.shouldUpdateSelectedIndex === false) {
+                                          return;
+                                      }
 
-                                  setSelectedItemIndex(index);
-                              },
-                        shouldCallAfterModalHide: true,
-                        subMenuItems: item.subMenuItems?.map((subItem) => ({
-                            ...subItem,
+                                      setSelectedItemIndex(index);
+                                  },
                             shouldCallAfterModalHide: true,
-                        })),
-                    }))}
+                            subMenuItems: item.subMenuItems?.map((subItem) => ({
+                                ...subItem,
+                                shouldCallAfterModalHide: true,
+                            })),
+                        };
+                    })}
                     shouldPutHeaderTextAfterBackButton={shouldPutHeaderTextAfterBackButton}
                 />
             )}
