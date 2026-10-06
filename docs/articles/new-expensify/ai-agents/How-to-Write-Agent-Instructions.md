@@ -5,6 +5,7 @@ keywords: [agent instructions, AI prompts, Agent rules, custom agents, prompt wr
 internalScope: Audience is members and Workspace Admins. Covers best practices, examples, and techniques for writing effective instructions for personal Agents and Agent rules, including using RuleBot to draft Agent rules. Does not cover creating Agents, creating Agent rules, or managing AI features.
 retrievalIntent: How do I write effective instructions for an AI Agent?
 contentType: topic
+order: 7
 ---
 
 # How to Write Agent Instructions
@@ -13,7 +14,7 @@ Agents use natural-language instructions to determine how they should behave. We
 
 For personal Agents, instructions describe how the Agent should help manage your work. For Agent rules, instructions tell RuleBot how to handle expenses and reports in a workspace.
 
-To learn about how agents use instructions, see [How do Agents and Agent rules use instructions](/articles/new-expensify/ai-agents/Learn-About-Agents#how-do-agents-and-agent-rules-use-instructions).
+To learn about how agents use instructions, see [How do Agents and Agent rules use instructions](/articles/new-expensify/ai-agents/Understand-How-Agents-Work#how-do-agents-and-agent-rules-use-instructions).
 
 ---
 
