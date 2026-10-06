@@ -14,12 +14,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {close as closeVisibleModal} from '@libs/actions/Modal';
 import {archivePolicy, calculateBillNewDot, dismissWorkspaceError} from '@libs/actions/Policy/Policy';
-import {filterInactiveCards, getCardSettings, isCard} from '@libs/CardUtils';
+import {filterInactiveCards} from '@libs/CardUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldBlockWorkspaceDeletionForInvoicifyUser} from '@libs/PolicyUtils';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
-import {getIsTravelBillingEnabled, getTravelBillingCardSettingsKey, getTravelBillingFeedID} from '@libs/TravelBillingUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -46,7 +45,7 @@ type ArchiveWorkspaceFlowProps = {
 
 /**
  * Self-contained workspace archive flow. It is mounted only while an archive is in progress, so all of the
- * Onyx data needed to archive a workspace (full policy collection, card feeds, travel billing card settings, etc.)
+ * Onyx data needed to archive a workspace (full policy collection, card feeds, etc.)
  * is subscribed to only for the lifetime of the flow instead of re-rendering the workspaces list in the background.
  *
  * On mount (once the data is ready) it runs the pre-archive checks (Invoicify block, outstanding balance,
@@ -75,21 +74,8 @@ function ArchiveWorkspaceFlow({policyID, onDismiss, onArchiveComplete}: ArchiveW
     const [cardsList, cardsListResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {
         selector: filterInactiveCards,
     });
-    const [travelCardsList, travelCardsListResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${getTravelBillingFeedID(workspaceAccountID)}`, {
-        selector: filterInactiveCards,
-    });
-    const [travelCardSettings, travelCardSettingsResult] = useOnyx(getTravelBillingCardSettingsKey(workspaceAccountID));
 
-    const isLoadingData = isLoadingOnyxValue(
-        policiesResult,
-        accountResult,
-        amountOwedResult,
-        privateSubscriptionResult,
-        cardFeedsResult,
-        cardsListResult,
-        travelCardsListResult,
-        travelCardSettingsResult,
-    );
+    const isLoadingData = isLoadingOnyxValue(policiesResult, accountResult, amountOwedResult, privateSubscriptionResult, cardFeedsResult, cardsListResult);
 
     const hasCardFeedOrExpensifyCard =
         !isEmptyObject(cardFeeds) ||
@@ -97,14 +83,6 @@ function ArchiveWorkspaceFlow({policyID, onDismiss, onArchiveComplete}: ArchiveW
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- both flags are `boolean | undefined`, so we need a logical OR here; `??` would stop at an explicit `false` and never check the second flag
         ((policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && policy?.policyAccountID);
     const hasExpensifyCardsEnabledOnWorkspace = !!policy?.areExpensifyCardsEnabled && !!policy?.policyAccountID;
-    const hasTravelBillingEnabledOnWorkspace = getIsTravelBillingEnabled(getCardSettings(travelCardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US));
-    // `filterInactiveCards` keeps the `cardList` metadata entry, so the lists have to be checked for real cards rather than just for emptiness.
-    const hasExpensifyCards = Object.values(cardsList ?? {}).some(isCard);
-    const hasTravelCards = Object.values(travelCardsList ?? {}).some(isCard);
-    const isBlockedByExpensifyCards = hasExpensifyCardsEnabledOnWorkspace && hasExpensifyCards;
-    const isBlockedByTravelBilling = hasTravelBillingEnabledOnWorkspace && hasTravelCards;
-    // While offline we can't get the real rejection reason from the backend, so if we already know locally that the workspace has active Expensify Cards, block the archive up front instead of queuing one that will fail on reconnect.
-    const hasArchiveExpensifyCardsError = isBlockedByExpensifyCards && !!isOffline;
 
     const policyLatestErrorMessage = getLatestErrorMessage(policy);
     const isPendingArchive = !!policy?.archivedDate && !!policy?.pendingAction;
@@ -121,34 +99,6 @@ function ArchiveWorkspaceFlow({policyID, onDismiss, onArchiveComplete}: ArchiveW
         hideArchiveErrorModal();
         onDismiss();
     }, [hideArchiveErrorModal, onDismiss]);
-
-    const showArchiveErrorModal = useCallback(() => {
-        if (!isFocused) {
-            dismissArchiveFlow();
-            return;
-        }
-
-        showConfirmModal({
-            title: translate('workspace.common.archive'),
-            prompt: (
-                <View style={[styles.renderHTML, styles.flexRow]}>
-                    <RenderHTML
-                        // This modal is only shown when one of the two blockers applies, and Expensify Cards take priority when both do.
-                        html={translate(isBlockedByExpensifyCards ? 'workspace.common.deleteOpenExpensifyCardsError' : 'workspace.common.deleteTravelInvoicingError')}
-                        onConciergeLinkPress={() => {
-                            closeModal();
-                            dismissArchiveFlow();
-                        }}
-                    />
-                </View>
-            ),
-            confirmText: translate('common.buttonConfirm'),
-            shouldShowCancelButton: false,
-            shouldHandleNavigationBack: false,
-        }).then(() => {
-            dismissArchiveFlow();
-        });
-    }, [closeModal, dismissArchiveFlow, isBlockedByExpensifyCards, isFocused, showConfirmModal, styles.flexRow, styles.renderHTML, translate]);
 
     const showGenericArchiveErrorModal = useCallback(
         (errorMessage: string) => {
@@ -203,7 +153,7 @@ function ArchiveWorkspaceFlow({policyID, onDismiss, onArchiveComplete}: ArchiveW
             confirmText: translate('workspace.common.archive'),
             cancelText: translate('common.cancel'),
             buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-            ...(hasArchiveExpensifyCardsError ? {} : {isConfirmLoading: isPendingArchive}),
+            isConfirmLoading: isPendingArchive,
         }).then((result) => {
             if (result.action !== ModalActions.CONFIRM) {
                 onDismiss();
@@ -213,12 +163,9 @@ function ArchiveWorkspaceFlow({policyID, onDismiss, onArchiveComplete}: ArchiveW
             archivePolicy({
                 policyID,
                 policyName,
-                hasArchiveExpensifyCardsError,
             });
 
-            if (hasArchiveExpensifyCardsError) {
-                showArchiveErrorModal();
-            } else if (isOffline) {
+            if (isOffline) {
                 closeModal();
                 onArchiveComplete?.();
                 onDismiss();
@@ -271,26 +218,9 @@ function ArchiveWorkspaceFlow({policyID, onDismiss, onArchiveComplete}: ArchiveW
         }
 
         closeVisibleModal(() => {
-            if (isBlockedByExpensifyCards || isBlockedByTravelBilling) {
-                showArchiveErrorModal();
-                return;
-            }
-
             showGenericArchiveErrorModal(policyLatestErrorMessage);
         }, false);
-    }, [
-        isOffline,
-        isPendingArchive,
-        prevIsPendingArchive,
-        policyLatestErrorMessage,
-        isBlockedByExpensifyCards,
-        isBlockedByTravelBilling,
-        closeModal,
-        onArchiveComplete,
-        onDismiss,
-        showArchiveErrorModal,
-        showGenericArchiveErrorModal,
-    ]);
+    }, [isOffline, isPendingArchive, prevIsPendingArchive, policyLatestErrorMessage, closeModal, onArchiveComplete, onDismiss, showGenericArchiveErrorModal]);
 
     // Every modal this flow shows is owned by the global modal stack, so the flow itself renders nothing.
     return null;

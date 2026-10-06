@@ -736,19 +736,10 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
 type ArchivePolicyActionParams = {
     policyID: string;
     policyName?: string;
-    hasArchiveExpensifyCardsError?: boolean;
 };
 
 function archivePolicy(params: ArchivePolicyActionParams) {
-    const {policyID, policyName, hasArchiveExpensifyCardsError} = params;
-
-    // Offline pre-flight guard: we already know locally the workspace has active Expensify Cards, so surface the error instead of queuing an archive that the backend will reject on reconnect.
-    if (hasArchiveExpensifyCardsError) {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.common.deleteOpenExpensifyCardsError'),
-        });
-        return;
-    }
+    const {policyID, policyName} = params;
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
