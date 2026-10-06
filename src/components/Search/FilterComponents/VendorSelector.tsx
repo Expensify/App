@@ -9,12 +9,8 @@ import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxCollection} from 'react-native-onyx';
-
-import React, {useCallback} from 'react';
+import React from 'react';
 
 import MultiSelect from './MultiSelect';
 
@@ -27,18 +23,15 @@ function VendorSelector({value = [], policyID, selectionListTextInputStyle, sele
     const {isBetaEnabled} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
 
-    // Uses the same synced vendors the expense Vendor field offers, keeping only the names so the selector result stays small.
-    const vendorNamesSelector = useCallback(
-        (allPolicies: OnyxCollection<Policy>) =>
-            Object.fromEntries(
-                getVendorFeaturePolicyIDs(allPolicies, isVendorMatchingBetaEnabled).map((id) => [
-                    id,
-                    getMatchingVendors(allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]).map((vendor) => vendor.name),
-                ]),
-            ),
-        [isVendorMatchingBetaEnabled],
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+
+    // Uses the same synced vendors the expense Vendor field offers.
+    const vendorNamesByPolicyID = Object.fromEntries(
+        getVendorFeaturePolicyIDs(allPolicies, isVendorMatchingBetaEnabled).map((id) => [
+            id,
+            getMatchingVendors(allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]).map((vendor) => vendor.name),
+        ]),
     );
-    const [vendorNamesByPolicyID = getEmptyObject<Record<string, string[]>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: vendorNamesSelector});
 
     const noVendorLabel = translate('search.noVendor');
     const selectedVendorItems = value.map((vendor) => {
