@@ -5375,6 +5375,22 @@ describe('PolicyUtils', () => {
                 expect(hasVendorFeature(buildRilletPolicy(), false)).toBe(true);
             });
 
+            it.each([
+                {isConfigured: true, isVendorMatchingBetaEnabled: false, expected: false},
+                {isConfigured: true, isVendorMatchingBetaEnabled: true, expected: true},
+                {isConfigured: false, isVendorMatchingBetaEnabled: true, expected: false},
+                {isConfigured: undefined, isVendorMatchingBetaEnabled: true, expected: false},
+            ])('keeps Campfire vendor matching gated for %j', ({isConfigured, isVendorMatchingBetaEnabled, expected}) => {
+                // Given a Campfire connection with the specified configuration state
+                const policy = createMock<Policy>({connections: {campfire: {config: {isConfigured}}}});
+
+                // When checking the independent vendorMatching beta
+                const isVendorFeatureAvailable = hasVendorFeature(policy, isVendorMatchingBetaEnabled);
+
+                // Then both beta access and a configured connection are required
+                expect(isVendorFeatureAvailable).toBe(expected);
+            });
+
             it('returns false when beta is disabled and Rillet is connected but isConfigured=false because GA did not widen the configuration gate', () => {
                 expect(hasVendorFeature(buildRilletPolicy(undefined, {isConfigured: false}), false)).toBe(false);
             });
