@@ -410,31 +410,32 @@ export default createOnyxDerivedValueConfig({
             previousPolicies = policies;
         }
 
-        // A card's live fraud decides the fraud alert green dot on the report its fraudAlertReportID points at.
-        // Clearing possibleFraud drops that ID from the card, so the previous IDs are needed to refresh the report.
         const cardChangedReportKeys: string[] = [];
-        if (previousFraudAlertReportIDs === undefined || previousCardList !== cardList) {
-            const fraudAlertReportIDs = new Set<string>();
-            for (const card of Object.values(cardList ?? {})) {
-                const fraudAlertReportID = card?.nameValuePairs?.possibleFraud?.fraudAlertReportID;
-                if (fraudAlertReportID) {
-                    fraudAlertReportIDs.add(String(fraudAlertReportID));
-                }
-            }
-            // REPORT_ATTRIBUTES is persisted, so on the first compute after app start a stored fraud alert green dot
-            // may point at a report no card references anymore. A fraud alert dot stores the alert as its target action.
-            const firstComputeReportIDs =
-                previousFraudAlertReportIDs === undefined
-                    ? Object.entries(currentValue?.reports ?? {})
-                          .filter(
-                              ([reportID, attributes]) =>
-                                  attributes.requiresAttention &&
-                                  !!attributes.actionTargetReportActionID &&
-                                  isActionableCardFraudAlert(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]?.[attributes.actionTargetReportActionID]),
-                          )
-                          .map(([reportID]) => reportID)
-                    : [];
-            for (const reportID of new Set([...(previousFraudAlertReportIDs ?? []), ...firstComputeReportIDs, ...fraudAlertReportIDs])) {
+
+        const isFirstCompute = previousFraudAlertReportIDs === undefined;
+        if (isFirstCompute) {
+            // On app start, stored fraud alert green dots need rechecking. They persist via REPORT_ATTRIBUTES
+            // and may not be reflected in live card data until the next sync.
+            previousFraudAlertReportIDs = new Set(
+                Object.entries(currentValue?.reports ?? {})
+                    .filter(
+                        ([reportID, {requiresAttention, actionTargetReportActionID}]) =>
+                            requiresAttention &&
+                            !!actionTargetReportActionID &&
+                            isActionableCardFraudAlert(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]?.[actionTargetReportActionID]),
+                    )
+                    .map(([reportID]) => reportID),
+            );
+        }
+
+        if (isFirstCompute || previousCardList !== cardList) {
+            const fraudAlertReportIDs = new Set(
+                Object.values(cardList ?? {}).flatMap((card) => {
+                    const id = card?.nameValuePairs?.possibleFraud?.fraudAlertReportID;
+                    return id ? [String(id)] : [];
+                }),
+            );
+            for (const reportID of new Set([...previousFraudAlertReportIDs, ...fraudAlertReportIDs])) {
                 cardChangedReportKeys.push(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
             }
             previousFraudAlertReportIDs = fraudAlertReportIDs;
