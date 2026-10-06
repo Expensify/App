@@ -8,7 +8,7 @@ import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getMatchingVendors, getVendorFeaturePolicies} from '@libs/PolicyUtils';
+import {getMatchingVendors, getVendorFeaturePolicyIDs} from '@libs/PolicyUtils';
 import {getAllPolicyValues, sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
@@ -34,11 +34,20 @@ function VendorSelector({value = [], policyID, selectionListTextInputStyle, sele
     const {isLoadingInitialVendors} = useLoadSearchVendorData({shouldRefresh: true});
     const theme = useTheme();
     const styles = useThemeStyles();
-    const vendorFeaturePoliciesSelector = useCallback(
-        (allPolicies: OnyxCollection<Policy>) => getVendorFeaturePolicies(allPolicies, isVendorMatchingBetaEnabled),
+    // A workspace passes the vendor feature check only once its connections are loaded, and those connections carry the
+    // synced vendor list. Members only get vendor lists this way, since the bulk vendor load covers workspaces the user
+    // administers. Only the names are kept so the selector result stays small.
+    const connectionVendorNamesSelector = useCallback(
+        (allPolicies: OnyxCollection<Policy>) =>
+            Object.fromEntries(
+                getVendorFeaturePolicyIDs(allPolicies, isVendorMatchingBetaEnabled).map((id) => [
+                    id,
+                    getMatchingVendors(allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]).map((vendor) => vendor.name),
+                ]),
+            ),
         [isVendorMatchingBetaEnabled],
     );
-    const [vendorFeaturePolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: vendorFeaturePoliciesSelector});
+    const [connectionVendorNamesByPolicyID = getEmptyObject<Record<string, string[]>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: connectionVendorNamesSelector});
     const [allPolicyVendors = getEmptyObject<NonNullable<OnyxCollection<PolicyVendors>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_VENDORS);
 
     const noVendorLabel = translate('search.noVendor');
@@ -51,21 +60,21 @@ function VendorSelector({value = [], policyID, selectionListTextInputStyle, sele
 
     // Vendor lists are only offered for the workspaces where the vendor feature is on, so stale lists left behind by a
     // disconnected integration never surface in the picker.
-    const eligiblePolicyIDs = new Set(Object.values(vendorFeaturePolicies ?? {}).map((policy) => policy?.id));
+    const eligiblePolicyIDs = new Set(Object.keys(connectionVendorNamesByPolicyID));
     const eligiblePolicyVendors: OnyxCollection<PolicyVendors> = Object.fromEntries(
         Object.entries(allPolicyVendors).filter(([key]) => eligiblePolicyIDs.has(key.replace(ONYXKEYS.COLLECTION.POLICY_VENDORS, ''))),
     );
 
-    // A workspace passes the vendor feature check only once its connections are loaded, and those connections carry the
-    // synced vendor list. Members only get vendor lists this way, since the bulk vendor load covers workspaces the
-    // user administers.
     const selectedPolicyFilter = policyID?.value?.length ? policyID : undefined;
+    const isPolicySelected = (id: string) => !selectedPolicyFilter?.value || selectedPolicyFilter.isNegated !== selectedPolicyFilter.value.includes(id);
     const vendorItems = [{text: noVendorLabel, value: CONST.SEARCH.VENDOR_EMPTY_VALUE as string}];
     const uniqueVendorNames = new Set<string>([
         ...getAllPolicyValues(selectedPolicyFilter, ONYXKEYS.COLLECTION.POLICY_VENDORS, eligiblePolicyVendors).flatMap((policyVendors) =>
             Object.values(policyVendors ?? {}).map((vendor) => vendor.name),
         ),
-        ...getAllPolicyValues(selectedPolicyFilter, ONYXKEYS.COLLECTION.POLICY, vendorFeaturePolicies).flatMap((policy) => getMatchingVendors(policy).map((vendor) => vendor.name)),
+        ...Object.entries(connectionVendorNamesByPolicyID)
+            .filter(([id]) => isPolicySelected(id))
+            .flatMap(([, vendorNames]) => vendorNames),
     ]);
     vendorItems.push(
         ...Array.from(uniqueVendorNames)

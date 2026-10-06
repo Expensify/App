@@ -117,4 +117,25 @@ describe('VendorSelector', () => {
         // Then only the selected workspace's vendors are offered
         expect(getItemTexts()).toEqual(['search.noVendor', 'Acme Tools']);
     });
+
+    it('leaves out the vendors of excluded workspaces', () => {
+        // Given two vendor workspaces and a workspace filter that excludes the first one
+        mockOnyxData[ONYXKEYS.COLLECTION.POLICY] = {
+            [`${ONYXKEYS.COLLECTION.POLICY}first`]: buildQBOPolicy('first', ['Acme Tools']),
+            [`${ONYXKEYS.COLLECTION.POLICY}second`]: buildQBOPolicy('second', ['Zeta Supplies']),
+        };
+        mockOnyxData[ONYXKEYS.COLLECTION.POLICY_VENDORS] = {};
+
+        // When the vendor picker renders with that negated workspace filter
+        render(
+            <VendorSelector
+                policyID={{value: ['first'], isNegated: true}}
+                value={[]}
+                onChange={jest.fn()}
+            />,
+        );
+
+        // Then only the vendors of the workspaces that are not excluded are offered
+        expect(getItemTexts()).toEqual(['search.noVendor', 'Zeta Supplies']);
+    });
 });
