@@ -128,8 +128,8 @@ const CATEGORY_LABEL_WIDTH_RATIO = 0.4;
 // Maximum width for X-axis labels in pixels
 const MAX_X_AXIS_LABEL_WIDTH = 500;
 
-/** Dash and gap lengths (px) of dashed chart lines. Round caps lengthen each dash, so a 1px line reads as 4px dashes 8px apart. */
-const DASH_INTERVALS = [3, 9];
+/** Dash and gap lengths (px) of dashed chart lines, measured like an SVG `stroke-dasharray`, before round caps lengthen each dash. */
+const DASH_INTERVALS = [4, 8];
 
 // Small extra padding so complex glyphs (e.g. Arabic) are not clipped.
 // getLongestLine() can slightly under-report the visual extent of the last glyph.
