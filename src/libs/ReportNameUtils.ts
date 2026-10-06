@@ -31,7 +31,6 @@ import {Str} from 'expensify-common';
 import {getAddAgentRuleMessage, getDeleteAgentRuleMessage, getUpdateAgentRuleMessage} from './AgentRuleChangeLogUtils';
 import getCollator from './CollatorUtils';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
-import {translateLocal} from './Localize';
 // eslint-disable-next-line import/no-cycle
 import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
 import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -42,9 +41,11 @@ import {getCleanedTagName, isPolicyAdmin, isPolicyFieldListEmpty} from './Policy
 import {
     getActionableCard3DSTransactionApprovalMessage,
     getActionableCardFraudAlertResolutionMessage,
+    getAgentPromptUpdatedMessage,
     getAddedCardFeedMessage,
     getApprovalLimitUpdateMessage,
     getAssignedCompanyCardMessage,
+    getAutoCategorizeNewExpensesMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
     getCardConnectionBrokenMessage,
@@ -220,8 +221,8 @@ type ComputeReportName = {
     rules: OnyxCollection<Rule>;
 };
 
-function generateArchivedReportName(reportName: string): string {
-    return `${reportName} (${translateLocal('common.archived')}) `;
+function generateArchivedReportName(reportName: string, translate: LocalizedTranslate): string {
+    return `${reportName} (${translate('common.archived')}) `;
 }
 
 /**
@@ -806,6 +807,10 @@ function computeReportNameBasedOnReportAction({
         return getMarkedReimbursedMessage(translate, parentReportAction);
     }
 
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED)) {
+        return getAgentPromptUpdatedMessage(translate, parentReportAction);
+    }
+
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY)) {
         return getPolicyChangeMessage(translate, parentReportAction);
     }
@@ -977,6 +982,9 @@ function computeReportNameBasedOnReportAction({
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRE_COMPANY_CARDS_ENABLED)) {
         return getRequireCompanyCardsEnabledMessage(translate, parentReportAction);
     }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_CATEGORIZE_NEW_EXPENSES)) {
+        return getAutoCategorizeNewExpensesMessage(translate, parentReportAction);
+    }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_CATEGORY)) {
         return getRequiresCategoryMessage(translate, parentReportAction);
     }
@@ -1074,7 +1082,7 @@ function computeChatThreadReportName({
         });
 
         if (isArchivedNonExpense) {
-            formattedName = generateArchivedReportName(formattedName);
+            formattedName = generateArchivedReportName(formattedName, translate);
         }
         return formatReportLastMessageText(formattedName);
     }
@@ -1114,7 +1122,7 @@ function computeChatThreadReportName({
     }
 
     if (reportActionMessage && isArchivedNonExpense) {
-        return generateArchivedReportName(reportActionMessage);
+        return generateArchivedReportName(reportActionMessage, translate);
     }
     if (!isEmptyObject(parentReportAction) && isModifiedExpenseAction(parentReportAction)) {
         const movedFromReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.FROM)}`];
@@ -1329,7 +1337,7 @@ function computeReportName({
     const isArchivedNonExpense = isArchivedNonExpenseReport(report, privateIsArchivedValue);
 
     if (formattedName) {
-        return formatReportLastMessageText(isArchivedNonExpense ? generateArchivedReportName(formattedName) : formattedName);
+        return formatReportLastMessageText(isArchivedNonExpense ? generateArchivedReportName(formattedName, translate) : formattedName);
     }
 
     // Not a room or PolicyExpenseChat, generate title from first 5 other participants
@@ -1337,7 +1345,7 @@ function computeReportName({
 
     const finalName = formattedName ?? report?.reportName ?? '';
 
-    return isArchivedNonExpense ? generateArchivedReportName(finalName) : finalName;
+    return isArchivedNonExpense ? generateArchivedReportName(finalName, translate) : finalName;
 }
 
 /**

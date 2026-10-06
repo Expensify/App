@@ -93,7 +93,7 @@ describe('useFilterFormValues selectors', () => {
             expect(exportedToPoliciesSelector(undefined)).toBeUndefined();
         });
 
-        it('extracts only id, name, connections, and exportLayouts', () => {
+        it('extracts only the fields needed for exported-to options', () => {
             const connections = {quickbooksOnline: {config: {}, lastSync: {isConnected: true}}};
             const exportLayouts = {template1: {name: 'Template 1'}};
             const policies: OnyxCollection<Policy> = {
@@ -111,7 +111,8 @@ describe('useFilterFormValues selectors', () => {
 
             const result = exportedToPoliciesSelector(policies);
 
-            expect(result?.[POLICY_KEY]).toEqual({id: '1', name: 'Policy 1', connections, exportLayouts});
+            expect(result?.[POLICY_KEY]).toEqual({id: '1', name: 'Policy 1', connections});
+            expect(result?.[POLICY_KEY]).not.toHaveProperty('exportLayouts');
             expect(result?.[POLICY_KEY]).not.toHaveProperty('employeeList');
             expect(result?.[POLICY_KEY]).not.toHaveProperty('taxRates');
             expect(result?.[POLICY_KEY]).not.toHaveProperty('customUnits');

@@ -18,6 +18,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useReportAttributes, {useDerivedIsEmptyReport, useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
+import useReportIDToNameMap from '@hooks/useReportIDToNameMap';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -169,7 +170,6 @@ function BaseReportActionContextMenu({
     const {isProduction, isDevelopment, environment} = useEnvironment();
     const isStaging = environment === CONST.ENVIRONMENT.STAGING;
     const threeDotRef = useRef<ComponentRef<typeof View>>(null);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         selector: withDEWRoutedActionsObject,
     });
@@ -244,6 +244,7 @@ function BaseReportActionContextMenu({
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const personalDetails = usePersonalDetails();
     const reportAttributes = useReportAttributes();
@@ -284,7 +285,6 @@ function BaseReportActionContextMenu({
                 reportAction,
                 childReportActions,
                 isArchivedRoom,
-                betas,
                 menuTarget: anchor,
                 isChronosReport,
                 reportID,
@@ -306,6 +306,7 @@ function BaseReportActionContextMenu({
                 isHarvestReport,
                 currentUserAccountID: currentUserPersonalDetails?.accountID,
                 rules,
+                cardList,
             }),
     );
 
@@ -379,6 +380,8 @@ function BaseReportActionContextMenu({
 
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: enableEdgeToEdgeBottomSafeAreaPadding, style: wrapperStyle});
 
+    const reportIDToName = useReportIDToNameMap();
+
     return (
         (isVisible || shouldKeepOpen || !isMini) && (
             <FocusTrapForModal active={!isMini && !isSmallScreenWidth && (isVisible || shouldKeepOpen)}>
@@ -394,6 +397,7 @@ function BaseReportActionContextMenu({
                                 reportActions,
                                 childReportActions,
                                 originalReportActions,
+                                reportIDToName,
                                 // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                                 reportAction: (reportAction ?? null) as ReportAction,
                                 reportID,
@@ -429,7 +433,6 @@ function BaseReportActionContextMenu({
                                 introSelected,
                                 isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
                                 hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-                                betas,
                                 isDelegateAccessRestricted,
                                 showDelegateNoAccessModal,
                                 currentUserAccountID: currentUserPersonalDetails?.accountID,

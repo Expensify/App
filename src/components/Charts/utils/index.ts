@@ -1,9 +1,11 @@
 import type {ChartDataPoint, LabelRotation, PieSlice} from '@components/Charts/types';
 import VictoryTheme, {CHART_Y_SCALE_HEIGHT, DIAGONAL_ANGLE_RADIAN_THRESHOLD, ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, MAX_X_AXIS_LABEL_WIDTH, SIN_45} from '@components/Charts/VictoryTheme';
 
+import {isShareWorthDrawing} from '@libs/PercentageUtils';
+
 import variables from '@styles/variables';
 
-import type {SkParagraph, SkParagraphBuilder, SkPath, SkTypefaceFontProvider} from '@shopify/react-native-skia';
+import type {SkParagraph, SkParagraphBuilder, SkTypefaceFontProvider} from '@shopify/react-native-skia';
 
 import {FontStyle, FontWeight, Skia} from '@shopify/react-native-skia';
 import {scaleLinear} from 'd3-scale';
@@ -99,7 +101,8 @@ function canFontRenderText(text: string | undefined, fontManager: SkTypefaceFont
  */
 function measureTextWidth(text: string, fontManager: SkTypefaceFontProvider, fontSize: number): number {
     const para = buildChartParagraph(text, fontManager, fontSize);
-    para.layout(MAX_X_AXIS_LABEL_WIDTH);
+    // Unbounded width so text never wraps; a wrapped getLongestLine would underestimate long labels.
+    para.layout(Number.MAX_SAFE_INTEGER);
     return para.getLongestLine();
 }
 
@@ -215,13 +218,23 @@ function findSliceAtPosition(cursorX: number, cursorY: number, centerX: number, 
 
 /**
  * Process raw data into pie chart slices sorted by absolute value descending.
+ *
+ * Points whose share of total spend is too small to draw are left out: the inline table prints their share as
+ * `~0%`, and a slice that thin is a sliver nobody can hover or tap. The group is still listed in the table, so
+ * the visible slices cover only the significant share of the spend rather than all of it.
  */
 function processDataIntoSlices(
     data: ChartDataPoint[],
     pieGeometry: {centerX: number; centerY: number; radius: number; innerRadius: number},
     startAngle: number = VictoryTheme.pie.startAngle,
 ): PieSlice[] {
-    const total = data.reduce((sum, point) => sum + Math.abs(point.total), 0);
+    const visibleSlices = data
+        .map((point, index) => ({label: point.label, absTotal: Math.abs(point.total), originalIndex: index, percentOfTotal: point.percentOfTotal}))
+        .filter((slice) => isShareWorthDrawing(slice.percentOfTotal))
+        .sort((a, b) => b.absTotal - a.absTotal);
+
+    // Angles span only the surviving slices, matching how the canvas normalizes its values.
+    const total = visibleSlices.reduce((sum, slice) => sum + slice.absTotal, 0);
     if (total === 0) {
         return [];
     }
@@ -229,32 +242,29 @@ function processDataIntoSlices(
     // Anchor the tooltip at the midpoint of the donut ring (between inner and outer radius).
     const tooltipRadius = (pieGeometry.innerRadius + pieGeometry.radius) / 2;
 
-    return data
-        .map((point, index) => ({label: point.label, absTotal: Math.abs(point.total), originalIndex: index}))
-        .sort((a, b) => b.absTotal - a.absTotal)
-        .reduce<{slices: PieSlice[]; angle: number}>(
-            (acc, slice, index) => {
-                const fraction = slice.absTotal / total;
-                const sweepAngle = fraction * 360;
-                const angle = acc.angle + sweepAngle / 2;
-                const tooltipX = pieGeometry.centerX + tooltipRadius * Math.cos((angle * Math.PI) / 180);
-                const tooltipY = pieGeometry.centerY + tooltipRadius * Math.sin((angle * Math.PI) / 180);
-                acc.slices.push({
-                    label: slice.label,
-                    value: slice.absTotal,
-                    color: VictoryTheme.colors.getColor(index),
-                    percentage: fraction * 100,
-                    startAngle: acc.angle,
-                    endAngle: acc.angle + sweepAngle,
-                    originalIndex: slice.originalIndex,
-                    ordinalIndex: index,
-                    tooltipPosition: {x: tooltipX, y: tooltipY},
-                });
-                acc.angle += sweepAngle;
-                return acc;
-            },
-            {slices: [], angle: startAngle},
-        ).slices;
+    return visibleSlices.reduce<{slices: PieSlice[]; angle: number}>(
+        (acc, slice, index) => {
+            const fraction = slice.absTotal / total;
+            const sweepAngle = fraction * 360;
+            const angle = acc.angle + sweepAngle / 2;
+            const tooltipX = pieGeometry.centerX + tooltipRadius * Math.cos((angle * Math.PI) / 180);
+            const tooltipY = pieGeometry.centerY + tooltipRadius * Math.sin((angle * Math.PI) / 180);
+            acc.slices.push({
+                label: slice.label,
+                value: slice.absTotal,
+                color: VictoryTheme.colors.getColor(index),
+                percentage: fraction * 100,
+                startAngle: acc.angle,
+                endAngle: acc.angle + sweepAngle,
+                originalIndex: slice.originalIndex,
+                ordinalIndex: index,
+                tooltipPosition: {x: tooltipX, y: tooltipY},
+            });
+            acc.angle += sweepAngle;
+            return acc;
+        },
+        {slices: [], angle: startAngle},
+    ).slices;
 }
 
 /** Label to render on the x-axis for a data point: the compact one when provided, otherwise the full label. */
@@ -430,6 +440,79 @@ function getNiceYAxisTicks(rawDataMax: number, rawDataMin: number, tickCount: nu
     return scaleLinear().domain([paddedMin, paddedMax]).nice().ticks(tickCount);
 }
 
+/**
+ * Nice-rounded value domain for the horizontal bar chart's x-axis. victory-native only applies .nice() to the
+ * y-axis, so we pre-round here (anchored at zero unless negatives) to keep the last tick past the longest bar. Returns undefined
+ * for a degenerate domain, letting victory-native pick its own bounds.
+ */
+function getNiceValueDomain(data: ChartDataPoint[], tickCount: number): [number, number] | undefined {
+    if (data.length === 0) {
+        return undefined;
+    }
+    const values = data.map((point) => point.total);
+    const min = Math.min(0, ...values);
+    const max = Math.max(0, ...values);
+    if (min === max) {
+        return undefined;
+    }
+    const [niceMin = min, niceMax = max] = scaleLinear().domain([min, max]).nice(tickCount).domain();
+    return [niceMin, niceMax];
+}
+
+/** Tick values victory-native will render for a nice-rounded value domain, used to size the axis label gutter. */
+function getNiceValueTicks(domain: [number, number], tickCount: number): number[] {
+    return scaleLinear().domain(domain).ticks(tickCount);
+}
+
+/**
+ * Horizontal plot bounds of a vertical bar chart for a container width, mirroring victory-native's layout.
+ * Deriving it from the width (not post-mount) lets the wrapper re-decide orientation on every resize.
+ */
+function getVerticalBarPlotBounds(chartWidth: number, paddingLeft: number): {left: number; right: number; width: number} {
+    const left = paddingLeft + VictoryTheme.axis.labelGap;
+    const right = Math.max(left, chartWidth - VictoryTheme.axis.padding.right);
+    return {left, right, width: right - left};
+}
+
+/**
+ * Layout inputs shared by the vertical bar chart body and the orientation dispatcher, derived from the plot bounds.
+ * The body passes its measured bounds and the dispatcher passes bounds predicted from the container width, so both
+ * feed `useChartLabelLayout` the exact same geometry and cannot drift apart.
+ */
+function getVerticalBarLabelLayoutInputs({
+    containerWidth,
+    plotLeft,
+    plotRight,
+    plotWidth,
+    dataLength,
+    innerPadding,
+}: {
+    containerWidth: number;
+    plotLeft: number;
+    plotRight: number;
+    plotWidth: number;
+    dataLength: number;
+    innerPadding: number;
+}): {tickSpacing: number; labelAreaWidth: number; firstTickLeftSpace: number; lastTickRightSpace: number} {
+    const domainPadding = containerWidth > 0 && dataLength > 0 ? calculateMinDomainPadding(containerWidth, dataLength, innerPadding) : 0;
+    const paddingScale = plotWidth > 0 ? plotWidth / (plotWidth + 2 * domainPadding) : 0;
+    return {
+        tickSpacing: plotWidth > 0 && dataLength > 0 ? plotWidth / dataLength : 0,
+        labelAreaWidth: plotWidth,
+        firstTickLeftSpace: plotLeft + domainPadding * paddingScale,
+        lastTickRightSpace: containerWidth > 0 ? containerWidth - plotRight + domainPadding * paddingScale : 0,
+    };
+}
+
+/**
+ * Height of a horizontal bar chart. Grows with the row count so every category row gets at least
+ * `minRowHeight` of vertical space, keeping all category labels visible instead of thinning them out.
+ * Never smaller than `minHeight`, so small datasets keep the shared minimum.
+ */
+function getHorizontalChartHeight(rowCount: number, minRowHeight: number, verticalPadding: number, minHeight: number): number {
+    return Math.max(minHeight, rowCount * minRowHeight + verticalPadding);
+}
+
 /** Returns the pixel width needed for Y-axis labels given the chart data. */
 function getYAxisLabelWidth(
     data: ChartDataPoint[],
@@ -450,42 +533,6 @@ function getYAxisLabelWidth(
             measureTextWidth(formatValue(tick), fontManager, fontSize),
         ),
     );
-}
-
-/**
- * Returns the horizontal plot bounds of the vertical bar chart for a given container width,
- * without needing the chart to be mounted.
- *
- * `CartesianChart` reports the same values through `onChartBoundsChange`, but the bar chart
- * decides its orientation from these bounds and unmounts the vertical chart when it falls back
- * to horizontal bars — so they must be derivable from the container width alone, otherwise the
- * chart could never switch back to vertical bars when the container grows.
- *
- * victory-native lays the x range out as `[padding.left + yLabelWidth + yLabelOffset, width - padding.right]`.
- * We draw the y-axis labels ourselves and pass no `font` to the axis, so its `yLabelWidth` is 0
- * and the gutter we reserve for our labels is part of `paddingLeft` instead.
- */
-function getVerticalBarPlotBounds(chartWidth: number, paddingLeft: number): {left: number; right: number; width: number} {
-    const left = paddingLeft + VictoryTheme.axis.labelGap;
-    const right = Math.max(left, chartWidth - VictoryTheme.axis.padding.right);
-    return {left, right, width: right - left};
-}
-
-/**
- * Builds the path of a single horizontal bar, extending along the x-axis from `xZero` to `x`
- * and centered on `y`. victory-native's `Bar` only draws vertical bars and its `BarGroup`
- * paints a whole series in one color, so per-category colored horizontal bars need their own path.
- */
-function createHorizontalBarPath(x: number, y: number, xZero: number, thickness: number, cornerRadius: number): SkPath {
-    const path = Skia.Path.Make();
-    const rect = Skia.XYWHRect(Math.min(x, xZero), y - thickness / 2, Math.abs(x - xZero), thickness);
-    path.addRRect(Skia.RRectXY(rect, cornerRadius, cornerRadius));
-    return path;
-}
-
-/** Returns the fill color of the bar at `index`. That is `color` when given, otherwise a distinct palette color per bar. */
-function getBarColor(color: string | undefined, index: number): string {
-    return color ?? VictoryTheme.colors.getColor(index);
 }
 
 export {
@@ -512,10 +559,12 @@ export {
     isCursorInSkewedLabel,
     isCursorOverChartLabel,
     getNiceYAxisTicks,
+    getNiceValueDomain,
+    getNiceValueTicks,
     getYAxisLabelWidth,
+    getHorizontalChartHeight,
     getVerticalBarPlotBounds,
-    createHorizontalBarPath,
-    getBarColor,
+    getVerticalBarLabelLayoutInputs,
 };
 
 export type {ChartLabelHitTestParams};
