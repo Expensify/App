@@ -3018,7 +3018,7 @@ ${amount} voor ${merchant} - ${date}`,
             `${memberName} bevindt zich al in een goedkeuringsworkflow die indient bij ${approverName}. Door het lid hier toe te voegen, wordt het naar deze workflow verplaatst.`,
         moveEveryoneToThisWorkflowTitle: 'Verplaats iedereen naar deze workflow',
         moveEveryoneToThisWorkflowPrompt:
-            'Je staat op het punt om iedereen naar deze goedkeuringsworkflow te verplaatsen. Dit verwijdert alle andere goedkeuringsworkflows en verplaatst iedereen naar deze. Deze actie kan niet ongedaan worden gemaakt.',
+            'Je staat op het punt om iedereen naar deze nieuwe goedkeuringsworkflow te verplaatsen. Als je deze opslaat, worden alle andere goedkeuringsworkflows verwijderd. Deze actie kan niet ongedaan worden gemaakt.',
     },
     workflowsApproverPage: {
         genericErrorMessage: 'De fiatteur kon niet worden gewijzigd. Probeer het opnieuw of neem contact op met support.',
@@ -4752,6 +4752,12 @@ ${amount} voor ${merchant} - ${date}`,
             settlementFrequency: 'Uitbetalingsfrequentie',
             setAsDefault: 'Instellen als standaardwerkruimte',
             defaultNote: `Bonnetjes die naar ${CONST.EMAIL.RECEIPTS} worden gestuurd, verschijnen in deze workspace.`,
+            archive: 'Werkruimte archiveren',
+            archiveConfirmation: 'Weet je zeker dat je deze werkruimte wilt archiveren?',
+            archiveWithThirdPartyCardsConfirmation:
+                'Weet je zeker dat je deze werkruimte wilt archiveren? Hiermee worden alle creditcards van gebruikers losgekoppeld en worden alle niet-ingediende kaartuitgaven permanent verwijderd.',
+            archiveWithExpensifyCardsConfirmation:
+                'Weet je zeker dat je deze werkruimte wilt archiveren? Hiermee worden alle Expensify Card-limieten op $0 gezet en worden nieuwe aankooppogingen automatisch geweigerd.',
             deleteWorkspaceTitle: (workspaceName: string) => `${workspaceName} verwijderen?`,
             deleteConfirmation: 'Weet je zeker dat je deze werkruimte wilt verwijderen?',
             deleteWithCardsConfirmation: 'Weet je zeker dat je deze werkruimte wilt verwijderen? Hiermee worden alle kaartfeeds en toegewezen kaarten verwijderd.',
@@ -9995,6 +10001,12 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         mergeReports: {
             title: 'Rapporten samenvoegen',
             description: 'Selecteer het rapport dat je wilt behouden. Alle uitgaven worden daarheen verplaatst en de andere rapporten worden verwijderd.',
+        },
+        saveEdits: {
+            title: 'Wijzigingen opslaan',
+            prompt: ({name}: {name: string}) => `Wijzigingen aan "${name}" bijwerken of een nieuwe aanmaken?`,
+            createNew: 'Nieuw aanmaken',
+            updateExisting: 'Bestaande bijwerken',
         },
     },
     genericErrorPage: {
