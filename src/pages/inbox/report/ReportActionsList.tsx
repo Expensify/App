@@ -222,7 +222,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         ? sortedAllReportActions?.find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY && action.created >= latestResolvedSupportTicketAction.created)
         : undefined;
 
-    const renderedVisibleReportActions = (() => {
+    const visibleReportActions = (() => {
         if (!draftReportAction) {
             return sortedVisibleReportActions;
         }
@@ -253,10 +253,22 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         const visibleReportActionsWithDraft = [...sortedVisibleReportActions];
         visibleReportActionsWithDraft.push(draftReportAction);
         return visibleReportActionsWithDraft;
-    })().filter(
-        (action) =>
-            action.actionName !== CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY || (!shouldHideSupportTicketSurvey && action.reportActionID === latestSupportTicketSurveyAction?.reportActionID),
-    );
+    })();
+
+    const shouldFilterSupportTicketSurveys =
+        isSupportTicket(report) &&
+        visibleReportActions.some(
+            (action) =>
+                action.actionName === CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY &&
+                (shouldHideSupportTicketSurvey || action.reportActionID !== latestSupportTicketSurveyAction?.reportActionID),
+        );
+    const renderedVisibleReportActions = shouldFilterSupportTicketSurveys
+        ? visibleReportActions.filter(
+              (action) =>
+                  action.actionName !== CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY ||
+                  (!shouldHideSupportTicketSurvey && action.reportActionID === latestSupportTicketSurveyAction?.reportActionID),
+          )
+        : visibleReportActions;
 
     const draftMessageHTML = draftReportAction ? getReportActionMessage(draftReportAction)?.html : undefined;
     const draftReportActionID = draftReportAction?.reportActionID;
