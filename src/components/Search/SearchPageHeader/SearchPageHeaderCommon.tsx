@@ -11,10 +11,9 @@ import getSearchPageHeaderTitle from './getSearchPageHeaderTitle';
 
 type SearchPageHeaderCommonProps = {
     queryJSONType: SearchDataTypes;
-    shouldShowLoadingBar?: boolean;
 };
 
-function SearchPageHeaderCommon({queryJSONType, shouldShowLoadingBar}: SearchPageHeaderCommonProps) {
+function SearchPageHeaderCommon({queryJSONType}: SearchPageHeaderCommonProps) {
     const {translate} = useLocalize();
     const typeMenuSections = useSearchTypeMenuSections();
     const {currentSearchKey} = useSearchQueryContext();
@@ -24,7 +23,6 @@ function SearchPageHeaderCommon({queryJSONType, shouldShowLoadingBar}: SearchPag
 
     return (
         <TopBar
-            shouldShowLoadingBar={shouldShowLoadingBar}
             breadcrumbLabel={title}
             shouldDisplayHelpButton
         />

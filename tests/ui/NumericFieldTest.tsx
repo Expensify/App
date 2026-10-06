@@ -26,7 +26,7 @@ type NumericFieldProps = React.ComponentProps<typeof NumericField>;
 
 function ContextReadout() {
     const {value, allowNegative, errorText} = useNumericFieldState();
-    const {setNumber} = useNumericFieldActions();
+    const {setNumber, toggleSign} = useNumericFieldActions();
 
     return (
         <View>
@@ -48,6 +48,14 @@ function ContextReadout() {
                 onPress={() => {
                     setNumber('7');
                     setNumber('99');
+                }}
+            />
+            <PressableWithFeedback
+                accessibilityLabel="Toggle sign"
+                accessibilityRole="button"
+                testID="ctx-toggleSign"
+                onPress={() => {
+                    toggleSign();
                 }}
             />
         </View>
@@ -219,6 +227,37 @@ describe('NumericField', () => {
             expect(onInputChange).toHaveBeenNthCalledWith(1, '7');
             expect(onInputChange).toHaveBeenNthCalledWith(2, '99');
             expect(screen.getByTestId('ctx-value')).toHaveTextContent('99');
+        });
+
+        it('does nothing when toggleSign is called and allowNegative is false', () => {
+            // Given a NumericField with negative input disabled
+            renderNumericField({value: '10', allowNegative: false});
+
+            // When toggleSign is called
+            fireEvent.press(screen.getByTestId('ctx-toggleSign'));
+
+            // Then the value remains unchanged and onInputChange is not called
+            expect(screen.getByTestId('ctx-value')).toHaveTextContent('10');
+            expect(onInputChange).not.toHaveBeenCalled();
+        });
+
+        it('toggles sign when toggleSign is called and allowNegative is true', () => {
+            // Given a NumericField with negative input enabled
+            renderNumericField({value: '10', allowNegative: true});
+
+            // When toggleSign is called
+            fireEvent.press(screen.getByTestId('ctx-toggleSign'));
+
+            // Then the value is negated and onInputChange is notified
+            expect(screen.getByTestId('ctx-value')).toHaveTextContent('-10');
+            expect(onInputChange).toHaveBeenCalledWith('-10');
+
+            // When toggleSign is called again
+            fireEvent.press(screen.getByTestId('ctx-toggleSign'));
+
+            // Then the value becomes positive again
+            expect(screen.getByTestId('ctx-value')).toHaveTextContent('10');
+            expect(onInputChange).toHaveBeenCalledWith('10');
         });
     });
 });

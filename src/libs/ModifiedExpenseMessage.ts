@@ -27,7 +27,8 @@ import {
     isPolicyAdmin,
     isXeroActiveMatchingSource,
 } from './PolicyUtils';
-import {getOriginalMessage, isModifiedExpenseAction} from './ReportActionsUtils';
+import {getOriginalMessage} from './ReportActionMessageUtils';
+import {isModifiedExpenseAction} from './ReportActionTypeGuards';
 // This cycle import is safe because ReportNameUtils was extracted from ReportUtils to separate report name computation logic.
 // The functions imported here are pure utility functions that don't create initialization-time dependencies.
 // ReportNameUtils imports helper functions from ReportUtils, and ReportUtils imports name generation functions from ReportNameUtils.
@@ -318,17 +319,25 @@ function getForReportAction({
     const changeFragments: string[] = [];
 
     const isReportActionOriginalMessageAnObject = reportActionOriginalMessage && typeof reportActionOriginalMessage === 'object';
-    const hasModifiedAmount =
-        isReportActionOriginalMessageAnObject && 'oldCurrency' in reportActionOriginalMessage && 'amount' in reportActionOriginalMessage && 'currency' in reportActionOriginalMessage;
+
+    if (isReportActionOriginalMessageAnObject && reportActionOriginalMessage.receiptAdded) {
+        return translate('iou.addedReceipt');
+    }
+
+    // oldCurrency isn't required here: confirming a failed-scan placeholder amount (e.g. re-entering 0 to clear the
+    // scan error) has no real previous value, so neither the optimistic message nor the server's confirmed action
+    // include oldAmount/oldCurrency for it. Falling through to hasModifiedAmount=false would otherwise hide the
+    // amount entirely and render the generic "changed the expense" fallback instead of "set the amount to X".
+    const hasModifiedAmount = isReportActionOriginalMessageAnObject && 'amount' in reportActionOriginalMessage && 'currency' in reportActionOriginalMessage;
 
     const hasModifiedMerchant = isReportActionOriginalMessageAnObject && 'oldMerchant' in reportActionOriginalMessage && 'merchant' in reportActionOriginalMessage;
 
     if (hasModifiedAmount) {
-        const oldCurrency = reportActionOriginalMessage?.oldCurrency;
+        const currency = reportActionOriginalMessage?.currency;
+        const oldCurrency = reportActionOriginalMessage?.oldCurrency ?? currency;
         const oldAmountValue = reportActionOriginalMessage?.oldAmount ?? 0;
         const oldAmount = convertToDisplayString(oldAmountValue, oldCurrency);
 
-        const currency = reportActionOriginalMessage?.currency;
         const amount = convertToDisplayString(reportActionOriginalMessage?.amount ?? 0, currency);
 
         // Only Distance edits should modify amount and merchant (which stores distance) in a single transaction.

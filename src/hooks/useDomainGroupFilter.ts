@@ -1,7 +1,7 @@
 import type {FilterConfig, IsItemInFilterCallback} from '@components/Table';
 import type {DomainMemberRowData, DomainMembersTableFilterKey} from '@components/Tables/DomainMembersTable';
 
-import {sortAlphabetically} from '@libs/OptionsListUtils';
+import sortAlphabetically from '@libs/sortAlphabetically';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

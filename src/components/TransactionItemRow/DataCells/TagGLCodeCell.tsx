@@ -1,7 +1,7 @@
+import type {EditableProps} from '@components/EditableCell';
+import {EditableCell, usePopoverEditState} from '@components/EditableCell';
 import TagPickerModal from '@components/TagPicker/TagPickerModal';
 import TextWithTooltip from '@components/TextWithTooltip';
-import type {EditableProps} from '@components/TransactionItemRow/EditableCell';
-import {EditableCell, usePopoverEditState} from '@components/TransactionItemRow/EditableCell';
 
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';

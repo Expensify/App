@@ -25,7 +25,7 @@ jest.mock('@hooks/useThemeStyles', () => ({
 const renderBackdropColor = ({isFocusVisible, isHovered}: {isFocusVisible: boolean; isHovered: boolean}) =>
     renderHook(() => useListItemBackdropColor(), {
         wrapper: ({children}) => (
-            <ListItemContext.Provider value={{isFocusVisible, shouldShowTooltip: false, isDisabled: false, isInteractive: true, shouldDisableAccessibleGrouping: false}}>
+            <ListItemContext.Provider value={{isFocused: false, isFocusVisible, shouldShowTooltip: false, isDisabled: false, isInteractive: true, shouldDisableAccessibleGrouping: false}}>
                 <ListItemHoverContext.Provider value={isHovered}>{children}</ListItemHoverContext.Provider>
             </ListItemContext.Provider>
         ),

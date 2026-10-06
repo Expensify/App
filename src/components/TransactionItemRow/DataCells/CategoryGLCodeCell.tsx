@@ -1,8 +1,8 @@
 import CategoryPickerModal from '@components/CategoryPicker/CategoryPickerModal';
+import {EditableCell, usePopoverEditState} from '@components/EditableCell';
+import type {EditableProps} from '@components/EditableCell';
 import type {ListItem} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
-import {EditableCell, usePopoverEditState} from '@components/TransactionItemRow/EditableCell';
-import type {EditableProps} from '@components/TransactionItemRow/EditableCell';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
