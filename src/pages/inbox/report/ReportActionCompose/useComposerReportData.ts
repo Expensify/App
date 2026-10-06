@@ -2,6 +2,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
+import useSingleExpenseReportView from '@hooks/useSingleExpenseReportView';
 
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, isSentMoneyReportAction} from '@libs/ReportActionsUtils';
@@ -22,6 +23,7 @@ function useComposerReportData(reportID: string): ComposerReportData {
     const {isOffline} = useNetwork();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
+    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView();
     const {reportActions: unfilteredReportActions} = usePaginatedReportActions(report?.reportID);
     const filteredReportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
     const allReportTransactions = useReportTransactionsCollection(reportID);
@@ -30,7 +32,8 @@ function useComposerReportData(reportID: string): ComposerReportData {
     const reportTransactionIDs = visibleTransactions?.map((t) => t.transactionID);
     const isSentMoneyReport = filteredReportActions.some((action) => isSentMoneyReportAction(action));
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, filteredReportActions, isOffline, reportTransactionIDs);
-    const effectiveTransactionThreadReportID = isSentMoneyReport ? undefined : transactionThreadReportID;
+    // In the table view the thread's actions aren't shown in the report, so comments go to the report itself
+    const effectiveTransactionThreadReportID = isSentMoneyReport || shouldUseTableViewForSingleExpense ? undefined : transactionThreadReportID;
 
     return {report, filteredReportActions, effectiveTransactionThreadReportID};
 }

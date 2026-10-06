@@ -18,6 +18,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSaveSortedReportIDs from '@hooks/useSaveSortedReportIDs';
 import useSearchAutoRefetch from '@hooks/useSearchAutoRefetch';
 import useSearchShouldCalculateTotals, {getSearchRequestOffsetForMissingAllMatchingCount} from '@hooks/useSearchShouldCalculateTotals';
+import useSingleExpenseReportView from '@hooks/useSingleExpenseReportView';
 import useStableArrayReference from '@hooks/useStableArrayReference';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -180,6 +181,7 @@ function Search({
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
@@ -750,7 +752,8 @@ function Search({
                     }
                 }
 
-                if (item.transactions.length > 1) {
+                // A single-expense report in the table view opens at the same width as a multi-expense report
+                if (item.transactions.length > 1 || (shouldUseTableViewForSingleExpense && item.transactions.length === 1)) {
                     markReportRHPWidth(reportID, 'super-wide');
                 } else {
                     unmarkReportRHPWidth(reportID, 'super-wide');
@@ -838,6 +841,7 @@ function Search({
             getCurrencyDecimals,
             conciergeChat,
             delegateAccountID,
+            shouldUseTableViewForSingleExpense,
         ],
     );
 

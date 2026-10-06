@@ -8,6 +8,7 @@ import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePaginatedReportActions from './usePaginatedReportActions';
 import useReportTransactionsCollection from './useReportTransactionsCollection';
+import useSingleExpenseReportView from './useSingleExpenseReportView';
 
 /**
  * Derives the single-transaction thread report IDs and filtered actions for a money request report.
@@ -25,10 +26,12 @@ function useTransactionThreadReportID(reportID: string | undefined) {
     const nonDeletedTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true);
     const visibleTransactions = nonDeletedTransactions?.filter((t) => isOffline || t.pendingAction !== 'delete');
     const reportTransactionIDs = visibleTransactions?.map((t) => t.transactionID);
+    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView();
 
     const transactionThreadReportID = getOneTransactionThreadReportID(moneyRequestReport, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
     const isSentMoneyReport = reportActions.some((action) => isSentMoneyReportAction(action));
-    const effectiveTransactionThreadReportID = isSentMoneyReport ? undefined : transactionThreadReportID;
+    // In the table view the thread's actions aren't shown in the report, so comments go to the report itself
+    const effectiveTransactionThreadReportID = isSentMoneyReport || shouldUseTableViewForSingleExpense ? undefined : transactionThreadReportID;
 
     return {
         transactionThreadReportID,
