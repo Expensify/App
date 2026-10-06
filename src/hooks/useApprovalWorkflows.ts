@@ -1,3 +1,7 @@
+/**
+ * Hook that derives a workspace's approval workflows from the source of truth and reports whether the workspace
+ * actually has a custom (advanced) approval workflow, so callers don't trust the stale `policy.approvalMode` flag.
+ */
 import {isHRAdvancedMode} from '@libs/merge/HRUtils';
 import {isControlPolicy} from '@libs/PolicyUtils';
 import {convertApprovalWorkflowRulesToWorkflows, convertPolicyEmployeesToApprovalWorkflows, filterRulesForPolicy, getApprovalWorkflowRulesForPolicy} from '@libs/WorkflowUtils';
