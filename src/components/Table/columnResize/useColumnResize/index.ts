@@ -17,6 +17,20 @@ import type {ColumnResizeController, ColumnResizeHandleDOMProps, UseColumnResize
 import useLiveColumnWidths from './useLiveColumnWidths';
 import useResizeIndicator from './useResizeIndicator';
 
+/** A DOM `div` style, which the React Native style system can't type */
+function getHandleStyle(columnGap: number): React.CSSProperties {
+    return {
+        position: 'absolute',
+        top: 0,
+        bottom: 0,
+        right: -(columnGap / 2 + CONST.TABLES.COLUMN_RESIZE.HANDLE_HIT_WIDTH / 2),
+        width: CONST.TABLES.COLUMN_RESIZE.HANDLE_HIT_WIDTH,
+        cursor: CONST.TABLES.COLUMN_RESIZE.CURSOR,
+        // Otherwise a touch drag on the handle is taken over by the table's own horizontal scrolling.
+        touchAction: 'none',
+    };
+}
+
 type Drag = {
     columnKey: string;
 
@@ -113,9 +127,18 @@ function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnW
     };
 
     // Unmounting mid-drag would otherwise leave the resize cursor on the document and a dangling drag.
-    useEffect(() => resetDrag, []);
+    useEffect(
+        () => () => {
+            if (!dragRef.current) {
+                return;
+            }
 
-    if (!columnResizingID || resizableColumnKeys.length === 0) {
+            resetDrag();
+        },
+        [],
+    );
+
+    if (!columnResizingID) {
         return undefined;
     }
 
@@ -125,17 +148,7 @@ function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnW
         }
 
         return {
-            style: {
-                position: 'absolute',
-                top: 0,
-                bottom: 0,
-                // Centred in the gap after the column. There's always a next column since the last one is headless.
-                right: -(columnGap / 2 + CONST.TABLES.COLUMN_RESIZE.HANDLE_HIT_WIDTH / 2),
-                width: CONST.TABLES.COLUMN_RESIZE.HANDLE_HIT_WIDTH,
-                cursor: CONST.TABLES.COLUMN_RESIZE.CURSOR,
-                // Otherwise a touch drag on the handle is taken over by the table's own horizontal scrolling.
-                touchAction: 'none',
-            },
+            style: getHandleStyle(columnGap),
             onPointerDown: (event) => handlePointerDown(columnKey, event),
             onPointerMove: handlePointerMove,
             onPointerUp: handlePointerUp,

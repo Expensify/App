@@ -92,6 +92,19 @@ describe('useColumnResize', () => {
         expect(result.current).toBeUndefined();
     });
 
+    it('returns a controller before the columns are measured', () => {
+        // Given a resizable table on its first render, before layout, when no column is resizable yet
+        const params: UseColumnResizeParams = {columnResizingID: COLUMN_RESIZING_ID, resizableColumnKeys: [], resolvedColumnWidths: {}, columnGap: 12};
+
+        // When the hook runs
+        const {result} = renderHook(() => useColumnResize(params));
+
+        // Then it still hands back a controller, so the scope element renders from the start and the header and list
+        // don't remount once the table is measured, while no column gets a handle yet
+        expect(result.current).toBeDefined();
+        expect(result.current?.getHandleProps(NAME_COLUMN_KEY)).toBeUndefined();
+    });
+
     it('paints a drag onto the scope and stores the dragged column on release', () => {
         // Given a 200px column with two 200px columns after it
         const {handleElement, getHandleProps, readWidth} = renderColumnResize();
@@ -214,6 +227,18 @@ describe('useColumnResize', () => {
 
         // Then the resize cursor doesn't stay stuck on the page
         expect(document.body.style.cursor).toBe('');
+    });
+
+    it('leaves the cursor alone when unmounted with no drag', () => {
+        // Given a cursor some other part of the page put on the body, and a table that isn't being dragged
+        document.body.style.cursor = 'grabbing';
+        const columnResize = renderColumnResize();
+
+        // When the table unmounts
+        columnResize.unmount();
+
+        // Then the cursor is untouched, since only a drag of this table set it
+        expect(document.body.style.cursor).toBe('grabbing');
     });
 
     it('clears the painted widths once the stored width renders', () => {

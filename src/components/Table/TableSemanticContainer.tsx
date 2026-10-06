@@ -1,5 +1,6 @@
 import ScrollView from '@components/ScrollView';
 
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {canMeasureText} from '@libs/measureTextWidth';
@@ -10,7 +11,6 @@ import React from 'react';
 import {View} from 'react-native';
 
 import ColumnResizeScope from './columnResize/ColumnResizeScope';
-import {getColumnsWidthStyle} from './columnResize/columnWidthExpressions';
 import {getTableContainerAccessibilityProps} from './tableAccessibility';
 import TableBody from './TableBody';
 import {useTableContext} from './TableContext';
@@ -90,6 +90,7 @@ function TableSemanticContainer({
     children,
 }: TableSemanticContainerProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {columnResize} = useTableContext();
 
     const shouldWrapTableRun = isEnabled || (shouldUseDynamicColumns && canMeasureText()) || onLayout !== undefined || scrollWidth !== undefined || !!columnResize;
@@ -143,7 +144,7 @@ function TableSemanticContainer({
                         horizontal
                         showsHorizontalScrollIndicator
                         style={[styles.flex1, styles.mnh0]}
-                        contentContainerStyle={getColumnsWidthStyle(scrollWidth)}
+                        contentContainerStyle={StyleUtils.getWidthStyle(scrollWidth)}
                         onLayout={onLayout}
                     >
                         {rowGroupContainer}

@@ -6,6 +6,7 @@ import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -22,7 +23,7 @@ import type {TableColumn, TableData} from './types';
 
 import {rendersColumnHeaderInListHeader} from './buildTableListData';
 import ColumnResizeHandle from './columnResize/ColumnResizeHandle';
-import {TABLE_ROW_DATA_SET, getColumnsWidthStyle} from './columnResize/columnWidthExpressions';
+import {TABLE_ROW_DATA_SET} from './columnResize/columnWidthExpressions';
 import getGridTemplateColumns from './getGridTemplateColumns';
 import {getColumnHeaderAccessibilityProps, getRowAccessibilityProps, shouldUseTableSemantics} from './tableAccessibility';
 import {useTableContext} from './TableContext';
@@ -70,6 +71,7 @@ type TableHeaderProps = ViewProps & {
 function TableHeader<DataType extends TableData, ColumnKey extends string = string>({style, isStickyListHeader = false, isAccessibilityHidden = false, ...props}: TableHeaderProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
@@ -84,6 +86,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         isMobileSelectionEnabled,
         shouldEnableSelectionInNarrowPaneModal,
         dynamicGridTemplateColumns,
+        scrollWidth,
         rowWidth,
         columnResize,
         tableListMetadata,
@@ -131,7 +134,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                 styles.pv2,
                 styles.mh5,
                 // Same expression as the rows, so headings stay aligned with their cells.
-                !!rowWidth && getColumnsWidthStyle(rowWidth),
+                !!rowWidth && StyleUtils.getWidthStyle(rowWidth),
                 styles.highlightBG,
                 styles.borderBottom,
                 styles.tableTopRadius,
@@ -216,9 +219,10 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         </View>
     );
 
-    // In the list header rather than FlashList's sticky overlay, so it scrolls sideways with the columns. The inner row carries the width.
+    // In the list header rather than FlashList's sticky overlay, so it scrolls sideways with the columns. Resizable tables
+    // size the inner row. The rest need the wrapper at the scroll width, or the background and bottom border fall short of the columns.
     if (rendersColumnHeaderInListHeader(tableListMetadata)) {
-        return <View style={styles.appBG}>{header}</View>;
+        return <View style={[styles.appBG, !rowWidth && typeof scrollWidth === 'number' && StyleUtils.getWidthStyle(scrollWidth)]}>{header}</View>;
     }
 
     if (!isStickyListHeader) {

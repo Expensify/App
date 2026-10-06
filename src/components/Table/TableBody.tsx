@@ -28,7 +28,6 @@ import {
     rendersColumnHeaderAsStickyRow,
     rendersColumnHeaderInListHeader,
 } from './buildTableListData';
-import {getColumnsMinWidthStyle} from './columnResize/columnWidthExpressions';
 import {getRowGroupAccessibilityProps, getTableContainerAccessibilityProps, getVirtualizedRowSemanticID, shouldUseTableSemantics} from './tableAccessibility';
 import {TableRowSemanticIDContext, useTableContext} from './TableContext';
 
@@ -477,7 +476,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                     tableBodyContentContainerStyle,
                     contentContainerStyle,
                     // Absolutely positioned rows don't widen the scroller's content, so hold the scroll extent open.
-                    isColumnScrollEnabled && getColumnsMinWidthStyle(scrollWidth),
+                    isColumnScrollEnabled && StyleUtils.getMinimumWidth(scrollWidth),
                     shouldRenderEmptyStateInList && styles.flexGrow1,
                     shouldUseNarrowTableLayout &&
                         typeof contentMinHeight === 'number' &&

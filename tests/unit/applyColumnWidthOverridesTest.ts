@@ -33,13 +33,13 @@ describe('applyColumnWidthOverrides', () => {
 
     it('rounds a stored width to whole px', () => {
         // Given a stored width with a fraction
-        const columns = [contentColumn('name')];
+        const columns = [contentColumn('name'), contentColumn('role')];
 
         // When it is applied
-        const {columnWidths} = applyColumnWidthOverrides({columns, baseColumnWidths: {name: 200}, columnWidthOverrides: {name: 240.6}});
+        const {columnWidths} = applyColumnWidthOverrides({columns, baseColumnWidths: {name: 200, role: 120}, columnWidthOverrides: {name: 240.6}});
 
         // Then the column gets whole px, so its grid track never lands on a sub-pixel
-        expect(columnWidths).toEqual({name: 241});
+        expect(columnWidths).toEqual({name: 241, role: 120});
     });
 
     it('ignores a width stored for a column that declared its own', () => {

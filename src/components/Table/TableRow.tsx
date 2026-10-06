@@ -9,6 +9,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -25,7 +26,7 @@ import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import {rendersColumnHeader} from './buildTableListData';
-import {TABLE_ROW_DATA_SET, getColumnsWidthStyle} from './columnResize/columnWidthExpressions';
+import {TABLE_ROW_DATA_SET} from './columnResize/columnWidthExpressions';
 import getGridTemplateColumns from './getGridTemplateColumns';
 import {assignCellColumnIndexes, getCellAccessibilityProps, getRowAccessibilityProps, shouldUseTableSemantics} from './tableAccessibility';
 import {useTableContext, useTableRowSemanticID} from './TableContext';
@@ -80,6 +81,7 @@ export default function TableRow({
 }: TableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
@@ -170,7 +172,7 @@ export default function TableRow({
     const tableRowPressableStyles = [
         styles.mh5,
         // The list sizes rows from a measurement, so without this the background wouldn't follow a drag.
-        !!rowWidth && getColumnsWidthStyle(rowWidth),
+        !!rowWidth && StyleUtils.getWidthStyle(rowWidth),
         isGroupHeader ? styles.hoveredComponentBG : styles.highlightBG,
         styles.userSelectNone,
         !isFirstRow && styles.borderTop,

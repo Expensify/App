@@ -1,7 +1,5 @@
 /** CSS custom properties resizable tables read widths from, so a drag repaints without a React render. */
 
-import type {DimensionValue, ViewStyle} from 'react-native';
-
 /** Prefix of the custom property a resizable column reads its width from. */
 const COLUMN_WIDTH_VARIABLE_PREFIX = '--table-column-width-';
 
@@ -43,20 +41,6 @@ function getColumnsWidthExpression(columnWidthValues: string[], chromeWidth: num
     return `max(${floor}, calc(${columnWidthValues.join(' + ')} + ${chromeWidth}px))`;
 }
 
-function toDimensionValue(value: number | string): DimensionValue {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- `DimensionValue` can't type arbitrary CSS expressions like `calc()`
-    return value as DimensionValue;
-}
-
-function getColumnsWidthStyle(width: number | string): ViewStyle {
-    return {width: toDimensionValue(width)};
-}
-
-/** Holds a scroller's content open at the columns' width. */
-function getColumnsMinWidthStyle(minWidth: number | string): ViewStyle {
-    return {minWidth: toDimensionValue(minWidth)};
-}
-
 export {
     RESIZE_INDICATOR_HEIGHT_VARIABLE,
     RESIZE_INDICATOR_OPACITY_VARIABLE,
@@ -65,8 +49,6 @@ export {
     TABLE_ROW_SELECTOR,
     getColumnWidthValue,
     getColumnWidthVariableName,
-    getColumnsMinWidthStyle,
     getColumnsWidthExpression,
-    getColumnsWidthStyle,
     getGrowableColumnTrack,
 };
