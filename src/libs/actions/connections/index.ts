@@ -3,7 +3,7 @@ import type {RemovePolicyConnectionParams, SyncPolicyToQuickbooksDesktopParams, 
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import {isMergeConnectionName} from '@libs/merge/MergeUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {isCollectPolicy} from '@libs/PolicyUtils/isCollectPolicy';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -84,7 +84,7 @@ function removePolicyConnection(policy: Policy, connectionName: PolicyConnection
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
     const supportedConnections: PolicyConnectionName[] = [CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.POLICY.CONNECTIONS.NAME.XERO];
 
-    if (PolicyUtils.isCollectPolicy(policy) && supportedConnections.includes(connectionName)) {
+    if (isCollectPolicy(policy) && supportedConnections.includes(connectionName)) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,

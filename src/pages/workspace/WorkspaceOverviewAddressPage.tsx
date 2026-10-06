@@ -6,7 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getWorkspaceAddressStreetLines} from '@libs/WorkspacesSettingsUtils';
+import {getWorkspaceAddressStreetLines} from '@libs/WorkspaceDisplayUtils';
 
 import AddressPage from '@pages/AddressPage';
 

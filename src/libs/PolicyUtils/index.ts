@@ -5,7 +5,6 @@ import type {SelectorType} from '@components/SelectionScreen';
 import {isQBORefreshTokenExpiringSoon} from '@libs/AccountingUtils';
 import {getBankAccountFromID} from '@libs/actions/BankAccounts';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from '@libs/actions/connections';
-import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {getApiRoot} from '@libs/ApiUtils';
 import {getCategoryApproverRule, hasAnyCategoryRules} from '@libs/CategoryUtils';
@@ -52,6 +51,8 @@ import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
 import {Str} from 'expensify-common';
+
+import {isCollectPolicy} from './isCollectPolicy';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 
@@ -640,6 +641,11 @@ function getRateDisplayValue(value: number, toLocaleDigit: (arg: string) => stri
 
 function getUnitRateValue(toLocaleDigit: (arg: string) => string, customUnitRate?: Partial<Rate>, withDecimals?: boolean) {
     return getRateDisplayValue((customUnitRate?.rate ?? 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET, toLocaleDigit, withDecimals);
+}
+
+function shouldShowQBOReimbursableExportDestinationAccountError(policy: OnyxEntry<Policy>): boolean {
+    const qboConfig = policy?.connections?.quickbooksOnline?.config;
+    return isPolicyAdmin(policy) && !!qboConfig?.reimbursableExpensesExportDestination && !qboConfig.reimbursableExpensesAccount;
 }
 
 /**
@@ -1383,10 +1389,6 @@ function canPolicyAccessFeature(policy: OnyxEntry<Policy>, featureName: PolicyFe
         return isControlPolicy(policy);
     }
     return true;
-}
-
-function isCollectPolicy(policy: OnyxEntry<Policy>): boolean {
-    return policy?.type === CONST.POLICY.TYPE.TEAM;
 }
 
 /**
@@ -2766,6 +2768,7 @@ function isTaxCodeCustomized(taxCode: string | undefined, policy: OnyxEntry<Poli
 }
 
 export {
+    shouldShowQBOReimbursableExportDestinationAccountError,
     canDisableOrDeleteTaxRate,
     canPolicyAccessFeature,
     getActivePolicies,
@@ -2884,7 +2887,6 @@ export {
     getReimburserAccountID,
     isControlPolicy,
     isAttendeeTrackingEnabled,
-    isCollectPolicy,
     getCurrentSageIntacctEntityName,
     hasOnlyPersonalPolicies,
     getCurrentTaxID,
@@ -2960,6 +2962,7 @@ export {
 // while this module is still loading, which breaks tests that spread `jest.requireActual('@libs/PolicyUtils')`
 // from inside an import cycle.
 export * from './tag';
+export * from './isCollectPolicy';
 export * from './vendor';
 
 export type {MemberEmailsToAccountIDs, PolicyFeature, PolicyFeatureAccess};

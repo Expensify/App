@@ -6,15 +6,13 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
-import {isPolicyAdmin} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Connections, IntuitEnterpriseSuiteEntity, QBOConnectionConfig} from '@src/types/onyx/Policy';
-import type Policy from '@src/types/onyx/Policy';
 
 import type {CONST as COMMON_CONST} from 'expensify-common';
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
@@ -93,11 +91,6 @@ function selectIntuitEnterpriseSuiteEntity(policyID: string, entity: IntuitEnter
     };
 
     API.write(WRITE_COMMANDS.SELECT_INTUIT_ENTERPRISE_SUITE_ENTITY, params, {optimisticData, successData, failureData});
-}
-
-function shouldShowQBOReimbursableExportDestinationAccountError(policy: OnyxEntry<Policy>): boolean {
-    const qboConfig = policy?.connections?.quickbooksOnline?.config;
-    return isPolicyAdmin(policy) && !!qboConfig?.reimbursableExpensesExportDestination && !qboConfig.reimbursableExpensesAccount;
 }
 
 function buildOnyxDataForMultipleQuickbooksConfigurations<TConfigUpdate extends Partial<Connections['quickbooksOnline']['config']>>(
@@ -625,7 +618,6 @@ function updateQuickbooksOnlineTravelBillingPayableAccount(policyID: string, acc
 }
 
 export {
-    shouldShowQBOReimbursableExportDestinationAccountError,
     getQuickbooksOnlineSetupLink,
     selectIntuitEnterpriseSuiteEntity,
     updateQuickbooksOnlineEnableNewCategories,

@@ -1,29 +1,25 @@
-import {translate} from '@libs/Localize';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 
 import {openApp} from '@userActions/App';
-import type {Video} from '@userActions/Report';
 
 import CONST from '@src/CONST';
-import IntlStore from '@src/languages/IntlStore';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import type {Account, Locale, Onboarding} from '@src/types/onyx';
 
 import type {NavigationState, PartialState} from '@react-navigation/native';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 
 import {getStateFromPath} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 
-type OnboardingCompanySize = ValueOf<typeof CONST.ONBOARDING_COMPANY_SIZE>;
-type OnboardingPurpose = ValueOf<typeof CONST.ONBOARDING_CHOICES>;
+import type {OnboardingCompanySize, OnboardingMessage, OnboardingPurpose, OnboardingTask, OnboardingTaskLinks} from './buildOnboardingMessages';
+
+import buildOnboardingMessages from './buildOnboardingMessages';
 
 type GetOnboardingInitialPathParamsType = {
     isUserFromPublicDomain: boolean;
@@ -36,41 +32,6 @@ type GetOnboardingInitialPathParamsType = {
     isAccountValidated?: boolean;
     /** When set, startOnboardingFlow navigates here directly instead of re-deriving via getOnboardingInitialPath. */
     resumePath?: string;
-};
-
-type OnboardingTaskLinks = Partial<{
-    onboardingCompanySize: OnboardingCompanySize;
-    integrationName: string;
-    workspaceSettingsLink: string;
-    workspaceCategoriesLink: string;
-    workspaceTagsLink: string;
-    workspaceMoreFeaturesLink: string;
-    workspaceMembersLink: string;
-    workspaceAccountingLink: string;
-    workspaceConfirmationLink: string;
-    testDriveURL: string;
-    corporateCardLink: string;
-}>;
-
-type OnboardingTask = {
-    type: ValueOf<typeof CONST.ONBOARDING_TASK_TYPE>;
-    autoCompleted: boolean;
-    title: string | ((params: OnboardingTaskLinks) => string);
-    description: string | ((params: OnboardingTaskLinks) => string);
-};
-
-type OnboardingMessage = {
-    /** Text message that will be displayed first */
-    message: string | ((params: OnboardingTaskLinks) => string);
-
-    /** Video object to be displayed after initial description message */
-    video?: Video;
-
-    /** List of tasks connected with the message, they will have a checkbox and a separate report for more information */
-    tasks: OnboardingTask[];
-
-    /** Type of task described in a string format */
-    type?: string;
 };
 
 let onboardingData: OnyxEntry<Onboarding>;
@@ -239,223 +200,7 @@ async function resumeOnboardingAfterRequired2FASetup(onboardingFlowParams: GetOn
     });
 }
 
-const getOnboardingMessages = (locale?: Locale) => {
-    const resolvedLocale = locale ?? IntlStore.getCurrentLocale();
-    const testDrive = {
-        ONBOARDING_TASK_NAME: translate(resolvedLocale, 'onboarding.testDrive.name', {}),
-        EMBEDDED_DEMO_WHITELIST: ['http://', 'https://', 'about:'] as string[],
-        EMBEDDED_DEMO_IFRAME_TITLE: translate(resolvedLocale, 'onboarding.testDrive.embeddedDemoIframeTitle'),
-    };
-    const addExpenseApprovalsTask: OnboardingTask = {
-        type: CONST.ONBOARDING_TASK_TYPE.ADD_EXPENSE_APPROVALS,
-        autoCompleted: false,
-        title: () => translate(resolvedLocale, 'onboarding.tasks.addExpenseApprovalsTask.title'),
-        description: ({workspaceMoreFeaturesLink}) => translate(resolvedLocale, 'onboarding.tasks.addExpenseApprovalsTask.description', {workspaceMoreFeaturesLink}),
-    };
-    const createReportTask: OnboardingTask = {
-        type: CONST.ONBOARDING_TASK_TYPE.CREATE_REPORT,
-        autoCompleted: false,
-        title: translate(resolvedLocale, 'onboarding.tasks.createReportTask.title'),
-        description: translate(resolvedLocale, 'onboarding.tasks.createReportTask.description'),
-    };
-    const testDriveAdminTask: OnboardingTask = {
-        type: CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR,
-        autoCompleted: false,
-        title: ({testDriveURL}) => translate(resolvedLocale, 'onboarding.tasks.testDriveAdminTask.title', {testDriveURL}),
-        description: ({testDriveURL}) => translate(resolvedLocale, 'onboarding.tasks.testDriveAdminTask.description', {testDriveURL}),
-    };
-    const testDriveEmployeeTask: OnboardingTask = {
-        type: CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR,
-        autoCompleted: false,
-        title: ({testDriveURL}) => translate(resolvedLocale, 'onboarding.tasks.testDriveEmployeeTask.title', {testDriveURL}),
-        description: ({testDriveURL}) => translate(resolvedLocale, 'onboarding.tasks.testDriveEmployeeTask.description', {testDriveURL}),
-    };
-    const createTestDriveAdminWorkspaceTask: OnboardingTask = {
-        type: CONST.ONBOARDING_TASK_TYPE.CREATE_WORKSPACE,
-        autoCompleted: false,
-        title: ({workspaceConfirmationLink}) => translate(resolvedLocale, 'onboarding.tasks.createTestDriveAdminWorkspaceTask.title', {workspaceConfirmationLink}),
-        description: translate(resolvedLocale, 'onboarding.tasks.createTestDriveAdminWorkspaceTask.description'),
-    };
-
-    const createWorkspaceTask: OnboardingTask = {
-        type: CONST.ONBOARDING_TASK_TYPE.CREATE_WORKSPACE,
-        autoCompleted: true,
-        title: ({workspaceSettingsLink}) => translate(resolvedLocale, 'onboarding.tasks.createWorkspaceTask.title', {workspaceSettingsLink}),
-        description: ({workspaceSettingsLink}) => translate(resolvedLocale, 'onboarding.tasks.createWorkspaceTask.description', {workspaceSettingsLink}),
-    };
-
-    const setupCategoriesTask: OnboardingTask = {
-        type: CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES,
-        autoCompleted: false,
-        title: ({workspaceCategoriesLink}) => translate(resolvedLocale, 'onboarding.tasks.setupCategoriesTask.title', {workspaceCategoriesLink}),
-        description: ({workspaceCategoriesLink}) => translate(resolvedLocale, 'onboarding.tasks.setupCategoriesTask.description', {workspaceCategoriesLink}),
-    };
-
-    const combinedTrackSubmitExpenseTask: OnboardingTask = {
-        type: CONST.ONBOARDING_TASK_TYPE.SUBMIT_EXPENSE,
-        autoCompleted: false,
-        title: translate(resolvedLocale, 'onboarding.tasks.combinedTrackSubmitExpenseTask.title'),
-        description: translate(resolvedLocale, 'onboarding.tasks.combinedTrackSubmitExpenseTask.description'),
-    };
-
-    const adminSubmitExpenseTask: OnboardingTask = {
-        type: CONST.ONBOARDING_TASK_TYPE.SUBMIT_EXPENSE,
-        autoCompleted: false,
-        title: translate(resolvedLocale, 'onboarding.tasks.adminSubmitExpenseTask.title'),
-        description: translate(resolvedLocale, 'onboarding.tasks.adminSubmitExpenseTask.description'),
-    };
-
-    const trackExpenseTask: OnboardingTask = {
-        type: CONST.ONBOARDING_TASK_TYPE.TRACK_EXPENSE,
-        autoCompleted: false,
-        title: translate(resolvedLocale, 'onboarding.tasks.trackExpenseTask.title'),
-        description: translate(resolvedLocale, 'onboarding.tasks.trackExpenseTask.description'),
-    };
-
-    const addAccountingIntegrationTask: OnboardingTask = {
-        type: CONST.ONBOARDING_TASK_TYPE.ADD_ACCOUNTING_INTEGRATION,
-        autoCompleted: false,
-        title: ({integrationName, workspaceAccountingLink}) => translate(resolvedLocale, 'onboarding.tasks.addAccountingIntegrationTask.title', {integrationName, workspaceAccountingLink}),
-        description: ({integrationName, workspaceAccountingLink}) =>
-            translate(resolvedLocale, 'onboarding.tasks.addAccountingIntegrationTask.description', {integrationName, workspaceAccountingLink}),
-    };
-
-    const connectCorporateCardTask: OnboardingTask = {
-        type: CONST.ONBOARDING_TASK_TYPE.CONNECT_CORPORATE_CARD,
-        title: ({corporateCardLink}) => translate(resolvedLocale, 'onboarding.tasks.connectCorporateCardTask.title', {corporateCardLink}),
-        description: ({corporateCardLink}) => translate(resolvedLocale, 'onboarding.tasks.connectCorporateCardTask.description', {corporateCardLink}),
-        autoCompleted: false,
-    };
-
-    const inviteTeamTask: OnboardingTask = {
-        type: CONST.ONBOARDING_TASK_TYPE.INVITE_TEAM,
-        autoCompleted: false,
-        title: ({workspaceMembersLink}) => translate(resolvedLocale, 'onboarding.tasks.inviteTeamTask.title', {workspaceMembersLink}),
-        description: ({workspaceMembersLink}) => translate(resolvedLocale, 'onboarding.tasks.inviteTeamTask.description', {workspaceMembersLink}),
-    };
-
-    const setupCategoriesAndTags: OnboardingTask = {
-        type: CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS,
-        autoCompleted: false,
-        title: ({workspaceCategoriesLink, workspaceTagsLink}) => translate(resolvedLocale, 'onboarding.tasks.setupCategoriesAndTags.title', {workspaceCategoriesLink, workspaceTagsLink}),
-        description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
-            translate(resolvedLocale, 'onboarding.tasks.setupCategoriesAndTags.description', {workspaceCategoriesLink, workspaceAccountingLink}),
-    };
-    const setupTagsTask: OnboardingTask = {
-        type: CONST.ONBOARDING_TASK_TYPE.SETUP_TAGS,
-        autoCompleted: false,
-        title: ({workspaceTagsLink}) => translate(resolvedLocale, 'onboarding.tasks.setupTagsTask.title', {workspaceTagsLink}),
-        description: ({workspaceMoreFeaturesLink}) => translate(resolvedLocale, 'onboarding.tasks.setupTagsTask.description', {workspaceMoreFeaturesLink}),
-    };
-
-    const startChatTask: OnboardingTask = {
-        type: CONST.ONBOARDING_TASK_TYPE.START_CHAT,
-        autoCompleted: false,
-        title: translate(resolvedLocale, 'onboarding.tasks.startChatTask.title'),
-        description: translate(resolvedLocale, 'onboarding.tasks.startChatTask.description'),
-    };
-
-    const splitExpenseTask: OnboardingTask = {
-        type: CONST.ONBOARDING_TASK_TYPE.SPLIT_EXPENSE,
-        autoCompleted: false,
-        title: translate(resolvedLocale, 'onboarding.tasks.splitExpenseTask.title'),
-        description: translate(resolvedLocale, 'onboarding.tasks.splitExpenseTask.description'),
-    };
-
-    const reviewWorkspaceSettingsTask: OnboardingTask = {
-        type: CONST.ONBOARDING_TASK_TYPE.REVIEW_WORKSPACE_SETTINGS,
-        autoCompleted: false,
-        title: ({workspaceSettingsLink}) => translate(resolvedLocale, 'onboarding.tasks.reviewWorkspaceSettingsTask.title', {workspaceSettingsLink}),
-        description: ({workspaceSettingsLink}) => translate(resolvedLocale, 'onboarding.tasks.reviewWorkspaceSettingsTask.description', {workspaceSettingsLink}),
-    };
-
-    const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
-        message: translate(resolvedLocale, 'onboarding.messages.onboardingEmployerOrSubmitMessage'),
-        tasks: [testDriveEmployeeTask, adminSubmitExpenseTask],
-    };
-
-    const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessage = {
-        ...onboardingEmployerOrSubmitMessage,
-        tasks: [testDriveEmployeeTask, combinedTrackSubmitExpenseTask],
-    };
-
-    const onboardingPersonalSpendMessage: OnboardingMessage = {
-        message: translate(resolvedLocale, 'onboarding.messages.onboardingPersonalSpendMessage'),
-        tasks: [testDriveEmployeeTask, trackExpenseTask],
-    };
-    const combinedTrackSubmitOnboardingPersonalSpendMessage: OnboardingMessage = {
-        ...onboardingPersonalSpendMessage,
-        tasks: [testDriveEmployeeTask, trackExpenseTask],
-    };
-
-    const isOnboardingFlow = hasCompletedGuidedSetupFlowSelector(onboardingData);
-    const onboardingManageTeamMessage: OnboardingMessage = {
-        message: translate(resolvedLocale, 'onboarding.messages.onboardingManageTeamMessage', {isOnboardingFlow}),
-        tasks: [
-            createWorkspaceTask,
-            testDriveAdminTask,
-            addAccountingIntegrationTask,
-            connectCorporateCardTask,
-            inviteTeamTask,
-            setupCategoriesAndTags,
-            setupCategoriesTask,
-            setupTagsTask,
-            addExpenseApprovalsTask,
-        ],
-    };
-
-    const onboardingTrackWorkspaceMessage: OnboardingMessage = {
-        message: translate(resolvedLocale, 'onboarding.messages.onboardingTrackWorkspaceMessage'),
-        video: {
-            url: `${CONST.CLOUDFRONT_URL}/videos/guided-setup-manage-team-v2.mp4`,
-            thumbnailUrl: `${CONST.CLOUDFRONT_URL}/images/guided-setup-manage-team.jpg`,
-            duration: 55,
-            width: 1280,
-            height: 960,
-        },
-        tasks: [testDriveAdminTask, createReportTask, setupCategoriesTask],
-    };
-
-    const onboardingChatSplitMessage: OnboardingMessage = {
-        message: translate(resolvedLocale, 'onboarding.messages.onboardingChatSplitMessage'),
-        tasks: [testDriveEmployeeTask, startChatTask, splitExpenseTask],
-    };
-
-    const onboardingAdminMessage: OnboardingMessage = {
-        message: translate(resolvedLocale, 'onboarding.messages.onboardingAdminMessage'),
-        tasks: [reviewWorkspaceSettingsTask, adminSubmitExpenseTask],
-    };
-    const onboardingLookingAroundMessage: OnboardingMessage = {
-        message: '',
-        tasks: [],
-    };
-
-    const onboardingTestDriveReceiverMessage: OnboardingMessage = {
-        message: translate(resolvedLocale, 'onboarding.messages.onboardingTestDriveReceiverMessage'),
-        tasks: [testDriveAdminTask, createTestDriveAdminWorkspaceTask],
-    };
-
-    return {
-        onboardingMessages: {
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: onboardingEmployerOrSubmitMessage,
-            [CONST.ONBOARDING_CHOICES.SUBMIT]: onboardingEmployerOrSubmitMessage,
-            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: onboardingManageTeamMessage,
-            [CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE]: onboardingTrackWorkspaceMessage,
-            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: onboardingTrackWorkspaceMessage,
-            [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: onboardingPersonalSpendMessage,
-            [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: onboardingChatSplitMessage,
-            [CONST.ONBOARDING_CHOICES.ADMIN]: onboardingAdminMessage,
-            [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: onboardingLookingAroundMessage,
-            [CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER]: onboardingTestDriveReceiverMessage,
-        } satisfies Record<OnboardingPurpose, OnboardingMessage>,
-        createExpenseOnboardingMessages: {
-            [CONST.CREATE_EXPENSE_ONBOARDING_CHOICES.PERSONAL_SPEND]: combinedTrackSubmitOnboardingPersonalSpendMessage,
-            [CONST.CREATE_EXPENSE_ONBOARDING_CHOICES.EMPLOYER]: combinedTrackSubmitOnboardingEmployerOrSubmitMessage,
-            [CONST.CREATE_EXPENSE_ONBOARDING_CHOICES.SUBMIT]: combinedTrackSubmitOnboardingEmployerOrSubmitMessage,
-        } satisfies Record<ValueOf<typeof CONST.CREATE_EXPENSE_ONBOARDING_CHOICES>, OnboardingMessage>,
-        testDrive,
-    };
-};
+const getOnboardingMessages = (locale?: Locale) => buildOnboardingMessages(onboardingData, locale);
 
 export type {OnboardingMessage, OnboardingTask, OnboardingTaskLinks, OnboardingPurpose, OnboardingCompanySize, GetOnboardingInitialPathParamsType};
 export {buildOnboardingFlowParams, getOnboardingInitialPath, getRequired2FAOnboardingResumePath, resumeOnboardingAfterRequired2FASetup, startOnboardingFlow, getOnboardingMessages};

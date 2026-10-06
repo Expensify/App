@@ -50,7 +50,7 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-import {getMakeDefaultPaymentOnyxData} from './PaymentMethods';
+import getMakeDefaultPaymentOnyxData from './getMakeDefaultPaymentOnyxData';
 import {setBankAccountSubStep} from './ReimbursementAccount';
 
 export {
