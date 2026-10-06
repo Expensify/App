@@ -22,7 +22,7 @@ type ConnectionStatus = {
 
 /** One integration on the Connections page, either available to connect or already connected. */
 type ConnectionListing = {
-    /** Unique across all categories, also used to decide which listings appear on the Popular tab */
+    /** Unique across all categories */
     key: string;
 
     category: ConnectionCategory;
@@ -37,7 +37,7 @@ type ConnectionListing = {
 
     onConnect: () => void;
 
-    /** Shows an "Offer available!" badge for a partner promotion. The badge only opens the offer when `onPress` is set. */
+    /** Shows an "Offer" badge for a partner promotion. The badge only opens the offer when `onPress` is set. */
     offer?: {onPress?: () => void};
 
     /** Shows a spinner instead of "+" while the data the connection flow needs is still loading */

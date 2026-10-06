@@ -1,5 +1,5 @@
 /**
- * Builds the Travel & Delivery listings (receipt partners such as Uber for Business) for the Connections page.
+ * Builds the Receipts listings (receipt partners such as Uber for Business) for the Connections page.
  */
 import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
 import useLocalize from '@hooks/useLocalize';

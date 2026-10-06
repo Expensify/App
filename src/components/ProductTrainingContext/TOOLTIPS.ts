@@ -32,9 +32,6 @@ type ShouldShowConditionProps = {
     isUserPolicyAdmin: boolean;
     hasBeenAddedToNudgeMigration: boolean;
     isUserInPaidPolicy: boolean;
-
-    /** The user's free-trial start date, e.g. "2026-06-24". Accounts without a workspace trial don't have one. */
-    firstDayFreeTrial: string | undefined;
 };
 
 type TooltipData = {
@@ -123,8 +120,8 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(CONNECTIONS_MOVED, isDismissedUsingCloseButton),
         name: CONNECTIONS_MOVED,
         priority: 1650,
-        // Only users who knew the old pages need to hear they moved. The workspace menu limits it to members who can read Connections.
-        shouldShow: ({firstDayFreeTrial}) => !firstDayFreeTrial || new Date(firstDayFreeTrial).getTime() < new Date(CONST.CONNECTIONS_MOVED_NEW_USER_CUTOFF_DATE).getTime(),
+        // The workspace menu limits it to members who can read Connections
+        shouldShow: () => true,
     },
 };
 

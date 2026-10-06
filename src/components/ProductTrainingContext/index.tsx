@@ -76,7 +76,6 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
     }, [allPolicies, currentUserLogin, allPoliciesMetadata, currentUserLoginMetadata]);
 
     const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
-    const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -173,7 +172,6 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                 isUserPolicyAdmin,
                 hasBeenAddedToNudgeMigration,
                 isUserInPaidPolicy,
-                firstDayFreeTrial,
             });
         },
         [
@@ -188,7 +186,6 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
             isUserPolicyEmployee,
             isUserPolicyAdmin,
             isUserInPaidPolicy,
-            firstDayFreeTrial,
         ],
     );
 
