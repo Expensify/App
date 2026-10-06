@@ -37,7 +37,7 @@ function SearchFiltersBarWideContent({hasErrors, shouldShowFiltersBarLoading, fi
 }
 
 function SearchFiltersBarWide({queryJSON}: SearchFiltersBarWideProps) {
-    const {filters, hasErrors, shouldShowFiltersBarLoading, hasFiltersChanged, hasFiltersOrKeywordChanged, resetFilters} = useSearchFiltersBar(queryJSON);
+    const {filters, hasErrors, shouldShowFiltersBarLoading, canReset, canSave, resetFilters} = useSearchFiltersBar(queryJSON);
 
     return (
         <>
@@ -47,8 +47,8 @@ function SearchFiltersBarWide({queryJSON}: SearchFiltersBarWideProps) {
                 filters={filters}
             />
             <SearchFiltersActionButtons
-                hasFiltersChanged={hasFiltersChanged}
-                hasFiltersOrKeywordChanged={hasFiltersOrKeywordChanged}
+                canReset={canReset}
+                canSave={canSave}
                 resetFilters={resetFilters}
             />
         </>

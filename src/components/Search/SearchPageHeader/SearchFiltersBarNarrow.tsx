@@ -22,7 +22,7 @@ type SearchFiltersBarNarrowProps = {
 function SearchFiltersBarNarrow({queryJSON}: SearchFiltersBarNarrowProps) {
     const styles = useThemeStyles();
     const scrollRef = useRef<FlatList<SearchFilter & FilterItem>>(null);
-    const {filters, hasErrors, shouldShowFiltersBarLoading, hasFiltersChanged, hasFiltersOrKeywordChanged, resetFilters} = useSearchFiltersBar(queryJSON);
+    const {filters, hasErrors, shouldShowFiltersBarLoading, canReset, canSave, resetFilters} = useSearchFiltersBar(queryJSON);
 
     const adjustScroll = (info: {distanceFromEnd: number}) => {
         // Workaround for a known React Native bug on Android (https://github.com/facebook/react-native/issues/27504):
@@ -42,7 +42,7 @@ function SearchFiltersBarNarrow({queryJSON}: SearchFiltersBarNarrowProps) {
         <FlatList
             horizontal
             keyboardShouldPersistTaps="always"
-            style={[styles.flexRow, styles.overflowScroll, styles.flexGrow0, (!!filters.length || hasFiltersOrKeywordChanged) && styles.mb4]}
+            style={[styles.flexRow, styles.overflowScroll, styles.flexGrow0, (!!filters.length || canSave || canReset) && styles.mb4]}
             contentContainerStyle={[styles.flexRow, styles.flexGrow0, styles.gap2, styles.ph5, styles.alignItemsCenter]}
             ref={scrollRef}
             showsHorizontalScrollIndicator={false}
@@ -54,8 +54,8 @@ function SearchFiltersBarNarrow({queryJSON}: SearchFiltersBarNarrowProps) {
             ListHeaderComponent={shouldShowFiltersBarLoading ? <SearchFiltersSkeleton shouldAnimate /> : null}
             ListFooterComponent={
                 <SearchFiltersActionButtons
-                    hasFiltersChanged={hasFiltersChanged}
-                    hasFiltersOrKeywordChanged={hasFiltersOrKeywordChanged}
+                    canReset={canReset}
+                    canSave={canSave}
                     resetFilters={resetFilters}
                 />
             }

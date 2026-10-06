@@ -94,7 +94,7 @@ describe('useSearchFiltersBar', () => {
         mockMapFiltersFormToLabelValueList.mockReturnValue([]);
     });
 
-    describe('hasFiltersChanged', () => {
+    describe('canReset', () => {
         it('is true when the default query filters differ from the current query filters', () => {
             mockSearchQueryContext({
                 currentDefaultSearchQueryJSON: buildQueryJSON(merchantFilters),
@@ -103,7 +103,7 @@ describe('useSearchFiltersBar', () => {
 
             const {result} = renderHook(() => useSearchFiltersBar(queryJSON));
 
-            expect(result.current.hasFiltersChanged).toBe(true);
+            expect(result.current.canReset).toBe(true);
         });
 
         it('is false when the default query filters equal the current query filters', () => {
@@ -114,7 +114,7 @@ describe('useSearchFiltersBar', () => {
 
             const {result} = renderHook(() => useSearchFiltersBar(queryJSON));
 
-            expect(result.current.hasFiltersChanged).toBe(false);
+            expect(result.current.canReset).toBe(false);
         });
 
         it('falls back to having filters when there is no default query JSON', () => {
@@ -123,7 +123,7 @@ describe('useSearchFiltersBar', () => {
 
             const {result} = renderHook(() => useSearchFiltersBar(queryJSON));
 
-            expect(result.current.hasFiltersChanged).toBe(true);
+            expect(result.current.canReset).toBe(true);
         });
 
         it('is false when there is no default query JSON and no filters', () => {
@@ -132,12 +132,12 @@ describe('useSearchFiltersBar', () => {
 
             const {result} = renderHook(() => useSearchFiltersBar(queryJSON));
 
-            expect(result.current.hasFiltersChanged).toBe(false);
+            expect(result.current.canReset).toBe(false);
         });
     });
 
-    describe('hasFiltersOrKeywordChanged', () => {
-        it('is true but leaves hasFiltersChanged false when only the keyword differs from the default query', () => {
+    describe('canSave', () => {
+        it('is true but leaves canReset false when only the keyword differs from the default query', () => {
             // Given a search whose filters match the default but which also has a keyword
             mockSearchQueryContext({
                 currentDefaultSearchQueryJSON: buildQueryJSON(merchantFilters),
@@ -148,8 +148,8 @@ describe('useSearchFiltersBar', () => {
             const {result} = renderHook(() => useSearchFiltersBar(queryJSON));
 
             // Then the search can be saved, but there are no filters to reset because resetting keeps the keyword
-            expect(result.current.hasFiltersOrKeywordChanged).toBe(true);
-            expect(result.current.hasFiltersChanged).toBe(false);
+            expect(result.current.canSave).toBe(true);
+            expect(result.current.canReset).toBe(false);
         });
 
         it('is true when the filters differ from the default query', () => {
@@ -163,7 +163,7 @@ describe('useSearchFiltersBar', () => {
             const {result} = renderHook(() => useSearchFiltersBar(queryJSON));
 
             // Then the search can be saved
-            expect(result.current.hasFiltersOrKeywordChanged).toBe(true);
+            expect(result.current.canSave).toBe(true);
         });
 
         it('is false when the query equals the default query', () => {
@@ -177,7 +177,7 @@ describe('useSearchFiltersBar', () => {
             const {result} = renderHook(() => useSearchFiltersBar(queryJSON));
 
             // Then there is nothing new to save
-            expect(result.current.hasFiltersOrKeywordChanged).toBe(false);
+            expect(result.current.canSave).toBe(false);
         });
 
         it('is true when there is no default query JSON, even without filters or a keyword', () => {
@@ -189,8 +189,8 @@ describe('useSearchFiltersBar', () => {
             const {result} = renderHook(() => useSearchFiltersBar(tripQueryJSON));
 
             // Then the search can be saved because no suggested or saved search already covers it, but there is nothing to reset to
-            expect(result.current.hasFiltersOrKeywordChanged).toBe(true);
-            expect(result.current.hasFiltersChanged).toBe(false);
+            expect(result.current.canSave).toBe(true);
+            expect(result.current.canReset).toBe(false);
         });
 
         it('is false when there is no current query', () => {
@@ -201,7 +201,7 @@ describe('useSearchFiltersBar', () => {
             const {result} = renderHook(() => useSearchFiltersBar(queryJSON));
 
             // Then there is nothing to save
-            expect(result.current.hasFiltersOrKeywordChanged).toBe(false);
+            expect(result.current.canSave).toBe(false);
         });
     });
 

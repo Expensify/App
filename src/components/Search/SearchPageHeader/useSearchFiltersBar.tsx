@@ -46,8 +46,8 @@ type UseSearchFiltersBarResult = {
     filters: Array<SearchFilter & FilterItem>;
     hasErrors: boolean;
     shouldShowFiltersBarLoading: boolean;
-    hasFiltersChanged: boolean;
-    hasFiltersOrKeywordChanged: boolean;
+    canReset: boolean;
+    canSave: boolean;
     resetFilters: () => void;
 };
 
@@ -230,8 +230,8 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
         filters,
         hasErrors: Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline,
         shouldShowFiltersBarLoading: shouldShowFiltersBarLoading || isCategoryFilterLoading,
-        hasFiltersChanged: hasDefaultQuery ? hasFiltersChangedFromDefault(currentSearchQueryJSON, currentDefaultSearchQueryJSON) : filters.length > 0,
-        hasFiltersOrKeywordChanged: isSearchQuerySavable(currentSearchQueryJSON, currentDefaultSearchQueryJSON),
+        canReset: hasDefaultQuery ? hasFiltersChangedFromDefault(currentSearchQueryJSON, currentDefaultSearchQueryJSON) : filters.length > 0,
+        canSave: isSearchQuerySavable(currentSearchQueryJSON, currentDefaultSearchQueryJSON),
         resetFilters,
     };
 }

@@ -7,22 +7,22 @@ import SearchFiltersResetButton from './SearchFiltersResetButton';
 import SearchFiltersSaveButton from './SearchFiltersSaveButton';
 
 type SearchFiltersActionButtonsProps = {
-    hasFiltersChanged: boolean;
-    hasFiltersOrKeywordChanged: boolean;
+    canReset: boolean;
+    canSave: boolean;
     resetFilters: () => void;
 };
 
-function SearchFiltersActionButtons({hasFiltersChanged, hasFiltersOrKeywordChanged, resetFilters}: SearchFiltersActionButtonsProps) {
+function SearchFiltersActionButtons({canReset, canSave, resetFilters}: SearchFiltersActionButtonsProps) {
     const styles = useThemeStyles();
 
-    if (!hasFiltersOrKeywordChanged) {
+    if (!canSave && !canReset) {
         return null;
     }
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter]}>
-            {hasFiltersChanged && <SearchFiltersResetButton onPress={resetFilters} />}
-            <SearchFiltersSaveButton />
+            {canReset && <SearchFiltersResetButton onPress={resetFilters} />}
+            {canSave && <SearchFiltersSaveButton />}
         </View>
     );
 }
