@@ -8,16 +8,11 @@ import UserPills from '@components/UserPills';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import type {AttendeeWithAccountID} from '@libs/AttendeeUtils';
+
 import CONST from '@src/CONST';
 
 import React from 'react';
-
-type AttendeeWithAccountID = {
-    accountID?: string;
-    avatarUrl?: string | null;
-    displayName?: string | null;
-    email?: string | null;
-};
 
 type AttendeesFieldProps = Pick<OfflineWithFeedbackProps, 'pendingAction'> &
     Pick<MenuItemProps, 'onPress' | 'errorText' | 'copyValue'> & {

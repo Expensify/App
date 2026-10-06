@@ -162,6 +162,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy: createMock<Policy>({}),
             rules: undefined,
+            cardList: undefined,
         });
 
         // Then only a single-expense report offers field customization from this menu.
@@ -5340,6 +5341,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             policy: createMock<Policy>({}),
             isChatReportArchived: false,
             rules: undefined,
+            cardList: undefined,
         });
 
         // Then customization is available only for the report-backed expense.
