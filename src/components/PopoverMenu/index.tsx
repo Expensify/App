@@ -699,13 +699,18 @@ function BasePopoverMenu({
 
     const keyboardShortcutSpaceCallback = useCallback(
         (e?: GestureResponderEvent | KeyboardEvent) => {
-            if (shouldUseScrollView) {
-                return;
+            if (!shouldUseScrollView) {
+                e?.preventDefault();
             }
 
-            e?.preventDefault();
+            if (focusedIndex === -1 || currentMenuItems.at(focusedIndex)?.role !== CONST.ROLE.SWITCH) {
+                return;
+            }
+            selectItem(focusedIndex);
+            setFocusedIndex(focusedIndex);
         },
-        [shouldUseScrollView],
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [shouldUseScrollView, focusedIndex, currentMenuItems],
     );
 
     // On web, pressing the space bar after interacting with the parent view
