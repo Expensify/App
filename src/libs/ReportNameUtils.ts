@@ -41,9 +41,11 @@ import {getCleanedTagName, isPolicyAdmin, isPolicyFieldListEmpty} from './Policy
 import {
     getActionableCard3DSTransactionApprovalMessage,
     getActionableCardFraudAlertResolutionMessage,
+    getAgentPromptUpdatedMessage,
     getAddedCardFeedMessage,
     getApprovalLimitUpdateMessage,
     getAssignedCompanyCardMessage,
+    getAutoCategorizeNewExpensesMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
     getCardConnectionBrokenMessage,
@@ -805,6 +807,10 @@ function computeReportNameBasedOnReportAction({
         return getMarkedReimbursedMessage(translate, parentReportAction);
     }
 
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED)) {
+        return getAgentPromptUpdatedMessage(translate, parentReportAction);
+    }
+
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY)) {
         return getPolicyChangeMessage(translate, parentReportAction);
     }
@@ -975,6 +981,9 @@ function computeReportNameBasedOnReportAction({
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRE_COMPANY_CARDS_ENABLED)) {
         return getRequireCompanyCardsEnabledMessage(translate, parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_CATEGORIZE_NEW_EXPENSES)) {
+        return getAutoCategorizeNewExpensesMessage(translate, parentReportAction);
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_CATEGORY)) {
         return getRequiresCategoryMessage(translate, parentReportAction);

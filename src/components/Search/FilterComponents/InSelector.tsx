@@ -1,3 +1,4 @@
+import {useActivePolicyContext} from '@components/ActivePolicyProvider';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {SearchFilterCommonProps} from '@components/Search/types';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
@@ -45,13 +46,17 @@ const defaultListOptions = {
 };
 
 function getSelectedOptionData(option: Option & Pick<OptionData, 'reportID'>): OptionData {
-    return {...option, isSelected: true, keyForList: option.keyForList ?? option.reportID};
+    return {
+        ...option,
+        isSelected: true,
+        keyForList: option.keyForList ?? option.reportID,
+    };
 }
 
 function InSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: InSelectorProps) {
     const {translate, dateFnsLocale} = useLocalize();
     const shouldFooterBeInsideList = useShouldFooterBeInsideList();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const personalDetails = usePersonalDetails();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {options, isLoading, getReportByID} = useFilteredOptions({
@@ -63,10 +68,16 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {
+        selector: expensifyLoginsSelector,
+    });
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const {activePolicyID} = useActivePolicyContext();
+
     const sortedReportActionsData = useSortedReportActionsData();
     const sortedActions = sortedReportActionsData?.sortedActions;
+    const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
+    const lastActions = sortedReportActionsData?.lastActions;
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
@@ -91,16 +102,20 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                 createOptionFromReport({
                     dateFnsLocale,
                     convertToDisplayString,
+                    convertToDisplayStringWithoutCurrency,
                     report: {...reportData, reportID: id},
                     personalDetails,
                     privateIsArchived,
                     rules,
                     policy: reportPolicy,
                     sortedActions,
+                    transactionThreadIDs,
+                    lastActions,
+                    currentUserAccountID,
+                    currentUserLogin: currentUserEmail,
                     conciergeReportID,
                     reportAttributesDerived,
                     isTrackIntentUser,
-                    currentUserAccountID,
                 }),
             ),
             isSelected,
@@ -114,6 +129,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
             {
                 dateFnsLocale,
                 convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
                 isReportArchived,
                 personalDetails,
                 policy,
@@ -121,6 +137,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                 policyTags: reportPolicyTags,
                 conciergeReportID,
                 isTrackIntentUser,
+                translate,
                 currentUserAccountID,
                 rules,
             },
@@ -141,6 +158,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
             : getSearchOptions({
                   dateFnsLocale,
                   convertToDisplayString,
+                  convertToDisplayStringWithoutCurrency,
                   options,
                   draftComments,
                   // This list never had the beta, it used to pass no betas at all, so it stays off on purpose
@@ -153,6 +171,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                   personalDetails,
                   policyCollection: allPolicies,
                   sortedActions,
+                  currentUserLogin: currentUserEmail,
                   conciergeReportID,
                   isTrackIntentUser,
                   translate,
@@ -160,23 +179,25 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                   rules,
               }).options;
 
-    const chatOptions = filterAndOrderOptions(
-        defaultOptions,
-        cleanSearchTerm,
+    const chatOptions = filterAndOrderOptions({
+        options: defaultOptions,
+        searchInputValue: cleanSearchTerm,
         countryCode,
         loginList,
         currentUserEmail,
         currentUserAccountID,
         personalDetails,
-        {
+        config: {
             dateFnsLocale,
             convertToDisplayString,
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             currentUserAccountID,
         },
+        translate,
         rules,
-    );
+        activePolicyID,
+    });
 
     const sections: SelectionListSections = [];
 
