@@ -377,7 +377,17 @@ describe('actions/IOU/ReportWorkflow', () => {
             await waitForBatchedUpdates();
 
             // Hold one of the two expenses
-            putOnHold(heldTransaction.transactionID, 'hold reason', expenseReport.reportID, false, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, false, undefined, {
+            putOnHold({
+                transactionID: heldTransaction.transactionID,
+                transaction: heldTransaction,
+                comment: 'hold reason',
+                initialReportID: expenseReport.reportID,
+                isOffline: false,
+                currentUserLogin: CARLOS_EMAIL,
+                currentUserAccountID: CARLOS_ACCOUNT_ID,
+                transactionViolations: undefined,
+                isTrackIntentUser: false,
+                delegateAccountID: undefined,
                 rules: undefined,
                 ancestors: [],
             });
@@ -503,7 +513,17 @@ describe('actions/IOU/ReportWorkflow', () => {
             await waitForBatchedUpdates();
 
             // Hold one of the two expenses
-            putOnHold(heldTransaction.transactionID, 'hold reason', expenseReport.reportID, false, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, false, undefined, {
+            putOnHold({
+                transactionID: heldTransaction.transactionID,
+                transaction: heldTransaction,
+                comment: 'hold reason',
+                initialReportID: expenseReport.reportID,
+                isOffline: false,
+                currentUserLogin: CARLOS_EMAIL,
+                currentUserAccountID: CARLOS_ACCOUNT_ID,
+                transactionViolations: undefined,
+                isTrackIntentUser: false,
+                delegateAccountID: undefined,
                 rules: undefined,
                 ancestors: [],
             });
@@ -614,7 +634,17 @@ describe('actions/IOU/ReportWorkflow', () => {
             await waitForBatchedUpdates();
 
             // Hold the only expense on the report
-            putOnHold(heldTransaction.transactionID, 'hold reason', expenseReport.reportID, false, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, false, undefined, {
+            putOnHold({
+                transactionID: heldTransaction.transactionID,
+                transaction: heldTransaction,
+                comment: 'hold reason',
+                initialReportID: expenseReport.reportID,
+                isOffline: false,
+                currentUserLogin: CARLOS_EMAIL,
+                currentUserAccountID: CARLOS_ACCOUNT_ID,
+                transactionViolations: undefined,
+                isTrackIntentUser: false,
+                delegateAccountID: undefined,
                 rules: undefined,
                 ancestors: [],
             });
@@ -726,7 +756,17 @@ describe('actions/IOU/ReportWorkflow', () => {
             await waitForBatchedUpdates();
 
             // Hold one of the two expenses
-            putOnHold(heldTransaction.transactionID, 'hold reason', expenseReport.reportID, false, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, false, undefined, {
+            putOnHold({
+                transactionID: heldTransaction.transactionID,
+                transaction: heldTransaction,
+                comment: 'hold reason',
+                initialReportID: expenseReport.reportID,
+                isOffline: false,
+                currentUserLogin: CARLOS_EMAIL,
+                currentUserAccountID: CARLOS_ACCOUNT_ID,
+                transactionViolations: undefined,
+                isTrackIntentUser: false,
+                delegateAccountID: undefined,
                 rules: undefined,
                 ancestors: [],
             });

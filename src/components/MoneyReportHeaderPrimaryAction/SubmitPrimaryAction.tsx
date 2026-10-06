@@ -51,11 +51,13 @@ const ANCHOR_ALIGNMENT = {
 
 type SubmitPrimaryActionProps = {
     reportID: string | undefined;
+    /** Disables the Submit button, e.g. while expenses are selected */
+    isDisabled?: boolean;
 };
 
 type SubmissionMethod = ValueOf<typeof CONST.REPORT.SUBMISSION_METHOD>;
 
-function SubmitPrimaryAction({reportID}: SubmitPrimaryActionProps) {
+function SubmitPrimaryAction({reportID, isDisabled}: SubmitPrimaryActionProps) {
     const {startSubmittingAnimation} = usePaymentAnimationsContext();
 
     return (
@@ -64,12 +66,15 @@ function SubmitPrimaryAction({reportID}: SubmitPrimaryActionProps) {
             onSubmitSuccess={startSubmittingAnimation}
             anchorAlignment={ANCHOR_ALIGNMENT}
         >
-            <SubmitPrimaryActionContent reportID={reportID} />
+            <SubmitPrimaryActionContent
+                reportID={reportID}
+                isDisabled={isDisabled}
+            />
         </ReportSubmitToPopoverAnchor>
     );
 }
 
-function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
+function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionProps) {
     const {isSubmittingAnimationRunning, stopAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -254,7 +259,7 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 shouldAlwaysShowDropdownMenu
                 pressOnEnter
-                isDisabled={shouldBlockSubmit}
+                isDisabled={shouldBlockSubmit || isDisabled}
                 options={submitOptions}
                 defaultSelectedIndex={defaultSelectedIndex}
                 onPress={(event, value) => {
@@ -273,7 +278,7 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
             onPress={() => handleSubmit()}
             isSubmittingAnimationRunning={isSubmittingAnimationRunning}
             onAnimationFinish={stopAnimation}
-            isDisabled={shouldBlockSubmit}
+            isDisabled={shouldBlockSubmit || isDisabled}
             isDEWSubmission={isDEWSubmission}
             reportID={reportID}
         />

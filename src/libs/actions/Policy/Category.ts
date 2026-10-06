@@ -166,7 +166,46 @@ function getPolicyCategories(policyID: string) {
         policyID,
     };
 
-    API.read(READ_COMMANDS.GET_POLICY_CATEGORIES, params);
+    type CategoriesLoadingKey = typeof ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_CATEGORIES_LOADING_STATE;
+    const loadingStateKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_CATEGORIES_LOADING_STATE}${policyID}` as const;
+
+    const optimisticData: Array<OnyxUpdate<CategoriesLoadingKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: loadingStateKey,
+            value: {isLoading: true},
+        },
+    ];
+
+    // `hasOnceLoaded` is only ever written here, so a read that never landed leaves the policy eligible for a retry.
+    // The collection existing in Onyx cannot stand in for this: it may hold only the category already on the expense.
+    const successData: Array<OnyxUpdate<CategoriesLoadingKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: loadingStateKey,
+            value: {isLoading: false, hasOnceLoaded: true},
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<CategoriesLoadingKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: loadingStateKey,
+            value: {isLoading: false},
+        },
+    ];
+
+    API.read(READ_COMMANDS.GET_POLICY_CATEGORIES, params, {optimisticData, successData, failureData});
+}
+
+/**
+ * Clears the in-flight flag for a policy's categories read.
+ *
+ * A read cut off by a disconnect never gets a response, so its `failureData` never applies and `isLoading` would stay
+ * true for the rest of the session, blocking every retry. Callers clear it on reconnect.
+ */
+function clearPolicyCategoriesLoadingState(policyID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_CATEGORIES_LOADING_STATE}${policyID}`, {isLoading: false});
 }
 
 function setWorkspaceCategoryEnabled({
@@ -758,7 +797,12 @@ async function importPolicyCategories(policyID: string, categories: PolicyCatego
                 existing.enabled !== category.enabled ||
                 (existing['GL Code'] ?? '') !== (category['GL Code'] ?? '') ||
                 ('maxAmountNoReceipt' in category && existing.maxAmountNoReceipt !== category.maxAmountNoReceipt) ||
-                ('maxAmountNoItemizedReceipt' in category && existing.maxAmountNoItemizedReceipt !== category.maxAmountNoItemizedReceipt)
+                ('maxAmountNoItemizedReceipt' in category && existing.maxAmountNoItemizedReceipt !== category.maxAmountNoItemizedReceipt) ||
+                ('Payroll Code' in category && (existing['Payroll Code'] ?? '') !== (category['Payroll Code'] ?? '')) ||
+                ('areCommentsRequired' in category && !!existing.areCommentsRequired !== !!category.areCommentsRequired) ||
+                ('commentHint' in category && (existing.commentHint ?? '') !== (category.commentHint ?? '')) ||
+                ('expenseLimitType' in category && existing.expenseLimitType !== category.expenseLimitType) ||
+                ('maxExpenseAmount' in category && existing.maxExpenseAmount !== category.maxExpenseAmount)
             ) {
                 acc.updated++;
             }
@@ -780,6 +824,12 @@ async function importPolicyCategories(policyID: string, categories: PolicyCatego
                 'GL Code': String(category['GL Code']),
                 ...('maxAmountNoReceipt' in category && {maxAmountNoReceipt: category.maxAmountNoReceipt}),
                 ...('maxAmountNoItemizedReceipt' in category && {maxAmountNoItemizedReceipt: category.maxAmountNoItemizedReceipt}),
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                ...('Payroll Code' in category && {'Payroll Code': String(category['Payroll Code'])}),
+                ...('areCommentsRequired' in category && {areCommentsRequired: category.areCommentsRequired}),
+                ...('commentHint' in category && {commentHint: category.commentHint}),
+                ...('expenseLimitType' in category && {expenseLimitType: category.expenseLimitType}),
+                ...('maxExpenseAmount' in category && {maxExpenseAmount: category.maxExpenseAmount}),
             })),
         ),
     };
@@ -2053,6 +2103,7 @@ export {
     downloadCategoriesCSV,
     enablePolicyCategories,
     getPolicyCategories,
+    clearPolicyCategoriesLoadingState,
     importPolicyCategories,
     openPolicyCategoriesPage,
     removePolicyCategoryReceiptsRequired,

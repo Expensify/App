@@ -23,6 +23,7 @@ import type TimeModalPicker from '@components/TimeModalPicker';
 import type UploadFile from '@components/UploadFile';
 import type ValuePicker from '@components/ValuePicker';
 
+import type {AccessibilityFocusTarget} from '@libs/Accessibility/moveAccessibilityFocus/types';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
 import type ConstantSelector from '@pages/Debug/ConstantSelector';
@@ -44,8 +45,8 @@ import type {BaseForm} from '@src/types/form/Form';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-import type {ComponentRef, ComponentType, FocusEvent, Key, ReactNode, Ref, RefObject} from 'react';
-import type {GestureResponderEvent, HostComponent, InputModeOptions, KeyboardTypeOptions, StyleProp, SubmitBehavior, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
+import type {ComponentType, FocusEvent, Key, ReactNode, Ref, RefObject} from 'react';
+import type {GestureResponderEvent, InputModeOptions, KeyboardTypeOptions, StyleProp, SubmitBehavior, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 /**
@@ -136,7 +137,7 @@ type InputComponentBaseProps<TValue extends ValueTypeKey = ValueTypeKey> = Input
     uncontrolled?: boolean;
     inputMode?: InputModeOptions;
     keyboardType?: KeyboardTypeOptions;
-    getNativeRef?: () => ComponentRef<HostComponent<unknown>> & RefObject<HTMLOrSVGElement>;
+    getNativeRef?: () => AccessibilityFocusTarget;
 };
 
 type FormOnyxValues<TFormID extends OnyxFormKey = OnyxFormKey> = Omit<OnyxValues[TFormID], keyof BaseForm>;

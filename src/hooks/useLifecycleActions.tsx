@@ -39,7 +39,7 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {delegateEmailSelector} from '@selectors/Account';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {loginSelector} from '@selectors/PersonalDetails';
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 
 import type {ActionHandledType} from './useHoldMenuSubmit';
 
@@ -98,15 +98,27 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     const [chatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
     const [submitterLogin] = usePersonalDetail(moneyRequestReport?.ownerAccountID, loginSelector);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+
+    // The "Received payment" handler awaits a confirmation modal (and the hold menu on top of it), so the collection captured when the
+    // menu item was pressed can be out of date by the time the payment is actually recorded. Keep the latest collection in a ref so those
+    // handlers read the violations as of the confirmation instead of the earlier render.
+    const allTransactionViolationsRef = useRef(allTransactionViolations);
+    useEffect(() => {
+        allTransactionViolationsRef.current = allTransactionViolations;
+    }, [allTransactionViolations]);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
-    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {
+        selector: delegateEmailSelector,
+    });
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const delegateAccountID = useDelegateAccountID();
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
+        selector: isTrackIntentUserSelector,
+    });
 
     const {convertToDisplayString} = useCurrencyListActions();
 
@@ -389,7 +401,17 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                         CONST.IOU.REPORT_ACTION_TYPE.PAY,
                         () => {
                             startAnimation();
-                            markReportPaymentReceived(chatReport, moneyRequestReport, accountID, email ?? '', chatReportActions, isTrackIntentUser, getCurrencyDecimals, rules);
+                            markReportPaymentReceived(
+                                chatReport,
+                                moneyRequestReport,
+                                accountID,
+                                email ?? '',
+                                chatReportActions,
+                                isTrackIntentUser,
+                                allTransactionViolationsRef.current,
+                                getCurrencyDecimals,
+                                rules,
+                            );
                         },
                         CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                     );
@@ -397,7 +419,17 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 }
 
                 startAnimation();
-                markReportPaymentReceived(chatReport, moneyRequestReport, accountID, email ?? '', chatReportActions, isTrackIntentUser, getCurrencyDecimals, rules);
+                markReportPaymentReceived(
+                    chatReport,
+                    moneyRequestReport,
+                    accountID,
+                    email ?? '',
+                    chatReportActions,
+                    isTrackIntentUser,
+                    allTransactionViolationsRef.current,
+                    getCurrencyDecimals,
+                    rules,
+                );
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE]: {
