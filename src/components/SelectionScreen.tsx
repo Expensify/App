@@ -148,7 +148,7 @@ function SelectionScreen<T = string>({
     // search logic). These anti-jump list props keep that pinned row visible: mount-scroll is off because the pinned
     // row is already at the top, and maintaining scroll position is disabled so clearing the search returns to the top.
     // This only applies to searchable selectors.
-    const isSearchableList = !!textInputOptions;
+    const isSearchableList = !!(shouldShowTextInput ?? textInputOptions?.label);
 
     return (
         <AccessOrNotFoundWrapper

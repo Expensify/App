@@ -86,6 +86,18 @@ describe('useSelectionListSearch', () => {
         expect(result.current.filteredData.at(0)?.value).not.toBe('01');
     });
 
+    it('pins the saved selection once the list loads asynchronously', () => {
+        // Given the list renders before its data has loaded from Onyx
+        const {result, rerender} = renderHook((data: Item[]) => useSelectionListSearch(data), {initialProps: [] as Item[]});
+        expect(result.current.filteredData).toEqual([]);
+
+        // When the data arrives with the 7th item already selected
+        rerender(buildItems(13, 6));
+
+        // Then the saved selection is pinned to the top, even though the first render was empty
+        expect(result.current.filteredData.at(0)?.value).toBe('07');
+    });
+
     it('pins every pre-selected item to the top of a long multi-select list', () => {
         // Given a long list with three pre-selected items scattered through it
         const data = Array.from({length: 13}, (_, index) => {

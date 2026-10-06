@@ -4,6 +4,7 @@ import CONST from '@src/CONST';
 function shouldMoveInitialSelectionToTop(itemCount: number): boolean {
     return itemCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
 }
+
 /**
  * Moves the pre-selected items to the top of the list, keeping the rest in their original order.
  * No-ops for short lists (below the item-limit threshold) or when nothing is pre-selected.
