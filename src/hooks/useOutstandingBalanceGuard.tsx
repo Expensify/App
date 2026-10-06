@@ -11,26 +11,17 @@ import useConfirmModal from './useConfirmModal';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 
-type OutstandingBalanceGuardParams = {
-    /** The number of paid policies the current user owns */
-    ownedPaidPoliciesCount: number;
-
-    /** Whether the guard runs for an archive rather than a delete, so the modal names the action the user actually triggered */
-    isArchiving: boolean;
-
-    /** Called when the modal is dismissed (either by settling the balance or cancelling) */
-    onModalDismissed?: () => void;
-};
-
 /**
- * Hook that encapsulates the outstanding balance guard logic for removing a workspace.
- * When the user tries to delete or archive their last paid workspace while owing a balance,
+ * Hook that encapsulates the outstanding balance guard logic for workspace deletion.
+ * When the user tries to delete their last paid workspace while owing a balance,
  * a modal is shown directing them to subscription settings to settle the balance.
  *
+ * @param ownedPaidPoliciesCount - The number of paid policies the current user owns
+ * @param onModalDismissed - called when the modal is dismissed (either by settling the balance or cancelling)
  * @returns shouldBlockDeletion - function that checks and shows the modal if needed (returns true if blocked)
  * @returns wouldBlockDeletion - pre-computed boolean for popover/menu configuration
  */
-function useOutstandingBalanceGuard({ownedPaidPoliciesCount, isArchiving, onModalDismissed}: OutstandingBalanceGuardParams) {
+function useOutstandingBalanceGuard(ownedPaidPoliciesCount: number, onModalDismissed?: () => void) {
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -43,8 +34,8 @@ function useOutstandingBalanceGuard({ownedPaidPoliciesCount, isArchiving, onModa
         }
 
         showConfirmModal({
-            title: translate(isArchiving ? 'workspace.common.archive' : 'workspace.common.delete'),
-            prompt: translate(isArchiving ? 'workspace.common.outstandingBalanceArchiveWarning' : 'workspace.common.outstandingBalanceWarning'),
+            title: translate('workspace.common.delete'),
+            prompt: translate('workspace.common.outstandingBalanceWarning'),
             confirmText: translate('workspace.common.settleBalance'),
             cancelText: translate('common.cancel'),
         }).then((result) => {
@@ -56,7 +47,7 @@ function useOutstandingBalanceGuard({ownedPaidPoliciesCount, isArchiving, onModa
         });
 
         return true;
-    }, [isArchiving, onModalDismissed, showConfirmModal, translate, wouldBlockDeletion]);
+    }, [onModalDismissed, showConfirmModal, translate, wouldBlockDeletion]);
 
     return {shouldBlockDeletion, wouldBlockDeletion};
 }

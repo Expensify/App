@@ -267,7 +267,7 @@ function WorkspacesListPage() {
                         headerComponent={headerComponent}
                         onDeleteWorkspace={setPolicyIDToDelete}
                         onArchiveWorkspace={setPolicyIDToArchive}
-                        pendingPolicyID={policyIDToDelete ?? policyIDToArchive}
+                        pendingDeletePolicyID={policyIDToDelete}
                     />
                 )}
                 {!!policyIDToDelete && (

@@ -64,11 +64,11 @@ type WorkspaceListTableProps = {
     /** Called when the user picks Archive in a row menu, so the page can mount the archive flow */
     onArchiveWorkspace: (policyID: string) => void;
 
-    /** ID of the workspace with a deletion or archive in progress, if any */
-    pendingPolicyID?: string;
+    /** ID of the workspace with a deletion in progress, if any */
+    pendingDeletePolicyID?: string;
 };
 
-export default function WorkspaceListTable({ref, workspaces, headerComponent, onDeleteWorkspace, onArchiveWorkspace, pendingPolicyID}: WorkspaceListTableProps) {
+export default function WorkspaceListTable({ref, workspaces, headerComponent, onDeleteWorkspace, onArchiveWorkspace, pendingDeletePolicyID}: WorkspaceListTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {isBetaEnabled} = usePermissions();
@@ -143,7 +143,7 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
                 shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
                 onDeleteWorkspace={onDeleteWorkspace}
                 onArchiveWorkspace={onArchiveWorkspace}
-                pendingPolicyID={pendingPolicyID}
+                pendingDeletePolicyID={pendingDeletePolicyID}
             />
         );
     };

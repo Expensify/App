@@ -6,25 +6,16 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useOutstandingBalanceGuard from '@hooks/useOutstandingBalanceGuard';
-import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
 import usePrevious from '@hooks/usePrevious';
-import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {close as closeVisibleModal} from '@libs/actions/Modal';
-import {archivePolicy, calculateBillNewDot, dismissWorkspaceError} from '@libs/actions/Policy/Policy';
+import {archivePolicy, dismissWorkspaceError} from '@libs/actions/Policy/Policy';
 import {filterInactiveCards} from '@libs/CardUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
-import {shouldBlockWorkspaceDeletionForInvoicifyUser} from '@libs/PolicyUtils';
-import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import {canDowngradeSelector} from '@src/selectors/Account';
-import {createOwnedPaidPoliciesCountsSelector} from '@src/selectors/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
@@ -45,29 +36,20 @@ type ArchiveWorkspaceFlowProps = {
 
 /**
  * Self-contained workspace archive flow. It is mounted only while an archive is in progress, so all of the
- * Onyx data needed to archive a workspace (full policy collection, card feeds, etc.)
- * is subscribed to only for the lifetime of the flow instead of re-rendering the workspaces list in the background.
+ * Onyx data needed to archive a workspace (policy, card feeds, etc.) is subscribed to only for the lifetime
+ * of the flow instead of re-rendering the workspaces list in the background.
  *
- * On mount (once the data is ready) it runs the pre-archive checks (Invoicify block, outstanding balance,
- * bill calculation for the last paid workspace) and then shows the archive confirmation modal.
+ * On mount (once the data is ready) it shows the archive confirmation modal. Unlike deleting, archiving doesn't
+ * change the subscription or bill the user, so none of the delete flow's billing pre-checks apply here.
  */
 function ArchiveWorkspaceFlow({policyID, onDismiss, onArchiveComplete}: ArchiveWorkspaceFlowProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
-    const buildDynamicRoute = useScreenBoundDynamicRoute();
     const {showConfirmModal, closeModal} = useConfirmModal();
 
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [policies, policiesResult] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [privateSubscription, privateSubscriptionResult] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
-    const [canDowngrade, accountResult] = useOnyx(ONYXKEYS.ACCOUNT, {selector: canDowngradeSelector});
-    const [, amountOwedResult] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const ownedPaidPoliciesCountsSelector = createOwnedPaidPoliciesCountsSelector(session?.accountID);
-    const ownedPaidPoliciesCounts = ownedPaidPoliciesCountsSelector(policies);
-
-    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    const [policy, policyResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [cardFeeds, cardFeedsResult] = useCardFeeds(policyID);
@@ -75,7 +57,7 @@ function ArchiveWorkspaceFlow({policyID, onDismiss, onArchiveComplete}: ArchiveW
         selector: filterInactiveCards,
     });
 
-    const isLoadingData = isLoadingOnyxValue(policiesResult, accountResult, amountOwedResult, privateSubscriptionResult, cardFeedsResult, cardsListResult);
+    const isLoadingData = isLoadingOnyxValue(policyResult, cardFeedsResult, cardsListResult);
 
     const hasCardFeedOrExpensifyCard =
         !isEmptyObject(cardFeeds) ||
@@ -87,9 +69,6 @@ function ArchiveWorkspaceFlow({policyID, onDismiss, onArchiveComplete}: ArchiveW
     const policyLatestErrorMessage = getLatestErrorMessage(policy);
     const isPendingArchive = !!policy?.archivedDate && !!policy?.pendingAction;
     const prevIsPendingArchive = usePrevious(isPendingArchive);
-
-    const shouldCalculateBillNewDot = !!canDowngrade && ownedPaidPoliciesCounts?.total === 1;
-    const {shouldBlockDeletion} = useOutstandingBalanceGuard({ownedPaidPoliciesCount: ownedPaidPoliciesCounts?.active ?? 0, isArchiving: true, onModalDismissed: onDismiss});
 
     const hideArchiveErrorModal = useCallback(() => {
         dismissWorkspaceError(policyID, policy?.pendingAction);
@@ -173,31 +152,12 @@ function ArchiveWorkspaceFlow({policyID, onDismiss, onArchiveComplete}: ArchiveW
         });
     };
 
-    const {setIsDeletingPaidWorkspace} = usePayAndDowngrade(continueArchiveWorkspace);
-
     const hasStartedRef = useRef(false);
     useEffect(() => {
         if (hasStartedRef.current || isLoadingData) {
             return;
         }
         hasStartedRef.current = true;
-
-        if (shouldBlockWorkspaceDeletionForInvoicifyUser(isSubscriptionTypeOfInvoicing(privateSubscription?.type), policies, policyID, session?.accountID)) {
-            Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.SUBSCRIPTION_DOWNGRADE_BLOCKED.path));
-            onDismiss();
-            return;
-        }
-
-        if (shouldBlockDeletion()) {
-            return;
-        }
-
-        if (shouldCalculateBillNewDot) {
-            setIsDeletingPaidWorkspace(true);
-            calculateBillNewDot();
-            return;
-        }
-
         continueArchiveWorkspace();
     });
 

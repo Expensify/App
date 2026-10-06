@@ -44,8 +44,8 @@ type WorkspaceRowThreeDotsMenuProps = {
     /** Called when the user picks Archive, so the page can mount the archive flow */
     onArchiveWorkspace: (policyID: string) => void;
 
-    /** ID of the workspace with a deletion or archive in progress, if any */
-    pendingPolicyID?: string;
+    /** ID of the workspace with a deletion in progress, if any */
+    pendingDeletePolicyID?: string;
 };
 
 /**
@@ -53,7 +53,7 @@ type WorkspaceRowThreeDotsMenuProps = {
  * primitive-valued subscriptions, and mounts the leave/transfer flows on demand so their heavier
  * subscriptions (the full policy entry) exist only while the corresponding action is in progress.
  */
-function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace, pendingPolicyID}: WorkspaceRowThreeDotsMenuProps) {
+function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace, pendingDeletePolicyID}: WorkspaceRowThreeDotsMenuProps) {
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}>(null);
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
@@ -72,7 +72,8 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace,
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [isLoadingBill] = useOnyx(ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE);
     const [ownedPaidPoliciesCounts] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createOwnedPaidPoliciesCountsSelector(currentUserPersonalDetails.accountID)});
-    const shouldCalculateBillNewDot = !!canDowngrade && ownedPaidPoliciesCounts?.total === 1;
+    // Archiving doesn't change the subscription or bill the user, so the final bill is only calculated when deleting.
+    const shouldCalculateBillNewDot = !canArchivePolicies && !!canDowngrade && ownedPaidPoliciesCounts?.total === 1;
     const wouldBlockDeletion = (amountOwed ?? 0) > 0 && ownedPaidPoliciesCounts?.active === 1;
 
     const [activeAction, setActiveAction] = useState<ActiveAction>();
@@ -148,18 +149,19 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace,
             menuItems.push({
                 icon: canArchivePolicies ? icons.Box : icons.Trashcan,
                 text: translate(canArchivePolicies ? 'workspace.common.archive' : 'workspace.common.delete'),
-                shouldShowLoadingSpinnerIcon: !!isLoadingBill && pendingPolicyID === item.policyID,
+                shouldShowLoadingSpinnerIcon: !canArchivePolicies && !!isLoadingBill && pendingDeletePolicyID === item.policyID,
                 onSelected: () => {
-                    if (isLoadingBill) {
-                        return;
-                    }
-
-                    // All the pre-checks and the confirmation modal are handled by the archive/delete flow, mounted by the page.
+                    // The confirmation modal is handled by ArchiveWorkspaceFlow, mounted by the page.
                     if (canArchivePolicies) {
                         onArchiveWorkspace(item.policyID);
                         return;
                     }
 
+                    if (isLoadingBill) {
+                        return;
+                    }
+
+                    // All the pre-deletion checks and the confirmation modal are handled by DeleteWorkspaceFlow, mounted by the page.
                     onDeleteWorkspace(item.policyID);
                 },
                 shouldKeepModalOpen: shouldCalculateBillNewDot && !wouldBlockDeletion,

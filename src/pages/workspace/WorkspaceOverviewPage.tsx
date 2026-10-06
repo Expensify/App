@@ -118,7 +118,9 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [isLoadingBill] = useOnyx(ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE);
     const [ownedPaidPoliciesCounts] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createOwnedPaidPoliciesCountsSelector(currentUserPersonalDetails.accountID)});
-    const shouldCalculateBillNewDot = !!canDowngrade && ownedPaidPoliciesCounts?.total === 1;
+    // Archiving doesn't change the subscription or bill the user, so the final bill is only calculated when deleting.
+    const shouldCalculateBillNewDot = !canArchivePolicies && !!canDowngrade && ownedPaidPoliciesCounts?.total === 1;
+    const isLoadingDeleteBill = !canArchivePolicies && !!isLoadingBill;
     const wouldBlockDeletion = (amountOwed ?? 0) > 0 && ownedPaidPoliciesCounts?.active === 1;
 
     // When we create a new workspace, the policy prop will be empty on the first render. Therefore, we have to use policyDraft until policy has been set in Onyx.
@@ -388,20 +390,21 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                 text: translate(canArchivePolicies ? 'workspace.common.archive' : 'common.delete'),
                 icon: canArchivePolicies ? expensifyIcons.Box : expensifyIcons.Trashcan,
                 onSelected: () => {
-                    if (isLoadingBill) {
-                        return;
-                    }
-
-                    // All the pre-checks and the confirmation modal are handled by the archive/delete flow, which mounts when this is set.
+                    // The confirmation modal is handled by ArchiveWorkspaceFlow, which mounts when this is set.
                     if (canArchivePolicies) {
                         setIsArchiveWorkspaceFlowVisible(true);
                         return;
                     }
 
+                    if (isLoadingBill) {
+                        return;
+                    }
+
+                    // All the pre-deletion checks and the confirmation modal are handled by DeleteWorkspaceFlow, which mounts when this is set.
                     setIsDeleteWorkspaceFlowVisible(true);
                 },
-                disabled: isLoadingBill,
-                shouldShowLoadingSpinnerIcon: isLoadingBill,
+                disabled: isLoadingDeleteBill,
+                shouldShowLoadingSpinnerIcon: isLoadingDeleteBill,
                 shouldCloseModalOnSelect: !shouldCalculateBillNewDot || wouldBlockDeletion,
             });
         }

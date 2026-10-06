@@ -44,18 +44,16 @@ jest.mock('@libs/Navigation/Navigation', () => ({
  * Test wrapper component that uses the hook and exposes the guard values via ref for test assertions.
  * The hook no longer returns an element, so there is nothing for it to render.
  */
-const TestGuardComponent = React.forwardRef<GuardHandle, {ownedPaidPoliciesCount: number; isArchiving: boolean; onModalDismissed?: () => void}>(
-    ({ownedPaidPoliciesCount, isArchiving, onModalDismissed}, ref) => {
-        const {shouldBlockDeletion, wouldBlockDeletion} = useOutstandingBalanceGuard({ownedPaidPoliciesCount, isArchiving, onModalDismissed});
+const TestGuardComponent = React.forwardRef<GuardHandle, {ownedPaidPoliciesCount: number; onModalDismissed?: () => void}>(({ownedPaidPoliciesCount, onModalDismissed}, ref) => {
+    const {shouldBlockDeletion, wouldBlockDeletion} = useOutstandingBalanceGuard(ownedPaidPoliciesCount, onModalDismissed);
 
-        useImperativeHandle(ref, () => ({
-            shouldBlockDeletion,
-            wouldBlockDeletion,
-        }));
+    useImperativeHandle(ref, () => ({
+        shouldBlockDeletion,
+        wouldBlockDeletion,
+    }));
 
-        return null;
-    },
-);
+    return null;
+});
 
 describe('useOutstandingBalanceGuard', () => {
     beforeAll(() => {
@@ -83,7 +81,6 @@ describe('useOutstandingBalanceGuard', () => {
                 <TestGuardComponent
                     ref={ref}
                     ownedPaidPoliciesCount={1}
-                    isArchiving={false}
                 />,
             );
 
@@ -103,7 +100,6 @@ describe('useOutstandingBalanceGuard', () => {
                 <TestGuardComponent
                     ref={ref}
                     ownedPaidPoliciesCount={1}
-                    isArchiving={false}
                 />,
             );
 
@@ -123,11 +119,10 @@ describe('useOutstandingBalanceGuard', () => {
                 <TestGuardComponent
                     ref={ref}
                     ownedPaidPoliciesCount={1}
-                    isArchiving={false}
                 />,
             );
 
-            // Then deletion is blocked, because losing the last paid workspace would leave no subscription to collect the debt on
+            // Then deletion is blocked, because losing the last paid workspace would leave the debt uncollectable
             expect(ref.current?.wouldBlockDeletion).toBe(true);
         });
 
@@ -143,7 +138,6 @@ describe('useOutstandingBalanceGuard', () => {
                 <TestGuardComponent
                     ref={ref}
                     ownedPaidPoliciesCount={2}
-                    isArchiving={false}
                 />,
             );
 
@@ -163,7 +157,6 @@ describe('useOutstandingBalanceGuard', () => {
                 <TestGuardComponent
                     ref={ref}
                     ownedPaidPoliciesCount={0}
-                    isArchiving={false}
                 />,
             );
 
@@ -183,7 +176,6 @@ describe('useOutstandingBalanceGuard', () => {
                 <TestGuardComponent
                     ref={ref}
                     ownedPaidPoliciesCount={1}
-                    isArchiving={false}
                 />,
             );
 
@@ -205,7 +197,6 @@ describe('useOutstandingBalanceGuard', () => {
                 <TestGuardComponent
                     ref={ref}
                     ownedPaidPoliciesCount={1}
-                    isArchiving={false}
                 />,
             );
 
@@ -230,7 +221,6 @@ describe('useOutstandingBalanceGuard', () => {
                 <TestGuardComponent
                     ref={ref}
                     ownedPaidPoliciesCount={3}
-                    isArchiving={false}
                 />,
             );
 
@@ -258,7 +248,6 @@ describe('useOutstandingBalanceGuard', () => {
                 <TestGuardComponent
                     ref={ref}
                     ownedPaidPoliciesCount={1}
-                    isArchiving={false}
                     onModalDismissed={onModalDismissed}
                 />,
             );
@@ -288,7 +277,6 @@ describe('useOutstandingBalanceGuard', () => {
                 <TestGuardComponent
                     ref={ref}
                     ownedPaidPoliciesCount={1}
-                    isArchiving={false}
                     onModalDismissed={onModalDismissed}
                 />,
             );
@@ -316,7 +304,6 @@ describe('useOutstandingBalanceGuard', () => {
                 <TestGuardComponent
                     ref={ref}
                     ownedPaidPoliciesCount={1}
-                    isArchiving={false}
                 />,
             );
 
@@ -328,32 +315,6 @@ describe('useOutstandingBalanceGuard', () => {
             // Then the prompt explains the balance and offers the subscription page, rather than a bare failure
             expect(getShowConfirmModalOption('title')).toBe('workspace.common.delete');
             expect(getShowConfirmModalOption('prompt')).toBe('workspace.common.outstandingBalanceWarning');
-            expect(getShowConfirmModalOption('confirmText')).toBe('workspace.common.settleBalance');
-            expect(getShowConfirmModalOption('cancelText')).toBe('common.cancel');
-        });
-
-        it('should pass the archive translation keys to the modal when the guard runs for an archive', async () => {
-            // Given an account whose last paid workspace cannot be archived until the balance is settled
-            await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 100);
-            await waitForBatchedUpdates();
-
-            const ref = React.createRef<GuardHandle>();
-            render(
-                <TestGuardComponent
-                    ref={ref}
-                    ownedPaidPoliciesCount={1}
-                    isArchiving
-                />,
-            );
-
-            // When the guard blocks the archive
-            act(() => {
-                ref.current?.shouldBlockDeletion();
-            });
-
-            // Then the prompt names archiving rather than deleting, so it matches the action the user actually took
-            expect(getShowConfirmModalOption('title')).toBe('workspace.common.archive');
-            expect(getShowConfirmModalOption('prompt')).toBe('workspace.common.outstandingBalanceArchiveWarning');
             expect(getShowConfirmModalOption('confirmText')).toBe('workspace.common.settleBalance');
             expect(getShowConfirmModalOption('cancelText')).toBe('common.cancel');
         });

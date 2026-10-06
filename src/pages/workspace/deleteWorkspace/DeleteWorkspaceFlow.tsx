@@ -127,7 +127,7 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
     const prevIsPendingDelete = usePrevious(isPendingDelete);
 
     const shouldCalculateBillNewDot = !!canDowngrade && ownedPaidPoliciesCounts?.total === 1;
-    const {shouldBlockDeletion} = useOutstandingBalanceGuard({ownedPaidPoliciesCount: ownedPaidPoliciesCounts?.active ?? 0, isArchiving: false, onModalDismissed: onDismiss});
+    const {shouldBlockDeletion} = useOutstandingBalanceGuard(ownedPaidPoliciesCounts?.active ?? 0, onDismiss);
 
     const hideDeleteWorkspaceErrorModal = useCallback(() => {
         dismissWorkspaceError(policyID, policy?.pendingAction);
