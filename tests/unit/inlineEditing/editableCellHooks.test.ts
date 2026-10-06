@@ -141,7 +141,8 @@ describe('useInlineEditState', () => {
         expect(result.current.localValue).toBe('updated');
     });
 
-    it('syncs localValue to the external value even while editing', () => {
+    it('keeps the draft when the external value changes while editing', () => {
+        // Given an open editor holding a value the user typed
         const {result, rerender} = setupInline('initial');
 
         startInlineEditing(result);
@@ -149,9 +150,36 @@ describe('useInlineEditState', () => {
 
         expect(result.current.localValue).toBe('draft');
 
+        // When an external update lands mid-edit
         rerender({value: 'updated externally', canEdit: true});
 
+        // Then the draft survives, because overwriting it would make the next blur read the edit as unchanged and drop it
         expect(result.current.isEditing).toBe(true);
+        expect(result.current.localValue).toBe('draft');
+
+        // When the user cancels out of the editor
+        act(() => result.current.cancelEditing());
+
+        // Then the cell catches up to the newer value it skipped while the editor was open
+        expect(result.current.isEditing).toBe(false);
+        expect(result.current.localValue).toBe('updated externally');
+    });
+
+    it('saves the draft after an external update changed the value mid-edit', () => {
+        // Given an edit typed over a value that an external update has since changed
+        const onSave = jest.fn();
+        const {result, rerender} = setupInline('initial', {onSave});
+
+        startInlineEditing(result);
+        setInlineValue(result, 'draft');
+        rerender({value: 'updated externally', canEdit: true});
+
+        // When the user commits the edit
+        saveInline(result);
+
+        // Then what they typed is what gets written, rather than being swallowed as a no-op
+        expect(onSave).toHaveBeenCalledWith('draft');
+        expect(result.current.isEditing).toBe(false);
         expect(result.current.localValue).toBe('updated externally');
     });
 

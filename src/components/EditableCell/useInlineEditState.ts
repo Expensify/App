@@ -26,7 +26,10 @@ function useInlineEditState<T>(
     const [prevValue, setPrevValue] = useState(value);
     const hasEndedRef = useRef(false);
 
-    if (prevValue !== value) {
+    // Leave the draft alone while the editor is open. An update arriving mid-edit, from Pusher or another admin,
+    // would otherwise replace what the user typed, and a blur would then read the edit as unchanged and drop it.
+    // Closing flips isEditing first, so the next render picks the newer value back up.
+    if (prevValue !== value && !isEditing) {
         setPrevValue(value);
         setLocalValue(value);
     }
