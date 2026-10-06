@@ -116,6 +116,7 @@ function SidebarOrderedReportsContextProvider({
     const prevGuideAccountIDs = usePrevious(guideAccountIDs);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const reportAttributes = useReportAttributes();
+    const reportAttributesUpdates = useCollectionDelta(reportAttributes);
     const [currentReportsToDisplay, setCurrentReportsToDisplay] = useState<ReportsToDisplayInLHN>({});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
@@ -152,6 +153,11 @@ function SidebarOrderedReportsContextProvider({
         if (reportNameValuePairsUpdates) {
             for (const key of Object.keys(reportNameValuePairsUpdates ?? {}).map((reportKey) => reportKey.replace(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ONYXKEYS.COLLECTION.REPORT))) {
                 reportsToUpdate.add(key);
+            }
+        }
+        if (reportAttributesUpdates) {
+            for (const reportID of Object.keys(reportAttributesUpdates)) {
+                reportsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
             }
         }
         if (transactionsUpdates) {
@@ -196,6 +202,7 @@ function SidebarOrderedReportsContextProvider({
     }, [
         reportUpdates,
         reportNameValuePairsUpdates,
+        reportAttributesUpdates,
         transactionsUpdates,
         transactionViolationsUpdates,
         reportsDraftsUpdates,
@@ -218,9 +225,8 @@ function SidebarOrderedReportsContextProvider({
         const updatedReports = getUpdatedReports();
         const hasCachedReports = Object.keys(currentReportsToDisplay).length > 0;
 
-        // When reportAttributes changes (e.g. on startup hydration) but no report-specific keys were
-        // updated, getUpdatedReports() returns []. Rather than falling through to a full scan of all
-        // reports, recheck only the already-displayed reports with the new reportAttributes.
+        // When a dependency changes but no report-specific keys were updated, getUpdatedReports() returns [].
+        // Rather than falling through to a full scan of all reports, recheck only the already-displayed reports.
         let effectiveUpdatedReports = updatedReports.length === 0 && hasCachedReports ? Object.keys(currentReportsToDisplay) : updatedReports;
 
         // When guide personal details hydrate after the reports collection, guideAccountIDs changes but
