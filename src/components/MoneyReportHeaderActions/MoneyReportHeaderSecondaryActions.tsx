@@ -86,7 +86,7 @@ type MoneyReportHeaderSecondaryActionsProps = {
     primaryAction: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '';
     isReportInSearch?: boolean;
     backTo?: Route;
-    dropdownMenuRef?: React.RefObject<ButtonWithDropdownMenuRef>;
+    dropdownMenuRef?: React.RefObject<ButtonWithDropdownMenuRef | null>;
     /** Disables the "More" dropdown, e.g. while expenses are selected */
     isDisabled?: boolean;
 };
