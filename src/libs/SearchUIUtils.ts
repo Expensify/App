@@ -656,6 +656,7 @@ const SKIPPED_SEARCH_FILTERS = new Set([
     FILTER_KEYS.ACTION,
     FILTER_KEYS.COLUMNS,
     FILTER_KEYS.KEYWORD,
+    FILTER_KEYS.EXPORTER,
 ]);
 
 function doesSearchItemMatchSort(key: SearchKey, itemSortBy: string | undefined, itemSortOrder: string | undefined, currentSortBy: string | undefined, currentSortOrder: string | undefined) {
@@ -4678,6 +4679,8 @@ const SPEND_INSIGHT_KEYS = [
     CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS,
 ] as const satisfies SearchKey[];
 
+const insightsPageMenuKeys = new Set<SearchKey>([...SPEND_INSIGHT_KEYS, CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER]);
+
 type TypeMenuSectionsParams = {
     currentUserEmail: string | undefined;
     currentUserAccountID: number | undefined;
@@ -4888,6 +4891,16 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
     }
 
     return typeMenuSections;
+}
+
+function omitInsightsPageMenuItems(sections: SearchTypeMenuSection[]): SearchTypeMenuSection[] {
+    return sections.flatMap((section) => {
+        const menuItems = section.menuItems.filter((item) => !insightsPageMenuKeys.has(item.key));
+        if (menuItems.length === section.menuItems.length) {
+            return section;
+        }
+        return menuItems.length > 0 ? {...section, menuItems} : [];
+    });
 }
 
 /**
@@ -7295,6 +7308,7 @@ export {
     getActions,
     getPrimaryAction,
     createTypeMenuSections,
+    omitInsightsPageMenuItems,
     SPEND_INSIGHT_KEYS,
     formatBadgeText,
     getSectionBadgeText,

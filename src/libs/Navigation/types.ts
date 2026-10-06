@@ -680,6 +680,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.SUBSCRIPTION.PAYMENT_HISTORY]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.SETTINGS_DETAILS]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD]: undefined;
+    [SCREENS.SETTINGS.EMAIL_ISSUE]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_BILLING_CURRENCY]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.DYNAMIC_PAYMENT_CARD_CURRENCY_SELECTOR]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.DYNAMIC_SUBSCRIPTION_DOWNGRADE_BLOCKED]: undefined;
@@ -2401,6 +2402,12 @@ type MoneyRequestNavigatorParamList = {
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         transactionID: string;
         reportActionID?: string;
+        reportID: string;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_REUSE_ROUTE]: {
+        action: IOUAction;
+        iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
+        transactionID: string;
         reportID: string;
     };
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY_CREATE]: {

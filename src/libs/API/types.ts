@@ -155,6 +155,7 @@ const WRITE_COMMANDS = {
     RESOLVE_ACTIONABLE_MENTION_WHISPER: 'ResolveActionableMentionWhisper',
     RESOLVE_ACTIONABLE_REPORT_MENTION_WHISPER: 'ResolveActionableReportMentionWhisper',
     DELETE_WORKSPACE: 'DeleteWorkspace',
+    ARCHIVE_POLICY: 'ArchivePolicy',
     DELETE_MEMBERS_FROM_WORKSPACE: 'DeleteMembersFromWorkspace',
     ADD_MEMBERS_TO_WORKSPACE: 'AddMembersToWorkspace',
     UPDATE_WORKSPACE_AVATAR: 'UpdateWorkspaceAvatar',
@@ -692,6 +693,7 @@ const WRITE_COMMANDS = {
     GET_VALIDATE_CODE_FOR_ACCOUNT_MERGE: 'GetValidateCodeForAccountMerge',
     MERGE_WITH_VALIDATE_CODE: 'MergeWithValidateCode',
     RESET_SMS_DELIVERY_FAILURE_STATUS: 'ResetSMSDeliveryFailureStatus',
+    USER_UNBLOCK_EMAIL: 'User_UnblockEmail',
     SAVE_CORPAY_ONBOARDING_COMPANY_DETAILS: 'SaveCorpayOnboardingCompanyDetails',
     SAVE_CORPAY_ONBOARDING_BENEFICIAL_OWNER: 'SaveCorpayOnboardingBeneficialOwner',
     DELETE_APP_REPORT: 'DeleteAppReport',
@@ -897,6 +899,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.CHRONOS_REMOVE_OOO_EVENT]: Parameters.ChronosRemoveOOOEventParams;
     [WRITE_COMMANDS.TRANSFER_WALLET_BALANCE]: Parameters.TransferWalletBalanceParams;
     [WRITE_COMMANDS.DELETE_WORKSPACE]: Parameters.DeleteWorkspaceParams;
+    [WRITE_COMMANDS.ARCHIVE_POLICY]: Parameters.ArchivePolicyParams;
     [WRITE_COMMANDS.DELETE_MEMBERS_FROM_WORKSPACE]: Parameters.DeleteMembersFromWorkspaceParams;
     [WRITE_COMMANDS.ADD_MEMBERS_TO_WORKSPACE]: Parameters.AddMembersToWorkspaceParams;
     [WRITE_COMMANDS.UPDATE_WORKSPACE_AVATAR]: Parameters.UpdateWorkspaceAvatarParams;
@@ -1192,6 +1195,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SEND_REMINDER_FOR_CORPAY_SINGER_INFORMATION]: Parameters.SendReminderForCorpaySignerInformationParams;
     [WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT]: Parameters.UpdateWorkspaceCustomUnitParams;
     [WRITE_COMMANDS.RESET_SMS_DELIVERY_FAILURE_STATUS]: Parameters.ResetSMSDeliveryFailureStatusParams;
+    [WRITE_COMMANDS.USER_UNBLOCK_EMAIL]: null;
     [WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_COMPANY_DETAILS]: Parameters.SaveCorpayOnboardingCompanyDetailsParams;
     [WRITE_COMMANDS.SET_POLICY_PROHIBITED_EXPENSES]: Parameters.SetPolicyProhibitedExpensesParams;
     [WRITE_COMMANDS.SET_POLICY_COMMUTER_EXCLUSIONS]: Parameters.SetPolicyCommuterExclusionsParams;
@@ -1631,6 +1635,7 @@ const READ_COMMANDS = {
     OPEN_MULTIFACTOR_AUTHENTICATION_REVOKE_PAGE: 'OpenMultifactorAuthenticationRevokePage',
     OPEN_TROUBLESHOOT_SETTINGS_PAGE: 'OpenTroubleshootSettingsPage',
     OPEN_UNREPORTED_EXPENSES_PAGE: 'OpenUnreportedExpensesPage',
+    OPEN_REUSE_ROUTE_PAGE: 'OpenReuseRoutePage',
     GET_GUIDE_CALL_AVAILABILITY_SCHEDULE: 'GetGuideCallAvailabilitySchedule',
     GET_TRANSACTIONS_FOR_MERGING: 'GetTransactionsForMerging',
     GET_DOMAIN_VALIDATE_CODE: 'GetDomainValidateCode',
@@ -1752,6 +1757,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_MULTIFACTOR_AUTHENTICATION_REVOKE_PAGE]: null;
     [READ_COMMANDS.OPEN_TROUBLESHOOT_SETTINGS_PAGE]: null;
     [READ_COMMANDS.OPEN_UNREPORTED_EXPENSES_PAGE]: Parameters.OpenUnreportedExpensesPageParams;
+    [READ_COMMANDS.OPEN_REUSE_ROUTE_PAGE]: null;
     [READ_COMMANDS.GET_GUIDE_CALL_AVAILABILITY_SCHEDULE]: Parameters.GetGuideCallAvailabilityScheduleParams;
     [READ_COMMANDS.GET_TRANSACTIONS_FOR_MERGING]: Parameters.GetTransactionsForMergingParams;
     [READ_COMMANDS.GET_SAML_SETTINGS]: Parameters.DomainParams;

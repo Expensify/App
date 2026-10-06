@@ -137,6 +137,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.EMAIL_ISSUE]: {
+                            path: ROUTES.SETTINGS_EMAIL_ISSUE,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_BILLING_CURRENCY]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_CHANGE_BILLING_CURRENCY,
                             exact: true,
@@ -1909,6 +1913,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY]: DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.path,
                         [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY_CREATE]: DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY_CREATE.path,
                         [SCREENS.MONEY_REQUEST.STEP_VENDOR]: ROUTES.MONEY_REQUEST_STEP_VENDOR.route,
+                        [SCREENS.MONEY_REQUEST.STEP_REUSE_ROUTE]: ROUTES.MONEY_REQUEST_STEP_REUSE_ROUTE.route,
                         [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION]: ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.route,
                         [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DATE]: DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DATE.path,
                         [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESCRIPTION]: DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.path,
