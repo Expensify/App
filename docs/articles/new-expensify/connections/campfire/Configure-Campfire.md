@@ -39,7 +39,7 @@ On the Campfire connection, select **Import** to configure:
 - **Chart of accounts** – Imports your Campfire accounts as categories. This setting is always on.
 - **Enable newly imported accounts** – Choose whether new Campfire accounts arrive as enabled categories. This setting is off by default.
 - **Department** and Campfire dimensions – Under **All Campfire dimensions import as tags**, turn on each dimension you want to import. Each one you turn on becomes its own tag list. All dimensions are off by default.
-- **Tax rates** – Import Campfire tax rates as workspace taxes. This option only appears when your Campfire organization has tax rates.
+- **Tax rates** – Import Campfire tax rates as workspace taxes. This option only appears when your Campfire subsidiary has tax rates.
 
 ---
 
@@ -49,7 +49,7 @@ Export settings control how Expensify sends reports to Campfire.
 
 On the Campfire connection, select **Export** to configure:
 
-- **Preferred exporter** – Choose the Workspace Admin who receives reports to export.
+- **Preferred exporter** – Choose the workspace admin who receives reports to export.
 - **Export reimbursable expenses as** – Reimbursable expenses export as **Vendor bills**.
 - **Vendor bill date** – Choose **Date of last expense**, **Export date**, or **Submitted date**.
 - **Export company card expenses as** – Company card expenses export as **Journal entries**.
