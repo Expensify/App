@@ -2934,6 +2934,6 @@ export {
 // while this module is still loading, which breaks tests that spread `jest.requireActual('@libs/PolicyUtils')`
 // from inside an import cycle.
 export * from './tag';
-export * from './vendors';
+export * from './vendor';
 
 export type {MemberEmailsToAccountIDs, PolicyFeature, PolicyFeatureAccess};
