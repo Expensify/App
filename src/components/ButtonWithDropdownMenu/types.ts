@@ -45,6 +45,8 @@ type DropdownOption<TValueType> = WithSentryLabel & {
     titleStyle?: StyleProp<TextStyle>;
     shouldCloseModalOnSelect?: boolean;
     description?: string;
+    /** Whether to show the description above the title (e.g. a gray label on top of a prominent value) */
+    shouldShowDescriptionOnTop?: boolean;
     descriptionTextStyle?: StyleProp<TextStyle>;
     wrapperStyle?: StyleProp<ViewStyle>;
     displayInDefaultIconColor?: boolean;

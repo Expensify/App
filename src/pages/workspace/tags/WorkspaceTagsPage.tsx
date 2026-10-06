@@ -478,8 +478,11 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         // The former Settings page's rows are surfaced directly in this menu (the dedicated Settings page was removed).
         if (canWriteTags && !isMultiLevelTags) {
             menuItems.push({
-                text: translate('workspace.tags.customTagName'),
-                description: policyTagLists.at(0)?.name ?? '',
+                // Match the design: the "Custom tag name" label is the small gray description on top, the tag list name is the regular-weight title below.
+                text: policyTagLists.at(0)?.name ?? '',
+                description: translate('workspace.tags.customTagName'),
+                shouldShowDescriptionOnTop: true,
+                titleStyle: styles.fontWeightNormal,
                 onSelected: navigateToCustomTagName,
                 shouldShowRightIcon: true,
                 shouldIgnoreCompactStyle: true,
