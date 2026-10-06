@@ -1,8 +1,8 @@
 ---
 title: Configure Campfire
 description: Learn how to configure Campfire import, export, and advanced sync settings in Expensify, including exporting company cards to multiple Campfire accounts.
-keywords: [New Expensify, Campfire configuration, Campfire import, Campfire export, Campfire advanced settings, Campfire vendor bills, Campfire journal entries, Campfire auto-sync, Campfire settlements, Campfire card program account, Workspace Admin]
-internalScope: Audience is Workspace Admins configuring an existing Campfire connection. Covers import, export, advanced sync and settlement, and multiple card account export settings. Does not cover the initial connection, API key setup, or exporting individual reports.
+keywords: [New Expensify, Campfire configuration, Campfire import, Campfire export, Campfire advanced settings, Campfire vendor bills, Campfire journal entries, Campfire auto-sync, Campfire settlements, Campfire card program account, workspace admin]
+internalScope: Audience is workspace admins configuring an existing Campfire connection. Covers import, export, advanced sync and settlement, and multiple card account export settings. Does not cover the initial connection, API key setup, or exporting individual reports.
 order: 2
 ---
 
