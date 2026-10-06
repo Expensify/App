@@ -1,5 +1,5 @@
 ---
-title: Learn About Agents
+title: Understand How Agents Work
 description: Learn how AI Agents work in Expensify, including the differences between personal Agents, Agent rules, RuleBot, and Agent templates.
 keywords: [AI agents, Agents, Agent rules, RuleBot, Agent templates, AI automation, personal Agents, workspace automation]
 internalScope: Audience is members and Workspace Admins. Covers how AI Agents work in Expensify, the differences between personal Agents, Agent rules, RuleBot, and Agent templates, and when to use each. Does not cover creating Agents, creating Agent rules, or writing agent instructions.
