@@ -5376,19 +5376,22 @@ describe('PolicyUtils', () => {
             });
 
             it.each([
-                {isConfigured: true, isVendorMatchingBetaEnabled: false, expected: false},
-                {isConfigured: true, isVendorMatchingBetaEnabled: true, expected: true},
-                {isConfigured: false, isVendorMatchingBetaEnabled: true, expected: false},
-                {isConfigured: undefined, isVendorMatchingBetaEnabled: true, expected: false},
-            ])('keeps Campfire vendor matching gated for %j', ({isConfigured, isVendorMatchingBetaEnabled, expected}) => {
-                // Given a Campfire connection with the specified configuration state
-                const policy = createMock<Policy>({connections: {campfire: {config: {isConfigured}}}});
+                {name: 'configured connection', connection: {config: {isConfigured: true}}, expected: true},
+                {name: 'unconfigured connection', connection: {config: {isConfigured: false}}, expected: false},
+                {name: 'missing configuration flag', connection: {config: {}}, expected: false},
+                {name: 'missing configuration', connection: {}, expected: false},
+                {name: 'missing connection', connection: undefined, expected: false},
+            ])('checks Campfire vendor matching for $name independently of the beta', ({connection, expected}) => {
+                // Given a Campfire workspace whose connection may not be ready for vendor matching
+                const policy = createMock<Policy>({connections: {[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: connection}});
 
-                // When checking the independent vendorMatching beta
-                const isVendorFeatureAvailable = hasVendorFeature(policy, isVendorMatchingBetaEnabled);
+                // When checking availability with and without beta enrollment
+                const isVendorFeatureAvailableWithBeta = hasVendorFeature(policy, true);
+                const isVendorFeatureAvailableWithoutBeta = hasVendorFeature(policy, false);
 
-                // Then both beta access and a configured connection are required
-                expect(isVendorFeatureAvailable).toBe(expected);
+                // Then only a configured connection enables Campfire vendor matching
+                expect(isVendorFeatureAvailableWithBeta).toBe(expected);
+                expect(isVendorFeatureAvailableWithoutBeta).toBe(expected);
             });
 
             it('returns false when beta is disabled and Rillet is connected but isConfigured=false because GA did not widen the configuration gate', () => {
@@ -5597,10 +5600,12 @@ describe('PolicyUtils', () => {
         describe('hasVendorFeatureOnAnyPolicy and getVendorFeaturePolicyIDs', () => {
             const qboPolicy: Policy = {...buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), id: 'qbo'};
             const xeroPolicy: Policy = {...buildXeroPolicy(), id: 'xero'};
+            const campfirePolicy = createMock<Policy>({id: 'campfire', connections: {[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {config: {isConfigured: true}}}});
             const businessCentralPolicy: Policy = {...buildBusinessCentralPolicy(), id: 'businessCentral'};
             const plainPolicy: Policy = {...createRandomPolicy(3), connections: undefined, id: 'plain'};
             const qboKey = `${ONYXKEYS.COLLECTION.POLICY}qbo`;
             const xeroKey = `${ONYXKEYS.COLLECTION.POLICY}xero`;
+            const campfireKey = `${ONYXKEYS.COLLECTION.POLICY}campfire`;
             const businessCentralKey = `${ONYXKEYS.COLLECTION.POLICY}businessCentral`;
             const plainKey = `${ONYXKEYS.COLLECTION.POLICY}plain`;
 
@@ -5620,6 +5625,17 @@ describe('PolicyUtils', () => {
                 const isVendorFeatureAvailable = hasVendorFeatureOnAnyPolicy(policies, false);
 
                 // Then the feature is available because Xero is generally available
+                expect(isVendorFeatureAvailable).toBe(true);
+            });
+
+            it('is true for a Campfire workspace without the beta', () => {
+                // Given a configured Campfire workspace and a workspace with no accounting connection
+                const policies = {[campfireKey]: campfirePolicy, [plainKey]: plainPolicy};
+
+                // When Search checks vendor availability without beta enrollment
+                const isVendorFeatureAvailable = hasVendorFeatureOnAnyPolicy(policies, false);
+
+                // Then Campfire makes vendor filtering available
                 expect(isVendorFeatureAvailable).toBe(true);
             });
 
@@ -5646,16 +5662,16 @@ describe('PolicyUtils', () => {
             });
 
             it('lists the workspaces that have the vendor feature', () => {
-                // Given QBO, Xero and Business Central workspaces next to one with no accounting connection
-                const policies = {[qboKey]: qboPolicy, [xeroKey]: xeroPolicy, [businessCentralKey]: businessCentralPolicy, [plainKey]: plainPolicy};
+                // Given QBO, Xero, Campfire and Business Central workspaces next to one with no accounting connection
+                const policies = {[qboKey]: qboPolicy, [xeroKey]: xeroPolicy, [campfireKey]: campfirePolicy, [businessCentralKey]: businessCentralPolicy, [plainKey]: plainPolicy};
 
                 // When the workspace IDs are listed with and without the vendorMatching beta
                 const policyIDsWithBeta = getVendorFeaturePolicyIDs(policies, true);
                 const policyIDsWithoutBeta = getVendorFeaturePolicyIDs(policies, false);
 
                 // Then every connected workspace is listed with the beta, and Business Central is dropped without it because it still depends on the beta
-                expect(policyIDsWithBeta.toSorted()).toEqual(['businessCentral', 'qbo', 'xero']);
-                expect(policyIDsWithoutBeta.toSorted()).toEqual(['qbo', 'xero']);
+                expect(policyIDsWithBeta.toSorted()).toEqual(['businessCentral', 'campfire', 'qbo', 'xero']);
+                expect(policyIDsWithoutBeta.toSorted()).toEqual(['campfire', 'qbo', 'xero']);
             });
         });
 
