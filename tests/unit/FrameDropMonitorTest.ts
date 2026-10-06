@@ -1,6 +1,6 @@
 import getPlatform from '@libs/getPlatform';
 import fetchFramesDelay from '@libs/telemetry/frameDrops/fetchFramesDelay';
-import {flush, report, startFrameDropMonitor, stopFrameDropMonitor, suspendFrameDropMonitor} from '@libs/telemetry/frameDrops/frameDropMonitor';
+import {flush, report, scheduleFlush, startFrameDropMonitor, stopFrameDropMonitor, suspendFrameDropMonitor} from '@libs/telemetry/frameDrops/frameDropMonitor';
 import {clear, recordPress, recordScreen, startFlow, startOperation} from '@libs/telemetry/frameDrops/frameDropTimeline';
 import getDeviceTier from '@libs/telemetry/frameDrops/getDeviceTier';
 
@@ -410,6 +410,21 @@ describe('frameDropMonitor', () => {
         recordPress(PRESS_LABEL);
         await flush(40_000);
         expect(mockFetchFramesDelay).not.toHaveBeenCalled();
+    });
+
+    it('flushes at the latest after a timeout on a screen that never leaves the JS thread idle, without piling up callbacks', () => {
+        // Given a JS thread that is never idle, so idle callbacks only run when their timeout expires
+        const requestIdleCallbackMock = jest.fn();
+        (globalThis as {requestIdleCallback?: unknown}).requestIdleCallback = requestIdleCallbackMock;
+
+        // When two flush intervals pass while the first callback is still waiting
+        scheduleFlush();
+        scheduleFlush();
+
+        // Then a single callback is waiting, and it has a timeout so it still runs
+        expect(requestIdleCallbackMock).toHaveBeenCalledTimes(1);
+        expect(requestIdleCallbackMock).toHaveBeenCalledWith(expect.any(Function), {timeout: FRAME_DROPS.IDLE_FLUSH_TIMEOUT_MS});
+        delete (globalThis as {requestIdleCallback?: unknown}).requestIdleCallback;
     });
 
     it('turns itself off when native frame tracking never answers', async () => {

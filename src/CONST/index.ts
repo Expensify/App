@@ -2390,6 +2390,8 @@ const CONST = {
             // How often the recorded context timeline is matched against the native frame delay store. Both native stores keep
             // delayed frames for 5+ minutes (Android: 5 min / 3600 frames, iOS: 500 s), so this must stay well below that.
             FLUSH_INTERVAL_MS: 30_000,
+            // A flush waits for the JS thread to be idle, but not longer than this.
+            IDLE_FLUSH_TIMEOUT_MS: 5_000,
             // Share of app launches that measure frame drops. Sentry metrics are billed by volume, and a ranking of
             // interactions needs thousands of sessions, not all of them.
             SESSION_SAMPLE_RATE: 0.1,

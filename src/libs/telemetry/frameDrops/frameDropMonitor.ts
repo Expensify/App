@@ -86,6 +86,7 @@ let isSuspended = false;
 let windowStart: number | undefined;
 let lastReportTime = 0;
 let unmeasuredFlushCount = 0;
+let isIdleFlushPending = false;
 let hasFlushedStartupWindow = false;
 // Flushes run one after another, so a flush requested while another is waiting for native data is queued, not dropped.
 let flushQueue: Promise<void> = Promise.resolve();
@@ -457,11 +458,23 @@ function scheduleFlush() {
         }
         enqueueFlush(now - CONST.TELEMETRY.FRAME_DROPS.SETTLE_MS, now - lastReportTime >= CONST.TELEMETRY.FRAME_DROPS.REPORT_INTERVAL_MS);
     };
-    if (typeof requestIdleCallback === 'function') {
-        requestIdleCallback(run);
+    if (typeof requestIdleCallback !== 'function') {
+        run();
         return;
     }
-    run();
+    if (isIdleFlushPending) {
+        return;
+    }
+    isIdleFlushPending = true;
+    // A screen that keeps rendering (a loading spinner, a skeleton) may never leave the JS thread idle, so the flush
+    // runs after a timeout at the latest instead of never.
+    requestIdleCallback(
+        () => {
+            isIdleFlushPending = false;
+            run();
+        },
+        {timeout: CONST.TELEMETRY.FRAME_DROPS.IDLE_FLUSH_TIMEOUT_MS},
+    );
 }
 
 function resume() {
@@ -575,6 +588,7 @@ function stopFrameDropMonitor() {
     longTasks = [];
     lastReportTime = 0;
     unmeasuredFlushCount = 0;
+    isIdleFlushPending = false;
     hasFlushedStartupWindow = false;
     flushQueue = Promise.resolve();
     isStarted = false;
