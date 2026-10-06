@@ -715,6 +715,26 @@ function isWhisperActionTargetedToOthers(reportAction: OnyxInputOrEntry<ReportAc
     return !getWhisperedTo(reportAction).includes(effectiveCurrentUserAccountID);
 }
 
+/**
+ * Whether the action asks to notify only its actionableForAccountIDs and the current user isn't one of them
+ */
+function isPushScopedToOthers(reportAction: OnyxInputOrEntry<ReportAction>, currentUserAccountID: number): boolean {
+    const originalMessage = reportAction ? getOriginalMessage(reportAction) : undefined;
+    if (
+        !originalMessage ||
+        typeof originalMessage !== 'object' ||
+        !('shouldScopePushToActionableAccounts' in originalMessage) ||
+        originalMessage.shouldScopePushToActionableAccounts !== true
+    ) {
+        return false;
+    }
+    const actionableForAccountIDs: unknown = 'actionableForAccountIDs' in originalMessage ? originalMessage.actionableForAccountIDs : undefined;
+    if (!Array.isArray(actionableForAccountIDs) || actionableForAccountIDs.length === 0) {
+        return false;
+    }
+    return !actionableForAccountIDs.some((accountID) => accountID === currentUserAccountID);
+}
+
 function isReimbursementQueuedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED);
 }
@@ -5437,6 +5457,7 @@ export {
     getMostRecentActiveDEWApproveFailedAction,
     hasPendingDEWApprove,
     isWhisperActionTargetedToOthers,
+    isPushScopedToOthers,
     isCategoryModificationAction,
     isTagModificationAction,
     isIOUActionMatchingTransactionList,

@@ -5222,6 +5222,11 @@ function shouldShowReportActionNotification(
         return false;
     }
 
+    if (action && ReportActionsUtils.isPushScopedToOthers(action, currentUserAccountID)) {
+        Log.info(`${tag} No notification because the action is only meant for other accounts`, false);
+        return false;
+    }
+
     return true;
 }
 
