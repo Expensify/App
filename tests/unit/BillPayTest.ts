@@ -1,6 +1,7 @@
 import {canApproveBill, canPayBill, isBillPayReport} from '@libs/BillPayUtils';
 import {translate} from '@libs/Localize';
 import {getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
+import {canRejectReportAction} from '@libs/ReportUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getSuggestedSearches} from '@libs/SearchSuggestionUtils';
 import {createTypeMenuSections, getSections, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
@@ -78,6 +79,15 @@ describe('Bill Pay', () => {
 
         // Then Submitted offers Approve and final approval replaces it with Pay.
         expect(action).toBe(expectedAction);
+    });
+
+    it('does not offer Reject to the approver of a submitted bill', () => {
+        // Given a submitted bill and an expense report in the same state, both waiting for the current user to approve.
+        const expenseReport: Report = {...bill, type: CONST.REPORT.TYPE.EXPENSE};
+
+        // When the approver opens their actions, then only the expense report offers Reject, because Auth can't reject bills.
+        expect(canRejectReportAction(bill, accountID, policy)).toBe(false);
+        expect(canRejectReportAction(expenseReport, accountID, policy)).toBe(true);
     });
 
     it.each([

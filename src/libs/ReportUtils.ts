@@ -13723,6 +13723,11 @@ function canRejectReportAction(report: Report, currentUserAccountID: number | un
         return false; // Disable invoice
     }
 
+    // RejectExpenseReport returns "400 Bills are not supported", so the approver sends a bill back with Unapprove instead.
+    if (report?.type === CONST.REPORT.TYPE.BILL) {
+        return false;
+    }
+
     if (isReportBeingProcessed) {
         return true; // non-IOU reports can be rejected while processing
     }
