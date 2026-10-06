@@ -1,9 +1,15 @@
 /** Splits a column's resize among the columns to its right, so the row keeps its width instead of overflowing. */
 import CONST from '@src/CONST';
 
-import type {ColumnAbsorber} from './types';
-
 const {MIN_WIDTH} = CONST.TABLES.COLUMN_RESIZE;
+
+/** A later column that absorbs another column's resize. */
+type ColumnAbsorber = {
+    columnKey: string;
+
+    /** Narrowest it may be squeezed to, usually its content width so absorbing never truncates what it shows. */
+    minWidth: number;
+};
 
 /**
  * Splits a resize delta equally among the absorbers. An absorber that runs out of room above its minimum stops
@@ -42,3 +48,4 @@ function getAbsorbedColumnWidths(absorbers: ColumnAbsorber[], startWidths: Recor
 }
 
 export default getAbsorbedColumnWidths;
+export type {ColumnAbsorber};

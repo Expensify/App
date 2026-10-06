@@ -112,7 +112,7 @@ describe('getResizableColumnLayout', () => {
         const columns = [column('name'), column('email'), column('role'), column('arrow', '')];
 
         // When the user has stored the first column 60px wider
-        const {resolvedColumnWidths, resizableColumns} = getResizableColumnLayout({
+        const {resolvedColumnWidths} = getResizableColumnLayout({
             columns,
             resolvedColumnWidths: {name: 200, email: 160, role: 100, arrow: 40},
             columnWidthOverrides: {name: 260},
@@ -123,8 +123,18 @@ describe('getResizableColumnLayout', () => {
 
         // Then the last headed column absorbs from its leftover, since the content-fitted column between has nothing to give
         expect(resolvedColumnWidths).toEqual({name: 260, email: 160, role: 140, arrow: 40});
+    });
 
-        // And it absorbs during the drag too, so the column doesn't jump on release, while the headless arrow never absorbs
-        expect(resizableColumns.find((resizableColumn) => resizableColumn.columnKey === 'name')?.absorbers.map((absorber) => absorber.columnKey)).toEqual(['email', 'role']);
+    it('paints mid-drag exactly the widths that release resolves to', () => {
+        // Given a 600px table whose last headed column is painted 100px wider than it needs
+        const columns = [column('name'), column('email'), column('role'), column('arrow', '')];
+        const params = {columns, resolvedColumnWidths: {name: 200, email: 160, role: 100, arrow: 40}, fitColumnWidths: {name: 200, email: 160, role: 100}, tableWidth: 600, rowChromeWidths};
+
+        // When the first column is dragged 60px wider, and separately once that width is stored
+        const {getResizedColumnWidths} = getResizableColumnLayout({...params, columnWidthOverrides: undefined});
+        const {resolvedColumnWidths} = getResizableColumnLayout({...params, columnWidthOverrides: {name: 260}});
+
+        // Then the drag already paints the stored layout, so no column jumps when the pointer is released
+        expect(getResizedColumnWidths('name', 260)).toEqual(resolvedColumnWidths);
     });
 });

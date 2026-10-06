@@ -2,8 +2,7 @@
  * Web column resizing: dragging a column's right edge sets its width, absorbed by the columns to its right. Widths live in
  * CSS custom properties so React doesn't render mid-drag. Only the dragged column's final width is stored in Onyx.
  */
-import {getDraggedColumnWidth, getResizedColumnWidths} from '@components/Table/columnResize/columnResizeGestures';
-import type {ResizableColumn} from '@components/Table/columnResize/types';
+import getDraggedColumnWidth from '@components/Table/columnResize/columnResizeGestures';
 
 import {setTableColumnWidth} from '@libs/actions/TableColumnWidths';
 
@@ -33,19 +32,23 @@ function getHandleStyle(columnGap: number): React.CSSProperties {
 }
 
 type Drag = {
-    column: ResizableColumn;
+    columnKey: string;
 
     /** Where the pointer went down. */
     startClientX: number;
 
     /** The column's width when the drag started. */
     startWidth: number;
-
-    /** Absorbers' widths by column key when the drag started, read once so shares don't compound across moves. */
-    absorberStartWidths: Record<string, number>;
 };
 
-function useColumnResize({columnResizingID, resizableColumns, resolvedColumnWidths, dragMinWidths, columnGap}: UseColumnResizeParams): ColumnResizeController | undefined {
+function useColumnResize({
+    columnResizingID,
+    resizableColumnKeys,
+    getResizedColumnWidths,
+    resolvedColumnWidths,
+    dragMinWidths,
+    columnGap,
+}: UseColumnResizeParams): ColumnResizeController | undefined {
     const dragRef = useRef<Drag | null>(null);
     const {scopeElementRef, setScopeElement, writeColumnWidth, readColumnWidth, clearLiveWidths} = useLiveColumnWidths({resolvedColumnWidths, dragRef});
     const {revealIndicator, hideIndicator} = useResizeIndicator(scopeElementRef);
@@ -55,29 +58,12 @@ function useColumnResize({columnResizingID, resizableColumns, resolvedColumnWidt
         document.body.style.cursor = '';
     };
 
-    /** Absorbers' painted widths. Unreadable ones are left out, so they're skipped rather than pinned at zero. */
-    const readAbsorberStartWidths = (column: ResizableColumn): Record<string, number> => {
-        const absorberStartWidths: Record<string, number> = {};
-
-        for (const absorber of column.absorbers) {
-            const startWidth = readColumnWidth(absorber.columnKey);
-
-            if (startWidth === undefined) {
-                continue;
-            }
-
-            absorberStartWidths[absorber.columnKey] = startWidth;
-        }
-
-        return absorberStartWidths;
-    };
-
     // Shared by pointerup, lost capture and cancel, so every way a drag can end keeps the width the user sees.
     const endDrag = (drag: Drag) => {
         resetDrag();
         hideIndicator();
 
-        const width = readColumnWidth(drag.column.columnKey) ?? drag.startWidth;
+        const width = readColumnWidth(drag.columnKey) ?? drag.startWidth;
 
         // Nothing gets stored, so no render follows to clear the live widths.
         if (!columnResizingID || width === drag.startWidth) {
@@ -86,10 +72,10 @@ function useColumnResize({columnResizingID, resizableColumns, resolvedColumnWidt
         }
 
         // Only the dragged column is stored. The resolver re-derives the absorbers, and storing them would mark them as user-sized.
-        setTableColumnWidth(columnResizingID, drag.column.columnKey, width);
+        setTableColumnWidth(columnResizingID, drag.columnKey, width);
     };
 
-    const handlePointerDown = (column: ResizableColumn, event: React.PointerEvent<HTMLDivElement>) => {
+    const handlePointerDown = (columnKey: string, event: React.PointerEvent<HTMLDivElement>) => {
         // Secondary buttons open context menus rather than dragging.
         if (event.button !== 0) {
             return;
@@ -105,10 +91,9 @@ function useColumnResize({columnResizingID, resizableColumns, resolvedColumnWidt
         revealIndicator(event.currentTarget);
 
         dragRef.current = {
-            column,
+            columnKey,
             startClientX: event.clientX,
-            startWidth: readColumnWidth(column.columnKey) ?? 0,
-            absorberStartWidths: readAbsorberStartWidths(column),
+            startWidth: readColumnWidth(columnKey) ?? 0,
         };
         document.body.style.cursor = CONST.TABLES.COLUMN_RESIZE.CURSOR;
     };
@@ -120,18 +105,10 @@ function useColumnResize({columnResizingID, resizableColumns, resolvedColumnWidt
             return;
         }
 
-        const width = getDraggedColumnWidth(drag.startWidth, drag.startClientX, event.clientX, dragMinWidths?.[drag.column.columnKey]);
-
         // The line rides the handle, so it follows the clamped width, not the pointer.
-        const resizedWidths = getResizedColumnWidths({
-            columnKey: drag.column.columnKey,
-            width,
-            startWidth: drag.startWidth,
-            absorbers: drag.column.absorbers,
-            absorberStartWidths: drag.absorberStartWidths,
-        });
+        const width = getDraggedColumnWidth(drag.startWidth, drag.startClientX, event.clientX, dragMinWidths?.[drag.columnKey]);
 
-        for (const [columnKey, resizedWidth] of Object.entries(resizedWidths)) {
+        for (const [columnKey, resizedWidth] of Object.entries(getResizedColumnWidths(drag.columnKey, width))) {
             writeColumnWidth(columnKey, resizedWidth);
         }
     };
@@ -178,15 +155,13 @@ function useColumnResize({columnResizingID, resizableColumns, resolvedColumnWidt
     }
 
     const getHandleProps = (columnKey: string): ColumnResizeHandleDOMProps | undefined => {
-        const column = resizableColumns.find((resizableColumn) => resizableColumn.columnKey === columnKey);
-
-        if (!column) {
+        if (!resizableColumnKeys.includes(columnKey)) {
             return undefined;
         }
 
         return {
             style: getHandleStyle(columnGap),
-            onPointerDown: (event) => handlePointerDown(column, event),
+            onPointerDown: (event) => handlePointerDown(columnKey, event),
             onPointerMove: handlePointerMove,
             onPointerUp: handlePointerUp,
             onPointerCancel: handleLostPointerCapture,

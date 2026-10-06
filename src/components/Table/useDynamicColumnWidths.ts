@@ -10,7 +10,6 @@ import CONST from '@src/CONST';
 import type {ColumnWidthOverrides} from '@src/types/onyx/TableColumnWidths';
 
 import type {DynamicColumnConstraints} from './calculateDynamicColumnWidths';
-import type {ResizableColumn} from './columnResize/types';
 import type {TableColumn, TableData} from './types';
 
 import calculateDynamicColumnWidths, {distributeEqualWidths} from './calculateDynamicColumnWidths';
@@ -54,8 +53,11 @@ type UseDynamicColumnWidthsResult = {
     /** Row box width while resizable, which is `scrollWidth` minus the outer margin. `undefined` otherwise. */
     rowWidth: string | undefined;
 
-    /** Columns whose right edge the user can drag, in column order. Empty unless the columns are resizable. */
-    resizableColumns: ResizableColumn[];
+    /** Keys of the columns whose right edge the user can drag, in column order. Empty unless the columns are resizable. */
+    resizableColumnKeys: string[];
+
+    /** Every column's width with one column resized, which a drag paints. */
+    getResizedColumnWidths: (columnKey: string, width: number) => Record<string, number>;
 
     /** Each column's resolved width, which a drag starts from. */
     resolvedColumnWidths: Record<string, number>;
@@ -141,7 +143,8 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
         gridTemplateColumns: undefined,
         scrollWidth: undefined,
         rowWidth: undefined,
-        resizableColumns: [],
+        resizableColumnKeys: [],
+        getResizedColumnWidths: (columnKey, width) => ({[columnKey]: width}),
         resolvedColumnWidths: {},
         dragMinWidths: {},
     };

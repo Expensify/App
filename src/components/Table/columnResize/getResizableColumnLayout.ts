@@ -4,10 +4,9 @@ import type {TableColumn, TableData} from '@components/Table/types';
 import CONST from '@src/CONST';
 import type {ColumnWidthOverrides} from '@src/types/onyx/TableColumnWidths';
 
-import type {ResizableColumn} from './types';
-
 import applyColumnWidthOverrides from './applyColumnWidthOverrides';
 import {getColumnsWidthExpression, getGrowableColumnTrack} from './columnWidthExpressions';
+import resolveOverriddenColumnWidths from './resolveOverriddenColumnWidths';
 
 /** Row space that isn't column width, so it can be added back around the column sum. */
 type RowChromeWidths = {
@@ -52,8 +51,11 @@ type ResizableColumnLayout = {
     /** Row box width, which is `scrollWidth` minus the outer margin. */
     rowWidth: string;
 
-    /** Columns whose right edge the user can drag, in render order. */
-    resizableColumns: ResizableColumn[];
+    /** Keys of the columns whose right edge the user can drag, in render order. */
+    resizableColumnKeys: string[];
+
+    /** Every column's width with one column resized, resolved like a stored width so the drag paints what release keeps. */
+    getResizedColumnWidths: (columnKey: string, width: number) => Record<string, number>;
 
     /** Width drags start from: stored overrides applied, and the growable column at its painted width. */
     resolvedColumnWidths: Record<string, number>;
@@ -86,16 +88,16 @@ function getResizableColumnLayout<DataType extends TableData, ColumnKey extends 
         baseColumnWidths[growableColumnKey] = (baseColumnWidths[growableColumnKey] ?? 0) + Math.max(leftoverWidth, 0);
     }
 
-    const {columnWidths, columnWidthValues, resizableColumns} = applyColumnWidthOverrides({
-        columns: columns.map((column) => ({
-            key: column.key,
-            label: column.label,
-            hasDeclaredWidth: typeof column.width === 'number',
-            fitWidth: fitColumnWidths[column.key],
-        })),
-        baseColumnWidths,
-        columnWidthOverrides,
-    });
+    const overridableColumns = columns.map((column) => ({
+        key: column.key,
+        label: column.label,
+        hasDeclaredWidth: typeof column.width === 'number',
+        fitWidth: fitColumnWidths[column.key],
+    }));
+    const {columnWidths, columnWidthValues, resizableColumnKeys} = applyColumnWidthOverrides({columns: overridableColumns, baseColumnWidths, columnWidthOverrides, availableColumnsWidth});
+
+    const getResizedColumnWidths = (columnKey: string, width: number) =>
+        resolveOverriddenColumnWidths({columns: overridableColumns, baseColumnWidths, columnWidthOverrides: {...columnWidthOverrides, [columnKey]: width}, availableColumnsWidth});
 
     // Row width sums the widths, not the tracks, so the growable track only grows into real leftover room.
     const gridTemplateColumns = columnWidthValues.map((widthValue, index) => (columns.at(index)?.key === growableColumnKey ? getGrowableColumnTrack(widthValue) : widthValue));
@@ -106,7 +108,7 @@ function getResizableColumnLayout<DataType extends TableData, ColumnKey extends 
     const dragStartWidths = {...columnWidths};
     const dragMinWidths: Record<string, number> = {};
 
-    if (growableColumnKey && resizableColumns.some((column) => column.columnKey === growableColumnKey)) {
+    if (growableColumnKey && resizableColumnKeys.includes(growableColumnKey)) {
         // Drags start from the painted track, which includes the leftover it grew into, so the first pixels of travel aren't dead.
         const paintedWidth = (columnWidths[growableColumnKey] ?? 0) + Math.max(-overflowWidth, 0);
         dragStartWidths[growableColumnKey] = paintedWidth;
@@ -125,7 +127,8 @@ function getResizableColumnLayout<DataType extends TableData, ColumnKey extends 
         scrollWidth: getColumnsWidthExpression(rowWidthValues, totalGapWidth + rowMarginWidth + rowPaddingWidth, '100%'),
         // Without the outer margin. Floored at px because `100%` resolves against the list cell, which includes the margin.
         rowWidth: getColumnsWidthExpression(rowWidthValues, totalGapWidth + rowPaddingWidth, `${tableWidth - rowMarginWidth}px`),
-        resizableColumns,
+        resizableColumnKeys,
+        getResizedColumnWidths,
         resolvedColumnWidths: dragStartWidths,
         dragMinWidths,
     };

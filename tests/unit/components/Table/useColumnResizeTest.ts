@@ -23,6 +23,11 @@ const NAME_COLUMN_KEY = 'name';
 
 const resolvedColumnWidths = {name: 200, email: 200, role: 200};
 
+/** Stands in for the resolver: the email column absorbs the whole resize, the role column is user-sized and doesn't. */
+function getResizedColumnWidths(columnKey: string, width: number): Record<string, number> {
+    return {...resolvedColumnWidths, [columnKey]: width, email: 400 - width};
+}
+
 type PointerEventInit = {clientX: number; button?: number};
 
 /** A pointer event carrying only what the hook reads, aimed at the given handle. */
@@ -48,7 +53,8 @@ function renderColumnResize(params?: Partial<UseColumnResizeParams>) {
 
     const initialProps: UseColumnResizeParams = {
         columnResizingID: COLUMN_RESIZING_ID,
-        resizableColumns: [{columnKey: NAME_COLUMN_KEY, absorbers: []}],
+        resizableColumnKeys: [NAME_COLUMN_KEY],
+        getResizedColumnWidths,
         resolvedColumnWidths,
         columnGap: 12,
         ...params,
@@ -86,7 +92,7 @@ describe('useColumnResize', () => {
 
     it('returns no controller when resizing is off', () => {
         // Given a table with no resizing ID, which is how native, narrow layouts and tables that didn't opt in render it
-        const params: UseColumnResizeParams = {columnResizingID: undefined, resizableColumns: [{columnKey: NAME_COLUMN_KEY, absorbers: []}], resolvedColumnWidths, columnGap: 12};
+        const params: UseColumnResizeParams = {columnResizingID: undefined, resizableColumnKeys: [NAME_COLUMN_KEY], getResizedColumnWidths, resolvedColumnWidths, columnGap: 12};
 
         // When the hook runs
         const {result} = renderHook(() => useColumnResize(params));
@@ -97,7 +103,7 @@ describe('useColumnResize', () => {
 
     it('returns a controller before the columns are measured', () => {
         // Given a resizable table on its first render, before layout, when no column is resizable yet
-        const params: UseColumnResizeParams = {columnResizingID: COLUMN_RESIZING_ID, resizableColumns: [], resolvedColumnWidths: {}, columnGap: 12};
+        const params: UseColumnResizeParams = {columnResizingID: COLUMN_RESIZING_ID, resizableColumnKeys: [], getResizedColumnWidths, resolvedColumnWidths: {}, columnGap: 12};
 
         // When the hook runs
         const {result} = renderHook(() => useColumnResize(params));
@@ -109,7 +115,7 @@ describe('useColumnResize', () => {
     });
 
     it('paints a drag onto the scope and stores the dragged column on release', () => {
-        // Given a 200px column with two 200px columns after it
+        // Given a 200px column with two 200px columns after it, the first of which absorbs its resize
         const {handleElement, getHandleProps, readWidth} = renderColumnResize();
 
         // When its edge is dragged 60px right
@@ -118,10 +124,10 @@ describe('useColumnResize', () => {
             getHandleProps().onPointerMove?.(createPointerEvent(handleElement, {clientX: 160}));
         });
 
-        // Then the width is painted straight onto the scope without a React render, and later columns keep their widths
+        // Then every resolved width is painted straight onto the scope without a React render, so the absorber gives way mid-drag
         expect(readWidth('name')).toBe('260px');
-        expect(readWidth('email')).toBe('');
-        expect(readWidth('role')).toBe('');
+        expect(readWidth('email')).toBe('140px');
+        expect(readWidth('role')).toBe('200px');
         expect(document.body.style.cursor).toBe('col-resize');
 
         // When the pointer is released
