@@ -27,6 +27,23 @@ describe('CSVDateUtils', () => {
             expect(parseCSVDate('2025')).toBe('2025-01-01');
         });
 
+        it('parses two-digit years into the current century instead of years 1-99', () => {
+            expect(parseCSVDate('9/22/26')).toBe('2026-09-22');
+            expect(parseCSVDate('09/22/26')).toBe('2026-09-22');
+            expect(parseCSVDate('22/09/26')).toBe('2026-09-22');
+            expect(parseCSVDate('1/2/25')).toBe('2025-01-02');
+            expect(parseCSVDate('09-22-26')).toBe('2026-09-22');
+            expect(parseCSVDate('22-09-26')).toBe('2026-09-22');
+            expect(parseCSVDate('Sep 22, 26')).toBe('2026-09-22');
+            expect(parseCSVDate('22 Sep 26')).toBe('2026-09-22');
+        });
+
+        it('rejects dates with implausibly old years', () => {
+            expect(parseCSVDate('0026-09-22')).toBeNull();
+            expect(parseCSVDate('1899-12-31')).toBeNull();
+            expect(parseCSVDate('1900-01-01')).toBe('1900-01-01');
+        });
+
         it('returns null for invalid input', () => {
             expect(parseCSVDate('not a date')).toBeNull();
             expect(parseCSVDate('')).toBeNull();
