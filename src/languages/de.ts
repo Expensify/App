@@ -10076,7 +10076,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             title: 'Berichte zusammenführen',
             description: 'Wählen Sie den Bericht aus, der beibehalten werden soll. Alle Ausgaben werden in ihn verschoben und die anderen Berichte werden gelöscht.',
         },
-        percentOfSpend: ({percent}: {percent: string}) => `${percent} der Ausgaben`,
     },
     genericErrorPage: {
         title: 'Ups, da ist etwas schiefgelaufen!',
@@ -10439,6 +10438,12 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
     distance: {
         addStop: 'Stopp hinzufügen',
         address: 'Adresse',
+        reuseRoute: 'Route wiederverwenden',
+        reusePriorRoute: 'Vorherige Route wiederverwenden',
+        choosePreviousRoute: 'Wählen Sie unten eine frühere Route aus:',
+        findARoute: 'Route finden',
+        lastUsed: ({date}: {date: string}) => `Zuletzt verwendet am ${date}`,
+        end: 'Ende',
         waypointDescription: {
             start: 'Start',
             stop: 'Stopp',
