@@ -201,6 +201,7 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestStepCategory').default,
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY_CREATE]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestStepCategoryCreate').default,
     [SCREENS.MONEY_REQUEST.STEP_VENDOR]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepVendor').default,
+    [SCREENS.MONEY_REQUEST.STEP_REUSE_ROUTE]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepReuseRoute').default,
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DATE]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestStepDate').default,
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESCRIPTION]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestStepDescription').default,
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestStepDistance').default,
@@ -1124,6 +1125,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.SUBSCRIPTION.DYNAMIC_PAYMENT_CARD_CURRENCY_SELECTOR]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Subscription/PaymentCard/DynamicPaymentCardCurrencySelectorPage').default,
     [SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/PaymentCard').default,
+    [SCREENS.SETTINGS.EMAIL_ISSUE]: () => require<ReactComponentModule>('../../../../pages/settings/EmailIssue').default,
     [SCREENS.WORKSPACE.REPORT_FIELDS_CREATE]: () => require<ReactComponentModule>('../../../../pages/workspace/reports/CreateReportFieldsPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_REPORT_FIELDS_INITIAL_LIST_VALUE]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/reports/InitialListValueSelector/DynamicReportFieldsInitialListValuePage').default,
@@ -1467,7 +1469,6 @@ const WorkspacesDomainModalStackNavigator = createModalStackNavigator<Workspaces
     [SCREENS.WORKSPACES_DOMAIN_VERIFIED]: () => require<ReactComponentModule>('../../../../pages/domain/WorkspacesDomainVerifiedPage').default,
     [SCREENS.WORKSPACES_ADD_DOMAIN]: () => require<ReactComponentModule>('../../../../pages/domain/AddDomainPage').default,
     [SCREENS.WORKSPACES_DOMAIN_ADDED]: () => require<ReactComponentModule>('../../../../pages/domain/DomainAddedPage').default,
-    [SCREENS.WORKSPACES_ADD_DOMAIN_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/domain/AddDomainVerifyAccountPage').default,
     [SCREENS.WORKSPACES_DOMAIN_ACCESS_RESTRICTED]: () => require<ReactComponentModule>('../../../../pages/domain/DomainAccessRestrictedPage').default,
     [SCREENS.WORKSPACES_DOMAIN_ALREADY_EXISTS]: () => require<ReactComponentModule>('../../../../pages/domain/DomainAlreadyExistsPage').default,
 });

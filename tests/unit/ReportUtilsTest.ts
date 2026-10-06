@@ -593,16 +593,11 @@ describe('ReportUtils', () => {
     describe('getIOUReportActionDisplayMessage', () => {
         const iouReportID = '1234567890';
         const policyID = 332;
-        const reimburserEmail = 'reimburser@example.com';
-        const reimburserAccountID = 332001;
 
-        // The workspace account is only a valid fallback for a payment made by the designated payer, so the pay action
-        // has to come from the reimburser for these messages to name it.
         const reportAction = {
             ...createRandomReportAction(44),
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             reportID: iouReportID,
-            actorAccountID: reimburserAccountID,
             originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, paymentType: CONST.IOU.PAYMENT_TYPE.VBBA},
         };
 
@@ -616,17 +611,9 @@ describe('ReportUtils', () => {
                 routingNumber: '011401533',
                 addressName: 'Bank Workspace',
                 bankName: 'Test Bank',
-                reimburser: reimburserEmail,
+                reimburser: 'reimburser@example.com',
             },
         };
-
-        beforeAll(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[reimburserAccountID]: {accountID: reimburserAccountID, login: reimburserEmail}});
-        });
-
-        afterAll(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[reimburserAccountID]: null});
-        });
 
         it('should return the right message when payment type is ACH', async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithBank);
@@ -636,16 +623,16 @@ describe('ReportUtils', () => {
             const last4Digits = policyWithBank.achAccount?.accountNumber.slice(-4);
             const paidSystemMessage = translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', last4Digits);
 
-            expect(getIOUReportActionDisplayMessage(translateLocal, reportAction, convertToDisplayString, policyWithBank, undefined)).toBe(paidSystemMessage);
+            expect(getIOUReportActionDisplayMessage(translateLocal, reportAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe(paidSystemMessage);
         });
 
-        it('should use the passed policy (not module-level allPolicies) for the bank account last 4 digits', () => {
-            // Given a policy passed explicitly, with no matching policy read from Onyx
+        it('should use the passed ACH account number (not module-level allPolicies) for the bank account last 4 digits', () => {
+            // Given an ACH account number passed explicitly, with no matching policy read from Onyx
             const last4Digits = policyWithBank.achAccount?.accountNumber.slice(-4);
             const paidSystemMessage = translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', last4Digits);
 
-            // Then the ACH last 4 digits are resolved from the passed policy alone
-            expect(getIOUReportActionDisplayMessage(translateLocal, reportAction, convertToDisplayString, policyWithBank, undefined)).toBe(paidSystemMessage);
+            // Then the ACH last 4 digits are resolved from the passed account number alone
+            expect(getIOUReportActionDisplayMessage(translateLocal, reportAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe(paidSystemMessage);
         });
 
         it('should show the bank account from the action accountNumber instead of the policy default', async () => {
@@ -661,7 +648,9 @@ describe('ReportUtils', () => {
             const paidSystemMessage = translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '4321');
 
             // Then the message shows the last 4 digits of that account, not the policy default
-            expect(getIOUReportActionDisplayMessage(translateLocal, actionWithAccountNumber, convertToDisplayString, policyWithBank, undefined)).toBe(paidSystemMessage);
+            expect(getIOUReportActionDisplayMessage(translateLocal, actionWithAccountNumber, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe(
+                paidSystemMessage,
+            );
         });
 
         it('should show the cross-border FX message with the credited amount and both account last-4s', async () => {
@@ -685,7 +674,7 @@ describe('ReportUtils', () => {
                 debitBankAccount: '6789',
                 creditBankAccount: '3335',
             });
-            expect(getIOUReportActionDisplayMessage(translateLocal, crossBorderAction, convertToDisplayString, policyWithBank, undefined)).toBe(expectedMessage);
+            expect(getIOUReportActionDisplayMessage(translateLocal, crossBorderAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe(expectedMessage);
         });
 
         it('should return received payment when submitter marked payment received', () => {
@@ -700,7 +689,7 @@ describe('ReportUtils', () => {
                 },
             };
 
-            expect(getIOUReportActionDisplayMessage(translateLocal, paymentReceivedReportAction, convertToDisplayString, policyWithBank, undefined)).toBe(
+            expect(getIOUReportActionDisplayMessage(translateLocal, paymentReceivedReportAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe(
                 translateLocal('iou.receivedPaymentReportAction'),
             );
         });
@@ -716,7 +705,9 @@ describe('ReportUtils', () => {
                 },
             };
 
-            expect(getIOUReportActionDisplayMessage(translateLocal, paidElsewhereReportAction, convertToDisplayString, policyWithBank, undefined)).toBe(translateLocal('iou.paidElsewhere'));
+            expect(getIOUReportActionDisplayMessage(translateLocal, paidElsewhereReportAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe(
+                translateLocal('iou.paidElsewhere'),
+            );
         });
 
         it('should return an empty string for a non-money-request action', () => {
@@ -725,10 +716,10 @@ describe('ReportUtils', () => {
                 actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
             };
 
-            expect(getIOUReportActionDisplayMessage(translateLocal, createdAction, convertToDisplayString, policyWithBank, undefined)).toBe('');
+            expect(getIOUReportActionDisplayMessage(translateLocal, createdAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe('');
         });
 
-        it('should use the passed policy for the last 4 digits of an automatic VBBA payment', () => {
+        it('should use the passed ACH account number for the last 4 digits of an automatic VBBA payment', () => {
             // Given an automatically-paid VBBA action with no accountNumber on the action itself
             const automaticVBBAAction = {
                 ...reportAction,
@@ -737,8 +728,8 @@ describe('ReportUtils', () => {
             const last4Digits = policyWithBank.achAccount?.accountNumber.slice(-4);
             const expected = translate(CONST.LOCALES.EN, 'iou.automaticallyPaidWithBusinessBankAccount', '', last4Digits);
 
-            // Then the workspace-rules message resolves the last 4 digits from the passed policy
-            expect(getIOUReportActionDisplayMessage(translateLocal, automaticVBBAAction, convertToDisplayString, policyWithBank, undefined)).toBe(expected);
+            // Then the workspace-rules message resolves the last 4 digits from the passed account number
+            expect(getIOUReportActionDisplayMessage(translateLocal, automaticVBBAAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe(expected);
         });
 
         it('should return the workspace-rules message for an automatic Expensify payment', () => {
@@ -747,29 +738,8 @@ describe('ReportUtils', () => {
                 originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY, automaticAction: true},
             };
 
-            expect(getIOUReportActionDisplayMessage(translateLocal, automaticExpensifyAction, convertToDisplayString, policyWithBank, undefined)).toBe(
+            expect(getIOUReportActionDisplayMessage(translateLocal, automaticExpensifyAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe(
                 translate(CONST.LOCALES.EN, 'iou.automaticallyPaidWithExpensify', ''),
-            );
-        });
-
-        it('should not attribute a non-payer admin VBBA payment to the workspace bank account', () => {
-            // Given a VBBA pay action with no account on it, made by an admin who is not the designated payer
-            const nonPayerAdminAction = {...reportAction, actorAccountID: reimburserAccountID + 1};
-
-            // Then the message does not guess the workspace account, since the admin paid from an account of their own
-            expect(getIOUReportActionDisplayMessage(translateLocal, nonPayerAdminAction, convertToDisplayString, policyWithBank, undefined)).toBe(
-                translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', ''),
-            );
-        });
-
-        it('should keep the workspace bank account when the reimburser is not in personal details', () => {
-            // Given a policy whose reimburser this viewer has never interacted with (no personal details loaded)
-            const policyWithUnknownReimburser: Policy = {...policyWithBank, reimburser: 'unknown-reimburser@example.com'};
-            const last4Digits = policyWithBank.achAccount?.accountNumber.slice(-4);
-
-            // Then the payer can't be ruled out, so the message keeps the workspace account instead of blanking the digits
-            expect(getIOUReportActionDisplayMessage(translateLocal, reportAction, convertToDisplayString, policyWithUnknownReimburser, undefined)).toBe(
-                translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', last4Digits),
             );
         });
 
@@ -6318,7 +6288,7 @@ describe('ReportUtils', () => {
                     },
                 });
             });
-            expect(canDeleteMoneyRequestReport(invoiceReport, [transaction], [iouAction], currentUserAccountID, undefined)).toBe(true);
+            expect(canDeleteMoneyRequestReport(invoiceReport, [transaction], [iouAction], currentUserAccountID, undefined, undefined, undefined)).toBe(true);
         });
 
         describe('draft reports', () => {
@@ -6337,14 +6307,14 @@ describe('ReportUtils', () => {
                 const transaction = {...createRandomTransaction(901), reportID: draftReport.reportID, managedCard: false};
                 const iouAction = buildIOUActionForTransaction(draftReport.reportID, transaction.transactionID, 777);
 
-                expect(canDeleteMoneyRequestReport(draftReport, [transaction], [iouAction], currentUserAccountID, undefined, adminPolicy, true)).toBe(true);
+                expect(canDeleteMoneyRequestReport(draftReport, [transaction], [iouAction], currentUserAccountID, undefined, adminPolicy, undefined, true)).toBe(true);
             });
 
             it('should not allow an admin to delete a single expense on a draft report they do not own', () => {
                 const transaction = {...createRandomTransaction(901), reportID: draftReport.reportID, managedCard: false};
                 const iouAction = buildIOUActionForTransaction(draftReport.reportID, transaction.transactionID, 777);
 
-                expect(canDeleteMoneyRequestReport(draftReport, [transaction], [iouAction], currentUserAccountID, undefined, adminPolicy)).toBe(false);
+                expect(canDeleteMoneyRequestReport(draftReport, [transaction], [iouAction], currentUserAccountID, undefined, adminPolicy, undefined)).toBe(false);
             });
 
             it('should allow the submitter to delete their own draft report', () => {
@@ -6352,14 +6322,14 @@ describe('ReportUtils', () => {
                 const transaction = {...createRandomTransaction(902), reportID: ownDraftReport.reportID, managedCard: false};
                 const iouAction = buildIOUActionForTransaction(ownDraftReport.reportID, transaction.transactionID, currentUserAccountID);
 
-                expect(canDeleteMoneyRequestReport(ownDraftReport, [transaction], [iouAction], currentUserAccountID, undefined, memberPolicy)).toBe(true);
+                expect(canDeleteMoneyRequestReport(ownDraftReport, [transaction], [iouAction], currentUserAccountID, undefined, memberPolicy, undefined)).toBe(true);
             });
 
             it('should not allow a non-admin who does not own the transaction to delete a draft report', () => {
                 const transaction = {...createRandomTransaction(903), reportID: draftReport.reportID, managedCard: false};
                 const iouAction = buildIOUActionForTransaction(draftReport.reportID, transaction.transactionID, 777);
 
-                expect(canDeleteMoneyRequestReport(draftReport, [transaction], [iouAction], currentUserAccountID, undefined, memberPolicy)).toBe(false);
+                expect(canDeleteMoneyRequestReport(draftReport, [transaction], [iouAction], currentUserAccountID, undefined, memberPolicy, undefined)).toBe(false);
             });
 
             it('should allow an admin to delete a draft report holding a card transaction with restricted liability, since the expenses become unreported rather than deleted', () => {
@@ -6371,7 +6341,7 @@ describe('ReportUtils', () => {
                 };
                 const iouAction = buildIOUActionForTransaction(draftReport.reportID, transaction.transactionID, currentUserAccountID);
 
-                expect(canDeleteMoneyRequestReport(draftReport, [transaction], [iouAction], currentUserAccountID, undefined, adminPolicy, true)).toBe(true);
+                expect(canDeleteMoneyRequestReport(draftReport, [transaction], [iouAction], currentUserAccountID, undefined, adminPolicy, undefined, true)).toBe(true);
             });
         });
 
@@ -6411,7 +6381,54 @@ describe('ReportUtils', () => {
                 });
             });
 
-            expect(canDeleteMoneyRequestReport(expenseReport, [], [], currentUserAccountID, undefined)).toBe(true);
+            expect(canDeleteMoneyRequestReport(expenseReport, [], [], currentUserAccountID, undefined, undefined, undefined)).toBe(true);
+        });
+
+        it('should allow card expense deletion as the policy admin', async () => {
+            const adminPolicy = createMock<Policy>({
+                id: 'report-id-123',
+                role: CONST.POLICY.ROLE.ADMIN,
+                type: CONST.POLICY.TYPE.TEAM,
+                employeeList: {
+                    [currentUserEmail]: {
+                        email: currentUserEmail,
+                        submitsTo: currentUserEmail,
+                    },
+                },
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${adminPolicy.id}`, adminPolicy);
+
+            const expenseReport: Report = {
+                reportID: 'policy-id-123',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: 777,
+                managerID: 888,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                participants: {
+                    [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+                policyID: adminPolicy.id,
+            };
+
+            const cardTransaction: Transaction = {
+                ...mockTransaction,
+                managedCard: true,
+            };
+
+            // Wait for Onyx to load session data before calling canDeleteMoneyRequestReport, since it relies on the
+            // session subscription for currentUserAccountID.
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connectWithoutView({
+                    key: `${ONYXKEYS.SESSION}`,
+                    callback: () => {
+                        Onyx.disconnect(connection);
+                        resolve();
+                    },
+                });
+            });
+
+            expect(canDeleteMoneyRequestReport(expenseReport, [cardTransaction], [], currentUserAccountID, undefined, adminPolicy, undefined, false)).toBe(true);
         });
     });
 
@@ -10240,7 +10257,7 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
 
             // Then the owner cannot delete it because the card transaction's liability type restricts deletion
-            expect(canDeleteReportAction(moneyRequestAction, expenseReport.reportID, transaction, undefined, undefined, currentUserAccountID, undefined)).toBe(false);
+            expect(canDeleteReportAction(moneyRequestAction, expenseReport.reportID, transaction, undefined, undefined, currentUserAccountID, undefined, undefined)).toBe(false);
         });
 
         it('should let an admin delete a draft report they did not submit from its report preview', async () => {
@@ -10264,7 +10281,7 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}9002-policy`, {...createRandomPolicy(1), id: '9002-policy', role: CONST.POLICY.ROLE.ADMIN});
 
             // Then the admin can delete it, because deleting a preview deletes the whole report
-            expect(canDeleteReportAction(reportPreviewAction, draftReport.reportID, undefined, undefined, undefined, currentUserAccountID, undefined)).toBe(true);
+            expect(canDeleteReportAction(reportPreviewAction, draftReport.reportID, undefined, undefined, undefined, currentUserAccountID, undefined, undefined)).toBe(true);
         });
 
         it('should return true for demo transaction', () => {
@@ -10308,7 +10325,7 @@ describe('ReportUtils', () => {
                 },
             };
 
-            expect(canDeleteReportAction(moneyRequestAction, '1', transaction, undefined, undefined, currentUserAccountID, undefined)).toBe(true);
+            expect(canDeleteReportAction(moneyRequestAction, '1', transaction, undefined, undefined, currentUserAccountID, undefined, undefined)).toBe(true);
         });
 
         it('should return false for unreported card expense imported with deleting disabled', async () => {
@@ -10354,7 +10371,7 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
 
             // Then it should return false since the unreported card expense is imported with deleting disabled
-            expect(canDeleteReportAction(trackExpenseAction, selfDMReport.reportID, transaction, undefined, undefined, currentUserAccountID, undefined)).toBe(false);
+            expect(canDeleteReportAction(trackExpenseAction, selfDMReport.reportID, transaction, undefined, undefined, currentUserAccountID, undefined, undefined)).toBe(false);
         });
 
         it("should return false for ADD_COMMENT report action the current user (admin of the personal policy) didn't comment", async () => {
@@ -10381,7 +10398,7 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${adminPolicy.id}`, adminPolicy);
 
-            expect(canDeleteReportAction(reportAction, report.reportID, undefined, undefined, undefined, currentUserAccountID, undefined)).toBe(false);
+            expect(canDeleteReportAction(reportAction, report.reportID, undefined, undefined, undefined, currentUserAccountID, undefined, undefined)).toBe(false);
         });
     });
 
@@ -12820,6 +12837,305 @@ describe('ReportUtils', () => {
             expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
             expect(result?.reportAction?.reportActionID).toBe('task-action-older');
             expect(result?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.TASK);
+        });
+
+        describe('unread mention priority', () => {
+            const otherUserAccountID = 99;
+
+            /** Builds a comment from another user that mentions the current user. */
+            const buildMentionAction = (reportActionID: string, created: string): ReportAction => ({
+                ...createRandomReportAction(42100),
+                reportActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID: otherUserAccountID,
+                created,
+                pendingAction: null,
+                message: [{html: `<mention-user>@${currentUserEmail}</mention-user>`, text: `@${currentUserEmail}`, type: 'COMMENT'}],
+                originalMessage: {
+                    html: `<mention-user>@${currentUserEmail}</mention-user>`,
+                    whisperedTo: [],
+                    mentionedAccountIDs: [currentUserAccountID],
+                },
+            });
+
+            it('should return the Task badge instead of an older unread mention', async () => {
+                // Given a chat with an outstanding task and an unread mention that is older than the task
+                const mentionAction = buildMentionAction('mention-older-than-task', '2024-01-01 00:00:00.000');
+                const taskAction: ReportAction = {
+                    reportActionID: 'task-newer-than-mention',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
+                    childType: CONST.REPORT.TYPE.TASK,
+                    childReportID: 'task-report-mention-priority',
+                    childManagerAccountID: currentUserAccountID,
+                    created: '2024-01-02 00:00:00.000',
+                    originalMessage: {
+                        assigneeAccountID: currentUserAccountID,
+                        cardID: 99003,
+                    },
+                };
+                const workspaceChat = {
+                    ...createPolicyExpenseChat(42101),
+                    hasOutstandingChildTask: true,
+                    lastReadTime: '2023-12-31 00:00:00.000',
+                    lastMentionedTime: mentionAction.created,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChat.reportID}`, {
+                    [mentionAction.reportActionID]: mentionAction,
+                    [taskAction.reportActionID]: taskAction,
+                });
+                await waitForBatchedUpdates();
+
+                // When the reason is retrieved
+                const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID);
+
+                // Then the action badge wins over the mention, even though the mention came first
+                expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
+                expect(result?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.TASK);
+                expect(result?.reportAction?.reportActionID).toBe('task-newer-than-mention');
+            });
+
+            it('should return the IOU badge instead of an unread mention', async () => {
+                // Given a chat with an IOU preview the current user has to pay and an unread mention
+                const iouReportID = 'iou-report-mention-priority';
+                const mentionAction = buildMentionAction('mention-with-iou', '2024-01-01 00:00:00.000');
+                const iouAction: ReportAction = {
+                    reportActionID: 'iou-action-with-mention',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                    childType: CONST.REPORT.TYPE.IOU,
+                    childReportID: iouReportID,
+                    childManagerAccountID: currentUserAccountID,
+                    created: '2024-01-02 00:00:00.000',
+                    message: [{html: 'iou preview', text: 'iou preview', type: 'COMMENT'}],
+                };
+                const workspaceChat = {
+                    ...createPolicyExpenseChat(42102),
+                    hasOutstandingChildRequest: true,
+                    iouReportID,
+                    lastReadTime: '2023-12-31 00:00:00.000',
+                    lastMentionedTime: mentionAction.created,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChat.reportID}`, {
+                    [mentionAction.reportActionID]: mentionAction,
+                    [iouAction.reportActionID]: iouAction,
+                });
+                await waitForBatchedUpdates();
+
+                // When the reason is retrieved
+                const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID);
+
+                // Then the Pay badge is shown and links to the IOU preview
+                expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
+                expect(result?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.PAY);
+                expect(result?.reportAction?.reportActionID).toBe('iou-action-with-mention');
+            });
+
+            it('should link the green dot to the oldest unread mention when there is no action badge', async () => {
+                // Given a chat with a read mention, two unread mentions and an unread comment without a mention
+                const readMention = buildMentionAction('read-mention', '2024-01-01 00:00:00.000');
+                const oldestUnreadMention = buildMentionAction('oldest-unread-mention', '2024-01-03 00:00:00.000');
+                const newestUnreadMention = buildMentionAction('newest-unread-mention', '2024-01-04 00:00:00.000');
+                const unreadComment: ReportAction = {
+                    ...buildMentionAction('unread-comment-without-mention', '2024-01-02 12:00:00.000'),
+                    message: [{html: 'no mention here', text: 'no mention here', type: 'COMMENT'}],
+                    originalMessage: {html: 'no mention here', whisperedTo: [], mentionedAccountIDs: []},
+                };
+                const report: Report = {
+                    ...createRandomReport(42103, CONST.REPORT.CHAT_TYPE.GROUP),
+                    lastReadTime: '2024-01-02 00:00:00.000',
+                    lastMentionedTime: newestUnreadMention.created,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [readMention.reportActionID]: readMention,
+                    [oldestUnreadMention.reportActionID]: oldestUnreadMention,
+                    [newestUnreadMention.reportActionID]: newestUnreadMention,
+                    [unreadComment.reportActionID]: unreadComment,
+                });
+                await waitForBatchedUpdates();
+
+                // When the reason is retrieved
+                const result = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID);
+
+                // Then the mention reason is returned with the oldest unread mention, so the LHN can deep link to it
+                expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_UNREAD_WITH_MENTION);
+                expect(result?.actionBadge).toBeUndefined();
+                expect(result?.reportAction?.reportActionID).toBe('oldest-unread-mention');
+            });
+
+            it('should return the IOU action instead of an unread mention when the outstanding child request has no badge', async () => {
+                // Given a chat flagged with an outstanding child request but no IOU preview to badge, plus an unread mention
+                const mentionAction = buildMentionAction('mention-without-badge', '2024-01-01 00:00:00.000');
+                const workspaceChat = {
+                    ...createPolicyExpenseChat(42104),
+                    hasOutstandingChildRequest: true,
+                    lastReadTime: '2023-12-31 00:00:00.000',
+                    lastMentionedTime: mentionAction.created,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChat.reportID}`, {
+                    [mentionAction.reportActionID]: mentionAction,
+                });
+                await waitForBatchedUpdates();
+
+                // When the reason is retrieved
+                const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID);
+
+                // Then the IOU action still wins over the mention, even though no badge could be computed for it
+                expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
+                expect(result?.actionBadge).toBeUndefined();
+            });
+
+            it('should still require attention for an invoice room with an unread mention', async () => {
+                // Given an invoice room with no missing bank account and an unread mention
+                const mentionAction = buildMentionAction('mention-in-invoice-room', '2024-01-01 00:00:00.000');
+                const invoiceRoom: Report = {
+                    ...createRandomReport(42105, CONST.REPORT.CHAT_TYPE.INVOICE),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    lastReadTime: '2023-12-31 00:00:00.000',
+                    lastMentionedTime: mentionAction.created,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoiceRoom.reportID}`, invoiceRoom);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${invoiceRoom.reportID}`, {
+                    [mentionAction.reportActionID]: mentionAction,
+                });
+                await waitForBatchedUpdates();
+
+                // When the reason is retrieved
+                const result = getReasonAndReportActionThatRequiresAttention(invoiceRoom, currentUserEmail, currentUserAccountID);
+
+                // Then the mention still returns a reason instead of the invoice room branch returning null
+                expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_UNREAD_WITH_MENTION);
+                expect(result?.reportAction?.reportActionID).toBe('mention-in-invoice-room');
+            });
+
+            it('should skip mentions the current user wrote, deleted mentions and mentions hidden from the current user', async () => {
+                // Given older unread mentions the LHN can't link to, and one newer unread mention it can
+                const ownMention: ReportAction = {...buildMentionAction('own-mention', '2024-01-01 00:00:00.000'), actorAccountID: currentUserAccountID};
+                const deletedMention: ReportAction = {
+                    ...buildMentionAction('deleted-mention', '2024-01-02 00:00:00.000'),
+                    message: [{html: '', text: '', type: 'COMMENT', deleted: '2024-01-02 00:00:01.000'}],
+                };
+                const pendingDeleteMention: ReportAction = {
+                    ...buildMentionAction('pending-delete-mention', '2024-01-03 00:00:00.000'),
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                };
+                const whisperToOthersMention: ReportAction = {
+                    ...buildMentionAction('whisper-to-others-mention', '2024-01-04 00:00:00.000'),
+                    originalMessage: {
+                        html: `<mention-user>@${currentUserEmail}</mention-user>`,
+                        whisperedTo: [otherUserAccountID],
+                        mentionedAccountIDs: [currentUserAccountID],
+                    },
+                };
+                const visibleMention = buildMentionAction('visible-mention', '2024-01-05 00:00:00.000');
+                const report: Report = {
+                    ...createRandomReport(42106, CONST.REPORT.CHAT_TYPE.GROUP),
+                    lastReadTime: '2023-12-31 00:00:00.000',
+                    lastMentionedTime: visibleMention.created,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [ownMention.reportActionID]: ownMention,
+                    [deletedMention.reportActionID]: deletedMention,
+                    [pendingDeleteMention.reportActionID]: pendingDeleteMention,
+                    [whisperToOthersMention.reportActionID]: whisperToOthersMention,
+                    [visibleMention.reportActionID]: visibleMention,
+                });
+                await waitForBatchedUpdates();
+
+                // When the reason is retrieved
+                const result = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID);
+
+                // Then the green dot links to the only mention the user can see and act on
+                expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_UNREAD_WITH_MENTION);
+                expect(result?.reportAction?.reportActionID).toBe('visible-mention');
+            });
+
+            it('should link the green dot to an unread @here mention', async () => {
+                // Given a chat whose only unread mention is an @here mention
+                const hereMention: ReportAction = {
+                    ...buildMentionAction('here-mention', '2024-01-01 00:00:00.000'),
+                    message: [{html: '<mention-here>@here</mention-here>', text: '@here', type: 'COMMENT'}],
+                    originalMessage: {html: '<mention-here>@here</mention-here>', whisperedTo: [], mentionedAccountIDs: []},
+                };
+                const report: Report = {
+                    ...createRandomReport(42107, CONST.REPORT.CHAT_TYPE.GROUP),
+                    lastReadTime: '2023-12-31 00:00:00.000',
+                    lastMentionedTime: hereMention.created,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [hereMention.reportActionID]: hereMention,
+                });
+                await waitForBatchedUpdates();
+
+                // When the reason is retrieved
+                const result = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID);
+
+                // Then @here counts as a mention of the current user, so the green dot links to it
+                expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_UNREAD_WITH_MENTION);
+                expect(result?.reportAction?.reportActionID).toBe('here-mention');
+            });
+
+            it('should match a mention by the passed account ID instead of the session account ID', async () => {
+                // Given a mention that only carries an account ID that differs from the session's account ID, so it can
+                // only match if the passed currentUserAccountID is used
+                const passedAccountID = 4242;
+                const accountIDOnlyMention: ReportAction = {
+                    ...buildMentionAction('account-id-only-mention', '2024-01-01 00:00:00.000'),
+                    message: [{html: 'hi', text: 'hi', type: 'COMMENT'}],
+                    originalMessage: {html: 'hi', whisperedTo: [], mentionedAccountIDs: [passedAccountID]},
+                };
+                const report: Report = {
+                    ...createRandomReport(42108, CONST.REPORT.CHAT_TYPE.GROUP),
+                    lastReadTime: '2023-12-31 00:00:00.000',
+                    lastMentionedTime: accountIDOnlyMention.created,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [accountIDOnlyMention.reportActionID]: accountIDOnlyMention,
+                });
+                await waitForBatchedUpdates();
+
+                // When the reason is retrieved with that account ID
+                const result = getReasonAndReportActionThatRequiresAttention(report, 'someone-else@example.com', passedAccountID);
+
+                // Then the mention is found through the passed account ID
+                expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_UNREAD_WITH_MENTION);
+                expect(result?.reportAction?.reportActionID).toBe('account-id-only-mention');
+            });
+
+            it('should return the assignee expense action instead of an unread mention when it has no badge', async () => {
+                // Given a processing expense report the current user manages without parent access, with no policy loaded
+                // so no badge can be computed, plus an unread mention
+                const mentionAction = buildMentionAction('mention-on-assignee-expense', '2024-01-01 00:00:00.000');
+                const expenseReport: Report = {
+                    ...createExpenseReport(42109),
+                    policyID: 'policy-not-loaded-mention-priority',
+                    hasParentAccess: false,
+                    managerID: currentUserAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    lastReadTime: '2023-12-31 00:00:00.000',
+                    lastMentionedTime: mentionAction.created,
+                };
+                await Onyx.merge(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
+                    [mentionAction.reportActionID]: mentionAction,
+                });
+                await waitForBatchedUpdates();
+
+                // When the reason is retrieved
+                const result = getReasonAndReportActionThatRequiresAttention(expenseReport, currentUserEmail, currentUserAccountID);
+
+                // Then the assignee expense action still wins over the mention, even without a badge
+                expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
+                expect(result?.actionBadge).toBeUndefined();
+            });
         });
 
         it('should return the IOU badge when task action has no childManagerAccountID (backend bug before opening report)', async () => {
@@ -16010,6 +16326,36 @@ describe('ReportUtils', () => {
             const encodedBackTo = 'search%3Fq%3Dtype%3Areport';
             mockGetActiveRoute.mockReturnValue(`search/r/999?backTo=${encodedBackTo}`);
             expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: 'search?q=type:report'})}`);
+        });
+
+        it('decodes the backTo parameter only once so a nested backTo stays encoded', () => {
+            // Given an expense RHP opened from search and then paged through twice with the carousel arrows, so each press nested the previous route in backTo
+            const reportID = '333';
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+            const firstExpenseRoute = ROUTES.SEARCH_REPORT.getRoute({reportID: '1', anchorTransactionID: '10', backTo: 'search?q=type:expense'});
+            const secondExpenseRoute = ROUTES.SEARCH_REPORT.getRoute({reportID: '2', anchorTransactionID: '20', backTo: firstExpenseRoute});
+            mockGetActiveRoute.mockReturnValue(ROUTES.SEARCH_REPORT.getRoute({reportID: '1', anchorTransactionID: '10', backTo: secondExpenseRoute}));
+            const getQuery = (route: string) => new URLSearchParams(route.slice(route.indexOf('?') + 1));
+
+            // When building the report link from that RHP
+            const url = getReportURLForCurrentContext(reportID);
+
+            // Then the link's backTo is the previous expense route as-is, so its own backTo stays a single query key; a duplicate key would be parsed as an array and crash the RHP on back
+            expect(url).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: secondExpenseRoute})}`);
+            expect(getQuery(getQuery(url).get('backTo') ?? '').getAll('backTo')).toHaveLength(1);
+        });
+
+        it('decodes a backTo parameter that is still encoded after reading it', () => {
+            // Given a route whose backTo was encoded twice, so reading it once still leaves an encoded search route
+            const reportID = '444';
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+            mockGetActiveRoute.mockReturnValue('search/r/999?backTo=search%253Fq%253Dtype%253Areport');
+
+            // When building the report link from that route
+            const url = getReportURLForCurrentContext(reportID);
+
+            // Then the backTo is fully decoded so the link still returns to the search we left
+            expect(url).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: 'search?q=type:report'})}`);
         });
 
         it('uses current search route when no backTo parameter is present', () => {
@@ -19927,8 +20273,6 @@ describe('ReportUtils', () => {
 
         describe('settled report paid with a business bank account', () => {
             const settledPolicyID = '445';
-            const reimburserEmail = 'reimburser@example.com';
-            const reimburserAccountID = 445001;
             const settledPolicy: Policy = {
                 ...createRandomPolicy(Number(settledPolicyID), CONST.POLICY.TYPE.TEAM),
                 id: settledPolicyID,
@@ -19938,7 +20282,7 @@ describe('ReportUtils', () => {
                     routingNumber: '011401533',
                     addressName: 'Settled Workspace',
                     bankName: 'Test Bank',
-                    reimburser: reimburserEmail,
+                    reimburser: 'reimburser@example.com',
                 },
             };
             const settledReport: Report = {
@@ -19955,23 +20299,15 @@ describe('ReportUtils', () => {
                 amount: 10000,
                 currency: CONST.CURRENCY.USD,
             };
-            // The workspace account is only a valid fallback for a payment made by the designated payer, so the
-            // action has to come from the reimburser for these previews to name it.
             const payReportAction: ReportAction = {
-                ...LHNTestUtils.getFakeReportAction(reimburserEmail),
-                actorAccountID: reimburserAccountID,
+                ...LHNTestUtils.getFakeReportAction(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: payOriginalMessage,
             };
 
             beforeEach(async () => {
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[reimburserAccountID]: {accountID: reimburserAccountID, login: reimburserEmail}});
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${settledPolicyID}`, settledPolicy);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${settledReport.reportID}`, settledReport);
-            });
-
-            afterEach(async () => {
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[reimburserAccountID]: null});
             });
 
             it('shows the bank account from the action accountNumber instead of the policy default', () => {
@@ -19997,51 +20333,6 @@ describe('ReportUtils', () => {
                 );
 
                 expect(result).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '0000'));
-            });
-
-            describe('when the payment names the bank account it came from', () => {
-                // A paying admin picks the account to pay from, so a workspace payment now carries a bankAccountID the
-                // same way an invoice payment does. That must not turn the preview into the invoice wording
-                // ("paid $100.00 with personal account 6281"). It is a workspace payment and reads "paid with bank
-                // account 6281", which is also what PaymentContent renders on the action itself.
-                const actionNamingAccount: ReportAction = {
-                    ...payReportAction,
-                    originalMessage: {...payOriginalMessage, bankAccountID: 6281001, accountNumber: 'XXXXXX6281'},
-                };
-
-                it('keeps the bank account wording in the localized preview', () => {
-                    const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
-
-                    const result = getReportPreviewMessage(englishTranslate, convertToDisplayString, {
-                        reportOrID: settledReport,
-                        iouReportAction: actionNamingAccount,
-                        originalReportAction: actionNamingAccount,
-                        policy: settledPolicy,
-                    });
-
-                    expect(result).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '6281'));
-                });
-
-                it('keeps the bank account wording in the stored report action message', () => {
-                    const result = getReportPreviewReportActionMessage(
-                        {reportOrID: settledReport, iouReportAction: actionNamingAccount, originalReportAction: actionNamingAccount, policy: settledPolicy},
-                        getCurrencyDecimalsLocal,
-                    );
-
-                    expect(result).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '6281'));
-                });
-
-                it('resolves the account through bankAccountList when the action only carries its ID', () => {
-                    // Given the payer paid from an account other than the workspace one, and the action recorded only its ID
-                    const actionNamingAccountID: ReportAction = {...payReportAction, originalMessage: {...payOriginalMessage, bankAccountID: 5678001}};
-                    const bankAccountList = createMock<BankAccountList>({5678001: {accountData: {accountNumber: 'XXXXXX5678'}}});
-                    const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
-                    const params = {reportOrID: settledReport, iouReportAction: actionNamingAccountID, originalReportAction: actionNamingAccountID, policy: settledPolicy, bankAccountList};
-
-                    // Then both previews name that account, matching PaymentContent, rather than the workspace default
-                    expect(getReportPreviewMessage(englishTranslate, convertToDisplayString, params)).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '5678'));
-                    expect(getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal)).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '5678'));
-                });
             });
 
             it('matches the localized getReportPreviewMessage output when translated to English', () => {
@@ -20859,6 +21150,7 @@ describe('ReportUtils', () => {
         it('should return false if list report field has some options enabled', () => {
             const reportField = createMock<PolicyReportField>({
                 type: CONST.REPORT_FIELD_TYPES.LIST,
+                values: ['A', 'B', 'C'],
                 disabledOptions: [false, true, false],
             });
             expect(shouldHideSingleReportField(reportField)).toBe(false);
@@ -20866,8 +21158,45 @@ describe('ReportUtils', () => {
         it('should return false if all items in list report field are disabled', () => {
             const reportField = createMock<PolicyReportField>({
                 type: CONST.REPORT_FIELD_TYPES.LIST,
+                values: ['A', 'B', 'C'],
                 disabledOptions: [true, true, true],
             });
+            expect(shouldHideSingleReportField(reportField)).toBe(true);
+        });
+        it('should return false if list report field has values but an empty disabledOptions array', () => {
+            // Given a list field not created in NewDot, where the backend sends an empty disabledOptions array
+            const reportField = createMock<PolicyReportField>({
+                type: CONST.REPORT_FIELD_TYPES.LIST,
+                values: ['A', 'B'],
+                disabledOptions: [],
+            });
+
+            // When checking whether the field should be hidden
+            // Then it is visible, because values without a disabledOptions entry are treated as enabled
+            expect(shouldHideSingleReportField(reportField)).toBe(false);
+        });
+        it('should return false if disabledOptions is shorter than values and the missing entries are enabled', () => {
+            // Given a list field where only the first value has a disabledOptions entry
+            const reportField = createMock<PolicyReportField>({
+                type: CONST.REPORT_FIELD_TYPES.LIST,
+                values: ['A', 'B', 'C'],
+                disabledOptions: [true],
+            });
+
+            // When checking whether the field should be hidden
+            // Then it is visible, because the values without an entry are treated as enabled
+            expect(shouldHideSingleReportField(reportField)).toBe(false);
+        });
+        it('should return true if every value of a list report field is explicitly disabled', () => {
+            // Given a list field where every value is disabled
+            const reportField = createMock<PolicyReportField>({
+                type: CONST.REPORT_FIELD_TYPES.LIST,
+                values: ['A', 'B'],
+                disabledOptions: [true, true],
+            });
+
+            // When checking whether the field should be hidden
+            // Then it is hidden, because no value can be selected
             expect(shouldHideSingleReportField(reportField)).toBe(true);
         });
     });

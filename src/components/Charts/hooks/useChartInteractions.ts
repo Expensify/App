@@ -98,13 +98,6 @@ type UseChartInteractionsProps = {
     /** Optional shared value containing the y-axis zero position */
     yZero?: SharedValue<number>;
 
-    /**
-     * Optional worklet to override the default tooltip anchor. Receives the matched point's canvas
-     * position and the y-axis zero, and returns the tooltip anchor. Defaults to anchoring above the
-     * top of a vertical bar. Horizontal bar charts pass this to anchor above the bar's tip instead.
-     */
-    resolveTooltipPosition?: (targetX: number, targetY: number, currentYZero: number) => {x: number; y: number};
-
     /** Scale applied to the rendered chart container */
     coordinateScale?: number;
 };
@@ -172,7 +165,6 @@ function useChartInteractions({
     resolveLabelTouchX,
     chartBottom,
     yZero,
-    resolveTooltipPosition,
     coordinateScale = 1,
 }: UseChartInteractionsProps) {
     /** Interaction state compatible with Victory Native's internal logic */
@@ -396,9 +388,6 @@ function useChartInteractions({
         const targetX = chartInteractionState.x.position.get();
         const targetY = chartInteractionState.y.y.position.get();
         const currentYZero = yZero?.get() ?? targetY;
-        if (resolveTooltipPosition) {
-            return resolveTooltipPosition(targetX, targetY, currentYZero);
-        }
         // Position tooltip at the top of the bar (min of targetY and yZero)
         const barTopY = Math.min(targetY, currentYZero);
 
