@@ -32,15 +32,26 @@ describe('getConfirmationItems', () => {
         expect(onEditGroup).toHaveBeenCalledWith(1);
     });
 
-    it('shows a sensitive answer in full, so the user can check it', () => {
+    it('hides all but the last four digits of an SSN, in the SSN format', () => {
         // Given a sensitive SSN
         const fields: DynamicFormField[] = [{key: 'ssn', type: 'text', required: true, sensitive: true}];
 
         // When the confirmation sections are built
         const sections = getConfirmationItems(groupFieldsIntoPages(fields), {ssn: '123456789'}, translateLocal, {onEditGroup: jest.fn(), onEditListItem: jest.fn()});
 
-        // Then the row shows the whole number, since a typo in any digit fails verification
-        expect(sections.at(0)?.rows.at(0)?.title).toBe('123456789');
+        // Then the row shows only the last four digits, enough for the user to recognize the number
+        expect(sections.at(0)?.rows.at(0)?.title).toBe('•••-••-6789');
+    });
+
+    it('hides all but the last four characters of another sensitive answer', () => {
+        // Given a sensitive passport number, which has no SSN format
+        const fields: DynamicFormField[] = [{key: 'passportNumber', type: 'text', required: true, sensitive: true}];
+
+        // When the confirmation sections are built
+        const sections = getConfirmationItems(groupFieldsIntoPages(fields), {passportNumber: '12345678AB'}, translateLocal, {onEditGroup: jest.fn(), onEditListItem: jest.fn()});
+
+        // Then only its last four characters show, without dashes
+        expect(sections.at(0)?.rows.at(0)?.title).toBe('••••••78AB');
     });
 
     it('shows each list entry as its own row that opens the entry', () => {

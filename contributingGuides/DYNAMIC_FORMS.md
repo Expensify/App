@@ -97,7 +97,7 @@ The server can send a type this App version does not know. The schema is typed `
 
 - They are cleared when a new visit opens without a page in the route, and when the user leaves from the first page.
 - They are cleared once `isSubmitting` turns false without `submitError`, or right after `onSubmit` when the screen passes no `isSubmitting`.
-- The confirmation page shows them in full, so the user can check them, and masks them from session recording.
+- The confirmation page shows only their last four characters, as in `•••-••-6789` for an SSN, and masks the page from session recording.
 
 ## List fields
 
