@@ -111,6 +111,7 @@ function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGr
                         data={data}
                         isLoading={isLoading}
                         chartContainerStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                        shouldShowGroupLabels={false}
                         renderDetails={
                             shouldShowTable
                                 ? (rows) => (

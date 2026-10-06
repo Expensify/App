@@ -36,6 +36,9 @@ type SearchChartViewProps = {
 
     isLoading?: boolean;
 
+    /** Whether a bar chart labels its bars and a donut chart shows its legend. Line chart labels always show. */
+    shouldShowGroupLabels?: boolean;
+
     /** Renders the details of the plotted groups below the chart */
     renderDetails?: (rows: SearchChartDataRow[]) => React.ReactNode;
 
@@ -47,7 +50,7 @@ type SearchChartViewProps = {
  * Layer 3 component - dispatches to the appropriate chart type based on view parameter
  * and handles navigation/drill-down logic
  */
-function SearchChartView({queryJSON, view, groupBy, data, isLoading, renderDetails, chartContainerStyle}: SearchChartViewProps) {
+function SearchChartView({queryJSON, view, groupBy, data, isLoading, shouldShowGroupLabels = true, renderDetails, chartContainerStyle}: SearchChartViewProps) {
     const {preferredLocale} = useLocalize();
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {currentSearchKey} = useSearchQueryContext();
@@ -88,7 +91,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, renderDetai
                 onBarPress={(dataPoint, index) => handleItemPress(index)}
                 yAxisUnit={unit}
                 yAxisUnitPosition={unitPosition}
-                shouldShowLabels={!renderDetails}
+                shouldShowLabels={shouldShowGroupLabels}
             />
         ),
         [CONST.SEARCH.VIEW.LINE]: (
@@ -107,7 +110,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, renderDetai
                 onSlicePress={(dataPoint, index) => handleItemPress(index)}
                 valueUnit={unit.value}
                 valueUnitPosition={unitPosition}
-                shouldShowLegend={!renderDetails}
+                shouldShowLegend={shouldShowGroupLabels}
             />
         ),
     };
