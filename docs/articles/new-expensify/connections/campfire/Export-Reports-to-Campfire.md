@@ -1,8 +1,8 @@
 ---
 title: Export Reports to Campfire
 description: Learn how to export one or more reports to Campfire, mark reports as exported, and fix Campfire export errors.
-keywords: [New Expensify, export to Campfire, Campfire export, bulk export to Campfire, mark as exported, Campfire export failed, Campfire vendor not found, export again, Workspace Admin, preferred exporter]
-internalScope: Audience is Workspace Admins and preferred exporters on a workspace connected to Campfire. Covers exporting a single report or multiple reports to Campfire, marking reports as exported, re-exporting, and fixing export errors. Does not cover connecting Campfire, configuring export settings, or exporting reports to CSV.
+keywords: [New Expensify, export to Campfire, Campfire export, bulk export to Campfire, mark as exported, Campfire export failed, Campfire vendor not found, export again, workspace admin, preferred exporter]
+internalScope: Audience is workspace admins on a workspace connected to Campfire. Covers exporting a single report or multiple reports to Campfire, marking reports as exported, re-exporting, and fixing export errors. Does not cover connecting Campfire, configuring export settings, or exporting reports to CSV.
 order: 3
 ---
 
@@ -18,7 +18,7 @@ If **Auto-sync** is on, Expensify exports reports automatically based on your **
 
 To export reports to Campfire, you must:
 
-- Be a Workspace Admin or the preferred exporter.
+- Be a workspace admin.
 - Have an approved, paid, or closed expense report.
 - Use a workspace connected to Campfire.
 
@@ -29,7 +29,7 @@ Learn how to [connect to Campfire](/articles/new-expensify/connections/campfire/
 ## How to export a report to Campfire
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Reports**.
-2. Open the report you want to export.
+2. Open the report you want to export to Campfire.
 3. Select **More**.
 4. Select **Export**.
 5. Select **Export to Campfire**.
@@ -44,19 +44,10 @@ The report history shows when the export starts and when it finishes.
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Reports**.
 2. Select the checkbox next to each report you want to export, or use the top checkbox to select all.
-3. Select the **X selected** button at the top (for example, **2 selected**).
-4. Select **Export**.
-5. Select **Campfire**.
+3. In the selection bar, select **Export**.
+4. Select **Campfire**.
 
-If only some of the selected reports can be exported, Expensify asks you to confirm before exporting the rest.
-
-**Note:** You can only export reports together when their workspaces connect to the same Campfire company.
-
-<!-- SCREENSHOT:
-Suggestion: The Reports page with several reports selected and the Export menu open, showing Campfire and Mark as exported above the CSV templates.
-Location: After step 5 of "How to export multiple reports to Campfire".
-Purpose: The bulk option is labeled Campfire, not Export to Campfire, so admins may miss it among the CSV export templates.
--->
+**Note:** You can only export reports together when their workspaces connect to the same Campfire subsidiary.
 
 ---
 
@@ -76,9 +67,8 @@ For multiple reports:
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Reports**.
 2. Select the checkbox next to each report.
-3. Select the **X selected** button at the top (for example, **2 selected**).
-4. Select **Export**.
-5. Select **Mark as exported**.
+3. In the selection bar, select **Export**.
+4. Select **Mark as exported**.
 
 The report history shows that the report was marked as manually exported to Campfire.
 
