@@ -124,12 +124,8 @@ function ReportAvatar({
                 <TaskReportAvatar
                     reportID={reportID}
                     size={size}
-                    backdropColor={backdropColor}
-                    // A task outside a workspace renders a single avatar even inside a horizontal stack, and there it drops its container styles.
+                    // The layout is always single, but the legacy component still drops the single avatar's container styles when horizontal stacking is requested.
                     containerStyle={horizontalStacking ? [] : singleAvatarContainerStyle}
-                    subscriptContainerStyle={subscriptAvatarContainerStyle}
-                    horizontalStacking={horizontalStacking}
-                    sort={sort}
                     fallbackDisplayName={fallbackDisplayName}
                 />
             );

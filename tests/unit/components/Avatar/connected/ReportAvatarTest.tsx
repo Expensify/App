@@ -285,57 +285,36 @@ describe('ReportAvatar (connected)', () => {
         expect(mockCapturedPolicyExpenseChatAvatarProps.sort).toBe(CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE);
     });
 
-    it('should render TaskReportAvatar for a task report with the layout container styles resolved', async () => {
+    it.each([
+        ['the single container style outside a horizontal stack', undefined, [{marginRight: 12}]],
+        ['no container styles inside a horizontal stack', {maxRows: 2}, []],
+    ])('should render TaskReportAvatar for a task report with %s', async (_case, horizontalStacking, expectedContainerStyle) => {
         // Given a task report in Onyx
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, type: CONST.REPORT.TYPE.TASK});
         await waitForBatchedUpdatesWithAct();
-
-        const singleAvatarContainerStyle = [{marginRight: 12}];
-        const subscriptAvatarContainerStyle = [{marginRight: 0}];
 
         // When the dispatcher renders it with every prop
         render(
             <ReportAvatar
                 reportID={REPORT_ID}
                 size={CONST.AVATAR_SIZE.SMALL}
-                singleAvatarContainerStyle={singleAvatarContainerStyle}
+                singleAvatarContainerStyle={[{marginRight: 12}]}
                 backdropColor="#ff0000"
-                subscriptAvatarContainerStyle={subscriptAvatarContainerStyle}
+                subscriptAvatarContainerStyle={[{marginRight: 0}]}
+                horizontalStacking={horizontalStacking}
+                sort={CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE}
                 fallbackDisplayName={FALLBACK_NAME}
             />,
         );
 
-        // Then the wrapper gets each container style under its layout-specific name
+        // Then the always-single wrapper gets only the single container style, dropped inside a horizontal stack like the legacy component
         expect(screen.getByTestId('MockedTaskReportAvatar')).toBeOnTheScreen();
         expect(mockCapturedTaskReportAvatarProps).toEqual({
             reportID: REPORT_ID,
             size: CONST.AVATAR_SIZE.SMALL,
-            backdropColor: '#ff0000',
-            containerStyle: singleAvatarContainerStyle,
-            subscriptContainerStyle: subscriptAvatarContainerStyle,
+            containerStyle: expectedContainerStyle,
             fallbackDisplayName: FALLBACK_NAME,
         });
-    });
-
-    it('should hand a task report the stacking props and drop its single container styles inside a horizontal stack', async () => {
-        // Given a task report in Onyx
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, type: CONST.REPORT.TYPE.TASK});
-        await waitForBatchedUpdatesWithAct();
-
-        // When the dispatcher renders it inside a horizontal stack
-        render(
-            <ReportAvatar
-                reportID={REPORT_ID}
-                singleAvatarContainerStyle={[{marginRight: 12}]}
-                horizontalStacking={{maxRows: 2}}
-                sort={CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE}
-            />,
-        );
-
-        // Then a task outside a workspace, which stays a single avatar, drops its container styles, and the stacking options and sort reach the wrapper
-        expect(mockCapturedTaskReportAvatarProps.containerStyle).toEqual([]);
-        expect(mockCapturedTaskReportAvatarProps.horizontalStacking).toEqual({maxRows: 2});
-        expect(mockCapturedTaskReportAvatarProps.sort).toBe(CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE);
     });
 
     it('should render ChatThreadAvatar for a trip room, which is a thread of its trip preview', async () => {
