@@ -18,9 +18,6 @@ type ApplyColumnWidthOverridesParams = {
     baseColumnWidths: Record<string, number>;
 
     columnWidthOverrides: ColumnWidthOverrides | undefined;
-
-    /** Column absorbing the row's leftover width, if any. It never pays a share of a resize. */
-    growableColumnKey: string | undefined;
 };
 
 type AppliedColumnWidthOverrides = {
@@ -35,8 +32,8 @@ type AppliedColumnWidthOverrides = {
 };
 
 /** Layout-agnostic, so it serves grid tracks and flex basis alike. */
-function applyColumnWidthOverrides({columns, baseColumnWidths, columnWidthOverrides, growableColumnKey}: ApplyColumnWidthOverridesParams): AppliedColumnWidthOverrides {
-    const {columnWidths, payingColumnsByIndex} = resolveOverriddenColumnWidths({columns, baseColumnWidths, columnWidthOverrides, growableColumnKey});
+function applyColumnWidthOverrides({columns, baseColumnWidths, columnWidthOverrides}: ApplyColumnWidthOverridesParams): AppliedColumnWidthOverrides {
+    const {columnWidths, payingColumnsByIndex} = resolveOverriddenColumnWidths({columns, baseColumnWidths, columnWidthOverrides});
 
     const columnWidthValues = columns.map((column) => getColumnWidthValue(column.key, columnWidths[column.key] ?? 0));
     const resizableColumns: ResizableColumn[] = [];

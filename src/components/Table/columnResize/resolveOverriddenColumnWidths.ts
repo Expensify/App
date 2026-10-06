@@ -28,9 +28,6 @@ type ResolveOverriddenColumnWidthsParams = {
     baseColumnWidths: Record<string, number>;
 
     columnWidthOverrides: ColumnWidthOverrides | undefined;
-
-    /** Column absorbing the row's leftover width, if any. It never pays a share of a resize. */
-    growableColumnKey: string | undefined;
 };
 
 type ResolvedOverriddenColumnWidths = {
@@ -47,11 +44,11 @@ function getStoredColumnWidth(width: number): number {
 }
 
 /**
- * Applies stored widths in render order, each paid by the later columns still sharing the row (not headless, fixed,
- * user-sized or growable) down to their fit width. Uses the same split as the drag, so columns don't jump on release.
+ * Applies stored widths in render order, each paid by the later columns still sharing the row (not headless, fixed or
+ * user-sized) down to their fit width. Uses the same split as the drag, so columns don't jump on release.
  */
-function resolveOverriddenColumnWidths({columns, baseColumnWidths, columnWidthOverrides, growableColumnKey}: ResolveOverriddenColumnWidthsParams): ResolvedOverriddenColumnWidths {
-    const canColumnPay = columns.map((column) => !!column.label && !column.hasDeclaredWidth && columnWidthOverrides?.[column.key] === undefined && column.key !== growableColumnKey);
+function resolveOverriddenColumnWidths({columns, baseColumnWidths, columnWidthOverrides}: ResolveOverriddenColumnWidthsParams): ResolvedOverriddenColumnWidths {
+    const canColumnPay = columns.map((column) => !!column.label && !column.hasDeclaredWidth && columnWidthOverrides?.[column.key] === undefined);
 
     const payingColumnsByIndex = columns.map((column, index) =>
         columns

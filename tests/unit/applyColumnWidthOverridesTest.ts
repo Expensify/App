@@ -23,7 +23,7 @@ describe('applyColumnWidthOverrides', () => {
         const baseColumnWidths = {name: 200, email: 200, role: 200};
 
         // When the stored width is applied
-        const {columnWidths, columnWidthValues} = applyColumnWidthOverrides({columns, baseColumnWidths, columnWidthOverrides: {name: 260}, growableColumnKey: undefined});
+        const {columnWidths, columnWidthValues} = applyColumnWidthOverrides({columns, baseColumnWidths, columnWidthOverrides: {name: 260}});
 
         // Then only that column changes, and its CSS value falls back to the stored width so it paints at 260px with no drag running
         expect(columnWidths).toEqual({name: 260, email: 200, role: 200});
@@ -35,7 +35,7 @@ describe('applyColumnWidthOverrides', () => {
         const columns = [contentColumn('name'), contentColumn('role')];
 
         // When it is applied
-        const {columnWidths} = applyColumnWidthOverrides({columns, baseColumnWidths: {name: 200, role: 120}, columnWidthOverrides: {name: 240.6}, growableColumnKey: undefined});
+        const {columnWidths} = applyColumnWidthOverrides({columns, baseColumnWidths: {name: 200, role: 120}, columnWidthOverrides: {name: 240.6}});
 
         // Then the column gets whole px, so its grid track never lands on a sub-pixel
         expect(columnWidths).toEqual({name: 241, role: 120});
@@ -46,7 +46,7 @@ describe('applyColumnWidthOverrides', () => {
         const columns = [fixedColumn('status')];
 
         // When it is applied
-        const {columnWidths} = applyColumnWidthOverrides({columns, baseColumnWidths: {status: 80}, columnWidthOverrides: {status: 300}, growableColumnKey: undefined});
+        const {columnWidths} = applyColumnWidthOverrides({columns, baseColumnWidths: {status: 80}, columnWidthOverrides: {status: 300}});
 
         // Then the declared width wins, since that column can no longer be dragged and the stored width is stale
         expect(columnWidths).toEqual({status: 80});
@@ -58,7 +58,7 @@ describe('applyColumnWidthOverrides', () => {
         const baseColumnWidths = {name: 200, status: 80, email: 200, arrow: 40};
 
         // When the resizable columns are worked out
-        const {resizableColumns} = applyColumnWidthOverrides({columns, baseColumnWidths, columnWidthOverrides: undefined, growableColumnKey: undefined});
+        const {resizableColumns} = applyColumnWidthOverrides({columns, baseColumnWidths, columnWidthOverrides: undefined});
 
         // Then only the content-sized ones get an edge, since fixed and headless columns hold fixed-size content
         expect(resizableColumns.map((column) => column.columnKey)).toEqual(['name', 'email']);

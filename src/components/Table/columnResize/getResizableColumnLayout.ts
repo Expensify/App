@@ -76,6 +76,15 @@ function getResizableColumnLayout<DataType extends TableData, ColumnKey extends 
 }: GetResizableColumnLayoutParams<DataType, ColumnKey>): ResizableColumnLayout {
     // Absorbs leftover width, so trailing headless columns like an arrow, menu or icon keep their size and stay pinned right.
     const growableColumnKey = columns.findLast((column) => !!column.label)?.key;
+    const availableColumnsWidth = tableWidth - rowMarginWidth - selectionColumnWidth - totalGapWidth - rowPaddingWidth;
+    const baseColumnWidths = {...resolvedColumnWidths};
+
+    // Pays for wider columns to its left from the room it paints, leftover included, so that room is the first to go.
+    // Floored so the row never overflows the table by a fraction of a pixel.
+    if (growableColumnKey) {
+        const leftoverWidth = Math.floor(availableColumnsWidth - getColumnsWidthSum(columns, resolvedColumnWidths));
+        baseColumnWidths[growableColumnKey] = (baseColumnWidths[growableColumnKey] ?? 0) + Math.max(leftoverWidth, 0);
+    }
 
     const {columnWidths, columnWidthValues, resizableColumns} = applyColumnWidthOverrides({
         columns: columns.map((column) => ({
@@ -84,9 +93,8 @@ function getResizableColumnLayout<DataType extends TableData, ColumnKey extends 
             hasDeclaredWidth: typeof column.width === 'number',
             fitWidth: fitColumnWidths[column.key],
         })),
-        baseColumnWidths: resolvedColumnWidths,
+        baseColumnWidths,
         columnWidthOverrides,
-        growableColumnKey,
     });
 
     // Row width sums the widths, not the tracks, so the growable track only grows into real leftover room.
@@ -94,8 +102,7 @@ function getResizableColumnLayout<DataType extends TableData, ColumnKey extends 
 
     const rowWidthValues = selectionColumnWidth > 0 ? [`${selectionColumnWidth}px`, ...columnWidthValues] : columnWidthValues;
 
-    const rowContentWidth = getColumnsWidthSum(columns, columnWidths) + selectionColumnWidth + totalGapWidth + rowPaddingWidth;
-    const overflowWidth = rowContentWidth - (tableWidth - rowMarginWidth);
+    const overflowWidth = getColumnsWidthSum(columns, columnWidths) - availableColumnsWidth;
     const dragStartWidths = {...columnWidths};
     const dragMinWidths: Record<string, number> = {};
 
