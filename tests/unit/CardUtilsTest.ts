@@ -510,6 +510,7 @@ const mockCompanyCardFeedIcons: CompanyCardFeedIconsMock = {
     BankOfAmericaCompanyCardDetailLarge: mockIcon('BankOfAmericaCompanyCardDetailLarge'),
     CapitalOneCompanyCardDetailLarge: mockIcon('CapitalOneCompanyCardDetailLarge'),
     ChaseCompanyCardDetailLarge: mockIcon('ChaseCompanyCardDetailLarge'),
+    FirstCitizensBankCompanyCardDetailLarge: mockIcon('FirstCitizensBankCompanyCardDetailLarge'),
     CitibankCompanyCardDetailLarge: mockIcon('CitibankCompanyCardDetailLarge'),
     WellsFargoCompanyCardDetailLarge: mockIcon('WellsFargoCompanyCardDetailLarge'),
     BrexCompanyCardDetailLarge: mockIcon('BrexCompanyCardDetailLarge'),
@@ -1814,6 +1815,11 @@ describe('CardUtils', () => {
             const feed = 'oauth.americanexpressfdx.com 2003';
             const illustration = getCardFeedIcon(feed, mockIllustrations, mockCompanyCardFeedIcons);
             expect(illustration).toBe(mockCompanyCardFeedIcons.AmexCardCompanyCardDetailLarge);
+        });
+
+        it('Should return the First Citizens Bank illustration for both SVB feeds', () => {
+            expect(getCardFeedIcon('svbdirect', mockIllustrations, mockCompanyCardFeedIcons)).toBe(mockCompanyCardFeedIcons.FirstCitizensBankCompanyCardDetailLarge);
+            expect(getCardFeedIcon('nebasilicon.fdecs.com', mockIllustrations, mockCompanyCardFeedIcons)).toBe(mockCompanyCardFeedIcons.FirstCitizensBankCompanyCardDetailLarge);
         });
 
         it('Should return a valid illustration if a CSV imported feed variation was provided', () => {

@@ -20,6 +20,7 @@ import BrexCompanyCardDetailLarge from '@assets/images/companyCards/large/card-b
 import CapitalOneCompanyCardDetailLarge from '@assets/images/companyCards/large/card-capital_one-large.svg';
 import ChaseCompanyCardDetailLarge from '@assets/images/companyCards/large/card-chase-large.svg';
 import CitibankCompanyCardDetailLarge from '@assets/images/companyCards/large/card-citi-large.svg';
+import FirstCitizensBankCompanyCardDetailLarge from '@assets/images/companyCards/large/card-firstcitizens-large.svg';
 import MasterCardCompanyCardDetailLarge from '@assets/images/companyCards/large/card-mastercard-large.svg';
 import PlaidCompanyCardDetailLarge from '@assets/images/companyCards/large/card-plaid-large.svg';
 import StripeCompanyCardDetailLarge from '@assets/images/companyCards/large/card-stripe-large.svg';
@@ -259,6 +260,7 @@ const Illustrations = {
     CapitalOneCompanyCardDetailLarge,
     ChaseCompanyCardDetailLarge,
     CitibankCompanyCardDetailLarge,
+    FirstCitizensBankCompanyCardDetailLarge,
     MasterCardCompanyCardDetailLarge,
     PlaidCompanyCardDetailLarge,
     StripeCompanyCardDetailLarge,

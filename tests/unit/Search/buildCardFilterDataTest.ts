@@ -336,6 +336,7 @@ const companyCardIconsMock: CompanyCardFeedIcons = {
     CapitalOneCompanyCardDetailLarge: 5,
     ChaseCompanyCardDetailLarge: 6,
     CitibankCompanyCardDetailLarge: 7,
+    FirstCitizensBankCompanyCardDetailLarge: 13,
     WellsFargoCompanyCardDetailLarge: 8,
     BrexCompanyCardDetailLarge: 9,
     StripeCompanyCardDetailLarge: 10,

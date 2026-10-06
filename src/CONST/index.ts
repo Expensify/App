@@ -5202,6 +5202,8 @@ const CONST = {
             CAPITAL_ONE: 'oauth.capitalone.com',
             BANK_OF_AMERICA: 'oauth.bankofamerica.com',
             CHASE: 'oauth.chase.com',
+            FIRST_CITIZENS_BANK: 'svbdirect',
+            FIRST_CITIZENS_BANK_FDECS: 'nebasilicon.fdecs.com',
             BREX: 'oauth.brex.com',
             PEX: 'admin.pexcard.com',
             WELLS_FARGO: 'oauth.wellsfargo.com',
