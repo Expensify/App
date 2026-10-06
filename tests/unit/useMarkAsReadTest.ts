@@ -1,5 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 
+import {IsHiddenWideTabPreMountContext} from '@hooks/useIsHiddenWideTabPreMount';
 import {IsInPreloadedTabContext} from '@hooks/useIsInPreloadedTab';
 import useMarkAsRead, {resetMarkAsReadScopes} from '@hooks/useMarkAsRead';
 
@@ -489,6 +490,47 @@ describe('useMarkAsRead', () => {
         mockIsUnread = true;
         rerender({report: reportAWithNewMessage});
 
+        expect(readNewestAction).toHaveBeenCalledWith('A', expect.anything());
+    });
+
+    it('should keep marking the visible report read while a hidden pre-mount of another report shares its scope', () => {
+        // Given a visible report A and a hidden wide pre-mount of report B mounted later in the same scope
+        const reportA = {reportID: 'A', lastReadTime: '2023-01-01 10:00:00.000', lastVisibleActionCreated: '2023-01-01 10:00:00.000'} as OnyxTypes.Report;
+        const reportAWithNewMessage = {...reportA, lastVisibleActionCreated: '2023-01-01 11:00:00.000'} as OnyxTypes.Report;
+        const reportB = {reportID: 'B', lastReadTime: '2023-01-01 10:00:00.000', lastVisibleActionCreated: '2023-01-01 10:00:00.000'} as OnyxTypes.Report;
+
+        mockIsUnread = false;
+        const {rerender} = renderHook(
+            (props: {report: OnyxTypes.Report}) =>
+                useMarkAsRead({
+                    reportID: 'A',
+                    report: props.report as OnyxEntry<OnyxTypes.Report>,
+                    transactionThreadReport: undefined,
+                    sortedVisibleReportActions: [],
+                    isScrolledToEnd: true,
+                    hasNewerActions: false,
+                }),
+            {initialProps: {report: reportA}},
+        );
+        renderHook(
+            () =>
+                useMarkAsRead({
+                    reportID: 'B',
+                    report: reportB as OnyxEntry<OnyxTypes.Report>,
+                    transactionThreadReport: undefined,
+                    sortedVisibleReportActions: [],
+                    isScrolledToEnd: true,
+                    hasNewerActions: false,
+                }),
+            {wrapper: ({children}: {children: React.ReactNode}) => React.createElement(IsHiddenWideTabPreMountContext.Provider, {value: true}, children)},
+        );
+        readNewestAction.mockClear();
+
+        // When a new message lands in the visible report A
+        mockIsUnread = true;
+        rerender({report: reportAWithNewMessage});
+
+        // Then A is still marked read, because the hidden pre-mount did not take the scope over
         expect(readNewestAction).toHaveBeenCalledWith('A', expect.anything());
     });
 });

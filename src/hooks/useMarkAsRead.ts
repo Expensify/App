@@ -157,8 +157,15 @@ function useMarkAsRead({
     useEffect(() => {
         userActiveSince.current = DateUtils.getDBTime();
         didMarkReportAsReadInitially.current = false;
-        claimScope(scopeKey, instanceID, reportID);
     }, [reportID, scopeKey, instanceID]);
+
+    useEffect(() => {
+        // A hidden pre-mount must not take the scope from the visible report, so it claims it on reveal.
+        if (isHiddenPreMount) {
+            return;
+        }
+        claimScope(scopeKey, instanceID, reportID);
+    }, [reportID, scopeKey, instanceID, isHiddenPreMount]);
 
     useEffect(() => () => releaseScope(scopeKey, instanceID), [scopeKey, instanceID]);
 
