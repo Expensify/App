@@ -20,11 +20,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
-import {Platform, StyleSheet, View} from 'react-native';
+import {Keyboard, Platform, StyleSheet, View} from 'react-native';
 import Onyx from 'react-native-onyx';
 import waitForBatchedUpdatesWithAct from 'tests/utils/waitForBatchedUpdatesWithAct';
 
@@ -58,12 +59,11 @@ type MockFlashListProps<T> = {
     onChangeStickyIndex?: (current: number, previous: number) => void;
     onLoad?: (info: {elapsedTimeInMs: number}) => void;
     onScroll?: (event: {nativeEvent: {contentOffset: {y: number}}}) => void;
+    onScrollBeginDrag?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
     onStartReached?: () => void;
     onViewableItemsChanged?: (info: MockViewabilityInfo<T>) => void;
     overrideItemLayout?: (layout: {span?: number}, item: T, index: number, maxColumns: number, extraData?: unknown) => void;
     stickyHeaderIndices?: number[];
-    scrollsChildToFocus?: boolean;
-    scrollsChildRectangleOnScreen?: boolean;
     stickyHeaderConfig?: {
         hideWhenInactive?: boolean;
         hideRelatedCell?: boolean;
@@ -1060,7 +1060,9 @@ describe('Table', () => {
         it.each(['android', 'ios', 'web'] as const)('should opt in to native sticky release only on Android (%s)', (platform) => {
             const platformOverride = jest.replaceProperty(Platform, 'OS', platform);
             try {
+                // Given a table with a scrolling page header and a sticky column header.
                 const props = createDefaultProps();
+                // When the table renders on each platform.
                 render(
                     <Table
                         data={props.data}
@@ -1076,77 +1078,24 @@ describe('Table', () => {
                         <Table.Body />
                     </Table>,
                 );
+                // Then only Android opts in to native sticky-header release.
                 expect(mockFlashListProps.at(-1)?.stickyHeaderConfig?.hideWhenInactive).toBe(platform === 'android');
             } finally {
                 platformOverride.restore();
             }
         });
 
-        it.each(['android', 'ios', 'web'] as const)('should suppress only Android header-search caret scrolling while focused (%s)', (platform) => {
+        it.each(['android', 'ios', 'web'] as const)('should dismiss the keyboard only on native drag and preserve the query and caller callback (%s)', (platform) => {
             const platformOverride = jest.replaceProperty(Platform, 'OS', platform);
+            const dismissKeyboard = jest.spyOn(Keyboard, 'dismiss').mockImplementation(() => {});
             try {
+                // Given a focused, filtered table with a caller-owned drag callback, scrolling must not erase its search.
                 const props = createDefaultProps();
-                render(
-                    <Table {...props}>
-                        <Table.ListHeader>
-                            <Table.FilterBar label="Search" />
-                        </Table.ListHeader>
-                        <Table.Body />
-                    </Table>,
-                );
-                expect(mockFlashListProps.at(-1)?.scrollsChildRectangleOnScreen).toBeUndefined();
-                fireEvent(screen.getByTestId('search-input'), 'focus');
-                expect(mockFlashListProps.at(-1)?.scrollsChildRectangleOnScreen).toBe(platform === 'android' ? false : undefined);
-                expect(mockFlashListProps.at(-1)?.scrollsChildToFocus).toBeUndefined();
-                fireEvent.changeText(screen.getByTestId('search-input'), 'no-matching-row');
-                expect(mockFlashListProps.at(-1)?.scrollsChildRectangleOnScreen).toBe(platform === 'android' ? false : undefined);
-                fireEvent.changeText(screen.getByTestId('search-input'), '');
-                expect(mockFlashListProps.at(-1)?.scrollsChildRectangleOnScreen).toBe(platform === 'android' ? false : undefined);
-                fireEvent(screen.getByTestId('search-input'), 'blur');
-                expect(mockFlashListProps.at(-1)?.scrollsChildRectangleOnScreen).toBeUndefined();
-            } finally {
-                platformOverride.restore();
-            }
-        });
-
-        it.each(['android', 'ios', 'web'] as const)('should skip delayed focus scrolling only for the Android scrolling header (%s)', (platform) => {
-            const platformOverride = jest.replaceProperty(Platform, 'OS', platform);
-            try {
-                const props = createDefaultProps();
-                const view = render(
-                    <Table {...props}>
-                        <Table.ListHeader>
-                            <Table.FilterBar label="Search" />
-                        </Table.ListHeader>
-                        <Table.Body />
-                    </Table>,
-                );
-                fireEvent(screen.getByTestId('search-input'), 'focus');
-                expect(mockScrollInputIntoView).toHaveBeenCalledTimes(platform === 'android' ? 0 : 1);
-                view.unmount();
-                mockScrollInputIntoView.mockClear();
-                render(
-                    <Table {...props}>
-                        <Table.FilterBar label="Search" />
-                        <Table.Body />
-                    </Table>,
-                );
-                fireEvent(screen.getByTestId('search-input'), 'focus');
-                expect(mockScrollInputIntoView).toHaveBeenCalledTimes(1);
-            } finally {
-                platformOverride.restore();
-            }
-        });
-
-        it.each([true, false])('should preserve an explicit child-rectangle scrolling override (%s)', (scrollsChildRectangleOnScreen) => {
-            const platformOverride = jest.replaceProperty(Platform, 'OS', 'android');
-            try {
-                const props = createDefaultProps();
+                const onScrollBeginDrag = jest.fn();
                 render(
                     <Table
                         {...props}
-                        scrollsChildRectangleOnScreen={scrollsChildRectangleOnScreen}
-                        scrollsChildToFocus
+                        onScrollBeginDrag={onScrollBeginDrag}
                     >
                         <Table.ListHeader>
                             <Table.FilterBar label="Search" />
@@ -1155,63 +1104,59 @@ describe('Table', () => {
                     </Table>,
                 );
                 fireEvent(screen.getByTestId('search-input'), 'focus');
-                expect(mockFlashListProps.at(-1)?.scrollsChildRectangleOnScreen).toBe(scrollsChildRectangleOnScreen);
-                expect(mockFlashListProps.at(-1)?.scrollsChildToFocus).toBe(true);
-                fireEvent(screen.getByTestId('search-input'), 'blur');
-                expect(mockFlashListProps.at(-1)?.scrollsChildRectangleOnScreen).toBe(scrollsChildRectangleOnScreen);
+                fireEvent.changeText(screen.getByTestId('search-input'), 'apple');
+                const event = {nativeEvent: {contentOffset: {x: 0, y: 80}}} as NativeSyntheticEvent<NativeScrollEvent>;
+
+                // When the list scrolls without a drag, focus remains available for keyboard navigation and query resets.
+                act(() => mockFlashListProps.at(-1)?.onScroll?.(event));
+                expect(dismissKeyboard).not.toHaveBeenCalled();
+                expect(onScrollBeginDrag).not.toHaveBeenCalled();
+                act(() => mockFlashListProps.at(-1)?.onScrollBeginDrag?.(event));
+
+                // Then native dragging dismisses the keyboard, web does not, and the caller still receives the same event.
+                expect(dismissKeyboard).toHaveBeenCalledTimes(platform === 'web' ? 0 : 1);
+                expect(onScrollBeginDrag).toHaveBeenCalledTimes(1);
+                expect(onScrollBeginDrag).toHaveBeenCalledWith(event);
+                expect(screen.getByTestId('search-input').props.value).toBe('apple');
+                expect(screen.getByTestId('row-1')).toBeTruthy();
             } finally {
+                dismissKeyboard.mockRestore();
                 platformOverride.restore();
             }
         });
 
-        it('should leave native caret scrolling enabled for a search outside the scrolling header', () => {
-            const platformOverride = jest.replaceProperty(Platform, 'OS', 'android');
+        it.each(['android', 'ios', 'web'] as const)('should preserve native drag dismissal and the caller callback in the standalone empty state (%s)', (platform) => {
+            const platformOverride = jest.replaceProperty(Platform, 'OS', platform);
+            const dismissKeyboard = jest.spyOn(Keyboard, 'dismiss').mockImplementation(() => {});
             try {
+                // Given an empty table, the standalone scroll container must retain the normal list's drag behavior.
                 const props = createDefaultProps();
+                const onScrollBeginDrag = jest.fn();
                 render(
-                    <Table {...props}>
-                        <Table.FilterBar label="Search" />
+                    <Table
+                        {...props}
+                        data={[]}
+                        onScrollBeginDrag={onScrollBeginDrag}
+                    >
                         <Table.ListHeader>
-                            <Text>Unrelated page header</Text>
+                            <Table.FilterBar label="Search" />
                         </Table.ListHeader>
+                        <Table.EmptyState title="No items" />
                         <Table.Body />
                     </Table>,
                 );
-                fireEvent(screen.getByTestId('search-input'), 'focus');
-                expect(mockFlashListProps.at(-1)?.scrollsChildRectangleOnScreen).toBeUndefined();
-            } finally {
-                platformOverride.restore();
-            }
-        });
+                const event = {nativeEvent: {contentOffset: {x: 0, y: 20}}} as NativeSyntheticEvent<NativeScrollEvent>;
 
-        it('should release native caret ownership when the header search is suppressed or removed', () => {
-            const platformOverride = jest.replaceProperty(Platform, 'OS', 'android');
-            let releaseSuppression = () => {};
-            try {
-                const props = createDefaultProps();
-                const renderTable = (showSearch: boolean) => (
-                    <Table {...props}>
-                        <Table.ListHeader>
-                            <Text>Page header</Text>
-                            {showSearch && <Table.FilterBar label="Search" />}
-                        </Table.ListHeader>
-                        <Table.Body />
-                    </Table>
-                );
-                const {rerender} = render(renderTable(true));
-                fireEvent(screen.getByTestId('search-input'), 'focus');
-                expect(mockFlashListProps.at(-1)?.scrollsChildRectangleOnScreen).toBe(false);
-                act(() => {
-                    releaseSuppression = acquireBackgroundInputFocusSuppression();
-                });
-                expect(mockFlashListProps.at(-1)?.scrollsChildRectangleOnScreen).toBeUndefined();
-                act(() => releaseSuppression());
-                fireEvent(screen.getByTestId('search-input'), 'focus');
-                expect(mockFlashListProps.at(-1)?.scrollsChildRectangleOnScreen).toBe(false);
-                rerender(renderTable(false));
-                expect(mockFlashListProps.at(-1)?.scrollsChildRectangleOnScreen).toBeUndefined();
+                // When the empty-state content is dragged, use the same callback path as a populated list.
+                fireEvent(screen.getByTestId('table-empty-state-scroll-view'), 'scrollBeginDrag', event);
+
+                // Then native dismissal and caller notification work even without a FlashList instance.
+                expect(screen.queryByTestId('flash-list')).toBeNull();
+                expect(dismissKeyboard).toHaveBeenCalledTimes(platform === 'web' ? 0 : 1);
+                expect(onScrollBeginDrag).toHaveBeenCalledTimes(1);
+                expect(onScrollBeginDrag).toHaveBeenCalledWith(event);
             } finally {
-                act(() => releaseSuppression());
+                dismissKeyboard.mockRestore();
                 platformOverride.restore();
             }
         });

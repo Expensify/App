@@ -36,7 +36,7 @@ import useSelection from './middlewares/selection';
 import useSorting from './middlewares/sorting';
 import {shouldUseTableSemantics} from './tableAccessibility';
 import {doesBodyRenderWhenEmpty} from './TableBody';
-import TableContext, {TableFocusActionsContext} from './TableContext';
+import TableContext from './TableContext';
 import TableEmptyState from './TableEmptyStates/TableEmptyState';
 import TableNoResultsState from './TableEmptyStates/TableNoResultsState';
 import TableListHeader from './TableListHeader';
@@ -329,7 +329,6 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const processedData = highlightMiddleware(selectionData);
 
     const listRef = useRef<FlashListRef<DataType>>(null);
-    const [focusedSearchInputID, setFocusedSearchInputID] = useState<string | null>(null);
     const releaseBackgroundInputFocusSuppressionRef = useRef<(() => void) | null>(null);
     const mobileSelectionModalRowKeyRef = useRef(mobileSelectionModalRowKey);
     const [shouldSubmitMobileSelection, setShouldSubmitMobileSelection] = useState(false);
@@ -464,7 +463,6 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         noResultsStateElement,
         listRef,
         listContainerRef,
-        focusedSearchInputID,
         trackScrollOffset,
         scrollInputIntoView,
         listProps,
@@ -502,48 +500,46 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const rendersBodyWhenEmpty = doesBodyRenderWhenEmpty(listProps, listHeaderElement);
 
     return (
-        <TableFocusActionsContext.Provider value={setFocusedSearchInputID}>
-            <TableContext.Provider value={contextValue as unknown as TableContextValue<TableData, string, string>}>
-                <TableSemanticContainer
-                    isEnabled={isTableSemanticsEnabled && !tableListMetadata.hasPageHeader}
-                    title={title}
-                    rowCount={processedData.length}
-                    columnCount={semanticColumnCount}
-                    rendersBodyWhenEmpty={rendersBodyWhenEmpty}
-                    scrollWidth={dynamicScrollWidth}
-                    onLayout={isDynamicSizingEnabled ? handleTableLayout : undefined}
-                >
-                    {renderedChildren}
-                </TableSemanticContainer>
+        <TableContext.Provider value={contextValue as unknown as TableContextValue<TableData, string, string>}>
+            <TableSemanticContainer
+                isEnabled={isTableSemanticsEnabled && !tableListMetadata.hasPageHeader}
+                title={title}
+                rowCount={processedData.length}
+                columnCount={semanticColumnCount}
+                rendersBodyWhenEmpty={rendersBodyWhenEmpty}
+                scrollWidth={dynamicScrollWidth}
+                onLayout={isDynamicSizingEnabled ? handleTableLayout : undefined}
+            >
+                {renderedChildren}
+            </TableSemanticContainer>
 
-                <Modal
-                    shouldPreventScrollOnFocus
-                    isVisible={!!mobileSelectionModalRowKey}
-                    type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
-                    restoreFocusType={shouldSkipMobileSelectionFocusRestore ? CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE : undefined}
-                    onClose={() => tableMethods.setMobileSelectionModalRowKey(null)}
-                    enableEdgeToEdgeBottomSafeAreaPadding
-                    onModalHide={() => {
-                        if (mobileSelectionModalRowKeyRef.current) {
-                            return;
-                        }
-                        releaseBackgroundInputFocusSuppressionRef.current?.();
-                        releaseBackgroundInputFocusSuppressionRef.current = null;
-                        setShouldSubmitMobileSelection(false);
-                        setShouldSkipMobileSelectionFocusRestore(false);
-                    }}
-                >
-                    <View style={bottomSafeAreaPaddingStyle}>
-                        <MenuItemAction
-                            icon={icons.CheckSquare}
-                            title={translate('common.select')}
-                            onPress={handleMobileSelectionPress}
-                            testID={CONST.SELECTION_LIST_WITH_MODAL_TEST_ID}
-                        />
-                    </View>
-                </Modal>
-            </TableContext.Provider>
-        </TableFocusActionsContext.Provider>
+            <Modal
+                shouldPreventScrollOnFocus
+                isVisible={!!mobileSelectionModalRowKey}
+                type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
+                restoreFocusType={shouldSkipMobileSelectionFocusRestore ? CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE : undefined}
+                onClose={() => tableMethods.setMobileSelectionModalRowKey(null)}
+                enableEdgeToEdgeBottomSafeAreaPadding
+                onModalHide={() => {
+                    if (mobileSelectionModalRowKeyRef.current) {
+                        return;
+                    }
+                    releaseBackgroundInputFocusSuppressionRef.current?.();
+                    releaseBackgroundInputFocusSuppressionRef.current = null;
+                    setShouldSubmitMobileSelection(false);
+                    setShouldSkipMobileSelectionFocusRestore(false);
+                }}
+            >
+                <View style={bottomSafeAreaPaddingStyle}>
+                    <MenuItemAction
+                        icon={icons.CheckSquare}
+                        title={translate('common.select')}
+                        onPress={handleMobileSelectionPress}
+                        testID={CONST.SELECTION_LIST_WITH_MODAL_TEST_ID}
+                    />
+                </View>
+            </Modal>
+        </TableContext.Provider>
     );
 }
 

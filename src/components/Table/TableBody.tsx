@@ -11,15 +11,15 @@ import type {ListRenderItemInfo, ViewToken} from '@shopify/flash-list';
 import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
 
 import {FlashList} from '@shopify/flash-list';
-import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
-import {Platform, StyleSheet, View} from 'react-native';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {Keyboard, Platform, StyleSheet, View} from 'react-native';
 
 import type {TableData} from '.';
 import type {TableListMetadata} from './buildTableListData';
 
 import {buildTableListData, getAdjustedStickyHeaderIndices, getDataIndex, getListIndex, getSyntheticRowKind} from './buildTableListData';
 import {getRowGroupAccessibilityProps, getTableContainerAccessibilityProps, getVirtualizedRowSemanticID, shouldUseTableSemantics} from './tableAccessibility';
-import {TableFocusActionsContext, TableRowSemanticIDContext, TableScrollHeaderFocusContext, useTableContext} from './TableContext';
+import {TableRowSemanticIDContext, useTableContext} from './TableContext';
 
 /**
  * Props for the TableBody component.
@@ -96,7 +96,6 @@ function doesBodyRenderWhenEmpty(listProps: {ListEmptyComponent?: unknown; ListH
  * ```
  */
 function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ...props}: TableBodyListProps) {
-    const setFocusedSearchInputID = useContext(TableFocusActionsContext);
     const styles = useThemeStyles();
     const scrollEnabled = useScrollEnabled();
     const [isListLoaded, setIsListLoaded] = useState(false);
@@ -106,7 +105,6 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         processedData: filteredAndSortedData,
         listProps,
         listRef,
-        focusedSearchInputID,
         listContainerRef,
         trackScrollOffset,
         title,
@@ -134,6 +132,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         onLoad,
         onChangeStickyIndex,
         onScroll,
+        onScrollBeginDrag,
         onStartReached,
         onViewableItemsChanged,
         overrideItemLayout,
@@ -143,6 +142,14 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         viewabilityConfigCallbackPairs,
         ...restListProps
     } = listProps ?? {};
+
+    const handleScrollBeginDrag: NonNullable<typeof onScrollBeginDrag> = (event) => {
+        // Match native SelectionList behavior so a focused search cannot be dragged offscreen with the keyboard open.
+        if (Platform.OS !== 'web') {
+            Keyboard.dismiss();
+        }
+        onScrollBeginDrag?.(event);
+    };
 
     const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: true,
@@ -242,12 +249,10 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     };
 
     const pageHeaderElement = tableListMetadata.hasPageHeader ? (
-        <TableScrollHeaderFocusContext.Provider value={setFocusedSearchInputID}>
-            <View>
-                {renderListComponent(ListHeaderComponent)}
-                {listHeaderElement}
-            </View>
-        </TableScrollHeaderFocusContext.Provider>
+        <View>
+            {renderListComponent(ListHeaderComponent)}
+            {listHeaderElement}
+        </View>
     ) : null;
 
     const EmptyResultComponent = (
@@ -298,6 +303,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                         style={[styles.flex1, styles.mnh0]}
                         contentContainerStyle={[styles.flexGrow1, tableBodyContentContainerStyle]}
                         keyboardShouldPersistTaps="handled"
+                        onScrollBeginDrag={handleScrollBeginDrag}
                         showsVerticalScrollIndicator={false}
                     >
                         <View style={[styles.flexGrow1, styles.justifyContentCenter]}>{emptyStateContent}</View>
@@ -416,6 +422,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                         },
                 ]}
                 keyboardShouldPersistTaps="handled"
+                onScrollBeginDrag={handleScrollBeginDrag}
                 renderItem={renderListItem}
                 keyExtractor={keyExtractorForList}
                 getItemType={getItemTypeForList}
@@ -430,9 +437,6 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                     onScroll?.(event);
                 }}
                 {...restListProps}
-                scrollsChildRectangleOnScreen={
-                    restListProps.scrollsChildRectangleOnScreen ?? (Platform.OS === 'android' && !restListProps.horizontal && focusedSearchInputID ? false : undefined)
-                }
                 scrollEnabled={scrollEnabled}
             />
         </View>

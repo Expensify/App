@@ -1,4 +1,4 @@
-import {TableFocusActionsContext, TableScrollHeaderFocusContext, useTableContext} from '@components/Table/TableContext';
+import {useTableContext} from '@components/Table/TableContext';
 import TextInput from '@components/TextInput';
 import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -13,8 +13,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import React, {useContext, useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore} from 'react';
-import {Platform} from 'react-native';
+import React, {useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore} from 'react';
 
 /**
  * Renders a search input that filters table data.
@@ -29,9 +28,6 @@ function TableSearchBar({label}: TableSearchBarProps) {
     const styles = useThemeStyles();
     const inputRef = useRef<BaseTextInputRef>(null);
     const [inputFocused, setInputFocused] = useState(false);
-    const searchInputID = useId();
-    const scrollingHeaderFocusSetter = useContext(TableScrollHeaderFocusContext);
-    const setFocusedSearchInputID = useContext(TableFocusActionsContext);
     const shouldSuppressPopoverFocus = useSyncExternalStore(subscribeToShouldSuppressBackgroundInputFocus, getShouldSuppressBackgroundInputFocus, getShouldSuppressBackgroundInputFocus);
     const wasSuppressingPopoverFocus = usePrevious(shouldSuppressPopoverFocus);
 
@@ -46,16 +42,6 @@ function TableSearchBar({label}: TableSearchBarProps) {
     } = useTableContext();
 
     const hasActiveSearchString = activeSearchString.length > 0;
-
-    useLayoutEffect(() => {
-        if (Platform.OS !== 'android' || scrollingHeaderFocusSetter !== setFocusedSearchInputID || !inputFocused || shouldSuppressPopoverFocus) {
-            return;
-        }
-
-        // Native caret requests must not race the query reset. Child-focus navigation stays enabled.
-        setFocusedSearchInputID(searchInputID);
-        return () => setFocusedSearchInputID((owner) => (owner === searchInputID ? null : owner));
-    }, [inputFocused, scrollingHeaderFocusSetter, searchInputID, setFocusedSearchInputID, shouldSuppressPopoverFocus]);
 
     useLayoutEffect(() => {
         if (!hasActiveSearchString || shouldSuppressPopoverFocus || wasSuppressingPopoverFocus || isTextInputFocused(inputRef)) {
@@ -84,11 +70,12 @@ function TableSearchBar({label}: TableSearchBarProps) {
             return;
         }
 
-        // Filtering to zero rows collapses the list below the persistent page header. Reset the
+        // Filters can remove the last row without changing the query. Reset the
         // old row offset so the focused input stays in the viewport while the keyboard remains open.
         listRef.current?.scrollToOffset({offset: 0, animated: false});
     }, [isEmptyResult, listRef]);
 
+    // Keep shared search edits and clearing visible, including on web where scrolling retains focus.
     // Wait until native scroll refs are reattached after layout effects so FlashList can apply the reset.
     useEffect(() => {
         if (!isTextInputFocused(inputRef)) {
@@ -133,11 +120,8 @@ function TableSearchBar({label}: TableSearchBarProps) {
             onBlur={() => setInputFocused(false)}
             onFocus={() => {
                 setInputFocused(true);
-                // Android already reveals the scrolling header through native child-focus navigation.
-                // The delayed footer-input helper would fight a swipe started as the keyboard opens.
-                if (Platform.OS !== 'android' || scrollingHeaderFocusSetter !== setFocusedSearchInputID) {
-                    scrollInputIntoView(inputRef.current);
-                }
+                // Keep the input visible above the keyboard when it is focused inside the scrolling table list.
+                scrollInputIntoView(inputRef.current);
             }}
             onChangeText={handleSearchStringChange}
         />
