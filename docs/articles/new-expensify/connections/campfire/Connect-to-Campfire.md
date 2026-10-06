@@ -32,9 +32,9 @@ To connect Campfire, you must:
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
 2. Select **Accounting**.
 3. In the **Connections** section next to **Campfire**, select **Connect**.
-5. On the **Campfire setup** page, follow the on-screen instructions to generate an API key in Campfire.
-6. Paste the key into the **API key** field.
-7. Select **Confirm**.
+4. On the **Campfire setup** page, follow the on-screen instructions to generate an API key in Campfire.
+5. Paste the key into the **API key** field.
+6. Select **Confirm**.
 
 Expensify validates the API key and starts the first sync with Campfire. 
 
