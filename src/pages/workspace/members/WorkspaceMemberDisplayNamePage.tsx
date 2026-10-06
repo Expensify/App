@@ -2,7 +2,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -59,7 +59,7 @@ function WorkspaceMemberDisplayNamePage({route}: WorkspaceMemberDisplayNamePageP
                 shouldEnableMaxHeight
                 testID="WorkspaceMemberDisplayNamePage"
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('displayNamePage.headerTitle')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
