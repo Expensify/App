@@ -7835,6 +7835,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             approvalModeWarningTitle: 'Αλλαγή λειτουργίας έγκρισης;',
             approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
                 `Είστε βέβαιοι ότι θέλετε να αλλάξετε τη λειτουργία έγκρισης για αυτόν τον χώρο εργασίας; Μάθετε περισσότερα σχετικά με τις διαφορετικές λειτουργίες ροής εργασιών με ενεργοποιημένο το ${providerName} στον <a href="${helpSiteURL}">ιστότοπο βοήθειας</a> μας.`,
+            approvalModeDeleteWorkflowsWarningPrompt: (providerName: string, helpSiteURL: string) =>
+                `Η αλλαγή της λειτουργίας έγκρισης θα διαγράψει όλες τις υπάρχουσες ροές εργασιών έγκρισης. Μάθετε περισσότερα σχετικά με τις διαφορετικές λειτουργίες ροής εργασιών με ενεργοποιημένο το ${providerName} στον <a href="${helpSiteURL}">ιστότοπο βοήθειάς</a> μας.`,
             approvalModeWarningConfirm: 'Αλλαγή λειτουργίας έγκρισης',
             syncingModalTitle: 'Η σύνδεσή σας συγχρονίζεται',
             syncingModalDescription: 'Η πρώτη σύνδεση μπορεί να πάρει λίγο χρόνο. Θα ενημερωθείτε για τυχόν σφάλματα.',

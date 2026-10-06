@@ -8796,6 +8796,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             approvalModeWarningTitle: 'Zmienić tryb zatwierdzania?',
             approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
                 `Czy na pewno chcesz zmienić tryb zatwierdzania dla tego obszaru roboczego? Dowiedz się więcej o różnych trybach przepływu pracy obsługiwanych przez ${providerName} w naszej <a href="${helpSiteURL}">witrynie pomocy</a>.`,
+            approvalModeDeleteWorkflowsWarningPrompt: (providerName: string, helpSiteURL: string) =>
+                `Zmiana trybu zatwierdzania usunie wszystkie istniejące przepływy zatwierdzania. Dowiedz się więcej o różnych trybach przepływu pracy obsługiwanych przez ${providerName} w naszej <a href="${helpSiteURL}">pomocy</a>.`,
             approvalModeWarningConfirm: 'Zmień tryb zatwierdzania',
             syncingModalTitle: 'Twoje połączenie jest synchronizowane',
             syncingModalDescription: 'Pierwsze połączenie może chwilę potrwać. Zostaniesz powiadomiony o wszelkich błędach.',

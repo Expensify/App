@@ -8029,6 +8029,8 @@ const translations = {
             approvalModeWarningTitle: 'Change approval mode?',
             approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
                 `Are you sure you would like to change the approval mode for this workspace? Learn more about the different ${providerName}-enabled workflow modes in our <a href="${helpSiteURL}">help site</a>.`,
+            approvalModeDeleteWorkflowsWarningPrompt: (providerName: string, helpSiteURL: string) =>
+                `Changing the approval mode will erase all existing approval workflows. Learn more about the different ${providerName}-enabled workflow modes in our <a href="${helpSiteURL}">help site</a>.`,
             approvalModeWarningConfirm: 'Change approval mode',
             syncingModalTitle: 'Your connection is syncing',
             syncingModalDescription: "The first connection can take some time. You'll be notified of any errors.",

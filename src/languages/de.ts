@@ -8860,6 +8860,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             approvalModeWarningTitle: 'Genehmigungsmodus ändern?',
             approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
                 `Möchten Sie den Genehmigungsmodus für diesen Workspace wirklich ändern? Erfahren Sie mehr über die verschiedenen ${providerName}-aktivierten Workflow-Modi auf unserer <a href="${helpSiteURL}">Hilfeseite</a>.`,
+            approvalModeDeleteWorkflowsWarningPrompt: (providerName: string, helpSiteURL: string) =>
+                `Wenn Sie den Genehmigungsmodus ändern, werden alle vorhandenen Genehmigungs-Workflows gelöscht. Erfahren Sie mehr über die verschiedenen von ${providerName} unterstützten Workflow-Modi auf unserer <a href="${helpSiteURL}">Hilfeseite</a>.`,
             approvalModeWarningConfirm: 'Genehmigungsmodus ändern',
             syncingModalTitle: 'Ihre Verbindung wird synchronisiert',
             syncingModalDescription: 'Die erste Verbindung kann einige Zeit dauern. Sie werden über alle Fehler benachrichtigt.',
