@@ -24,7 +24,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
-import type {LayoutChangeEvent} from 'react-native';
 import type {CartesianChartRenderArg, ChartBounds, Scale} from 'victory-native';
 
 import React, {useState} from 'react';
@@ -48,11 +47,14 @@ type LineChartProps = CartesianChartProps & {
     onPointPress?: (dataPoint: ChartDataPoint, index: number) => void;
 };
 
-function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onPointPress}: LineChartProps) {
+type LineChartContentProps = LineChartProps & {
+    chartWidth: number;
+};
+
+function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onPointPress, chartWidth}: LineChartContentProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const fontManager = useChartFontManager();
-    const [chartWidth, setChartWidth] = useState(0);
     const [plotAreaWidth, setPlotAreaWidth] = useState(0);
     const [boundsLeft, setBoundsLeft] = useState(0);
     const [boundsRight, setBoundsRight] = useState(0);
@@ -71,10 +73,6 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
         if (dataPoint && onPointPress) {
             onPointPress(dataPoint, index);
         }
-    };
-
-    const handleLayout = (event: LayoutChangeEvent) => {
-        setChartWidth(event.nativeEvent.layout.width);
     };
 
     const chartBottom = useSharedValue(0);
@@ -216,7 +214,9 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
     };
 
     const labelSpace = VictoryTheme.axis.xAxisLabelGap + (xAxisLabelHeight ?? 0);
-    const dynamicChartStyle = {height: CHART_CONTENT_MIN_HEIGHT + labelSpace};
+    const chartHeight = CHART_CONTENT_MIN_HEIGHT + labelSpace;
+    const dynamicChartStyle = {height: chartHeight};
+    const chartSize = chartWidth > 0 ? {width: chartWidth, height: chartHeight} : undefined;
     const chartPadding = {
         ...VictoryTheme.axis.padding,
         bottom: labelSpace + VictoryTheme.axis.padding.bottom,
@@ -240,12 +240,10 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
             gesture={customGestures}
             touchAction="pan-y"
         >
-            <Animated.View
-                style={[styles.chartContent, dynamicChartStyle, cursorStyle]}
-                onLayout={handleLayout}
-            >
-                {chartWidth > 0 && (
+            <Animated.View style={[styles.chartContent, dynamicChartStyle, cursorStyle]}>
+                {!!chartSize && (
                     <CartesianChart
+                        explicitSize={chartSize}
                         xKey="x"
                         padding={chartPadding}
                         yKeys={['y']}
@@ -308,7 +306,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
     );
 }
 
-function LineChartContent(props: LineChartProps) {
+function LineChartContent(props: LineChartContentProps) {
     return (
         <ChartFontsProvider>
             <LineChartContentBody {...props} />
@@ -317,4 +315,4 @@ function LineChartContent(props: LineChartProps) {
 }
 
 export default LineChartContent;
-export type {LineChartProps};
+export type {LineChartProps, LineChartContentProps};

@@ -3,12 +3,15 @@ import type {CartesianChartProps, ChartDataPoint} from '..';
 type BarChartProps = CartesianChartProps & {
     onBarPress?: (dataPoint: ChartDataPoint, index: number) => void;
 
-    /** Color every bar is drawn in. Left out, each bar takes a different color from the palette by rank. */
+    /** Color every bar is drawn in. Left out, each vertical bar takes a different color from the palette by rank. */
     color?: string;
 };
 
-/** Adds the wrapper-resolved orientation. Only the dispatcher receives `isHorizontal`. Callers and bodies use `BarChartProps`. */
-type BarChartContentProps = BarChartProps & {
+type BarChartBodyProps = BarChartProps & {
+    chartWidth: number;
+};
+
+type BarChartContentProps = BarChartBodyProps & {
     /** When true, renders horizontal bars (value on the x-axis) instead of the default vertical bars. */
     isHorizontal?: boolean;
 
@@ -16,4 +19,4 @@ type BarChartContentProps = BarChartProps & {
     canFallBackToHorizontalBars?: boolean;
 };
 
-export type {BarChartProps, BarChartContentProps};
+export type {BarChartProps, BarChartBodyProps, BarChartContentProps};
