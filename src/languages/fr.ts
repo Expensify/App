@@ -10008,6 +10008,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             sortOrder: 'Ordre de tri',
             groupBy: 'Regrouper par',
             limitResults: 'Limiter les résultats',
+            freezeColumn: 'Freeze column',
+            unfreezeColumns: 'Unfreeze columns',
         },
         has: 'A A',
         view: {

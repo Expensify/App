@@ -1,5 +1,5 @@
 import Icon from '@components/Icon';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import Text from '@components/Text';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -29,6 +29,12 @@ type SearchTableHeaderColumnProps = WithSentryLabel & {
     innerContainerStyle?: StyleProp<ViewStyle>;
     textStyle?: StyleProp<TextStyle>;
     onPress: (order: SortOrder) => void;
+
+    /** Data attributes for the container, such as the marker the frozen edge overlay is measured from. */
+    dataSet?: Record<string, boolean>;
+
+    /** Called when the header is right-clicked or long-pressed. */
+    onSecondaryInteraction?: (event: GestureResponderEvent | MouseEvent) => void;
 };
 
 export default function SortableHeaderText({
@@ -41,33 +47,53 @@ export default function SortableHeaderText({
     innerContainerStyle,
     isSortable = true,
     onPress,
+    onSecondaryInteraction,
     sentryLabel,
+    dataSet,
 }: SearchTableHeaderColumnProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowDownLong', 'ArrowUpLong']);
     const styles = useThemeStyles();
     const theme = useTheme();
 
     if (!isSortable) {
+        const content = (
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, innerContainerStyle]}>
+                {!!icon && (
+                    <Icon
+                        src={icon}
+                        fill={theme.icon}
+                        height={16}
+                        width={16}
+                    />
+                )}
+                {!!text && (
+                    <Text
+                        numberOfLines={1}
+                        style={[styles.textMicroSupporting, textStyle]}
+                    >
+                        {text}
+                    </Text>
+                )}
+            </View>
+        );
+
         return (
-            <View style={containerStyle}>
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, innerContainerStyle]}>
-                    {!!icon && (
-                        <Icon
-                            src={icon}
-                            fill={theme.icon}
-                            height={16}
-                            width={16}
-                        />
-                    )}
-                    {!!text && (
-                        <Text
-                            numberOfLines={1}
-                            style={[styles.textMicroSupporting, textStyle]}
-                        >
-                            {text}
-                        </Text>
-                    )}
-                </View>
+            <View
+                style={containerStyle}
+                dataSet={dataSet}
+            >
+                {onSecondaryInteraction ? (
+                    <PressableWithSecondaryInteraction
+                        onSecondaryInteraction={onSecondaryInteraction}
+                        style={styles.cursorDefault}
+                        accessibilityLabel={text}
+                        sentryLabel={sentryLabel}
+                    >
+                        {content}
+                    </PressableWithSecondaryInteraction>
+                ) : (
+                    content
+                )}
             </View>
         );
     }
@@ -79,9 +105,13 @@ export default function SortableHeaderText({
     const nextSortOrder = isActive && sortOrder === CONST.SEARCH.SORT_ORDER.DESC ? CONST.SEARCH.SORT_ORDER.ASC : CONST.SEARCH.SORT_ORDER.DESC;
 
     return (
-        <View style={containerStyle}>
-            <PressableWithFeedback
+        <View
+            style={containerStyle}
+            dataSet={dataSet}
+        >
+            <PressableWithSecondaryInteraction
                 onPress={() => onPress(nextSortOrder)}
+                onSecondaryInteraction={onSecondaryInteraction}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={CONST.ROLE.BUTTON}
                 accessible
@@ -114,7 +144,7 @@ export default function SortableHeaderText({
                         />
                     )}
                 </View>
-            </PressableWithFeedback>
+            </PressableWithSecondaryInteraction>
         </View>
     );
 }

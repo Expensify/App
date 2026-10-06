@@ -1,18 +1,23 @@
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
 import {View} from 'react-native';
 
 import type {SearchColumnType, SearchSortBy, SortOrder, TableColumnSize} from './types';
 
+import {useFrozenColumnState} from './FrozenColumnContext';
+import {FROZEN_CELL_DATA_KEY, FROZEN_EDGE_DATA_KEY, getFrozenCellStyle} from './frozenColumnUtils';
 import {useSearchColumnStyles} from './SearchColumnWidthsContext';
 import SortableHeaderText from './SortableHeaderText';
 
@@ -45,6 +50,9 @@ type SearchTableHeaderProps = {
     shouldRemoveTotalColumnFlex?: boolean;
     isActionColumnWide?: boolean;
     isDateColumnCreated?: boolean;
+
+    /** Called when a column header is right-clicked or long-pressed. */
+    onColumnSecondaryInteraction?: (columnName: SearchColumnType, event: GestureResponderEvent | MouseEvent) => void;
 };
 
 function SortableTableHeader({
@@ -66,14 +74,19 @@ function SortableTableHeader({
     taxAmountColumnSize,
     shouldRemoveTotalColumnFlex,
     isActionColumnWide,
+    onColumnSecondaryInteraction,
 }: SearchTableHeaderProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
+    const {frozenColumn} = useFrozenColumnState();
+    const visibleColumnNames = columns.filter(({columnName}) => shouldShowColumn(columnName)).map(({columnName}) => columnName);
+    const frozenIndex = frozenColumn ? visibleColumnNames.indexOf(frozenColumn) : -1;
     const StyleUtils = useStyleUtils();
     const getSearchColumnStyles = useSearchColumnStyles();
     const {translate} = useLocalize();
 
     return (
-        <View style={[styles.flex1]}>
+        <View style={[styles.flex1, frozenIndex >= 0 && styles.alignSelfStretch]}>
             <View style={[styles.flex1, styles.flexRow, styles.gap3, containerStyles]}>
                 {columns.map(({columnName, translationKey, icon, isColumnSortable, sortColumnName, canEdit}) => {
                     if (!shouldShowColumn(columnName)) {
@@ -81,6 +94,8 @@ function SortableTableHeader({
                     }
 
                     const isSortable = shouldShowSorting && isColumnSortable;
+                    const visibleIndex = visibleColumnNames.indexOf(columnName);
+                    const isFrozen = visibleIndex <= frozenIndex;
                     const sortByColumnName = sortColumnName ?? columnName;
                     const isActive = sortBy === sortByColumnName;
                     const isReimbursableOrBillableColumn = columnName === CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE || columnName === CONST.SEARCH.TABLE_COLUMNS.BILLABLE;
@@ -118,9 +133,17 @@ function SortableTableHeader({
                                     isWithdrawnColumnWide: withdrawnColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     isActionColumnWide,
                                 }),
+                                isFrozen &&
+                                    getFrozenCellStyle({
+                                        backgroundColor: theme.highlightBG,
+                                        isLastFrozen: visibleIndex === frozenIndex,
+                                        verticalBleed: variables.searchTableHeaderPaddingVertical,
+                                    }),
                             ]}
                             isSortable={isSortable}
                             onPress={(order: SortOrder) => onSortPress(sortByColumnName, order)}
+                            dataSet={isFrozen ? {[FROZEN_CELL_DATA_KEY]: true, [FROZEN_EDGE_DATA_KEY]: visibleIndex === frozenIndex} : undefined}
+                            onSecondaryInteraction={onColumnSecondaryInteraction ? (event) => onColumnSecondaryInteraction(columnName, event) : undefined}
                         />
                     );
                 })}

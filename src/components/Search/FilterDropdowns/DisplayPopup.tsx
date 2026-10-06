@@ -2,8 +2,11 @@ import CompactMenuContext from '@components/CompactMenuContext';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScrollView from '@components/ScrollView';
+import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
+import {MAX_FREEZABLE_COLUMNS, useFrozenColumnActions, useFrozenColumnState} from '@components/Search/FrozenColumnContext';
+import useSearchColumnsToShow from '@components/Search/hooks/useSearchColumnsToShow';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
-import type {SearchQueryJSON} from '@components/Search/types';
+import type {SearchColumnType, SearchQueryJSON} from '@components/Search/types';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -33,6 +36,9 @@ import SortByPopup from './SortByPopup';
 import SortOrderPopup from './SortOrderPopup';
 import TextInputPopup from './TextInputPopup';
 
+const FREEZE_COLUMN_FILTER = 'freezeColumn';
+const NO_FROZEN_COLUMN = 'none';
+
 type DisplayPopupProps = {
     queryJSON: SearchQueryJSON;
     searchResults: OnyxEntry<SearchResults>;
@@ -54,6 +60,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
         | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW
         | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY
         | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER
+        | typeof FREEZE_COLUMN_FILTER
         | null
     >(null);
 
@@ -64,6 +71,18 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
     const shouldShowColumnsButton = isLargeScreenWidth && (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE || queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT);
 
     const limitValue = searchAdvancedFilters[CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT];
+
+    const {frozenColumn, canFreezeColumns} = useFrozenColumnState();
+    const {setFrozenColumn} = useFrozenColumnActions();
+    const columnsToShow = useSearchColumnsToShow(queryJSON, searchResults ?? undefined);
+    const freezeColumnOptions: Array<SingleSelectItem<SearchColumnType | typeof NO_FROZEN_COLUMN>> = [
+        {text: translate('common.none'), value: NO_FROZEN_COLUMN},
+        ...columnsToShow
+            .slice(0, MAX_FREEZABLE_COLUMNS)
+            .map((column) => ({text: translate(getSearchColumnTranslationKey(column, queryJSON.type)), value: column}))
+            .filter((option) => !!option.text),
+    ];
+    const frozenColumnOption = freezeColumnOptions.find((option) => option.value === (frozenColumn ?? NO_FROZEN_COLUMN));
 
     if (!selectedDisplayFilter) {
         const openSearchColumns = () => {
@@ -117,6 +136,14 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                         onPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT)}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_LIMIT}
                         value={limitValue}
+                    />
+                )}
+                {isLargeScreenWidth && canFreezeColumns && (
+                    <MenuItemField
+                        name={translate('search.display.freezeColumn')}
+                        onPress={() => setSelectedDisplayFilter(FREEZE_COLUMN_FILTER)}
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_VIEW}
+                        value={frozenColumn ? frozenColumnOption?.text : undefined}
                     />
                 )}
                 {shouldShowColumnsButton && (
@@ -207,6 +234,18 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                     onBackButtonPress={goBack}
                     closeOverlay={closeOverlay}
                     onChange={(item) => updateFilterForm({view: item?.value ?? CONST.SEARCH.VIEW.TABLE})}
+                />
+            );
+        case FREEZE_COLUMN_FILTER:
+            return (
+                <SingleSelectPopup
+                    items={freezeColumnOptions}
+                    value={frozenColumnOption}
+                    defaultValue={NO_FROZEN_COLUMN}
+                    label={translate('search.display.freezeColumn')}
+                    onBackButtonPress={goBack}
+                    closeOverlay={closeOverlay}
+                    onChange={(item) => setFrozenColumn(!item || item.value === NO_FROZEN_COLUMN ? null : item.value)}
                 />
             );
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT:

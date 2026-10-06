@@ -3988,7 +3988,7 @@ const staticStyles = (theme: ThemeColors) =>
             borderBottomWidth: 1,
             borderColor: theme.border,
             minHeight: 36,
-            paddingBottom: 8,
+            paddingBottom: variables.searchTableHeaderPaddingVertical,
         },
 
         searchListHeaderTableStickyOverlap: {

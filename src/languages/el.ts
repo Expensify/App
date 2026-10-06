@@ -10194,6 +10194,8 @@ ${reportName}`,
             sortOrder: 'Σειρά ταξινόμησης',
             groupBy: 'Ομαδοποίηση κατά',
             limitResults: 'Περιορισμός αποτελεσμάτων',
+            freezeColumn: 'Freeze column',
+            unfreezeColumns: 'Unfreeze columns',
         },
         has: 'Έχει',
         view: {

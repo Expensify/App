@@ -10208,6 +10208,8 @@ const translations = {
             sortOrder: 'Sort order',
             groupBy: 'Group by',
             limitResults: 'Limit results',
+            freezeColumn: 'Freeze column',
+            unfreezeColumns: 'Unfreeze columns',
         },
         has: 'Has',
         view: {

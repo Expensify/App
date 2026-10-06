@@ -1,4 +1,7 @@
+import PopoverMenu from '@components/PopoverMenu';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -6,15 +9,18 @@ import {isCreatedDateType} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import type {AnchorPosition} from '@src/styles';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 
+import type {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 
 import type {SearchColumnType, SearchGroupBy, SearchSortBy, SortOrder} from './types';
 
+import {MAX_FREEZABLE_COLUMNS, useFrozenColumnActions, useFrozenColumnState} from './FrozenColumnContext';
 import SortableTableHeader from './SortableTableHeader';
 
 type SearchColumnConfig = {
@@ -585,6 +591,18 @@ function SearchTableHeader({
     isActionColumnWide,
 }: SearchTableHeaderProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const {frozenColumn, canFreezeColumns} = useFrozenColumnState();
+    const {setFrozenColumn} = useFrozenColumnActions();
+    const [columnMenu, setColumnMenu] = useState<{
+        columnName: SearchColumnType;
+        anchorPosition: AnchorPosition;
+    } | null>(null);
+    const columnMenuAnchorRef = useRef<View>(null);
+    const isFreezableColumn = (columnName: SearchColumnType) => {
+        const index = columns.indexOf(columnName);
+        return index >= 0 && index < MAX_FREEZABLE_COLUMNS;
+    };
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const displayNarrowVersion = isMediumScreenWidth || isSmallScreenWidth;
@@ -640,32 +658,78 @@ function SearchTableHeader({
     }
 
     return (
-        <SortableTableHeader
-            columns={orderedColumnConfig}
-            shouldShowColumn={shouldShowColumn}
-            isDateColumnCreated={isCreatedDateType(type)}
-            dateColumnSize={shouldShowYear ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-            submittedColumnSize={shouldShowYearSubmitted ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-            approvedColumnSize={shouldShowYearApproved ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-            postedColumnSize={shouldShowYearPosted ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-            exportedColumnSize={shouldShowYearExported ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-            withdrawnColumnSize={shouldShowYearWithdrawn ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-            amountColumnSize={isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-            taxAmountColumnSize={isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-            shouldShowSorting={shouldShowSorting}
-            sortBy={sortBy}
-            sortOrder={sortOrder}
-            shouldRemoveTotalColumnFlex={!!groupBy !== !!isExpenseReportView}
-            isActionColumnWide={isActionColumnWide ?? type === CONST.SEARCH.DATA_TYPES.TASK}
-            // Don't butt up against the 'select all' checkbox if present
-            containerStyles={canSelectMultiple && [styles.pl3]}
-            onSortPress={(columnName, order) => {
-                if (columnName === CONST.SEARCH.TABLE_COLUMNS.COMMENTS) {
-                    return;
+        <>
+            <SortableTableHeader
+                columns={orderedColumnConfig}
+                shouldShowColumn={shouldShowColumn}
+                isDateColumnCreated={isCreatedDateType(type)}
+                dateColumnSize={shouldShowYear ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                submittedColumnSize={shouldShowYearSubmitted ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                approvedColumnSize={shouldShowYearApproved ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                postedColumnSize={shouldShowYearPosted ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                exportedColumnSize={shouldShowYearExported ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                withdrawnColumnSize={shouldShowYearWithdrawn ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                amountColumnSize={isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                taxAmountColumnSize={isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                shouldShowSorting={shouldShowSorting}
+                sortBy={sortBy}
+                sortOrder={sortOrder}
+                shouldRemoveTotalColumnFlex={!!groupBy !== !!isExpenseReportView}
+                isActionColumnWide={isActionColumnWide ?? type === CONST.SEARCH.DATA_TYPES.TASK}
+                // Don't butt up against the 'select all' checkbox if present
+                containerStyles={canSelectMultiple && [styles.pl3]}
+                onSortPress={(columnName, order) => {
+                    if (columnName === CONST.SEARCH.TABLE_COLUMNS.COMMENTS) {
+                        return;
+                    }
+                    onSortPress(columnName, order);
+                }}
+                onColumnSecondaryInteraction={
+                    canFreezeColumns && !isExpenseReportView
+                        ? (columnName, event) => {
+                              // Past the freezable columns there's nothing to offer unless something can be unfrozen.
+                              if (!isFreezableColumn(columnName) && !frozenColumn) {
+                                  return;
+                              }
+                              const {pageX, pageY} = 'nativeEvent' in event ? event.nativeEvent : event;
+                              setColumnMenu({
+                                  columnName,
+                                  anchorPosition: {horizontal: pageX, vertical: pageY},
+                              });
+                          }
+                        : undefined
                 }
-                onSortPress(columnName, order);
-            }}
-        />
+            />
+            <PopoverMenu
+                isVisible={!!columnMenu}
+                onClose={() => setColumnMenu(null)}
+                onItemSelected={() => setColumnMenu(null)}
+                anchorPosition={columnMenu?.anchorPosition ?? {horizontal: 0, vertical: 0}}
+                anchorAlignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                }}
+                anchorRef={columnMenuAnchorRef}
+                menuItems={[
+                    ...(columnMenu && isFreezableColumn(columnMenu.columnName)
+                        ? [
+                              {
+                                  text: translate('search.display.freezeColumn'),
+                                  onSelected: () => setFrozenColumn(columnMenu.columnName),
+                              },
+                          ]
+                        : []),
+                    ...(frozenColumn
+                        ? [
+                              {
+                                  text: translate('search.display.unfreezeColumns'),
+                                  onSelected: () => setFrozenColumn(null),
+                              },
+                          ]
+                        : []),
+                ]}
+            />
+        </>
     );
 }
 

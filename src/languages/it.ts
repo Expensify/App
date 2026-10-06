@@ -9938,6 +9938,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             sortOrder: 'Ordine di visualizzazione',
             groupBy: 'Raggruppa per',
             limitResults: 'Limita i risultati',
+            freezeColumn: 'Freeze column',
+            unfreezeColumns: 'Unfreeze columns',
         },
         has: 'Ha',
         view: {

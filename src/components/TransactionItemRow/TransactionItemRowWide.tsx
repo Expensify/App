@@ -2,6 +2,8 @@ import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import RadioButton from '@components/RadioButton';
+import {useFrozenColumnState} from '@components/Search/FrozenColumnContext';
+import {FROZEN_CELL_DATA_KEY, FROZEN_ROW_DATA_KEY, getFrozenCellStyle, getFrozenTranslateStyle} from '@components/Search/frozenColumnUtils';
 import {useSearchColumnStyles} from '@components/Search/SearchColumnWidthsContext';
 import DeferredActionCell from '@components/Search/SearchList/ListItem/ActionCell/DeferredActionCell';
 import AttendeesCell from '@components/Search/SearchList/ListItem/AttendeesCell';
@@ -53,10 +55,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 
 import type {TransactionItemRowProps, TransactionItemRowRBRDeferControlProps, TransactionItemRowWideComputedData} from './types';
 
@@ -152,6 +155,14 @@ function TransactionItemRowWide({
     const StyleUtils = useStyleUtils();
     const getSearchColumnStyles = useSearchColumnStyles();
     const theme = useTheme();
+    const {frozenColumn} = useFrozenColumnState();
+    const frozenIndex = frozenColumn ? (columns?.indexOf(frozenColumn) ?? -1) : -1;
+    let frozenBackgroundColor = theme.highlightBG;
+    if (isSelected) {
+        frozenBackgroundColor = theme.activeComponentBG;
+    } else if (isHover) {
+        frozenBackgroundColor = theme.hoverComponentBG;
+    }
     const [hasFilterValues] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: searchHasFilterSelector});
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const isDeletedTransaction = isDeletedTransactionUtil(transactionItem);
@@ -174,6 +185,15 @@ function TransactionItemRowWide({
     let fullHeightMainRowStyle;
     if (shouldUseFullHeightEditableCellHoverTarget) {
         fullHeightMainRowStyle = hasValidationMessage ? styles.mnh13 : styles.tableRowHeight;
+    }
+
+    const rbrContainerStyles: ViewStyle[] = [];
+    if (shouldUseFullHeightEditableCellHoverTarget) {
+        rbrContainerStyles.push(styles.pb2);
+    }
+    if (frozenIndex >= 0) {
+        // Keeps the violation message in place under the frozen cells instead of scrolling with the rest of the row.
+        rbrContainerStyles.push(getFrozenTranslateStyle());
     }
 
     const renderColumn = (column: SearchColumnType): React.ReactNode => {
@@ -719,22 +739,40 @@ function TransactionItemRowWide({
                     style,
                 ]}
                 testID="transaction-item-row"
+                dataSet={frozenIndex >= 0 ? {[FROZEN_ROW_DATA_KEY]: true} : undefined}
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, fullHeightMainRowStyle]}>
                     {!shouldShowRadioButton && (
-                        <Checkbox
-                            disabled={isDisabled}
-                            onPress={(event) => {
-                                onCheckboxPress(transactionItem.transactionID, getShiftKeyFromEvent(event));
-                            }}
-                            accessibilityLabel={CONST.ROLE.CHECKBOX}
-                            isChecked={isSelected}
-                            containerStyle={styles.m0}
-                            wrapperStyle={styles.justifyContentCenter}
-                            sentryLabel={checkboxSentryLabel}
-                        />
+                        <View
+                            style={frozenIndex >= 0 && getFrozenCellStyle({backgroundColor: frozenBackgroundColor, isLastFrozen: false})}
+                            dataSet={frozenIndex >= 0 ? {[FROZEN_CELL_DATA_KEY]: true} : undefined}
+                        >
+                            <Checkbox
+                                disabled={isDisabled}
+                                onPress={(event) => {
+                                    onCheckboxPress(transactionItem.transactionID, getShiftKeyFromEvent(event));
+                                }}
+                                accessibilityLabel={CONST.ROLE.CHECKBOX}
+                                isChecked={isSelected}
+                                containerStyle={styles.m0}
+                                wrapperStyle={styles.justifyContentCenter}
+                                sentryLabel={checkboxSentryLabel}
+                            />
+                        </View>
                     )}
-                    {columns?.map(renderColumn)}
+                    {columns?.map((column, index) => {
+                        const cell = renderColumn(column);
+                        if (index > frozenIndex || !React.isValidElement<{style?: StyleProp<ViewStyle>; dataSet?: Record<string, boolean>}>(cell)) {
+                            return cell;
+                        }
+                        const frozenStyle = getFrozenCellStyle({
+                            backgroundColor: frozenBackgroundColor,
+                            isLastFrozen: index === frozenIndex,
+                            isRowDirection: StyleSheet.flatten(cell.props.style)?.flexDirection === 'row',
+                        });
+                        // Every column renders a single View, so the frozen style is appended to its own style.
+                        return React.cloneElement(cell, {style: [cell.props.style, frozenStyle], dataSet: {[FROZEN_CELL_DATA_KEY]: true}});
+                    })}
                     {shouldShowRadioButton && (
                         <View style={[styles.ml1, styles.justifyContentCenter, radioButtonContainerStyle]}>
                             <RadioButton
@@ -775,7 +813,7 @@ function TransactionItemRowWide({
                         report={report}
                         missingFieldError={missingFieldError}
                         transactionThreadReportID={transactionThreadReportID}
-                        containerStyles={shouldUseFullHeightEditableCellHoverTarget ? [styles.pb2] : undefined}
+                        containerStyles={rbrContainerStyles}
                     />
                 )}
             </View>
