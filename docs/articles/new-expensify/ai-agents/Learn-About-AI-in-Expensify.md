@@ -14,7 +14,7 @@ Some AI features, like Smartscan and Concierge, work automatically or are ready 
 
 This article explains what each AI feature does, how the features work together, and which one to use.
 
-## what AI features are available in Expensify?
+## What AI features are available in Expensify?
 
 | AI feature | What it does | Who uses it | Setup required |
 | --- | --- | --- | --- |
@@ -26,7 +26,7 @@ This article explains what each AI feature does, how the features work together,
 
 You don't need to use every AI feature. The right option depends on whether you want help with a one-time task, personal automation, workspace-wide rules, or analysis outside Expensify.
 
-## how does Smartscan use AI?
+## How does Smartscan use AI?
 
 Smartscan uses AI to read receipts. When you add a receipt, Smartscan extracts details such as the merchant, date, amount, and itemized line items so you don't have to enter them manually. Workspace admins can also use Smartscan to identify prohibited expenses on receipts, such as alcohol or gambling.
 
@@ -134,7 +134,7 @@ If a workspace rule can handle the requirement, use that rule. Use an agent rule
 
 A useful rule of thumb is to start with Concierge for one-time requests. If the same action needs to happen automatically in the future, consider an agent or agent rule.
 
-## what can each Expensify AI feature access?
+## What can each Expensify AI feature access?
 
 AI features can only work within their assigned permissions and purpose.
 
@@ -190,11 +190,3 @@ Yes. AI can occasionally behave unexpectedly. Review AI actions and keep agent a
 ## can i talk to a human instead of Concierge?
 
 Yes. Ask Concierge to "talk to a human" to connect with Expensify's support team.
-
-## who can use Expensify AI features?
-
-Smartscan, Concierge, and MCP are available to all members.
-
-Agents are in beta, so contact Concierge to request access.
-
-Agent rules require a workspace admin role, a workspace on the control plan, and the **rules** feature enabled on the workspace.
