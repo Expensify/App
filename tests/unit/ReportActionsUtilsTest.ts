@@ -1444,6 +1444,23 @@ describe('ReportActionsUtils', () => {
             ]);
         });
 
+        it('does not link Business Central export record IDs', () => {
+            // Given an export with one out-of-pocket record and multiple company card records stored as IDs
+            const action = buildExportedToIntegrationAction(CONST.EXPORT_LABELS.BUSINESS_CENTRAL, ['card-record-1', 'card-record-2'], ['reimbursable-record-1']);
+
+            // When the export confirmation is formatted
+            const fragments = ReportActionsUtils.getExportIntegrationActionFragments(translateLocal, action);
+
+            // Then both expense types remain visible without links to an unrelated accounting system
+            expect(fragments).toEqual([
+                {text: `exported to ${CONST.EXPORT_LABELS.BUSINESS_CENTRAL}`, url: ''},
+                {text: 'and successfully created a record for', url: ''},
+                {text: 'out-of-pocket expenses', url: ''},
+                {text: 'and', url: ''},
+                {text: 'company card expenses', url: ''},
+            ]);
+        });
+
         it('ends a single out-of-pocket expense link with a period by default', () => {
             // Given an export action whose only link is a single reimbursable expense URL
             const action = buildExportedToIntegrationAction(CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.netsuite, [], ['https://system.netsuite.com/1']);
@@ -2922,7 +2939,46 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe(expected);
         });
     });
+
+    describe('getAgentPromptUpdatedMessageHTML', () => {
+        it('renders the modifier as a mention and escapes the prompts', () => {
+            const action = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED>>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED,
+                reportActionID: '1',
+                originalMessage: {
+                    previousPrompt: '<strong>Review every expense</strong>',
+                    newPrompt: 'Review expenses over $100',
+                    updatedByAccountID: 1,
+                    updatedBy: 'owner@expensify.com',
+                },
+            });
+
+            const message = ReportActionsUtils.getAgentPromptUpdatedMessageHTML(translateLocal, action);
+
+            expect(message).toContain('<mention-user accountID="1"/>');
+            expect(message).toContain('&lt;strong&gt;Review every expense&lt;/strong&gt;');
+            expect(message).not.toContain('<strong>');
+        });
+    });
+
     describe('isDeletedAction', () => {
+        it('should keep an agent prompt update with an empty message visible', () => {
+            const action = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED>>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED,
+                reportActionID: '1',
+                message: [],
+                originalMessage: {
+                    previousPrompt: 'Review every expense',
+                    newPrompt: 'Review expenses over $100',
+                    updatedByAccountID: 1,
+                    updatedBy: 'owner@expensify.com',
+                },
+            });
+
+            expect(ReportActionsUtils.isDeletedAction(action)).toBe(false);
+            expect(ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID, true)).toBe(true);
+        });
+
         it('should return false if the action is a hold or unhold action', () => {
             const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.HOLD | typeof CONST.REPORT.ACTIONS.TYPE.UNHOLD> = {
                 ...createRandomReportAction(0),
@@ -7414,6 +7470,23 @@ describe('ReportActionsUtils', () => {
             const real = conciergeComment('200', '2026-09-02 00:00:00.000');
             const sorted = [failed, real];
             expect(ReportActionsUtils.getLatestConciergeFeedbackActionID(sorted, persisted(sorted))).toBe('200');
+        });
+
+        it('picks the newest Concierge comment out of a report actions collection', () => {
+            const older = conciergeComment('100', '2026-09-01 00:00:00.000');
+            const newer = conciergeComment('200', '2026-09-02 00:00:00.000');
+            const userComment = conciergeComment('300', '2026-09-03 00:00:00.000', {actorAccountID: 12345});
+            const collection = {[older.reportActionID]: older, [newer.reportActionID]: newer, [userComment.reportActionID]: userComment};
+
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionIDFromReportActions(collection)).toBe('200');
+        });
+
+        it('returns undefined when the collection holds no Concierge comment to rate', () => {
+            const whisper = conciergeComment('400', '2026-09-05 00:00:00.000', {originalMessage: {html: 'w', whisperedTo: [1]}} as Partial<ReportAction>);
+            const failed = conciergeComment('500', '2026-09-06 00:00:00.000', {errors: {someError: 'error'}});
+
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionIDFromReportActions({[whisper.reportActionID]: whisper, [failed.reportActionID]: failed})).toBeUndefined();
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionIDFromReportActions(undefined)).toBeUndefined();
         });
 
         it('returns undefined for an empty report', () => {

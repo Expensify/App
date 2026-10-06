@@ -40,6 +40,7 @@ import {getCleanedTagName, isPolicyAdmin, isPolicyFieldListEmpty} from './Policy
 import {
     getActionableCard3DSTransactionApprovalMessage,
     getActionableCardFraudAlertResolutionMessage,
+    getAgentPromptUpdatedMessage,
     getAddedCardFeedMessage,
     getApprovalLimitUpdateMessage,
     getAssignedCompanyCardMessage,
@@ -810,6 +811,10 @@ function computeReportNameBasedOnReportAction({
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
         return getMarkedReimbursedMessage(translate, parentReportAction);
+    }
+
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED)) {
+        return getAgentPromptUpdatedMessage(translate, parentReportAction);
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY)) {
