@@ -1,7 +1,9 @@
-import {updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/SplitTransactionUpdate';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
+import Navigation from '@libs/Navigation/Navigation';
 import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReportAction} from '@libs/ReportUtils';
+
+import updateSplitTransactionsFromSplitExpensesFlow from '@pages/iou/updateSplitTransactionsFromSplitExpensesFlow';
 
 import CONST from '@src/CONST';
 import DateUtils from '@src/libs/DateUtils';
@@ -44,18 +46,9 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 
 jest.mock('@react-navigation/native');
 
-jest.mock('@src/libs/actions/Report', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const originalModule = jest.requireActual('@src/libs/actions/Report');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...originalModule,
-        notifyNewAction: jest.fn(),
-    };
-});
-
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 
+jest.mock('@libs/API/writeWhenReady');
 jest.mock('@src/libs/SearchQueryUtils', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const actual = jest.requireActual('@src/libs/SearchQueryUtils');
@@ -230,6 +223,10 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
 
         // Exactly two new split IOU actions (one per split expense) should be added to the selfDM report
         expect(newSplitIouActions).toHaveLength(2);
+
+        // Then the modal is dismissed with no report target, because a selfDM split returns the user to the selfDM chat itself
+        expect(jest.mocked(Navigation.dismissModal)).toHaveBeenCalled();
+        expect(jest.mocked(Navigation.dismissModalWithReport)).not.toHaveBeenCalled();
     });
 
     it('new split transactions retain UNREPORTED_REPORT_ID when splitting a selfDM tracked expense', async () => {

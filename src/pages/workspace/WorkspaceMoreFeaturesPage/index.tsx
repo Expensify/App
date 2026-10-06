@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import usePolicyConnectionsPrefetch from '@hooks/usePolicyConnectionsPrefetch';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
@@ -138,7 +139,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID.toString()}_${CONST.EXPENSIFY_CARD.BANK}`, {
@@ -165,7 +166,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     // connection, and when the data has already been fetched.
     usePolicyConnectionsPrefetch(policy, true);
 
-    // Visibility is gated on a supported integration (QBO / Xero / Sage Intacct) being connected,
+    // Visibility is gated on a supported integration (QBO / Xero / Sage Intacct / DualEntry) being connected,
     // not on the export config actually scoping vendors. That way members on a supported workspace
     // still see the row so they can discover the feature even when the row is locked OFF (export
     // config not yet set). NetSuite / QuickBooks Desktop / no connection hide the row.
@@ -174,7 +175,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     //
     // Use the active vendor source so a stale GA connection cannot bypass the beta for another
     // integration. When no source is active, keep the connected integration's discovery row.
-    // QBO (R1) and Sage Intacct (R2) are GA. Xero, Rillet, and DualEntry require the vendorMatching beta.
+    // QBO (R1), Sage Intacct (R2), Xero (R3), Rillet, and DualEntry are GA. Business Central requires the vendorMatching beta.
+    // Certinia is deliberately not in the discovery list. It reaches the row only through
+    // getActiveVendorMatchingIntegration's strict FFA gate, so PSA connections never see it.
     const vendorMatchingConnection =
         getActiveVendorMatchingIntegration(policy) ??
         getConnectedIntegration(policy, [
@@ -183,8 +186,14 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             CONST.POLICY.CONNECTIONS.NAME.XERO,
             CONST.POLICY.CONNECTIONS.NAME.RILLET,
             CONST.POLICY.CONNECTIONS.NAME.DUALENTRY,
+            CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL,
         ]);
-    const isGenerallyAvailableVendorConnection = vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.QBO || vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT;
+    const isGenerallyAvailableVendorConnection =
+        vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.QBO ||
+        vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT ||
+        vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.XERO ||
+        vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.RILLET ||
+        vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.DUALENTRY;
     const shouldShowVendorsFeature = isGenerallyAvailableVendorConnection || (!!isVendorMatchingBetaEnabled && !!vendorMatchingConnection);
 
     const warnAccountingManagesOrganizeFeature = async () => {
@@ -282,7 +291,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         if (action !== ModalActions.CONFIRM) {
             return;
         }
-        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, shouldDismissModal: false});
+        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, conciergePersonalDetails, shouldDismissModal: false});
     };
 
     const promptDisableTravelViaInvoicing = async () => {
@@ -308,7 +317,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         if (action !== ModalActions.CONFIRM) {
             return;
         }
-        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, shouldDismissModal: false});
+        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, conciergePersonalDetails, shouldDismissModal: false});
     };
 
     const promptDisableSmartLimitForWorkflows = async () => {

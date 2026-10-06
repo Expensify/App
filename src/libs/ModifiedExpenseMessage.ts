@@ -1,4 +1,4 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
@@ -27,7 +27,8 @@ import {
     isPolicyAdmin,
     isXeroActiveMatchingSource,
 } from './PolicyUtils';
-import {getOriginalMessage, isModifiedExpenseAction} from './ReportActionsUtils';
+import {getOriginalMessage} from './ReportActionMessageUtils';
+import {isModifiedExpenseAction} from './ReportActionTypeGuards';
 // This cycle import is safe because ReportNameUtils was extracted from ReportUtils to separate report name computation logic.
 // The functions imported here are pure utility functions that don't create initialization-time dependencies.
 // ReportNameUtils imports helper functions from ReportUtils, and ReportUtils imports name generation functions from ReportNameUtils.
@@ -152,7 +153,13 @@ function getForDistanceRequest(translate: LocalizedTranslate, newMerchant: strin
     return translate('iou.updatedTheDistanceMerchant', translatedChangedField, newMerchant, oldMerchant, newAmount, oldAmount);
 }
 
-function getForExpenseMovedFromSelfDM(translate: LocalizedTranslate, destinationReport: OnyxEntry<Report>, currentUserAccountID: number | undefined, policy: OnyxEntry<Policy>) {
+function getForExpenseMovedFromSelfDM(
+    translate: LocalizedTranslate,
+    destinationReport: OnyxEntry<Report>,
+    currentUserAccountID: number | undefined,
+    policy: OnyxEntry<Policy>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+) {
     const rootParentReport = getRootParentReport({report: destinationReport});
     // In OldDot, expenses could be moved to a self-DM. Return the corresponding message for this case.
     if (isSelfDM(rootParentReport)) {
@@ -163,7 +170,7 @@ function getForExpenseMovedFromSelfDM(translate: LocalizedTranslate, destination
     // - A 1:1 DM
     const reportName = isPolicyExpenseChat(rootParentReport)
         ? getPolicyExpenseChatName({report: rootParentReport, translate})
-        : buildReportNameFromParticipantNames({report: rootParentReport, currentUserAccountID, translate});
+        : buildReportNameFromParticipantNames({report: rootParentReport, currentUserAccountID, translate, formatPhoneNumber});
     const policyName = getPolicyName({report: rootParentReport, returnEmptyIfNotFound: true, policy});
     // If we can't determine either the report name or policy name, return the default message
     if (isEmpty(policyName) && !reportName) {
@@ -183,6 +190,7 @@ function getMovedReportID(reportAction: OnyxEntry<ReportAction>, type: ValueOf<t
 
 function getMovedFromOrToReportMessage(
     translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     movedFromReport: OnyxEntry<Report> | undefined,
     movedToReport: OnyxEntry<Report> | undefined,
     currentUserAccountID: number | undefined,
@@ -190,7 +198,7 @@ function getMovedFromOrToReportMessage(
     movedFromReportName: string | undefined,
 ): string | undefined {
     if (movedToReport) {
-        return getForExpenseMovedFromSelfDM(translate, movedToReport, currentUserAccountID, policy);
+        return getForExpenseMovedFromSelfDM(translate, movedToReport, currentUserAccountID, policy, formatPhoneNumber);
     }
 
     if (movedFromReport) {
@@ -277,6 +285,7 @@ function getForReportAction({
     currentUserAccountID,
     currentUserLogin,
     movedFromReportName,
+    formatPhoneNumber,
 }: {
     translate: LocalizedTranslate;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
@@ -292,12 +301,13 @@ function getForReportAction({
     currentUserAccountID: number | undefined;
     currentUserLogin: string;
     movedFromReportName: string | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 }): string {
     if (!isModifiedExpenseAction(reportAction)) {
         return '';
     }
 
-    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(translate, movedFromReport, movedToReport, currentUserAccountID, policy, movedFromReportName);
+    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(translate, formatPhoneNumber, movedFromReport, movedToReport, currentUserAccountID, policy, movedFromReportName);
     if (movedFromOrToReportMessage) {
         return movedFromOrToReportMessage;
     }
@@ -309,17 +319,25 @@ function getForReportAction({
     const changeFragments: string[] = [];
 
     const isReportActionOriginalMessageAnObject = reportActionOriginalMessage && typeof reportActionOriginalMessage === 'object';
-    const hasModifiedAmount =
-        isReportActionOriginalMessageAnObject && 'oldCurrency' in reportActionOriginalMessage && 'amount' in reportActionOriginalMessage && 'currency' in reportActionOriginalMessage;
+
+    if (isReportActionOriginalMessageAnObject && reportActionOriginalMessage.receiptAdded) {
+        return translate('iou.addedReceipt');
+    }
+
+    // oldCurrency isn't required here: confirming a failed-scan placeholder amount (e.g. re-entering 0 to clear the
+    // scan error) has no real previous value, so neither the optimistic message nor the server's confirmed action
+    // include oldAmount/oldCurrency for it. Falling through to hasModifiedAmount=false would otherwise hide the
+    // amount entirely and render the generic "changed the expense" fallback instead of "set the amount to X".
+    const hasModifiedAmount = isReportActionOriginalMessageAnObject && 'amount' in reportActionOriginalMessage && 'currency' in reportActionOriginalMessage;
 
     const hasModifiedMerchant = isReportActionOriginalMessageAnObject && 'oldMerchant' in reportActionOriginalMessage && 'merchant' in reportActionOriginalMessage;
 
     if (hasModifiedAmount) {
-        const oldCurrency = reportActionOriginalMessage?.oldCurrency;
+        const currency = reportActionOriginalMessage?.currency;
+        const oldCurrency = reportActionOriginalMessage?.oldCurrency ?? currency;
         const oldAmountValue = reportActionOriginalMessage?.oldAmount ?? 0;
         const oldAmount = convertToDisplayString(oldAmountValue, oldCurrency);
 
-        const currency = reportActionOriginalMessage?.currency;
         const amount = convertToDisplayString(reportActionOriginalMessage?.amount ?? 0, currency);
 
         // Only Distance edits should modify amount and merchant (which stores distance) in a single transaction.

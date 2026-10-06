@@ -106,7 +106,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PREFERENCES.PAYMENT_CURRENCY]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.THEME]: undefined;
+    [SCREENS.SETTINGS.TROUBLESHOOT_SERVER]: undefined;
     [SCREENS.SETTINGS.CLOSE]: undefined;
+    [SCREENS.SETTINGS.CLOSE_ACCOUNT_CONFIRM_VALIDATE_CODE]: undefined;
     [SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_DETAILS]: {
         email?: string;
     };
@@ -167,12 +169,18 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.CARD_ADD_TO_DIGITAL_WALLET]: {
         /** cardID of the card waiting to be added to a digital wallet */
         cardID: string;
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo?: Routes;
     };
     [SCREENS.SETTINGS.WALLET.CARD_ACTIVATE]: {
         cardID: string;
 
         /** Whether the flow was launched from the top-level DomainCard route (deep-linked from OldDot) rather than the Settings wallet card route */
         isFromDomainCardDetail?: string;
+    };
+    [SCREENS.SETTINGS.WALLET.CARD_ADDED_TO_WALLET]: {
+        /** cardID of selected card */
+        cardID: string;
     };
     [SCREENS.SETTINGS.WALLET.CARD_CHANGE_PIN]: {
         cardID: string;
@@ -337,6 +345,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE_MISSING_WORKSPACES]: undefined;
     [SCREENS.WORKSPACE.CURRENCY]: {
         isForcedToChangeCurrency?: boolean;
+        shouldStartExpensifyCardEnrollment?: boolean;
     };
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS]: {
         policyID: string;
@@ -476,6 +485,14 @@ type SettingsNavigatorParamList = {
         categoryName: string;
     };
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_REQUIRE_FIELDS_RULE_EDIT]: {
+        policyID: string;
+        categoryName: string;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_TAX_RULE_NEW]: {
+        policyID: string;
+        categoryName: string;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_TAX_RULE_EDIT]: {
         policyID: string;
         categoryName: string;
     };
@@ -637,6 +654,7 @@ type SettingsNavigatorParamList = {
         policyID: string;
         orderWeight: number;
         tagName: string;
+        parentTagsFilter?: string;
     };
     [SCREENS.WORKSPACE.DYNAMIC_TAG_APPROVER]: {
         policyID: string;
@@ -652,12 +670,14 @@ type SettingsNavigatorParamList = {
         policyID: string;
         orderWeight: number;
         tagName: string;
+        parentTagsFilter?: string;
     };
     [SCREENS.SETTINGS.SUBSCRIPTION.SIZE]: {
         canChangeSize: 0 | 1;
         subPage: string;
     };
     [SCREENS.SETTINGS.SUBSCRIPTION.EXPENSIFY_CODE]: undefined;
+    [SCREENS.SETTINGS.SUBSCRIPTION.PAYMENT_HISTORY]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.SETTINGS_DETAILS]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_BILLING_CURRENCY]: undefined;
@@ -756,6 +776,10 @@ type SettingsNavigatorParamList = {
         policyID: string;
         accountID: string;
     };
+    [SCREENS.WORKSPACE.MEMBER_WORK_ARRANGEMENT]: {
+        policyID: string;
+        accountID: string;
+    };
     [SCREENS.WORKSPACE.MEMBER_CUSTOM_FIELD]: {
         policyID: string;
         accountID: string;
@@ -812,6 +836,10 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CLASSES]: {
         policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CUSTOM_DIMENSION]: {
+        policyID: string;
+        dimensionID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CUSTOMERS]: {
         policyID: string;
@@ -892,6 +920,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_ADVANCED]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_FX_EXPENSE_ACCOUNT_SELECT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT]: {
@@ -1278,6 +1309,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_ADVANCED]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_FX_EXPENSE_ACCOUNT]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_TAGS_MAPPING]: {
         policyID: string;
     };
@@ -1414,6 +1448,53 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_IMPORT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_EXPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_PREFERRED_EXPORTER]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_VENDOR_BILL_DATE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_DEFAULT_COMPANY_CARD_VENDOR]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_COMPANY_CARD_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_CARD_PROGRAM_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_CARD_PROGRAM_ACCOUNT_SELECTOR]: {
+        policyID: string;
+        feed: CardFeedWithDomainID;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_CARD_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_CARD_ACCOUNT_CARD_LIST]: {
+        policyID: string;
+        feed: CardFeedWithDomainID;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_ADVANCED]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_EXPORT_METHOD]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_BILL_PAYMENT_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_TRAVEL_BILLING_SETTLEMENT_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_TRAVEL_BILLING_PAYABLE_ACCOUNT]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_PREREQUISITES]: {
         policyID: string;
     };
@@ -1421,6 +1502,36 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_COMPANY_SELECTOR]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_IMPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_EXPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_EXPORT_PREFERRED_EXPORTER]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_EXPORT_DATE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_EXPORT_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_EXPORT_REIMBURSABLE_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_EXPORT_NONREIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_EXPORT_COMPANY_CARD_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_EXPORT_DEFAULT_VENDOR]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_EXPORT_PAYMENT_METHOD]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: {
@@ -1712,6 +1823,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.DYNAMIC_HR_SYNC_RESULTS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.DYNAMIC_RECRUITING_SYNC_RESULTS]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.HR_GUSTO_APPROVAL_MODE]: {
         policyID: string;
     };
@@ -1778,8 +1892,8 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_TAX]: {
         policyID: string;
         ruleID?: undefined;
-        /** The callout flow only ever creates merchant rules, never a category tax default */
-        categoryName?: undefined;
+        /** Set when opened from a category tax default in the category details RHP, absent from the callout flow */
+        categoryName?: string;
     };
     [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_VENDOR]: {
         policyID: string;
@@ -2854,7 +2968,6 @@ type WorkspacesDomainModalNavigatorParamList = {
         domainAccountID: number;
     };
     [SCREENS.WORKSPACES_ADD_DOMAIN]: undefined;
-    [SCREENS.WORKSPACES_ADD_DOMAIN_VERIFY_ACCOUNT]: undefined;
     [SCREENS.WORKSPACES_DOMAIN_ADDED]: {
         domainAccountID: number;
     };
@@ -2911,6 +3024,8 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SEARCH_REPORT_ACTIONS]: NavigatorScreenParams<SearchReportActionsParamList>;
     [SCREENS.RIGHT_MODAL.RESTRICTED_ACTION]: NavigatorScreenParams<RestrictedActionParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS]: NavigatorScreenParams<SearchAdvancedFiltersParamList>;
+    [SCREENS.RIGHT_MODAL.RECRUITING_MERGE_IMPORT_SETTINGS]: NavigatorScreenParams<MergeATSFiltersNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.RECRUITING_MERGE_APPROVAL]: NavigatorScreenParams<MergeATSApprovalNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_SAVE]: undefined;
     [SCREENS.RIGHT_MODAL.SEARCH_SAVED_SEARCH]: NavigatorScreenParams<SearchSavedSearchParamList>;
     [SCREENS.RIGHT_MODAL.MISSING_PERSONAL_DETAILS]: NavigatorScreenParams<MissingPersonalDetailsParamList>;
@@ -2946,6 +3061,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: {
         reportID: string;
         reportActionID?: string;
+        anchorTransactionID?: string;
         shouldReplaceWithExpenseReportRHP?: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
@@ -3502,6 +3618,7 @@ type SearchReportActionsParamList = {
     };
     [SCREENS.SEARCH.CHANGE_APPROVER.ROOT]: undefined;
     [SCREENS.SEARCH.CHANGE_APPROVER.ADD_APPROVER]: undefined;
+    [SCREENS.SEARCH.CHANGE_APPROVER.REASSIGN_APPROVER]: undefined;
 };
 
 type SearchFullscreenNavigatorParamList = {
@@ -3514,10 +3631,33 @@ type SearchFullscreenNavigatorParamList = {
     };
 };
 
+type MergeATSFiltersNavigatorParamList = {
+    [SCREENS.WORKSPACE.RECRUITING_MERGE_IMPORT_SETTINGS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RECRUITING_MERGE_IMPORT_SETTINGS_FILTER]: {
+        policyID: string;
+        filterType: ValueOf<typeof CONST.MERGE.ATS_FILTER_TYPE>;
+    };
+};
+
+type MergeATSApprovalNavigatorParamList = {
+    [SCREENS.WORKSPACE.RECRUITING_MERGE_APPROVAL_MODE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RECRUITING_MERGE_APPROVER_FIELD]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RECRUITING_MERGE_FINAL_APPROVER]: {
+        policyID: string;
+    };
+};
+
 type SearchAdvancedFiltersParamList = {
     [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: Record<string, never>;
     [SCREENS.SEARCH.ADVANCED_FILTERS_CONTENT_RHP]: {
         filterKey: string;
+        applyDirectly?: string;
     };
 };
 
@@ -3604,11 +3744,18 @@ type ReportChangeApproverParamList = {
     [SCREENS.REPORT_CHANGE_APPROVER.ADD_APPROVER]: {
         reportID: string;
     };
+    [SCREENS.REPORT_CHANGE_APPROVER.REASSIGN_APPROVER]: {
+        reportID: string;
+    };
 };
 
 type TestToolsModalModalNavigatorParamList = {
     [SCREENS.TEST_TOOLS_MODAL.ROOT]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo?: Routes;
+    };
+    [SCREENS.TEST_TOOLS_MODAL.SERVER]: {
+        // eslint-disable-next-line no-restricted-syntax -- not a new `backTo`: this screen reads the one TEST_TOOLS_MODAL.ROOT already carries
         backTo?: Routes;
     };
 };
@@ -3700,6 +3847,7 @@ export type {
     AvatarCropNavigatorParamList,
     RoomMembersNavigatorParamList,
     RootNavigatorParamList,
+    MergeATSApprovalNavigatorParamList,
     SearchAdvancedFiltersParamList,
     SearchReportActionsParamList,
     SearchSavedSearchParamList,
@@ -3735,6 +3883,7 @@ export type {
     ReportChangeApproverParamList,
     TestToolsModalModalNavigatorParamList,
     MergeTransactionNavigatorParamList,
+    MergeATSFiltersNavigatorParamList,
     AttachmentModalScreensParamList,
     ReportCardActivateNavigatorParamList,
     WorkspacesDomainModalNavigatorParamList,

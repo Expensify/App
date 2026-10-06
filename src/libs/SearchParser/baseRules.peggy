@@ -29,6 +29,7 @@ groupCurrency
   / "group-currency"i { return "groupCurrency"; }
 tag = "tag"i { return "tag"; }
 category = "category"i { return "category"; }
+vendor = "vendor"i { return "vendor"; }
 to = "to"i { return "to"; }
 exporter = "exporter"i { return "exporter"; }
 payer = "payer"i { return "payer"; }
@@ -52,6 +53,9 @@ expenseType
 receiptType
   = "receiptType"
   / "receipt-type"i { return "receiptType"; }
+transactionStatus
+  = "transactionStatus"
+  / "transaction-status"i { return "transactionStatus"; }
 withdrawalType
   = "withdrawalType"
   / "withdrawal-type"i { return "withdrawalType"; }
@@ -105,6 +109,7 @@ columns = "columns"i {
   return "columns";
 }
 view = "view"i {return "view"}
+compare = "compare"i {return "compare"}
 
 // Value transformation rules
 values

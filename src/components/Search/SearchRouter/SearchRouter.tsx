@@ -54,6 +54,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type Report from '@src/types/onyx/Report';
 
+import type {ComponentRef} from 'react';
 import type {TextInputProps} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
@@ -80,7 +81,7 @@ type SearchRouterProps = {
     onRouterClose: (afterClose?: () => void) => void;
     shouldHideInputCaret?: TextInputProps['caretHidden'];
     isSearchRouterDisplayed?: boolean;
-    ref?: React.Ref<View>;
+    ref?: React.Ref<ComponentRef<typeof View>>;
 };
 
 function searchForReportsAndUsersInServer(searchInput: string) {
@@ -90,7 +91,7 @@ function searchForReportsAndUsersInServer(searchInput: string) {
 
 function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDisplayed, ref}: SearchRouterProps) {
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {setShouldResetSearchQuery, getSearchKeyForQuery} = useSearchQueryActions();
@@ -102,13 +103,14 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [searchContext] = useOnyx(ONYXKEYS.SEARCH_CONTEXT);
     const isSupportalSession = useIsSupportalSession();
     const personalDetails = usePersonalDetails();
     const sortedReportActionsData = useSortedReportActionsData();
     const sortedActions = sortedReportActionsData?.sortedActions;
+    const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
+    const lastActions = sortedReportActionsData?.lastActions;
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
     const listRef = useRef<SelectionListWithSectionsHandle>(null);
@@ -226,9 +228,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 return undefined;
             }
             let reportForContextualSearch = recentReports.find((option) => option.reportID === contextualReportID);
-            const reportForContextualSearchReport = reportForContextualSearch ? contextualReport : undefined;
-            const reportAction = getReportAction(reportForContextualSearchReport?.parentReportID, reportForContextualSearchReport?.parentReportActionID);
-            const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
+            const reportAction = getReportAction(contextualReport?.parentReportID, contextualReport?.parentReportActionID);
+            const shouldParserToHTML = !!reportAction && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
             if (!reportForContextualSearch) {
                 if (!contextualReport || isHiddenForCurrentUser(contextualReport)) {
                     return undefined;
@@ -237,12 +238,17 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 const option = createOptionFromReport({
                     dateFnsLocale,
                     convertToDisplayString,
+                    convertToDisplayStringWithoutCurrency,
                     report: contextualReport,
                     personalDetails,
                     privateIsArchived: contextualReportNVP,
                     rules,
                     policy: contextualReportPolicy,
                     sortedActions,
+                    transactionThreadIDs,
+                    lastActions,
+                    currentUserAccountID,
+                    currentUserLogin: currentUserPersonalDetails.login,
                     conciergeReportID,
                     reportAttributesDerived: reportAttributes,
                     config: {
@@ -291,7 +297,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                             singleIcon: expensifyIcons.MagnifyingGlass,
                             searchQuery: reportQueryValue,
                             autocompleteID,
-                            itemStyle: styles.activeComponentBG,
                             keyForList: 'contextualSearch',
                             searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION,
                             roomType,
@@ -310,16 +315,20 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             isSearchRouterScreen,
             translate,
             expensifyIcons.MagnifyingGlass,
-            styles.activeComponentBG,
             contextualReport,
             personalDetails,
             sortedActions,
+            transactionThreadIDs,
+            lastActions,
+            currentUserPersonalDetails.login,
             contextualReportNVP,
             contextualReportPolicy,
             reportAttributes,
             isTrackIntentUser,
             dateFnsLocale,
+            currentUserAccountID,
             convertToDisplayString,
+            convertToDisplayStringWithoutCurrency,
             rules,
         ],
     );
@@ -330,7 +339,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                   text: textInputValue,
                   singleIcon: expensifyIcons.MagnifyingGlass,
                   searchQuery: textInputValue,
-                  itemStyle: styles.activeComponentBG,
                   keyForList: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM,
                   searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
               },
@@ -341,7 +349,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                             singleIcon: expensifyIcons.ConciergeAvatar,
                             shouldIconApplyFill: false,
                             searchQuery: textInputValue,
-                            itemStyle: styles.activeComponentBG,
                             keyForList: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.ASK_CONCIERGE,
                             searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.ASK_CONCIERGE,
                         },
@@ -488,7 +495,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                         introSelected,
                         isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
                         hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-                        betas,
                         conciergeChat,
                         isSupportalSession,
                         shouldDismissModal: false,
@@ -508,7 +514,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             introSelected,
             guidedSetupAndTourStatus?.isSelfTourViewed,
             guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-            betas,
             conciergeChat,
             isSupportalSession,
             contextualPoliciesMap,
