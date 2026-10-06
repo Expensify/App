@@ -2358,7 +2358,7 @@ function isCertiniaVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
 /**
  * True when Xero is the *active* vendor-matching source for the workspace — i.e. Xero is
  * connected AND neither QBO nor Intacct is in a vendor-matching export mode. Mirrors the precedence
- * in `getActiveVendorMatchingIntegration` (QBO → Intacct → Xero → Rillet → DualEntry → Business Central → Campfire → Certinia) so the UI labels, copy, and
+ * in `getActiveVendorMatchingIntegration` (QBO → Intacct → Xero → Rillet → DualEntry → Campfire → Business Central → Certinia) so the UI labels, copy, and
  * inactive-vendor guardrail stay bound to whichever integration's vendor list is actually being consulted.
  * Without this scoping, a workspace with active QBO matching + a lingering Xero connection would render
  * QBO vendors under the "Supplier" label.
