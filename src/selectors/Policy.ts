@@ -4,7 +4,6 @@ import {hasSynchronizationErrorMessage, isConnectionInProgress, isConnectionUnve
 import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
 import isTeachersUnitePolicyID from '@libs/isTeachersUnitePolicyID';
 import {getConnectedHRProvider} from '@libs/merge/HRUtils';
-import type {PolicyPaymentAttribution} from '@libs/PolicyPaymentUtils';
 import {
     canSendInvoice,
     getActiveAdminWorkspaces,
@@ -48,21 +47,23 @@ type ReusablePolicyConnectionName =
 const ownerPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountID: number) => getOwnedPaidPolicies(policies, currentUserAccountID);
 
 type OwnedPaidPoliciesCounts = {
-    /** Number of paid policies owned by the user */
+    /** Number of non-archived paid policies owned by the user */
     total: number;
 
-    /** Number of owned paid policies that are not pending deletion */
+    /** Number of owned paid policies that are neither archived nor pending deletion */
     active: number;
 };
 
 /**
  * Creates a selector returning only the counts of owned paid policies, so subscribers don't re-render
- * when anything else on the policy collection changes.
+ * when anything else on the policy collection changes. Archived workspaces are no longer billed and stay
+ * in the policy collection after they are archived, so they must not count towards "is this the user's
+ * last paid workspace" checks (final bill calculation, outstanding balance guard).
  */
 const createOwnedPaidPoliciesCountsSelector =
     (currentUserAccountID: number | undefined) =>
     (policies: OnyxCollection<Policy>): OwnedPaidPoliciesCounts => {
-        const ownedPaidPolicies = getOwnedPaidPolicies(policies, currentUserAccountID);
+        const ownedPaidPolicies = getOwnedPaidPolicies(policies, currentUserAccountID).filter((policy) => !isArchivedPolicy(policy));
         return {
             total: ownedPaidPolicies.length,
             active: ownedPaidPolicies.filter((policy) => !isPendingDeletePolicy(policy)).length,
@@ -515,9 +516,7 @@ const policyRoleSelector = (policy: OnyxEntry<Policy>) => policy?.role;
 
 const areInvoicesEnabledSelector = (policy: OnyxEntry<Policy>) => policy?.areInvoicesEnabled;
 
-/** The policy fields that attribute a payment to a bank account (see `getBankAccountLastFourDigits`). */
-const policyPaymentAttributionSelector = (policy: OnyxEntry<Policy>): PolicyPaymentAttribution | undefined =>
-    policy ? {achAccount: policy.achAccount, reimburser: policy.reimburser} : undefined;
+const policyACHAccountNumberSelector = (policy: OnyxEntry<Policy>) => policy?.achAccount?.accountNumber;
 
 function isAdminForPolicyByIDSelector(policyID?: string) {
     return (policies: OnyxCollection<Policy> | null): boolean => {
@@ -580,7 +579,7 @@ export {
     policyRoleSelector,
     policyTypeSelector,
     areInvoicesEnabledSelector,
-    policyPaymentAttributionSelector,
+    policyACHAccountNumberSelector,
     createAdminPoliciesSelector,
     isAdminForPolicyByIDSelector,
 };
