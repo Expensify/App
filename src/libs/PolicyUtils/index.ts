@@ -138,7 +138,6 @@ function getActivePolicies(policies: OnyxCollection<Policy> | null, currentUserL
 
 /**
  * Get the active group policies where the current user can create policy rooms.
- * Guests cannot create policy rooms, so policies where they only have the guest role are excluded.
  */
 function getPoliciesForRoomCreation(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
     return getActivePolicies(policies, currentUserLogin).filter(
