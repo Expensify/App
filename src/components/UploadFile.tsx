@@ -97,7 +97,7 @@ function UploadFile({
         if (acceptedFileTypes.length > 0) {
             const filesExtensions = new Set(files.map((file) => splitExtensionFromFileName(file?.name ?? '').fileExtension.toLowerCase()));
 
-            if (acceptedFileTypes.every((element) => !filesExtensions.has(element as string))) {
+            if (acceptedFileTypes.every((element) => typeof element !== 'string' || !filesExtensions.has(element))) {
                 setError(translate('attachmentPicker.notAllowedExtension'));
                 return;
             }

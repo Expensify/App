@@ -90,6 +90,7 @@ type DynamicSplitExpensePageProps = PlatformStackScreenProps<
 >;
 
 const TAB_NAVIGATOR_HEIGHT_LANDSCAPE = variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding;
+const EMPTY_SPLIT_EXPENSES: SplitExpense[] = [];
 
 function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const styles = useThemeStyles();
@@ -209,7 +210,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
         }
         return signedAmount;
     }, [draftTransaction?.amount, transactionDetails.amount]);
-    const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
+    const splitExpenses = draftTransaction?.comment?.splitExpenses ?? EMPTY_SPLIT_EXPENSES;
     const sumOfSplitExpenses = splitExpenses.reduce((acc, item) => acc + (item.amount ?? 0), 0);
     const currencySymbol = getCurrencySymbol(transactionDetails.currency ?? '') ?? transactionDetails.currency ?? CONST.CURRENCY.USD;
 
@@ -229,8 +230,9 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     );
     const {iouReport} = useGetIOUReportFromReportAction(iouActions.at(0));
 
-    const isPercentageMode = (selectedTab as string) === CONST.TAB.SPLIT.PERCENTAGE;
-    const isDateMode = (selectedTab as string) === CONST.TAB.SPLIT.DATE;
+    const isSelectedSplitTab = (tab: string) => selectedTab === tab;
+    const isPercentageMode = isSelectedSplitTab(CONST.TAB.SPLIT.PERCENTAGE);
+    const isDateMode = isSelectedSplitTab(CONST.TAB.SPLIT.DATE);
     const childTransactions = getChildTransactions(allTransactions, transactionID);
     const isDraftSelfDMContext = isSelfDM(draftTransactionReport);
     const splitFieldDataFromChildTransactions = childTransactions.map((childTransaction) => {
