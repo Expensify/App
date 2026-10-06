@@ -12,16 +12,8 @@ import getVisibleFields from './getVisibleFields';
 import {getGroupTitle} from './groupFieldsIntoPages';
 import isSensitiveField from './isSensitiveField';
 import {getListItems} from './listItems';
+import maskSensitiveValue from './maskSensitiveValue';
 import summarizeListItem from './summarizeListItem';
-
-const VISIBLE_SENSITIVE_CHARACTERS = 4;
-const SSN_REGEX = /^\d{9}$/;
-
-/** All but the last four characters hidden, as in •••-••-6789, so the user can tell which number they entered */
-function maskSensitiveValue(value: string): string {
-    const masked = '•'.repeat(Math.max(value.length - VISIBLE_SENSITIVE_CHARACTERS, 0)) + value.slice(-VISIBLE_SENSITIVE_CHARACTERS);
-    return SSN_REGEX.test(value) ? `${masked.slice(0, 3)}-${masked.slice(3, 5)}-${masked.slice(5)}` : masked;
-}
 
 type ConfirmationActions = {
     onEditGroup: (groupIndex: number) => void;
