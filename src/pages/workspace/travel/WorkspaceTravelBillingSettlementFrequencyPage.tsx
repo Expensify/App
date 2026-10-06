@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -86,10 +86,7 @@ function WorkspaceTravelBillingSettlementFrequencyPage({route}: WorkspaceTravelB
             shouldEnableMaxHeight
             testID="WorkspaceTravelBillingSettlementFrequencyPage"
         >
-            <HeaderWithBackButton
-                title={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.settlementFrequencyLabel')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.settlementFrequencyLabel')} />
             <SelectionList<FrequencyItem>
                 data={data}
                 onSelectRow={(item) => setDraftFrequency(item.value)}

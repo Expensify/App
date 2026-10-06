@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -72,7 +72,7 @@ function WorkspaceTaxesSettingsPage({
                     contentContainerStyle={styles.flexGrow1}
                     addBottomSafeAreaPadding
                 >
-                    <HeaderWithBackButton title={translate('common.settings')} />
+                    <HeaderWithBackButtonAndTitle title={translate('common.settings')} />
                     <View style={styles.flex1}>
                         {menuItems.map((item) => (
                             <OfflineWithFeedback

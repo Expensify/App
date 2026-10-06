@@ -1,5 +1,5 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {UnitItemType} from '@components/UnitPicker';
 import UnitPicker from '@components/UnitPicker';
@@ -56,7 +56,7 @@ function PolicyDistanceRateUnitPage({route}: PolicyDistanceRateUnitPageProps) {
                 enableEdgeToEdgeBottomSafeAreaPadding
                 testID="PolicyDistanceRateUnitPage"
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('workspace.distanceRates.unit')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.getRoute(policyID))}
                 />

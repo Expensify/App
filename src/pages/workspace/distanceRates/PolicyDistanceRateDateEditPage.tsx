@@ -2,7 +2,7 @@ import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useLocalize from '@hooks/useLocalize';
@@ -100,7 +100,7 @@ function PolicyDistanceRateDateEditPage({route}: PolicyDistanceRateDateEditPageP
                 testID={isStartDate ? 'PolicyDistanceRateStartDateEditPage' : 'PolicyDistanceRateEndDateEditPage'}
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton title={translate(titleKey)} />
+                <HeaderWithBackButtonAndTitle title={translate(titleKey)} />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM}
                     submitButtonText={translate('common.save')}
