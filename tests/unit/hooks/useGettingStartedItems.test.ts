@@ -16,6 +16,7 @@ import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../utils/collections/policies';
 import createMock from '../../utils/createMock';
+import {getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@hooks/useLocalize', () =>
@@ -192,6 +193,8 @@ describe('useGettingStartedItems', () => {
     });
 
     beforeEach(async () => {
+        // When rules are enabled, the hook sends GetRules, so mock fetch to keep that request off the real network.
+        global.fetch = getGlobalFetchMock();
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
