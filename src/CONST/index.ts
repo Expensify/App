@@ -7031,6 +7031,8 @@ const CONST = {
         CHASE: 'chase',
         CHARLES_SCHWAB: 'charles schwab',
         CITIBANK: 'citibank',
+        // Must precede CITIZENS_BANK since bank names are matched by substring
+        FIRST_CITIZENS_BANK: 'first citizens bank',
         CITIZENS_BANK: 'citizens bank',
         DISCOVER: 'discover',
         FIDELITY: 'fidelity',
@@ -7059,6 +7061,7 @@ const CONST = {
             [this.BANK_NAMES.CHASE]: 'Chase',
             [this.BANK_NAMES.CHARLES_SCHWAB]: 'Charles Schwab',
             [this.BANK_NAMES.CITIBANK]: 'Citibank',
+            [this.BANK_NAMES.FIRST_CITIZENS_BANK]: 'First Citizens Bank (formerly SVB)',
             [this.BANK_NAMES.CITIZENS_BANK]: 'Citizens',
             [this.BANK_NAMES.DISCOVER]: 'Discover',
             [this.BANK_NAMES.FIDELITY]: 'Fidelity',

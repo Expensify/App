@@ -35,6 +35,9 @@ function getBankIconAsset(bankNameKey: BankNameKey, isCard: boolean): IconAsset 
             ? (require('@assets/images/cardicons/charles-schwab.svg') as IconAsset)
             : (require('@assets/images/bank-icons/charles-schwab.svg') as IconAsset),
         [CONST.BANK_NAMES.CITIBANK]: isCard ? (require('@assets/images/cardicons/citibank.svg') as IconAsset) : (require('@assets/images/bank-icons/citibank.svg') as IconAsset),
+        [CONST.BANK_NAMES.FIRST_CITIZENS_BANK]: isCard
+            ? (require('@assets/images/cardicons/first-citizens-bank.svg') as IconAsset)
+            : (require('@assets/images/bank-icons/first-citizens-bank.svg') as IconAsset),
         [CONST.BANK_NAMES.CITIZENS_BANK]: isCard ? (require('@assets/images/cardicons/citizens.svg') as IconAsset) : (require('@assets/images/bank-icons/citizens-bank.svg') as IconAsset),
         [CONST.BANK_NAMES.DISCOVER]: isCard ? (require('@assets/images/cardicons/discover.svg') as IconAsset) : (require('@assets/images/bank-icons/discover.svg') as IconAsset),
         [CONST.BANK_NAMES.FIDELITY]: isCard ? (require('@assets/images/cardicons/fidelity.svg') as IconAsset) : (require('@assets/images/bank-icons/fidelity.svg') as IconAsset),
