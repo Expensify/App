@@ -1,12 +1,17 @@
 import {renderHook} from '@testing-library/react-native';
 
 import useParticipantIcon from '@components/Avatar/connected/useParticipantIcon';
+import {PersonalDetailsContext} from '@components/OnyxListItemProvider';
 
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
+
+import type {PropsWithChildren} from 'react';
+
+import React from 'react';
 
 const ACCOUNT_ID = 42;
 const LOGIN = 'john@example.com';
@@ -46,9 +51,10 @@ jest.mock('@hooks/useLocalize', () =>
 
 let mockPersonalDetails: PersonalDetailsList = {};
 
-jest.mock('@components/OnyxListItemProvider', () => ({
-    usePersonalDetails: () => mockPersonalDetails,
-}));
+/** Provides the live personal details context, which the hook reads while there is no Search snapshot. */
+function PersonalDetailsWrapper({children}: PropsWithChildren) {
+    return React.createElement(PersonalDetailsContext.Provider, {value: mockPersonalDetails}, children);
+}
 
 describe('useParticipantIcon', () => {
     beforeEach(() => {
@@ -99,7 +105,7 @@ describe('useParticipantIcon', () => {
         mockOnyxData[ONYXKEYS.PERSONAL_DETAILS_LIST] = snapshotPersonalDetails;
 
         // When the participant is resolved into an icon
-        const {result} = renderHook(() => useParticipantIcon(accountID));
+        const {result} = renderHook(() => useParticipantIcon(accountID), {wrapper: PersonalDetailsWrapper});
 
         // Then it matches the icon the legacy component builds for a report participant
         expect(result.current).toEqual(expectedIcon);

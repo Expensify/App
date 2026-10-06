@@ -1,6 +1,7 @@
 import {render, screen} from '@testing-library/react-native';
 
 import PolicyExpenseChatAvatar from '@components/Avatar/connected/PolicyExpenseChatAvatar';
+import {PersonalDetailsContext} from '@components/OnyxListItemProvider';
 
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
@@ -72,9 +73,8 @@ jest.mock('@hooks/useLocalize', () =>
 
 let mockPersonalDetails: PersonalDetailsList = {};
 
-jest.mock('@components/OnyxListItemProvider', () => ({
-    usePersonalDetails: () => mockPersonalDetails,
-}));
+/** Renders inside the live personal details context, which the component reads while there is no Search snapshot. */
+const renderWithPersonalDetails = (ui: React.ReactElement) => render(<PersonalDetailsContext.Provider value={mockPersonalDetails}>{ui}</PersonalDetailsContext.Provider>);
 
 jest.mock('@components/Avatar/layouts/HorizontalAvatars', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -137,7 +137,7 @@ describe('PolicyExpenseChatAvatar (connected)', () => {
         seedChat();
 
         // When it renders with every prop
-        render(
+        renderWithPersonalDetails(
             <PolicyExpenseChatAvatar
                 reportID={REPORT_ID}
                 size={CONST.AVATAR_SIZE.SMALL}
@@ -171,7 +171,7 @@ describe('PolicyExpenseChatAvatar (connected)', () => {
         mockPersonalDetails = ownerDetails ? {[OWNER_ACCOUNT_ID]: ownerDetails} : {};
 
         // When it renders
-        render(
+        renderWithPersonalDetails(
             <PolicyExpenseChatAvatar
                 reportID={REPORT_ID}
                 size={CONST.AVATAR_SIZE.DEFAULT}
@@ -192,7 +192,7 @@ describe('PolicyExpenseChatAvatar (connected)', () => {
         };
 
         // When it renders
-        render(
+        renderWithPersonalDetails(
             <PolicyExpenseChatAvatar
                 reportID={REPORT_ID}
                 size={CONST.AVATAR_SIZE.DEFAULT}
@@ -208,7 +208,7 @@ describe('PolicyExpenseChatAvatar (connected)', () => {
         seedChat({policyID: undefined});
 
         // When it renders
-        render(
+        renderWithPersonalDetails(
             <PolicyExpenseChatAvatar
                 reportID={REPORT_ID}
                 size={CONST.AVATAR_SIZE.DEFAULT}
@@ -231,7 +231,7 @@ describe('PolicyExpenseChatAvatar (connected)', () => {
         seedChat({ownerAccountID});
 
         // When it renders
-        render(
+        renderWithPersonalDetails(
             <PolicyExpenseChatAvatar
                 reportID={REPORT_ID}
                 size={CONST.AVATAR_SIZE.DEFAULT}
@@ -259,7 +259,7 @@ describe('PolicyExpenseChatAvatar (connected)', () => {
         seedChat();
 
         // When it renders inside a horizontal stack without a sort
-        render(
+        renderWithPersonalDetails(
             <PolicyExpenseChatAvatar
                 reportID={REPORT_ID}
                 size={CONST.AVATAR_SIZE.XXXX_LARGE}
@@ -285,7 +285,7 @@ describe('PolicyExpenseChatAvatar (connected)', () => {
         seedChat();
 
         // When it renders inside a horizontal stack, reversed
-        render(
+        renderWithPersonalDetails(
             <PolicyExpenseChatAvatar
                 reportID={REPORT_ID}
                 size={CONST.AVATAR_SIZE.DEFAULT}
@@ -303,7 +303,7 @@ describe('PolicyExpenseChatAvatar (connected)', () => {
         seedChat({ownerAccountID: undefined});
 
         // When it renders inside a horizontal stack
-        render(
+        renderWithPersonalDetails(
             <PolicyExpenseChatAvatar
                 reportID={REPORT_ID}
                 size={CONST.AVATAR_SIZE.DEFAULT}
@@ -321,7 +321,7 @@ describe('PolicyExpenseChatAvatar (connected)', () => {
         seedChat({policyName: REPORT_POLICY_NAME, policyAvatar: REPORT_POLICY_AVATAR_URL}, null);
 
         // When it renders
-        render(
+        renderWithPersonalDetails(
             <PolicyExpenseChatAvatar
                 reportID={REPORT_ID}
                 size={CONST.AVATAR_SIZE.DEFAULT}
@@ -337,7 +337,7 @@ describe('PolicyExpenseChatAvatar (connected)', () => {
         mockOnyxData = {};
 
         // When it renders
-        render(
+        renderWithPersonalDetails(
             <PolicyExpenseChatAvatar
                 reportID={REPORT_ID}
                 size={CONST.AVATAR_SIZE.DEFAULT}

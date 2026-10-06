@@ -1,6 +1,7 @@
 import {render, screen} from '@testing-library/react-native';
 
 import TaskReportAvatar from '@components/Avatar/connected/TaskReportAvatar';
+import {PersonalDetailsContext} from '@components/OnyxListItemProvider';
 
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
@@ -72,9 +73,8 @@ jest.mock('@hooks/useLocalize', () =>
 
 let mockPersonalDetails: PersonalDetailsList = {};
 
-jest.mock('@components/OnyxListItemProvider', () => ({
-    usePersonalDetails: () => mockPersonalDetails,
-}));
+/** Renders inside the live personal details context, which the component reads while there is no Search snapshot. */
+const renderWithPersonalDetails = (ui: React.ReactElement) => render(<PersonalDetailsContext.Provider value={mockPersonalDetails}>{ui}</PersonalDetailsContext.Provider>);
 
 jest.mock('@components/Avatar/layouts/HorizontalAvatars', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -162,7 +162,7 @@ describe('TaskReportAvatar (connected)', () => {
         seedTask();
 
         // When it renders with every prop
-        render(
+        renderWithPersonalDetails(
             <TaskReportAvatar
                 reportID={REPORT_ID}
                 size={CONST.AVATAR_SIZE.SMALL}
@@ -196,7 +196,7 @@ describe('TaskReportAvatar (connected)', () => {
         seedTask();
 
         // When it renders inside a horizontal stack
-        render(
+        renderWithPersonalDetails(
             <TaskReportAvatar
                 reportID={REPORT_ID}
                 size={CONST.AVATAR_SIZE.DEFAULT}
@@ -230,7 +230,7 @@ describe('TaskReportAvatar (connected)', () => {
         seedTask({parentChatType, isArchived});
 
         // When it renders
-        render(
+        renderWithPersonalDetails(
             <TaskReportAvatar
                 reportID={REPORT_ID}
                 size={CONST.AVATAR_SIZE.DEFAULT}
@@ -266,7 +266,7 @@ describe('TaskReportAvatar (connected)', () => {
         mockPersonalDetails = personalDetails;
 
         // When it renders
-        render(
+        renderWithPersonalDetails(
             <TaskReportAvatar
                 reportID={REPORT_ID}
                 size={CONST.AVATAR_SIZE.DEFAULT}
@@ -283,7 +283,7 @@ describe('TaskReportAvatar (connected)', () => {
         seedTask({parentOverrides: {policyName: PARENT_POLICY_NAME, policyAvatar: PARENT_POLICY_AVATAR_URL}, policyRow: null});
 
         // When it renders
-        render(
+        renderWithPersonalDetails(
             <TaskReportAvatar
                 reportID={REPORT_ID}
                 size={CONST.AVATAR_SIZE.DEFAULT}
@@ -299,7 +299,7 @@ describe('TaskReportAvatar (connected)', () => {
         mockOnyxData = {};
 
         // When it renders
-        render(
+        renderWithPersonalDetails(
             <TaskReportAvatar
                 reportID={REPORT_ID}
                 size={CONST.AVATAR_SIZE.DEFAULT}
