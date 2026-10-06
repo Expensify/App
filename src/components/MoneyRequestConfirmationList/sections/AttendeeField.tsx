@@ -1,4 +1,3 @@
-import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -7,7 +6,6 @@ import UserPills from '@components/UserPills';
 import useAttendees from '@hooks/useAttendees';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import {enrichAndSortAttendees} from '@libs/AttendeeUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -44,7 +42,6 @@ type AttendeeFieldProps = {
 
 function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, action, iouType, reportID, formError}: AttendeeFieldProps) {
     const {shouldUseDropdownRows} = useExpenseFormLayout();
-    const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const personalDetailsList = usePersonalDetails();
     const [loginToAccountIDMap] = useOnyx(ONYXKEYS.DERIVED.LOGIN_TO_ACCOUNT_ID_MAP);
@@ -113,11 +110,9 @@ function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, a
                 )}
             </MenuItem.Row>
             {shouldDisplayAttendeesError && (
-                <FormHelpMessage
+                <MenuItem.HelpText
                     isError
-                    shouldShowRedDotIndicator={false}
                     message={translate(formError as TranslationPaths)}
-                    style={styles.menuItemError}
                 />
             )}
         </MenuItem.Root>
