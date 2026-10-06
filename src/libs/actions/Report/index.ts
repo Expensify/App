@@ -39,6 +39,7 @@ import type {
     SearchForReportsParams,
     SearchForRoomsToMentionParams,
     SearchForUsersParams,
+    ShareReportParams,
     TogglePinnedChatParams,
     TransactionThreadInfo,
     UpdateChatNameParams,
@@ -92,6 +93,7 @@ import Parser from '@libs/Parser';
 import {getParsedMessageWithShortMentions} from '@libs/ParsingUtils';
 import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {isMapOrGPSRequired} from '@libs/PolicyDistanceRatesUtils';
 import {
     getDefaultApprover,
@@ -6906,6 +6908,17 @@ async function exportReportToPDF({reportID}: ExportReportPDFParams) {
     return API.write(WRITE_COMMANDS.EXPORT_REPORT_TO_PDF, params, {optimisticData, failureData});
 }
 
+/** Emails the report to the given login and gives them access to it. */
+function shareReport(reportID: string, shareToLogin: string) {
+    const params = {
+        reportID,
+        shareToEmail: addSMSDomainIfPhoneNumber(shareToLogin),
+        permissions: [CONST.REPORT.PERMISSIONS.READ, CONST.REPORT.PERMISSIONS.WRITE].join(', '),
+    } satisfies ShareReportParams;
+
+    API.write(WRITE_COMMANDS.SHARE_REPORT, params);
+}
+
 function downloadReportPDF(fileName: string, reportName: string, translate: LocalizedTranslate, currentUserLogin: string, encryptedAuthToken: string) {
     const baseURL = getOldDotURLFromEnvironment(environment);
     const downloadFileName = `${reportName}.pdf`;
@@ -9028,6 +9041,7 @@ export {
     expandURLPreview,
     exportReportToCSV,
     exportReportToPDF,
+    shareReport,
     exportToIntegration,
     joinReportViaSecureLink,
     flagComment,
