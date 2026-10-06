@@ -5,6 +5,7 @@ keywords: [Agents, personal agents, custom agents, new agent, AI agent, agent in
 internalScope: Audience is members with access to Agents. Covers creating (from scratch or from a template), configuring, managing, chatting with, Copiloting into, and deleting personal Agents, and using an Agent as a workspace approver. Does not cover Agent rules, RuleBot, what each agent template does, or best practices for writing agent instructions.
 retrievalIntent: How do I create and use a personal Agent?
 contentType: task
+order: 5
 ---
 
 # Create and Use Agents
@@ -15,7 +16,7 @@ Every agent has its own Expensify account. You can Copilot into the agent's acco
 
 When you create an agent, it's automatically added as a full-access Copilot on your own account. This gives the agent delegated access to your account so it can use your personal context and manage expenses and reports on your behalf, while continuing to operate from its own account. You can review or remove this access at any time in the **Copilot: Delegated Access** section under **Account > Security**.
 
-Expensify also supports Agent rules, which are workspace-level AI automations enforced by RuleBot. To learn how Agents work and how they differ from Agent rules, see [Learn About Agents](/articles/new-expensify/ai-agents/Learn-About-Agents).
+Expensify also supports Agent rules, which are workspace-level AI automations enforced by RuleBot. To learn how Agents work and how they differ from Agent rules, see [Understand How Agents Work](/articles/new-expensify/ai-agents/Understand-How-Agents-Work).
 
 ---
 
