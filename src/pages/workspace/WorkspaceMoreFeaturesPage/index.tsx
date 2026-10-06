@@ -186,6 +186,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             CONST.POLICY.CONNECTIONS.NAME.XERO,
             CONST.POLICY.CONNECTIONS.NAME.RILLET,
             CONST.POLICY.CONNECTIONS.NAME.DUALENTRY,
+            CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE,
             CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL,
         ]);
     const isGenerallyAvailableVendorConnection =
