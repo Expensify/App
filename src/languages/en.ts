@@ -45,8 +45,8 @@ const translations = {
         incentivizedTitle: 'Renew early, get up to 2 months free',
         incentivizedSubtitle: 'Claim a discount on your annual subscription.',
         claim: 'Claim',
-        mobileRenewPrompt: 'You can’t make changes to your subscription in the mobile app. Visit Expensify in your browser to renew early.',
-        mobileClaimPrompt: 'You can’t make changes to your subscription in the mobile app. Visit Expensify in your browser to claim your renewal discount.',
+        mobileRenewPrompt: 'Visit Expensify in your web browser to renew early.',
+        mobileClaimPrompt: 'Visit Expensify in your web browser to claim your renewal discount.',
         offer: {
             heading: 'Choose your discount',
             subtitle: 'Two sweet deals for you to choose from:',
