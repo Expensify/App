@@ -5055,13 +5055,13 @@ describe('PolicyUtils', () => {
             it('uses Campfire vendors when Campfire and Business Central are both configured', () => {
                 // Given a workspace configured with both Business Central and Campfire connections
                 const policy = buildBusinessCentralPolicy();
-                policy.connections = {
+                policy.connections = createMock<Connections>({
                     ...policy.connections,
                     [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {
                         config: {isConfigured: true},
                         data: {vendors: [{id: 'cf-1', name: 'Campfire vendor', isActive: true, vendorType: CONST.CAMPFIRE_VENDOR_TYPE.VENDOR}]},
                     },
-                };
+                });
 
                 // When resolving the vendor source without the vendorMatching beta
                 const isVendorFeatureAvailable = hasVendorFeature(policy, false);
