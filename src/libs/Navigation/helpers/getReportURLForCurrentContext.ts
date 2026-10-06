@@ -39,12 +39,14 @@ function getReportURLForCurrentContext(reportID: string | undefined): string {
         const [, queryString = ''] = activeRoute.split('?');
         if (queryString) {
             const params = new URLSearchParams(queryString);
-            // URLSearchParams.get() already decodes the value. Decoding it again would unescape a nested backTo
-            // (e.g. after paging through expenses in the RHP), leaving duplicate backTo keys in the final URL.
             const backTo = params.get('backTo');
             if (backTo) {
+                // URLSearchParams.get() already decodes the value once. A raw "?" means it's already a usable route, and decoding
+                // it again would unescape its nested backTo (e.g. after paging through expenses in the RHP), leaving duplicate
+                // backTo keys in the URL that crash the app on back. Only decode when the value still looks encoded.
+                const isAlreadyDecoded = backTo.includes('?');
                 // Prefer the backTo param when present; it points to the exact search state we left.
-                backToRoute = normalizeRoute(backTo);
+                backToRoute = normalizeRoute(isAlreadyDecoded ? backTo : decodeURIComponent(backTo));
             }
         }
 
