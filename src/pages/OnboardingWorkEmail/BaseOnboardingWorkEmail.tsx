@@ -37,6 +37,7 @@ import {
     setOnboardingErrorMessage,
     setOnboardingMergeAccountStepValue,
     setOnboardingMergingAccountBlocked,
+    setOnboardingShouldValidate,
 } from '@userActions/Welcome';
 
 import CONST from '@src/CONST';
@@ -193,11 +194,9 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
         setOnboardingErrorMessage(null);
 
         if (onboardingValues?.shouldValidate) {
-            if (isConciergeTaskFlow) {
-                Navigation.navigate(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute(), {forceReplace: true});
-                return;
-            }
-            Navigation.navigate(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute());
+            // Replace instead of push so this screen unmounts. Left mounted, its effect re-runs once the merge response
+            // updates the account and pushes a second copy of the remaining flow.
+            Navigation.navigate(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute(), {forceReplace: true});
             return;
         }
 
@@ -238,6 +237,12 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
             // sending AddWorkEmail for the current primary login again.
             if (isCurrentUnvalidatedWorkEmail) {
                 Navigation.navigate(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(undefined, true, originReportID), {forceReplace: true});
+                return;
+            }
+
+            // AddWorkEmail already made this the account's login, and resending it would merge the account into itself.
+            if (sessionEmail && submittedWorkEmail.toLowerCase() === sessionEmail.toLowerCase()) {
+                setOnboardingShouldValidate(false);
                 return;
             }
 
@@ -307,17 +312,17 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
         const emailParts = userEmail.split('@');
         const domain = emailParts.at(1) ?? '';
 
-        const isCurrentUnvalidatedWorkEmail =
-            isConciergeTaskFlow && !isCurrentPrimaryValidated && !!session?.email && userEmail.toLowerCase() === session.email.toLowerCase() && !PUBLIC_DOMAINS_SET.has(domain.toLowerCase());
-
-        if (session?.email && userEmail.toLowerCase() === session.email.toLowerCase() && !isCurrentUnvalidatedWorkEmail && !isOffline) {
-            addErrorMessage(errors, INPUT_IDS.ONBOARDING_WORK_EMAIL, translate('onboarding.workEmailValidationError.sameAsSignupEmail'));
-        } else if ((!Str.isValidEmail(userEmail) || PUBLIC_DOMAINS_SET.has(domain.toLowerCase())) && !isOffline) {
+        if ((!Str.isValidEmail(userEmail) || PUBLIC_DOMAINS_SET.has(domain.toLowerCase())) && !isOffline) {
             Log.hmmm('User is trying to add an invalid work email', {
                 userEmail,
                 domain,
             });
-            addErrorMessage(errors, INPUT_IDS.ONBOARDING_WORK_EMAIL, translate('onboarding.workEmailValidationError.publicEmail'));
+            const isSignupEmail = !!session?.email && userEmail.toLowerCase() === session.email.toLowerCase();
+            addErrorMessage(
+                errors,
+                INPUT_IDS.ONBOARDING_WORK_EMAIL,
+                translate(isSignupEmail ? 'onboarding.workEmailValidationError.sameAsSignupEmail' : 'onboarding.workEmailValidationError.publicEmail'),
+            );
         }
 
         if (isOffline ?? false) {

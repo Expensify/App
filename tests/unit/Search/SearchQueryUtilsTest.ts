@@ -39,6 +39,7 @@ import {
     getSearchRootParamsFromRootState,
     getValidLastQuery,
     hasFiltersChangedFromDefault,
+    isSearchQuerySavable,
     isFilterNegated,
     isDefaultExpenseReportsQuery,
     isDefaultExpensesQuery,
@@ -2618,6 +2619,78 @@ describe('SearchQueryUtils', () => {
 
             expect(hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON)).toBe(true);
         });
+
+        it('returns true when the current query only differs by a filter that is no longer ignored', () => {
+            // Given a query that only adds a keyword to the default query
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense category:travel');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense category:travel hello');
+
+            if (!defaultQueryJSON || !currentQueryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When only the group currency is ignored, as when checking whether there's something to save
+            const onlyGroupCurrencyIgnored = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]);
+
+            // Then the keyword counts as a change
+            expect(hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON, onlyGroupCurrencyIgnored)).toBe(true);
+        });
+
+        it('returns false when the current query only differs by the given ignored filters', () => {
+            // Given a query that only adds a group currency to the default query
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense category:travel');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense category:travel group-currency:USD');
+
+            if (!defaultQueryJSON || !currentQueryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the group currency is ignored
+            const onlyGroupCurrencyIgnored = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]);
+
+            // Then the group currency doesn't count as a change
+            expect(hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON, onlyGroupCurrencyIgnored)).toBe(false);
+        });
+    });
+
+    describe('isSearchQuerySavable', () => {
+        it('returns true when there is no default query, even without filters or a keyword', () => {
+            // Given a query that isn't bound to any suggested or saved search
+            const currentQueryJSON = buildSearchQueryJSON('type:trip');
+
+            // When checking whether it can be saved without a default query to compare against
+            // Then it's savable because nothing in the LHN already covers it
+            expect(isSearchQuerySavable(currentQueryJSON, undefined)).toBe(true);
+        });
+
+        it('returns false when there is no current query', () => {
+            // Given no current query
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense');
+
+            // When checking whether it can be saved
+            // Then there is nothing to save
+            expect(isSearchQuerySavable(undefined, defaultQueryJSON)).toBe(false);
+        });
+
+        it('returns false when the query equals the default query', () => {
+            // Given a query that matches its default
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense category:travel');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense category:travel');
+
+            // When checking whether it can be saved
+            // Then there is nothing new to save
+            expect(isSearchQuerySavable(currentQueryJSON, defaultQueryJSON)).toBe(false);
+        });
+
+        it('returns true when only a keyword is added to the default query', () => {
+            // Given a query that only adds a keyword to its default
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense category:travel');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense category:travel hello');
+
+            // When checking whether it can be saved
+            // Then the keyword makes it a new search worth saving
+            expect(isSearchQuerySavable(currentQueryJSON, defaultQueryJSON)).toBe(true);
+        });
     });
 
     describe('limit filter parsing', () => {
@@ -4109,7 +4182,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Expected queryJSON to be defined');
             }
             const normalizedFilters = applyContainsOperatorToTextFields(queryJSON.filters);
-            expect(serializeQueryJSONForBackend(queryJSON)).toBe(JSON.stringify({...queryJSON, filters: normalizedFilters, status: ''}));
+            expect(serializeQueryJSONForBackend(queryJSON)).toBe(JSON.stringify({...queryJSON, filters: normalizedFilters}));
             const merchantNode = findNode(normalizedFilters, 'merchant');
             if (!merchantNode) {
                 throw new Error('Expected merchant node to be found in AST');
@@ -4120,7 +4193,7 @@ describe('SearchQueryUtils', () => {
         it('should apply contains to merchant in rawFilterList', () => {
             const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'coffee'}];
             const normalizedRawFilterList = rawFilterList.map((filter) => ({...filter, operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS}));
-            expect(serializeQueryJSONForBackend({filters: undefined, rawFilterList})).toBe(JSON.stringify({filters: undefined, rawFilterList: normalizedRawFilterList, status: ''}));
+            expect(serializeQueryJSONForBackend({filters: undefined, rawFilterList})).toBe(JSON.stringify({filters: undefined, rawFilterList: normalizedRawFilterList}));
         });
 
         it('should preserve exact merchant matches in AST filters', () => {
@@ -4129,7 +4202,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Expected queryJSON to be defined');
             }
             const exactMatchFilterKeys = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
-            expect(serializeQueryJSONForBackend(queryJSON, exactMatchFilterKeys)).toBe(JSON.stringify({...queryJSON, status: ''}));
+            expect(serializeQueryJSONForBackend(queryJSON, exactMatchFilterKeys)).toBe(JSON.stringify(queryJSON));
             const merchantNode = findNode(queryJSON.filters, 'merchant');
             if (!merchantNode) {
                 throw new Error('Expected merchant node to be found in AST');
@@ -4140,7 +4213,7 @@ describe('SearchQueryUtils', () => {
         it('should preserve exact merchant matches in rawFilterList', () => {
             const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'coffee'}];
             const exactMatchFilterKeys = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
-            expect(serializeQueryJSONForBackend({filters: undefined, rawFilterList}, exactMatchFilterKeys)).toBe(JSON.stringify({filters: undefined, rawFilterList, status: ''}));
+            expect(serializeQueryJSONForBackend({filters: undefined, rawFilterList}, exactMatchFilterKeys)).toBe(JSON.stringify({filters: undefined, rawFilterList}));
         });
 
         it('should preserve multiple exact merchant matches while keeping description as contains', () => {
@@ -4150,7 +4223,7 @@ describe('SearchQueryUtils', () => {
             }
             const exactMatchFilterKeys = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
             const normalizedFilters = applyContainsOperatorToTextFields(queryJSON.filters, exactMatchFilterKeys);
-            expect(serializeQueryJSONForBackend(queryJSON, exactMatchFilterKeys)).toBe(JSON.stringify({...queryJSON, filters: normalizedFilters, status: ''}));
+            expect(serializeQueryJSONForBackend(queryJSON, exactMatchFilterKeys)).toBe(JSON.stringify({...queryJSON, filters: normalizedFilters}));
             const merchantNode = findNode(normalizedFilters, 'merchant');
             const descriptionNode = findNode(normalizedFilters, 'description');
             if (!merchantNode || !descriptionNode) {
@@ -4163,7 +4236,7 @@ describe('SearchQueryUtils', () => {
 
         it('should not affect non-text fields in rawFilterList', () => {
             const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'food'}];
-            expect(serializeQueryJSONForBackend({filters: undefined, rawFilterList})).toBe(JSON.stringify({filters: undefined, rawFilterList, status: ''}));
+            expect(serializeQueryJSONForBackend({filters: undefined, rawFilterList})).toBe(JSON.stringify({filters: undefined, rawFilterList}));
         });
     });
 

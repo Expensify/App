@@ -112,6 +112,10 @@ async function clearOnboardingShouldValidate(onboardingValues: Onboarding | unde
     await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {...onboardingValues, shouldValidate: undefined});
 }
 
+function setOnboardingShouldValidate(shouldValidate: boolean) {
+    Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {shouldValidate});
+}
+
 function setOnboardingMergeAccountStepValue(value: boolean, skipped = false) {
     Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergeAccountStepCompleted: value, isMergeAccountStepSkipped: skipped});
 }
@@ -306,6 +310,7 @@ export {
     setOnboardingMergeAccountStepValue,
     setOnboardingMergingAccountBlocked,
     createJoinWorkspaceOnboardingContent,
+    setOnboardingShouldValidate,
     updateOnboardingValuesAndNavigation,
     clearOnboardingShouldValidate,
     setOnboardingUserReportedIntegration,

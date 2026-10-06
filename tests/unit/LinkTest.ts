@@ -421,7 +421,7 @@ describe('Link.openReportFromDeepLink', () => {
     it('does not show an unfinished-setup error for a completed user on an onboarding task screen', async () => {
         await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
 
-        openReportFromDeepLink(`${CONST.NEW_EXPENSIFY_URL}/onboarding/work-email-validation?isJoinWorkspaceTask=true`, {}, true, undefined, undefined, false, 1, {});
+        openReportFromDeepLink(`${CONST.NEW_EXPENSIFY_URL}/onboarding/work-email-validation?isJoinWorkspaceTask=true`, {}, true, undefined, undefined, false, 1, {}, {});
         await waitForBatchedUpdates();
 
         expect(mockedNavigation.waitForProtectedRoutes).toHaveBeenCalled();

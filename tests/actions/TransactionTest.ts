@@ -5,22 +5,23 @@ import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsRepo
 import useOnyx from '@hooks/useOnyx';
 
 import {putOnHold} from '@libs/actions/IOU/Hold';
-import {updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/SplitTransactionUpdate';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
-import '@libs/actions/IOU/MoneyRequest';
 import {createWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
+import '@libs/actions/IOU/MoneyRequest';
 import {createNewReport} from '@libs/actions/Report';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, isDeletedAction, isMoneyRequestAction, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReportAction, getReportOrDraftReport} from '@libs/ReportUtils';
+
+import updateSplitTransactionsFromSplitExpensesFlow from '@pages/iou/updateSplitTransactionsFromSplitExpensesFlow';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Policy, Report, ReportActions, ReportNameValuePairs} from '@src/types/onyx';
+import type {CardList, PersonalDetailsList, Policy, Report, ReportActions, ReportNameValuePairs} from '@src/types/onyx';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -29,6 +30,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
+import {createCashCard} from 'tests/utils/collections/card';
 import createRandomReportAction from 'tests/utils/collections/reportActions';
 
 import {changeTransactionsReport as changeTransactionsReportAction, clearError} from '../../src/libs/actions/Transaction';
@@ -133,6 +135,7 @@ const CARLOS_EMAIL = 'cmartins@expensifail.com';
 const CARLOS_ACCOUNT_ID = 1;
 const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
+const RORY_CASH_CARD_ID = 777;
 
 const getTransactionAndExpenseReports = (reportID: string) => {
     const transactionReport = getReportOrDraftReport(reportID);
@@ -341,6 +344,7 @@ describe('actions/Transaction', () => {
                 transactionViolations: {},
                 selfDMReportActions,
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
 
             let updatedTransaction: OnyxEntry<Transaction>;
@@ -450,6 +454,7 @@ describe('actions/Transaction', () => {
                 reports: allReports,
                 selfDMReportActions: {[trackedExpenseAction.reportActionID]: trackedExpenseAction},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -551,6 +556,7 @@ describe('actions/Transaction', () => {
                 reports: reportsSubset.current,
                 selfDMReportActions,
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -649,6 +655,7 @@ describe('actions/Transaction', () => {
                 personalPolicyOutputCurrency: 'EUR',
                 reports: undefined,
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -753,6 +760,7 @@ describe('actions/Transaction', () => {
                     transactionViolations: {},
                     reports,
                     isTrackIntentUser: false,
+                    cardList: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -819,6 +827,10 @@ describe('actions/Transaction', () => {
                     ...sourceReportStatus,
                 } as Report;
 
+                const cardList: CardList = {
+                    [RORY_CASH_CARD_ID]: createCashCard(RORY_ACCOUNT_ID, RORY_CASH_CARD_ID),
+                };
+
                 const transaction: Transaction = {
                     transactionID: TRANSACTION_ID,
                     reportID: SOURCE_REPORT_ID,
@@ -826,6 +838,7 @@ describe('actions/Transaction', () => {
                     currency: CONST.CURRENCY.USD,
                     merchant: 'Test Merchant',
                     created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    cardID: RORY_CASH_CARD_ID,
                 };
 
                 // The IOU action links the expense to its transaction thread, which is where moved messages land.
@@ -879,6 +892,7 @@ describe('actions/Transaction', () => {
                     transactionViolations: {},
                     reports,
                     isTrackIntentUser: false,
+                    cardList,
                 });
                 await waitForBatchedUpdates();
 
@@ -1605,7 +1619,20 @@ describe('actions/Transaction', () => {
 
                 // Put the expense on hold
                 if (originalTransactionID && transactionThreadReportID) {
-                    putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, undefined, {rules: undefined});
+                    const originalTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
+                    putOnHold({
+                        transactionID: originalTransactionID,
+                        transaction: originalTransaction,
+                        comment: 'Test hold reason',
+                        initialReportID: transactionThreadReportID,
+                        isOffline: false,
+                        currentUserLogin: RORY_EMAIL,
+                        currentUserAccountID: RORY_ACCOUNT_ID,
+                        transactionViolations: [],
+                        isTrackIntentUser: false,
+                        delegateAccountID: undefined,
+                        rules: undefined,
+                    });
                 }
                 await waitForBatchedUpdates();
 
