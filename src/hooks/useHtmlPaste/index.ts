@@ -1,11 +1,15 @@
 import emojis, {emojiNameTable} from '@assets/emojis';
 
+import useOnyx from '@hooks/useOnyx';
+import {buildReportIDToNameMap} from '@hooks/useReportIDToNameMap';
+
 import {isMobileSafari} from '@libs/Browser';
 import {containsOnlyEmojis} from '@libs/EmojiUtils';
 import {isStandaloneURL, toMarkdownLink} from '@libs/MarkdownLinkHelpers';
 import Parser from '@libs/Parser';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import {Str} from 'expensify-common';
 import {DomUtils, parseDocument} from 'htmlparser2';
@@ -324,6 +328,8 @@ function replaceEmojiImagesInHTML(html: string, images: HTMLImageElement[], repl
 }
 
 const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive = false, maxLength = CONST.MAX_COMMENT_LENGTH + 1) => {
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+
     /**
      * Set pasted text to clipboard
      * @param {String} text
@@ -378,9 +384,10 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
      */
     const handlePastedHTML = useCallback(
         (html: string) => {
-            paste(Parser.htmlToMarkdown(html, {}));
+            // Built here rather than in render so it costs nothing until a paste actually happens.
+            paste(Parser.htmlToMarkdown(html, {reportIDToName: buildReportIDToNameMap(reports)}));
         },
-        [paste],
+        [paste, reports],
     );
 
     /**

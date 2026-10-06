@@ -4,7 +4,12 @@ import useHtmlPaste from '@hooks/useHtmlPaste';
 
 import type * as Browser from '@libs/Browser';
 
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report} from '@src/types/onyx';
+
 import type {RefObject} from 'react';
+
+import Onyx from 'react-native-onyx';
 
 import createMock from '../../../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../../../utils/waitForBatchedUpdatesWithAct';
@@ -425,5 +430,87 @@ describe('useHtmlPaste - handlePastePlainText', () => {
         act(() => document.dispatchEvent(event));
 
         expect(textInputRef.current?.textContent).toBe('Copy image below:\n![:smile:](https://example.com/image.png)');
+    });
+});
+
+describe('useHtmlPaste - handlePastedHTML', () => {
+    const MENTIONED_REPORT_ID = '1';
+    const ROOM_NAME = '#general';
+    const PASTED_HTML = `Hey <mention-report reportID="${MENTIONED_REPORT_ID}"/> team`;
+
+    let textInputRef: RefObject<HTMLDivElement | null>;
+    let textInputElement: HTMLDivElement;
+
+    /** The HTML flavour of the clipboard, which is what Clipboard.setHtml writes when copying a message. */
+    const createHtmlClipboardEvent = (html: string): Event => {
+        const event = new Event('paste', {bubbles: true, cancelable: true});
+        Object.defineProperty(event, 'clipboardData', {
+            value: {
+                getData: (type: string) => (type === 'text/html' ? html : ''),
+                types: ['text/html'],
+                files: [],
+                items: [],
+            },
+        });
+        return event;
+    };
+
+    const pasteHtmlIntoActiveInput = async (html: string) => {
+        // @ts-expect-error -- this web test intentionally passes a contenteditable DOM ref to the shared hybrid hook.
+        renderHook(() => useHtmlPaste(textInputRef, undefined, true));
+        await waitForBatchedUpdatesWithAct();
+        await act(async () => {
+            document.dispatchEvent(createHtmlClipboardEvent(html));
+            await waitForBatchedUpdatesWithAct();
+        });
+    };
+
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        await Onyx.clear();
+
+        textInputElement = document.createElement('div');
+        textInputElement.setAttribute('contenteditable', 'true');
+        textInputElement.textContent = '';
+        document.body.appendChild(textInputElement);
+        // The hook ignores a paste when the input is not focused, and a bare DOM node has no isFocused().
+        Object.defineProperty(textInputElement, 'isFocused', {value: () => true, configurable: true});
+        textInputRef = {current: textInputElement};
+
+        const range = document.createRange();
+        range.selectNodeContents(textInputElement);
+        const selection = window.getSelection();
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+    });
+
+    afterEach(() => {
+        document.body.removeChild(textInputElement);
+    });
+
+    it('resolves a pasted report mention to the room name', async () => {
+        // Given the mentioned report is in Onyx, as it is when copying from a chat you can see
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${MENTIONED_REPORT_ID}`, {reportID: MENTIONED_REPORT_ID, reportName: ROOM_NAME} as Report);
+
+        // When the HTML flavour of the clipboard is pasted into the input
+        await pasteHtmlIntoActiveInput(PASTED_HTML);
+
+        // Then the mention lands as the room name. Without the map ExpensiMark cannot resolve the
+        // reportID and the user would silently paste "#Hidden" over a real mention.
+        expect(textInputElement.textContent).toBe(`Hey ${ROOM_NAME} team`);
+    });
+
+    it('falls back to #Hidden when the mentioned report is not available', async () => {
+        // Given a mention of a report the user has no access to, so it is absent from Onyx
+
+        // When that HTML is pasted
+        await pasteHtmlIntoActiveInput(PASTED_HTML);
+
+        // Then ExpensiMark's own fallback shows, rather than leaking a raw reportID
+        expect(textInputElement.textContent).toBe('Hey #Hidden team');
     });
 });
