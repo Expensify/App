@@ -21,6 +21,8 @@ const TAB_ICON_LAYOUT: TabIconLayout = {
     // A circle reads smaller than a glyph of the same box, so the avatar is drawn a little larger than the glyphs.
     avatarSize: variables.avatarNativeTabBarIOS,
     dotRadius: variables.nativeTabIconDotRadius,
+    // A cutout rather than a border in the bar's color, because the iOS 26 bar is glass and has no single color.
+    dotCutout: variables.nativeTabIconDotCutout,
     labelGap: variables.nativeTabIconLabelGap,
     labelFontSize: variables.fontSizeSmall,
 };

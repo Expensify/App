@@ -116,8 +116,10 @@ export default {
     iconNativeTabBarIOS: 22,
     /** Account avatar size in the iOS native tab bar. */
     avatarNativeTabBarIOS: 26,
-    /** Radius of the status dot drawn into an iOS native tab bar icon. */
+    /** Radius of the status dot drawn into a native tab bar icon. */
     nativeTabIconDotRadius: 4,
+    /** Width of the ring cut out of a native tab bar icon around its status dot, as the JS tab bar's dot border does. */
+    nativeTabIconDotCutout: 2,
     /** Gap between the glyph and the label drawn under it in an iOS native tab bar icon. */
     nativeTabIconLabelGap: 6,
     /** Material's BottomNavigationView row, without the gesture inset under it. */

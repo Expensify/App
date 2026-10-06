@@ -3,7 +3,7 @@ import FontUtils from '@styles/utils/FontUtils';
 import type {NativeBottomTabIcon} from '@react-navigation/bottom-tabs/unstable';
 import type {SkCanvas, SkFont, SkImage, SkPath} from '@shopify/react-native-skia';
 
-import {ClipOp, FillType, FilterMode, FontWeight, ImageFormat, MipmapMode, Skia} from '@shopify/react-native-skia';
+import {BlendMode, ClipOp, FillType, FilterMode, FontWeight, ImageFormat, MipmapMode, Skia} from '@shopify/react-native-skia';
 import {PixelRatio} from 'react-native';
 
 import type {NativeTabGlyph, NativeTabName} from './NATIVE_TAB_GLYPHS';
@@ -17,6 +17,8 @@ type TabIconLayout = {
     avatarSize: number;
     /** Radius of the status dot drawn at the content's top right corner. */
     dotRadius: number;
+    /** Width of the transparent ring cut out of the content around the status dot. */
+    dotCutout: number;
     /** Gap between the glyph box and the label drawn under it. */
     labelGap: number;
     /** Font size of the label drawn under the glyph. */
@@ -117,11 +119,18 @@ function drawCircularImage(canvas: SkCanvas, image: SkImage, left: number, top: 
     circle.dispose();
 }
 
-function drawStatusDot(canvas: SkCanvas, right: number, top: number, radius: number, color: string) {
+function drawStatusDot(canvas: SkCanvas, right: number, top: number, radius: number, cutout: number, color: string) {
+    const centerX = right - radius;
+    const centerY = top + radius;
     const paint = Skia.Paint();
-    paint.setColor(Skia.Color(color));
     paint.setAntiAlias(true);
-    canvas.drawCircle(right - radius, top + radius, radius, paint);
+    if (cutout > 0) {
+        paint.setBlendMode(BlendMode.Clear);
+        canvas.drawCircle(centerX, centerY, radius + cutout, paint);
+        paint.setBlendMode(BlendMode.SrcOver);
+    }
+    paint.setColor(Skia.Color(color));
+    canvas.drawCircle(centerX, centerY, radius, paint);
     paint.dispose();
 }
 
@@ -153,7 +162,7 @@ function drawTabIcon(layout: TabIconLayout, {name, color, avatar, dotColor, labe
         drawGlyph(canvas, name, contentLeft, contentTop, contentSize, color);
     }
     if (dotColor) {
-        drawStatusDot(canvas, contentLeft + contentSize, contentTop, layout.dotRadius * scale, dotColor);
+        drawStatusDot(canvas, contentLeft + contentSize, contentTop, layout.dotRadius * scale, layout.dotCutout * scale, dotColor);
     }
     if (label && font && labelMetrics) {
         const paint = Skia.Paint();
@@ -182,7 +191,7 @@ function drawTabIcon(layout: TabIconLayout, {name, color, avatar, dotColor, labe
  */
 function getTabIcon(layout: TabIconLayout, params: TabIconParams): NativeBottomTabIcon | undefined {
     const {name, color, avatar, dotColor, label} = params;
-    const key = [name, avatar?.uri ?? color, dotColor, label?.text, label?.color, label?.isBold, layout.glyphSize, layout.avatarSize].join('|');
+    const key = [name, avatar?.uri ?? color, dotColor, label?.text, label?.color, label?.isBold, layout.glyphSize, layout.avatarSize, layout.dotRadius, layout.dotCutout].join('|');
     if (iconCache.has(key)) {
         return iconCache.get(key);
     }

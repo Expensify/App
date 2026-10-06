@@ -14,17 +14,18 @@ import type {NativeBottomTabNavigationOptions} from '@react-navigation/bottom-ta
 
 import type NativeTabBarOptionsParams from './types';
 
-/** An empty badge value makes Material draw its small dot badge instead of a number. */
-const STATUS_DOT_BADGE = '';
-
 /** Material's bar sits above the system gesture inset, so the floating buttons clear both. */
 const getFloatingButtonsBottom = (bottomInset: number) => variables.androidNativeTabBarFloatingButtonsBottom + bottomInset;
 
-/** Material draws each icon in its fixed icon slot, with the label and the status badge of its own. */
+/**
+ * Material draws each icon in its fixed icon slot, with a label of its own. The status dot is drawn into the icon rather
+ * than as a Material badge, because RNScreens paints every badge in the badge color of the selected tab.
+ */
 const TAB_ICON_LAYOUT: TabIconLayout = {
     glyphSize: variables.iconBottomBar,
     avatarSize: variables.iconBottomBar,
-    dotRadius: 0,
+    dotRadius: variables.nativeTabIconDotRadius,
+    dotCutout: variables.nativeTabIconDotCutout,
     labelGap: 0,
     labelFontSize: 0,
 };
@@ -49,14 +50,13 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, dotColors, tabLabels}: 
     const getTabOptions = (name: NativeTabName): NativeBottomTabNavigationOptions => {
         // The active indicator pill marks the selected tab, so the avatar is the same image in both selection states.
         const tabAvatar = name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR ? avatar : undefined;
-        const inactiveIcon = getTabIcon(TAB_ICON_LAYOUT, {name, color: theme.icon, avatar: tabAvatar});
-        const activeIcon = getTabIcon(TAB_ICON_LAYOUT, {name, color: theme.iconMenu, avatar: tabAvatar});
         const dotColor = dotColors[name];
+        const inactiveIcon = getTabIcon(TAB_ICON_LAYOUT, {name, color: theme.icon, avatar: tabAvatar, dotColor});
+        const activeIcon = getTabIcon(TAB_ICON_LAYOUT, {name, color: theme.iconMenu, avatar: tabAvatar, dotColor});
         return {
             tabBarLabel: tabLabels[name],
             // A function, because React Navigation derives the selected icon only from a function.
             tabBarIcon: inactiveIcon && activeIcon ? ({focused}) => (focused ? activeIcon : inactiveIcon) : undefined,
-            ...(dotColor ? {tabBarBadge: STATUS_DOT_BADGE, tabBarBadgeStyle: {backgroundColor: dotColor}} : {tabBarBadge: undefined}),
         };
     };
 
