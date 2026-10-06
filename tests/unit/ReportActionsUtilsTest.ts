@@ -2917,6 +2917,79 @@ describe('ReportActionsUtils', () => {
             const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action);
             expect(actual).toBe(`${expectedCustomFieldMessage}, ${expectedRoleMessage}`);
         });
+
+        it('should show an approval workflow message instead of a role change when submitsTo changes', () => {
+            // Given an employee update where only the approver (submitsTo) changed
+            const email = 'employee@example.com';
+            const newApprover = 'new.approver@example.com';
+            const previousApprover = 'old.approver@example.com';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE,
+                message: [],
+                previousMessage: [],
+                originalMessage: {
+                    email,
+                    field: CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.SUBMITS_TO,
+                    newValue: newApprover,
+                    oldValue: previousApprover,
+                },
+            };
+
+            // When the message is built
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action);
+
+            // Then it describes the approver change, because the user's role did not change
+            expect(actual).toBe(translateLocal('workspaceActions.changedSubmitsToApprover', {members: email, approver: newApprover, previousApprover}));
+        });
+
+        it('should show a stopped forwarding message when forwardsTo is cleared', () => {
+            // Given an employee update where forwardsTo was removed
+            const email = 'approver@example.com';
+            const previousForwardsTo = 'final.approver@example.com';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE,
+                message: [],
+                previousMessage: [],
+                originalMessage: {
+                    email,
+                    field: CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.FORWARDS_TO,
+                    newValue: '',
+                    oldValue: previousForwardsTo,
+                },
+            };
+
+            // When the message is built
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action);
+
+            // Then it says forwarding stopped, because there is no new forwardsTo approver
+            expect(actual).toBe(translateLocal('workspaceActions.removedForwardsTo', {approver: email, previousForwardsTo}));
+        });
+
+        it('should fall back to the server message for a field without dedicated copy', () => {
+            // Given an employee update for a field App has no copy for, alongside a role change
+            const serverText = 'changed the approval limit for employee@example.com';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE,
+                message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: serverText, text: serverText}],
+                previousMessage: [],
+                originalMessage: {
+                    email: 'employee@example.com',
+                    fields: [
+                        {field: 'approvalLimit', newValue: '10000', oldValue: '5000'},
+                        {field: CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.ROLE, newValue: CONST.POLICY.ROLE.ADMIN, oldValue: CONST.POLICY.ROLE.USER},
+                    ],
+                },
+            };
+
+            // When the message is built
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action);
+
+            // Then the server message is used, so the unknown field is not reported as a role change or silently dropped
+            expect(actual).toBe(serverText);
+        });
     });
 
     describe('getPolicyChangeLogDeleteMemberMessage', () => {
