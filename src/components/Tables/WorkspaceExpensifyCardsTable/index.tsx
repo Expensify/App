@@ -23,6 +23,7 @@ import WorkspaceCardListLabels from '@pages/workspace/expensifyCard/WorkspaceCar
 import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import type {Card, PersonalDetails, PersonalDetailsList, Policy} from '@src/types/onyx';
 import type {CardLimitType} from '@src/types/onyx/Card';
 import type ExpensifyCardSettings from '@src/types/onyx/ExpensifyCardSettings';
@@ -322,6 +323,7 @@ export default function WorkspaceExpensifyCardsTable({
             compareItems={compareItems}
             isItemInSearch={isItemInSearch}
             shouldUseDynamicColumns
+            columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_EXPENSIFY_CARDS}
             initialSortColumn="name"
             narrowLayoutSortColumn="name"
             title={translate('workspace.common.expensifyCard')}

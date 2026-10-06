@@ -8,6 +8,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -386,7 +387,8 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const isDynamicSizingEnabled = shouldUseDynamicColumns && !shouldUseNarrowTableLayout && canMeasureText();
 
     // Dragged widths are applied by the dynamic sizing resolver, so resizing requires it.
-    const isColumnResizingEnabled = isDynamicSizingEnabled && !!columnResizingID;
+    const {isBetaEnabled} = usePermissions();
+    const isColumnResizingEnabled = isDynamicSizingEnabled && !!columnResizingID && isBetaEnabled(CONST.BETAS.RESIZABLE_TABLE_COLUMNS);
     const [columnWidthOverrides] = useOnyx(ONYXKEYS.TABLE_COLUMN_WIDTHS, {selector: tableColumnWidthsSelector(columnResizingID)});
 
     // Columns are sized from the full data set rather than the processed one, so the widths stay put while the user

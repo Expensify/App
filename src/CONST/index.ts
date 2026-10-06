@@ -1150,6 +1150,7 @@ const CONST = {
         INSIGHTS_COMPARE: 'insightsCompare',
         PAYMENT_HISTORY: 'paymentHistory',
         ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
+        RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -9285,6 +9286,9 @@ const CONST = {
         /** Stored-width keys, one per column set rather than per screen, so tables with the same columns share widths. */
         COLUMN_RESIZING_IDS: {
             WORKSPACE_MEMBERS: 'workspaceMembers',
+            WORKSPACE_TAXES: 'workspaceTaxes',
+            WORKSPACE_EXPENSIFY_CARDS: 'workspaceExpensifyCards',
+            WORKSPACE_COMPANY_CARDS: 'workspaceCompanyCards',
         },
 
         COLUMN_RESIZE: {
