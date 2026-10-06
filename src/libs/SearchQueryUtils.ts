@@ -1099,6 +1099,20 @@ function hasFiltersChangedFromDefault(currentQueryJSON: SearchQueryJSON, default
     return getQueryHashWithoutFilters(currentQueryJSON, ignoredFilterKeys) !== getQueryHashWithoutFilters(defaultQueryJSON, ignoredFilterKeys);
 }
 
+function isSearchQuerySavable(currentQueryJSON: SearchQueryJSON | undefined, defaultQueryJSON: SearchQueryJSON | undefined) {
+    if (!currentQueryJSON) {
+        return false;
+    }
+
+    // A query without a default query isn't bound to any suggested or saved search
+    // (e.g. a trip or chat type query), so it's savable as is, even without filters or a keyword.
+    if (!defaultQueryJSON) {
+        return true;
+    }
+
+    return hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON, NON_SAVABLE_FILTER_KEYS);
+}
+
 function getSanitizedRawFilters(queryJSON: SearchQueryJSON): RawQueryFilter[] | undefined {
     if (!queryJSON.rawFilterList || queryJSON.rawFilterList.length === 0) {
         return undefined;
@@ -2959,6 +2973,7 @@ export {
     getQueryHashWithoutFilters,
     getQueryHashes,
     hasFiltersChangedFromDefault,
+    isSearchQuerySavable,
     NON_SAVABLE_FILTER_KEYS,
     withExactMatchFilterKeys,
     isSearchDatePreset,

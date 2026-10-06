@@ -18,7 +18,7 @@ import {close} from '@libs/actions/Modal';
 import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
-import {buildQueryStringWithResetFilters, hasFiltersChangedFromDefault, NON_SAVABLE_FILTER_KEYS, removeNegation} from '@libs/SearchQueryUtils';
+import {buildQueryStringWithResetFilters, hasFiltersChangedFromDefault, isSearchQuerySavable, removeNegation} from '@libs/SearchQueryUtils';
 import {getFilterViewLabelKey, isAmountFilterKey, isDateFilterKey, isReportFieldKey, isTextFilterKey, mapFiltersFormToLabelValueList, SKIPPED_SEARCH_FILTERS} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
@@ -231,9 +231,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
         hasErrors: Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline,
         shouldShowFiltersBarLoading: shouldShowFiltersBarLoading || isCategoryFilterLoading,
         hasFiltersChanged: hasDefaultQuery ? hasFiltersChangedFromDefault(currentSearchQueryJSON, currentDefaultSearchQueryJSON) : filters.length > 0,
-        hasFiltersOrKeywordChanged: hasDefaultQuery
-            ? hasFiltersChangedFromDefault(currentSearchQueryJSON, currentDefaultSearchQueryJSON, NON_SAVABLE_FILTER_KEYS)
-            : filters.length > 0 || !!currentSearchQueryJSON?.flatFilters.some((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD),
+        hasFiltersOrKeywordChanged: isSearchQuerySavable(currentSearchQueryJSON, currentDefaultSearchQueryJSON),
         resetFilters,
     };
 }

@@ -39,6 +39,7 @@ import {
     getSearchRootParamsFromRootState,
     getValidLastQuery,
     hasFiltersChangedFromDefault,
+    isSearchQuerySavable,
     isFilterNegated,
     isDefaultExpenseReportsQuery,
     isDefaultExpensesQuery,
@@ -2708,6 +2709,46 @@ describe('SearchQueryUtils', () => {
 
             // Then the group currency doesn't count as a change
             expect(hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON, onlyGroupCurrencyIgnored)).toBe(false);
+        });
+    });
+
+    describe('isSearchQuerySavable', () => {
+        it('returns true when there is no default query, even without filters or a keyword', () => {
+            // Given a query that isn't bound to any suggested or saved search
+            const currentQueryJSON = buildSearchQueryJSON('type:trip');
+
+            // When checking whether it can be saved without a default query to compare against
+            // Then it's savable because nothing in the LHN already covers it
+            expect(isSearchQuerySavable(currentQueryJSON, undefined)).toBe(true);
+        });
+
+        it('returns false when there is no current query', () => {
+            // Given no current query
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense');
+
+            // When checking whether it can be saved
+            // Then there is nothing to save
+            expect(isSearchQuerySavable(undefined, defaultQueryJSON)).toBe(false);
+        });
+
+        it('returns false when the query equals the default query', () => {
+            // Given a query that matches its default
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense category:travel');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense category:travel');
+
+            // When checking whether it can be saved
+            // Then there is nothing new to save
+            expect(isSearchQuerySavable(currentQueryJSON, defaultQueryJSON)).toBe(false);
+        });
+
+        it('returns true when only a keyword is added to the default query', () => {
+            // Given a query that only adds a keyword to its default
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense category:travel');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense category:travel hello');
+
+            // When checking whether it can be saved
+            // Then the keyword makes it a new search worth saving
+            expect(isSearchQuerySavable(currentQueryJSON, defaultQueryJSON)).toBe(true);
         });
     });
 

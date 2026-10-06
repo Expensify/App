@@ -180,18 +180,28 @@ describe('useSearchFiltersBar', () => {
             expect(result.current.hasFiltersOrKeywordChanged).toBe(false);
         });
 
-        it('falls back to having a keyword when there is no default query JSON', () => {
-            // Given no default query to compare against and a query with only a keyword
-            const keywordQueryJSON = buildQueryJSON(keywordFilters);
-            mockSearchQueryContext({currentSearchQueryJSON: keywordQueryJSON});
-            mockMapFiltersFormToLabelValueList.mockReturnValue([]);
+        it('is true when there is no default query JSON, even without filters or a keyword', () => {
+            // Given a query that isn't bound to any search, e.g. after switching the type from Expenses to Trip
+            const tripQueryJSON: SearchQueryJSON = {...queryJSON, type: CONST.SEARCH.DATA_TYPES.TRIP};
+            mockSearchQueryContext({currentSearchQueryJSON: tripQueryJSON, currentSearchKey: undefined});
 
             // When the hook evaluates the query
-            const {result} = renderHook(() => useSearchFiltersBar(keywordQueryJSON));
+            const {result} = renderHook(() => useSearchFiltersBar(tripQueryJSON));
 
-            // Then the keyword alone is enough to save the search
+            // Then the search can be saved because no suggested or saved search already covers it, but there is nothing to reset to
             expect(result.current.hasFiltersOrKeywordChanged).toBe(true);
             expect(result.current.hasFiltersChanged).toBe(false);
+        });
+
+        it('is false when there is no current query', () => {
+            // Given neither a current nor a default query
+            mockSearchQueryContext({currentSearchKey: undefined});
+
+            // When the hook evaluates the query
+            const {result} = renderHook(() => useSearchFiltersBar(queryJSON));
+
+            // Then there is nothing to save
+            expect(result.current.hasFiltersOrKeywordChanged).toBe(false);
         });
     });
 
