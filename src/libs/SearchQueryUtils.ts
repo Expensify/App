@@ -1413,7 +1413,10 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
 }
 
 function isPolicyCollection(key: OnyxCollectionKey, data: unknown): data is OnyxCollection<OnyxTypes.Policy> {
-    return key === ONYXKEYS.COLLECTION.POLICY;
+    if (key !== ONYXKEYS.COLLECTION.POLICY) {
+        return false;
+    }
+    return !!data;
 }
 
 function getAllPolicyValues<T extends OnyxCollectionKey>(
