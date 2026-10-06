@@ -3438,9 +3438,9 @@ ${amount} pour ${merchant} - ${date}`,
             otherAccountingSoftware: 'Nom du logiciel',
         },
         interestedFeatures: {
-            title: 'Quelles fonctionnalités vous intéressent ?',
-            featuresAlreadyEnabled: 'Voici nos fonctionnalités les plus populaires :',
-            featureYouMayBeInterestedIn: 'Activer des fonctionnalités supplémentaires :',
+            title: 'Sélectionnez les fonctionnalités souhaitées',
+            featuresAlreadyEnabled: 'Votre espace de travail a déjà les éléments suivants activés :',
+            featureYouMayBeInterestedIn: 'Activez des fonctionnalités supplémentaires qui pourraient vous intéresser :',
         },
         error: {
             requiredFirstName: 'Veuillez saisir votre prénom pour continuer',
@@ -10099,7 +10099,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             title: 'Fusionner des notes de frais',
             description: 'Sélectionnez la note de frais à conserver. Toutes les dépenses y seront déplacées et les autres notes de frais seront supprimées.',
         },
-        percentOfSpend: ({percent}: {percent: string}) => `${percent} des dépenses`,
     },
     genericErrorPage: {
         title: 'Oups, quelque chose s’est mal passé !',
@@ -10462,6 +10461,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
     distance: {
         addStop: 'Ajouter un arrêt',
         address: 'Adresse',
+        reuseRoute: 'Réutiliser l’itinéraire',
+        reusePriorRoute: 'Réutiliser l’itinéraire précédent',
+        choosePreviousRoute: 'Choisissez un itinéraire précédent ci-dessous :',
+        findARoute: 'Trouver un itinéraire',
+        lastUsed: ({date}: {date: string}) => `Dernière utilisation le ${date}`,
+        end: 'Fin',
         waypointDescription: {
             start: 'Démarrer',
             stop: 'Arrêter',

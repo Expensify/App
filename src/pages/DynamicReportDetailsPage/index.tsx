@@ -1,7 +1,6 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
-import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -10,26 +9,19 @@ import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import {SUPER_WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider/WIDE_RIGHT_MODALS';
 
 import useActivePolicy from '@hooks/useActivePolicy';
-import useAncestors from '@hooks/useAncestors';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDeleteTransactions from '@hooks/useDeleteTransactions';
-import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
-import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
-import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -44,12 +36,9 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {ReportDetailsNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
 import Permissions from '@libs/Permissions';
 import {isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil, shouldShowPolicy} from '@libs/PolicyUtils';
-import {getOneTransactionThreadReportID, getOriginalMessage, getTrackExpenseActionableWhisper, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
+import {getTrackExpenseActionableWhisper, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {
-    canDeleteCardTransaction,
-    canDeleteTransaction,
     canLeaveChat,
-    canWriteInReport,
     findLastAccessedReport,
     getOriginalReportID,
     getParticipantsAccountIDsForDisplay,
@@ -58,7 +47,6 @@ import {
     isCanceledTaskReport as isCanceledTaskReportUtil,
     isChatRoom as isChatRoomUtil,
     isChatThread as isChatThreadUtil,
-    isClosedReport,
     isCompletedTaskReport,
     isConciergeChatReport,
     isDefaultRoom as isDefaultRoomUtil,
@@ -80,7 +68,7 @@ import {
     navigateBackOnDeleteTransaction,
     navigateToPrivateNotes,
 } from '@libs/ReportUtils';
-import {getDeleteConfirmationPrompt, getDeleteExpenseTitle, getOriginalTransactionWithSplitInfo, isDemoTransaction, isManagedCardTransaction} from '@libs/TransactionUtils';
+import {getDeleteConfirmationPrompt, getDeleteExpenseTitle, getOriginalTransactionWithSplitInfo} from '@libs/TransactionUtils';
 
 import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
 import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
@@ -90,18 +78,14 @@ import {createDraftTransactionAndNavigateToParticipantSelector} from '@userActio
 import {deleteTrackExpense, getNavigationUrlAfterTrackExpenseDelete} from '@userActions/IOU/TrackExpense';
 import {getReportPrivateNote, hasErrorInPrivateNotes, leaveGroupChat, leaveRoom, setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
-import {canActionTask, canModifyTask, reopenTask} from '@userActions/Task';
-import {deleteTask} from '@userActions/TaskDeletion';
+import {canActionTask, reopenTask} from '@userActions/Task';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-
-import type {OnyxEntry} from 'react-native-onyx';
 
 import {StackActions, useFocusEffect} from '@react-navigation/native';
 import {delegateEmailSelector} from '@selectors/Account';
@@ -111,9 +95,10 @@ import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
-import type {DynamicReportDetailsPageMenuItem} from './types';
+import type {DynamicReportDetailsPageMenuItem, ReportDetailsRequestData} from './types';
 
 import getReportDetailsCaseID from './getReportDetailsCaseID';
+import ReportDetailsActions from './ReportDetailsActions';
 import ReportDetailsAvatar from './ReportDetailsAvatar';
 import ReportDetailsDescription from './ReportDetailsDescription';
 import ReportDetailsNameSection from './ReportDetailsNameSection';
@@ -130,21 +115,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const activePolicy = useActivePolicy();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons([
-        'Users',
-        'Gear',
-        'Send',
-        'Folder',
-        'UserPlus',
-        'Pencil',
-        'Checkmark',
-        'Building',
-        'Exit',
-        'Bug',
-        'Trashcan',
-        'ArrowSplit',
-        'Hashtag',
-    ]);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Users', 'Gear', 'Send', 'Folder', 'UserPlus', 'Pencil', 'Checkmark', 'Building', 'Exit', 'Bug', 'Hashtag']);
     const navigateBackFromReportDetailsPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_DETAILS.path);
     const taskDeleteBackTo = Navigation.getTopmostSearchReportRouteParams()?.backTo;
 
@@ -152,17 +123,14 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`);
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
 
     const parentReportAction = useParentReportAction(report);
-    const hasOutstandingChildTask = useHasOutstandingChildTask(report);
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
     const [guideAccountIDs] = useOnyx(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
-    const {reportActions} = usePaginatedReportActions(report.reportID);
     const [reportActionsForOriginalReportID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`);
     // The report from which a tracked expense would be submitted/categorized/shared, and its actions -
     // createDraftTransactionAndNavigateToParticipantSelector uses them to find the linked track-expense action
@@ -171,11 +139,9 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
 
     const {removeTransaction} = useSearchSelectionActions();
 
-    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const [personalDetails] = useAllPersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -193,8 +159,6 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const filteredPoliciesInfoSelector = createFilteredPoliciesInfoSelector(currentUserEmail);
     const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: filteredPoliciesInfoSelector});
     const [preferredPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(preferredPolicyID)}`, {selector: billingRestrictionPolicySelector});
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const {showConfirmModal} = useConfirmModal();
     const isPolicyAdmin = isPolicyAdminUtil(policy);
     const isPolicyEmployee = isPolicyEmployeeUtil(report?.policyID, policy);
@@ -212,15 +176,11 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const isTrackExpenseReport = isTrackExpenseReportUtil(report, parentReport, parentReportAction);
     const isCanceledTaskReport = isCanceledTaskReportUtil(report, parentReportAction);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
-    const isTaskModifiable = canModifyTask(report, currentUserAccountID, isParentReportArchived);
     const isTaskActionable = canActionTask(report, parentReportAction, currentUserAccountID, parentReport, isParentReportArchived);
     const isExpenseReport = isMoneyRequestReport || isInvoiceReport || isMoneyRequest;
-    const isSingleTransactionView = isMoneyRequest || isTrackExpenseReport;
-    const isSelfDMTrackExpenseReport = isTrackExpenseReport && isSelfDMUtil(parentReport);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isArchivedRoom = isArchivedNonExpenseReport(report, isReportArchived);
     const base62ReportID = getBase62ReportID(Number(report.reportID));
-    const ancestors = useAncestors(report);
 
     const isSystemChat = isSystemChatUtil(report);
     const isGroupChat = isGroupChatUtil(report);
@@ -241,60 +201,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     });
 
     const isPrivateNotesFetchTriggered = reportLoadingState?.isLoadingPrivateNotes !== undefined;
-    const transactionThreadParentReportActionID = transactionThreadReport?.parentReportActionID;
-    // Without an ID to match, the scan can only ever miss, so skip it rather than walking every action.
-    const transactionThreadParentReportAction = transactionThreadParentReportActionID
-        ? reportActions?.find((action) => action.reportActionID === transactionThreadParentReportActionID)
-        : undefined;
-    const requestParentReportAction = caseID === CASES.MONEY_REPORT ? transactionThreadParentReportAction : parentReportAction;
-    const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(requestParentReportAction);
-    const [iouPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
-    const iouReportTransactionsCollection = useReportTransactionsCollection(iouReport?.reportID);
-    const iouReportTransactions = Object.values(iouReportTransactionsCollection);
-    const [requestParentReportActionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(requestParentReportAction?.childReportID)}`);
-    const [transactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(requestParentReportAction?.childReportID)}`);
-
-    const isActionOwner =
-        typeof requestParentReportAction?.actorAccountID === 'number' && typeof currentUserAccountID === 'number' && requestParentReportAction.actorAccountID === currentUserAccountID;
-    const isDeletedParentAction = isDeletedAction(requestParentReportAction);
-
-    const moneyRequestReport: OnyxEntry<OnyxTypes.Report> = caseID === CASES.MONEY_REQUEST ? parentReport : report;
-    const isMoneyRequestReportArchived = useReportIsArchived(moneyRequestReport?.reportID);
-    const [moneyRequestReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(moneyRequestReport?.reportID)}`);
-
-    const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
-    const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
-    const [iouOriginalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransaction?.comment?.originalTransactionID)}`);
     const hasWorkspaceToSubmitToSelector = createHasWorkspaceToSubmitToSelector(currentUserLogin);
     const [hasWorkspaceToSubmitTo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasWorkspaceToSubmitToSelector});
-    const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(iouTransactionID ? [iouTransactionID] : []);
-    const {deleteTransactions, shouldOpenSplitExpenseEditFlowOnDelete} = useDeleteTransactions({
-        report: parentReport,
-        reportActions: requestParentReportAction ? [requestParentReportAction] : [],
-        policy,
-    });
-
-    const shouldShowTaskDeleteButton =
-        isTaskReport &&
-        !isCanceledTaskReport &&
-        canWriteInReport(report) &&
-        report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED &&
-        !isClosedReport(report) &&
-        isTaskModifiable &&
-        isTaskActionable;
-    const canDeleteRequest =
-        (isActionOwner || (isPolicyAdmin && isManagedCardTransaction(iouTransaction))) &&
-        (canDeleteTransaction(moneyRequestReport, rules, isMoneyRequestReportArchived) || isSelfDMTrackExpenseReport) &&
-        !isDeletedParentAction;
-    const shouldShowDeleteButton = shouldShowTaskDeleteButton || (canDeleteRequest && canDeleteCardTransaction(iouTransaction, policy, cardList)) || isDemoTransaction(iouTransaction);
-
-    const shouldShowEditSplitOnDeleteAction = iouTransactionID ? shouldOpenSplitExpenseEditFlowOnDelete([iouTransactionID]) : false;
-    let deleteMenuItemTitle = translate('reportActionContextMenu.deleteAction', requestParentReportAction);
-    if (shouldShowEditSplitOnDeleteAction) {
-        deleteMenuItemTitle = translate('iou.editSplits');
-    } else if (caseID === CASES.DEFAULT) {
-        deleteMenuItemTitle = translate('common.delete');
-    }
 
     useEffect(() => {
         // Do not fetch private notes if the feature is disabled, isLoadingPrivateNotes is already defined, the network is offline, or if the report is a self DM.
@@ -309,12 +217,21 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         // Resolve on tap from the module-scoped copies so this large page does not subscribe to whole collections.
         const lastAccessedReportID = findLastAccessedReport(false, guideAccountIDs, false, report.reportID)?.reportID;
         if (isRootGroupChat) {
-            leaveGroupChat(report, quickAction?.chatReportID?.toString() === report.reportID, currentUserAccountID, conciergeReportID, introSelected, isSelfTourViewed, lastAccessedReportID);
+            leaveGroupChat(
+                report,
+                quickAction?.chatReportID?.toString() === report.reportID,
+                currentUserAccountID,
+                conciergeReportID,
+                introSelected,
+                isSelfTourViewed,
+                personalDetails,
+                lastAccessedReportID,
+            );
             return;
         }
 
         const isWorkspaceMemberLeavingWorkspaceRoom = isWorkspaceMemberLeavingWorkspaceRoomUtil(report, isPolicyEmployee, isPolicyAdmin);
-        leaveRoom(report, currentUserAccountID, conciergeReportID, introSelected, isSelfTourViewed, isWorkspaceMemberLeavingWorkspaceRoom, lastAccessedReportID);
+        leaveRoom(report, currentUserAccountID, conciergeReportID, introSelected, isSelfTourViewed, personalDetails, isWorkspaceMemberLeavingWorkspaceRoom, lastAccessedReportID);
     };
 
     const showLastMemberLeavingModal = async () => {
@@ -347,7 +264,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const shouldShowWriteCapability = !isMoneyRequestReport;
     const shouldShowMenuItem = shouldShowNotificationPref || shouldShowWriteCapability || (!!report?.visibility && report.chatType !== CONST.REPORT.CHAT_TYPE.INVOICE);
 
-    const menuItems: DynamicReportDetailsPageMenuItem[] = (() => {
+    const getMenuItems = (requestData?: ReportDetailsRequestData): DynamicReportDetailsPageMenuItem[] => {
         const items: DynamicReportDetailsPageMenuItem[] = [];
 
         if (isSelfDM) {
@@ -426,7 +343,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
             });
         }
 
-        if (isTrackExpenseReport && !isDeletedParentAction) {
+        if (isTrackExpenseReport && requestData && !requestData.isDeletedParentAction) {
+            const {iouTransactionID, moneyRequestReport, moneyRequestReportActions, iouTransaction, iouOriginalTransaction} = requestData;
             const whisperAction = getTrackExpenseActionableWhisper(iouTransactionID, moneyRequestReport?.reportID, moneyRequestReportActions);
             const actionableWhisperReportActionID = whisperAction?.reportActionID;
             const currentUserLocalCurrency = currentUserLocalCurrencyCode ?? CONST.CURRENCY.USD;
@@ -627,29 +545,42 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         }
 
         return items;
-    })();
+    };
 
-    const deleteTransaction = () => {
-        if (caseID === CASES.DEFAULT) {
-            deleteTask(
-                report,
-                parentReport,
-                isReportArchived,
-                currentUserAccountID,
-                hasOutstandingChildTask,
-                parentReportAction,
-                conciergeReportID,
-                delegateEmail,
-                reportActionsForOriginalReportID,
-                {
-                    ancestors,
-                    shouldNavigateBack: !taskDeleteBackTo,
-                    lastAccessedReportID: findLastAccessedReport(false, guideAccountIDs, false, report.reportID)?.reportID,
-                },
-            );
-            return;
-        }
+    const renderMenu = (requestData?: ReportDetailsRequestData) =>
+        getMenuItems(requestData).map((item) => (
+            <MenuItem
+                key={item.key}
+                title={translate(item.translationKey)}
+                subtitle={item.subtitle}
+                icon={item.icon}
+                onPress={item.action}
+                isAnonymousAction={item.isAnonymousAction}
+                shouldShowRightIcon={item.shouldShowRightIcon}
+                brickRoadIndicator={item.brickRoadIndicator}
+                subtitleStyle={item.subtitleStyle}
+            />
+        ));
 
+    const deleteTransaction = ({
+        requestParentReportAction,
+        iouTransaction,
+        iouOriginalTransaction,
+        moneyRequestReport,
+        moneyRequestReportActions,
+        transactionThreadReportActions,
+        iouTransactionID,
+        iouReport,
+        iouReportTransactions,
+        chatIOUReport,
+        duplicateTransactions,
+        duplicateTransactionViolations,
+        isSingleTransactionView,
+        isMoneyRequestReportArchived,
+        isChatIOUReportArchived,
+        iouPolicy,
+        deleteTransactions,
+    }: ReportDetailsRequestData) => {
         if (!requestParentReportAction) {
             return;
         }
@@ -689,11 +620,22 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     };
 
     // Where to navigate back to after deleting the transaction and its report.
-    const navigateToTargetUrl = () => {
+    const navigateToTargetUrl = (requestData?: ReportDetailsRequestData) => {
         if (caseID === CASES.DEFAULT && taskDeleteBackTo) {
             Navigation.goBack(taskDeleteBackTo);
             return;
         }
+
+        const requestParentReportAction = requestData ? requestData.requestParentReportAction : parentReportAction;
+        const {
+            moneyRequestReport,
+            iouTransactionID,
+            iouReport,
+            chatIOUReport,
+            isChatIOUReportArchived,
+            isSingleTransactionView,
+            requestParentReportActionChildReport,
+        }: Partial<ReportDetailsRequestData> = requestData ?? {};
 
         let urlToNavigateBack: string | undefined;
         // Only proceed with navigation logic if transaction was actually deleted
@@ -764,10 +706,10 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         }
     };
 
-    const showDeleteModal = async () => {
-        const deletePrompt = caseID === CASES.DEFAULT ? translate('task.deleteConfirmation') : getDeleteConfirmationPrompt(translate, iouTransaction);
+    const showDeleteModal = async (requestData: ReportDetailsRequestData | undefined, onDelete: () => void) => {
+        const deletePrompt = caseID === CASES.DEFAULT ? translate('task.deleteConfirmation') : getDeleteConfirmationPrompt(translate, requestData?.iouTransaction);
         const {action} = await showConfirmModal({
-            title: caseID === CASES.DEFAULT ? translate('task.deleteTask') : getDeleteExpenseTitle(translate, iouTransaction),
+            title: caseID === CASES.DEFAULT ? translate('task.deleteTask') : getDeleteExpenseTitle(translate, requestData?.iouTransaction),
             prompt: deletePrompt,
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
@@ -777,17 +719,17 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         if (action !== ModalActions.CONFIRM) {
             return;
         }
-        const shouldOpenSplitExpenseEditFlow = iouTransactionID ? shouldOpenSplitExpenseEditFlowOnDelete([iouTransactionID]) : false;
+        const shouldOpenSplitExpenseEditFlow = requestData?.iouTransactionID ? requestData.shouldOpenSplitExpenseEditFlowOnDelete([requestData.iouTransactionID]) : false;
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             if (shouldOpenSplitExpenseEditFlow) {
-                deleteTransaction();
+                onDelete();
                 return;
             }
 
-            navigateToTargetUrl();
+            navigateToTargetUrl(requestData);
             // Delay deletion until the RHP close animation finishes to prevent a brief
             // "Not Found" flash inside the animating-out panel on slower devices.
-            TransitionTracker.runAfterTransitions({callback: deleteTransaction, waitForUpcomingTransition: true});
+            TransitionTracker.runAfterTransitions({callback: onDelete, waitForUpcomingTransition: true});
         });
     };
 
@@ -829,28 +771,12 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
 
                     <ReportDetailsPromotedActions reportID={report.reportID} />
 
-                    {menuItems.map((item) => (
-                        <MenuItem
-                            key={item.key}
-                            title={translate(item.translationKey)}
-                            subtitle={item.subtitle}
-                            icon={item.icon}
-                            onPress={item.action}
-                            isAnonymousAction={item.isAnonymousAction}
-                            shouldShowRightIcon={item.shouldShowRightIcon}
-                            brickRoadIndicator={item.brickRoadIndicator}
-                            subtitleStyle={item.subtitleStyle}
-                        />
-                    ))}
-
-                    {shouldShowDeleteButton && (
-                        <MenuItemAction
-                            key={CONST.REPORT_DETAILS_MENU_ITEM.DELETE}
-                            icon={shouldShowEditSplitOnDeleteAction ? expensifyIcons.ArrowSplit : expensifyIcons.Trashcan}
-                            title={deleteMenuItemTitle}
-                            onPress={shouldShowEditSplitOnDeleteAction ? deleteTransaction : showDeleteModal}
-                        />
-                    )}
+                    <ReportDetailsActions
+                        reportID={report.reportID}
+                        renderMenu={renderMenu}
+                        showDeleteModal={showDeleteModal}
+                        deleteTransaction={deleteTransaction}
+                    />
                 </ScrollView>
             </FullPageNotFoundView>
         </ScreenWrapper>
