@@ -2,9 +2,15 @@ import {clearPendingRHPWidth, consumePendingRHPWidth, markPendingRHPWidth} from 
 
 import CONST from '@src/CONST';
 
+/** Every report the tests leave a width for. The widths live in module state, which outlives a test. */
+const TEST_REPORT_IDS = ['report1', 'report2', 'thread1'];
+
 describe('pendingRHPWidths', () => {
     afterEach(() => {
         jest.useRealTimers();
+        for (const reportID of TEST_REPORT_IDS) {
+            clearPendingRHPWidth(reportID);
+        }
     });
 
     it('hands a width to the screen it was left for', () => {

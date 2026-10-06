@@ -67,7 +67,7 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use a correct layout for the hold expense modal https://github.com/Expensify/App/pull/47990#issuecomment-2362382026
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth, isMediumScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const route = useRoute<
         | PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
         | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>
@@ -101,8 +101,17 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
     const isReportInRHP = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
     const isFromReviewDuplicates = !!route.params.backTo && /\/duplicates\/review\/[^/]+$/.test(route.params.backTo.replaceAll(/\?.*/g, ''));
     const shouldDisplayTransactionNavigation = !!(reportID && isReportInRHP);
+    // `transaction` is resolved through this thread's parent report action, which isn't necessarily loaded yet on
+    // a cold open (e.g. opening an expense from the Spend page right after clearing the cache). The route carries
+    // the expense the screen was opened for, so fall back to it rather than hiding the carousel until data lands.
+    const anchorTransactionIDFromRoute = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? route.params.anchorTransactionID : undefined;
+    const carouselTransactionID = transaction?.transactionID ?? anchorTransactionIDFromRoute;
     const shouldOpenParentReportInCurrentTab = !isSelfDM(parentReport);
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine() && (wideRHPRouteKeys.length === 0 || isSmallScreenWidth);
+    // Only the carousel counter reads this, and MoneyReportHeader counts tablet-portrait as cramped for the same
+    // counter. The two have to agree: derived from different breakpoints, the counter was hidden on a report and
+    // shown on its own expense thread at one window size, popping into existence as the user stepped inward.
+    const shouldDisplayNarrowVersion = shouldDisplayButtonsInSeparateLine || (isMediumScreenWidth && !isInLandscapeMode);
 
     const getStatusIcon: (src: IconAsset) => ReactNode = (src) => (
         <Icon
@@ -179,16 +188,17 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
                 shouldEnableDetailPageNavigation
                 openParentReportInCurrentTab={shouldOpenParentReportInCurrentTab}
             >
-                {!shouldDisplayButtonsInSeparateLine && (
+                {!shouldDisplayButtonsInSeparateLine && !statusBarProps && (
                     <MoneyRequestHeaderActions
                         reportID={reportID}
                         onBackButtonPress={onBackButtonPress}
                     />
                 )}
-                {shouldDisplayTransactionNavigation && !!transaction && (
+                {shouldDisplayTransactionNavigation && !!carouselTransactionID && (
                     <MoneyRequestReportTransactionsNavigation
-                        currentTransactionID={transaction.transactionID}
+                        currentTransactionID={carouselTransactionID}
                         isFromReviewDuplicates={isFromReviewDuplicates}
+                        shouldDisplayNarrowVersion={shouldDisplayNarrowVersion}
                     />
                 )}
             </HeaderWithBackButton>
@@ -199,11 +209,19 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
                 />
             )}
             {!!statusBarProps && (
-                <View style={[styles.ph5, styles.pb3]}>
-                    <MoneyRequestHeaderStatusBar
-                        icon={statusBarProps.icon}
-                        description={statusBarProps.description}
-                    />
+                <View style={[styles.flexRow, styles.gap2, styles.justifyContentStart, styles.flexNoWrap, styles.ph5, styles.pb3]}>
+                    <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.flexWrap, styles.justifyContentCenter]}>
+                        <MoneyRequestHeaderStatusBar
+                            icon={statusBarProps.icon}
+                            description={statusBarProps.description}
+                        />
+                    </View>
+                    {!shouldDisplayButtonsInSeparateLine && (
+                        <MoneyRequestHeaderActions
+                            reportID={reportID}
+                            onBackButtonPress={onBackButtonPress}
+                        />
+                    )}
                 </View>
             )}
             <HeaderLoadingBar />

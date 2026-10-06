@@ -12,6 +12,7 @@ import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {CAROUSEL_SOURCE} from '@libs/actions/TransactionThreadNavigation';
 import {getMoneyRequestSpendBreakdown, getReportOfflinePendingActionAndErrors, isExpenseReport, isIOUReport} from '@libs/ReportUtils';
 import {getTransactionPendingAction} from '@libs/TransactionUtils';
 
@@ -231,7 +232,7 @@ function MoneyRequestReportTransactionList({
         shouldGroupTransactions,
         isOffline,
     });
-    useMoneyRequestReportActiveTransactionIDs(visualOrderTransactionIDs);
+    useMoneyRequestReportActiveTransactionIDs(visualOrderTransactionIDs, report?.reportID);
 
     const {isMobileSelectionModeEnabled, toggleTransaction, isTransactionSelected, groupSelectionState, toggleGroupSelection, selectableTransactionIDs, toggleAll} =
         useMoneyRequestReportTransactionSelection({
@@ -260,6 +261,9 @@ function MoneyRequestReportTransactionList({
             report,
             transaction: sortedTransactions.find((t) => t.transactionID === activeTransactionID),
             siblingTransactionIDs: visualOrderTransactionIDs,
+            // Not `carouselSource`: this list unmounts behind the expense it just opened, and its teardown must
+            // not clear the carousel it seeded for that expense.
+            carouselSource: CAROUSEL_SOURCE.reportRow(report?.reportID),
         });
     };
 

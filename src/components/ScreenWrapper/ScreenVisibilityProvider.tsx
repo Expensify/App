@@ -4,7 +4,7 @@ import React, {useEffect, useLayoutEffect, useState} from 'react';
 
 import type {ScreenVisibilityStore} from './ScreenVisibilityContext';
 
-import ScreenVisibilityContext from './ScreenVisibilityContext';
+import ScreenVisibilityContext, {ScreenVisibleInRenderContext} from './ScreenVisibilityContext';
 
 type ScreenVisibilityProviderProps = {
     isVisible: boolean;
@@ -51,7 +51,11 @@ function ScreenVisibilityProvider({isVisible, children}: ScreenVisibilityProvide
         store.setIsVisible(true);
     }, [store, isVisible]);
 
-    return <ScreenVisibilityContext.Provider value={store}>{children}</ScreenVisibilityContext.Provider>;
+    return (
+        <ScreenVisibilityContext.Provider value={store}>
+            <ScreenVisibleInRenderContext.Provider value={isVisible}>{children}</ScreenVisibleInRenderContext.Provider>
+        </ScreenVisibilityContext.Provider>
+    );
 }
 
 export default ScreenVisibilityProvider;

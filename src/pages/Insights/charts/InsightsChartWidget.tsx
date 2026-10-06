@@ -117,8 +117,6 @@ function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGr
                                 ? (rows) => (
                                       <InsightsDataTable
                                           rows={rows}
-                                          view={chart.view}
-                                          groupBy={groupBy}
                                           isLoading={isLoading}
                                       />
                                   )
