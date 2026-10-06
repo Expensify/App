@@ -27,7 +27,7 @@ import type {
     Transaction,
     WorkspaceCardsList,
 } from '@src/types/onyx';
-import type {IssueNewCard, IssueNewCardData, UnassignedCard} from '@src/types/onyx/Card';
+import type {CardLimitType, IssueNewCard, IssueNewCardData, UnassignedCard} from '@src/types/onyx/Card';
 import type {
     BankName,
     CardFeed,
@@ -496,6 +496,16 @@ function getDefaultExpensifyCardLimitType(policy?: OnyxEntry<Policy>): ValueOf<t
     return areApprovalsConfigured ? CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART : CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY;
 }
 
+/**
+ * Cards issued before a limit type was stored have none, and those fall back to the policy default rather than to the
+ * `smartLimit` translation `getTranslationKeyForLimitType` returns for a missing type. Everything that shows a card's
+ * limit type has to resolve it the same way, or the visible text, accessibility label, sort order, column width and
+ * CSV export disagree with each other.
+ */
+function getDisplayedExpensifyCardLimitType(limitType: CardLimitType | undefined, defaultLimitType: CardLimitType): CardLimitType {
+    return limitType ?? defaultLimitType;
+}
+
 function getTranslationKeyForLimitType(limitType: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES> | undefined): TranslationPaths {
     switch (limitType) {
         case CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART:
@@ -508,6 +518,110 @@ function getTranslationKeyForLimitType(limitType: ValueOf<typeof CONST.EXPENSIFY
             return 'workspace.card.issueNewCard.singleUse';
         default:
             return 'workspace.card.issueNewCard.smartLimit';
+    }
+}
+
+/**
+ * Switching from Monthly or Fixed to Smart, or from Smart or Fixed to Monthly, can start
+ * declining new spend when unapproved spend is already at the limit.
+ */
+const EXPENSIFY_CARD_LIMIT_TYPE_CHANGE_CONFIRMATION_COMBINATIONS: Array<[CardLimitType, CardLimitType]> = [
+    [CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY, CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART],
+    [CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART, CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY],
+    [CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED, CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART],
+    [CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED, CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY],
+];
+
+/**
+ * Whether Fixed should be offered when editing an Expensify card's limit type.
+ * Hidden when a monthly or Smart card has already spent its full unapproved limit.
+ * `fallbackLimitType` is the policy default, used when the card has no `limitType` yet.
+ */
+function shouldShowExpensifyCardFixedLimitType(card?: Card, fallbackLimitType?: CardLimitType): boolean {
+    if (!card?.totalSpend || !card.nameValuePairs?.unapprovedExpenseLimit) {
+        return true;
+    }
+
+    const currentLimitType = card.nameValuePairs.limitType ?? fallbackLimitType;
+    if (currentLimitType !== CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY && currentLimitType !== CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART) {
+        return true;
+    }
+
+    return Math.abs(card.totalSpend) < card.nameValuePairs.unapprovedExpenseLimit;
+}
+
+/**
+ * Smart and Monthly are always offered. Fixed is hidden once spend is already at the limit, and Single Use only exists on virtual cards.
+ */
+function getVisibleExpensifyCardLimitTypes(card: Card | undefined, policy: OnyxEntry<Policy>): CardLimitType[] {
+    const limitTypes: CardLimitType[] = [CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART, CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY];
+    if (shouldShowExpensifyCardFixedLimitType(card, getDefaultExpensifyCardLimitType(policy))) {
+        limitTypes.push(CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED);
+    }
+    if (card?.nameValuePairs?.isVirtual) {
+        limitTypes.push(CONST.EXPENSIFY_CARD.LIMIT_TYPES.SINGLE_USE);
+    }
+    return limitTypes;
+}
+
+/**
+ * Whether changing to `newLimitType` can decline new transactions because unapproved spend is already at the limit.
+ * `fallbackLimitType` is the policy default, used when the card has no `limitType` yet.
+ */
+function shouldConfirmExpensifyCardLimitTypeChange(card: Card | undefined, newLimitType: CardLimitType, fallbackLimitType?: CardLimitType): boolean {
+    if (!card?.unapprovedSpend || !card.nameValuePairs?.unapprovedExpenseLimit) {
+        return false;
+    }
+
+    const unapprovedSpend = Math.abs(card.unapprovedSpend);
+    if (unapprovedSpend < card.nameValuePairs.unapprovedExpenseLimit) {
+        return false;
+    }
+
+    const currentLimitType = card.nameValuePairs.limitType ?? fallbackLimitType;
+    return EXPENSIFY_CARD_LIMIT_TYPE_CHANGE_CONFIRMATION_COMBINATIONS.some(([fromLimitType, toLimitType]) => currentLimitType === fromLimitType && newLimitType === toLimitType);
+}
+
+/**
+ * Warning copy for a limit-type change that would start declining transactions.
+ * Monthly and Fixed warn about switching to Smart; every other current type warns about Monthly.
+ */
+function getExpensifyCardLimitTypeChangeWarningKey(
+    currentLimitType: CardLimitType | undefined,
+): 'workspace.expensifyCard.changeCardSmartLimitTypeWarning' | 'workspace.expensifyCard.changeCardMonthlyLimitTypeWarning' {
+    if (currentLimitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY || currentLimitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED) {
+        return 'workspace.expensifyCard.changeCardSmartLimitTypeWarning';
+    }
+
+    return 'workspace.expensifyCard.changeCardMonthlyLimitTypeWarning';
+}
+
+type ExpensifyCardLimitChangeWarningKey = 'workspace.expensifyCard.smartLimitWarning' | 'workspace.expensifyCard.monthlyLimitWarning' | 'workspace.expensifyCard.fixedLimitWarning';
+
+/**
+ * Remaining spend after applying `newLimit` in cents. Current spend is
+ * `unapprovedExpenseLimit - availableSpend`, matching the RHP limit form so inline
+ * table edits use the same formula.
+ */
+function getExpensifyCardNewAvailableSpend(card: Card | undefined, newLimit: number): number {
+    const currentLimit = card?.nameValuePairs?.unapprovedExpenseLimit ?? 0;
+    const currentSpend = currentLimit - (card?.availableSpend ?? 0);
+    return newLimit - currentSpend;
+}
+
+/**
+ * Warning copy when a new limit would leave remaining spend at or below zero.
+ * Matches the RHP limit form so inline edits and the full-page form stay in sync.
+ */
+function getExpensifyCardLimitChangeWarningKey(limitType: CardLimitType | undefined): ExpensifyCardLimitChangeWarningKey {
+    switch (limitType) {
+        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART:
+            return 'workspace.expensifyCard.smartLimitWarning';
+        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY:
+            return 'workspace.expensifyCard.monthlyLimitWarning';
+        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED:
+        default:
+            return 'workspace.expensifyCard.fixedLimitWarning';
     }
 }
 
@@ -1257,6 +1371,84 @@ function shouldShowShippingAddressStep(data: Partial<IssueNewCardData> | undefin
 /** The admin enters a phone number for the shipping label when they entered the address and the cardholder has no phone number */
 function shouldShowPhoneNumberStep(issueNewCard: OnyxEntry<IssueNewCard>): boolean {
     return shouldShowShippingAddressStep(issueNewCard?.data) && !!issueNewCard?.data?.shippingAddress && issueNewCard?.hasAssigneePhoneNumber !== true;
+}
+
+/** The reason a proposed card name is invalid. Callers translate it via `getCardNameErrorMessage`. */
+type CardNameError = typeof CONST.INPUT_VALIDATION_ERRORS.REQUIRED | typeof CONST.INPUT_VALIDATION_ERRORS.TOO_LONG;
+
+/**
+ * Validates a card name. Sanitize first so RHP forms, assign/issue steps, and inline
+ * table edits reject and persist the same value.
+ */
+function getCardNameError(newName: string): CardNameError | undefined {
+    const sanitized = StringUtils.sanitizeName(newName);
+
+    if (StringUtils.isEmptyString(sanitized)) {
+        return CONST.INPUT_VALIDATION_ERRORS.REQUIRED;
+    }
+
+    if (StringUtils.getUTF8ByteLength(sanitized) > CONST.STANDARD_LENGTH_LIMIT) {
+        return CONST.INPUT_VALIDATION_ERRORS.TOO_LONG;
+    }
+
+    return undefined;
+}
+
+/** Translates a {@link CardNameError} into a user-facing message for the given name. */
+function getCardNameErrorMessage(translate: LocaleContextProps['translate'], error: CardNameError, name: string): string {
+    switch (error) {
+        case CONST.INPUT_VALIDATION_ERRORS.REQUIRED:
+            return translate('common.error.fieldRequired');
+        case CONST.INPUT_VALIDATION_ERRORS.TOO_LONG:
+        default:
+            return translate('common.error.characterLimitExceedCounter', StringUtils.getUTF8ByteLength(StringUtils.sanitizeName(name)), CONST.STANDARD_LENGTH_LIMIT);
+    }
+}
+
+/** The reason a proposed Expensify card limit is invalid. Callers translate it via `getExpensifyCardLimitErrorMessage`. */
+type ExpensifyCardLimitError =
+    | typeof CONST.INPUT_VALIDATION_ERRORS.REQUIRED
+    | typeof CONST.INPUT_VALIDATION_ERRORS.INVALID
+    | typeof CONST.INPUT_VALIDATION_ERRORS.NOT_INTEGER
+    | typeof CONST.INPUT_VALIDATION_ERRORS.TOO_HIGH;
+
+/**
+ * Validates an Expensify card limit against the same rules the RHP edit form uses.
+ * `newLimit` is the dollar amount as a string. Returns an error code, or undefined when the limit is valid.
+ */
+function getExpensifyCardLimitError(newLimit: string): ExpensifyCardLimitError | undefined {
+    if (!newLimit) {
+        return CONST.INPUT_VALIDATION_ERRORS.REQUIRED;
+    }
+
+    if (Number.isNaN(Number(newLimit))) {
+        return CONST.INPUT_VALIDATION_ERRORS.INVALID;
+    }
+
+    if (!Number.isInteger(Number(newLimit))) {
+        return CONST.INPUT_VALIDATION_ERRORS.NOT_INTEGER;
+    }
+
+    if (Number(newLimit) > CONST.EXPENSIFY_CARD.LIMIT_VALUE) {
+        return CONST.INPUT_VALIDATION_ERRORS.TOO_HIGH;
+    }
+
+    return undefined;
+}
+
+/** Translates an {@link ExpensifyCardLimitError} into a user-facing message. */
+function getExpensifyCardLimitErrorMessage(translate: LocaleContextProps['translate'], error: ExpensifyCardLimitError): string {
+    switch (error) {
+        case CONST.INPUT_VALIDATION_ERRORS.REQUIRED:
+            return translate('common.error.fieldRequired');
+        case CONST.INPUT_VALIDATION_ERRORS.NOT_INTEGER:
+            return translate('iou.error.invalidIntegerAmount');
+        case CONST.INPUT_VALIDATION_ERRORS.TOO_HIGH:
+            return translate('workspace.card.issueNewCard.cardLimitError');
+        case CONST.INPUT_VALIDATION_ERRORS.INVALID:
+        default:
+            return translate('iou.error.invalidAmount');
+    }
 }
 
 /** Resolves a company card's custom name, preferring the shared workspace NVP over the personal NVP. */
@@ -2303,6 +2495,12 @@ export {
     getCardFeedBackgroundColor,
     getCardFeedTextColor,
     getDefaultExpensifyCardLimitType,
+    getDisplayedExpensifyCardLimitType,
+    shouldShowExpensifyCardFixedLimitType,
+    shouldConfirmExpensifyCardLimitTypeChange,
+    getExpensifyCardLimitTypeChangeWarningKey,
+    getExpensifyCardNewAvailableSpend,
+    getExpensifyCardLimitChangeWarningKey,
     isExpensifyCard,
     isUkEuExpensifyCard,
     isOfflinePINMarket,
@@ -2317,6 +2515,7 @@ export {
     getMCardNumberString,
     getTranslationKeyForLimitType,
     getTranslationKeyForCardStatus,
+    getVisibleExpensifyCardLimitTypes,
     maskPin,
     getEligibleBankAccountsForCard,
     getExpensifyCardEnrollmentRoute,
@@ -2350,6 +2549,10 @@ export {
     getDefaultCardName,
     shouldShowShippingAddressStep,
     shouldShowPhoneNumberStep,
+    getCardNameError,
+    getCardNameErrorMessage,
+    getExpensifyCardLimitError,
+    getExpensifyCardLimitErrorMessage,
     getCompanyCardCustomName,
     getCardAssignmentDateOption,
     getCardAssignmentStartDate,
