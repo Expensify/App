@@ -80,9 +80,6 @@ type SettingsNavigatorParamList = {
         fieldToFocus?: string;
     };
     [SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS_CONFIRM_VALIDATE_CODE]: undefined;
-    [SCREENS.SETTINGS.PROFILE.ADDRESS]: {
-        country?: Country | '';
-    };
     [SCREENS.SETTINGS.PROFILE.DYNAMIC_ADDRESS_COUNTRY]: {
         country?: string;
     };

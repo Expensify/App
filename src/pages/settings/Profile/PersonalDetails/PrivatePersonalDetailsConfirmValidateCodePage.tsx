@@ -10,18 +10,42 @@ import {requestValidateCodeAction} from '@libs/actions/User';
 import {normalizeCountryCode} from '@libs/CountryUtils';
 import {getLatestErrorField, getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackNavigationState, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getPrivatePersonalDetailsFormValues} from '@libs/PersonalDetailsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {PersonalDetailsForm} from '@src/types/form';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useEffect, useRef} from 'react';
 
-function PrivatePersonalDetailsConfirmValidateCodePage() {
+type PrivatePersonalDetailsConfirmValidateCodePageProps = PlatformStackScreenProps<
+    SettingsNavigatorParamList,
+    typeof SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS_CONFIRM_VALIDATE_CODE
+>;
+
+/**
+ * The lost/damaged card flow opens the private personal details form to update the shipping address,
+ * so return there after a successful save instead of to the Profile page.
+ */
+function getBackRouteAfterSave(settingsNavigatorState: PlatformStackNavigationState<SettingsNavigatorParamList>): Route {
+    const privatePersonalDetailsIndex = settingsNavigatorState.routes.findLastIndex((route) => route.name === SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS);
+    const openerRoute = privatePersonalDetailsIndex > 0 ? settingsNavigatorState.routes.at(privatePersonalDetailsIndex - 1) : undefined;
+    const openerParams = openerRoute?.params;
+    if (openerRoute?.name !== SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED || !openerParams || !('cardID' in openerParams) || typeof openerParams.cardID !== 'string') {
+        return ROUTES.SETTINGS_PROFILE.route;
+    }
+    const isFromDomainCardDetail = 'isFromDomainCardDetail' in openerParams && !!openerParams.isFromDomainCardDetail;
+    return ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(openerParams.cardID, isFromDomainCardDetail);
+}
+
+function PrivatePersonalDetailsConfirmValidateCodePage({navigation}: PrivatePersonalDetailsConfirmValidateCodePageProps) {
     const {translate} = useLocalize();
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT);
@@ -53,10 +77,10 @@ function PrivatePersonalDetailsConfirmValidateCodePage() {
         if (wasLoading.current && !hasErrors) {
             wasLoading.current = false;
             clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
-            Navigation.goBack(ROUTES.SETTINGS_PROFILE.route);
+            Navigation.goBack(getBackRouteAfterSave(navigation.getState()));
         }
         wasLoading.current = false;
-    }, [privatePersonalDetails?.isLoading, hasErrors]);
+    }, [privatePersonalDetails?.isLoading, hasErrors, navigation]);
 
     // The parent page defers clearing the form draft to this page so the submission payload survives navigating
     // to the validateCode RHP. Clear it whenever we leave this page without validating, so an unvalidated edit

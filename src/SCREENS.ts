@@ -120,7 +120,6 @@ const SCREENS = {
             PRONOUNS: 'Settings_Pronouns',
             TIMEZONE: 'Settings_Timezone',
             TIMEZONE_SELECT: 'Settings_Timezone_Select',
-            ADDRESS: 'Settings_Address',
             PRIVATE_PERSONAL_DETAILS: 'Settings_PrivatePersonalDetails',
             PRIVATE_PERSONAL_DETAILS_CONFIRM_VALIDATE_CODE: 'Settings_PrivatePersonalDetails_ConfirmValidateCode',
             AVATAR: 'Settings_Avatar',
