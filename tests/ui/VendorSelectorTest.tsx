@@ -70,6 +70,7 @@ describe('VendorSelector', () => {
         render(
             <VendorSelector
                 policyID={undefined}
+                value={[]}
                 onChange={jest.fn()}
             />,
         );
@@ -87,6 +88,7 @@ describe('VendorSelector', () => {
         render(
             <VendorSelector
                 policyID={undefined}
+                value={[]}
                 onChange={jest.fn()}
             />,
         );
@@ -107,6 +109,7 @@ describe('VendorSelector', () => {
         render(
             <VendorSelector
                 policyID={{value: ['first'], isNegated: false}}
+                value={[]}
                 onChange={jest.fn()}
             />,
         );
