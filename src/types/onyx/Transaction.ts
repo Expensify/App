@@ -640,6 +640,12 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the transaction was created globally */
         isFromGlobalCreate?: boolean;
 
+        /**
+         * Whether the workspace was set to auto-categorize new expenses when this expense was created.
+         * Turning the setting on later does not categorize an expense that already exists.
+         */
+        wasAutoCategorizeEnabledOnCreation?: boolean;
+
         /** Whether the transaction was created from the FAB, including Global create button, FloatingCameraButton, QuickAction,... */
         isFromFloatingActionButton?: boolean;
 

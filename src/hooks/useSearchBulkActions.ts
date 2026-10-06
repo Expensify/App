@@ -55,7 +55,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import Parser from '@libs/Parser';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {canAccessPolicyBankAccount} from '@libs/PolicyPaymentUtils';
 import {getConnectedIntegration, isAdminOfCardEnabledPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getReportAccountingExportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
@@ -208,6 +207,24 @@ function isGroupSelection(key: string, transaction: SelectedTransactions[string]
 }
 
 /**
+ * How a selection on a grouped search has to be exported.
+ *
+ * Selecting a group stores its loaded children with isSelectedViaGroup. The group key is only stored when no children are loaded.
+ * Use isGroupSelection rather than the key prefix so exports include every item matching the group filter.
+ *
+ * `transactionIDList` drops the rows covered by that filter and keeps the rows the user ticked individually
+ * alongside them.
+ */
+function getGroupExportScope(queryJSON: SearchQueryJSON | undefined, selectedTransactions: SelectedTransactions): {isGroupExport: boolean; transactionIDList: string[]} {
+    const selectedTransactionsKeys = Object.keys(selectedTransactions);
+    const isGroupExport = !!queryJSON?.groupBy && Object.entries(selectedTransactions).some(([key, transaction]) => isGroupSelection(key, transaction));
+    return {
+        isGroupExport,
+        transactionIDList: isGroupExport ? selectedTransactionsKeys.filter((key) => !isGroupSelection(key, selectedTransactions[key])) : selectedTransactionsKeys,
+    };
+}
+
+/**
  * The group rows a selection covers in full.
  *
  * A group is fully selected when the number of selected children matches the group's remaining transaction
@@ -330,6 +347,39 @@ function addSelectedGroupsFilter(queryJSON: SearchQueryJSON, selectedTransaction
     });
 
     return buildSearchQueryJSON(buildSearchQueryString({...queryJSON, flatFilters: newFlatFilters})) ?? queryJSON;
+}
+
+/**
+ * Removes groupBy and limit from a query so a template export returns one row per expense.
+ * ExportSearchWithTemplate has no isGroupExport flag, so with groupBy it would return one row per group.
+ * Without groupBy, limit would cap the number of expenses, so we remove it as well.
+ */
+function getUngroupedTemplateExportQuery(queryJSON: SearchQueryJSON): SearchQueryJSON | undefined {
+    if (!queryJSON.groupBy) {
+        return queryJSON;
+    }
+    return buildSearchQueryJSON(
+        buildSearchQueryString({
+            ...queryJSON,
+            groupBy: undefined,
+            limit: undefined,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+        }),
+    );
+}
+
+/**
+ * The query a template export sends for a group selection.
+ *
+ * Returns undefined when the selected groups can't be turned into a filter, so the export never widens to the whole search.
+ */
+function getTemplateGroupExportQuery(queryJSON: SearchQueryJSON, selectedTransactions: SelectedTransactions, searchData: SearchResultDataType | undefined): SearchQueryJSON | undefined {
+    const groupFilteredQueryJSON = addSelectedGroupsFilter(queryJSON, selectedTransactions, searchData);
+    if (groupFilteredQueryJSON === queryJSON) {
+        return undefined;
+    }
+    return getUngroupedTemplateExportQuery(groupFilteredQueryJSON);
 }
 
 function getAllMatchingExportQueryAndExclusions(
@@ -633,6 +683,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
     // Search opens with only a subset of the user's cards, so "Auto report" needs the rest before it can read a
     // card's absence as no access. The request sets the flag in `finallyData`, so this fires once.
@@ -989,14 +1040,19 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 setIsOfflineModalVisible(true);
                 return;
             }
-            const serializedQuery = queryJSON ? serializeQueryJSONForBackend(queryJSON) : JSON.stringify(queryJSON);
-
             if (areAllMatchingItemsSelected) {
+                const allMatchingQueryJSON = queryJSON ? getUngroupedTemplateExportQuery(queryJSON) : undefined;
+                if (queryJSON && !allMatchingQueryJSON) {
+                    setIsDownloadErrorModalVisible(true);
+                    return;
+                }
                 queueExportSearchWithTemplate(
                     {
                         templateName,
                         templateType,
-                        jsonQuery: serializedQuery,
+                        // searchKey changes what the backend query matches (e.g. reconciliation includes Expensify Card cash back),
+                        // so the export must send it exactly as search() does or the exported set differs from the viewed set.
+                        jsonQuery: allMatchingQueryJSON ? serializeQueryJSONForBackend({...allMatchingQueryJSON, searchKey: currentSearchKey}) : JSON.stringify(queryJSON),
                         reportIDList: [],
                         transactionIDList: [],
                         policyID,
@@ -1005,19 +1061,23 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     true,
                 );
             } else {
-                const isGroupExport = !!queryJSON?.groupBy && selectedTransactionsKeys.some((key) => key.startsWith(CONST.SEARCH.GROUP_PREFIX));
+                const {isGroupExport, transactionIDList} = getGroupExportScope(queryJSON, selectedTransactions);
+                const groupExportQueryJSON = isGroupExport && queryJSON ? getTemplateGroupExportQuery(queryJSON, selectedTransactions, currentSearchResults?.data) : undefined;
+                if (isGroupExport && !groupExportQueryJSON) {
+                    setIsDownloadErrorModalVisible(true);
+                    return;
+                }
                 queueExportSearchWithTemplate(
                     {
                         templateName,
                         templateType,
-                        jsonQuery: isGroupExport
-                            ? serializeQueryJSONForBackend(
-                                  addSelectedGroupsFilter(queryJSON, selectedTransactions, currentSearchResults?.data),
-                                  getGroupExportExactMatchFilterKeys(queryJSON.groupBy),
-                              )
+                        // searchKey changes what the backend query matches (e.g. reconciliation includes Expensify Card cash back),
+                        // so the export must send it exactly as search() does or the exported set differs from the viewed set.
+                        jsonQuery: groupExportQueryJSON
+                            ? serializeQueryJSONForBackend({...groupExportQueryJSON, searchKey: currentSearchKey}, getGroupExportExactMatchFilterKeys(queryJSON?.groupBy))
                             : '{}',
                         reportIDList: isGroupExport ? [] : selectedTransactionReportIDs,
-                        transactionIDList: isGroupExport ? [] : selectedTransactionsKeys,
+                        transactionIDList,
                         policyID,
                         exportName,
                     },
@@ -1036,9 +1096,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             isOffline,
             areAllMatchingItemsSelected,
             currentSearchResults?.data,
+            currentSearchKey,
             queryJSON,
             selectedTransactionReportIDs,
-            selectedTransactionsKeys,
             selectAllMatchingItems,
             clearSelectedTransactions,
         ],
@@ -1047,10 +1107,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const policyIDsWithVBBA = useMemo(() => {
         const result = [];
         for (const policy of Object.values(policies ?? {})) {
-            // Bulk pay funds from the workspace bank account when no account was picked in the menu, so a workspace only
-            // counts here if the workspace account is actually shared with the current user. Anyone else has to open the
-            // report and pick an account of their own. That includes a payer the account was never shared with.
-            if (!policy || !canAccessPolicyBankAccount(policy, bankAccountList)) {
+            if (!policy?.achAccount?.bankAccountID) {
                 continue;
             }
 
@@ -1058,7 +1115,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         }
 
         return result;
-    }, [policies, bankAccountList]);
+    }, [policies]);
 
     const exportSearchData = searchResults?.data;
     const exportSearchType = searchResults?.search.type ?? queryJSON?.type;
@@ -1178,8 +1235,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return;
             }
 
-            const isGroupExport = !!queryJSON?.groupBy && Object.entries(selectedTransactions).some(([key, transaction]) => isGroupSelection(key, transaction));
-            const transactionIDList = isGroupExport ? selectedTransactionsKeys.filter((key) => !isGroupSelection(key, selectedTransactions[key])) : selectedTransactionsKeys;
+            const {isGroupExport, transactionIDList} = getGroupExportScope(queryJSON, selectedTransactions);
             let didFail = false;
             const reportIDList = selectedReports.length > 0 ? selectedReportIDs : selectedTransactionReportIDs;
             const queryJSONToExport = isGroupExport && queryJSON ? addSelectedGroupsFilter(queryJSON, selectedTransactions, currentSearchResults?.data) : queryJSON;
@@ -2018,7 +2074,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             const includeReportLevelExport = ((isExpenseReportType || typeInvoice) && areFullReportsSelected) || (typeExpense && !isExpenseReportType && isAllOneTransactionReport);
 
-            const isGroupedSearch = !!getValidGroupBy(queryJSON?.groupBy);
+            const groupBy = getValidGroupBy(queryJSON?.groupBy);
+            const isGroupedSearch = !!groupBy;
 
             const policy = selectedPolicyIDs.length === 1 ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyIDs.at(0)}`] : undefined;
             // The export templates available to the user, pre-grouped and sorted alphabetically. The basic export is part of the default group so it's sorted alongside
@@ -2046,6 +2103,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             const isReportsTab = isExpenseReportType;
             const includesGroupExport = isGroupedSearch && Object.entries(selectedTransactions).some(([key, selectedTransaction]) => isGroupSelection(key, selectedTransaction));
+            // Group selections are sent as query filters, not report or transaction IDs, so template exports are usually unavailable.
+            // Reconciliation - All Expenses is supported for card-grouped searches because selected card groups become a `cardID:`
+            // filter, which template reports can use to scope card spend.
+            const includesCardGroupExport = includesGroupExport && groupBy === CONST.SEARCH.GROUP_BY.CARD;
+            const customTemplatesToShow = includesCardGroupExport ? [] : availableCustomTemplates;
+            const defaultTemplatesToShow = includesCardGroupExport
+                ? availableDefaultTemplates.filter((template) => template.templateName === CONST.REPORT.EXPORT_OPTIONS.RECONCILIATION_ALL_EXPENSES)
+                : availableDefaultTemplates;
 
             const canReportBeExported = (report: (typeof selectedReports)[0], exportOption: ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>) => {
                 if (!report.reportID) {
@@ -2333,7 +2398,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 addSeparatorBefore: true,
             });
 
-            if (!allSelectedAreDeleted && !includesGroupExport) {
+            if (!allSelectedAreDeleted && (!includesGroupExport || includesCardGroupExport)) {
                 // Builds a single export sub-menu item for a template. `isDefaultTemplate` picks the icon and `addSeparatorBefore` draws the divider at the top of each group.
                 const buildExportOption = (template: ExportTemplate, isDefaultTemplate: boolean, addSeparatorBefore: boolean): ExportMenuItem => {
                     // The basic export is a plain CSV download, so it uses its own handler rather than the template export flow
@@ -2357,10 +2422,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 };
 
                 // Add each group's templates separately so the icon and the group-boundary divider come from the group itself, not from an index into a combined list.
-                for (const [index, template] of availableCustomTemplates.entries()) {
+                for (const [index, template] of customTemplatesToShow.entries()) {
                     exportOptions.push(buildExportOption(template, false, index === 0));
                 }
-                for (const [index, template] of availableDefaultTemplates.entries()) {
+                for (const [index, template] of defaultTemplatesToShow.entries()) {
                     exportOptions.push(buildExportOption(template, true, index === 0));
                 }
             } else if (!isGroupedSearch) {
@@ -3051,7 +3116,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         const firstTransactionKey = selectedTransactionsKeys.at(0);
         const firstTransactionMeta = firstTransactionKey ? selectedTransactions[firstTransactionKey] : undefined;
-        const canShowDeleteAction = shouldShowDeleteOption(selectedTransactions, currentSearchResults?.data, accountID, rules, selectedReports, queryJSON?.type);
+        const canShowDeleteAction = shouldShowDeleteOption(selectedTransactions, currentSearchResults?.data, accountID, rules, cardList, selectedReports, queryJSON?.type);
 
         const isSplittable = !!firstTransactionMeta?.canSplit;
         const isAlreadySplit = !!firstTransactionMeta?.hasBeenSplit;
@@ -3151,6 +3216,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         return buildResult(options);
     }, [
         selectedTransactionsKeys,
+        cardList,
         hash,
         selectedTransactions,
         excludedTransactions,
