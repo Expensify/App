@@ -2974,7 +2974,6 @@ export {
     getQueryHashes,
     hasFiltersChangedFromDefault,
     isSearchQuerySavable,
-    NON_SAVABLE_FILTER_KEYS,
     withExactMatchFilterKeys,
     isSearchDatePreset,
     getDateRangeForPreset,
