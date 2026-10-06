@@ -26,20 +26,12 @@ jest.mock('@hooks/useThemeStyles', () => jest.fn(() => new Proxy({}, {get: () =>
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
 
 type MockSelectionListProps = {
-    data: Array<{value?: number; keyForList?: string}>;
+    data: Array<{value?: number; keyForList?: string; text?: string; isSelected?: boolean}>;
     initiallyFocusedItemKey?: string;
     shouldScrollToFocusedIndexOnMount?: boolean;
     shouldUpdateFocusedIndex?: boolean;
     textInputOptions?: {onChangeText?: (value: string) => void};
 };
-
-/** Build `count` year items starting at `start` (e.g. 2014 → 2014..2027). */
-function buildYears(start: number, count: number) {
-    return Array.from({length: count}, (_, index) => {
-        const year = start + index;
-        return {text: String(year), value: year, keyForList: String(year)};
-    });
-}
 
 describe('YearPickerModal', () => {
     const mockedSelectionList = jest.mocked(SelectionList);
@@ -49,12 +41,50 @@ describe('YearPickerModal', () => {
         mockedSelectionList.mockClear();
     });
 
+    it('lists every year from minYear to maxYear with only the current year selected', () => {
+        // Given the calendar's year range and the year it shows
+        render(
+            <YearPickerModal
+                isVisible
+                minYear={2020}
+                maxYear={2024}
+                currentYear={2022}
+                onClose={jest.fn()}
+            />,
+        );
+
+        // When the picker opens
+        const data = getSelectionListProps()?.data ?? [];
+
+        // Then each year in the range is a row, and only the shown year is marked selected, because the modal builds the rows itself from these numbers
+        expect(data.map((year) => year.text).sort()).toEqual(['2020', '2021', '2022', '2023', '2024']);
+        expect(data.filter((year) => year.isSelected).map((year) => year.value)).toEqual([2022]);
+    });
+
+    it('lists no years when maxYear is before minYear', () => {
+        // Given an empty range, as inverted calendar bounds give
+        // When the picker renders
+        render(
+            <YearPickerModal
+                isVisible
+                minYear={2026}
+                maxYear={2023}
+                currentYear={2023}
+                onClose={jest.fn()}
+            />,
+        );
+
+        // Then the list is empty instead of the modal throwing, because no year falls in the range
+        expect(getSelectionListProps()?.data).toEqual([]);
+    });
+
     it('pins the current year to the top on open', () => {
         // Given a year list long enough for the pin to apply
         render(
             <YearPickerModal
                 isVisible
-                years={buildYears(2014, 14)}
+                minYear={2014}
+                maxYear={2027}
                 currentYear={2020}
                 onClose={jest.fn()}
             />,
@@ -75,7 +105,8 @@ describe('YearPickerModal', () => {
         render(
             <YearPickerModal
                 isVisible
-                years={buildYears(2014, 14)}
+                minYear={2014}
+                maxYear={2027}
                 currentYear={2020}
                 onClose={jest.fn()}
             />,
@@ -98,7 +129,8 @@ describe('YearPickerModal', () => {
         render(
             <YearPickerModal
                 isVisible
-                years={buildYears(2014, 14)}
+                minYear={2014}
+                maxYear={2027}
                 currentYear={currentYear}
                 onClose={jest.fn()}
             />,
@@ -116,7 +148,8 @@ describe('YearPickerModal', () => {
         render(
             <YearPickerModal
                 isVisible
-                years={buildYears(2014, 14)}
+                minYear={2014}
+                maxYear={2027}
                 currentYear={2024}
                 onClose={jest.fn()}
             />,
@@ -136,7 +169,8 @@ describe('YearPickerModal', () => {
         render(
             <YearPickerModal
                 isVisible
-                years={buildYears(2020, 5)}
+                minYear={2020}
+                maxYear={2024}
                 currentYear={2022}
                 onClose={jest.fn()}
             />,

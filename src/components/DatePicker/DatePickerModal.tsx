@@ -4,6 +4,8 @@ import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddi
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import DateUtils from '@libs/DateUtils';
+
 import {setDraftValues} from '@userActions/FormActions';
 
 import CONST from '@src/CONST';
@@ -11,7 +13,7 @@ import CONST from '@src/CONST';
 import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
-import {setYear} from 'date-fns';
+import {format} from 'date-fns';
 import React, {useEffect, useRef, useState} from 'react';
 
 import type {DatePickerProps} from './types';
@@ -32,8 +34,9 @@ function DatePickerModal({
     value,
     defaultValue,
     inputID,
-    minDate = setYear(new Date(), CONST.CALENDAR_PICKER.MIN_YEAR),
-    maxDate = setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR),
+    minDate,
+    maxDate,
+    isDateSelectable,
     onInputChange,
     onTouched,
     shouldSaveDraft = false,
@@ -65,7 +68,8 @@ function DatePickerModal({
         }
     }, [formID, inputID, selectedDate, shouldSaveDraft, value]);
 
-    const handleDateSelection = (newValue: string) => {
+    const handleDateSelection = (date: Date) => {
+        const newValue = format(date, CONST.DATE.FNS_FORMAT_STRING);
         onSelected?.(newValue);
         onTouched?.();
         onInputChange?.(newValue);
@@ -100,7 +104,8 @@ function DatePickerModal({
             <CalendarPicker
                 minDate={minDate}
                 maxDate={maxDate}
-                value={selectedDate}
+                isDateSelectable={isDateSelectable}
+                value={DateUtils.parseCalendarDate(selectedDate)}
                 onSelected={handleDateSelection}
                 containerStyle={bottomSafeAreaPaddingStyle}
                 shouldEnableMonthYearBackdropInNarrowPane={shouldEnableMonthYearBackdropInNarrowPane}

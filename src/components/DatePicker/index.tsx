@@ -18,7 +18,7 @@ import CONST from '@src/CONST';
 import type {ComponentRef} from 'react';
 import type {TextInputKeyPressEvent} from 'react-native';
 
-import {format, setYear} from 'date-fns';
+import {format} from 'date-fns';
 import debounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
@@ -35,8 +35,8 @@ function DatePicker({
     errorText,
     inputID,
     label,
-    minDate = setYear(new Date(), CONST.CALENDAR_PICKER.MIN_YEAR),
-    maxDate = setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR),
+    minDate,
+    maxDate,
     onInputChange,
     onTouched = () => {},
     placeholder,

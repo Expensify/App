@@ -33,7 +33,9 @@ import {
     isSameYear,
     isThisYear,
     isValid,
+    isWithinInterval,
     parse,
+    parseISO,
     set,
     startOfDay,
     startOfWeek,
@@ -333,6 +335,31 @@ function getCurrentTimezone(timezone: Timezone): Required<Timezone> {
 }
 
 /**
+ * Parses a stored `yyyy-MM-dd` date at local midnight, with leading zeros optional as in ValidationUtils.isValidDate.
+ * Other values, such as a date with a time, are read as ISO. Returns undefined for an empty value or one neither format can read.
+ */
+function parseCalendarDate(value?: string): Date | undefined {
+    if (!value) {
+        return undefined;
+    }
+    const date = parse(value, CONST.DATE.FNS_FORMAT_STRING, new Date());
+    if (isValid(date)) {
+        return date;
+    }
+    const dateTime = parseISO(value);
+    return isValid(dateTime) ? dateTime : undefined;
+}
+
+const CALENDAR_PICKER_RANGE = {start: startOfDay(CONST.CALENDAR_PICKER.MIN_DATE), end: endOfDay(CONST.CALENDAR_PICKER.MAX_DATE)};
+
+/**
+ * Whether a day falls between CONST.CALENDAR_PICKER.MIN_DATE and MAX_DATE, both days included.
+ */
+function isWithinCalendarPickerRange(date: Date): boolean {
+    return isWithinInterval(date, CALENDAR_PICKER_RANGE);
+}
+
+/**
  * @returns [January, February, March, April, May, June, July, August, ...]
  */
 function getMonthNames(dateFnsLocale: DateFnsLocale | undefined): string[] {
@@ -343,18 +370,6 @@ function getMonthNames(dateFnsLocale: DateFnsLocale | undefined): string[] {
     });
 
     return monthsArray.map((monthDate) => format(monthDate, CONST.DATE.MONTH_FORMAT, {locale: dateFnsLocale}));
-}
-
-/**
- * Returns month list items for SelectionList.
- */
-function getFilteredMonthItems(monthNames: string[], currentMonth: number) {
-    return monthNames.map((month, index) => ({
-        text: month.charAt(0).toUpperCase() + month.slice(1),
-        value: index,
-        keyForList: index.toString(),
-        isSelected: index === currentMonth,
-    }));
 }
 
 /**
@@ -1319,8 +1334,9 @@ const DateUtils = {
     isToday,
     isTomorrow,
     isYesterday,
+    parseCalendarDate,
+    isWithinCalendarPickerRange,
     getMonthNames,
-    getFilteredMonthItems,
     getDaysOfWeek,
     formatWithUTCTimeZone,
     formatMachineDateWithUTCTimeZone,
