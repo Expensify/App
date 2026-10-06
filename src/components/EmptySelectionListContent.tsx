@@ -6,8 +6,6 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import type {TupleToUnion} from 'type-fest';
-
 import React from 'react';
 import {View} from 'react-native';
 
@@ -19,19 +17,12 @@ type EmptySelectionListContentProps = {
     contentType: string;
 };
 
-const CONTENT_TYPES = [CONST.IOU.TYPE.CREATE, CONST.IOU.TYPE.SUBMIT];
-type ContentType = TupleToUnion<typeof CONTENT_TYPES>;
-
-function isContentType(contentType: unknown): contentType is ContentType {
-    return CONTENT_TYPES.includes(contentType as ContentType);
-}
-
 function EmptySelectionListContent({contentType}: EmptySelectionListContentProps) {
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['ToddWithPhones']);
     const {translate} = useLocalize();
 
-    if (!isContentType(contentType)) {
+    if (contentType !== CONST.IOU.TYPE.CREATE && contentType !== CONST.IOU.TYPE.SUBMIT) {
         return null;
     }
     const translationKeyContentType = CONST.IOU.TYPE.CREATE;

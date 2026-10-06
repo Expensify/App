@@ -38,6 +38,8 @@ const eReceiptAspectRatio = variables.eReceiptBGHWidth / variables.eReceiptBGHei
 function EReceiptWithSizeCalculation(props: EReceiptWithSizeCalculationProps) {
     const [scaleFactor, setScaleFactor] = useState(0);
     const styles = useThemeStyles();
+    const translateZTransform = styles.translateZ0.transform;
+    const translateZ = typeof translateZTransform === 'string' ? translateZTransform : '';
 
     const onLayout = (e: LayoutChangeEvent) => {
         const {width} = e.nativeEvent.layout;
@@ -57,7 +59,7 @@ function EReceiptWithSizeCalculation(props: EReceiptWithSizeCalculationProps) {
                 style={[
                     styles.w100,
                     styles.h100,
-                    {transform: `scale(${scaleFactor}) ${styles.translateZ0.transform as string}`, transformOrigin: 'top left'},
+                    {transform: `scale(${scaleFactor}) ${translateZ}`, transformOrigin: 'top left'},
                     (props.receiptType === 'perDiem' ? true : props.shouldUseAspectRatio) && {aspectRatio: eReceiptAspectRatio},
                 ]}
             >
