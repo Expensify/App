@@ -48,6 +48,7 @@ type ListFilterContentProps = SearchFilterCommonProps<SearchAdvancedFiltersForm[
 };
 
 type SingleSelectFilterKeys =
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE
@@ -251,6 +252,7 @@ function ListFilterContent({
             );
             break;
         }
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS:

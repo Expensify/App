@@ -653,7 +653,6 @@ const SKIPPED_SEARCH_FILTERS = new Set([
     FILTER_KEYS.TYPE,
     FILTER_KEYS.VIEW,
     FILTER_KEYS.PAYER,
-    FILTER_KEYS.ACTION,
     FILTER_KEYS.COLUMNS,
     FILTER_KEYS.KEYWORD,
 ]);
@@ -5509,6 +5508,10 @@ type FilterView = {
 };
 
 const FILTER_VIEW_MAP = {
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION]: {
+        labelKey: 'common.action',
+        icon: 'Bolt',
+    },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE]: {
         labelKey: 'task.assignee',
         icon: 'UserCheck',
@@ -5941,6 +5944,11 @@ function getDisplayValue(
         return transactionStatus ? translate(`search.filters.transactionStatus.${transactionStatus}`) : undefined;
     }
 
+    if (key === FILTER_KEYS.ACTION || key === FILTER_KEYS.ACTION_NOT) {
+        const action = form[key];
+        return isSearchActionFilter(action) ? translate(`search.filters.action.${action}`) : action;
+    }
+
     const formValue = form[key];
     return Array.isArray(formValue) ? formValue.join(', ') : formValue;
 }
@@ -6008,6 +6016,10 @@ function getLabelValue(key: SearchAdvancedFiltersKey, labelKey: TranslationPaths
 
 function shouldShowFilter(skipFilters: Set<SearchAdvancedFiltersKey> | undefined, key: SearchAdvancedFiltersKey, value: ValueOf<SearchAdvancedFiltersForm>, type: SearchDataTypes) {
     return !skipFilters?.has(key) && isFilterSupported(key, type) && value && (!Array.isArray(value) || value.length > 0);
+}
+
+function isSearchActionFilter(action: string | undefined): action is ValueOf<typeof CONST.SEARCH.ACTION_FILTERS> {
+    return Object.values(CONST.SEARCH.ACTION_FILTERS).some((actionFilter) => actionFilter === action);
 }
 
 function isTextFilterKey(key: string): key is SearchTextFilterKeys {
@@ -6163,6 +6175,13 @@ function getSingleSelectFilterOptions(filterKey: SearchAdvancedFiltersKey, trans
         return Object.values(CONST.SEARCH.TRANSACTION_STATUS).map((transactionStatus) => ({
             text: translate(`search.filters.transactionStatus.${transactionStatus}`),
             value: transactionStatus,
+        }));
+    }
+
+    if (filterKey === FILTER_KEYS.ACTION) {
+        return Object.values(CONST.SEARCH.ACTION_FILTERS).map((action) => ({
+            text: translate(`search.filters.action.${action}`),
+            value: action,
         }));
     }
 

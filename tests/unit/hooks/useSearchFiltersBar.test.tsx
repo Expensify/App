@@ -8,13 +8,13 @@ import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringWithResetFilters} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
+import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 
 const mockSetFilterQueryParams = jest.fn();
 const mockUpdateFilterQueryParams = jest.fn();
 const mockUseSearchResultsContext = jest.fn<Record<string, unknown>, []>();
 const mockUseSearchQueryContext = jest.fn<Record<string, unknown>, []>();
 const mockMapFiltersFormToLabelValueList = jest.fn<unknown[], unknown[]>();
-
 jest.mock('@components/Search/hooks/useUpdateFilterQuery', () => ({
     __esModule: true,
     default: () => ({setFilterQueryParams: mockSetFilterQueryParams, updateFilterQueryParams: mockUpdateFilterQueryParams}),
@@ -22,6 +22,7 @@ jest.mock('@components/Search/hooks/useUpdateFilterQuery', () => ({
 
 jest.mock('@libs/SearchUIUtils', () => ({
     mapFiltersFormToLabelValueList: (...args: unknown[]) => mockMapFiltersFormToLabelValueList(...args),
+    SKIPPED_SEARCH_FILTERS: jest.requireActual<{SKIPPED_SEARCH_FILTERS: Set<string>}>('@libs/SearchUIUtils').SKIPPED_SEARCH_FILTERS,
 }));
 
 jest.mock('@components/Search/SearchContext', () => ({
@@ -55,7 +56,7 @@ function mockSearchResultsContext(overrides: Record<string, unknown> = {}) {
 
 function mockSearchQueryContext(overrides: Record<string, unknown> = {}) {
     mockUseSearchQueryContext.mockReturnValue({
-        currentDefaultSearchQueryFilterKeys: [],
+        currentDefaultSearchQueryFilterKeys: new Set(),
         currentSearchQueryJSON: undefined,
         currentDefaultSearchQueryJSON: undefined,
         ...overrides,
@@ -116,6 +117,37 @@ describe('useSearchFiltersBar', () => {
             const {result} = renderHook(() => useSearchFiltersBar(queryJSON));
 
             expect(result.current.shouldShowResetFilters).toBe(false);
+        });
+    });
+
+    describe('skipped filters', () => {
+        function getSkippedFilters() {
+            const skippedFilters = mockMapFiltersFormToLabelValueList.mock.calls.at(-1)?.at(2);
+            return skippedFilters instanceof Set ? skippedFilters : undefined;
+        }
+
+        it('shows the action filter when it is not part of the default query', () => {
+            // Given a view whose default query has no action filter, like Spend > Reports
+            mockSearchQueryContext({currentDefaultSearchQueryFilterKeys: new Set([CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE])});
+
+            // When the filters bar is built
+            renderHook(() => useSearchFiltersBar(queryJSON));
+
+            // Then neither the action filter nor its negation is skipped, so either shows as a removable chip
+            expect(getSkippedFilters()?.has(CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION)).toBe(false);
+            expect(getSkippedFilters()?.has(FILTER_KEYS.ACTION_NOT)).toBe(false);
+        });
+
+        it('shows the action filter when it is part of the default query', () => {
+            // Given a to-do view whose default query is built from an action filter, like Approve
+            mockSearchQueryContext({currentDefaultSearchQueryFilterKeys: new Set([CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE, CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION])});
+
+            // When the filters bar is built
+            renderHook(() => useSearchFiltersBar(queryJSON));
+
+            // Then neither the action filter nor its negation is skipped, so the to-do view shows which action it uses
+            expect(getSkippedFilters()?.has(CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION)).toBe(false);
+            expect(getSkippedFilters()?.has(FILTER_KEYS.ACTION_NOT)).toBe(false);
         });
     });
 
