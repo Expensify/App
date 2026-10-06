@@ -4131,6 +4131,14 @@ describe('getViolationTranslation', () => {
             expectedMessage: 'Expense $12.34 or more',
         },
         {
+            description: 'an amount within a range',
+            filters: createAndFilter(
+                createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, 10000),
+                createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN, 20000),
+            ),
+            expectedMessage: 'Expense over $100.00 under $200.00',
+        },
+        {
             description: 'a merchant category code',
             filters: createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.MCC, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, 5812),
             expectedMessage: 'Expense at MCC 5812',
@@ -4224,13 +4232,17 @@ describe('getViolationTranslation', () => {
     ];
 
     it.each(ruleViolationTestCases)('should build a rule violation message for $description', ({filters, expectedMessage}) => {
+        // Given a rule violation that was generated from an Auth filter tree
         const violation: TransactionViolation = {
             name: CONST.VIOLATIONS.RULE_VIOLATION,
             type: CONST.VIOLATION_TYPES.VIOLATION,
             data: {filters},
         };
 
+        // When the client formats the violation for display
         const message = ViolationsUtils.getViolationTranslation({dateFnsLocale: undefined, violation, translate: translateLocal, convertToDisplayString});
+
+        // Then it should preserve every rule criterion so members can understand why the expense violates the policy
         expect(message).toBe(expectedMessage);
     });
 

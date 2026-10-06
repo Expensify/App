@@ -295,7 +295,7 @@ const RULE_VIOLATION_FILTER_ORDER = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.MCC,
 ];
 
-function flattenRuleViolationAndFilters(filters: RuleFilterNode, filtersByName: Map<string, RuleFilterNode>): boolean {
+function flattenRuleViolationAndFilters(filters: RuleFilterNode, filtersByName: Map<string, RuleFilterNode[]>): boolean {
     if (filters.operator === CONST.SEARCH.SYNTAX_OPERATORS.AND) {
         if (!isRuleFilterNode(filters.left) || !isRuleFilterNode(filters.right)) {
             return false;
@@ -307,7 +307,7 @@ function flattenRuleViolationAndFilters(filters: RuleFilterNode, filtersByName: 
         return false;
     }
 
-    filtersByName.set(filters.left, filters);
+    filtersByName.set(filters.left, [...(filtersByName.get(filters.left) ?? []), filters]);
     return true;
 }
 
@@ -328,7 +328,7 @@ function buildRuleViolationMessage(
         return translate('violations.ruleViolation.fallback');
     }
 
-    const filtersByName = new Map<string, RuleFilterNode>();
+    const filtersByName = new Map<string, RuleFilterNode[]>();
     if (!flattenRuleViolationAndFilters(filters, filtersByName)) {
         return translate('violations.ruleViolation.fallback');
     }
@@ -339,12 +339,13 @@ function buildRuleViolationMessage(
     let isAnyExpense = false;
     let hasMerchant = false;
 
-    for (const filterName of RULE_VIOLATION_FILTER_ORDER) {
-        const filter = filtersByName.get(filterName);
-        if (!filter) {
+    const orderedFilters = RULE_VIOLATION_FILTER_ORDER.flatMap((filterName) => filtersByName.get(filterName) ?? []);
+    for (const filter of orderedFilters) {
+        if (typeof filter.left !== 'string') {
             continue;
         }
 
+        const filterName = filter.left;
         const values = normalizeRuleViolationFilterValues(filter.right);
         if (values.length === 0) {
             continue;
