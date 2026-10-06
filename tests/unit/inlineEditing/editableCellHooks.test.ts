@@ -190,11 +190,17 @@ describe('useInlineEditState', () => {
 
         startInlineEditing(result);
 
-        // When an external rename lands before the user changes anything, then they blur
+        // When an external rename lands before the user changes anything
         rerender({value: 'renamed', canEdit: true});
+
+        // Then the open editor shows the rename instead of the stale buffer
+        expect(result.current.isEditing).toBe(true);
+        expect(result.current.localValue).toBe('renamed');
+
+        // When the user blurs
         saveInline(result);
 
-        // Then the cell shows the rename and does not write the stale buffer back over it
+        // Then the stale buffer is not written back over the rename
         expect(onSave).not.toHaveBeenCalled();
         expect(result.current.isEditing).toBe(false);
         expect(result.current.localValue).toBe('renamed');
@@ -209,11 +215,16 @@ describe('useInlineEditState', () => {
         startInlineEditing(result);
         setInlineValue(result, '1.00');
 
-        // When an external update lands, then the user blurs
+        // When an external update lands
         rerender({value: '2', canEdit: true});
+
+        // Then the normalized edit is not held as a draft
+        expect(result.current.localValue).toBe('2');
+
+        // When the user blurs
         saveInline(result);
 
-        // Then the normalized edit is not treated as a draft, so blur does not write "1.00" over the update
+        // Then "1.00" is not written back over the update
         expect(onSave).not.toHaveBeenCalled();
         expect(result.current.localValue).toBe('2');
     });
