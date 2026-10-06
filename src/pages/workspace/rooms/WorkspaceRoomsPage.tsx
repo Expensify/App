@@ -158,8 +158,10 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
         setPagination({queryKey: roomsQueryKey, pageNumber: pageNumber + 1});
     };
 
+    const canCreateRooms = !isArchived && !isGuest;
+
     const roomsTableHeader =
-        shouldUseNarrowLayout && !isArchived ? (
+        shouldUseNarrowLayout && canCreateRooms ? (
             <View style={[styles.ph5, styles.pb3]}>
                 <Button
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
@@ -188,7 +190,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                     onBackButtonPress={Navigation.goBack}
                     shouldDisplayHelpButton
                 >
-                    {!shouldUseNarrowLayout && !isArchived && (
+                    {!shouldUseNarrowLayout && canCreateRooms && (
                         <Button
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
