@@ -2987,7 +2987,7 @@ ${date} の ${merchant} への ${amount}`,
             `${memberName}はすでに${approverName}に提出する承認ワークフローに属しています。ここに追加すると、このワークフローに移動します。`,
         moveEveryoneToThisWorkflowTitle: '全員をこのワークフローに移動する',
         moveEveryoneToThisWorkflowPrompt:
-            'すべてのメンバーをこの承認ワークフローに移動しようとしています。他のすべての承認ワークフローは削除され、全員がこのワークフローに移行されます。この操作は元に戻せません。',
+            'すべてのメンバーをこの新しい承認ワークフローに移動しようとしています。保存すると、他のすべての承認ワークフローが削除されます。この操作は元に戻せません。',
     },
     workflowsApproverPage: {
         genericErrorMessage: '承認者を変更できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。',
@@ -4716,6 +4716,12 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             settlementFrequency: '清算頻度',
             setAsDefault: 'デフォルトのワークスペースに設定',
             defaultNote: `${CONST.EMAIL.RECEIPTS} に送信されたレシートは、このワークスペースに表示されます。`,
+            archive: 'ワークスペースをアーカイブ',
+            archiveConfirmation: 'このワークスペースをアーカイブしてもよろしいですか？',
+            archiveWithThirdPartyCardsConfirmation:
+                'このワークスペースをアーカイブしてもよろしいですか？ すべてのクレジットカードのユーザーへの割り当てが解除され、未申請のカード経費は完全に削除されます。',
+            archiveWithExpensifyCardsConfirmation:
+                'このワークスペースをアーカイブしてもよろしいですか？ すべての Expensify カードの利用限度額が $0 に設定され、新しい購入はすべて自動的に拒否されます。',
             deleteWorkspaceTitle: (workspaceName: string) => `${workspaceName} を削除しますか？`,
             deleteConfirmation: 'このワークスペースを削除してもよろしいですか？',
             deleteWithCardsConfirmation: 'このワークスペースを削除してもよろしいですか？ すべてのカードフィードと割り当て済みカードが削除されます。',
@@ -9900,7 +9906,12 @@ ${reportName}`,
             violationsBySubmitter: '申請者による違反',
         },
         mergeReports: {title: 'レポートをマージする', description: '保持するレポートを選択してください。すべての経費はそのレポートに移動され、他のレポートは削除されます。'},
-        percentOfSpend: ({percent}: {percent: string}) => `支出の${percent}`,
+        saveEdits: {
+            title: '編集を保存',
+            prompt: ({name}: {name: string}) => `「${name}」を更新しますか、それとも新規作成しますか？`,
+            createNew: '新規作成',
+            updateExisting: '既存のものを更新',
+        },
     },
     genericErrorPage: {
         title: 'おっと、問題が発生しました！',
@@ -10261,6 +10272,12 @@ ${reportName}`,
     distance: {
         addStop: '経由地を追加',
         address: '住所',
+        reuseRoute: 'ルートを再利用',
+        reusePriorRoute: '前回の経路を再利用',
+        choosePreviousRoute: '以前のルートを以下から選択してください。',
+        findARoute: '経路を検索',
+        lastUsed: ({date}: {date: string}) => `最終利用日：${date}`,
+        end: '終了',
         waypointDescription: {
             start: '開始',
             stop: '停止',
