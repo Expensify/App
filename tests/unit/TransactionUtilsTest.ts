@@ -293,6 +293,34 @@ describe('TransactionUtils', () => {
                 expect(result).toEqual(expectedResult);
             });
         });
+
+        describe('when posted date has value with format YYYYMMddHHmmss', () => {
+            const transaction = generateTransaction({
+                posted: '20261002153000',
+            });
+
+            it('returns the posted date with the correct format YYYY-MM-dd', () => {
+                const expectedResult = '2026-10-02';
+
+                const result = TransactionUtils.getFormattedPostedDate(transaction);
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when posted date is not a valid date', () => {
+            const transaction = generateTransaction({
+                posted: 'not-a-date',
+            });
+
+            it('returns an empty string', () => {
+                const expectedResult = '';
+
+                const result = TransactionUtils.getFormattedPostedDate(transaction);
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
     });
 
     describe('getIsFromGlobalCreate', () => {

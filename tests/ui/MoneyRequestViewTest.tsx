@@ -460,6 +460,48 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
+    it('should append the posted date to the Date description for a company card transaction with a date and time posted value', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {managedCard: true, posted: '20261002153000'});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderMoneyRequestView(threadReport);
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByLabelText(fieldLabel(`common.date ${CONST.DOT_SEPARATOR} iou.posted 2026-10-02`))).toBeOnTheScreen();
+        });
+    });
+
+    it('should not append a posted date to the Date description for a pending company card transaction', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {managedCard: true, status: CONST.TRANSACTION.STATUS.PENDING});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderMoneyRequestView(threadReport);
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByLabelText(fieldLabel('common.date'))).toBeOnTheScreen();
+        });
+    });
+
     it('should append "Non-reimbursable" to the Amount description when the transaction is non-reimbursable in a single-expense report', async () => {
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
