@@ -44,7 +44,7 @@ Expensify validates the API key and starts the first sync with Campfire.
 
 ## What happens after you connect to Campfire
 
-After the connection is established, the **Connections** section updates to show your connected Camptire integration, including:
+After the connection is established, the **Connections** section updates to show your connected Campfire integration, including:
 
 - The connection status and last sync timestamp.
 - The selected subsidiary.
