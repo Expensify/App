@@ -5,6 +5,7 @@ keywords: [AI in Expensify, Expensify AI, SmartScan, Concierge, agents, agent ru
 internalScope: Audience is all members and Workspace Admins. Covers the AI features available in Expensify, what each feature does, where it works, how the features work together, and which feature to use for different needs. Does not cover detailed setup steps, writing agent instructions, or detailed capabilities for individual AI features.
 retrievalIntent: What AI features does Expensify have, how are they different, and which one should I use?
 contentType: topic
+order: 1
 ---
 
 # Learn About AI in Expensify
