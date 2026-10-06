@@ -9,7 +9,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getMatchingVendors, getVendorFeaturePolicyIDs} from '@libs/PolicyUtils';
-import {getAllPolicyValues, sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
+import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,9 +34,9 @@ function VendorSelector({value = [], policyID, selectionListTextInputStyle, sele
     const {isLoadingInitialVendors} = useLoadSearchVendorData({shouldRefresh: true});
     const theme = useTheme();
     const styles = useThemeStyles();
-    // A workspace passes the vendor feature check only once its connections are loaded, and those connections carry the
-    // synced vendor list. Members only get vendor lists this way, since the bulk vendor load covers workspaces the user
-    // administers. Only the names are kept so the selector result stays small.
+    // Vendor lists are only offered for the workspaces where the vendor feature is on, so stale lists left behind by a
+    // disconnected integration never surface in the picker. A workspace passes that check only once its connections are
+    // loaded, and those connections carry the synced vendor list. Only the names are kept so the selector result stays small.
     const connectionVendorNamesSelector = useCallback(
         (allPolicies: OnyxCollection<Policy>) =>
             Object.fromEntries(
@@ -58,24 +58,19 @@ function VendorSelector({value = [], policyID, selectionListTextInputStyle, sele
         return {text: vendor, value: vendor};
     });
 
-    // Vendor lists are only offered for the workspaces where the vendor feature is on, so stale lists left behind by a
-    // disconnected integration never surface in the picker.
-    const eligiblePolicyIDs = new Set(Object.keys(connectionVendorNamesByPolicyID));
-    const eligiblePolicyVendors: OnyxCollection<PolicyVendors> = Object.fromEntries(
-        Object.entries(allPolicyVendors).filter(([key]) => eligiblePolicyIDs.has(key.replace(ONYXKEYS.COLLECTION.POLICY_VENDORS, ''))),
-    );
-
-    const selectedPolicyFilter = policyID?.value?.length ? policyID : undefined;
-    const isPolicySelected = (id: string) => !selectedPolicyFilter?.value || selectedPolicyFilter.isNegated !== selectedPolicyFilter.value.includes(id);
+    // The loaded vendor list is rebuilt and pushed after every sync, so it wins over the cached connections. The connections
+    // are the fallback for workspaces without one, which is how members get their vendors since the bulk vendor load only
+    // covers workspaces the user administers.
+    const isPolicySelected = (id: string) => !policyID?.value?.length || policyID.isNegated !== policyID.value.includes(id);
     const vendorItems = [{text: noVendorLabel, value: CONST.SEARCH.VENDOR_EMPTY_VALUE as string}];
-    const uniqueVendorNames = new Set<string>([
-        ...getAllPolicyValues(selectedPolicyFilter, ONYXKEYS.COLLECTION.POLICY_VENDORS, eligiblePolicyVendors).flatMap((policyVendors) =>
-            Object.values(policyVendors ?? {}).map((vendor) => vendor.name),
-        ),
-        ...Object.entries(connectionVendorNamesByPolicyID)
+    const uniqueVendorNames = new Set<string>(
+        Object.entries(connectionVendorNamesByPolicyID)
             .filter(([id]) => isPolicySelected(id))
-            .flatMap(([, vendorNames]) => vendorNames),
-    ]);
+            .flatMap(([id, connectionVendorNames]) => {
+                const loadedVendors = allPolicyVendors[`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${id}`];
+                return loadedVendors ? Object.values(loadedVendors).map((vendor) => vendor.name) : connectionVendorNames;
+            }),
+    );
     vendorItems.push(
         ...Array.from(uniqueVendorNames)
             .filter(Boolean)

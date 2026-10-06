@@ -79,10 +79,10 @@ describe('VendorSelector', () => {
         expect(getItemTexts()).toEqual(['search.noVendor', 'Acme Tools', 'Zeta Supplies']);
     });
 
-    it('merges the loaded vendor list with the connections without duplicating names', () => {
-        // Given an admin's workspace with a loaded vendor list that overlaps the vendors in its connections
+    it('uses the loaded vendor list over the vendors cached in the connections', () => {
+        // Given a workspace whose loaded vendor list has a vendor renamed since its connections were cached
         mockOnyxData[ONYXKEYS.COLLECTION.POLICY] = {[`${ONYXKEYS.COLLECTION.POLICY}qbo`]: buildQBOPolicy('qbo', ['Acme Tools', 'Zeta Supplies'])};
-        mockOnyxData[ONYXKEYS.COLLECTION.POLICY_VENDORS] = {[`${ONYXKEYS.COLLECTION.POLICY_VENDORS}qbo`]: buildPolicyVendors(['Acme Tools', 'Bravo Freight'])};
+        mockOnyxData[ONYXKEYS.COLLECTION.POLICY_VENDORS] = {[`${ONYXKEYS.COLLECTION.POLICY_VENDORS}qbo`]: buildPolicyVendors(['Acme Tools', 'Zeta Supply Co'])};
 
         // When the vendor picker renders
         render(
@@ -93,8 +93,8 @@ describe('VendorSelector', () => {
             />,
         );
 
-        // Then every vendor name from both sources appears once
-        expect(getItemTexts()).toEqual(['search.noVendor', 'Acme Tools', 'Bravo Freight', 'Zeta Supplies']);
+        // Then only the loaded list is offered, because it is rebuilt after every sync while the connections can be stale
+        expect(getItemTexts()).toEqual(['search.noVendor', 'Acme Tools', 'Zeta Supply Co']);
     });
 
     it('only lists the vendors of the selected workspaces', () => {
