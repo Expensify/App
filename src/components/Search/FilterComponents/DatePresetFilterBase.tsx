@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {SearchDateValues} from '@libs/SearchQueryUtils';
 import {getDateRangeDisplayValueFromFormValue, getEmptyDateValues, getRangeBoundariesFromFormValue, getRangeQueryValue, isSearchDatePreset} from '@libs/SearchQueryUtils';
-import type {SearchDateModifier} from '@libs/SearchUIUtils';
+import type {SearchDateModifier, SearchDateModifierLower} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 
@@ -25,7 +25,7 @@ import RangeDatePicker from './RangeDatePicker';
 type CustomDateModifier = Exclude<SearchDateModifier, typeof CONST.SEARCH.DATE_MODIFIERS.RANGE>;
 
 const CUSTOM_DATE_MODIFIER_TRANSLATION_KEYS: {
-    [Modifier in CustomDateModifier]: Lowercase<Modifier>;
+    [Modifier in CustomDateModifier]: Extract<SearchDateModifierLower, Lowercase<Modifier>>;
 } = {
     [CONST.SEARCH.DATE_MODIFIERS.ON]: 'on',
     [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: 'before',
