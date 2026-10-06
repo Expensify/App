@@ -431,7 +431,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 !isPendingDeleteOrError &&
                 !isOwner &&
                 !isCurrentUser &&
-                !details.isOptimisticPersonalDetail &&
                 canMemberAssignRole(policy, currentUserLogin ?? '', policyEmployee.role) &&
                 (!isReimburser || canReimburserChangeRole);
 
