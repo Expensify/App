@@ -12,6 +12,7 @@ import type {ActionHandledType} from '@hooks/useHoldMenuSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -160,6 +161,9 @@ function Search({
     const styles = useThemeStyles();
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
+    const {isBetaEnabled} = usePermissions();
+    // Without the expense carousel beta, the Spend list doesn't feed the expense carousel.
+    const isExpenseCarouselEnabled = isBetaEnabled(CONST.BETAS.EXPENSE_CAROUSEL);
 
     const {markReportRHPWidth, unmarkReportRHPWidth} = useWideRHPActions();
     const {currentSearchHash, currentSearchKey, shouldResetSearchQuery, suggestedSearches} = useSearchQueryContext();
@@ -629,6 +633,9 @@ function Search({
     // open in the RHP, which then paged through unrelated Spend results. Releasing is scoped to this source for the
     // same reason - the unscoped clear used to wipe a carousel another screen owned.
     const seedCarouselForOpenedExpense = useCallback(() => {
+        if (!isExpenseCarouselEnabled) {
+            return;
+        }
         if (carouselSiblingTransactionIDs.length > 1) {
             setActiveTransactionIDs(carouselSiblingTransactionIDs, {source: carouselSource, snapshotHash: hash});
             // Mark the seed so the release effect below knows this instance owns a carousel. Without it an instance
@@ -638,7 +645,7 @@ function Search({
         }
         clearActiveTransactionIDsForSource(carouselSource);
         hasSeededCarouselRef.current = false;
-    }, [carouselSiblingTransactionIDs, carouselSource, hash]);
+    }, [carouselSiblingTransactionIDs, carouselSource, hash, isExpenseCarouselEnabled]);
 
     const onSelectRow = useCallback(
         (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => {
@@ -848,7 +855,7 @@ function Search({
     // deleted from the list has to leave the carousel too). The active IDs are a dependency, not just a guard, so
     // that it re-runs and stands down when another screen takes ownership - see TransactionThreadNavigation.ts.
     useEffect(() => {
-        if (shouldShowLoadingState) {
+        if (!isExpenseCarouselEnabled || shouldShowLoadingState) {
             return;
         }
         // The release below clears the carousel on the way out, which flips the active IDs and re-runs this effect.
@@ -862,7 +869,7 @@ function Search({
         setActiveTransactionIDs(carouselSiblingTransactionIDs, {source: carouselSource, snapshotHash: hash});
         hasSeededCarouselRef.current = true;
         // eslint-disable-next-line react-hooks/exhaustive-deps -- carouselSiblingsKey is an order-sensitive proxy for the array, which is rebuilt on every search data change
-    }, [carouselSiblingsKey, activeCarouselTransactionIDs, carouselSource, hash, shouldShowLoadingState, isFocused]);
+    }, [carouselSiblingsKey, activeCarouselTransactionIDs, carouselSource, hash, shouldShowLoadingState, isFocused, isExpenseCarouselEnabled]);
 
     // The effect above seeds the carousel with no row press, so this list has to release it when the user leaves
     // for another tab - otherwise the Spend page's expenses page on inside any one-transaction report opened later.

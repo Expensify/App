@@ -1,6 +1,9 @@
-import {CAROUSEL_SOURCE, clearActiveTransactionIDsForSource, getActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
+import usePermissions from '@hooks/usePermissions';
+
+import {CAROUSEL_SOURCE, clearActiveTransactionIDs, clearActiveTransactionIDsForSource, getActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {navigationRef} from '@libs/Navigation/Navigation';
 
+import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
 import {findFocusedRoute} from '@react-navigation/native';
@@ -11,12 +14,47 @@ import {useEffect, useRef} from 'react';
  * transaction IDs in the order the user sees them, and clears them again on unmount.
  */
 function useMoneyRequestReportActiveTransactionIDs(visualOrderTransactionIDs: string[], reportID: string | undefined) {
+    const {isBetaEnabled} = usePermissions();
+    const isExpenseCarouselEnabled = isBetaEnabled(CONST.BETAS.EXPENSE_CAROUSEL);
     const visualOrderTransactionIDsKey = visualOrderTransactionIDs.join(',');
 
     const carouselSource = CAROUSEL_SOURCE.report(reportID);
     const hasSeededCarouselRef = useRef(false);
 
+    // Without the expense carousel beta, seed the carousel without claiming it and clear it unconditionally on cleanup.
     useEffect(() => {
+        if (isExpenseCarouselEnabled) {
+            return;
+        }
+        const focusedRoute = findFocusedRoute(navigationRef.getRootState());
+        if (focusedRoute?.name !== SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
+            return;
+        }
+        // Don't take over a snapshot-backed carousel (identified by its sibling descriptors, e.g. the Home
+        // "Recently added" flow) that belongs to the transaction thread sitting underneath this report.
+        const {ids: activeIDs, descriptors: activeDescriptors} = getActiveTransactionIDs();
+        if (activeDescriptors) {
+            return;
+        }
+        // A report preview press seeds these arrows in the carousel's order, which can differ from this list's order.
+        // Keep that seed while it still covers exactly these rows, and re-seed only when the rows themselves change.
+        if (activeIDs && activeIDs.length === visualOrderTransactionIDs.length) {
+            const activeIDSet = new Set(activeIDs);
+            if (visualOrderTransactionIDs.every((transactionID) => activeIDSet.has(transactionID))) {
+                return;
+            }
+        }
+        setActiveTransactionIDs(visualOrderTransactionIDs);
+        return () => {
+            clearActiveTransactionIDs();
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- visualOrderTransactionIDsKey is an order-sensitive proxy for the array
+    }, [visualOrderTransactionIDsKey, isExpenseCarouselEnabled]);
+
+    useEffect(() => {
+        if (!isExpenseCarouselEnabled) {
+            return;
+        }
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
         if (focusedRoute?.name !== SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
             return;
@@ -46,7 +84,7 @@ function useMoneyRequestReportActiveTransactionIDs(visualOrderTransactionIDs: st
         setActiveTransactionIDs(visualOrderTransactionIDs, {source: carouselSource});
         hasSeededCarouselRef.current = true;
         // eslint-disable-next-line react-hooks/exhaustive-deps -- visualOrderTransactionIDsKey is an order-sensitive proxy for the array
-    }, [visualOrderTransactionIDsKey, carouselSource]);
+    }, [visualOrderTransactionIDsKey, carouselSource, isExpenseCarouselEnabled]);
 
     useEffect(() => {
         return () => {

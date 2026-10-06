@@ -2,7 +2,7 @@ import {renderHook} from '@testing-library/react-native';
 
 import useMoneyRequestReportActiveTransactionIDs from '@components/MoneyRequestReportView/useMoneyRequestReportActiveTransactionIDs';
 
-import {clearActiveTransactionIDsForSource, getActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
+import {clearActiveTransactionIDs, clearActiveTransactionIDsForSource, getActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {navigationRef} from '@libs/Navigation/Navigation';
 
 import SCREENS from '@src/SCREENS';
@@ -15,6 +15,7 @@ import createMock from '../utils/createMock';
 // Mock the TransactionThreadNavigation module
 jest.mock('@libs/actions/TransactionThreadNavigation', () => ({
     setActiveTransactionIDs: jest.fn(() => Promise.resolve()),
+    clearActiveTransactionIDs: jest.fn(() => Promise.resolve()),
     clearActiveTransactionIDsForSource: jest.fn(() => Promise.resolve()),
     getActiveTransactionIDs: jest.fn(() => ({ids: null, descriptors: null, source: null})),
     CAROUSEL_SOURCE: {report: (reportID: string | undefined) => `report:${reportID}`},
@@ -35,6 +36,13 @@ jest.mock('@react-navigation/native', () => ({
     useFocusEffect: jest.fn(),
 }));
 
+// The source/ownership logic under test ships behind the expense carousel beta, so it is on unless a test turns it off.
+let mockIsExpenseCarouselEnabled = true;
+jest.mock('@hooks/usePermissions', () => ({
+    __esModule: true,
+    default: () => ({isBetaEnabled: (beta: string) => beta === 'expenseCarousel' && mockIsExpenseCarouselEnabled}),
+}));
+
 const REPORT_ID = 'reportA';
 const CAROUSEL_SOURCE_FOR_REPORT = `report:${REPORT_ID}`;
 
@@ -47,6 +55,7 @@ describe('useMoneyRequestReportActiveTransactionIDs', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        mockIsExpenseCarouselEnabled = true;
         mockGetActiveTransactionIDs.mockReturnValue({ids: null, descriptors: null, source: null, snapshotHash: null});
         mockGetRootState.mockReturnValue(createMock<NonNullable<ReturnType<typeof navigationRef.getRootState>>>({}));
     });
@@ -311,5 +320,22 @@ describe('useMoneyRequestReportActiveTransactionIDs', () => {
 
         // Then setActiveTransactionIDs should be called with the visual order, stamped with this report's source
         expect(mockSetActiveTransactionIDs).toHaveBeenCalledWith(transactionIDs, {source: CAROUSEL_SOURCE_FOR_REPORT});
+    });
+
+    it('should seed without a source and clear on unmount while the expense carousel beta is off', () => {
+        // Given the expense carousel beta is off and the focused route is SEARCH_REPORT
+        mockIsExpenseCarouselEnabled = false;
+        mockFindFocusedRoute.mockReturnValue({name: SCREENS.RIGHT_MODAL.SEARCH_REPORT, key: 'test-key'});
+        const transactionIDs = ['trans1', 'trans2'];
+
+        // When the hook is rendered and then unmounted
+        const {unmount} = renderHook(() => useMoneyRequestReportActiveTransactionIDs(transactionIDs, REPORT_ID));
+        unmount();
+
+        // Then it seeds the carousel without claiming it and clears it unconditionally, as it did before the expense carousel rework
+        expect(mockSetActiveTransactionIDs).toHaveBeenCalledTimes(1);
+        expect(mockSetActiveTransactionIDs).toHaveBeenCalledWith(transactionIDs);
+        expect(jest.mocked(clearActiveTransactionIDs)).toHaveBeenCalled();
+        expect(mockClearActiveTransactionIDsForSource).not.toHaveBeenCalled();
     });
 });

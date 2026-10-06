@@ -1,5 +1,6 @@
 import useNavigateToTransactionThread from '@hooks/useNavigateToTransactionThread';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {CAROUSEL_SOURCE, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
@@ -157,6 +158,8 @@ function useReviewFlaggedExpenses(): ReviewFlaggedExpenses {
 
     const navigateToTransactionThread = useNavigateToTransactionThread();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isBetaEnabled} = usePermissions();
+    const isExpenseCarouselEnabled = isBetaEnabled(CONST.BETAS.EXPENSE_CAROUSEL);
 
     // While blurred the row isn't pressable and the scan result is undefined, so expose a stable no-op
     // instead of a fresh closure. The Onyx collection subscriptions keep firing on background writes while blurred;
@@ -173,7 +176,11 @@ function useReviewFlaggedExpenses(): ReviewFlaggedExpenses {
 
               const siblingTransactionIDs = flaggedExpenses.map((flaggedExpense) => flaggedExpense.transactionID);
 
-              if (isOneTransactionReport(firstFlaggedReport) && (flaggedExpenses.length === 1 || !shouldUseNarrowLayout)) {
+              // Without the expense carousel beta, only a lone flagged expense in a one-transaction report opens the report.
+              const shouldOpenReport = isExpenseCarouselEnabled
+                  ? isOneTransactionReport(firstFlaggedReport) && (flaggedExpenses.length === 1 || !shouldUseNarrowLayout)
+                  : flaggedExpenses.length === 1 && isOneTransactionReport(firstFlaggedReport);
+              if (shouldOpenReport) {
                   // A lone flagged expense has nothing to page between, so it skips seeding the carousel entirely.
                   const shouldSeedCarousel = flaggedExpenses.length > 1;
                   const openReport = () =>

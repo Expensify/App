@@ -3,6 +3,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
+import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
@@ -50,6 +51,7 @@ import Icon from './Icon';
 import MoneyRequestHeaderActions from './MoneyRequestHeaderActions';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import MoneyRequestReportTransactionsNavigation from './MoneyRequestReportView/MoneyRequestReportTransactionsNavigation';
+import MoneyRequestReportTransactionsNavigationLegacy from './MoneyRequestReportView/MoneyRequestReportTransactionsNavigationLegacy';
 import {useWideRHPState} from './WideRHPContextProvider';
 
 type MoneyRequestHeaderProps = {
@@ -90,6 +92,8 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Flag', 'Hourglass', 'Stopwatch']);
     const icons = useMemoizedLazyExpensifyIcons(['CreditCardHourglass', 'ReceiptScan']);
     const {wideRHPRouteKeys} = useWideRHPState();
+    const {isBetaEnabled} = usePermissions();
+    const isExpenseCarouselEnabled = isBetaEnabled(CONST.BETAS.EXPENSE_CAROUSEL);
 
     const isOnHold = isOnHoldTransactionUtils(transaction);
     const isParentReportSettled = isSettledReportUtils(parentReport);
@@ -104,7 +108,7 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
     // `transaction` is resolved through this thread's parent report action, which isn't necessarily loaded yet on
     // a cold open (e.g. opening an expense from the Spend page right after clearing the cache). The route carries
     // the expense the screen was opened for, so fall back to it rather than hiding the carousel until data lands.
-    const anchorTransactionIDFromRoute = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? route.params.anchorTransactionID : undefined;
+    const anchorTransactionIDFromRoute = isExpenseCarouselEnabled && route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? route.params.anchorTransactionID : undefined;
     const carouselTransactionID = transaction?.transactionID ?? anchorTransactionIDFromRoute;
     const shouldOpenParentReportInCurrentTab = !isSelfDM(parentReport);
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine() && (wideRHPRouteKeys.length === 0 || isSmallScreenWidth);
@@ -188,19 +192,26 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
                 shouldEnableDetailPageNavigation
                 openParentReportInCurrentTab={shouldOpenParentReportInCurrentTab}
             >
-                {!shouldDisplayButtonsInSeparateLine && !statusBarProps && (
+                {!shouldDisplayButtonsInSeparateLine && (!isExpenseCarouselEnabled || !statusBarProps) && (
                     <MoneyRequestHeaderActions
                         reportID={reportID}
                         onBackButtonPress={onBackButtonPress}
                     />
                 )}
-                {shouldDisplayTransactionNavigation && !!carouselTransactionID && (
-                    <MoneyRequestReportTransactionsNavigation
-                        currentTransactionID={carouselTransactionID}
-                        isFromReviewDuplicates={isFromReviewDuplicates}
-                        shouldDisplayNarrowVersion={shouldDisplayNarrowVersion}
-                    />
-                )}
+                {shouldDisplayTransactionNavigation &&
+                    !!carouselTransactionID &&
+                    (isExpenseCarouselEnabled ? (
+                        <MoneyRequestReportTransactionsNavigation
+                            currentTransactionID={carouselTransactionID}
+                            isFromReviewDuplicates={isFromReviewDuplicates}
+                            shouldDisplayNarrowVersion={shouldDisplayNarrowVersion}
+                        />
+                    ) : (
+                        <MoneyRequestReportTransactionsNavigationLegacy
+                            currentTransactionID={carouselTransactionID}
+                            isFromReviewDuplicates={isFromReviewDuplicates}
+                        />
+                    ))}
             </HeaderWithBackButton>
             {shouldDisplayButtonsInSeparateLine && (
                 <MoneyRequestHeaderActions
@@ -208,22 +219,30 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
                     onBackButtonPress={onBackButtonPress}
                 />
             )}
-            {!!statusBarProps && (
-                <View style={[styles.flexRow, styles.gap2, styles.justifyContentStart, styles.flexNoWrap, styles.ph5, styles.pb3]}>
-                    <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.flexWrap, styles.justifyContentCenter]}>
+            {!!statusBarProps &&
+                (isExpenseCarouselEnabled ? (
+                    <View style={[styles.flexRow, styles.gap2, styles.justifyContentStart, styles.flexNoWrap, styles.ph5, styles.pb3]}>
+                        <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.flexWrap, styles.justifyContentCenter]}>
+                            <MoneyRequestHeaderStatusBar
+                                icon={statusBarProps.icon}
+                                description={statusBarProps.description}
+                            />
+                        </View>
+                        {!shouldDisplayButtonsInSeparateLine && (
+                            <MoneyRequestHeaderActions
+                                reportID={reportID}
+                                onBackButtonPress={onBackButtonPress}
+                            />
+                        )}
+                    </View>
+                ) : (
+                    <View style={[styles.ph5, styles.pb3]}>
                         <MoneyRequestHeaderStatusBar
                             icon={statusBarProps.icon}
                             description={statusBarProps.description}
                         />
                     </View>
-                    {!shouldDisplayButtonsInSeparateLine && (
-                        <MoneyRequestHeaderActions
-                            reportID={reportID}
-                            onBackButtonPress={onBackButtonPress}
-                        />
-                    )}
-                </View>
-            )}
+                ))}
             <HeaderLoadingBar />
         </View>
     );

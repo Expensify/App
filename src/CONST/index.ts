@@ -1150,6 +1150,7 @@ const CONST = {
         INSIGHTS_COMPARE: 'insightsCompare',
         PAYMENT_HISTORY: 'paymentHistory',
         ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
+        EXPENSE_CAROUSEL: 'expenseCarousel',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',

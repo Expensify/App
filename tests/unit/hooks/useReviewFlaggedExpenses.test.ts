@@ -44,6 +44,13 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
     default: () => ({shouldUseNarrowLayout: mockShouldUseNarrowLayout}),
 }));
 
+// Opening one-transaction reports with a seeded carousel ships behind the expense carousel beta, so it is on unless a test turns it off.
+let mockIsExpenseCarouselEnabled = true;
+jest.mock('@hooks/usePermissions', () => ({
+    __esModule: true,
+    default: () => ({isBetaEnabled: (beta: string) => beta === 'expenseCarousel' && mockIsExpenseCarouselEnabled}),
+}));
+
 const ACCOUNT_ID = 1;
 
 /**
@@ -77,6 +84,7 @@ describe('useReviewFlaggedExpenses', () => {
     beforeEach(async () => {
         mockIsFocused = true;
         mockShouldUseNarrowLayout = false;
+        mockIsExpenseCarouselEnabled = true;
         await act(async () => {
             await Onyx.set(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID, email: 'test@example.com'});
         });
@@ -224,6 +232,31 @@ describe('useReviewFlaggedExpenses', () => {
         expect(mockSetActiveTransactionIDs).toHaveBeenCalledWith(['t1', 't2'], {source: 'home:reviewFlagged'});
         expect(mockNavigate).toHaveBeenCalledTimes(1);
         expect(mockNavigate.mock.calls.at(0)?.at(0)).toContain('r1');
+    });
+
+    it('keeps the thread route for multi-expense review of one-transaction reports while the expense carousel beta is off', async () => {
+        // Given two flagged expenses in one-transaction reports on a wide layout, with the expense carousel beta off
+        mockIsExpenseCarouselEnabled = false;
+        await act(async () => {
+            await seedFlaggedExpenses({transactionID: 't1', reportID: 'r1'}, {transactionID: 't2', reportID: 'r2'});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}r1`, {transactionCount: 1});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}r2`, {transactionCount: 1});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        const {result} = renderHook(() => useReviewFlaggedExpenses());
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user starts the review
+        await act(async () => {
+            result.current.reviewExpenses();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then it opens the first expense's thread with the flagged set as siblings, as it did before the expense carousel rework
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockSetActiveTransactionIDs).not.toHaveBeenCalled();
+        expect(mockNavigateToTransactionThread).toHaveBeenCalledWith(expect.objectContaining({transactionID: 't1', siblingTransactionIDs: ['t1', 't2']}));
     });
 
     it('keeps the thread route for a multi-expense review on narrow layout', async () => {

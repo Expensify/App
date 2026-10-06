@@ -45,6 +45,13 @@ jest.mock('@hooks/useMobileSelectionMode', () => jest.fn(() => false));
 jest.mock('@hooks/useTransactionsAndViolationsForReport', () => jest.fn(() => ({transactions: {}, violations: {}})));
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
 
+// The placement under test ships behind the expense carousel beta, so it is on unless a test turns it off.
+let mockIsExpenseCarouselEnabled = true;
+jest.mock('@hooks/usePermissions', () => ({
+    __esModule: true,
+    default: () => ({isBetaEnabled: (beta: string) => beta === 'expenseCarousel' && mockIsExpenseCarouselEnabled}),
+}));
+
 // useThemeStyles throws without a <ThemeStylesProvider>; return a proxy that yields an empty style object
 // for any key so the (mostly-mocked) tree renders without wiring up the full provider stack.
 jest.mock('@hooks/useThemeStyles', () => {
@@ -154,6 +161,7 @@ function renderHeader() {
 describe('MoneyReportHeader actions placement', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockIsExpenseCarouselEnabled = true;
 
         // A wide layout, so the header-row placement is in play at all.
         mockedUseResponsiveLayout.mockReturnValue({
@@ -291,6 +299,7 @@ describe('MoneyReportHeader transaction carousel anchor', () => {
     }
 
     beforeEach(() => {
+        mockIsExpenseCarouselEnabled = true;
         mockedMoreContentVisibility.mockReturnValue({statusBarType: undefined, shouldShowNextStep: false, hasStatusOrNextStep: false});
         mockedUseReportPrimaryAction.mockReturnValue(CONST.REPORT.PRIMARY_ACTIONS.PAY);
     });
@@ -353,5 +362,72 @@ describe('MoneyReportHeader transaction carousel anchor', () => {
 
         expect(getHeaderRowTestIDs(toJSON())).not.toContain(TRANSACTIONS_CAROUSEL_TEST_ID);
         expect(getHeaderRowTestIDs(toJSON())).toContain(REPORT_CAROUSEL_TEST_ID);
+    });
+
+    it('does not render either carousel on the title row while the expense carousel beta is off', () => {
+        // Given an expense thread that would anchor the expense carousel, but the expense carousel beta is off
+        mockIsExpenseCarouselEnabled = false;
+        mockThread({activeIDs: ['other-tx', THREAD_TRANSACTION_ID], parentActions: {[PARENT_ACTION_ID]: parentIOUAction}});
+
+        // When the header renders
+        const {toJSON} = renderHeader();
+
+        // Then the title row has no carousel, and the report arrows go back to the end of the more-content row
+        expect(getHeaderRowTestIDs(toJSON())).not.toContain(TRANSACTIONS_CAROUSEL_TEST_ID);
+        expect(getHeaderRowTestIDs(toJSON())).not.toContain(REPORT_CAROUSEL_TEST_ID);
+        expect(mockedMoreContent.mock.calls.at(-1)?.at(0)).toEqual(expect.objectContaining({shouldRenderReportNavigationInRow: true}));
+    });
+});
+
+describe('MoneyReportHeader without the expense carousel beta', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockIsExpenseCarouselEnabled = false;
+        mockedUseResponsiveLayout.mockReturnValue({
+            shouldUseNarrowLayout: false,
+            isSmallScreenWidth: false,
+            isInNarrowPaneModal: false,
+            isExtraSmallScreenHeight: false,
+            isMediumScreenWidth: false,
+            isLargeScreenWidth: true,
+            isExtraLargeScreenWidth: false,
+            isExtraSmallScreenWidth: false,
+            isSmallScreen: false,
+            onboardingIsMediumOrLargerScreenWidth: true,
+            isInLandscapeMode: false,
+        });
+        mockedUseReportPrimaryAction.mockReturnValue(CONST.REPORT.PRIMARY_ACTIONS.PAY);
+        mockedUseOnyx.mockImplementation((key) => {
+            if (key === `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`) {
+                return [iouReport, {status: 'loaded'}];
+            }
+            return [undefined, {status: 'loaded'}];
+        });
+    });
+
+    it('keeps the actions on the title row even when the more-content row has a status or next step', () => {
+        // Given a wide report opened from Search whose more-content row has a status
+        mockedMoreContentVisibility.mockReturnValue({statusBarType: CONST.REPORT.STATUS_BAR_TYPE.ON_HOLD, shouldShowNextStep: false, hasStatusOrNextStep: true});
+        mockedUseRoute.mockReturnValue({key: 'route-1', name: SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, params: {}});
+
+        // When the header renders
+        const {toJSON} = renderHeader();
+
+        // Then the actions stay on the title row as they did before the expense carousel rework, and the report arrows sit in the more-content row
+        expect(getHeaderRowTestIDs(toJSON())).toEqual([ACTIONS_TEST_ID]);
+        expect(mockedMoreContent.mock.calls.at(-1)?.at(0)).toEqual(expect.objectContaining({shouldRenderActionsInRow: false, shouldRenderReportNavigationInRow: true}));
+    });
+
+    it('does not render the report arrows anywhere outside Search', () => {
+        // Given a report opened directly in the Inbox
+        mockedMoreContentVisibility.mockReturnValue({statusBarType: undefined, shouldShowNextStep: false, hasStatusOrNextStep: false});
+        mockedUseRoute.mockReturnValue({key: 'route-1', name: SCREENS.REPORT, params: {}});
+
+        // When the header renders
+        const {toJSON} = renderHeader();
+
+        // Then the report arrows are neither on the title row nor in the more-content row, because they only page through search results
+        expect(getHeaderRowTestIDs(toJSON())).not.toContain(REPORT_CAROUSEL_TEST_ID);
+        expect(mockedMoreContent.mock.calls.at(-1)?.at(0)).toEqual(expect.objectContaining({shouldRenderReportNavigationInRow: false}));
     });
 });

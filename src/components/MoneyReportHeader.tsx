@@ -4,6 +4,7 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useMoneyReportHeaderMoreContentVisibility from '@hooks/useMoneyReportHeaderMoreContentVisibility';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useReportPrimaryAction from '@hooks/useReportPrimaryAction';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
@@ -84,6 +85,9 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
 
     const transactions = Object.values(reportTransactions);
 
+    const {isBetaEnabled} = usePermissions();
+    const isExpenseCarouselEnabled = isBetaEnabled(CONST.BETAS.EXPENSE_CAROUSEL);
+
     // The same filtered list MoneyRequestReportTransactionsNavigation renders from, so the two agree on whether
     // there is an expense carousel to show. Gating on the raw Onyx list let this pick the expense branch while the
     // carousel found nothing to page through, leaving the user with neither set of arrows.
@@ -105,7 +109,11 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     const routeAnchorTransactionID = anchorTransactionIDFromRoute && activeTransactionIDs.includes(anchorTransactionIDFromRoute) ? anchorTransactionIDFromRoute : undefined;
     const carouselAnchorTransactionID = route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT ? undefined : (singleTransactionID ?? threadTransactionID ?? routeAnchorTransactionID);
     const shouldShowTransactionNavigation =
-        route.name !== SCREENS.REPORT && !!carouselAnchorTransactionID && activeTransactionIDs.length > 1 && activeTransactionIDs.includes(carouselAnchorTransactionID);
+        isExpenseCarouselEnabled &&
+        route.name !== SCREENS.REPORT &&
+        !!carouselAnchorTransactionID &&
+        activeTransactionIDs.length > 1 &&
+        activeTransactionIDs.includes(carouselAnchorTransactionID);
 
     const styles = useThemeStyles();
 
@@ -118,10 +126,15 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
 
     // The report-level arrows page through search results, so they are search-only; the expense carousel takes
     // precedence wherever this report is anchored to one.
-    const shouldShowReportNavigation = !shouldShowTransactionNavigation && isReportInSearch;
+    const shouldShowReportNavigation = isExpenseCarouselEnabled && !shouldShowTransactionNavigation && isReportInSearch;
+
+    // Without the expense carousel beta, the report arrows stay at the end of the more-content row instead of the top right.
+    const shouldShowReportNavigationInMoreContentRow = !isExpenseCarouselEnabled && isReportInSearch;
+    const shouldDisplayNarrowReportNavigationInMoreContentRow = shouldDisplayNarrowVersion && !isWideRHPDisplayedOnWideLayout && !isSuperWideRHPDisplayedOnWideLayout;
 
     const {statusBarType, shouldShowNextStep, hasStatusOrNextStep} = useMoneyReportHeaderMoreContentVisibility(reportIDProp);
-    const shouldRenderActionsInHeaderRow = shouldShowHeaderButtonsInHeaderRow && !hasStatusOrNextStep;
+    // Without the expense carousel beta, the actions stay in the header row whenever it has room for them.
+    const shouldRenderActionsInHeaderRow = shouldShowHeaderButtonsInHeaderRow && (!isExpenseCarouselEnabled || !hasStatusOrNextStep);
     // A narrow header has room for one control beside the title, and prev/next wins it: the arrows are the only way
     // to reach this expense's siblings, whereas the search router is still one back-press away on the screen the
     // user came from. Where no arrows are rendered the magnifier keeps its place, as it did before.
@@ -181,29 +194,40 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                 shouldEnableDetailPageNavigation
                 openParentReportInCurrentTab
             >
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                    {shouldRenderActionsInHeaderRow && (
+                {isExpenseCarouselEnabled ? (
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                        {shouldRenderActionsInHeaderRow && (
+                            <MoneyReportHeaderActions
+                                reportID={reportIDProp}
+                                primaryAction={primaryAction}
+                                isReportInSearch={isReportInSearch}
+                                backTo={backTo}
+                            />
+                        )}
+                        {shouldShowTransactionNavigation && !!carouselAnchorTransactionID ? (
+                            <MoneyRequestReportTransactionsNavigation
+                                currentTransactionID={carouselAnchorTransactionID}
+                                shouldDisplayNarrowVersion={!shouldShowHeaderButtonsInHeaderRow}
+                            />
+                        ) : (
+                            shouldShowReportNavigation && (
+                                <MoneyRequestReportNavigation
+                                    reportID={reportIDProp}
+                                    shouldDisplayNarrowVersion={!shouldShowHeaderButtonsInHeaderRow}
+                                />
+                            )
+                        )}
+                    </View>
+                ) : (
+                    shouldRenderActionsInHeaderRow && (
                         <MoneyReportHeaderActions
                             reportID={reportIDProp}
                             primaryAction={primaryAction}
                             isReportInSearch={isReportInSearch}
                             backTo={backTo}
                         />
-                    )}
-                    {shouldShowTransactionNavigation && !!carouselAnchorTransactionID ? (
-                        <MoneyRequestReportTransactionsNavigation
-                            currentTransactionID={carouselAnchorTransactionID}
-                            shouldDisplayNarrowVersion={!shouldShowHeaderButtonsInHeaderRow}
-                        />
-                    ) : (
-                        shouldShowReportNavigation && (
-                            <MoneyRequestReportNavigation
-                                reportID={reportIDProp}
-                                shouldDisplayNarrowVersion={!shouldShowHeaderButtonsInHeaderRow}
-                            />
-                        )
-                    )}
-                </View>
+                    )
+                )}
             </HeaderWithBackButton>
             {!shouldShowHeaderButtonsInHeaderRow && (
                 <MoneyReportHeaderActions
@@ -220,6 +244,8 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                 statusBarType={statusBarType}
                 shouldShowNextStep={shouldShowNextStep}
                 shouldRenderActionsInRow={shouldShowHeaderButtonsInHeaderRow && !shouldRenderActionsInHeaderRow}
+                shouldRenderReportNavigationInRow={shouldShowReportNavigationInMoreContentRow}
+                shouldDisplayNarrowReportNavigation={shouldDisplayNarrowReportNavigationInMoreContentRow}
             />
             <HeaderLoadingBar />
         </View>

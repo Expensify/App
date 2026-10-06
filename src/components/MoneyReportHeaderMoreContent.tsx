@@ -23,6 +23,7 @@ import MoneyReportHeaderActions from './MoneyReportHeaderActions';
 import MoneyReportHeaderNextStep from './MoneyReportHeaderNextStep';
 import MoneyReportHeaderStatusBarSection from './MoneyReportHeaderStatusBarSection';
 import {useMoneyReportTransactionThread} from './MoneyReportTransactionThreadContext';
+import MoneyRequestReportNavigation from './MoneyRequestReportView/MoneyRequestReportNavigation';
 
 type MoneyReportHeaderMoreContentProps = {
     reportID: string | undefined;
@@ -41,13 +42,28 @@ type MoneyReportHeaderMoreContentProps = {
 
     /** Whether the report actions belong at the end of this row. The header renders them itself when this row is empty. */
     shouldRenderActionsInRow: boolean;
+
+    /** Whether the report prev/next arrows belong at the end of this row. Only true while the expense carousel beta is off. */
+    shouldRenderReportNavigationInRow: boolean;
+
+    /** Whether the report prev/next arrows in this row hide their counter */
+    shouldDisplayNarrowReportNavigation: boolean;
 };
 
 /**
  * Cheap visibility gate that decides whether the more-content section should render at all,
  * avoiding expensive hooks in the body when nothing is shown.
  */
-function MoneyReportHeaderMoreContent({reportID, primaryAction, backTo, statusBarType, shouldShowNextStep, shouldRenderActionsInRow}: MoneyReportHeaderMoreContentProps) {
+function MoneyReportHeaderMoreContent({
+    reportID,
+    primaryAction,
+    backTo,
+    statusBarType,
+    shouldShowNextStep,
+    shouldRenderActionsInRow,
+    shouldRenderReportNavigationInRow,
+    shouldDisplayNarrowReportNavigation,
+}: MoneyReportHeaderMoreContentProps) {
     const route = useRoute<
         | PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
         | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.EXPENSE_REPORT>
@@ -59,7 +75,7 @@ function MoneyReportHeaderMoreContent({reportID, primaryAction, backTo, statusBa
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 
     const hasStatusOrNextStep = shouldShowNextStep || !!statusBarType;
-    const shouldShowMoreContent = hasStatusOrNextStep || shouldRenderActionsInRow;
+    const shouldShowMoreContent = hasStatusOrNextStep || shouldRenderActionsInRow || shouldRenderReportNavigationInRow;
 
     if (!shouldShowMoreContent) {
         return null;
@@ -74,6 +90,8 @@ function MoneyReportHeaderMoreContent({reportID, primaryAction, backTo, statusBa
             primaryAction={primaryAction}
             backTo={backTo}
             shouldRenderActionsInRow={shouldRenderActionsInRow}
+            shouldRenderReportNavigationInRow={shouldRenderReportNavigationInRow}
+            shouldDisplayNarrowReportNavigation={shouldDisplayNarrowReportNavigation}
         />
     );
 }
@@ -86,6 +104,8 @@ type MoneyReportHeaderMoreContentBodyProps = {
     primaryAction: MoneyReportHeaderActionsProps['primaryAction'];
     backTo: Route | undefined;
     shouldRenderActionsInRow: boolean;
+    shouldRenderReportNavigationInRow: boolean;
+    shouldDisplayNarrowReportNavigation: boolean;
 };
 
 function MoneyReportHeaderMoreContentBody({
@@ -96,6 +116,8 @@ function MoneyReportHeaderMoreContentBody({
     primaryAction,
     backTo,
     shouldRenderActionsInRow,
+    shouldRenderReportNavigationInRow,
+    shouldDisplayNarrowReportNavigation,
 }: MoneyReportHeaderMoreContentBodyProps) {
     const styles = useThemeStyles();
 
@@ -118,6 +140,12 @@ function MoneyReportHeaderMoreContentBody({
                     primaryAction={primaryAction}
                     isReportInSearch={isReportInSearch}
                     backTo={backTo}
+                />
+            )}
+            {shouldRenderReportNavigationInRow && (
+                <MoneyRequestReportNavigation
+                    reportID={reportID}
+                    shouldDisplayNarrowVersion={shouldDisplayNarrowReportNavigation}
                 />
             )}
         </View>

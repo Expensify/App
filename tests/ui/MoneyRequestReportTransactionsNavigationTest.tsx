@@ -101,10 +101,10 @@ jest.mock('@components/OnyxListItemProvider', () => ({
 
 // usePermissions reads its beta contexts from the module mocked above, which no longer exports them. The only beta the
 // transaction table consults decides whether the vendor column is offered, and these tests assert row order rather
-// than columns, so reporting every beta as off is enough.
+// than columns, so reporting every beta but the expense carousel one (which these arrows ship behind) as off is enough.
 jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
-    default: () => ({isBetaEnabled: () => false, isBetaEnabledOrUnknown: () => false}),
+    default: () => ({isBetaEnabled: (beta: string) => beta === 'expenseCarousel', isBetaEnabledOrUnknown: (beta: string) => beta === 'expenseCarousel'}),
 }));
 
 const mockIsOffline = {value: false};
