@@ -15,7 +15,7 @@ import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
 import {putOnHold, putTransactionsOnHold} from '@libs/actions/IOU/Hold';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
+import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
 import type {SearchReportActionsParamList} from '@navigation/types';
@@ -54,24 +54,22 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
 
     // Subscribe only to the reports the hold flow reads: every transaction's expense report and its thread report
     // (taken from the selection on the single-hold path, or from the report's IOU actions on the bulk path).
-    const relevantReportIDs = useMemo(() => {
-        const transactionsByID = new Map(relevantTransactions.map((transaction) => [transaction.transactionID, transaction]));
-        const reportIDs = new Set<string>();
-        for (const transactionID of relevantTransactionIDs) {
-            const selection = selectedTransactions[transactionID];
-            const transactionReportID = (transactionsByID.get(transactionID) ?? selection?.transaction)?.reportID;
-            if (transactionReportID) {
-                reportIDs.add(transactionReportID);
-            }
-            const childReportID = selection?.reportAction?.childReportID ?? (isBulkHold ? getIOUActionForReportID(reportID, transactionID)?.childReportID : undefined);
-            if (childReportID) {
-                reportIDs.add(childReportID);
-            }
+    // The report actions are subscribed to so the thread report ID is reactive when the IOU actions load after mount.
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+    const transactionsByID = new Map(relevantTransactions.map((transaction) => [transaction.transactionID, transaction]));
+    const relevantReportIDs = new Set<string>();
+    for (const transactionID of relevantTransactionIDs) {
+        const selection = selectedTransactions[transactionID];
+        const transactionReportID = (transactionsByID.get(transactionID) ?? selection?.transaction)?.reportID;
+        if (transactionReportID) {
+            relevantReportIDs.add(transactionReportID);
         }
-        return [...reportIDs];
-    }, [isBulkHold, reportID, relevantTransactionIDs, relevantTransactions, selectedTransactions]);
-    const relevantReportsSelector = useMemo(() => reportsByIDsSelector(relevantReportIDs), [relevantReportIDs]);
-    const [relevantReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: relevantReportsSelector});
+        const childReportID = isBulkHold ? getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID)?.childReportID : selection?.reportAction?.childReportID;
+        if (childReportID) {
+            relevantReportIDs.add(childReportID);
+        }
+    }
+    const [relevantReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsByIDsSelector([...relevantReportIDs])});
     const {isOffline} = useNetwork();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
         selector: isTrackIntentUserSelector,
