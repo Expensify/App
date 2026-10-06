@@ -1,7 +1,6 @@
 import RadioButton from '@components/RadioButton';
-import type {ListItemProps} from '@components/SelectionList/ListItem/types';
+import type {ListItem, ListItemProps} from '@components/SelectionList/ListItem/types';
 import ListItemComposed from '@components/SelectionList/ListItemComposed';
-import type {ListItem} from '@components/SelectionList/types';
 
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';

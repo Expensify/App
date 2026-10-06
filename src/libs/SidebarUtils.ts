@@ -6,7 +6,6 @@ import type {ReportsToDisplayInLHN} from '@hooks/useSidebarOrderedReports';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
-    BankAccountList,
     Card,
     GuideAccountIDsDerivedValue,
     PersonalDetails,
@@ -726,7 +725,6 @@ function getOptionData({
     isTrackIntentUser,
     formatPhoneNumber,
     rules,
-    bankAccountList,
 }: {
     report: OnyxEntry<Report>;
     oneTransactionThreadReport: OnyxEntry<Report>;
@@ -757,9 +755,6 @@ function getOptionData({
     isTrackIntentUser?: boolean;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     rules: OnyxCollection<Rule>;
-
-    /** The current user's bank accounts, used to name the account a report was paid with in the preview. */
-    bankAccountList?: OnyxEntry<BankAccountList>;
 }): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -899,12 +894,15 @@ function getOptionData({
         personalDetails,
         policy,
         invoiceReceiverPolicy,
+        reportMetadata,
+        participantPersonalDetailListExcludeCurrentUser,
         policyTags,
         isReportArchived,
         privateIsArchived: !!reportNameValuePairs?.private_isArchived,
         conciergeReportID,
         reportAttributesDerived,
         visibleReportActionsData,
+        oneTransactionThreadReportID: reportAttributes?.oneTransactionThreadReportID,
         currentUserAccountID,
         currentUserLogin,
         isTrackIntentUser,
@@ -915,7 +913,6 @@ function getOptionData({
         convertToDisplayString,
         convertToDisplayStringWithoutCurrency,
         rules,
-        bankAccountList,
     });
 
     result.isIOUReportOwner = isIOUOwnedByCurrentUser(result as Report);
