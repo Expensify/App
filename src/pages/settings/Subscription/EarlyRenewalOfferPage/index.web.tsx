@@ -70,20 +70,19 @@ function EarlyRenewalOfferPage() {
                 shouldShow={shouldShowNotFound}
                 onBackButtonPress={Navigation.goBack}
             >
+                {/* The pattern starts just above the header's bottom edge, so it shows behind the title as in Figma. */}
+                <View style={styles.earlyRenewalOfferBackground}>
+                    <ImageSVG
+                        src={themeIllustrations.IceCreamBackgroundImage}
+                        width={variables.earlyRenewalOfferBackgroundWidth}
+                        height={variables.earlyRenewalOfferBackgroundHeight}
+                    />
+                </View>
                 <HeaderWithBackButtonAndTitle
                     title={translate('earlyRenewal.claim')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <ScrollView contentContainerStyle={[styles.alignItemsCenter, styles.ph5, styles.pv3, styles.gap6]}>
-                    <View style={styles.earlyRenewalOfferBackground}>
-                        {/* Figma starts the pattern just above the content, so its top edge is clipped under the header. */}
-                        <ImageSVG
-                            src={themeIllustrations.IceCreamBackgroundImage}
-                            width={variables.earlyRenewalOfferBackgroundWidth}
-                            height={variables.earlyRenewalOfferBackgroundHeight}
-                            style={styles.earlyRenewalOfferBackgroundImage}
-                        />
-                    </View>
                     <Icon
                         src={illustrations.IceCreamMenu}
                         width={variables.earlyRenewalOfferHeroWidth}
