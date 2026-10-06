@@ -15,17 +15,15 @@ import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 
 import type {NonUniformRRect, SkTypefaceFontProvider} from '@shopify/react-native-skia';
-import type {LayoutChangeEvent} from 'react-native';
 import type {CartesianChartRenderArg, ChartBounds, Scale} from 'victory-native';
 
 import {Paragraph, Path, Skia} from '@shopify/react-native-skia';
-import React, {useState} from 'react';
 import {View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import {CartesianChart} from 'victory-native';
 
-import type {BarChartProps} from './types';
+import type {BarChartBodyProps} from './types';
 
 /** Gap between the bar tip and the tooltip pointer, lifting the tooltip clear of the bar. */
 const TOOLTIP_TIP_GAP = 4;
@@ -150,11 +148,10 @@ function ValueAxisLabels({xTicks, xScale, chartBottom, fontSize, fontManager, la
     });
 }
 
-function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', color = colors.blue400, onBarPress}: BarChartProps) {
+function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', color = colors.blue400, onBarPress, chartWidth}: BarChartBodyProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const fontManager = useChartFontManager();
-    const [chartWidth, setChartWidth] = useState(0);
 
     // Transpose: value on the x-axis, category index on the y-axis.
     // Categories are reversed (index 0 mapped to the top row) so a descending-sorted ranking reads top-to-bottom.
@@ -180,10 +177,6 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
         if (dataPoint && onBarPress) {
             onBarPress(dataPoint, index);
         }
-    };
-
-    const handleLayout = (event: LayoutChangeEvent) => {
-        setChartWidth(event.nativeEvent.layout.width);
     };
 
     const barThickness = useSharedValue(0);
@@ -353,7 +346,9 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
         left: categoryLabelWidth + CATEGORY_LABEL_GAP + GLYPH_PADDING,
     };
 
-    const dynamicChartStyle = {height: getHorizontalChartHeight(data.length, MIN_BAR_ROW_HEIGHT, chartPadding.top + chartPadding.bottom, CHART_CONTENT_MIN_HEIGHT + labelSpace)};
+    const chartHeight = getHorizontalChartHeight(data.length, MIN_BAR_ROW_HEIGHT, chartPadding.top + chartPadding.bottom, CHART_CONTENT_MIN_HEIGHT + labelSpace);
+    const dynamicChartStyle = {height: chartHeight};
+    const chartSize = chartWidth > 0 ? {width: chartWidth, height: chartHeight} : undefined;
 
     // Draw each bar as its own Skia path so the rounded pill sits on the value tip and the axis end stays square,
     // for both positive (right-pointing) and negative (left-pointing) bars. thickness mirrors BarGroup's own
@@ -402,12 +397,10 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
             gesture={customGestures}
             touchAction="pan-y"
         >
-            <Animated.View
-                style={[styles.chartContent, dynamicChartStyle, cursorStyle]}
-                onLayout={handleLayout}
-            >
-                {chartWidth > 0 && (
+            <Animated.View style={[styles.chartContent, dynamicChartStyle, cursorStyle]}>
+                {!!chartSize && (
                     <CartesianChart
+                        explicitSize={chartSize}
                         xKey="x"
                         padding={chartPadding}
                         yKeys={['y']}
