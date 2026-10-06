@@ -11,8 +11,10 @@ type CurrencyInlineListAdapterProps = {
     /** Currency code */
     value?: string;
 
+    /** Called with the picked currency code */
     onInputChange?: (value: string) => void;
 
+    /** Validation error shown under the list */
     errorText?: string;
 };
 

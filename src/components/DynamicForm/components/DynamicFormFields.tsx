@@ -19,6 +19,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 type DynamicFormFieldsProps = {
+    /** Fields to render, in order. Fields of a type this App version does not know are left out. */
     fields: DynamicFormSchemaField[];
 
     /** The whole form, when `fields` is one page of it, so a field can depend on an answer asked on another page */

@@ -11,8 +11,10 @@ type YesNoAdapterProps = {
     /** The empty string means unanswered */
     value?: boolean | '';
 
+    /** Called with `true` for Yes and `false` for No */
     onInputChange?: (value: boolean) => void;
 
+    /** Validation error shown under the buttons */
     errorText?: string;
 };
 

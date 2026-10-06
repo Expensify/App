@@ -30,6 +30,7 @@ type DynamicFieldInputProps = Required<ForwardedFSClassProps> &
     };
 
 type DynamicFieldInput = {
+    /** The form input drawn for the field */
     input: ReactElement;
 
     /** Spans the page edge to edge like a menu row, instead of sitting inside the page padding */

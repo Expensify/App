@@ -16,8 +16,13 @@ import {Str} from 'expensify-common';
 import React, {useState} from 'react';
 
 type ListFieldAdapterProps = Pick<ComponentProps<typeof ListField>, 'addTitle' | 'addDescription'> & {
+    /** Entries added so far */
     value?: DynamicFormListItem[];
+
+    /** Called with every entry after one is added, edited or removed */
     onInputChange?: (value: DynamicFormListItem[]) => void;
+
+    /** Validation error shown under the list */
     errorText?: string;
 
     /** Titles the modal editor of an entry whose answers give it no name */
@@ -26,10 +31,13 @@ type ListFieldAdapterProps = Pick<ComponentProps<typeof ListField>, 'addTitle' |
     /** The fields of one entry, which name and describe its row */
     itemFields: DynamicFormField[];
 
+    /** Hides the add row once the list holds this many entries */
     maxItems?: number;
 
-    /** Open the flow's editor page of an entry, or of a new one. Without them the editor is a modal on this page. */
+    /** Opens the flow's editor page for a new entry. Without it, entries are edited in a modal on this page. */
     onAdd?: () => void;
+
+    /** Opens the flow's editor page of an entry */
     onEdit?: (itemID: string) => void;
 
     /** Draws the entry's fields inside the modal editor */

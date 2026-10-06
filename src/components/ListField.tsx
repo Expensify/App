@@ -21,15 +21,18 @@ import {ModalActions} from './Modal/Global/ModalContext';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
 type ListFieldRow = {
+    /** ID of the entry the row shows */
     id: string;
 
     /** Names the row, and the avatar and the remove confirmation are built from it */
     title: string;
 
+    /** Second line of the row */
     description?: string;
 };
 
 type ListFieldProps = {
+    /** Entries, one row each */
     rows: ListFieldRow[];
 
     /** Title of the add row, such as "Add owner" */
@@ -41,10 +44,13 @@ type ListFieldProps = {
     /** Hides the add row once the list is full */
     canAddMore?: boolean;
 
+    /** Validation error shown under the list */
     errorText?: string;
 
+    /** Called when the user taps the add row */
     onAdd: () => void;
 
+    /** Called when the user taps Edit on a row */
     onEdit: (id: string) => void;
 
     /** Called once the user has confirmed the removal */

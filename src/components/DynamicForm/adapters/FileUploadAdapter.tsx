@@ -7,9 +7,13 @@ import type {ComponentProps} from 'react';
 import React, {useState} from 'react';
 
 type FileUploadAdapterProps = Pick<ComponentProps<typeof UploadFile>, 'buttonText' | 'acceptedFileTypes' | 'fileLimit' | 'maxFileSize'> & {
+    /** Files added so far */
     value?: FileObject[];
+
+    /** Called with every file after each add or remove */
     onInputChange?: (value: FileObject[]) => void;
 
+    /** Validation error, shown unless an upload error takes its place */
     errorText?: string;
 };
 

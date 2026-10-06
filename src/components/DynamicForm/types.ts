@@ -18,18 +18,25 @@ type DynamicFormFieldOfType<TType extends DynamicFormFieldType> = DynamicFormFie
 type DynamicFormLayout = 'auto' | 'pages' | 'stepper';
 
 type DynamicFormFlowProps = Pick<DynamicFormFieldsProps, 'currency' | 'onRefreshRequirements'> & {
+    /** The server's schema. Fields of a type this App version does not know are left out. */
     fields: DynamicFormSchemaField[];
 
     /** The form whose draft holds the answers. Sensitive answers stay in memory instead. */
     formID: OnyxFormKey;
 
+    /** Title in the header of every page */
     headerTitle: string;
+
+    /** Title of the confirmation page */
     confirmationTitle: string;
+
+    /** testID of the screen wrapper */
     testID: string;
 
     /** Route of a page. The flow passes `edit` when the user opens a page from the confirmation page. */
     buildRoute: UseSubPageProps<SubPageProps>['buildRoute'];
 
+    /** Replaces the route on each page change instead of pushing a new one, for flows on dynamic routes */
     shouldReplaceRoute?: UseSubPageProps<SubPageProps>['shouldReplaceRoute'];
 
     /** Receives the answers to every visible field, sensitive ones included. The flow drops sensitive answers once `isSubmitting` turns false without `submitError`, or right away when `isSubmitting` is not passed. */
@@ -41,9 +48,13 @@ type DynamicFormFlowProps = Pick<DynamicFormFieldsProps, 'currency' | 'onRefresh
     /** Leaves the flow from its first page */
     onBack: () => void;
 
+    /** Shows the confirmation page's Confirm button loading while the screen sends the answers */
     isSubmitting?: boolean;
+
+    /** Error from sending the answers, shown on the confirmation page */
     submitError?: string;
 
+    /** When the step indicator shows: `auto` from three shown pages on, `stepper` always, `pages` never */
     layout?: DynamicFormLayout;
 
     /** Whether a confirmation page follows the last page. By default only forms with more than five pages get one, and the last page of the others submits. */

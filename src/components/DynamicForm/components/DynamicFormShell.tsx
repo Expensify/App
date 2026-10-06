@@ -7,15 +7,25 @@ import type {ReactNode} from 'react';
 import React from 'react';
 
 type DynamicFormShellProps = {
+    /** The current page */
     children: ReactNode;
+
+    /** testID of the screen wrapper */
     testID: string;
+
+    /** Title in the header */
     headerTitle: string;
+
+    /** Called when the user presses the header's back button */
     onBackButtonPress: () => void;
 
     /** Page names in order, for the step indicator */
     stepNames: string[];
 
+    /** Index of the highlighted step */
     stepIndex: number;
+
+    /** Shows the step indicator under the header */
     shouldShowStepIndicator: boolean;
 };
 

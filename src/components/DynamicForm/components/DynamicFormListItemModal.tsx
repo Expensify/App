@@ -20,15 +20,25 @@ import type {ReactNode} from 'react';
 import React from 'react';
 
 type DynamicFormListItemModalProps = {
+    /** Whether the modal is open */
     isVisible: boolean;
+
+    /** Header title: the entry's name, or the add title for a new entry */
     title: string;
+
+    /** The fields of one entry */
     itemFields: DynamicFormField[];
 
     /** Answers the form cannot show, such as stored sensitive ones, used when the user leaves them blank */
     keptAnswers: DynamicFormValues;
 
+    /** Draws the entry's fields inside the modal's form */
     renderFields: (fields: DynamicFormField[], values: DynamicFormValues) => ReactNode;
+
+    /** Called with the entry's answers when the user saves */
     onSave: (answers: DynamicFormValues) => void;
+
+    /** Called when the user closes the modal without saving */
     onClose: () => void;
 };
 

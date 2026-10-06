@@ -15,31 +15,38 @@ import React from 'react';
 import {View} from 'react-native';
 
 type InlineSelectionListAdapterBaseProps = {
+    /** Options, one row each */
     items: Choice[];
 
+    /** Validation error shown under the list */
     errorText?: string;
 
     /** Shows a search box above the list, for long option sets such as countries */
     isSearchable?: boolean;
 
+    /** Label of the search box */
     searchInputLabel?: string;
 };
 
 type InlineSelectionListAdapterSingleProps = {
+    /** One option can be picked */
     canSelectMultiple?: false;
 
     /** Key of the picked option */
     value?: string;
 
+    /** Called with the key of the picked option */
     onInputChange?: (value: string) => void;
 };
 
 type InlineSelectionListAdapterMultipleProps = {
+    /** Several options can be picked */
     canSelectMultiple: true;
 
     /** Keys of the picked options */
     value?: string[];
 
+    /** Called with the keys of every picked option after each tap */
     onInputChange?: (value: string[]) => void;
 };
 
