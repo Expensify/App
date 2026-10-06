@@ -435,10 +435,19 @@ describe('ReportActionsList (body)', () => {
                 created: '2023-01-01 00:02:30.000',
                 originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY},
             };
+            const created: OnyxTypes.ReportAction = {
+                ...getSystemAction(2),
+                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                reportActionID: 'created',
+                created: '2023-01-01 00:00:00.000',
+            };
             mockReport.type = CONST.REPORT.TYPE.EXPENSE;
             mockReport.isWaitingOnBankAccount = isWaitingOnBankAccount;
             mockUseNetwork.mockReturnValue({isOffline: false});
-            mockUsePaginatedReportActions.mockReturnValue({...defaultPaginatedReportActionsResult, reportActions: [getSystemAction(0), payment, getSystemAction(1), getSystemAction(2)]});
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: [getSystemAction(0), payment, getSystemAction(1), getSystemAction(2), created],
+            });
 
             // When the standard report list constructs its summary
             renderReportActionsList();
@@ -449,7 +458,7 @@ describe('ReportActionsList (body)', () => {
             expect(summary?.props).toMatchObject({count: isWaitingOnBankAccount ? 2 : 3, earliestReportAction: getSystemAction(1)});
             act(() => summary?.props.onPress());
             expect(getCapturedVisibleActions()?.map((action) => action.reportActionID)).toEqual(
-                isWaitingOnBankAccount ? ['system-newer', 'system-older', 'chat-boundary'] : ['system-newer', 'expense-payment', 'system-older', 'chat-boundary'],
+                isWaitingOnBankAccount ? ['system-newer', 'system-older', 'chat-boundary', 'created'] : ['system-newer', 'expense-payment', 'system-older', 'chat-boundary', 'created'],
             );
             expect(getRenderedReportActionsListItemProps(getSystemAction(0), 0)).toMatchObject({displayAsGroup: true});
         });
