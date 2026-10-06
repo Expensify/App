@@ -1,4 +1,4 @@
-import {act, render, screen, waitFor} from '@testing-library/react-native';
+import {act, render, renderHook, screen, waitFor} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -9,6 +9,8 @@ import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginPr
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+import * as useSafeAreaInsetsModule from '@hooks/useSafeAreaInsets';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 
@@ -26,6 +28,7 @@ import type {PersonalDetails} from '@src/types/onyx';
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
+import {StyleSheet} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import * as LHNTestUtils from '../utils/LHNTestUtils';
@@ -260,5 +263,95 @@ describe('WorkspaceReceiptPartners', () => {
             expect(screen.getByText(TestHelper.translateLocal('workspace.receiptPartners.uber.centralBillingAccount'))).toBeOnTheScreen();
         });
         expect(screen.getByText(TestHelper.translateLocal('workspace.receiptPartners.uber.centralBillingAccount'))).toBeOnTheScreen();
+    });
+
+    describe('bottom safe area padding', () => {
+        const BOTTOM_INSET = 34;
+        let useSafeAreaInsetsSpy: jest.SpyInstance;
+
+        beforeEach(() => {
+            useSafeAreaInsetsSpy = jest.spyOn(useSafeAreaInsetsModule, 'default');
+        });
+
+        afterEach(() => {
+            useSafeAreaInsetsSpy.mockRestore();
+        });
+
+        /** Renders the invite page on a device with the given bottom inset and sums the bottom padding of every view on the screen. */
+        const getInvitePageBottomPadding = async (bottomInset: number, headerTitle: string) => {
+            useSafeAreaInsetsSpy.mockReturnValue({top: 0, right: 0, bottom: bottomInset, left: 0});
+            const {unmount} = renderInvitePage({policyID, integration: UBER_INTEGRATION});
+
+            await waitForBatchedUpdatesWithAct();
+            await waitFor(() => {
+                expect(screen.getByText(headerTitle)).toBeOnTheScreen();
+            });
+
+            const totalBottomPadding = screen
+                .getByTestId('DynamicInviteReceiptPartnerPolicyPage')
+                .findAll((node) => typeof node.type === 'string')
+                .reduce((total, node) => {
+                    const style: unknown = StyleSheet.flatten(node.props.style);
+                    if (!style || typeof style !== 'object' || !('paddingBottom' in style) || typeof style.paddingBottom !== 'number') {
+                        return total;
+                    }
+                    return total + style.paddingBottom;
+                }, 0);
+
+            unmount();
+            return totalBottomPadding;
+        };
+
+        /** Returns how much bottom padding the inset adds to the invite page, compared to a device without a bottom inset. */
+        const getBottomPaddingAddedByInset = async (headerTitle: string) => {
+            const bottomPaddingWithoutInset = await getInvitePageBottomPadding(0, headerTitle);
+            const bottomPaddingWithInset = await getInvitePageBottomPadding(BOTTOM_INSET, headerTitle);
+            return bottomPaddingWithInset - bottomPaddingWithoutInset;
+        };
+
+        const getSafeAreaPaddingBottom = () => renderHook(() => useSafeAreaPaddings(true)).result.current.paddingBottom;
+
+        it('applies the bottom safe area padding only once on the send invites page', async () => {
+            // Given a workspace with members that can still be invited to Uber, so the page shows the member list with the confirm button footer
+            await TestHelper.signInWithTestUser();
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, basePolicy);
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, employeePersonalDetails);
+            });
+
+            // When the page is rendered on a device that has a bottom safe area inset
+            const bottomPaddingAddedByInset = await getBottomPaddingAddedByInset(TestHelper.translateLocal('workspace.receiptPartners.uber.sendInvites'));
+
+            // Then the inset should be added only once, because the confirm button footer already includes it and ScreenWrapper adding it again leaves an oversized gap below the button
+            expect(bottomPaddingAddedByInset).toBeCloseTo(getSafeAreaPaddingBottom());
+        });
+
+        it('keeps the bottom safe area padding on the all set page', async () => {
+            // Given a workspace where every member is already linked to Uber, so there is nobody left to invite and the page skips to the "All set" confirmation
+            await TestHelper.signInWithTestUser();
+            const linkedEmployee = {status: CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED};
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    ...basePolicy,
+                    receiptPartners: {
+                        ...basePolicy.receiptPartners,
+                        uber: {
+                            ...basePolicy.receiptPartners.uber,
+                            employees: {
+                                [EMPLOYEE_EMAIL]: linkedEmployee,
+                                [BILLING_EMAIL]: linkedEmployee,
+                            },
+                        },
+                    },
+                });
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, employeePersonalDetails);
+            });
+
+            // When the page is rendered on a device that has a bottom safe area inset
+            const bottomPaddingAddedByInset = await getBottomPaddingAddedByInset(TestHelper.translateLocal('workspace.receiptPartners.uber.allSet'));
+
+            // Then the inset should still be added once, because the confirmation footer does not include it and relies on ScreenWrapper to keep the button above the home indicator
+            expect(bottomPaddingAddedByInset).toBeCloseTo(getSafeAreaPaddingBottom());
+        });
     });
 });
