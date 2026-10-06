@@ -1,7 +1,66 @@
-import {parsePhoneNumber} from '@libs/PhoneNumber';
+import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
+
+// Compare the wrapper with its producer to keep the complete parser metadata in these expectations.
+// eslint-disable-next-line no-restricted-imports
+import {parsePhoneNumber as originalParsePhoneNumber} from 'awesome-phonenumber';
 
 describe('PhoneNumber', () => {
     describe('parsePhoneNumber', () => {
+        it('preserves the parser result when it is already impossible', () => {
+            // Given a number the parser cannot treat as possible
+            // When the wrapper receives that number
+            // Then it returns the parser's complete result without rewritten fields
+            const number = 'John Doe';
+            expect(parsePhoneNumber(number)).toEqual(originalParsePhoneNumber(number));
+        });
+
+        it('rewrites every number field for a possible number rejected by the stricter format', () => {
+            // Given a parser-possible number with punctuation excluded by the app format
+            // When the wrapper rejects the app format
+            // Then all five number fields use the stripped input while parser metadata remains
+            const number = '+1 (234) 567-8901 ext 2';
+            const parsed = originalParsePhoneNumber(number);
+            expect(parsed.possible).toBe(true);
+            const actual = parsePhoneNumber(number);
+            expect(actual).toEqual({
+                ...parsed,
+                valid: false,
+                possible: false,
+                number: {
+                    ...parsed.number,
+                    input: parsed.number?.input ?? number,
+                    e164: '+12345678901ext2',
+                    international: '+12345678901ext2',
+                    national: '+12345678901ext2',
+                    rfc3966: 'tel:+12345678901ext2',
+                    significant: '+12345678901ext2',
+                },
+            });
+        });
+
+        it('rewrites every number field for the extra US country-code digit', () => {
+            // Given a parser-possible number that begins with the extra US digit
+            // When the wrapper applies the special invalidation rule
+            // Then its five number fields retain the existing invalid result format
+            const number = '+112345678901';
+            const parsed = originalParsePhoneNumber(number);
+            expect(parsed.possible).toBe(true);
+            expect(parsePhoneNumber(number)).toEqual({
+                ...parsed,
+                valid: false,
+                possible: false,
+                number: {
+                    ...parsed.number,
+                    input: parsed.number?.input ?? number,
+                    e164: number,
+                    international: '+1 12345678901',
+                    national: '12345678901',
+                    rfc3966: 'tel:+1-12345678901',
+                    significant: '12345678901',
+                },
+            });
+        });
+
         it('Should return valid phone number', () => {
             const validNumbers = [
                 '+1 (234) 567-8901',
@@ -38,6 +97,17 @@ describe('PhoneNumber', () => {
                 expect(parsedPhone.valid).toBe(false);
                 expect(parsedPhone.possible).toBe(false);
             }
+        });
+    });
+
+    describe('addSMSDomainIfPhoneNumber', () => {
+        it('adds the SMS domain only to possible phone logins', () => {
+            // Given a valid phone, an invalid special-case number, and an email
+            // When each login is normalized for SMS
+            // Then only the possible phone receives the SMS domain
+            expect(addSMSDomainIfPhoneNumber('+12345678901')).toBe('+12345678901@expensify.sms');
+            expect(addSMSDomainIfPhoneNumber('+112345678901')).toBe('+112345678901');
+            expect(addSMSDomainIfPhoneNumber('person@example.com')).toBe('person@example.com');
         });
     });
 });
