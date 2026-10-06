@@ -2384,7 +2384,7 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: 'アカウント設定',
         account: 'アカウント',
         general: '一般',
-        talkToAHuman: '担当者と話す',
+        talkToAHuman: '担当者に相談する',
         helpPage: {
             title: 'ヘルプとサポート',
             description: '24時間いつでもサポートします。',
@@ -9569,10 +9569,10 @@ ${reportName}`,
         deleteConfirmation: 'このタスクを削除してもよろしいですか？',
     },
     supportTicket: {
-        title: ({date, customer, supportRep}) => `サポートチケット、${date}: ${customer} と ${supportRep}`,
-        description: ({supportRep}) =>
-            `こんにちは、${supportRep}です。完全に解決するまで対応します。すでに詳細をお知らせいただいている場合は、同じ内容を繰り返していただく必要がないよう、返信前に確認します。新しい問題の場合は、必要なサポートをお知らせください。`,
-        checkboxTooltip: '解決時にサポート担当者がこれをチェックします。',
+        title: ({date, customer, supportRep}: {date: string; customer: string; supportRep: string}) => `サポートチケット、${date}：${customer} と ${supportRep}`,
+        description: ({supportRep}: {supportRep: string}) =>
+            `こんにちは、${supportRep}です。問題が完全に解決するまで、私が対応いたします。すでに詳細を共有いただいている場合は、それらを確認してから返信しますので、繰り返していただく必要はありません。新しい問題の場合は、どのようなことでお困りか教えてください。`,
+        checkboxTooltip: '解決されたときに、サポート担当者がこれを確認します。',
         genericCreateSupportTicketFailureMessage: 'このサポートチケットを作成できませんでした。このエラーを閉じて、もう一度お試しください。',
         noSupportRepAvailable: '現在対応可能なサポート担当者はいません。Concierge にメッセージを送ってサポートを受けることはできます。',
         fallbackTitle: 'サポートチケット',

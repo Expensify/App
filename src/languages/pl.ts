@@ -9684,11 +9684,11 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         deleteConfirmation: 'Czy na pewno chcesz usunąć to zadanie?',
     },
     supportTicket: {
-        title: ({date, customer, supportRep}) => `Zgłoszenie do pomocy technicznej, ${date}: ${customer} i ${supportRep}`,
-        description: ({supportRep}) =>
-            `Cześć, jestem ${supportRep} i będę z Tobą pracować, aż sprawa zostanie w pełni rozwiązana. Jeśli już przekazano nam szczegóły, przejrzę je przed odpowiedzią, aby nie trzeba było ich powtarzać. Jeśli to nowy problem, daj mi znać, w czym potrzebujesz pomocy.`,
-        checkboxTooltip: 'Pracownik pomocy technicznej zaznaczy to po rozwiązaniu sprawy.',
-        genericCreateSupportTicketFailureMessage: 'Nie udało się utworzyć tego zgłoszenia. Zamknij ten błąd i spróbuj ponownie.',
+        title: ({date, customer, supportRep}: {date: string; customer: string; supportRep: string}) => `Zgłoszenie do pomocy technicznej, ${date}: ${customer} i ${supportRep}`,
+        description: ({supportRep}: {supportRep: string}) =>
+            `Cześć, jestem ${supportRep} i będę z tobą współpracować, dopóki całkowicie tego nie rozwiążemy. Jeśli przekazałeś nam już szczegóły, przejrzę je przed odpowiedzią, żebyś nie musiał się powtarzać. Jeśli to nowy problem, daj znać, z czym potrzebujesz pomocy.`,
+        checkboxTooltip: 'Twój przedstawiciel wsparcia zaznaczy to, gdy zostanie rozwiązane.',
+        genericCreateSupportTicketFailureMessage: 'Nie udało się utworzyć tego zgłoszenia do pomocy technicznej. Zamknij ten błąd i spróbuj ponownie.',
         noSupportRepAvailable: 'Obecnie nie ma dostępnych pracowników pomocy technicznej. Nadal możesz wysłać wiadomość do Concierge, aby uzyskać pomoc.',
         fallbackTitle: 'Zgłoszenie do pomocy technicznej',
         resolved: 'To zgłoszenie do pomocy technicznej zostało rozwiązane.',

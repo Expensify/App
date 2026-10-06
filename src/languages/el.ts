@@ -2456,7 +2456,7 @@ const translations: TranslationDeepObject<typeof en> = {
         versionLetter: 'ν',
         readTheTermsAndPrivacy: `Διαβάστε τους <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">όρους παροχής υπηρεσιών</a> και την <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">πολιτική απορρήτου</a>.`,
         help: 'Βοήθεια',
-        talkToAHuman: 'Μιλήστε με έναν άνθρωπο',
+        talkToAHuman: 'Μιλήστε με άνθρωπο',
         helpPage: {
             title: 'Βοήθεια και υποστήριξη',
             description: 'Είμαστε εδώ για να σας βοηθάμε 24/7.',
@@ -9937,11 +9937,11 @@ ${reportName}`,
         deleteConfirmation: 'Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτήν την εργασία;',
     },
     supportTicket: {
-        title: ({date, customer, supportRep}) => `Αίτημα υποστήριξης, ${date}: ${customer} και ${supportRep}`,
-        description: ({supportRep}) =>
-            `Γεια σας, είμαι ο/η ${supportRep} και θα συνεργαστώ μαζί σας μέχρι να επιλυθεί πλήρως αυτό το ζήτημα. Αν έχετε ήδη μοιραστεί λεπτομέρειες μαζί μας, θα τις εξετάσω πριν απαντήσω, ώστε να μη χρειαστεί να επαναληφθείτε. Αν πρόκειται για νέο ζήτημα, ενημερώστε με για το πώς μπορώ να βοηθήσω.`,
-        checkboxTooltip: 'Ο εκπρόσωπος υποστήριξής σας θα το επιλέξει όταν επιλυθεί.',
-        genericCreateSupportTicketFailureMessage: 'Δεν ήταν δυνατή η δημιουργία αυτού του αιτήματος υποστήριξης. Κλείστε αυτό το σφάλμα και δοκιμάστε ξανά.',
+        title: ({date, customer, supportRep}: {date: string; customer: string; supportRep: string}) => `Αίτημα υποστήριξης, ${date}: ${customer} και ${supportRep}`,
+        description: ({supportRep}: {supportRep: string}) =>
+            `Γεια σας, είμαι ο/η ${supportRep} και θα συνεργαστώ μαζί σας μέχρι να επιλυθεί πλήρως αυτό το ζήτημα. Αν μας έχετε ήδη δώσει λεπτομέρειες, θα τις εξετάσω πριν απαντήσω, ώστε να μην χρειαστεί να επαναλάβετε τίποτα. Αν πρόκειται για νέο ζήτημα, ενημερώστε με με τι χρειάζεστε βοήθεια.`,
+        checkboxTooltip: 'Ο/Η εκπρόσωπος υποστήριξής σας θα το σημειώσει ως ελεγμένο όταν επιλυθεί.',
+        genericCreateSupportTicketFailureMessage: 'Δεν ήταν δυνατή η δημιουργία αυτού του αιτήματος υποστήριξης. Παρακαλούμε απορρίψτε αυτό το σφάλμα και δοκιμάστε ξανά.',
         noSupportRepAvailable: 'Δεν υπάρχουν διαθέσιμοι εκπρόσωποι υποστήριξης αυτή τη στιγμή. Μπορείτε ακόμη να στείλετε μήνυμα στο Concierge για βοήθεια.',
         fallbackTitle: 'Αίτημα υποστήριξης',
         resolved: 'Αυτό το αίτημα υποστήριξης επιλύθηκε.',

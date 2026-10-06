@@ -2323,7 +2323,7 @@ const translations: TranslationDeepObject<typeof en> = {
         versionLetter: 'v',
         readTheTermsAndPrivacy: `Leer los <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Términos de Servicio</a> y <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacidad</a>.`,
         help: 'Ayuda',
-        talkToAHuman: 'Hablar con una persona',
+        talkToAHuman: 'Habla con una persona',
         helpPage: {
             title: 'Ayuda y soporte',
             description: 'Estamos aquí para ayudarte en todo momento.',
@@ -9579,11 +9579,11 @@ ${reportName}`,
         deleteConfirmation: '¿Estás seguro de que quieres eliminar esta tarea?',
     },
     supportTicket: {
-        title: ({date, customer, supportRep}) => `Ticket de soporte, ${date}: ${customer} y ${supportRep}`,
-        description: ({supportRep}) =>
-            `Hola, soy ${supportRep} y trabajaré contigo hasta que esto se resuelva por completo. Si ya compartiste detalles con nosotros, los revisaré antes de responder para que no tengas que repetirlos. Si se trata de un problema nuevo, cuéntame con qué necesitas ayuda.`,
-        checkboxTooltip: 'Tu representante de soporte marcará esto cuando se resuelva.',
-        genericCreateSupportTicketFailureMessage: 'No pudimos crear este ticket de soporte. Descarta este error e inténtalo de nuevo.',
+        title: ({date, customer, supportRep}: {date: string; customer: string; supportRep: string}) => `Ticket de soporte, ${date}: ${customer} y ${supportRep}`,
+        description: ({supportRep}: {supportRep: string}) =>
+            `Hola, soy ${supportRep} y trabajaré contigo hasta que esto quede completamente resuelto. Si ya has compartido detalles con nosotros, los revisaré antes de responder para que no tengas que repetirte. Si se trata de un problema nuevo, dime con qué necesitas ayuda.`,
+        checkboxTooltip: 'Tu representante de soporte marcará esto cuando se haya resuelto.',
+        genericCreateSupportTicketFailureMessage: 'No hemos podido crear este ticket de soporte. Por favor, descarta este error e inténtalo de nuevo.',
         noSupportRepAvailable: 'No hay representantes de soporte disponibles en este momento. Aún puedes enviar un mensaje a Concierge para obtener ayuda.',
         fallbackTitle: 'Ticket de soporte',
         resolved: 'Este ticket de soporte está resuelto.',

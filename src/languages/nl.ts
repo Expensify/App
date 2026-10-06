@@ -9674,11 +9674,11 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         deleteConfirmation: 'Weet je zeker dat je deze taak wilt verwijderen?',
     },
     supportTicket: {
-        title: ({date, customer, supportRep}) => `Supportticket, ${date}: ${customer} en ${supportRep}`,
-        description: ({supportRep}) =>
-            `Hoi, ik ben ${supportRep} en ik werk met je samen totdat dit volledig is opgelost. Als je al details met ons hebt gedeeld, bekijk ik die voordat ik reageer zodat je jezelf niet hoeft te herhalen. Als dit een nieuw probleem is, laat me dan weten waarmee je hulp nodig hebt.`,
-        checkboxTooltip: 'Je supportmedewerker vinkt dit aan wanneer het is opgelost.',
-        genericCreateSupportTicketFailureMessage: 'We konden dit supportticket niet maken. Sluit deze foutmelding en probeer het opnieuw.',
+        title: ({date, customer, supportRep}: {date: string; customer: string; supportRep: string}) => `Supportticket, ${date}: ${customer} en ${supportRep}`,
+        description: ({supportRep}: {supportRep: string}) =>
+            `Hoi, ik ben ${supportRep}, en ik help je totdat dit helemaal is opgelost. Als je de details al met ons hebt gedeeld, bekijk ik die eerst voordat ik reageer, zodat je jezelf niet hoeft te herhalen. Als dit een nieuw probleem is, laat me dan weten waarmee je hulp nodig hebt.`,
+        checkboxTooltip: 'Je supportmedewerker vinkt dit aan zodra het is opgelost.',
+        genericCreateSupportTicketFailureMessage: 'We konden dit supportticket niet aanmaken. Sluit deze foutmelding en probeer het opnieuw.',
         noSupportRepAvailable: 'Er zijn momenteel geen supportmedewerkers beschikbaar. Je kunt Concierge nog steeds een bericht sturen voor hulp.',
         fallbackTitle: 'Supportticket',
         resolved: 'Dit supportticket is opgelost.',

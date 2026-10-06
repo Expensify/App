@@ -2324,7 +2324,7 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: '账户设置',
         account: '账户',
         general: '常规',
-        talkToAHuman: '与人工客服交谈',
+        talkToAHuman: '与人工客服联系',
         helpPage: {
             title: '帮助与支持',
             description: '我们全天候为您提供帮助。',
@@ -9322,11 +9322,11 @@ ${reportName}`,
         deleteConfirmation: '确定要删除此任务吗？',
     },
     supportTicket: {
-        title: ({date, customer, supportRep}) => `支持工单，${date}: ${customer} 和 ${supportRep}`,
-        description: ({supportRep}) =>
-            `您好，我是${supportRep}，我会与您一起处理此问题，直到完全解决。如果您已经向我们提供了详细信息，我会在回复前先查看，因此您无需重复说明。如果这是一个新问题，请告诉我您需要什么帮助。`,
-        checkboxTooltip: '问题解决后，您的支持代表会勾选此项。',
-        genericCreateSupportTicketFailureMessage: '无法创建此支持工单。请关闭此错误后重试。',
+        title: ({date, customer, supportRep}: {date: string; customer: string; supportRep: string}) => `支持工单，${date}：${customer} 与 ${supportRep}`,
+        description: ({supportRep}: {supportRep: string}) =>
+            `您好，我是 ${supportRep}，我会一直协助您，直到问题完全解决。如果您已经和我们分享了详细信息，我会在回复前先行查看，您无需重复说明。如果这是一个新问题，请告诉我您需要什么帮助。`,
+        checkboxTooltip: '问题解决后，您的客服代表会勾选此项。',
+        genericCreateSupportTicketFailureMessage: '我们无法创建此支持工单。请关闭此错误后重试。',
         noSupportRepAvailable: '目前没有可用的支持代表。您仍可向 Concierge 发送消息以获取帮助。',
         fallbackTitle: '支持工单',
         resolved: '此支持工单已解决。',

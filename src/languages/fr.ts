@@ -9777,11 +9777,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         deleteConfirmation: 'Voulez-vous vraiment supprimer cette tâche ?',
     },
     supportTicket: {
-        title: ({date, customer, supportRep}) => `Ticket d’assistance, ${date} : ${customer} et ${supportRep}`,
-        description: ({supportRep}) =>
-            `Bonjour, je suis ${supportRep} et je travaillerai avec vous jusqu’à ce que tout soit entièrement résolu. Si vous nous avez déjà transmis des détails, je les examinerai avant de répondre afin que vous n’ayez pas à vous répéter. S’il s’agit d’un nouveau problème, dites-moi ce pour quoi vous avez besoin d’aide.`,
-        checkboxTooltip: 'Votre représentant de l’assistance cochera cette case lorsque le ticket sera résolu.',
-        genericCreateSupportTicketFailureMessage: 'Nous n’avons pas pu créer ce ticket d’assistance. Fermez cette erreur et réessayez.',
+        title: ({date, customer, supportRep}: {date: string; customer: string; supportRep: string}) => `Ticket d’assistance, ${date} : ${customer} et ${supportRep}`,
+        description: ({supportRep}: {supportRep: string}) =>
+            `Bonjour, je suis ${supportRep} et je travaillerai avec vous jusqu’à ce que ce soit entièrement résolu. Si vous avez déjà partagé des informations avec nous, je les examinerai avant de vous répondre afin que vous n’ayez pas à vous répéter. S’il s’agit d’un nouveau problème, indiquez-moi ce dont vous avez besoin.`,
+        checkboxTooltip: 'Votre représentant du support vérifiera cela une fois que ce sera résolu.',
+        genericCreateSupportTicketFailureMessage: 'Nous n’avons pas pu créer ce ticket d’assistance. Veuillez ignorer cette erreur et réessayer.',
         noSupportRepAvailable: 'Aucun représentant de l’assistance n’est disponible pour le moment. Vous pouvez toujours envoyer un message à Concierge pour obtenir de l’aide.',
         fallbackTitle: 'Ticket d’assistance',
         resolved: 'Ce ticket d’assistance est résolu.',
