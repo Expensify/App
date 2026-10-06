@@ -1,7 +1,7 @@
 ---
 title: Getting Started with the Spend Page
 description: Learn how to use the Spend page in New Expensify to view, filter, and manage your expense data using report previews, tables, filters, and smart suggestions.
-keywords: [New Expensify, Spend page, report preview, report table, filters, advanced filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline, filter popover, apply filters, reset filters, total spend, total spend currency, change currency, currency converter, multi-currency total, sort by amount, Amount column, sort amount column, negative amount, credit, refund, negative expense sorting, selected total, total spend negative]
+keywords: [New Expensify, Spend page, report preview, report table, filters, advanced filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline, filter popover, apply filters, reset filters, describe your search, natural language search, plain English search, total spend, total spend currency, change currency, currency converter, multi-currency total, sort by amount, Amount column, sort amount column, negative amount, credit, refund, negative expense sorting, selected total, total spend negative]
 ---
 
 The Spend page in New Expensify gives you a full list of your reports and related expenses. From the Spend page you can explore, filter, and export your expense data.
@@ -176,6 +176,8 @@ Mobile:
 5. Select the filters you want to apply. Available filters vary based on the selected **Type**.
 6. Tap **Save** after selecting each filter.
 7. Tap **View Results**. 
+
+Instead of setting each filter yourself, you can select **Describe your search** at the top of the filter list and type what you want to see in plain English, such as `meals over $50 last month`. [Learn how to describe your search on the Spend page](/articles/new-expensify/reports-and-expenses/Describe-Your-Search-on-the-Spend-Page).
 
 For more advanced filtering, you can enter search operators directly into the search box on the **Spend** page. [Learn how to use search operators to filter and analyze](/articles/new-expensify/reports-and-expenses/Use-Search-Operators-to-Filter-and-Analyze).
 
