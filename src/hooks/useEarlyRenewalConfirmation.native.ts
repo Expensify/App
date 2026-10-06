@@ -2,7 +2,7 @@ import useConfirmModal from './useConfirmModal';
 import useEarlyRenewalPeriod from './useEarlyRenewalPeriod';
 import useLocalize from './useLocalize';
 
-/** Explains why early renewal offers cannot be accepted in the native mobile app. */
+/** Explains that early renewal offers can't be accepted in the native mobile app and points the user to the browser. */
 function useEarlyRenewalConfirmation() {
     const {showConfirmModal} = useConfirmModal();
     const {translate} = useLocalize();
@@ -11,7 +11,7 @@ function useEarlyRenewalConfirmation() {
     const showEarlyRenewalConfirmation = () => {
         return showConfirmModal({
             title: isIncentivizedPeriod ? translate('earlyRenewal.incentivizedTitle') : translate('earlyRenewal.title'),
-            prompt: translate('subscription.mobileReducedFunctionalityMessage'),
+            prompt: isIncentivizedPeriod ? translate('earlyRenewal.mobileClaimPrompt') : translate('earlyRenewal.mobileRenewPrompt'),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
             shouldEnableNewFocusManagement: true,
