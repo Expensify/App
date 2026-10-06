@@ -45,10 +45,14 @@ jest.mock('@hooks/useNetwork', () => ({
 }));
 
 const mockOpenReport = jest.fn<void, Parameters<typeof UserActionsReport.openReport>>();
+const mockFlagReportNavigatedAway = jest.fn<void, Parameters<typeof UserActionsReport.flagReportNavigatedAway>>();
 jest.mock('@userActions/Report', () => ({
     ...jest.requireActual<typeof UserActionsReport>('@userActions/Report'),
     openReport: (...args: Parameters<typeof UserActionsReport.openReport>) => {
         mockOpenReport(...args);
+    },
+    flagReportNavigatedAway: (...args: Parameters<typeof UserActionsReport.flagReportNavigatedAway>) => {
+        mockFlagReportNavigatedAway(...args);
     },
 }));
 
@@ -77,6 +81,7 @@ function renderHandler(isInPreloadedTab = false, isHiddenPreMount = false) {
 describe('ReportFetchHandler', () => {
     beforeEach(async () => {
         mockOpenReport.mockClear();
+        mockFlagReportNavigatedAway.mockClear();
         mockSetParams.mockClear();
         mockIsOffline = false;
         setRouteParams({reportID: REPORT_ID});
@@ -173,6 +178,41 @@ describe('ReportFetchHandler', () => {
 
         // Then it still loads, so the reveal is instant, but the read state waits for the user to actually see it
         expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({reportID: REPORT_ID, shouldMarkAsRead: false, shouldKeepManualUnreadMarker: true}));
+    });
+
+    it('does not flag a hidden wide submit pre-mount as navigated away when it unmounts unseen', async () => {
+        // Given a report mounted hidden under the screen the user is looking at
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
+        await waitForBatchedUpdates();
+        const {unmount} = renderHandler(false, true);
+        await waitForBatchedUpdates();
+
+        // When the submit is cancelled and the hidden screen unmounts
+        unmount();
+
+        // Then the next real open is not treated as a return trip that clears a manual unread marker
+        expect(mockFlagReportNavigatedAway).not.toHaveBeenCalled();
+    });
+
+    it('flags a revealed wide submit pre-mount as navigated away when it unmounts', async () => {
+        // Given a hidden pre-mount that was then revealed to the user
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
+        await waitForBatchedUpdates();
+        const {rerender, unmount} = renderHandler(false, true);
+        await waitForBatchedUpdates();
+        rerender(
+            <HandlerTree
+                isInPreloadedTab={false}
+                isHiddenPreMount={false}
+            />,
+        );
+        await waitForBatchedUpdates();
+
+        // When the screen unmounts
+        unmount();
+
+        // Then it is flagged like any report the user left
+        expect(mockFlagReportNavigatedAway).toHaveBeenCalledWith(REPORT_ID);
     });
 
     it('marks a visible report read when fetching it', async () => {

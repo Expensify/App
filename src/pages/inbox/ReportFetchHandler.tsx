@@ -474,8 +474,16 @@ function ReportFetchHandler() {
         flagReportNavigatedAway(reportIDFromRoute);
     }, [isFocused, prevIsFocused, reportIDFromRoute]);
 
+    // A hidden pre-mount the user never saw, e.g. after a cancelled submit, was not navigated away from.
+    const flagNavigatedAwayIfShown = useEffectEvent((navigatedAwayReportID: string | undefined) => {
+        if (isHiddenPreMount) {
+            return;
+        }
+        flagReportNavigatedAway(navigatedAwayReportID);
+    });
+
     useEffect(() => {
-        return () => flagReportNavigatedAway(reportIDFromRoute);
+        return () => flagNavigatedAwayIfShown(reportIDFromRoute);
     }, [reportIDFromRoute]);
 
     // `isLoadingInitialReportActions` is memory-only and is not reset between navigations. A prior failed
