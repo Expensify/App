@@ -4276,11 +4276,16 @@ const staticStyles = (theme: ThemeColors) =>
 
         earlyRenewalOfferBackground: {
             position: 'absolute',
-            top: variables.earlyRenewalOfferBackgroundTop,
+            top: 0,
             left: 0,
             right: 0,
-            height: variables.earlyRenewalOfferBackgroundHeight,
+            height: variables.earlyRenewalOfferBackgroundHeight + variables.earlyRenewalOfferBackgroundOffsetTop,
+            alignItems: 'center',
             overflow: 'hidden',
+        },
+
+        earlyRenewalOfferBackgroundImage: {
+            marginTop: variables.earlyRenewalOfferBackgroundOffsetTop,
         },
 
         earlyRenewalOfferOption: {

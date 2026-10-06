@@ -76,11 +76,12 @@ function EarlyRenewalOfferPage() {
                 />
                 <ScrollView contentContainerStyle={[styles.alignItemsCenter, styles.ph5, styles.pv3, styles.gap6]}>
                     <View style={styles.earlyRenewalOfferBackground}>
+                        {/* Figma starts the pattern just above the content, so its top edge is clipped under the header. */}
                         <ImageSVG
                             src={themeIllustrations.IceCreamBackgroundImage}
-                            width="100%"
-                            height="100%"
-                            preserveAspectRatio="xMidYMid slice"
+                            width={variables.earlyRenewalOfferBackgroundWidth}
+                            height={variables.earlyRenewalOfferBackgroundHeight}
+                            style={styles.earlyRenewalOfferBackgroundImage}
                         />
                     </View>
                     <Icon
