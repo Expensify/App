@@ -5,8 +5,8 @@ import VendorSelector from '@components/Search/FilterComponents/VendorSelector';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyVendors} from '@src/types/onyx';
-import type {Connections} from '@src/types/onyx/Policy';
+import type {Policy} from '@src/types/onyx';
+import type {Connections, QBONonReimbursableExportAccountType} from '@src/types/onyx/Policy';
 
 import React from 'react';
 
@@ -16,11 +16,7 @@ import createMock from '../utils/createMock';
 const mockOnyxData: Record<string, unknown> = {};
 
 jest.mock('@components/Search/FilterComponents/MultiSelect', () => jest.fn(() => null));
-jest.mock('@components/ActivityIndicator', () => jest.fn(() => null));
-jest.mock('@hooks/useLoadSearchVendorData', () => jest.fn(() => ({isLoadingInitialVendors: false})));
 jest.mock('@hooks/usePermissions', () => jest.fn(() => ({isBetaEnabled: () => true})));
-jest.mock('@hooks/useTheme', () => jest.fn(() => ({})));
-jest.mock('@hooks/useThemeStyles', () => jest.fn(() => ({flex1: {}, flexColumn: {}, justifyContentCenter: {}, alignItemsCenter: {}, pl3: {}})));
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: (key: string) => key,
@@ -34,21 +30,22 @@ jest.mock('@hooks/useOnyx', () =>
     }),
 );
 
-/** QBO workspace exporting card expenses as credit card transactions, with its synced vendors in its connections. */
-const buildQBOPolicy = (policyID: string, vendorNames: string[]): Policy =>
+/** QBO workspace with its synced vendors in its connections, exporting card expenses to the given destination. */
+const buildQBOPolicy = (
+    policyID: string,
+    vendorNames: string[],
+    exportDestination: QBONonReimbursableExportAccountType = CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD,
+): Policy =>
     createMock<Policy>({
         ...createRandomPolicy(0),
         id: policyID,
         connections: createMock<Connections>({
             [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
-                config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                config: {nonReimbursableExpensesExportDestination: exportDestination},
                 data: {vendors: vendorNames.map((name) => ({id: `${policyID}-${name}`, name, currency: 'USD'}))},
             },
         }),
     });
-
-const buildPolicyVendors = (vendorNames: string[]): PolicyVendors =>
-    Object.fromEntries(vendorNames.map((name) => [name, {externalID: name, name, enabled: true, origin: CONST.POLICY.CONNECTIONS.NAME.QBO}]));
 
 describe('VendorSelector', () => {
     const mockedMultiSelect = jest.mocked(MultiSelect);
@@ -61,10 +58,9 @@ describe('VendorSelector', () => {
         }
     });
 
-    it('lists the vendors in the connections of a workspace with no loaded vendor list', () => {
-        // Given a member's workspace whose connections carry synced vendors, while the vendor list load returned nothing for it
+    it('lists the vendors in the connections of a workspace with the vendor feature', () => {
+        // Given a member's workspace whose connections carry synced vendors
         mockOnyxData[ONYXKEYS.COLLECTION.POLICY] = {[`${ONYXKEYS.COLLECTION.POLICY}qbo`]: buildQBOPolicy('qbo', ['Zeta Supplies', 'Acme Tools'])};
-        mockOnyxData[ONYXKEYS.COLLECTION.POLICY_VENDORS] = {};
 
         // When the vendor picker renders
         render(
@@ -75,14 +71,16 @@ describe('VendorSelector', () => {
             />,
         );
 
-        // Then the workspace's vendors are offered after "No vendor", because members only get vendor lists through the workspace connections
+        // Then the workspace's vendors are offered after "No vendor", read from the same connections that turn the vendor feature on
         expect(getItemTexts()).toEqual(['search.noVendor', 'Acme Tools', 'Zeta Supplies']);
     });
 
-    it('uses the loaded vendor list over the vendors cached in the connections', () => {
-        // Given a workspace whose loaded vendor list has a vendor renamed since its connections were cached
-        mockOnyxData[ONYXKEYS.COLLECTION.POLICY] = {[`${ONYXKEYS.COLLECTION.POLICY}qbo`]: buildQBOPolicy('qbo', ['Acme Tools', 'Zeta Supplies'])};
-        mockOnyxData[ONYXKEYS.COLLECTION.POLICY_VENDORS] = {[`${ONYXKEYS.COLLECTION.POLICY_VENDORS}qbo`]: buildPolicyVendors(['Acme Tools', 'Zeta Supply Co'])};
+    it('lists a vendor name once when several workspaces sync it', () => {
+        // Given two vendor workspaces that both sync a vendor with the same name
+        mockOnyxData[ONYXKEYS.COLLECTION.POLICY] = {
+            [`${ONYXKEYS.COLLECTION.POLICY}first`]: buildQBOPolicy('first', ['Acme Tools', 'Bravo Freight']),
+            [`${ONYXKEYS.COLLECTION.POLICY}second`]: buildQBOPolicy('second', ['Acme Tools']),
+        };
 
         // When the vendor picker renders
         render(
@@ -93,14 +91,15 @@ describe('VendorSelector', () => {
             />,
         );
 
-        // Then only the loaded list is offered, because it is rebuilt after every sync while the connections can be stale
-        expect(getItemTexts()).toEqual(['search.noVendor', 'Acme Tools', 'Zeta Supply Co']);
+        // Then the shared name appears once, because the filter matches vendors by name
+        expect(getItemTexts()).toEqual(['search.noVendor', 'Acme Tools', 'Bravo Freight']);
     });
 
-    it('falls back to the connections when the loaded vendor list is empty', () => {
-        // Given a workspace whose loaded vendor list was built empty before the vendor feature was turned on, while its connections carry the synced vendors
-        mockOnyxData[ONYXKEYS.COLLECTION.POLICY] = {[`${ONYXKEYS.COLLECTION.POLICY}qbo`]: buildQBOPolicy('qbo', ['Acme Tools', 'Zeta Supplies'])};
-        mockOnyxData[ONYXKEYS.COLLECTION.POLICY_VENDORS] = {[`${ONYXKEYS.COLLECTION.POLICY_VENDORS}qbo`]: {}};
+    it('leaves out the vendors of workspaces without the vendor feature', () => {
+        // Given a QBO workspace that exports card expenses as vendor bills, which syncs vendors but has no vendor feature
+        mockOnyxData[ONYXKEYS.COLLECTION.POLICY] = {
+            [`${ONYXKEYS.COLLECTION.POLICY}bill`]: buildQBOPolicy('bill', ['Bill Vendor'], CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL),
+        };
 
         // When the vendor picker renders
         render(
@@ -111,8 +110,8 @@ describe('VendorSelector', () => {
             />,
         );
 
-        // Then the vendors from the connections are offered, because the empty list is stale until the next sync rebuilds it
-        expect(getItemTexts()).toEqual(['search.noVendor', 'Acme Tools', 'Zeta Supplies']);
+        // Then only "No vendor" is offered
+        expect(getItemTexts()).toEqual(['search.noVendor']);
     });
 
     it('only lists the vendors of the selected workspaces', () => {
@@ -121,7 +120,6 @@ describe('VendorSelector', () => {
             [`${ONYXKEYS.COLLECTION.POLICY}first`]: buildQBOPolicy('first', ['Acme Tools']),
             [`${ONYXKEYS.COLLECTION.POLICY}second`]: buildQBOPolicy('second', ['Zeta Supplies']),
         };
-        mockOnyxData[ONYXKEYS.COLLECTION.POLICY_VENDORS] = {};
 
         // When the vendor picker renders with that workspace filter
         render(
@@ -142,7 +140,6 @@ describe('VendorSelector', () => {
             [`${ONYXKEYS.COLLECTION.POLICY}first`]: buildQBOPolicy('first', ['Acme Tools']),
             [`${ONYXKEYS.COLLECTION.POLICY}second`]: buildQBOPolicy('second', ['Zeta Supplies']),
         };
-        mockOnyxData[ONYXKEYS.COLLECTION.POLICY_VENDORS] = {};
 
         // When the vendor picker renders with that negated workspace filter
         render(
