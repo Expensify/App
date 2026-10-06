@@ -36,18 +36,21 @@ function ScanConfirmationList(props: MoneyRequestConfirmationListProps) {
     const isInLandscapeMode = useIsInLandscapeMode();
 
     const data = useConfirmationListData(props);
-    const revealKey = data.layoutProps.transactionID ?? '';
+    const {transactionID} = data.layoutProps;
 
     // Multi-scan switches between expenses on the same list, so remember which ones have their fields revealed
     // instead of holding one flag for the whole surface; an expense the user opened stays open when they come back.
     const [revealedTransactionIDs, setRevealedTransactionIDs] = useState<string[]>([]);
-    const showMoreFields = revealedTransactionIDs.includes(revealKey);
+    const showMoreFields = !!transactionID && revealedTransactionIDs.includes(transactionID);
     const setShowMoreFields = (shouldShowMoreFields: boolean) => {
+        if (!transactionID) {
+            return;
+        }
         setRevealedTransactionIDs((previousIDs) => {
-            if (previousIDs.includes(revealKey) === shouldShowMoreFields) {
+            if (previousIDs.includes(transactionID) === shouldShowMoreFields) {
                 return previousIDs;
             }
-            return shouldShowMoreFields ? [...previousIDs, revealKey] : previousIDs.filter((id) => id !== revealKey);
+            return shouldShowMoreFields ? [...previousIDs, transactionID] : previousIDs.filter((id) => id !== transactionID);
         });
     };
 
@@ -55,8 +58,8 @@ function ScanConfirmationList(props: MoneyRequestConfirmationListProps) {
     // "Show more", or when one of them raises an inline error, or opening the section and pressing Create looks like
     // it did nothing. Done during render so the expense never paints collapsed first and it survives a remount.
     const hasManuallyEnteredFields = canEnterScanFieldsManually && hasAnyManuallyEnteredScanField(transaction);
-    if (!showMoreFields && (hasManuallyEnteredFields || INLINE_FIELD_ERROR_KEYS.has(data.errorState.formError))) {
-        setRevealedTransactionIDs([...revealedTransactionIDs, revealKey]);
+    if (transactionID && !showMoreFields && (hasManuallyEnteredFields || INLINE_FIELD_ERROR_KEYS.has(data.errorState.formError))) {
+        setRevealedTransactionIDs([...revealedTransactionIDs, transactionID]);
     }
 
     const isCompactMode = !showMoreFields && !isInLandscapeMode;
