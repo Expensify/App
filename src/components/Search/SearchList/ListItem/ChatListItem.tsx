@@ -52,7 +52,6 @@ function ChatListItem<TItem extends ListItem>({
         styles.bgTransparent,
         isSelected && styles.activeComponentBG,
         styles.mh0,
-        item.cursorStyle,
     ];
 
     const fsClass = FS.getChatFSClass(reportStable);

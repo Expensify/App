@@ -1923,6 +1923,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Aktivieren Sie Tags im Workspace, um die Ausgabendetails zu bearbeiten oder den Tag aus dieser Ausgabe zu löschen.',
             confirmText: 'Tag löschen',
         },
+        undeletedExpense: 'Löschvorgang für diese Ausgabe rückgängig gemacht',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `Kilometersätze für den neuen Arbeitsbereich aktualisiert – ${policyName}`,
     },
     transactionMerge: {
@@ -3430,9 +3431,9 @@ ${amount} für ${merchant} – ${date}`,
             otherAccountingSoftware: 'Name der Software',
         },
         interestedFeatures: {
-            title: 'An welchen Funktionen bist du interessiert?',
-            featuresAlreadyEnabled: 'Hier sind unsere beliebtesten Funktionen:',
-            featureYouMayBeInterestedIn: 'Zusätzliche Funktionen aktivieren:',
+            title: 'Wähle die gewünschten Funktionen aus',
+            featuresAlreadyEnabled: 'In Ihrem Workspace ist bereits Folgendes aktiviert:',
+            featureYouMayBeInterestedIn: 'Aktivieren Sie zusätzliche Funktionen, die Sie interessieren könnten:',
         },
         error: {
             requiredFirstName: 'Bitte gib deinen Vornamen ein, um fortzufahren',
@@ -6671,7 +6672,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 corporate: 'Löschen von Transaktionen einschränken',
                 personal: 'Löschen von Transaktionen erlauben',
                 setFeedNameDescription: 'Gib dem Karten-Feed einen eindeutigen Namen, damit du ihn von den anderen unterscheiden kannst',
-                setTransactionLiabilityDescription: 'Wenn aktiviert, können Karteninhaber Kartentransaktionen löschen. Neue Transaktionen folgen dieser Regel.',
+                setTransactionLiabilityDescription: 'Karteninhaber können Transaktionen löschen. Gilt nur für neue Transaktionen.',
                 emptyAddedFeedTitle: 'Keine Karten in diesem Feed',
                 emptyAddedFeedDescription: 'Stelle sicher, dass sich Karten im Kartenfeed deiner Bank befinden.',
                 pendingFeedTitle: `Wir überprüfen Ihre Anfrage …`,
@@ -10075,7 +10076,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             title: 'Berichte zusammenführen',
             description: 'Wählen Sie den Bericht aus, der beibehalten werden soll. Alle Ausgaben werden in ihn verschoben und die anderen Berichte werden gelöscht.',
         },
-        percentOfSpend: ({percent}: {percent: string}) => `${percent} der Ausgaben`,
     },
     genericErrorPage: {
         title: 'Ups, da ist etwas schiefgelaufen!',

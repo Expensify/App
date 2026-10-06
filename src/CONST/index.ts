@@ -1134,7 +1134,6 @@ const CONST = {
         BULK_EDIT: 'bulkEdit',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         VENDOR_MATCHING: 'vendorMatching',
-        CAMPFIRE: 'campfire',
         BUSINESS_CENTRAL: 'businessCentral',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
         COMMUTER_EXCLUSIONS_ARRANGEMENTS: 'commuterExclusionsArrangements',
@@ -1142,7 +1141,6 @@ const CONST = {
         GLOBAL_REIMBURSEMENTS: 'globalReimbursements',
         GLOBAL_REIMBURSEMENT_FX: 'globalReimbursementFX',
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
-        NETSUITE_OAUTH: 'netSuiteOAuth',
         TRAVEL_CODING_SYNC: 'travelCodingSync',
         CONCIERGE_RESPOND_IN_THREAD: 'conciergeRespondInThread',
         ARCHIVE_POLICIES: 'archivePolicies',
@@ -1151,6 +1149,7 @@ const CONST = {
         INSIGHTS_PAGE: 'insightsPage',
         INSIGHTS_COMPARE: 'insightsCompare',
         PAYMENT_HISTORY: 'paymentHistory',
+        ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1805,6 +1804,7 @@ const CONST = {
                 MOVED: 'MOVED',
                 MOVED_TRANSACTION: 'MOVEDTRANSACTION',
                 UNREPORTED_TRANSACTION: 'UNREPORTEDTRANSACTION',
+                UNDELETED_TRANSACTION: 'UNDELETEDTRANSACTION',
                 OUTDATED_BANK_ACCOUNT: 'OUTDATEDBANKACCOUNT', // OldDot Action
                 REIMBURSED: 'REIMBURSED',
                 REIMBURSEMENT_ACH_BOUNCE: 'REIMBURSEMENTACHBOUNCE', // OldDot Action
@@ -5184,7 +5184,7 @@ const CONST = {
         // Corner radius scaled to the avatar size, used for workspace avatars
         ROUNDED_SQUARE: 'rounded-square',
     },
-
+    CASH_CARD_NAME: '__CASH__',
     COMPANY_CARD: {
         // Mostly used for feed details
         FEED_BANK_NAME: {
