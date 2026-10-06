@@ -1,4 +1,4 @@
-import BAR_INNER_PADDING, {BAR_GAP} from '@components/Charts/barChartConstants';
+import BAR_INNER_PADDING, {BAR_GAP, BAR_MAX_WIDTH} from '@components/Charts/barChartConstants';
 import type {ChartDataPoint, LabelRotation, PieSlice} from '@components/Charts/types';
 import VictoryTheme, {CHART_Y_SCALE_HEIGHT, DIAGONAL_ANGLE_RADIAN_THRESHOLD, ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, MAX_X_AXIS_LABEL_WIDTH, SIN_45} from '@components/Charts/VictoryTheme';
 
@@ -426,20 +426,23 @@ function getNiceYAxisTicks(rawDataMax: number, rawDataMin: number, tickCount: nu
 }
 
 /**
- * Bars fill the plot with BAR_GAP between them, and the gap shrinks when there are too many bars for it.
- * The x-domain puts the outer bars flush with the plot edges.
+ * Bars fill the plot with BAR_GAP between them, up to BAR_MAX_WIDTH, and the gap shrinks when there are too many bars for it.
+ * `edgeSpace` is the distance (px) from each plot edge to the nearest bar's center, and the x-domain lays the bars out with it.
  */
-function getBarLayout(plotWidth: number, barCount: number): {barWidth: number; gap: number; xDomain: [number, number]} {
+function getBarLayout(plotWidth: number, barCount: number): {barWidth: number; gap: number; edgeSpace: number; xDomain: [number, number]} {
     if (plotWidth <= 0 || barCount <= 0) {
-        return {barWidth: 0, gap: 0, xDomain: [-0.5, Math.max(0, barCount - 1) + 0.5]};
+        return {barWidth: 0, gap: 0, edgeSpace: 0, xDomain: [-0.5, Math.max(0, barCount - 1) + 0.5]};
     }
     const gap = barCount > 1 ? Math.min(BAR_GAP, (plotWidth / barCount) * BAR_INNER_PADDING) : 0;
-    const barWidth = (plotWidth - gap * (barCount - 1)) / barCount;
+    const barWidth = Math.min(BAR_MAX_WIDTH, (plotWidth - gap * (barCount - 1)) / barCount);
 
-    // Bars are centered on their x value, so the domain starts half a bar before the first one and ends half a bar after the last.
-    // One x unit spans a bar and a gap, which converts that half bar from px into x units.
-    const halfBar = barWidth / (2 * (barWidth + gap));
-    return {barWidth, gap, xDomain: [-halfBar, barCount - 1 + halfBar]};
+    // Width the capped bars leave unused is split evenly between both sides, which centers them.
+    const sideSpace = (plotWidth - barWidth * barCount - gap * (barCount - 1)) / 2;
+    const edgeSpace = sideSpace + barWidth / 2;
+
+    // Bars sit at x = 0..barCount-1 and one x unit spans a bar and a gap, which converts edgeSpace from px into x units.
+    const edgeSpaceInXUnits = edgeSpace / (barWidth + gap);
+    return {barWidth, gap, edgeSpace, xDomain: [-edgeSpaceInXUnits, barCount - 1 + edgeSpaceInXUnits]};
 }
 
 /**

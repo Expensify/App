@@ -1,4 +1,4 @@
-import BAR_INNER_PADDING from '@components/Charts/barChartConstants';
+import BAR_INNER_PADDING, {BAR_MAX_WIDTH} from '@components/Charts/barChartConstants';
 import type {ChartDataPoint, PieSlice} from '@components/Charts/types';
 import {
     edgeLabelsFit,
@@ -707,6 +707,22 @@ describe('getBarLayout', () => {
         expect((3 - xDomain[0]) * pxPerUnit + barWidth / 2).toBeCloseTo(plotWidth, 5);
     });
 
+    it('caps the bar width and centers the bars when there are only a few', () => {
+        // Given 2 bars in a plot wide enough that, uncapped, each would be well over BAR_MAX_WIDTH
+        const plotWidth = 4 * BAR_MAX_WIDTH;
+
+        // When computing the bar layout
+        const {barWidth, gap, edgeSpace, xDomain} = getBarLayout(plotWidth, 2);
+
+        // Then the bars stop at BAR_MAX_WIDTH, keep the 16px gap, and the leftover width is split evenly on both sides
+        expect(barWidth).toBe(BAR_MAX_WIDTH);
+        expect(gap).toBe(16);
+        expect(edgeSpace).toBe((plotWidth - 2 * BAR_MAX_WIDTH - 16) / 2 + BAR_MAX_WIDTH / 2);
+        const pxPerUnit = plotWidth / (xDomain[1] - xDomain[0]);
+        expect((0 - xDomain[0]) * pxPerUnit).toBeCloseTo(edgeSpace, 5);
+        expect((xDomain[1] - 1) * pxPerUnit).toBeCloseTo(edgeSpace, 5);
+    });
+
     it('shrinks the gap when there are too many bars for it', () => {
         // Given 50 bars in a 300px plot, where 16px gaps alone would be wider than the plot
         // When computing the bar layout
@@ -724,14 +740,14 @@ describe('getBarLayout', () => {
 
         // Then the gap is 0, so the bar stays centered in the plot instead of being offset by a gap that isn't drawn
         expect(layout.gap).toBe(0);
-        expect(layout.xDomain).toEqual([-0.5, 0.5]);
+        expect(layout.xDomain[0]).toBeCloseTo(-layout.xDomain[1], 5);
     });
 
     it('keeps every bar inside the plot before the plot is measured', () => {
         // Given a plot width of 0 (chart not yet laid out)
         // When computing the bar layout
         // Then barWidth is 0 so victory-native sizes the bars itself, and the domain gives each bar a slot centered on its x value
-        expect(getBarLayout(0, 3)).toEqual({barWidth: 0, gap: 0, xDomain: [-0.5, 2.5]});
+        expect(getBarLayout(0, 3)).toEqual({barWidth: 0, gap: 0, edgeSpace: 0, xDomain: [-0.5, 2.5]});
     });
 });
 

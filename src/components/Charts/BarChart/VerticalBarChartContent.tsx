@@ -78,8 +78,8 @@ function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosit
         measurements,
         tickSpacing: shouldShowLabels && barAreaWidth > 0 ? barLayout.barWidth + barLayout.gap : 0,
         labelAreaWidth: barAreaWidth,
-        firstTickLeftSpace: boundsLeft + barLayout.barWidth / 2,
-        lastTickRightSpace: chartWidth > 0 ? chartWidth - boundsRight + barLayout.barWidth / 2 : 0,
+        firstTickLeftSpace: boundsLeft + barLayout.edgeSpace,
+        lastTickRightSpace: chartWidth > 0 ? chartWidth - boundsRight + barLayout.edgeSpace : 0,
     });
 
     const {formatValue, formatCompactValue} = useChartLabelFormats({
