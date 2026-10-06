@@ -6,9 +6,9 @@ import type {ComponentType, ReactNode} from 'react';
 
 import React, {startTransition, Suspense, use, useEffect} from 'react';
 
-import type {AnyEffectHook, ScreenProps} from '../../../utils/ScreenActivityEffectTestUtils';
+import type {AnyEffectHook, RenderStep, ScreenProps} from '../../../utils/ScreenActivityEffectTestUtils';
 
-import {ActivityScreen, AnyEffectHookProvider, drainLog, LiveScreen, log, resetLog, Subject, track, useAnyEffect} from '../../../utils/ScreenActivityEffectTestUtils';
+import {ActivityScreen, AnyEffectHookProvider, drainLog, hidden, LiveScreen, log, resetLog, Subject, track, useAnyEffect, visible} from '../../../utils/ScreenActivityEffectTestUtils';
 
 /**
  * Every other suite here flushes each commit before the next one. These tests are the ones where a commit does not
@@ -37,12 +37,20 @@ function FallbackMarker() {
     return null;
 }
 
-/** An effect whose own component suspends for as long as the resource it was given is pending. */
-function SuspendingSubject({pending}: {pending?: Resource}) {
+/** A component that suspends for as long as the resource it was given is pending, with no effect of its own. */
+function Suspender({pending}: {pending?: Resource}) {
     if (pending) {
         use(pending.promise);
     }
-    useAnyEffect(track('s:a'), []);
+    return null;
+}
+
+/** An effect whose own component suspends for as long as the resource it was given is pending. */
+function SuspendingSubject({pending, value = 'a'}: {pending?: Resource; value?: string}) {
+    if (pending) {
+        use(pending.promise);
+    }
+    useAnyEffect(track(`s:${value}`), [value]);
     return null;
 }
 
@@ -52,40 +60,50 @@ function Sibling() {
     return null;
 }
 
+/** One rendered state of the screen, or a change outside the tree, such as a resource resolving. */
+type Commit = RenderStep | (() => void);
+
 /**
- * Covers the screen, makes the resource of the component below it go pending behind the cover, reveals the screen onto
- * the fallback, resolves the resource and pops the screen. Every step is flushed before the next, because a commit that
- * suspends finishes in a later task than the call that started it.
+ * Puts the screen through the commits given and pops it at the end. Every step is flushed before the next, because a
+ * commit that suspends finishes in a later task than the call that started it, and so does the mount.
  */
-async function run(hook: AnyEffectHook, Screen: ComponentType<ScreenProps>, content: (pending?: Resource) => ReactNode) {
+async function runCommits(hook: AnyEffectHook, Screen: ComponentType<ScreenProps>, steps: readonly Commit[]): Promise<string[][]> {
     resetLog();
-    const resource = createResource();
-    const tree = (isScreenHidden: boolean, pending?: Resource) => (
+    const tree = (step: RenderStep) => (
         <AnyEffectHookProvider hook={hook}>
-            <Screen isHidden={isScreenHidden}>{content(pending)}</Screen>
+            <Screen isHidden={step.isHidden}>{step.children}</Screen>
         </AnyEffectHookProvider>
     );
+    const [first, ...rest] = steps;
+    if (first === undefined || typeof first === 'function') {
+        throw new Error('The first step has to render the screen.');
+    }
 
-    const {rerender, unmount} = render(tree(false));
+    const {rerender, unmount} = render(tree(first));
     const commits: string[][] = [];
-
     const step = async (mutate?: () => void) => {
-        // The mutation runs inside act, because a commit that suspends finishes in a later task than the call.
         await act(async () => {
             mutate?.();
         });
         commits.push(drainLog());
     };
 
-    // The mount is flushed like every other step, because the first render of the screen can suspend too.
     await step();
-    await step(() => rerender(tree(true)));
-    await step(() => rerender(tree(true, resource)));
-    await step(() => rerender(tree(false, resource)));
-    await step(() => resource.resolve());
+    for (const next of rest) {
+        await step(() => (typeof next === 'function' ? next() : rerender(tree(next))));
+    }
     await step(() => unmount());
 
     return commits;
+}
+
+/**
+ * Covers the screen, makes the resource of the component below it go pending behind the cover, reveals the screen onto
+ * the fallback and resolves the resource, which is the path of a screen that suspends again on its reveal.
+ */
+function suspendOnReveal(content: (pending?: Resource) => ReactNode): Commit[] {
+    const resource = createResource();
+    return [visible(content()), hidden(content()), hidden(content(resource)), visible(content(resource)), () => resource.resolve()];
 }
 
 describe('useScreenActivityEffect in a commit that does not finish at once', () => {
@@ -131,8 +149,8 @@ describe('useScreenActivityEffect in a commit that does not finish at once', () 
         );
 
         // When the screen is revealed onto the fallback and the resource resolves afterwards
-        const live = await run(useEffect, LiveScreen, content);
-        const activity = await run(useScreenActivityEffect, ActivityScreen, content);
+        const live = await runCommits(useEffect, LiveScreen, suspendOnReveal(content));
+        const activity = await runCommits(useScreenActivityEffect, ActivityScreen, suspendOnReveal(content));
 
         // Then the live screen keeps the setup through the suspension, and the fallback shows that it really suspended
         expect(live).toEqual([['setup:s:a'], [], ['fallback'], [], ['resumed'], ['cleanup:s:a']]);
@@ -155,8 +173,8 @@ describe('useScreenActivityEffect in a commit that does not finish at once', () 
         );
 
         // When the screen is revealed while one of its two parts is suspended
-        const live = await run(useEffect, LiveScreen, content);
-        const activity = await run(useScreenActivityEffect, ActivityScreen, content);
+        const live = await runCommits(useEffect, LiveScreen, suspendOnReveal(content));
+        const activity = await runCommits(useScreenActivityEffect, ActivityScreen, suspendOnReveal(content));
 
         expect(live).toEqual([['setup:s:a', 'setup:sibling:a'], [], ['fallback'], [], ['resumed'], ['cleanup:s:a', 'cleanup:sibling:a']]);
 
@@ -168,5 +186,78 @@ describe('useScreenActivityEffect in a commit that does not finish at once', () 
 
         // And the teardown releases the two in tree order, exactly as the live screen does
         expect(activity.at(-1)).toEqual(live.at(-1));
+    });
+    it('waits for the resume to release a component removed while its boundary shows the fallback', async () => {
+        // Given a visible screen whose boundary shows the fallback because a sibling of the kept component suspended
+        const content = (pending?: Resource, hasSubject = true) => (
+            <Suspense fallback={<FallbackMarker />}>
+                <Suspender pending={pending} />
+                {hasSubject ? <Subject value="a" /> : null}
+            </Suspense>
+        );
+        const steps = (): Commit[] => {
+            const resource = createResource();
+            return [visible(content()), visible(content(resource)), visible(content(resource, false)), () => resource.resolve()];
+        };
+
+        // When the kept component is removed while the boundary is suspended
+        const live = await runCommits(useEffect, LiveScreen, steps());
+        const activity = await runCommits(useScreenActivityEffect, ActivityScreen, steps());
+
+        // Then React commits the removal with the resume, and the release lands there on both screens
+        expect(live).toEqual([['setup:s:a'], ['fallback'], [], ['resumed', 'cleanup:s:a'], []]);
+        expect(activity).toEqual(live);
+    });
+
+    it('releases a component removed behind the cover inside a suspended boundary when the boundary resumes', async () => {
+        // Given a boundary that shows its fallback, then the cover, the removal and the reveal, all before the resume
+        const content = (pending?: Resource, hasSubject = true) => (
+            <Suspense fallback={<FallbackMarker />}>
+                <Suspender pending={pending} />
+                {hasSubject ? <Subject value="a" /> : null}
+            </Suspense>
+        );
+        const steps = (): Commit[] => {
+            const resource = createResource();
+            return [visible(content()), visible(content(resource)), hidden(content(resource)), hidden(content(resource, false)), visible(content(resource, false)), () => resource.resolve()];
+        };
+
+        const live = await runCommits(useEffect, LiveScreen, steps());
+        const activity = await runCommits(useScreenActivityEffect, ActivityScreen, steps());
+
+        // Then the live screen releases the component with the resume, after the fallback left
+        expect(live).toEqual([['setup:s:a'], ['fallback'], [], [], [], ['resumed', 'cleanup:s:a'], []]);
+
+        // And the covered screen releases it in the same commit, from the microtask of the removal, which runs before the
+        // passive cleanup of the fallback because the resume is not a synchronous commit
+        expect(activity).toEqual([['setup:s:a'], ['fallback'], ['resumed'], [], ['fallback'], ['cleanup:s:a', 'resumed'], []]);
+        expect(activity.flat().filter((call) => call.endsWith(':s:a'))).toEqual(live.flat().filter((call) => call.endsWith(':s:a')));
+    });
+
+    it('applies a dependency change made behind the cover when the component resumes from a suspended reveal', async () => {
+        // Given a kept component whose dependency changes behind the cover and which suspends on the reveal
+        const content = (value: string, pending?: Resource) => (
+            <Suspense fallback={<FallbackMarker />}>
+                <SuspendingSubject
+                    pending={pending}
+                    value={value}
+                />
+            </Suspense>
+        );
+        const steps = (): Commit[] => {
+            const resource = createResource();
+            return [visible(content('a')), hidden(content('a')), hidden(content('b')), visible(content('b', resource)), () => resource.resolve()];
+        };
+
+        const live = await runCommits(useEffect, LiveScreen, steps());
+        const activity = await runCommits(useScreenActivityEffect, ActivityScreen, steps());
+
+        // Then the live screen swaps the setup at the change and keeps the new one through the suspension
+        expect(live).toEqual([['setup:s:a'], [], ['cleanup:s:a', 'setup:s:b'], ['fallback'], ['resumed'], ['cleanup:s:b']]);
+
+        // And the covered screen keeps the old setup live until the component resumes, because the body that swaps it
+        // runs no earlier than that, and then swaps once
+        expect(activity).toEqual([['setup:s:a'], [], [], ['fallback'], ['resumed', 'cleanup:s:a', 'setup:s:b'], ['cleanup:s:b']]);
+        expect(activity.flat().filter((call) => call.includes(':s:'))).toEqual(live.flat().filter((call) => call.includes(':s:')));
     });
 });
