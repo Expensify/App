@@ -44,14 +44,13 @@ function getFailedRedirectResult(): CloudflareAuthProbeResult | null {
 
 /**
  * Test-tool rows for the QA server auth flow, rendered only when the QA credentials are configured. With no
- * session, Run navigates the whole tab to Cloudflare, so a round trip's result only shows on the next press.
+ * session, Run may navigate the whole tab to Cloudflare, so a successful round trip's result only shows on the next press.
  */
 function QAAuthTestToolRows() {
     const styles = useThemeStyles();
     const {translate, datetimeToCalendarTime} = useLocalize();
 
     const [isOperationRunning, setIsOperationRunning] = useState(false);
-    // Seeded from the boot-time callback, a settled exchange failure included. One that settles after mount surfaces on the next Run
     const [probeResult, setProbeResult] = useState<CloudflareAuthProbeResult | null>(getFailedRedirectResult);
     // Consecutive probes produce identical results, so without a changing element the button reads as dead
     const [probeCompletedAt, setProbeCompletedAt] = useState<string | null>(null);
@@ -75,6 +74,9 @@ function QAAuthTestToolRows() {
                             shouldRedirectOnSignInFailed: probeResult?.status === 'signInFailed',
                         })
                             .then((result) => {
+                                if (!result) {
+                                    return;
+                                }
                                 setProbeResult(result);
                                 setProbeCompletedAt(DateUtils.getDBTime());
                             })
