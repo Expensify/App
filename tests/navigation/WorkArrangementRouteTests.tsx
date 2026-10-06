@@ -2,6 +2,7 @@ import {render} from '@testing-library/react-native';
 
 import {SettingsModalStackNavigator} from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import {config} from '@libs/Navigation/linkingConfig/config';
 import WORKSPACE_TO_RHP from '@libs/Navigation/linkingConfig/RELATIONS/WORKSPACE_TO_RHP';
@@ -116,6 +117,9 @@ describe('Work arrangement route', () => {
         const path = ROUTES.WORKSPACE_INVITE_WORK_ARRANGEMENT.getRoute(policyID);
         const workflowInviteConfirmationPath = `workspaces/${policyID}/workflows/approvals/expenses-from/invite-message`;
         const workflowArrangementPath = createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_INVITE_WORK_ARRANGEMENT.path, workflowInviteConfirmationPath);
+        const workflowAdaptedState = getAdaptedStateFromPath(workflowArrangementPath, undefined);
+        const cardInvitePath = ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER.getRoute({policyID, feed: 'cdf#bank', cardID: 'card123'});
+        const cardArrangementPath = createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_INVITE_WORK_ARRANGEMENT.path, cardInvitePath);
 
         // When the invite route is parsed
         const settingsState = getStateFromPath(path)
@@ -126,17 +130,21 @@ describe('Work arrangement route', () => {
         const workflowSettingsState = getStateFromPath(workflowArrangementPath)
             .routes.find((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)
             ?.state?.routes.find((route) => route.name === SCREENS.RIGHT_MODAL.SETTINGS)?.state;
+        const cardSettingsState = getStateFromPath(cardArrangementPath)
+            .routes.find((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)
+            ?.state?.routes.find((route) => route.name === SCREENS.RIGHT_MODAL.SETTINGS)?.state;
 
         // Then it resolves to the invite editor and can return to the invite confirmation route
         expect(path).toBe(`workspaces/${policyID}/members/invite/invite-message/work-arrangement`);
         expect(ROUTES.WORKSPACE_INVITE_WORK_ARRANGEMENT.route).toBe('workspaces/:policyID/members/invite/invite-message/work-arrangement');
         expect(findInviteScreenPath(config?.screens)).toBe(DYNAMIC_ROUTES.WORKSPACE_INVITE_WORK_ARRANGEMENT.path);
         expect(workflowArrangementPath).toBe(`${workflowInviteConfirmationPath}/work-arrangement`);
-        expect(WORKSPACE_TO_RHP[SCREENS.WORKSPACE.MEMBERS]).toContain(SCREENS.WORKSPACE.INVITE_WORK_ARRANGEMENT);
+        expect(WORKSPACE_TO_RHP[SCREENS.WORKSPACE.MEMBERS]).not.toContain(SCREENS.WORKSPACE.INVITE_WORK_ARRANGEMENT);
+        expect(JSON.stringify(workflowAdaptedState)).toContain(SCREENS.WORKSPACE.DYNAMIC_WORKFLOWS_APPROVALS_EXPENSES_FROM);
         expect(settingsState?.routes.at(-1)).toEqual(
             expect.objectContaining({
                 name: SCREENS.WORKSPACE.INVITE_WORK_ARRANGEMENT,
-                params: {policyID},
+                params: expect.objectContaining({policyID}),
             }),
         );
         expect(confirmationSettingsState?.routes.at(-1)).toEqual(
@@ -148,7 +156,13 @@ describe('Work arrangement route', () => {
         expect(workflowSettingsState?.routes.at(-1)).toEqual(
             expect.objectContaining({
                 name: SCREENS.WORKSPACE.INVITE_WORK_ARRANGEMENT,
-                params: {policyID},
+                params: expect.objectContaining({policyID}),
+            }),
+        );
+        expect(cardSettingsState?.routes.at(-1)).toEqual(
+            expect.objectContaining({
+                name: SCREENS.WORKSPACE.INVITE_WORK_ARRANGEMENT,
+                params: expect.objectContaining({policyID, cardID: 'card123', feed: 'cdf#bank'}),
             }),
         );
     });
