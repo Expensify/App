@@ -78,6 +78,18 @@ describe('staging worker', () => {
         assertSecurityHeaders(response);
     });
 
+    test('serves deep links containing reserved characters without redirecting', async () => {
+        // Given deep links with characters the asset router would otherwise redirect to their percent-encoded form
+        for (const path of ['/settings/profile/contact-methods/someone@example.com/details', '/r/a+b:c,d']) {
+            // When the browser navigates to them
+            const response = await server.fetch(path, {headers: NAVIGATION_HEADERS, redirect: 'manual'});
+
+            // Then the app shell is served at the URL as typed, like the S3 origin does
+            assert.equal(response.status, 200, path);
+            assert.match(await response.text(), /New Expensify fixture/, path);
+        }
+    });
+
     test('serves /index.html without redirecting to /', async () => {
         // Given the service worker precaches the shell by its file name
         // When /index.html is requested

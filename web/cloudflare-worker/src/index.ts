@@ -19,13 +19,26 @@ function isHTMLResponse(response: Response): boolean {
     return response.headers.get('Content-Type')?.startsWith('text/html') ?? false;
 }
 
+/** The asset router 307-redirects any other encoding (`@` -> `%40`), which the S3 origin never did for deep links. */
+function toAssetRouterEncoding(pathname: string): string {
+    return pathname
+        .split('/')
+        .map((segment) => {
+            try {
+                return encodeURIComponent(decodeURIComponent(segment));
+            } catch {
+                return segment;
+            }
+        })
+        .join('/');
+}
+
 function buildAssetRequest(request: Request, url: URL): Request {
-    if (url.pathname !== LEGACY_AASA_PATH) {
+    const assetURL = new URL(url);
+    assetURL.pathname = url.pathname === LEGACY_AASA_PATH ? AASA_PATH : toAssetRouterEncoding(url.pathname);
+    if (assetURL.pathname === url.pathname) {
         return request;
     }
-
-    const assetURL = new URL(url);
-    assetURL.pathname = AASA_PATH;
     return new Request(assetURL, request);
 }
 
