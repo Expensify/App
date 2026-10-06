@@ -101,7 +101,8 @@ function canFontRenderText(text: string | undefined, fontManager: SkTypefaceFont
  */
 function measureTextWidth(text: string, fontManager: SkTypefaceFontProvider, fontSize: number): number {
     const para = buildChartParagraph(text, fontManager, fontSize);
-    para.layout(MAX_X_AXIS_LABEL_WIDTH);
+    // Unbounded width so text never wraps; a wrapped getLongestLine would underestimate long labels.
+    para.layout(Number.MAX_SAFE_INTEGER);
     return para.getLongestLine();
 }
 
@@ -463,6 +464,67 @@ function getNiceValueTicks(domain: [number, number], tickCount: number): number[
     return scaleLinear().domain(domain).ticks(tickCount);
 }
 
+/**
+ * Horizontal plot bounds of a vertical bar chart for a container width, mirroring victory-native's layout.
+ * Deriving it from the width (not post-mount) lets the wrapper re-decide orientation on every resize.
+ */
+function getVerticalBarPlotBounds(chartWidth: number, paddingRight: number): {left: number; right: number; width: number} {
+    const left = VictoryTheme.axis.padding.left;
+    const right = Math.max(left, chartWidth - paddingRight - VictoryTheme.axis.labelGap);
+    return {left, right, width: right - left};
+}
+
+/**
+ * Domain padding that leaves `edgeSpace` px between the plot edges and the first and last points.
+ * victory-native fits the padded domain back into the plot width, so the space on screen is smaller than the padding.
+ */
+function getDomainPaddingForEdgeSpace(edgeSpace: {left: number; right: number}, plotWidth: number): {left: number; right: number} {
+    const pointsSpan = plotWidth - edgeSpace.left - edgeSpace.right;
+    if (pointsSpan <= 0) {
+        return edgeSpace;
+    }
+    return {left: (edgeSpace.left * plotWidth) / pointsSpan, right: (edgeSpace.right * plotWidth) / pointsSpan};
+}
+
+/**
+ * Layout inputs shared by the vertical bar chart body and the orientation dispatcher, derived from the plot bounds.
+ * The body passes its measured bounds and the dispatcher passes bounds predicted from the container width, so both
+ * feed `useChartLabelLayout` the exact same geometry and cannot drift apart.
+ */
+function getVerticalBarLabelLayoutInputs({
+    containerWidth,
+    plotLeft,
+    plotRight,
+    plotWidth,
+    dataLength,
+    innerPadding,
+}: {
+    containerWidth: number;
+    plotLeft: number;
+    plotRight: number;
+    plotWidth: number;
+    dataLength: number;
+    innerPadding: number;
+}): {tickSpacing: number; labelAreaWidth: number; firstTickLeftSpace: number; lastTickRightSpace: number} {
+    const domainPadding = containerWidth > 0 && dataLength > 0 ? calculateMinDomainPadding(containerWidth, dataLength, innerPadding) : 0;
+    const paddingScale = plotWidth > 0 ? plotWidth / (plotWidth + 2 * domainPadding) : 0;
+    return {
+        tickSpacing: plotWidth > 0 && dataLength > 0 ? plotWidth / dataLength : 0,
+        labelAreaWidth: plotWidth,
+        firstTickLeftSpace: plotLeft + domainPadding * paddingScale,
+        lastTickRightSpace: containerWidth > 0 ? containerWidth - plotRight + domainPadding * paddingScale : 0,
+    };
+}
+
+/**
+ * Height of a horizontal bar chart. Grows with the row count so every category row gets at least
+ * `minRowHeight` of vertical space, keeping all category labels visible instead of thinning them out.
+ * Never smaller than `minHeight`, so small datasets keep the shared minimum.
+ */
+function getHorizontalChartHeight(rowCount: number, minRowHeight: number, verticalPadding: number, minHeight: number): number {
+    return Math.max(minHeight, rowCount * minRowHeight + verticalPadding);
+}
+
 /** Returns the pixel width needed for Y-axis labels given the chart data. */
 function getYAxisLabelWidth(
     data: ChartDataPoint[],
@@ -512,6 +574,10 @@ export {
     getNiceValueDomain,
     getNiceValueTicks,
     getYAxisLabelWidth,
+    getHorizontalChartHeight,
+    getVerticalBarPlotBounds,
+    getVerticalBarLabelLayoutInputs,
+    getDomainPaddingForEdgeSpace,
 };
 
 export type {ChartLabelHitTestParams};

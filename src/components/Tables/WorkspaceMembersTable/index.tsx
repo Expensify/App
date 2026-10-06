@@ -4,10 +4,10 @@ import compareOptionalValues from '@components/Table/compareOptionalValues';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getPolicyApproverLogins, isControlPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
-import {getFirstApproverLabel} from '@libs/WorkflowUtils';
 
 import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
@@ -18,22 +18,20 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 
 import WorkspaceMembersTableRow from './WorkspaceMembersTableRow';
 
-type WorkspaceMembersTableColumnKey = 'member' | 'approver' | 'role' | 'actions' | 'customField1' | 'customField2';
+type WorkspaceMembersTableColumnKey = 'member' | 'role' | 'actions' | 'customField1' | 'customField2';
 
 type WorkspaceMemberRowData = TableData & {
     accountID: number;
     login: string;
-    role?: string;
+    role?: ValueOf<typeof CONST.POLICY.ROLE>;
     employeeUserID?: string;
     employeePayrollID?: string;
-    approverAccountID?: number;
-    approverDisplayName?: string;
-    approverLogin?: string;
     name: string;
     email: string;
     shouldShowEmployeeUserID: boolean;
@@ -44,6 +42,8 @@ type WorkspaceMemberRowData = TableData & {
     invitedSecondaryLogin: string;
     action: () => void;
     dismissError: () => void;
+    canEditRole?: boolean;
+    onChangeRole?: (role: ValueOf<typeof CONST.POLICY.ROLE>) => void;
 };
 
 type WorkspaceMembersTableProps = {
@@ -54,14 +54,9 @@ type WorkspaceMembersTableProps = {
     selectedKeys: string[];
     shouldShowCustomField1Column: boolean;
     shouldShowCustomField2Column: boolean;
-    shouldShowApproverColumn: boolean;
-    shouldUseOrdinalApproverLabel: boolean;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
     headerComponent?: React.ReactElement;
 };
-
-/** Width the approver cell's avatar and the gap the row lays it out with, which the name starts after. */
-const APPROVER_CELL_AVATAR_WIDTH = variables.avatarSizeXxxSmall + variables.spacing2;
 
 const WORKSPACE_MEMBER_FILTER_VALUES = {
     ADMINS: 'admins',
@@ -81,13 +76,12 @@ export default function WorkspaceMembersTable({
     selectedKeys,
     shouldShowCustomField1Column,
     shouldShowCustomField2Column,
-    shouldShowApproverColumn,
-    shouldUseOrdinalApproverLabel,
     members,
     onRowSelectionChange,
     headerComponent,
 }: WorkspaceMembersTableProps) {
-    const {translate, localeCompare, toLocaleOrdinalWithWords} = useLocalize();
+    const styles = useThemeStyles();
+    const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
@@ -107,20 +101,6 @@ export default function WorkspaceMembersTable({
             },
         },
 
-        ...(shouldShowApproverColumn
-            ? [
-                  {
-                      sortable: true,
-                      key: 'approver' as const,
-                      // One header for the whole table, so it follows the deepest workflow in the workspace.
-                      label: getFirstApproverLabel(shouldUseOrdinalApproverLabel, translate, toLocaleOrdinalWithWords),
-                      dynamicSizing: {
-                          getContentToMeasure: (item: WorkspaceMemberRowData) => (item.approverDisplayName ? [{text: item.approverDisplayName}] : []),
-                          extraWidth: APPROVER_CELL_AVATAR_WIDTH,
-                      },
-                  },
-              ]
-            : []),
         ...(shouldShowCustomField1Column
             ? [
                   {
@@ -149,6 +129,10 @@ export default function WorkspaceMembersTable({
             key: 'role',
             label: translate('common.role'),
             sortable: true,
+            styling: {
+                // editableCellHeader matches the padded role cell so the label and value share an edge.
+                containerStyles: [styles.editableCellHeader],
+            },
             dynamicSizing: {
                 getContentToMeasure: (item) => [{text: translate('workspace.common.roleName', item.role), fontSize: fontScale.text}],
                 // A role is one of a short, known set of labels, so the column always shows them in full.
@@ -174,10 +158,6 @@ export default function WorkspaceMembersTable({
         if (activeSorting.columnKey === 'role') {
             const compareRoleNames = (role1: string, role2: string) => localeCompare(translate('workspace.common.roleName', role1), translate('workspace.common.roleName', role2));
             return compareOptionalValues(item1.role, item2.role, compareRoleNames, orderMultiplier, memberNameComparison);
-        }
-
-        if (activeSorting.columnKey === 'approver') {
-            return compareOptionalValues(item1.approverDisplayName, item2.approverDisplayName, localeCompare, orderMultiplier, memberNameComparison);
         }
 
         if (activeSorting.columnKey === 'customField1') {
@@ -304,7 +284,7 @@ export default function WorkspaceMembersTable({
                 shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
                 shouldShowCustomField1Column={shouldShowCustomField1Column}
                 shouldShowCustomField2Column={shouldShowCustomField2Column}
-                shouldShowApproverColumn={shouldShowApproverColumn}
+                policy={policy}
             />
         );
     };
