@@ -50,6 +50,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const {translate, formatPhoneNumber} = useLocalize();
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
+    const [onboardingPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${onboardingPolicyID}`);
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const delegateAccountID = useDelegateAccountID();
@@ -63,6 +64,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const joinWorkspaceMessagesAddWorkEmail = joinWorkspaceMessages.addWorkEmail;
     const joinWorkspaceMessagesValidateEmail = joinWorkspaceMessages.validateEmail;
     const joinWorkspaceMessagesEmpty = joinWorkspaceMessages.empty;
+    const joinWorkspaceMessagesJoinWorkspace = joinWorkspaceMessages.joinWorkspace;
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const [onboardingPersonalDetailsForm] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM);
@@ -101,10 +103,10 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
 
             setIsLoading(true);
             try {
-                // Reaching this screen while validated only happens when the join-workspace list turned up empty, since
-                // a non-empty list completes directly from the workspaces screen instead of coming here.
                 let joinWorkspaceMessage = joinWorkspaceMessagesEmpty;
-                if (isFromPublicDomain) {
+                if (onboardingPolicyID) {
+                    joinWorkspaceMessage = onboardingPolicy ? {...joinWorkspaceMessagesJoinWorkspace, tasks: []} : joinWorkspaceMessagesJoinWorkspace;
+                } else if (isFromPublicDomain) {
                     joinWorkspaceMessage = joinWorkspaceMessagesAddWorkEmail;
                 } else if (!isValidated) {
                     joinWorkspaceMessage = joinWorkspaceMessagesValidateEmail;
@@ -115,7 +117,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                     firstName,
                     lastName,
                     adminsChatReportID: onboardingAdminsChatReportID,
-                    onboardingPolicyID,
+                    ...(onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE ? {} : {onboardingPolicyID}),
                     introSelected,
                     isSelfTourViewed,
                     conciergeChat,
@@ -133,7 +135,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                     isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                     conciergeChatReportID,
                     reportNameValuePairs,
-                    onboardingPolicyID,
+                    onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE && !onboardingPolicy ? undefined : onboardingPolicyID,
                     mergedAccountConciergeReportID,
                     false,
                 );
@@ -151,10 +153,12 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             joinWorkspaceMessagesAddWorkEmail,
             joinWorkspaceMessagesValidateEmail,
             joinWorkspaceMessagesEmpty,
+            joinWorkspaceMessagesJoinWorkspace,
             isValidated,
             isFromPublicDomain,
             workEmail,
             onboardingPolicyID,
+            onboardingPolicy,
             isBetaEnabled,
             reportNameValuePairs,
             isSmallScreenWidth,
