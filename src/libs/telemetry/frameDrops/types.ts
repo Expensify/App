@@ -34,6 +34,8 @@ type Timeline = {
     interactions: Interaction[];
     operations: Operation[];
     flows: Operation[];
+    /** Modals, popovers and action sheets; while one is shown, frames belong to it as a separate screen. */
+    modals: Operation[];
 };
 
 /** A stretch of time during which the context didn't change. `interactionID` tells two presses with the same label apart. */

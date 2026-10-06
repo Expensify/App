@@ -1,4 +1,4 @@
-import {clear, getTimeline, recordPress, recordScreen, recordScroll, setRecording} from '@libs/telemetry/frameDrops/frameDropTimeline';
+import {clear, endModal, getTimeline, recordNavigationStart, recordPress, recordScreen, recordScroll, setRecording, startModal} from '@libs/telemetry/frameDrops/frameDropTimeline';
 
 let now = 0;
 
@@ -44,6 +44,50 @@ describe('frameDropTimeline', () => {
         now = 300;
         recordScroll(false);
         expect(getTimeline().interactions.at(0)?.end).toBe(300);
+    });
+
+    it('gives the new screen the frames from the navigation action on, including its mount and enter animation', () => {
+        // Given a recorded screen, and a navigation action dispatched at 1000ms
+        setRecording(true);
+        recordScreen('Home');
+        now = 1_000;
+        recordNavigationStart();
+
+        // When the navigation state updates after the new screen mounted
+        now = 1_400;
+        recordScreen('Report');
+
+        // Then the screen change is backdated to the navigation action
+        expect(getTimeline().screens.at(-1)).toEqual({time: 1_000, screen: 'Report'});
+    });
+
+    it('does not backdate a screen change to a navigation action that is too old', () => {
+        // Given a navigation action long before the next screen change, e.g. one that didn't change the screen
+        setRecording(true);
+        recordScreen('Home');
+        now = 1_000;
+        recordNavigationStart();
+
+        // When a screen change is recorded much later
+        now = 10_000;
+        recordScreen('Report');
+
+        // Then it is recorded at the time it happened
+        expect(getTimeline().screens.at(-1)).toEqual({time: 10_000, screen: 'Report'});
+    });
+
+    it('records a modal while it is shown', () => {
+        // Given recording is on
+        setRecording(true);
+
+        // When a popover is shown and hidden
+        now = 100;
+        const modalID = startModal('popover');
+        now = 400;
+        endModal(modalID);
+
+        // Then its interval is on the timeline
+        expect(getTimeline().modals).toEqual([{id: modalID, name: 'popover', start: 100, end: 400}]);
     });
 
     it('does not record presses while recording is paused', () => {

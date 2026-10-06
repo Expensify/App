@@ -32,7 +32,7 @@ function createActiveIntervalTracker<T extends Interval>(intervals: T[]) {
  * Adjacent segments with the same context are merged, so a window without context changes is a single segment.
  * `screens` must be sorted by time.
  */
-function buildSegments(windowStart: number, windowEnd: number, {screens, interactions, operations, flows}: Timeline): Segment[] {
+function buildSegments(windowStart: number, windowEnd: number, {screens, interactions, operations, flows, modals}: Timeline): Segment[] {
     if (windowEnd <= windowStart) {
         return [];
     }
@@ -47,7 +47,7 @@ function buildSegments(windowStart: number, windowEnd: number, {screens, interac
     for (const change of screens) {
         addBoundary(change.time);
     }
-    for (const interval of [...interactions, ...operations, ...flows]) {
+    for (const interval of [...interactions, ...operations, ...flows, ...modals]) {
         addBoundary(interval.start);
         addBoundary(interval.end);
     }
@@ -56,6 +56,7 @@ function buildSegments(windowStart: number, windowEnd: number, {screens, interac
     const findInteraction = createActiveIntervalTracker(interactions);
     const findOperation = createActiveIntervalTracker(operations);
     const findFlow = createActiveIntervalTracker(flows);
+    const findModal = createActiveIntervalTracker(modals);
     let screenIndex = -1;
     const segments: Segment[] = [];
     for (let i = 0; i < sortedBoundaries.length - 1; i++) {
@@ -66,7 +67,10 @@ function buildSegments(windowStart: number, windowEnd: number, {screens, interac
             screenIndex++;
             nextScreen = screens.at(screenIndex + 1);
         }
-        const screen = screens.at(screenIndex)?.screen ?? CONST.TELEMETRY.FRAME_DROPS.NONE;
+        const baseScreen = screens.at(screenIndex)?.screen ?? CONST.TELEMETRY.FRAME_DROPS.NONE;
+        const modal = findModal(start);
+        // A shown modal counts as a separate screen, named after the screen it covers so it is still known where it opened.
+        const screen = modal ? `${baseScreen}/${modal.name}` : baseScreen;
         const activeInteraction = findInteraction(start);
         const interaction = activeInteraction?.label ?? CONST.TELEMETRY.FRAME_DROPS.NONE;
         const interactionID = activeInteraction?.id;

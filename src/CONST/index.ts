@@ -2415,12 +2415,15 @@ const CONST = {
             MAX_AGGREGATES: 100,
             // An interval that was never closed (a lost scroll end, a request that never settled) stops owning frames after this long.
             MAX_OPEN_INTERVAL_MS: 60_000,
+            // A screen change is backdated to the navigation action that caused it, if the action was at most this long ago.
+            MAX_NAVIGATION_START_AGE_MS: 2_000,
             MAX_LABEL_LENGTH: 64,
             // Requests that only carry telemetry, so they'd only hide the operation that is actually running.
             IGNORED_COMMANDS: ['Log'],
             NONE: 'none',
             UNATTRIBUTED: 'unattributed',
             OVERFLOW: 'overflow',
+            MODAL: 'modal',
             STARTUP: 'startup',
             INTERACTION_SCROLL: 'scroll',
             INTERACTION_UNLABELED_PRESS: 'press',
@@ -2437,6 +2440,16 @@ const CONST = {
             ATTRIBUTE_OPERATION: 'operation',
             ATTRIBUTE_FLOW: 'flow',
             ATTRIBUTE_PLATFORM: 'platform',
+            ATTRIBUTE_DEVICE_TIER: 'device_tier',
+            // Total RAM thresholds of the device tier (see getDeviceTier).
+            DEVICE_TIER_MEDIUM_MIN_MEMORY_BYTES: 4 * 1024 ** 3,
+            DEVICE_TIER_HIGH_MIN_MEMORY_BYTES: 6 * 1024 ** 3,
+            DEVICE_TIER: {
+                LOW: 'low',
+                MEDIUM: 'medium',
+                HIGH: 'high',
+                UNKNOWN: 'unknown',
+            },
         },
         // Breadcrumb names
         BREADCRUMB_CATEGORY_MEMORY: 'system.memory',

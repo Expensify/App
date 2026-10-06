@@ -1,4 +1,5 @@
 import getPlatform from '@libs/getPlatform';
+import navigationRef from '@libs/Navigation/navigationRef';
 
 import CONST from '@src/CONST';
 
@@ -7,11 +8,13 @@ import type {NativeEventSubscription} from 'react-native';
 import * as Sentry from '@sentry/react-native';
 import {AppState, DeviceEventEmitter} from 'react-native';
 
+import type {DeviceTier} from './getDeviceTier/types';
 import type {FrameDropContext, LongTask, Segment} from './types';
 
 import buildSegments from './buildSegments';
 import fetchFramesDelay, {isFramesDelayAvailable} from './fetchFramesDelay';
-import {getTimeline, isInteractionActive, pauseRecording, pruneBefore, recordScroll, setRecording} from './frameDropTimeline';
+import {getTimeline, isInteractionActive, pauseRecording, pruneBefore, recordNavigationStart, recordScroll, setRecording} from './frameDropTimeline';
+import getDeviceTier from './getDeviceTier';
 
 /**
  * Attributes frame drops to what the app was doing when they happened, and reports the totals to Sentry as metrics.
@@ -70,6 +73,8 @@ const OVERFLOW_CONTEXT: FrameDropContext = {
 
 // Sentry doesn't attach the OS to metrics, so it is sent as an attribute to tell iOS and Android apart.
 const platform = getPlatform();
+// Read once, when a sampled session starts measuring.
+let deviceTier: DeviceTier = CONST.TELEMETRY.FRAME_DROPS.DEVICE_TIER.UNKNOWN;
 const aggregates = new Map<string, Aggregate>();
 const interactionDelays = new Map<number, InteractionDelay>();
 const interactionCounts = new Map<string, InteractionCount>();
@@ -88,6 +93,7 @@ let flushIntervalID: ReturnType<typeof setInterval> | undefined;
 let appStateSubscription: NativeEventSubscription | undefined;
 let scrollSubscription: {remove: () => void} | undefined;
 let longTaskObserver: PerformanceObserver | undefined;
+let removeNavigationActionListener: (() => void) | undefined;
 
 function getContextKey(context: FrameDropContext): string {
     return `${context.screen}|${context.interaction}|${context.operation}|${context.flow}`;
@@ -254,6 +260,7 @@ function reportEndedInteractions(endedInteractionIDs: Set<number>) {
             unit: 'millisecond',
             attributes: {
                 [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_PLATFORM]: platform,
+                [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_DEVICE_TIER]: deviceTier,
                 [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_SCREEN]: interactionDelay.screen,
                 [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_INTERACTION]: interactionDelay.label,
             },
@@ -262,6 +269,8 @@ function reportEndedInteractions(endedInteractionIDs: Set<number>) {
 }
 
 function stopMonitoring() {
+    removeNavigationActionListener?.();
+    removeNavigationActionListener = undefined;
     if (flushIntervalID) {
         clearInterval(flushIntervalID);
         flushIntervalID = undefined;
@@ -392,6 +401,7 @@ function report() {
     for (const aggregate of aggregates.values()) {
         const attributes = {
             [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_PLATFORM]: platform,
+            [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_DEVICE_TIER]: deviceTier,
             [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_SCREEN]: aggregate.screen,
             [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_INTERACTION]: aggregate.interaction,
             [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_OPERATION]: aggregate.operation,
@@ -412,6 +422,7 @@ function report() {
         Sentry.metrics.count(CONST.TELEMETRY.FRAME_DROPS.METRIC_INTERACTION_COUNT, interactionCount.count, {
             attributes: {
                 [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_PLATFORM]: platform,
+                [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_DEVICE_TIER]: deviceTier,
                 [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_SCREEN]: interactionCount.screen,
                 [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_INTERACTION]: interactionCount.interaction,
             },
@@ -510,7 +521,14 @@ function startFrameDropMonitor() {
     } catch {
         // Long tasks are extra detail; frame delay attribution works without them.
     }
+    deviceTier = getDeviceTier();
     scrollSubscription = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, recordScroll);
+    removeNavigationActionListener = navigationRef.addListener('__unsafe_action__', (event) => {
+        if (event.data.noop) {
+            return;
+        }
+        recordNavigationStart();
+    });
     appStateSubscription = AppState.addEventListener('change', (state) => {
         if (state === CONST.APP_STATE.ACTIVE) {
             resume();

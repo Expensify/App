@@ -10,7 +10,7 @@ describe('buildSegments', () => {
         const screens = [{time: 0, screen: 'Home'}];
 
         // When the window is split into segments
-        const segments = buildSegments(100, 200, {screens, interactions: [], operations: [], flows: []});
+        const segments = buildSegments(100, 200, {screens, interactions: [], operations: [], flows: [], modals: []});
 
         // Then the whole window belongs to that screen, so a single native query covers it
         expect(segments).toEqual([{start: 100, end: 200, screen: 'Home', interaction: NONE, operation: NONE, flow: NONE}]);
@@ -24,7 +24,7 @@ describe('buildSegments', () => {
         ];
 
         // When the window is split into segments
-        const segments = buildSegments(100, 200, {screens, interactions: [], operations: [], flows: []});
+        const segments = buildSegments(100, 200, {screens, interactions: [], operations: [], flows: [], modals: []});
 
         // Then frames before and after the navigation belong to different screens
         expect(segments).toEqual([
@@ -39,7 +39,7 @@ describe('buildSegments', () => {
         const interactions = [{id: 1, label: 'FAB', start: 120, end: 160}];
 
         // When the window is split into segments
-        const segments = buildSegments(100, 200, {screens, interactions, operations: [], flows: []});
+        const segments = buildSegments(100, 200, {screens, interactions, operations: [], flows: [], modals: []});
 
         // Then only the press window carries the press label
         expect(segments).toEqual([
@@ -57,7 +57,7 @@ describe('buildSegments', () => {
         ];
 
         // When the window is split into segments
-        const segments = buildSegments(100, 200, {screens: [], interactions: [], operations, flows: []});
+        const segments = buildSegments(100, 200, {screens: [], interactions: [], operations, flows: [], modals: []});
 
         // Then the nested operation owns its time, as it's the most specific thing going on, and the outer one owns the rest
         expect(segments.map(({start, end, operation}) => ({start, end, operation}))).toEqual([
@@ -72,7 +72,7 @@ describe('buildSegments', () => {
         const interactions = [{id: 1, label: 'scroll', start: 150}];
 
         // When the window is split into segments
-        const segments = buildSegments(100, 200, {screens: [], interactions, operations: [], flows: []});
+        const segments = buildSegments(100, 200, {screens: [], interactions, operations: [], flows: [], modals: []});
 
         // Then the scroll owns the rest of the window
         expect(segments.map(({start, end, interaction}) => ({start, end, interaction}))).toEqual([
@@ -81,10 +81,26 @@ describe('buildSegments', () => {
         ]);
     });
 
+    it('treats a shown modal as a separate screen on top of the current one', () => {
+        // Given a popover shown over the report screen for part of the window
+        const screens = [{time: 0, screen: 'Report'}];
+        const modals = [{id: 1, name: 'popover', start: 120, end: 160}];
+
+        // When the window is split into segments
+        const segments = buildSegments(100, 200, {screens, interactions: [], operations: [], flows: [], modals});
+
+        // Then frames drawn while it is shown belong to the popover, and it is still known which screen it covered
+        expect(segments.map(({start, end, screen}) => ({start, end, screen}))).toEqual([
+            {start: 100, end: 120, screen: 'Report'},
+            {start: 120, end: 160, screen: 'Report/popover'},
+            {start: 160, end: 200, screen: 'Report'},
+        ]);
+    });
+
     it('returns nothing for an empty window', () => {
         // Given a window that ends where it starts
         // When the window is split into segments
-        const segments = buildSegments(100, 100, {screens: [], interactions: [], operations: [], flows: []});
+        const segments = buildSegments(100, 100, {screens: [], interactions: [], operations: [], flows: [], modals: []});
 
         // Then there is nothing to query
         expect(segments).toEqual([]);
