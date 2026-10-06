@@ -72,6 +72,17 @@ describe('system message presentation', () => {
             expect(isSimpleMessage).toBe(true);
         });
 
+        it('keeps restored expenses on the upstream simple message renderer', () => {
+            // Given the expense restoration action introduced upstream
+            const action = makeAction('1', CONST.REPORT.ACTIONS.TYPE.UNDELETED_TRANSACTION);
+
+            // When the router checks the classifier shared with collapsed message presentation
+            const isSimpleMessage = isSimpleMessageAction(action);
+
+            // Then restoring an expense keeps its dedicated renderer rather than generic content
+            expect(isSimpleMessage).toBe(true);
+        });
+
         it.each([
             CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
             CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
