@@ -412,8 +412,6 @@ const translations: TranslationDeepObject<typeof en> = {
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
         skip: 'Pular',
-        chatWithAccountManager: (accountManagerDisplayName: string) => `Precisa de algo específico? Converse com seu gerente de conta, ${accountManagerDisplayName}.`,
-        chatNow: 'Conversar agora',
         workEmail: 'E-mail profissional',
         destination: 'Destino',
         subrate: 'Subtaxa',
@@ -514,6 +512,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Ano anterior',
         nextYear: 'Ano que vem',
         avatar: 'Avatar',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} de ${total}`,
         editor: 'Editor',
         restrictions: 'Restrições',
         tryAgain: 'Tentar novamente',
@@ -523,6 +522,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noResultsFoundSubtitle: 'Nenhum resultado. Tente ajustar seus filtros ou termo de pesquisa',
         unableToDisplayChart: 'Não foi possível exibir o gráfico',
         webGLNotSupported: 'Seu navegador não é compatível com WebGL. Ative-o ou mude de navegador.',
+        chartFailedToLoad: 'Não foi possível carregar o gráfico. Atualize a página e tente novamente.',
         apiKey: 'Chave de API',
         exportsTo: 'Exportações para',
     },
@@ -1339,6 +1339,8 @@ const translations: TranslationDeepObject<typeof en> = {
                     : 'Antes de registrar a distância, você precisa adicionar seu endereço residencial ao seu perfil privado. Este workspace usa esse endereço para deduções de deslocamento.',
             cta: 'Adicionar endereço residencial',
         },
+        expenseAdded: 'Despesa adicionada',
+        invoiceSent: 'Fatura enviada',
         amount: 'Valor',
         percent: 'Porcentagem',
         date: 'Data',
@@ -1905,6 +1907,7 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmText: 'Excluir categoria',
         },
         tagDisabledAlert: {title: 'Tag desativada', prompt: 'Ative as tags no workspace para editar os detalhes da despesa ou excluir a tag desta despesa.', confirmText: 'Excluir tag'},
+        undeletedExpense: 'restaurou esta despesa',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `taxas de distância atualizadas para o novo workspace - ${policyName}`,
     },
     transactionMerge: {
@@ -3003,7 +3006,7 @@ ${amount} para ${merchant} - ${date}`,
             `${memberName} já está em um fluxo de aprovação que envia para ${approverName}. Adicioná-lo aqui irá movê-lo para este fluxo de trabalho.`,
         moveEveryoneToThisWorkflowTitle: 'Mover todos para este fluxo de trabalho',
         moveEveryoneToThisWorkflowPrompt:
-            'Você está prestes to mover todo mundo para este fluxo de aprovação. Isso vai excluir todos os outros fluxos de aprovação e mover todo mundo para este. Essa ação não pode ser desfeita.',
+            'Você está prestes a mover todo mundo para este novo fluxo de aprovação. Ao salvá-lo, todos os outros fluxos de aprovação serão excluídos. Essa ação não pode ser desfeita.',
     },
     workflowsApproverPage: {
         genericErrorMessage: 'O aprovador não pôde ser alterado. Tente novamente ou entre em contato com o suporte.',
@@ -3139,6 +3142,8 @@ ${amount} para ${merchant} - ${date}`,
             updateAvatar: 'Ocorreu um problema ao atualizar o avatar deste agente',
         },
     },
+    agentPromptUpdated: ({updatedBy, previousPrompt, newPrompt}: {updatedBy: string; previousPrompt: string; newPrompt: string}) =>
+        `${updatedBy} atualizou as instruções deste agente.\nInstruções anteriores:\n${previousPrompt}\nNovas instruções:\n${newPrompt}`,
     newAgentPage: {
         title: 'Novo agente',
         buildCustomAgent: 'Criar agente personalizado',
@@ -3402,9 +3407,9 @@ ${amount} para ${merchant} - ${date}`,
             otherAccountingSoftware: 'Nome do software',
         },
         interestedFeatures: {
-            title: 'Em quais recursos você tem interesse?',
-            featuresAlreadyEnabled: 'Aqui estão nossos recursos mais populares:',
-            featureYouMayBeInterestedIn: 'Ativar recursos adicionais:',
+            title: 'Selecione os recursos que você deseja',
+            featuresAlreadyEnabled: 'Seu espaço de trabalho já tem o seguinte ativado:',
+            featureYouMayBeInterestedIn: 'Ative recursos adicionais que podem interessar a você:',
         },
         error: {
             requiredFirstName: 'Insira seu primeiro nome para continuar',
@@ -4659,21 +4664,21 @@ ${amount} para ${merchant} - ${date}`,
         },
         nudge: {
             airfareManual:
-                'Você sabia que pode reservar e gerenciar voos diretamente no Expensify? Da próxima vez, evite o trabalho de criar sua despesa manualmente e simplesmente reserve pelo <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Você sabia que pode reservar voos diretamente no Expensify e ainda acumular milhas nos seus programas de passageiro frequente? Da próxima vez, evite o trabalho de criar sua despesa manualmente e simplesmente reserve pelo <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             airfareCard:
-                'Você sabia que dá para reservar e gerenciar voos direto pelo Expensify? E que os recibos são enviados automaticamente para você? Na próxima vez, simplesmente faça sua reserva pelo <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Você sabia que pode reservar voos diretamente no Expensify e ainda acumular milhas nos seus programas de milhagem? Os recibos também são enviados automaticamente para você. Da próxima vez, simplesmente reserve pelo <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             hotelManual:
-                'Você sabia que pode reservar e gerenciar estadias em hotéis direto no Expensify? Da próxima vez, evite o trabalho de criar sua despesa manualmente e simplesmente reserve pelo <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Você sabia que pode reservar estadias em hotéis direto pelo Expensify e ainda usar seus programas de fidelidade de hotéis? Da próxima vez, evite o trabalho de criar sua despesa manualmente e simplesmente reserve pelo <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             hotelCard:
-                'Você sabia que pode reservar e gerenciar estadias em hotéis direto no Expensify? Da próxima vez, simplesmente reserve pelo <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Você sabia que pode reservar estadias em hotéis direto pelo Expensify e ainda usar seus programas de fidelidade? Da próxima vez, simplesmente reserve pelo <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             carManual:
-                'Você sabia que pode reservar e gerenciar aluguel de carros direto no Expensify? Da próxima vez, evite o trabalho de criar sua despesa manualmente e simplesmente reserve pelo <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+                'Você sabia que pode reservar carros para alugar direto no Expensify e ainda usar seus programas de fidelidade de locadoras? Da próxima vez, evite o trabalho de criar sua despesa manualmente e simplesmente reserve pelo <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             carCard:
-                'Você sabia que pode reservar e gerenciar aluguel de carros direto no Expensify? Da próxima vez, simplesmente reserve pelo <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+                'Você sabia que pode reservar carros direto no Expensify e ainda usar seus programas de fidelidade de locadoras? Na próxima vez, simplesmente reserve pelo <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             railManual:
-                'Você sabia que pode reservar e gerenciar viagens de trem direto no Expensify? Da próxima vez, evite o trabalho de criar sua despesa manualmente e simplesmente reserve pela <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+                'Você sabia que pode reservar viagens de trem diretamente no Expensify e ainda usar seus programas de fidelidade ferroviária e railcards? Da próxima vez, evite o trabalho de criar sua despesa manualmente e simplesmente reserve pelo <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
-                'Você sabia que dá para reservar e gerenciar viagens de trem direto no Expensify? E que os recibos são enviados automaticamente para você? Da próxima vez, é só reservar pelo <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+                'Sabia que você pode reservar viagens de trem diretamente no Expensify e ainda usar seus programas de fidelidade ferroviária e railcards? Os recibos também são enviados automaticamente para você. Da próxima vez, simplesmente reserve pelo <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             hotelBlockManual:
                 'Você sabia que pode reservar e gerenciar viagens em grupo como esta direto no Expensify? Poupe-se do transtorno da próxima vez e experimente nossa ferramenta de <a href="https://help.expensify.com/travel/hubs/event-management/">Eventos de Viagem</a>.',
             hotelBlockCard:
@@ -4739,6 +4744,12 @@ ${amount} para ${merchant} - ${date}`,
             settlementFrequency: 'Frequência de liquidação',
             setAsDefault: 'Definir como espaço de trabalho padrão',
             defaultNote: `Recibos enviados para ${CONST.EMAIL.RECEIPTS} aparecerão neste workspace.`,
+            archive: 'Arquivar workspace',
+            archiveConfirmation: 'Tem certeza de que deseja arquivar este workspace?',
+            archiveWithThirdPartyCardsConfirmation:
+                'Tem certeza de que deseja arquivar este workspace? Isso removerá a atribuição de todos os cartões de crédito dos usuários e excluirá permanentemente as despesas de cartão não enviadas.',
+            archiveWithExpensifyCardsConfirmation:
+                'Tem certeza de que deseja arquivar este workspace? Isso definirá todos os limites do Expensify Card como $0 e recusará automaticamente novas tentativas de compra.',
             deleteWorkspaceTitle: (workspaceName: string) => `Excluir ${workspaceName}?`,
             deleteConfirmation: 'Tem certeza de que deseja excluir este workspace?',
             deleteWithCardsConfirmation: 'Tem certeza de que deseja excluir este workspace? Isso removerá todos os feeds de cartão e cartões atribuídos.',
@@ -5467,6 +5478,9 @@ ${amount} para ${merchant} - ${date}`,
             journalEntriesProvTaxPostingAccount: 'Conta de lançamento de impostos provinciais em lançamentos contábeis',
             foreignCurrencyAmount: 'Exportar valor em moeda estrangeira',
             exportToNextOpenPeriod: 'Exportar para o próximo período em aberto',
+            exportToNextOpenPeriodLockedSubtitle: 'Para desativar a exportação para o próximo período em aberto, primeiro desative a divisão de exportações não reembolsáveis por período.',
+            splitExportsByPostingPeriod: 'Dividir exportações por período de lançamento',
+            splitExportsByPostingPeriodSubtitle: 'Ative a exportação para o próximo período em aberto para habilitar a divisão de exportações não reembolsáveis por período no NetSuite',
             nonReimbursableJournalPostingAccount: 'Conta de lançamento de diário não reembolsável',
             reimbursableJournalPostingAccount: 'Conta contábil para lançamentos reembolsáveis',
             journalPostingPreference: {
@@ -6614,7 +6628,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 corporate: 'Restringir exclusão de transações',
                 personal: 'Permitir excluir transações',
                 setFeedNameDescription: 'Dê um nome exclusivo ao feed de cartão para diferenciá-lo dos demais',
-                setTransactionLiabilityDescription: 'Quando ativado, titulares de cartão podem excluir transações do cartão. Novas transações seguirão esta regra.',
+                setTransactionLiabilityDescription: 'Portadores do cartão podem excluir transações. Aplica-se apenas a novas transações.',
                 emptyAddedFeedTitle: 'Nenhum cartão neste feed',
                 emptyAddedFeedDescription: 'Verifique se há cartões no feed de cartões do seu banco.',
                 pendingFeedTitle: `Estamos analisando sua solicitação...`,
@@ -8243,6 +8257,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 flagAmountsOver: 'Sinalizar valores acima de',
                 flagAmountsOverDescription: (categoryName: string) => `Aplica-se à categoria “${categoryName}”.`,
                 flagAmountsOverSubtitle: 'Isso substitui o valor máximo para todas as despesas.',
+                expenseLimitType: 'Tipo de limite de despesa',
                 expenseLimitTypes: {
                     expense: 'Despesa individual',
                     expenseSubtitle:
@@ -9906,6 +9921,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         noCategory: 'Sem categoria',
         noMerchant: 'Sem comerciante',
         noTag: 'Sem tag',
+        noVendor: 'Sem fornecedor',
         expenseType: 'Tipo de despesa',
         receiptType: 'Tipo de recibo',
         receiptTypeValues: {
@@ -9984,7 +10000,12 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             title: 'Mesclar relatórios',
             description: 'Selecione o relatório que você quer manter. Todas as despesas serão movidas para ele e os outros relatórios serão excluídos.',
         },
-        percentOfSpend: ({percent}: {percent: string}) => `${percent} do gasto`,
+        saveEdits: {
+            title: 'Salvar edições',
+            prompt: ({name}: {name: string}) => `Atualizar as alterações em "${name}" ou criar um novo?`,
+            createNew: 'Criar novo',
+            updateExisting: 'Atualizar existente',
+        },
     },
     genericErrorPage: {
         title: 'Opa, algo deu errado!',
@@ -10347,6 +10368,12 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
     distance: {
         addStop: 'Adicionar parada',
         address: 'Endereço',
+        reuseRoute: 'Reutilizar rota',
+        reusePriorRoute: 'Reutilizar rota anterior',
+        choosePreviousRoute: 'Escolha uma rota anterior abaixo:',
+        findARoute: 'Encontrar rota',
+        lastUsed: ({date}: {date: string}) => `Último uso em ${date}`,
+        end: 'Fim',
         waypointDescription: {
             start: 'Iniciar',
             stop: 'Parar',
@@ -11025,7 +11052,18 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 invalid: 'Este código é inválido',
             },
         },
-        paymentHistory: {title: 'Ver histórico de pagamento', subtitle: 'Seu histórico completo de pagamentos mensais cobrados nesta conta.'},
+        paymentHistory: {
+            title: 'Ver histórico de pagamento',
+            subtitle: 'Seu histórico completo de pagamentos mensais cobrados nesta conta.',
+            payments: 'Pagamentos',
+            inclTax: 'incl. impostos',
+            empty: 'Ainda não há pagamentos.',
+            activeUsers: ({count}: {count: number}) => ({
+                one: '1 usuário ativo',
+                other: `${count} usuários ativos`,
+            }),
+            state: {paid: 'Pago', cleared: 'Compensado', failed: 'Falhou', refunded: 'Reembolsado', disputed: 'Contestado', balanceTransfer: 'Transferência de saldo'},
+        },
         subscriptionSettings: {
             title: 'Configurações de assinatura',
             summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>
@@ -11597,6 +11635,13 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             title: 'Crie seus próprios agentes',
             description: `<muted-text>Crie agentes personalizados para revisar, aprovar e direcionar despesas com base nas regras que você definir. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Saiba mais</a>.</muted-text>`,
         },
+    },
+    earlyRenewal: {
+        confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Renove sua assinatura por um período de 12 meses, de ${startDate} a ${endDate}.`,
+        title: 'Renove sua assinatura do Expensify',
+        subtitle: 'Uma coisa a menos para fazer antes do ano novo.',
+        confirmTitle: 'Confirmar renovação',
+        renew: 'Renovar',
     },
 };
 export default translations;

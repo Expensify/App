@@ -32,7 +32,7 @@ type DuplicateTransactionItemProps = {
     isSelected: boolean;
     shouldShowSelection?: boolean;
     onSelectTransaction: (transactionID: string) => void;
-    onPreviewPressed: (reportID: string) => void;
+    onPreviewPressed: (reportID: string, transactionID: string | undefined) => void;
 };
 
 function DuplicateTransactionItem({transaction, isLastItem, isSelected, shouldShowSelection = true, onSelectTransaction, onPreviewPressed}: DuplicateTransactionItemProps) {
@@ -67,7 +67,7 @@ function DuplicateTransactionItem({transaction, isLastItem, isSelected, shouldSh
         }
 
         if (action.childReportID) {
-            onPreviewPressed(action.childReportID);
+            onPreviewPressed(action.childReportID, transaction?.transactionID);
             return;
         }
 
@@ -87,7 +87,7 @@ function DuplicateTransactionItem({transaction, isLastItem, isSelected, shouldSh
             return;
         }
 
-        onPreviewPressed(transactionThreadReport.reportID);
+        onPreviewPressed(transactionThreadReport.reportID, transaction?.transactionID);
     };
 
     if (!action || !report || !transaction) {

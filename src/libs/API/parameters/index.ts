@@ -246,6 +246,7 @@ export type {default as AcceptWalletTermsParams} from './AcceptWalletTermsParams
 export type {default as ChronosRemoveOOOEventParams} from './ChronosRemoveOOOEventParams';
 export type {default as TransferWalletBalanceParams} from './TransferWalletBalanceParams';
 export type {default as DeleteWorkspaceParams} from './DeleteWorkspaceParams';
+export type {default as ArchivePolicyParams} from './ArchivePolicyParams';
 export type {default as ShareBankAccountAndSetPayerParams} from './ShareBankAccountAndSetPayerParams';
 export type {default as CreateWorkspaceParams} from './CreateWorkspaceParams';
 export type {default as UpdateWorkspaceGeneralSettingsParams} from './UpdateWorkspaceGeneralSettingsParams';
@@ -611,11 +612,13 @@ export type {default as ExportSearchWithTemplateParams} from './ExportSearchWith
 export type {default as QueueExportSearchItemsToCSVParams} from './QueueExportSearchItemsToCSVParams';
 export type {default as QueueExportSearchWithTemplateParams} from './QueueExportSearchWithTemplateParams';
 export type {default as QueueBulkPayReportsParams} from './QueueBulkPayReportsParams';
+export type {default as QueueBulkMarkAsExportedParams} from './QueueBulkMarkAsExportedParams';
 export type {default as AssignReportToMeParams} from './AssignReportToMeParams';
 export type {default as AddReportApproverParams} from './AddReportApproverParams';
 export type {default as EnableGlobalReimbursementsForUSDBankAccountParams} from './EnableGlobalReimbursementsForUSDBankAccountParams';
 export type {default as SendReminderForCorpaySignerInformationParams} from './SendReminderForCorpaySignerInformationParams';
 export type {default as SendScheduleCallNudgeParams} from './SendScheduleCallNudge';
+export type {default as AcceptEarlyRenewalOfferParams} from './AcceptEarlyRenewalOfferParams';
 export type {default as DomainParams} from './DomainParams';
 export type {default as OpenDomainPageParams} from './OpenDomainPageParams';
 export type {default as RequestDomainAdminshipParams} from './RequestDomainAdminshipParams';
