@@ -4,6 +4,7 @@ import type {AvatarShape, AvatarSizeName} from '@styles/utils';
 
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 
+import type {ImageProps as ExpoImageProps} from 'expo-image';
 import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
 
 type AvatarCommonProps = {
@@ -11,7 +12,7 @@ type AvatarCommonProps = {
     source?: AvatarSource;
 
     /** Extra styles for the rendered image, or for the container of the rendered icon/initials */
-    imageStyles?: StyleProp<ViewStyle & ImageStyle>;
+    imageStyles?: ExpoImageProps['style'] & StyleProp<ViewStyle & ImageStyle>;
 
     /** Additional styles for the rendered icon/initials, or for the container of the rendered image */
     iconAdditionalStyles?: StyleProp<ViewStyle>;
