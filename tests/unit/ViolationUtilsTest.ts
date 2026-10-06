@@ -9,6 +9,7 @@ import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, BetaOverrides, Policy, PolicyCategories, PolicyTagLists, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {SageIntacctExportConfig} from '@src/types/onyx/Policy';
+import type {RuleFilterComparison, RuleFilterNode} from '@src/types/onyx/RuleFilters';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 
 import Onyx from 'react-native-onyx';
@@ -4098,6 +4099,141 @@ const brokenCardConnectionReauthViolation: TransactionViolation = {
 };
 
 describe('getViolationTranslation', () => {
+    beforeEach(() => IntlStore.load(CONST.LOCALES.EN));
+
+    const createComparison = (left: string, operator: RuleFilterComparison['operator'], right: RuleFilterComparison['right']): RuleFilterComparison => ({left, operator, right});
+    const createAndFilter = (left: RuleFilterNode, right: RuleFilterNode): RuleFilterNode => ({left, operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, right});
+
+    const ruleViolationTestCases: Array<{description: string; filters: RuleFilterNode; expectedMessage: string}> = [
+        {
+            description: 'an uncategorized expense',
+            filters: createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.CATEGORY_EMPTY_VALUE),
+            expectedMessage: 'Expense without a category',
+        },
+        {
+            description: 'an expense with either tag',
+            filters: createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, ['Client', 'Internal']),
+            expectedMessage: 'Expense tagged Client or Internal',
+        },
+        {
+            description: 'any expense',
+            filters: createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, '.'),
+            expectedMessage: 'Any expense',
+        },
+        {
+            description: 'a merchant that does not contain a value',
+            filters: createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, CONST.SEARCH.SYNTAX_OPERATORS.NOT_CONTAINS, 'Personal'),
+            expectedMessage: 'Expense not from merchants containing Personal',
+        },
+        {
+            description: 'an amount at or above a limit',
+            filters: createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, 1234),
+            expectedMessage: 'Expense $12.34 or more',
+        },
+        {
+            description: 'a merchant category code',
+            filters: createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.MCC, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, 5812),
+            expectedMessage: 'Expense at MCC 5812',
+        },
+        {
+            description: 'an expense without a receipt',
+            filters: createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS, CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, CONST.SEARCH.HAS_VALUES.RECEIPT),
+            expectedMessage: 'Expense without a receipt',
+        },
+        {
+            description: 'a vendor',
+            filters: createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, 'vendor-office-depot'),
+            expectedMessage: 'Expense from vendor-office-depot',
+        },
+        {
+            description: 'one of several expense types',
+            filters: createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, [
+                CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM,
+                CONST.SEARCH.TRANSACTION_TYPE.CASH,
+                CONST.SEARCH.TRANSACTION_TYPE.CARD,
+            ]),
+            expectedMessage: 'Per diem or cash or card expense',
+        },
+        {
+            description: 'a non-matching purchase currency',
+            filters: createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY, CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, 'EUR'),
+            expectedMessage: 'Expense not paid in EUR',
+        },
+        {
+            description: 'a billable expense',
+            filters: createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.BOOLEAN.YES),
+            expectedMessage: 'Billable expense',
+        },
+        {
+            description: 'a non-reimbursable expense',
+            filters: createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE, CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, CONST.SEARCH.BOOLEAN.YES),
+            expectedMessage: 'Non-reimbursable expense',
+        },
+        {
+            description: 'a merchant without a receipt',
+            filters: createAndFilter(
+                createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, 'Uber'),
+                createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS, CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, CONST.SEARCH.HAS_VALUES.RECEIPT),
+            ),
+            expectedMessage: 'Expense from Uber without a receipt',
+        },
+        {
+            description: 'a categorized, tagged expense above a limit',
+            filters: createAndFilter(
+                createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, 'Meals'),
+                createAndFilter(
+                    createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, 1234),
+                    createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, 'Client'),
+                ),
+            ),
+            expectedMessage: 'Meals expense $12.34 or more tagged Client',
+        },
+        {
+            description: 'a billable travel expense from a merchant',
+            filters: createAndFilter(
+                createAndFilter(
+                    createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.BOOLEAN.YES),
+                    createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, 'Travel'),
+                ),
+                createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, 'Airbnb'),
+            ),
+            expectedMessage: 'Billable Travel expense from Airbnb',
+        },
+        {
+            description: 'a tagged expense above a limit without a receipt',
+            filters: createAndFilter(
+                createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, 'Client'),
+                createAndFilter(
+                    createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, 10000),
+                    createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS, CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, CONST.SEARCH.HAS_VALUES.RECEIPT),
+                ),
+            ),
+            expectedMessage: 'Expense $100.00 or more tagged Client without a receipt',
+        },
+        {
+            description: 'a merchant expense above a limit without a receipt',
+            filters: createAndFilter(
+                createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, 'Airbnb'),
+                createAndFilter(
+                    createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, 25000),
+                    createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS, CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, CONST.SEARCH.HAS_VALUES.RECEIPT),
+                ),
+            ),
+            expectedMessage: 'Expense from Airbnb $250.00 or more without a receipt',
+        },
+    ];
+
+    it.each(ruleViolationTestCases)('should build a rule violation message for $description', ({filters, expectedMessage}) => {
+        const violation: TransactionViolation = {
+            name: CONST.VIOLATIONS.RULE_VIOLATION,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+            data: {filters},
+        };
+
+        const message = ViolationsUtils.getViolationTranslation({dateFnsLocale: undefined, violation, translate: translateLocal, convertToDisplayString});
+        expect(message).toBe(expectedMessage);
+    });
+
     it('should return the correct message for broken card connection violation', () => {
         const testPolicyID = 'test-policy-123';
         const companyCardPageURL = `workspaces/${testPolicyID}/company-cards`;
