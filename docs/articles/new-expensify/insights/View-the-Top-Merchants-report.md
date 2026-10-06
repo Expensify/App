@@ -1,136 +1,57 @@
 ---
-title: View the Top Merchants report
-description: Learn how to use the Top Merchants report to understand merchant-level spending trends.
-keywords: [New Expensify, Top Merchants, merchant spending, vendor analysis, monthly spending, Workspace Admin, Approver, Auditor, merchant insights, expense analytics, report by merchant]
-internalScope: Audience is Workspace Admins, Approvers, and Auditors. Covers using the Top Merchants suggested search to view expense totals by merchant. Does not cover employee-level analysis or category-level grouping.
+title: Understand Top merchants
+description: Learn what the Top merchants chart on the Insights page shows, how merchants are ranked, and how to open the expenses for a merchant.
+keywords: [Top merchants, top merchants chart, vendor spending, merchant spending, where we spend the most, spend by merchant, Insights, merchant names look different]
+internalScope: Audience is all members. Covers what the Top merchants chart shows, how merchants are ranked, and what opens when you select a merchant. Does not cover the Insights page filters or the other Insights charts.
+contentType: topic
+platform: new-expensify
 ---
 
-# View the Top Merchants report
+# Understand Top merchants
 
-The **Top Merchants** report shows which merchants or vendors received the highest total spend last month. It's an easy way to:
-
-- Understand which vendors are receiving the most payments
-- Identify recurring merchant relationships
-- Spot trends without exporting data
-- Make data-driven purchasing decisions with less effort
-
-This report is a pre-built suggested search that uses filters to group your expenses by merchant.
+**Top merchants** is a chart on the **Insights** page that ranks the merchants that received the most spend in the selected date range. Use it to track vendor spending, find recurring costs, and spot opportunities to negotiate better rates.
 
 ---
 
-## Who can use the Top Merchants report
+## Who can see Top merchants
 
-The Top Merchants report is available to all workspace members on web and mobile.
- - **Workspace members** can view top merchants for expenses on reports they've submitted or approved.
- - **Workspace Admins** and **Auditors** can view top merchants for all expenses on the workspace.
+Anyone who can open the **Insights** page can see **Top merchants**. The chart only includes expenses you have permission to see. For example, members see their own expenses, while Workspace Admins and Auditors see all workspace expenses.
 
 ---
 
-## Where to find the Top Merchants report
+## What the Top merchants chart shows
 
-**Web:**  
-Click **Spend** in the left navigation, then click **Top merchants** under the **Insights** section
+**Top merchants** groups expenses by merchant and shows the top 5 merchants as a bar chart. The table below the chart lists each merchant with:
 
-**Mobile:**  
-Tap **Spend** from the navigation tabs on the bottom, then tap the hamburger menu in the top-right corner. Under **Insights**, tap **Top merchants**.
+- The number of expenses
+- The total amount
+- The merchant's share of total spend, as a percentage
 
----
-
-## What the Top Merchants report shows
-
-The Top Merchants report is powered by Expensify's search query engine using grouping and filters. The report shows:
-
-- All **merchants** sorted by total spend in the last month  
-- The **total amount spent** at each merchant  
-- The **number of expenses** for each merchant  
+The chart uses the **Date**, **Workspace**, and **Group currency** filters at the top of the Insights page. Amounts are converted to the selected **Group currency**.
 
 ---
 
-## How to interpret the Top Merchants report
+## How Top merchants ranks merchants
 
-Each merchant entry represents a single vendor or merchant, ordered from highest to lowest total spend. The report shows:
-
-- **Number of expenses** for that merchant  
-- **Total amount spent** at that merchant  
-
-Select a merchant to review all expenses included in that grouping.
+Merchants are ranked from highest to lowest total amount spent in the selected date range. Only the top 5 appear in the chart. To see every merchant, select the three dots **(⋮)** on the chart, then select **View on Spend**.
 
 ---
 
-## How to customize the Top Merchants report 
+## What opens when you select a merchant in Top merchants
 
-You can adjust filters like status, expense type, or employee to explore spending trends.
-
-The Top Merchants report is a suggested search template. You cannot save changes directly to this report, but you can create a custom version.
-
-To create and save a custom report:
-
-1. Go to the **Spend** or **Expenses** tab.
-2. Use filters to adjust the merchant grouping or timeframe.
-3. Apply filters and click **Save** to save your custom view.
-
-[Learn how to create custom reports](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Using-Reports-in-New-Expensify#how-to-use-spend-search-query-commands)
+Select a merchant's bar to open **Spend** with a list of the expenses for that merchant, with the newest first.
 
 ---
 
-## How to switch views in the Top Merchants report
+## Related articles
 
-By default, the Top Merchants report displays a **Pie** chart. You can also switch to **Table**, **Bar** or **Line** view depending on how you want to analyze your data.
-
-- **Table** displays merchants in rows sorted by total spend.
-- **Bar** shows merchant totals visually for quick comparison.
-- **Line** shows spending trends over time.
-
-To change the view:
-
-1. Open the Top Merchants report.
-2. Click **View** in the top navigation.
-3. Select **Table**, **Bar**, or **Line**.
-
-The report will update instantly to reflect your selected view.
-
----
-
-## Ways to use the Top Merchants report
-
-Workspace Admins and finance teams use the Top Merchants report to:
-
-- Monitor vendor spending patterns
-- Identify opportunities for volume discounts or contract negotiations
-- Quickly compare expense volume by vendor
-- Track subscription and recurring service costs
-- Make purchasing decisions without needing spreadsheets
+- [Learn about Insights](/articles/new-expensify/insights/How-to-Use-Insights-in-Expensify)
+- [Use Insights](/articles/new-expensify/insights/Use-Insights)
 
 ---
 
 # FAQ
 
-## Can I export the Top Merchants report?
+## Why does the same merchant appear more than once in Top merchants?
 
-The Top Merchants report can't be exported with its grouped totals or summary data directly. However, if you expand each group to reveal the individual expenses, you can then select those expenses and use Export to CSV to download the raw data.
-
-To export expenses:
-
-1. Go to the **Spend** or **Expenses** tab.
-2. Use filters to group by merchant and apply the same timeframe.
-3. Expand the merchant group, select the expenses, and click **Export to CSV**.
-
-## What's the difference between the Top Merchants report and other insights reports?
-
-Each report provides a different view of your spending:
-
-- **Spend over time** shows how total expenses change over a date range.
-- **Top Categories** shows the highest-spending expense types (e.g., Travel, Meals).
-- **Top Spenders** shows which members submitted the most expenses.
-
-All reports help identify trends from different perspectives to support better financial decisions.
-
-## How is the Top Merchants report calculated?
-
-The report uses all expenses from the previous calendar month and groups them by merchant. It shows the **top 10 merchants** based on total spend.
-
-## Why do some merchant names look different?
-
-Merchant names are captured from receipt data and card transactions. The same vendor might appear under different names (e.g., "Amazon.com" vs "AMZN Marketplace"). You may need to review the individual expenses to confirm they're from the same merchant.
-
----
+Merchant names come from receipts and card transactions, so the same vendor can appear under different names, such as "Amazon.com" and "AMZN Marketplace." Each name is counted separately. Select each merchant to review its expenses.

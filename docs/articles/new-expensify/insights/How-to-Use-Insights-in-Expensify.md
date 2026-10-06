@@ -1,225 +1,69 @@
 ---
-title: How to Use Insights in Expensify
-description: Learn how to use Insights to analyze spending trends and make data-driven financial decisions in New Expensify.
-keywords: [New Expensify, Insights, spending analysis, expense reports, analytics, Top Spenders, Top Categories, Top Merchants, Spend over time, financial insights, budget analysis, expense trends]
-internalScope: Audience is all workspace members. Covers how Insights reports work, how to access them, available report types, grouping logic, view modes, exporting data, and customization. Does not cover troubleshooting individual reports.
+title: Learn about Insights
+description: Learn what Insights are in New Expensify, which spend charts the Insights page shows, who can see each chart, and when to use Insights instead of Spend.
+keywords: [New Expensify, Insights, Insights page, Insights tab, spend analytics, spending trends, Spend over time, Top categories, Top merchants, Top spenders, who can see Insights, Insights vs Spend, analytics, Expensify Classic Insights]
+internalScope: Audience is all members. Covers what Insights are, the charts on the Insights page, who can see each chart, and how Insights relates to Spend. Does not cover step-by-step instructions for using filters or opening expenses from a chart, or how each chart is calculated.
+contentType: topic
+platform: new-expensify
 ---
 
-# How to Use Insights in Expensify
+# Learn about Insights
 
-Insights are pre-built reports that help you understand spending patterns and trends without exporting data or creating complex custom searches. Each Insight is a suggested search that groups and analyzes your expense data automatically.
+Insights turn your expense data into charts that show where money goes and how spending changes over time. You find them on the **Insights** page, a top-level tab between **Spend** and **Workspaces**.
 
----
-
-## Who can use Insights
-
-Anyone can use Insights. What you can see depends on your role in the workspace.
-
-- Regular members can view Insights that include their own submitted expenses.
-- Approvers can view Insights that include their own expenses plus expenses submitted to them for approval.
-- Workspace Admins can view Insights that include all workspace expenses.
-- Auditors can view Insights that include all workspace expenses.
-
-Insights always respect workspace permissions. You will only see data you’re allowed to access.
-
-## Where to find Insights
-
-You can access Insights on both web and mobile.
-
-1. Click **Spend** in the navigation tabs (on the left on web, or on the bottom on mobile).
-2. Scroll to **Insights**. 
-3. Select an Insight to open the report.
+Use Insights to spot trends and see what changed at a glance. When you need to review or act on specific expenses, open them in **Spend** from any chart.
 
 ---
 
-## How to use Spend over time
+## What the Insights page shows
 
-Spend over time shows how total expenses change across a selected date range.
+The Insights page shows four spend charts:
 
-You can use Spend over time to:
+- **Spend over time** is the headline chart. It shows total spend as a line across the selected date range.
+- **Top spenders** ranks the members who spent the most.
+- **Top merchants** ranks the merchants that received the most spend.
+- **Top categories** shows how spend splits across your top expense categories.
 
- - Monitor overall spending trends
- - Identify increases or decreases in expenses
- - Compare spend across months or custom date ranges
- - Track seasonal or recurring spending patterns
- - Support budgeting and forecasting decisions
+Each ranking chart shows the top 5 results, with a table that lists each result's amount, number of expenses, and share of spend.
 
-[Learn more about the Spend over time report](https://help.expensify.com/articles/new-expensify/insights/View-the-Spend-over-time-report). 
-
-## How to use Top Spenders
-
-Top Spenders shows which members submitted the highest total expenses in the previous calendar month, across the workspaces where you're a Workspace Admin, Approver, or Auditor.
-
-You can use Top Spenders to: 
-
-- Identify unusually high spenders
-- Monitor employee-level spending patterns
-- Evaluate policy compliance
-- Support reimbursement and approval reviews
-
-[Learn more about the Top Spenders report](https://help.expensify.com/articles/new-expensify/insights/View-the-Top-Spenders-report).
+All charts on the page share the same **Date**, **Workspace**, and **Group currency** filters, so you can see the same period and workspaces across every chart.
 
 ---
 
-## How to use Top Categories 
+## How Insights relate to Spend
 
-Top Categories shows which expense categories had the highest total spend in the previous calendar month.
+Insights give you a high-level view, and **Spend** holds the detail behind it.
 
-You can use Top Categories to: 
+- **Insights** answers "What's the trend, and what changed?" Charts summarize your data and show only the top results.
+- **Spend** is where you search, review, and take action on individual expenses and reports.
 
-- Understand where most money is being spent by expense type
-- Compare spending across categories like Travel, Meals, and Office Supplies
-- Make budget allocation decisions
-
-[Learn more about the Top Categories report](https://help.expensify.com/articles/new-expensify/insights/View-the-Top-Categories-report)
+From any chart, you can open the matching expenses in **Spend**. Spend shows every matching expense, not only the top results.
 
 ---
 
-## How to use Top Merchants
+## Who can see Insights
 
-Top Merchants shows which merchants or vendors received the highest total payments in the previous calendar month.
+Insights are available on all plans. You only see expenses you already have permission to see in Expensify. For example, Workspace Admins and Auditors see all workspace expenses, approvers see expenses submitted to them, and members see their own expenses.
 
-You can use Top Merchants to: 
+Some charts have extra requirements:
 
-- Track vendor spending trends
-- Identify opportunities for volume discounts
-- Monitor subscription and recurring expenses
+- **Top spenders** appears only if you're a Workspace Admin, Auditor, or approver on a workspace with at least two members.
+- **Top categories** appears only if a workspace you can see has categories enabled.
 
-[Learn more about the Top Merchants report](https://help.expensify.com/articles/new-expensify/insights/View-the-Top-Merchants-report)
-
----
-
-## How to use Violations by submitter
-
-Violations by submitter shows which members submitted the most expenses that broke your workspace rules in the previous calendar month. It’s available to Workspace Admins and Auditors on Control workspaces that have Rules enabled.
-
-You can use Violations by submitter to:
-
-- See who is repeatedly submitting expenses with policy violations
-- Spot compliance patterns without reviewing reports one by one
-- Prioritize coaching or policy guidance for specific members
-
-[Learn more about the Violations by submitter report](https://help.expensify.com/articles/new-expensify/insights/View-the-Violations-by-submitter-report)
+If you don't meet a chart's requirements, that chart doesn't appear on the page.
 
 ---
 
-## How Insights work
+## Why Insights moved out of Spend
 
-Each Insight is powered by Expensify's search query engine using grouping filters and operators to: 
-
-- Automatically group expenses by relevant dimensions (employee, category, merchant, time period)
-- Calculate totals and counts
-- Sort results to show the highest values first
-- Update dynamically as new expenses are added
+Insights used to appear as suggested searches in the **Insights** section of the **Spend** page. They now have their own page, so analytics have a dedicated home, similar to the **Insights** tab in Expensify Classic. The same spend charts are available on the Insights page.
 
 ---
 
-## How to switch between views in Insights
+## Related articles
 
-Insights support four viewing modes:
-
-**Bar View**
-Displays grouped results as a bar chart. This is the default view for **Top categories** and makes comparisons easy at a glance.
-
-**Table View**
-Displays grouped data in rows and columns for more detailed analysis. This is the default view for **Top spenders** and simplifies side-by-side comparisons. 
-
-**Line View**
-Displays grouped data in a line chart for analyzing trends. This is the default view for **Spend over time** and helps you monitor changes and patterns.
-
-**Pie view**
-Displays grouped data as a pie chart to show proportional distribution. This is the default for **Top merchants** and helps you understand distribution instantly.
-
----
-
-To switch views:
-
-1. Open any Insight.
-2. Click **View** in the top navigation.
-3. Select **Table**, **Bar**, **Line** or **Pie**.
-
----
-
-## How to customize Insights
-
-While you can't modify the suggested Insight searches directly, you can:
-
-- Apply additional date filters
-- Filter by workspace or member
-- Expand groups to view individual expenses
-- Export data to CSV
-- Save a modified search
-
-## How to create a custom spending report using Insights
-
-If you want to build your own grouped report:
-
-1. Open an Insight as your starting point.
-2. Modify the filters to match your needs.
-3. Adjust the date range if needed.
-4. Click **Save** to store your custom view. 
-
-This allows you to automate recurring analysis without rebuilding the search each time.
-
-[Learn how to use search operators and grouping](/articles/new-expensify/reports-and-expenses/Using-search-operators)
-
----
-
-## How to export data from an Insight
-
-Insights cannot export grouped totals directly. However, you can export the underlying expenses.
-
-To export Insight data:
-
-1. Open the Insight.
-2. Expand a group to show individual expenses.
-3. Select the expenses you want to export.
-4. Click **Export to CSV**.
-
-This is helpful for external reporting or sharing detailed data with finance teams.
-
----
-
-## Grouping options used in Insights
-
-Insights use grouping operators to summarize expenses. These include:
-
-- **group-by:from** - Group by employee (who submitted)
-- **group-by:category** - Group by expense category
-- **group-by:merchant** - Group by merchant or vendor
-- **group-by:tag** - Group by expense tags
-- **group-by:month** - Group by calendar month
-- **group-by:week** - Group by calendar week
-- **group-by:quarter** - Group by fiscal quarter
-- **group-by:year** - Group by calendar year
-
-You can use these operators in custom searches to create your own insights and analyze spending from different perspectives.
-
-[View all available search operators](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Using-search-operators)
-
----
-
-# FAQ
-
-## Can I export grouped totals from Insights in Expensify?
-
-No. Grouped totals cannot be exported directly. You must expand each group and export the individual expenses as a CSV file.
-
----
-
-## How often do Insights update in Expensify?
-
-Insights update in realtime as expenses are created, edited, approved, or reimbursed.
-
----
-
-## Can I change the time period in Insights?
-
-Yes. Use date filters to adjust the time period.
-
-Common filters include:
-
-- `date:this-month`
-- `date:last-month`
-- `date:year-to-date`
-- Custom date ranges
+- [Use Insights](/articles/new-expensify/insights/Use-Insights)
+- [Understand Spend over time](/articles/new-expensify/insights/Understand-Spend-over-time)
+- [Understand Top spenders](/articles/new-expensify/insights/View-the-Top-Spenders-report)
+- [Understand Top merchants](/articles/new-expensify/insights/View-the-Top-Merchants-report)
+- [Understand Top categories](/articles/new-expensify/insights/View-the-Top-Categories-report)
