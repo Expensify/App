@@ -490,6 +490,35 @@ describe('DistanceRate', () => {
             resetQueue();
         });
 
+        it('should preserve a pending invite when changing its work arrangement offline', async () => {
+            // Given a newly invited member whose add action is still pending
+            const policy: Policy = {
+                ...createRandomPolicy(27),
+                employeeList: {
+                    [member1Email]: {
+                        email: member1Email,
+                        hasOfficeWorkArrangement: false,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
+                },
+            };
+            await seedWorkArrangementPolicy(policy);
+
+            pause();
+            // When the member's arrangement is changed before the invite finishes syncing
+            setEmployeeWorkArrangement(policy, [member1AccountID], true, personalDetails, translate);
+            await waitForBatchedUpdates();
+
+            // Then the arrangement updates while the invite remains visibly pending
+            const onyxPolicy = await getPolicyFromOnyx(policy.id);
+            expect(onyxPolicy.employeeList?.[member1Email]).toMatchObject({
+                hasOfficeWorkArrangement: true,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
+
+            resetQueue();
+        });
+
         it('should do nothing when every member already matches the requested arrangement', async () => {
             // Given all eligible members already have the requested arrangement
             const policy: Policy = {
