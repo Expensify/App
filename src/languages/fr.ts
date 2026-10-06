@@ -1017,6 +1017,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({date}: {date: string}) => `L’abonnement prend fin le ${date}`,
                 cta: 'Gérer',
             },
+            emailDeliveryFailure: {title: 'Nous ne pouvons pas vous envoyer de notifications par e-mail', subtitle: 'Compte'},
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -3032,7 +3033,7 @@ ${amount} pour ${merchant} - ${date}`,
             `${memberName} fait déjà partie d’un workflow d’approbation qui soumet à ${approverName}. L’ajouter ici le déplacera vers ce workflow.`,
         moveEveryoneToThisWorkflowTitle: 'Déplacer tout le monde vers ce workflow',
         moveEveryoneToThisWorkflowPrompt:
-            'Vous êtes sur le point de déplacer tout le monde vers ce workflow d’approbation. Cela supprimera tous les autres workflows d’approbation et déplacera tout le monde vers celui-ci. Cette action est irréversible.',
+            'Vous êtes sur le point de déplacer tout le monde vers ce nouveau workflow d’approbation. En l’enregistrant, vous supprimerez tous les autres workflows d’approbation. Cette action est irréversible.',
         header: 'Quand les membres suivants soumettent des dépenses :',
     },
     workflowsApproverPage: {
@@ -4788,6 +4789,12 @@ ${amount} pour ${merchant} - ${date}`,
             settlementFrequency: 'Fréquence de règlement',
             setAsDefault: 'Définir comme espace de travail par défaut',
             defaultNote: `Les reçus envoyés à ${CONST.EMAIL.RECEIPTS} apparaîtront dans cet espace de travail.`,
+            archive: 'Archiver l’espace de travail',
+            archiveConfirmation: 'Voulez-vous vraiment archiver cet espace de travail ?',
+            archiveWithThirdPartyCardsConfirmation:
+                'Voulez-vous vraiment archiver cet espace de travail ? Cela désassignera toutes les cartes de crédit des utilisateurs et supprimera définitivement toutes les dépenses de carte non soumises.',
+            archiveWithExpensifyCardsConfirmation:
+                'Voulez-vous vraiment archiver cet espace de travail ? Cela fixera toutes les limites des Expensify Card à 0 $ et refusera automatiquement toute nouvelle tentative d’achat.',
             deleteWorkspaceTitle: (workspaceName: string) => `Supprimer ${workspaceName} ?`,
             deleteConfirmation: 'Voulez-vous vraiment supprimer cet espace de travail ?',
             deleteWithCardsConfirmation: 'Voulez-vous vraiment supprimer cet espace de travail ? Cela supprimera tous les flux de cartes et les cartes assignées.',
@@ -6033,6 +6040,11 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     }
                     return `${customAccountsCount} cartes avec comptes personnalisés`;
                 },
+            },
+            fxExpenseAccount: {
+                label: 'Compte de frais de conversion de devise Rillet',
+                description:
+                    'Lorsque votre entreprise prend en charge les frais de conversion de devise sur un paiement effectué à l’étranger, nous comptabiliserons ces frais sur ce compte dans Rillet sous forme d’écriture de journal.',
             },
         },
         dualEntry: {
@@ -10034,7 +10046,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         noCategory: 'Aucune catégorie',
         noMerchant: 'Aucun commerçant',
         noTag: 'Aucun tag',
-        noVendor: 'Aucun fournisseur',
         expenseType: 'Type de dépense',
         receiptType: 'Type de reçu',
         receiptTypeValues: {
@@ -10099,7 +10110,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             title: 'Fusionner des notes de frais',
             description: 'Sélectionnez la note de frais à conserver. Toutes les dépenses y seront déplacées et les autres notes de frais seront supprimées.',
         },
-        percentOfSpend: ({percent}: {percent: string}) => `${percent} des dépenses`,
+        saveEdits: {
+            title: 'Enregistrer les modifications',
+            prompt: ({name}: {name: string}) => `Mettre à jour les modifications de « ${name} » ou en créer une nouvelle ?`,
+            createNew: 'Créer nouveau',
+            updateExisting: 'Mettre à jour l’existant',
+        },
     },
     genericErrorPage: {
         title: 'Oups, quelque chose s’est mal passé !',
@@ -10462,6 +10478,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
     distance: {
         addStop: 'Ajouter un arrêt',
         address: 'Adresse',
+        reuseRoute: 'Réutiliser l’itinéraire',
+        reusePriorRoute: 'Réutiliser l’itinéraire précédent',
+        choosePreviousRoute: 'Choisissez un itinéraire précédent ci-dessous :',
+        findARoute: 'Trouver un itinéraire',
+        lastUsed: ({date}: {date: string}) => `Dernière utilisation le ${date}`,
+        end: 'Fin',
         waypointDescription: {
             start: 'Démarrer',
             stop: 'Arrêter',
@@ -11738,6 +11760,19 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             title: 'Créez vos propres agents',
             description: `<muted-text>Créez des agents personnalisés pour examiner, approuver et acheminer les dépenses selon les règles que vous définissez. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">En savoir plus</a>.</muted-text>`,
         },
+    },
+    emailIssuePage: {
+        title: 'Problème d’e-mail',
+        intro: (login: string) => `Notre fournisseur d’e-mails a interrompu l’envoi vers <strong>${login}</strong> en raison de problèmes de distribution. Pour résoudre ce problème :`,
+        confirmEmailTitle: 'Confirmez votre adresse e-mail',
+        confirmEmailDescription: (login: string) =>
+            `Assurez-vous que <strong>${login}</strong> est correctement orthographié et qu’il s’agit d’une véritable boîte de réception. Les alias comme « expenses@domain.com » doivent avoir leur propre boîte de réception fonctionnelle pour se connecter à Expensify.`,
+        allowlistTitle: 'Ajouter expensify.com à la liste d’autorisation',
+        allowlistDescription: `Ajoutez <strong>expensify.com</strong> à la liste d’autorisation de votre client de messagerie. Vous aurez peut-être besoin que l’équipe informatique ajuste les paramètres du serveur en suivant <a href="${CONST.SET_NOTIFICATION_LINK}">ces instructions</a>.`,
+        getHelpFromConcierge: 'Obtenir de l’aide de Concierge',
+        completedSteps: 'J’ai effectué les étapes ci-dessus',
+        errorTitle: 'Une erreur s’est produite. Veuillez réessayer.',
+        errorPrompt: "Il semble que quelque chose n'ait pas fonctionné. Veuillez réessayer. Si le problème persiste, veuillez contacter Concierge.",
     },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Renouvelez votre abonnement pour une durée de 12 mois, du ${startDate} au ${endDate}.`,

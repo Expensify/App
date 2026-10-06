@@ -15,7 +15,6 @@ import {
     canSendInvoiceFromWorkspace,
     evaluateApprovalWorkflowRule,
     findVendorByID,
-    getVendorFeaturePolicyIDs,
     getVendorDisplayName,
     hasVendorFeatureOnAnyPolicy,
     getActivePolicies,
@@ -4498,53 +4497,6 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('sortVendors', () => {
-        const localeCompare = (a: string, b: string) => a.localeCompare(b);
-
-        it('sorts vendors alphabetically by name using localeCompare', () => {
-            const vendors = [
-                {id: '1', name: 'Zebra'},
-                {id: '2', name: 'Apple'},
-                {id: '3', name: 'Banana'},
-            ];
-
-            const result = sortVendors(vendors, localeCompare);
-            expect(result.map((v) => v.name)).toEqual(['Apple', 'Banana', 'Zebra']);
-        });
-
-        it('breaks name ties using vendor id', () => {
-            const vendors = [
-                {id: 'vendor_b', name: 'Acme'},
-                {id: 'vendor_a', name: 'Acme'},
-            ];
-
-            const result = sortVendors(vendors, localeCompare);
-            expect(result.map((v) => v.id)).toEqual(['vendor_a', 'vendor_b']);
-        });
-
-        it('does not sort the input array in place', () => {
-            const vendors = [
-                {id: '2', name: 'Zebra'},
-                {id: '1', name: 'Alpha'},
-            ];
-
-            const result = sortVendors(vendors, localeCompare);
-            expect(result).not.toBe(vendors);
-            expect(vendors.map((v) => v.name)).toEqual(['Zebra', 'Alpha']);
-        });
-
-        it('returns empty array for empty input', () => {
-            expect(sortVendors([], localeCompare)).toEqual([]);
-        });
-
-        it('returns single-element array as-is', () => {
-            const vendors = [{id: '1', name: 'Only'}];
-            const result = sortVendors(vendors, localeCompare);
-            expect(result).toHaveLength(1);
-            expect(result.at(0)?.name).toBe('Only');
-        });
-    });
-
     describe('getSageIntacctVendors', () => {
         const localeCompare = (a: string, b: string) => a.localeCompare(b);
 
@@ -4940,7 +4892,7 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('Vendor matching helpers', () => {
+    describe('vendor', () => {
         const buildQBOPolicy = (
             exportDestination: QBONonReimbursableExportAccountType | undefined,
             vendors: Array<{id: string; name: string; currency: string}> = [{id: 'v-1', name: 'Acme Co', currency: 'USD'}],
@@ -5375,6 +5327,22 @@ describe('PolicyUtils', () => {
                 expect(hasVendorFeature(buildRilletPolicy(), false)).toBe(true);
             });
 
+            it.each([
+                {isConfigured: true, isVendorMatchingBetaEnabled: false, expected: false},
+                {isConfigured: true, isVendorMatchingBetaEnabled: true, expected: true},
+                {isConfigured: false, isVendorMatchingBetaEnabled: true, expected: false},
+                {isConfigured: undefined, isVendorMatchingBetaEnabled: true, expected: false},
+            ])('keeps Campfire vendor matching gated for %j', ({isConfigured, isVendorMatchingBetaEnabled, expected}) => {
+                // Given a Campfire connection with the specified configuration state
+                const policy = createMock<Policy>({connections: {campfire: {config: {isConfigured}}}});
+
+                // When checking the independent vendorMatching beta
+                const isVendorFeatureAvailable = hasVendorFeature(policy, isVendorMatchingBetaEnabled);
+
+                // Then both beta access and a configured connection are required
+                expect(isVendorFeatureAvailable).toBe(expected);
+            });
+
             it('returns false when beta is disabled and Rillet is connected but isConfigured=false because GA did not widen the configuration gate', () => {
                 expect(hasVendorFeature(buildRilletPolicy(undefined, {isConfigured: false}), false)).toBe(false);
             });
@@ -5578,7 +5546,7 @@ describe('PolicyUtils', () => {
             });
         });
 
-        describe('hasVendorFeatureOnAnyPolicy and getVendorFeaturePolicyIDs', () => {
+        describe('hasVendorFeatureOnAnyPolicy', () => {
             const qboPolicy: Policy = {...buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), id: 'qbo'};
             const xeroPolicy: Policy = {...buildXeroPolicy(), id: 'xero'};
             const businessCentralPolicy: Policy = {...buildBusinessCentralPolicy(), id: 'businessCentral'};
@@ -5627,19 +5595,6 @@ describe('PolicyUtils', () => {
 
                 // Then the feature is not available on any workspace because Business Central still depends on the beta
                 expect(isVendorFeatureAvailable).toBe(false);
-            });
-
-            it('lists the workspaces that have the vendor feature', () => {
-                // Given QBO, Xero and Business Central workspaces next to one with no accounting connection
-                const policies = {[qboKey]: qboPolicy, [xeroKey]: xeroPolicy, [businessCentralKey]: businessCentralPolicy, [plainKey]: plainPolicy};
-
-                // When the workspace IDs are listed with and without the vendorMatching beta
-                const policyIDsWithBeta = getVendorFeaturePolicyIDs(policies, true);
-                const policyIDsWithoutBeta = getVendorFeaturePolicyIDs(policies, false);
-
-                // Then every connected workspace is listed with the beta, and Business Central is dropped without it because it still depends on the beta
-                expect(policyIDsWithBeta.toSorted()).toEqual(['businessCentral', 'qbo', 'xero']);
-                expect(policyIDsWithoutBeta.toSorted()).toEqual(['qbo', 'xero']);
             });
         });
 
@@ -5868,36 +5823,6 @@ describe('PolicyUtils', () => {
 
             it('returns undefined when Xero contacts have not synced yet', () => {
                 expect(getXeroSupplierByID(buildXeroPolicy(XERO_CONTACTS_UNSYNCED), 'xc1')).toBeUndefined();
-            });
-        });
-
-        describe('getXeroExpenseAccounts', () => {
-            const XERO_EXPENSE_ACCOUNTS = [
-                {id: 'acc1', name: 'Travel Expenses', currency: 'USD'},
-                {id: 'acc2', name: 'Bank Fees', currency: 'USD'},
-            ];
-
-            it('maps the expense accounts to selector options', () => {
-                expect(getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, undefined)).toEqual([
-                    {value: 'acc1', text: 'Travel Expenses', keyForList: 'acc1', isSelected: false},
-                    {value: 'acc2', text: 'Bank Fees', keyForList: 'acc2', isSelected: false},
-                ]);
-            });
-
-            it('marks only the selected account as selected', () => {
-                const options = getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, 'acc2');
-                expect(options.map(({keyForList, isSelected}) => ({keyForList, isSelected}))).toEqual([
-                    {keyForList: 'acc1', isSelected: false},
-                    {keyForList: 'acc2', isSelected: true},
-                ]);
-            });
-
-            it('selects nothing when the stored account is no longer in the synced list', () => {
-                expect(getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, 'acc-archived').every(({isSelected}) => !isSelected)).toBe(true);
-            });
-
-            it('returns an empty array when Xero expense accounts have not synced yet', () => {
-                expect(getXeroExpenseAccounts(undefined, 'acc1')).toEqual([]);
             });
         });
 
@@ -6157,6 +6082,83 @@ describe('PolicyUtils', () => {
                     subtitle: translate('workspace.rillet.noVendorsFoundDescription'),
                 });
             });
+        });
+
+        describe('sortVendors', () => {
+            const localeCompare = (a: string, b: string) => a.localeCompare(b);
+
+            it('sorts vendors alphabetically by name using localeCompare', () => {
+                const vendors = [
+                    {id: '1', name: 'Zebra'},
+                    {id: '2', name: 'Apple'},
+                    {id: '3', name: 'Banana'},
+                ];
+
+                const result = sortVendors(vendors, localeCompare);
+                expect(result.map((v) => v.name)).toEqual(['Apple', 'Banana', 'Zebra']);
+            });
+
+            it('breaks name ties using vendor id', () => {
+                const vendors = [
+                    {id: 'vendor_b', name: 'Acme'},
+                    {id: 'vendor_a', name: 'Acme'},
+                ];
+
+                const result = sortVendors(vendors, localeCompare);
+                expect(result.map((v) => v.id)).toEqual(['vendor_a', 'vendor_b']);
+            });
+
+            it('does not sort the input array in place', () => {
+                const vendors = [
+                    {id: '2', name: 'Zebra'},
+                    {id: '1', name: 'Alpha'},
+                ];
+
+                const result = sortVendors(vendors, localeCompare);
+                expect(result).not.toBe(vendors);
+                expect(vendors.map((v) => v.name)).toEqual(['Zebra', 'Alpha']);
+            });
+
+            it('returns empty array for empty input', () => {
+                expect(sortVendors([], localeCompare)).toEqual([]);
+            });
+
+            it('returns single-element array as-is', () => {
+                const vendors = [{id: '1', name: 'Only'}];
+                const result = sortVendors(vendors, localeCompare);
+                expect(result).toHaveLength(1);
+                expect(result.at(0)?.name).toBe('Only');
+            });
+        });
+    });
+
+    describe('getXeroExpenseAccounts', () => {
+        const XERO_EXPENSE_ACCOUNTS = [
+            {id: 'acc1', name: 'Travel Expenses', currency: 'USD'},
+            {id: 'acc2', name: 'Bank Fees', currency: 'USD'},
+        ];
+
+        it('maps the expense accounts to selector options', () => {
+            expect(getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, undefined)).toEqual([
+                {value: 'acc1', text: 'Travel Expenses', keyForList: 'acc1', isSelected: false},
+                {value: 'acc2', text: 'Bank Fees', keyForList: 'acc2', isSelected: false},
+            ]);
+        });
+
+        it('marks only the selected account as selected', () => {
+            const options = getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, 'acc2');
+            expect(options.map(({keyForList, isSelected}) => ({keyForList, isSelected}))).toEqual([
+                {keyForList: 'acc1', isSelected: false},
+                {keyForList: 'acc2', isSelected: true},
+            ]);
+        });
+
+        it('selects nothing when the stored account is no longer in the synced list', () => {
+            expect(getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, 'acc-archived').every(({isSelected}) => !isSelected)).toBe(true);
+        });
+
+        it('returns an empty array when Xero expense accounts have not synced yet', () => {
+            expect(getXeroExpenseAccounts(undefined, 'acc1')).toEqual([]);
         });
     });
 

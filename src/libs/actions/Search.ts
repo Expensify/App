@@ -1078,34 +1078,6 @@ function openSearchCategoryFiltersPage() {
     read(READ_COMMANDS.OPEN_SEARCH_CATEGORY_FILTERS_PAGE, null, {optimisticData, successData, finallyData});
 }
 
-function openSearchVendorFiltersPage() {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_VENDOR_DATA>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_VENDOR_DATA,
-            value: true,
-        },
-    ];
-
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_SEARCH_FILTERS_VENDOR_DATA_LOADED>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.IS_SEARCH_FILTERS_VENDOR_DATA_LOADED,
-            value: true,
-        },
-    ];
-
-    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_VENDOR_DATA>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_VENDOR_DATA,
-            value: false,
-        },
-    ];
-
-    read(READ_COMMANDS.OPEN_SEARCH_VENDOR_FILTERS_PAGE, null, {optimisticData, successData, finallyData});
-}
-
 const ALL_POLICY_IDS_KEY = 'all';
 
 /**
@@ -2668,7 +2640,6 @@ export {
     handlePreventSearchAPI,
     openSearchCardFiltersPage,
     openSearchCategoryFiltersPage,
-    openSearchVendorFiltersPage,
     openSearchTagFiltersPage,
     ALL_POLICY_IDS_KEY,
     setSearchTagFiltersPagination,
