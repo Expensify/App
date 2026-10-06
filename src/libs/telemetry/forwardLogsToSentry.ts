@@ -32,7 +32,16 @@ const PARAMETERS_WHITELIST: ReadonlyArray<string | RegExp> = [
 /**
  * Only log lines whose message contains one of these prefixes are forwarded to Sentry.
  */
-const FORWARDED_LOG_PREFIXES = ['[MFA]', '[OnyxUpdateManagerError]', '[Receipt]', '[PDFStall]', '[OpenReportStall]', '[withNavigationFallback]', '[createDynamicRoute]'] as const;
+const FORWARDED_LOG_PREFIXES = [
+    '[MFA]',
+    '[OnyxUpdateManagerError]',
+    '[Receipt]',
+    '[PDFStall]',
+    '[OpenReportStall]',
+    '[withNavigationFallback]',
+    '[createDynamicRoute]',
+    '[UpdateRequired]',
+] as const;
 
 type ForwardedLogPrefix = TupleToUnion<typeof FORWARDED_LOG_PREFIXES>;
 
