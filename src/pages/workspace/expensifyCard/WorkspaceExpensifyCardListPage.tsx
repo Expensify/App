@@ -3,6 +3,7 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import CardFeedIcon from '@components/CardFeedIcon';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import type {InlineEditSaveResult} from '@components/EditableCell';
 import FeedSelector from '@components/FeedSelector';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
@@ -202,21 +203,22 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     );
 
     const changeCardLimit = useCallback(
-        (card: Card, newLimit: string) => {
+        (card: Card, newLimit: string): InlineEditSaveResult => {
             const latestCard = cardsListRef.current?.[String(card.cardID)] ?? card;
             const nextLimit = getExpensifyCardLimitInlineUpdate(latestCard, newLimit);
             if (nextLimit === undefined) {
-                return;
+                return true;
             }
 
             const persistLimit = () => updateExpensifyCardLimitInline(fundID, cardsListRef.current?.[String(card.cardID)] ?? latestCard, newLimit);
 
             if (getExpensifyCardNewAvailableSpend(latestCard, nextLimit) > 0) {
                 persistLimit();
-                return;
+                return true;
             }
 
-            showConfirmModal({
+            // Keep the typed amount in the field while the modal is open. It is written only after confirm.
+            return showConfirmModal({
                 title: translate('workspace.expensifyCard.changeCardLimit'),
                 prompt: translate(getExpensifyCardLimitChangeWarningKey(latestCard.nameValuePairs?.limitType ?? defaultLimitType), convertToDisplayString(nextLimit, settlementCurrency)),
                 confirmText: translate('workspace.expensifyCard.changeLimit'),
@@ -225,9 +227,10 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 shouldEnableNewFocusManagement: true,
             }).then(({action}) => {
                 if (action !== ModalActions.CONFIRM) {
-                    return;
+                    return false;
                 }
                 persistLimit();
+                return true;
             });
         },
         [convertToDisplayString, defaultLimitType, fundID, settlementCurrency, showConfirmModal, translate],

@@ -9,6 +9,7 @@ type InlineSetupOptions = {
     canEdit?: InlineHookParameters[0];
     onSave?: InlineHookParameters[2];
     isEqual?: InlineHookParameters[3];
+    onKeepEditing?: InlineHookParameters[4];
 };
 
 type InlineHookProps = {
@@ -16,8 +17,8 @@ type InlineHookProps = {
     canEdit: NonNullable<InlineHookParameters[0]>;
 };
 
-const setupInline = (value: string, {canEdit = true, onSave, isEqual}: InlineSetupOptions = {}) =>
-    renderHook(({value: currentValue, canEdit: currentCanEdit}: InlineHookProps) => useInlineEditState<string>(currentCanEdit, currentValue, onSave, isEqual), {
+const setupInline = (value: string, {canEdit = true, onSave, isEqual, onKeepEditing}: InlineSetupOptions = {}) =>
+    renderHook(({value: currentValue, canEdit: currentCanEdit}: InlineHookProps) => useInlineEditState<string>(currentCanEdit, currentValue, onSave, isEqual, onKeepEditing), {
         initialProps: {value, canEdit},
     });
 
@@ -220,6 +221,122 @@ describe('useInlineEditState', () => {
         expect(onSave).not.toHaveBeenCalled();
         expect(result.current.isEditing).toBe(false);
         expect(result.current.localValue).toBe('hello');
+    });
+
+    it('keeps the typed value on screen while onSave is waiting for confirmation', async () => {
+        // Given a save that must wait for a confirm modal before the edit is allowed to close
+        let resolveSave: (shouldClose: boolean) => void = () => {};
+        const onSave = jest.fn(
+            () =>
+                new Promise<boolean>((resolve) => {
+                    resolveSave = resolve;
+                }),
+        );
+        const onKeepEditing = jest.fn();
+        const {result} = setupInline('10', {onSave, onKeepEditing});
+
+        startInlineEditing(result);
+        setInlineValue(result, '0');
+
+        // When the user commits the edit and blur from the modal commits it again
+        act(() => {
+            result.current.save();
+            result.current.save();
+        });
+
+        // Then the draft stays visible and onSave runs once, because closing now would hide the typed amount behind the modal
+        expect(onSave).toHaveBeenCalledTimes(1);
+        expect(onSave).toHaveBeenCalledWith('0');
+        expect(result.current.isEditing).toBe(true);
+        expect(result.current.isAwaitingConfirm).toBe(true);
+        expect(result.current.localValue).toBe('0');
+        expect(onKeepEditing).not.toHaveBeenCalled();
+
+        // When confirmation is declined
+        await act(async () => {
+            resolveSave(false);
+        });
+
+        // Then the editor stays open and focus can return to the input, because the limit was not written
+        expect(result.current.isEditing).toBe(true);
+        expect(result.current.isAwaitingConfirm).toBe(false);
+        expect(result.current.localValue).toBe('0');
+        expect(onKeepEditing).toHaveBeenCalledTimes(1);
+    });
+
+    it('closes the editor after a deferred save is confirmed', async () => {
+        // Given a save that waits for confirmation before writing
+        let resolveSave: (shouldClose: boolean) => void = () => {};
+        const onSave = jest.fn(
+            () =>
+                new Promise<boolean>((resolve) => {
+                    resolveSave = resolve;
+                }),
+        );
+        const onKeepEditing = jest.fn();
+        const {result} = setupInline('10', {onSave, onKeepEditing});
+
+        startInlineEditing(result);
+        setInlineValue(result, '0');
+        act(() => result.current.save());
+
+        // When the user confirms the change
+        await act(async () => {
+            resolveSave(true);
+        });
+
+        // Then the editor closes back to the stored value, because the write is no longer deferred
+        expect(result.current.isEditing).toBe(false);
+        expect(result.current.isAwaitingConfirm).toBe(false);
+        expect(result.current.localValue).toBe('10');
+        expect(onKeepEditing).not.toHaveBeenCalled();
+    });
+
+    it('cancels a declined confirmation when editing permission was revoked while the modal was open', async () => {
+        // Given an edit that is waiting on a confirm modal
+        let resolveSave: (shouldClose: boolean) => void = () => {};
+        const onSave = jest.fn(
+            () =>
+                new Promise<boolean>((resolve) => {
+                    resolveSave = resolve;
+                }),
+        );
+        const {result, rerender} = setupInline('10', {onSave});
+
+        startInlineEditing(result);
+        setInlineValue(result, '0');
+        act(() => result.current.save());
+
+        // When permission is revoked while the modal is still open and the user then declines
+        rerender({value: '10', canEdit: false});
+        expect(result.current.isEditing).toBe(true);
+
+        await act(async () => {
+            resolveSave(false);
+        });
+
+        // Then the editor closes instead of reopening on a cell the user may no longer edit
+        expect(result.current.isEditing).toBe(false);
+        expect(result.current.localValue).toBe('10');
+    });
+
+    it('stays open when onSave rejects the edit immediately', () => {
+        // Given a save that refuses to close, the way a caller does when it still needs the typed value
+        const onSave = jest.fn(() => false);
+        const onKeepEditing = jest.fn();
+        const {result} = setupInline('10', {onSave, onKeepEditing});
+
+        startInlineEditing(result);
+        setInlineValue(result, '0');
+
+        // When the user commits the edit
+        saveInline(result);
+
+        // Then the editor stays on the typed value so the field does not snap back
+        expect(onSave).toHaveBeenCalledWith('0');
+        expect(result.current.isEditing).toBe(true);
+        expect(result.current.localValue).toBe('0');
+        expect(onKeepEditing).toHaveBeenCalledTimes(1);
     });
 
     it('auto-cancels after starting to edit when canEdit is already false', () => {

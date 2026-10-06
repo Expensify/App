@@ -5,6 +5,7 @@
  *
  * Callers convert to a frontend numeric string before passing `value`. Invalid values are
  * handled by onSave, which no-ops on rejection. The cell then reverts to the original value.
+ * If onSave returns false, or a promise of false, the editor stays open with the typed value.
  */
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -71,7 +72,11 @@ function InlineNumberEditCell({
     const inputRef = useRef<BaseTextInputRef | null>(null);
     const isRightAligned = textAlign === 'right';
 
-    const {isEditing, setLocalValue, startEditing, save, cancelEditing} = useInlineEditState(canEdit, value, onSave, isEqual);
+    const refocusInput = () => {
+        inputRef.current?.focus();
+    };
+
+    const {isEditing, isAwaitingConfirm, setLocalValue, startEditing, save, cancelEditing} = useInlineEditState(canEdit, value, onSave, isEqual, refocusInput);
     const hasSymbolSpaceInPreview = hasSpaceBetweenSymbolAndAmount(preferredLocale, currency);
 
     const focusOnMount = (ref: BaseTextInputRef | null) => {
@@ -84,7 +89,8 @@ function InlineNumberEditCell({
         inputRef.current?.blur();
     };
 
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, handleEscape, {captureOnInputs: true, isActive: isEditing});
+    // The confirm modal handles Escape while it is open. This shortcut would otherwise cancel the edit underneath it.
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, handleEscape, {captureOnInputs: true, isActive: isEditing && !isAwaitingConfirm});
 
     return (
         <EditableCell

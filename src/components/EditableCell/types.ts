@@ -1,4 +1,10 @@
 /**
+ * false, or a promise of false, keeps the inline editor open with the typed value.
+ * Use that when the write waits on a confirm modal. Anything else closes the editor.
+ */
+type InlineEditSaveResult = void | boolean | Promise<boolean>;
+
+/**
  * Shared props for all inline-editable table cells.
  *
  * @template T  The type of the value being saved (e.g. `string`, `number`).
@@ -12,8 +18,7 @@ type EditableProps<T> = {
     canEdit?: boolean;
 
     /** Called with the new value when the user commits an edit. */
-    onSave?: (value: T) => void;
+    onSave?: (value: T) => InlineEditSaveResult;
 };
 
-// eslint-disable-next-line import/prefer-default-export -- Intentional single named type export for consistency with other `types.ts` files.
-export type {EditableProps};
+export type {EditableProps, InlineEditSaveResult};

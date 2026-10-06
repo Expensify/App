@@ -1,3 +1,4 @@
+import type {InlineEditSaveResult} from '@components/EditableCell';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Table, {composeTableListHeader} from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
@@ -64,7 +65,8 @@ type WorkspaceExpensifyCardTableRowData = TableData & {
     action: () => void;
     onRenameName?: (newName: string) => void;
     onChangeLimitType?: (limitType: CardLimitType) => void;
-    onChangeLimit?: (newLimit: string) => void;
+    /** Return false, or a promise of false, to keep the limit editor open until a confirm modal resolves. */
+    onChangeLimit?: (newLimit: string) => InlineEditSaveResult;
     onClose: () => void;
 };
 
