@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
-index 10cd91b..9238416 100644
+index 10cd91b..6f059bd 100644
 --- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
 +++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
 @@ -3,6 +3,7 @@ package com.swmansion.rnscreens.gamma.tabs.appearance
@@ -10,42 +10,23 @@ index 10cd91b..9238416 100644
  import android.graphics.drawable.StateListDrawable
  import android.util.TypedValue
  import android.view.MenuItem
-@@ -95,6 +96,10 @@ internal class TabsAppearanceApplicator(
- 
-         bottomNavigationView.labelVisibilityMode = visibilityMode
- 
-+        // The selected tab's label is drawn bold, the way the app marks a selected tab everywhere else. Material re-applies
-+        // its text appearance when enabling this, so it has to run before `updateFontStyles` sets the app's typeface.
-+        bottomNavigationView.setItemTextAppearanceActiveBoldEnabled(true)
-+
-         // Ripple color
-         val rippleColor =
-             tabBarAppearance?.tabBarItemRippleColor
-@@ -161,13 +166,18 @@ internal class TabsAppearanceApplicator(
+@@ -161,13 +162,18 @@ internal class TabsAppearanceApplicator(
                  tabBarAppearance?.tabBarItemTitleLargeLabelFontSize?.takeIf { it > 0 }?.let { PixelUtil.toPixelFromSP(it) }
                      ?: context.resources.getDimension(R.dimen.design_bottom_navigation_text_size)
  
-+            // Material's label text appearance tracks letters 0.5sp apart, wider than the app's labels.
-+            val labelTracking = PixelUtil.toPixelFromDIP(LABEL_TRACKING_DP)
-+
++            // Both labels drop the 0.5sp letter tracking of Material's text appearance, which reads wider than the app's labels.
              // Inactive
              smallLabel.setTextSize(TypedValue.COMPLEX_UNIT_PX, smallFontSize)
              smallLabel.typeface = fontFamily
-+            smallLabel.letterSpacing = labelTracking / smallFontSize
++            smallLabel.letterSpacing = 0f
  
              // Active
++            // Bold is set here rather than with `setItemTextAppearanceActiveBoldEnabled`, which re-applies Material's text size
++            // to this label alone, so Material lifts the selected item by the size difference between the two labels.
              largeLabel.setTextSize(TypedValue.COMPLEX_UNIT_PX, largeFontSize)
 -            largeLabel.typeface = fontFamily
 +            largeLabel.setTypeface(fontFamily, Typeface.BOLD)
-+            largeLabel.letterSpacing = labelTracking / largeFontSize
++            largeLabel.letterSpacing = 0f
          }
      }
  
-@@ -237,5 +247,7 @@ internal class TabsAppearanceApplicator(
- 
-     companion object {
-         const val TAG = "TabsAppearanceApplicator"
-+
-+        private const val LABEL_TRACKING_DP = -0.5f
-     }
- }
