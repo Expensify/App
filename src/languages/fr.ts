@@ -513,6 +513,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Année précédente',
         nextYear: 'L’an prochain',
         avatar: 'Avatar',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} sur ${total}`,
         editor: 'Éditeur',
         restrictions: 'Restrictions',
         tryAgain: 'Réessayer',
@@ -1927,6 +1928,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Active les tags dans l’espace de travail pour modifier les détails de la dépense ou supprimer le tag de cette dépense.',
             confirmText: 'Supprimer le tag',
         },
+        undeletedExpense: 'a restauré cette dépense',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `les taux kilométriques ont été mis à jour pour le nouvel espace de travail - ${policyName}`,
     },
     transactionMerge: {
@@ -3167,6 +3169,8 @@ ${amount} pour ${merchant} - ${date}`,
             updateAvatar: "Un problème est survenu lors de la mise à jour de l'avatar de cet agent",
         },
     },
+    agentPromptUpdated: ({updatedBy, previousPrompt, newPrompt}: {updatedBy: string; previousPrompt: string; newPrompt: string}) =>
+        `${updatedBy} a mis à jour les instructions de cet agent.\nInstructions précédentes :\n${previousPrompt}\nNouvelles instructions :\n${newPrompt}`,
     newAgentPage: {
         title: 'Nouvel agent',
         buildCustomAgent: 'Créer un agent personnalisé',
@@ -3434,9 +3438,9 @@ ${amount} pour ${merchant} - ${date}`,
             otherAccountingSoftware: 'Nom du logiciel',
         },
         interestedFeatures: {
-            title: 'Quelles fonctionnalités vous intéressent ?',
-            featuresAlreadyEnabled: 'Voici nos fonctionnalités les plus populaires :',
-            featureYouMayBeInterestedIn: 'Activer des fonctionnalités supplémentaires :',
+            title: 'Sélectionnez les fonctionnalités souhaitées',
+            featuresAlreadyEnabled: 'Votre espace de travail a déjà les éléments suivants activés :',
+            featureYouMayBeInterestedIn: 'Activez des fonctionnalités supplémentaires qui pourraient vous intéresser :',
         },
         error: {
             requiredFirstName: 'Veuillez saisir votre prénom pour continuer',
@@ -4704,21 +4708,21 @@ ${amount} pour ${merchant} - ${date}`,
         },
         nudge: {
             airfareManual:
-                'Saviez-vous que vous pouvez réserver et gérer vos vols directement dans Expensify ? La prochaine fois, évitez la corvée de créer votre dépense manuellement et réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Saviez-vous que vous pouvez réserver vos vols directement dans Expensify tout en continuant à cumuler des miles avec vos programmes de fidélité ? La prochaine fois, évitez la corvée de créer votre dépense manuellement et réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             airfareCard:
-                'Saviez-vous que vous pouvez réserver et gérer vos vols directement dans Expensify ? Et que les reçus sont automatiquement téléchargés pour vous ? La prochaine fois, réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Saviez-vous que vous pouvez réserver des vols directement dans Expensify tout en continuant à accumuler des miles avec vos programmes de fidélité ? L’application télécharge également automatiquement les reçus pour vous. La prochaine fois, réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             hotelManual:
-                'Saviez-vous que vous pouvez réserver et gérer vos séjours à l’hôtel directement dans Expensify&nbsp;? La prochaine fois, évitez les tracas de créer votre dépense manuellement et réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Saviez-vous que vous pouvez réserver des séjours à l’hôtel directement dans Expensify tout en continuant à utiliser vos programmes de fidélité hôteliers ? La prochaine fois, évitez la corvée de créer votre dépense manuellement et réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             hotelCard:
-                'Saviez-vous que vous pouvez réserver et gérer vos séjours à l’hôtel directement dans Expensify ? La prochaine fois, réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Saviez-vous que vous pouvez réserver vos séjours à l’hôtel directement dans Expensify tout en continuant à utiliser vos programmes de fidélité hôteliers ? La prochaine fois, réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             carManual:
-                'Saviez-vous que vous pouvez réserver et gérer vos locations de voiture directement dans Expensify ? La prochaine fois, évitez la corvée de créer votre dépense manuellement et réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+                'Saviez-vous que vous pouvez réserver des locations de voiture directement dans Expensify tout en continuant à utiliser vos programmes de fidélité de location de voiture ? La prochaine fois, évitez la corvée de créer votre dépense manuellement et réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             carCard:
-                'Saviez-vous que vous pouvez réserver et gérer vos locations de voiture directement dans Expensify&nbsp;? La prochaine fois, réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+                'Saviez-vous que vous pouvez réserver des voitures de location directement dans Expensify tout en utilisant vos programmes de fidélité de location de voiture ? La prochaine fois, réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             railManual:
-                'Saviez-vous que vous pouvez réserver et gérer vos trajets en train directement dans Expensify ? La prochaine fois, évitez la corvée de créer votre dépense manuellement et réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+                'Saviez-vous que vous pouvez réserver des trajets en train directement dans Expensify tout en continuant à utiliser vos programmes de fidélité ferroviaires et vos cartes de réduction ? La prochaine fois, évitez les tracas de créer votre dépense manuellement et réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
-                'Saviez-vous que vous pouvez réserver et gérer vos trajets en train directement dans Expensify ? Et que les reçus sont automatiquement téléchargés pour vous ? La prochaine fois, réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+                'Saviez-vous que vous pouvez réserver vos trajets en train directement dans Expensify tout en utilisant vos programmes de fidélité et vos cartes de réduction ferroviaires ? Les reçus sont également téléchargés automatiquement pour vous. La prochaine fois, réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             hotelBlockManual:
                 'Saviez-vous que vous pouvez réserver et gérer des voyages de groupe comme celui-ci directement dans Expensify ? Évitez-vous des ennuis la prochaine fois et essayez notre outil <a href="https://help.expensify.com/travel/hubs/event-management/">Événements de voyage</a>.',
             hotelBlockCard:
@@ -6683,8 +6687,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 corporate: 'Restreindre la suppression des transactions',
                 personal: 'Autoriser la suppression des transactions',
                 setFeedNameDescription: 'Donnez au flux de cartes un nom unique afin de pouvoir le distinguer des autres',
-                setTransactionLiabilityDescription:
-                    'Lorsque cette option est activée, les titulaires de carte peuvent supprimer les transactions de carte. Les nouvelles transactions suivront cette règle.',
+                setTransactionLiabilityDescription: 'Les titulaires de carte peuvent supprimer des transactions. S’applique uniquement aux nouvelles transactions.',
                 emptyAddedFeedTitle: 'Aucune carte dans ce flux',
                 emptyAddedFeedDescription: 'Assurez-vous qu’il y a des cartes dans le flux de cartes de votre banque.',
                 pendingFeedTitle: `Nous examinons votre demande...`,
@@ -8334,6 +8337,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 flagAmountsOver: 'Signaler les montants supérieurs à',
                 flagAmountsOverDescription: (categoryName: string) => `S’applique à la catégorie « ${categoryName} ».`,
                 flagAmountsOverSubtitle: 'Cela remplace le montant maximal pour toutes les dépenses.',
+                expenseLimitType: 'Type de limite de dépense',
                 expenseLimitTypes: {
                     expense: 'Dépense individuelle',
                     expenseSubtitle:
@@ -10030,6 +10034,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         noCategory: 'Aucune catégorie',
         noMerchant: 'Aucun commerçant',
         noTag: 'Aucun tag',
+        noVendor: 'Aucun fournisseur',
         expenseType: 'Type de dépense',
         receiptType: 'Type de reçu',
         receiptTypeValues: {
@@ -10094,7 +10099,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             title: 'Fusionner des notes de frais',
             description: 'Sélectionnez la note de frais à conserver. Toutes les dépenses y seront déplacées et les autres notes de frais seront supprimées.',
         },
-        percentOfSpend: ({percent}: {percent: string}) => `${percent} des dépenses`,
     },
     genericErrorPage: {
         title: 'Oups, quelque chose s’est mal passé !',

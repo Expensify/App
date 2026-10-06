@@ -512,6 +512,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: '前年',
         nextYear: '来年',
         avatar: 'アバター',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${total} 件中 ${current} 件目`,
         editor: '編集者',
         restrictions: '制限',
         tryAgain: '再試行',
@@ -1896,6 +1897,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'ワークスペースでタグを有効にすると、この経費の詳細を編集したり、この経費からタグを削除したりできます。',
             confirmText: 'タグを削除',
         },
+        undeletedExpense: 'この経費を復元しました',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `新しいワークスペース「${policyName}」の距離単価を更新しました`,
     },
     transactionMerge: {
@@ -3119,6 +3121,8 @@ ${date} の ${merchant} への ${amount}`,
             updateAvatar: 'このエージェントのアバターを更新する際に問題が発生しました',
         },
     },
+    agentPromptUpdated: ({updatedBy, previousPrompt, newPrompt}: {updatedBy: string; previousPrompt: string; newPrompt: string}) =>
+        `${updatedBy} がこのエージェントの指示を更新しました。\n以前の指示:\n${previousPrompt}\n新しい指示:\n${newPrompt}`,
     newAgentPage: {
         title: '新しいエージェント',
         buildCustomAgent: 'カスタムエージェントを作成',
@@ -3383,9 +3387,9 @@ ${date} の ${merchant} への ${amount}`,
             otherAccountingSoftware: 'ソフトウェア名',
         },
         interestedFeatures: {
-            title: 'どの機能にご興味がありますか？',
-            featuresAlreadyEnabled: '当社で最も人気のある機能はこちらです。',
-            featureYouMayBeInterestedIn: '追加機能を有効にする:',
+            title: 'ご希望の機能を選択してください',
+            featuresAlreadyEnabled: 'ワークスペースでは、すでに次の機能が有効になっています：',
+            featureYouMayBeInterestedIn: '興味のありそうな追加機能を有効にする：',
         },
         error: {
             requiredFirstName: '続行するには名を入力してください',
@@ -4632,19 +4636,21 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         },
         nudge: {
             airfareManual:
-                'Expensify でフライトの予約や管理ができることをご存じでしたか？次回からは経費を手動で作成する手間を省き、<a href="https://travel.expensify.com">Expensify Travel</a> から簡単に予約しましょう ✈️',
+                'Expensify で直接フライトを予約しても、マイレージプログラムでマイルを獲得できることをご存じでしたか？ 次回からは経費を手動で作成する手間を省き、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください ✈️',
             airfareCard:
-                'Expensify でフライトの予約や管理ができることをご存じでしたか？しかも領収書は自動でアップロードされます。次回からは、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> で予約してください ✈️',
+                'Expensify で直接フライトを予約しても、お持ちのマイレージプログラムでマイルを貯められることをご存じでしたか？領収書も自動的にアップロードされます。次回からは、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> からご予約ください ✈️',
             hotelManual:
-                'Expensify でホテルの予約や管理ができることをご存じですか？次回からは経費を手入力する手間を省き、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください 🏨',
-            hotelCard: 'Expensify でホテルの予約や管理ができることをご存じでしたか？次回からは、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> 経由で予約してください 🏨',
+                'Expensify から直接ホテルを予約しても、ホテルのロイヤリティプログラムをそのまま使えることをご存じでしたか？次回からは経費を手動で作成する手間を省き、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約しましょう 🏨',
+            hotelCard:
+                'Expensify から直接ホテルを予約しても、ホテルのロイヤリティプログラムをそのまま利用できることをご存じでしたか？次回からは、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> 経由で予約してください 🏨',
             carManual:
-                'Expensify でレンタカーの予約や管理ができることをご存じですか？次回からは経費を手動で作成する手間を省き、<a href="https://travel.expensify.com">Expensify Travel</a> から予約するだけで済みます。',
-            carCard: 'Expensify でレンタカーの予約や管理ができることをご存じですか？次回からは、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> からご予約ください。',
+                'Expensify でレンタカーを直接予約できて、レンタカーのロイヤルティプログラムもそのままご利用いただけることをご存じでしたか？次回からは経費を手動で作成する手間を省き、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください 🚗',
+            carCard:
+                'Expensify からそのままレンタカーを予約しても、お持ちのレンタカー会員プログラムを引き続きご利用いただけることをご存じでしたか？次回からは、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> でご予約ください 🚗',
             railManual:
-                'Expensify で列車の予約や管理ができることをご存じでしたか？次回からは、経費を手動で作成する手間を省いて、<a href="https://travel.expensify.com">Expensify Travel</a> から簡単に予約しましょう。',
+                'Expensify で列車の予約ができて、しかも鉄道のロイヤルティプログラムやレールカードもそのまま使えることをご存じでしたか？次回からは、経費を手動で作成する手間を省き、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください 🚂',
             railCard:
-                'Expensify で電車の予約や管理ができることをご存じでしたか？しかも領収書も自動でアップロードされます。次回からは、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください 🚂',
+                'Expensify で鉄道の乗車券を直接予約できて、鉄道のロイヤルティプログラムやレールカードもそのまま使えることをご存じでしたか？領収書も自動的にアップロードされます。次回からは <a href="https://travel.expensify.com">Expensify Travel</a> から簡単に予約しましょう。',
             hotelBlockManual:
                 'Expensify では、このようなグループ旅行の予約と管理を直接行えることをご存じでしたか？次回は面倒を省くために、ぜひ <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> ツールをお試しください。',
             hotelBlockCard:
@@ -6540,7 +6546,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 corporate: '取引の削除を制限',
                 personal: '取引の削除を許可',
                 setFeedNameDescription: '他と区別できるように、カードフィードに一意の名前を付けてください',
-                setTransactionLiabilityDescription: '有効にすると、カード保有者はカード取引を削除できるようになります。新しい取引にもこのルールが適用されます。',
+                setTransactionLiabilityDescription: 'カード保有者は取引を削除できます。新しい取引にのみ適用されます。',
                 emptyAddedFeedTitle: 'このフィードにはカードがありません',
                 emptyAddedFeedDescription: '銀行のカード明細フィードにカードが含まれていることを確認してください。',
                 pendingFeedTitle: `リクエストを確認しています…`,
@@ -8157,6 +8163,7 @@ ${reportName}`,
                 flagAmountsOver: '超過金額にフラグを付ける',
                 flagAmountsOverDescription: (categoryName: string) => `カテゴリ「${categoryName}」に適用されます。`,
                 flagAmountsOverSubtitle: 'これは、すべての経費の上限金額を上書きします。',
+                expenseLimitType: '経費上限の種類',
                 expenseLimitTypes: {
                     expense: '個別経費',
                     expenseSubtitle:
@@ -9813,6 +9820,7 @@ ${reportName}`,
         noCategory: 'カテゴリなし',
         noMerchant: '店舗なし',
         noTag: 'タグなし',
+        noVendor: 'ベンダーなし',
         expenseType: '経費の種類',
         receiptType: '領収書の種類',
         receiptTypeValues: {
@@ -9870,7 +9878,6 @@ ${reportName}`,
             violationsBySubmitter: '申請者による違反',
         },
         mergeReports: {title: 'レポートをマージする', description: '保持するレポートを選択してください。すべての経費はそのレポートに移動され、他のレポートは削除されます。'},
-        percentOfSpend: ({percent}: {percent: string}) => `支出の${percent}`,
     },
     genericErrorPage: {
         title: 'おっと、問題が発生しました！',
