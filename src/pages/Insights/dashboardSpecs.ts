@@ -8,13 +8,12 @@ import colors from '@styles/theme/colors';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {InsightsDashboardID, InsightsGraphKey, Policy} from '@src/types/onyx';
+import type {InsightsDashboardID, InsightsGraphKey, InsightsSearchKey, Policy} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 
 type InsightsChartSpec = {
-    /** Slot the chart finds its snapshot hash under in the stored dashboard's `graphs` */
+    /** Slot the request names the chart's snapshot under, and the response's `graphs` confirms it in */
     graphKey: InsightsGraphKey;
     titleKey: TranslationPaths;
     view: ChartView;
@@ -34,7 +33,7 @@ type InsightsChartSpec = {
 
 type InsightsDashboardSpec = {
     /** Identifies the dashboard to the backend. */
-    searchKey: ValueOf<typeof CONST.INSIGHTS.SEARCH_KEY>;
+    searchKey: InsightsSearchKey;
 
     /** Chart across the top of the page, the only one the group-by filter applies to */
     headlineChart: InsightsChartSpec;

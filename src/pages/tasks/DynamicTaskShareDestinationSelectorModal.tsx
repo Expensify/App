@@ -92,7 +92,6 @@ function DynamicTaskShareDestinationSelectorModal() {
                       keyForList: option.keyForList ?? '',
                       isDisabled: option.isDisabled ?? undefined,
                       login: option.login ?? undefined,
-                      shouldShowSubscript: option.shouldShowSubscript ?? undefined,
                   }))
                 : [],
         [filteredOptions.recentReports],

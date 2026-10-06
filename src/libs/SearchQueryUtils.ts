@@ -908,6 +908,9 @@ function getQueryHashes(query: SearchQueryJSON) {
     if (query.limit !== undefined) {
         orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT}:${query.limit}`;
     }
+    if (query.compare) {
+        orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.COMPARE}:${query.compare}`;
+    }
     const primaryHash = hashText(orderedQuery, 2 ** 32);
 
     return {primaryHash, recentSearchHash, similarSearchHash};
@@ -1001,6 +1004,11 @@ function getCachedSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQue
             result.limit = Number.isInteger(num) && num > 0 ? num : undefined;
         }
 
+        // Normalize compare before computing hashes so invalid values don't affect hash
+        if (result.compare !== undefined && !Object.values(CONST.SEARCH.COMPARE).includes(result.compare)) {
+            result.compare = undefined;
+        }
+
         const {primaryHash, recentSearchHash, similarSearchHash} = getQueryHashes(result);
         result.hash = primaryHash;
         result.recentSearchHash = recentSearchHash;
@@ -1074,6 +1082,7 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON | Readonly<SearchQue
 }
 
 const NON_FILTER_CHIP_KEYS = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]);
+const NON_SAVABLE_FILTER_KEYS = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]);
 
 function buildQueryStringWithResetFilters(currentQueryJSON: SearchQueryJSON, defaultQueryJSON: SearchQueryJSON | undefined) {
     const resetFilters = (defaultQueryJSON?.flatFilters ?? []).filter((filter) => !NON_FILTER_CHIP_KEYS.has(filter.key));
@@ -1086,8 +1095,22 @@ function buildQueryStringWithResetFilters(currentQueryJSON: SearchQueryJSON, def
     });
 }
 
-function hasFiltersChangedFromDefault(currentQueryJSON: SearchQueryJSON, defaultQueryJSON: SearchQueryJSON) {
-    return getQueryHashWithoutFilters(currentQueryJSON, NON_FILTER_CHIP_KEYS) !== getQueryHashWithoutFilters(defaultQueryJSON, NON_FILTER_CHIP_KEYS);
+function hasFiltersChangedFromDefault(currentQueryJSON: SearchQueryJSON, defaultQueryJSON: SearchQueryJSON, ignoredFilterKeys: ReadonlySet<SearchFilterKey> = NON_FILTER_CHIP_KEYS) {
+    return getQueryHashWithoutFilters(currentQueryJSON, ignoredFilterKeys) !== getQueryHashWithoutFilters(defaultQueryJSON, ignoredFilterKeys);
+}
+
+function isSearchQuerySavable(currentQueryJSON: SearchQueryJSON | undefined, defaultQueryJSON: SearchQueryJSON | undefined) {
+    if (!currentQueryJSON) {
+        return false;
+    }
+
+    // A query without a default query isn't bound to any suggested or saved search
+    // (e.g. a trip or chat type query), so it's savable as is, even without filters or a keyword.
+    if (!defaultQueryJSON) {
+        return true;
+    }
+
+    return hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON, NON_SAVABLE_FILTER_KEYS);
 }
 
 function getSanitizedRawFilters(queryJSON: SearchQueryJSON): RawQueryFilter[] | undefined {
@@ -1325,6 +1348,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.EXPENSE_TYPE ||
                     filterKey === FILTER_KEYS.RECEIPT_TYPE ||
                     filterKey === FILTER_KEYS.TAG ||
+                    filterKey === FILTER_KEYS.VENDOR ||
                     filterKey === FILTER_KEYS.CURRENCY ||
                     filterKey === FILTER_KEYS.PURCHASE_CURRENCY ||
                     filterKey === FILTER_KEYS.FROM ||
@@ -1376,6 +1400,14 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
         if (Number.isInteger(num) && num > 0) {
             filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT}:${num}`);
         }
+    }
+
+    // compare is a root key with no dedicated filter UI, so it is carried through from the original form values
+    // rather than the type-stripped set to avoid dropping it when other filters change.
+    const compareValue = filterValues.compare;
+    const validCompareModes: string[] = Object.values(CONST.SEARCH.COMPARE);
+    if (compareValue && validCompareModes.includes(compareValue)) {
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.COMPARE}:${sanitizeSearchValue(compareValue)}`);
     }
 
     return filtersString.filter(Boolean).join(' ').trim();
@@ -1763,6 +1795,10 @@ function buildFilterFormValuesFromQuery(
                 .filter((name) => uniqueCategories.has(name))
                 .concat(hasEmptyCategoriesInFilter ? [CONST.SEARCH.CATEGORY_EMPTY_VALUE] : []);
         }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR) {
+            // Vendor names are matched by text on the server and the synced vendor lists load lazily, so the typed values are kept as-is.
+            filtersForm[addNegation(filterKey, isNegated)] = filterValues;
+        }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
             filtersForm[filterKey] = filterValues
                 ?.map((filter) => {
@@ -1944,6 +1980,10 @@ function buildFilterFormValuesFromQuery(
 
     if (queryJSON.limit !== undefined) {
         filtersForm[FILTER_KEYS.LIMIT] = queryJSON.limit.toString();
+    }
+
+    if (queryJSON.compare) {
+        filtersForm[FILTER_KEYS.COMPARE] = queryJSON.compare;
     }
 
     return filtersForm;
@@ -2933,6 +2973,7 @@ export {
     getQueryHashWithoutFilters,
     getQueryHashes,
     hasFiltersChangedFromDefault,
+    isSearchQuerySavable,
     withExactMatchFilterKeys,
     isSearchDatePreset,
     getDateRangeForPreset,
