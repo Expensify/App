@@ -24,6 +24,21 @@ const completeProfile: PrivatePersonalDetails = {
     ],
 };
 
+const poBoxProfile: PrivatePersonalDetails = {
+    legalFirstName: 'Ada',
+    legalLastName: 'Lovelace',
+    addresses: [
+        {
+            street: 'PO Box 123',
+            city: 'Austin',
+            state: 'TX',
+            zip: '78701',
+            country: CONST.COUNTRY.US,
+            current: true,
+        },
+    ],
+};
+
 describe('getBankAccountOwnerDetails', () => {
     it('returns empty owner details and skips nothing when the profile is empty', () => {
         const owner = getBankAccountOwnerDetails({privatePersonalDetails: {}});
@@ -168,22 +183,7 @@ describe('getBankAccountOwnerDetails', () => {
     });
 
     it('does not treat a PO box as a complete address', () => {
-        const owner = getBankAccountOwnerDetails({
-            privatePersonalDetails: {
-                legalFirstName: 'Ada',
-                legalLastName: 'Lovelace',
-                addresses: [
-                    {
-                        street: 'PO Box 123',
-                        city: 'Austin',
-                        state: 'TX',
-                        zip: '78701',
-                        country: CONST.COUNTRY.US,
-                        current: true,
-                    },
-                ],
-            },
-        });
+        const owner = getBankAccountOwnerDetails({privatePersonalDetails: poBoxProfile});
 
         expect(owner.hasAddress).toBe(false);
         expect(owner.country).toBe('');
@@ -243,5 +243,14 @@ describe('getBankAccountOwnerDetails', () => {
         const owner = getBankAccountOwnerDetails({privatePersonalDetails: completeProfile});
 
         expect(getWalletOwnerDraftValues(owner).addressStreet).toBe('123 Main St Apt 4');
+    });
+
+    it('does not seed a profile address that failed the US checks', () => {
+        const owner = getBankAccountOwnerDetails({privatePersonalDetails: poBoxProfile});
+
+        expect(getWalletOwnerDraftValues(owner)).toEqual({
+            legalFirstName: 'Ada',
+            legalLastName: 'Lovelace',
+        });
     });
 });

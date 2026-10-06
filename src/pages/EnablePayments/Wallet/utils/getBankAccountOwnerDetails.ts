@@ -143,15 +143,19 @@ function getSkippedBankAccountOwnerPages(details: BankAccountOwnerDetails): Owne
     return skippedPages;
 }
 
-/** Draft update so KYC reads the same name and address that were sent with the bank account. */
+/** Draft update so KYC reads the name, and the address only when it passed the US checks. */
 function getWalletOwnerDraftValues(details: BankAccountOwnerDetails): Partial<PersonalInfoStepProps> {
     return {
         ...(details.legalFirstName ? {legalFirstName: details.legalFirstName} : {}),
         ...(details.legalLastName ? {legalLastName: details.legalLastName} : {}),
-        ...(details.formStreet ? {addressStreet: details.formStreet} : {}),
-        ...(details.addressCity ? {addressCity: details.addressCity} : {}),
-        ...(details.addressState ? {addressState: details.addressState} : {}),
-        ...(details.addressZipCode ? {addressZipCode: details.addressZipCode} : {}),
+        ...(details.hasAddress
+            ? {
+                  addressStreet: details.formStreet,
+                  addressCity: details.addressCity,
+                  addressState: details.addressState,
+                  addressZipCode: details.addressZipCode,
+              }
+            : {}),
     };
 }
 
