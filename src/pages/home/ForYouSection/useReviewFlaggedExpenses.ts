@@ -5,7 +5,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {CAROUSEL_SOURCE, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import {isOneTransactionReport} from '@libs/ReportUtils';
+import {isOneTransactionReport, isProcessingReport, isReportEligibleForViolationFix} from '@libs/ReportUtils';
 import {getVisibleTransactionViolations} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -39,13 +39,9 @@ type FlaggedExpense = {
     reportID: string;
 };
 
-/**
- * Returns true when this report is an OPEN expense report owned by the current user.
- *
- * `currentUserAccountID` is required. Callers should pass `session?.accountID ?? CONST.DEFAULT_NUMBER_ID`
- * so that the ownership check fails closed when the session is not yet populated (no real ownerAccountID is 0).
- */
-function isCurrentUserOpenExpenseReport(report: Report | null | undefined, currentUserAccountID: number): boolean {
+// True when the current user owns this expense report and its state still lets them fix violations.
+// Pass currentUserAccountID as `session?.accountID ?? DEFAULT_NUMBER_ID` so ownership fails closed before login.
+function isCurrentUserReportEligibleForViolationFix(report: Report | null | undefined, policy: OnyxEntry<Policy>, currentUserAccountID: number): boolean {
     if (!report) {
         return false;
     }
@@ -55,11 +51,12 @@ function isCurrentUserOpenExpenseReport(report: Report | null | undefined, curre
     if (report.ownerAccountID !== currentUserAccountID) {
         return false;
     }
-    return report.stateNum === CONST.REPORT.STATE_NUM.OPEN && report.statusNum === CONST.REPORT.STATUS_NUM.OPEN;
+    return isReportEligibleForViolationFix(report, policy);
 }
 
-/** Returns true when at least one visible violation should surface in the "Review X expenses" row. */
-function hasReviewableViolation(violations: TransactionViolations | null | undefined): boolean {
+// True when a visible violation should surface in the "Review X expenses" row.
+// On a submitted report companyCardRequired and the modifiedAmount notice aren't fixable, so they're skipped to match the Inbox RBR.
+function hasReviewableViolation(violations: TransactionViolations | null | undefined, isProcessing: boolean): boolean {
     if (!violations || violations.length === 0) {
         return false;
     }
@@ -74,14 +71,20 @@ function hasReviewableViolation(violations: TransactionViolations | null | undef
         if (violation.name === CONST.REPORT_VIOLATIONS.FIELD_REQUIRED) {
             return false;
         }
+        if (isProcessing && violation.name === CONST.VIOLATIONS.COMPANY_CARD_REQUIRED) {
+            return false;
+        }
         if (violation.type === CONST.VIOLATION_TYPES.NOTICE || violation.type === CONST.VIOLATION_TYPES.WARNING) {
+            if (isProcessing && violation.name === CONST.VIOLATIONS.MODIFIED_AMOUNT) {
+                return false;
+            }
             return violation.showInReview === true;
         }
         return true;
     });
 }
 
-/** Scans the current user's OPEN expense reports for transactions that have at least one reviewable violation. */
+// Scans the current user's still-fixable expense reports for transactions with a reviewable violation.
 function getFlaggedExpenses(
     allReports: OnyxCollection<Report>,
     allTransactions: OnyxCollection<Transaction>,
@@ -104,7 +107,8 @@ function getFlaggedExpenses(
         }
 
         const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
-        if (!isCurrentUserOpenExpenseReport(report, currentUserAccountID)) {
+        const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+        if (!isCurrentUserReportEligibleForViolationFix(report, policy, currentUserAccountID)) {
             continue;
         }
 
@@ -113,11 +117,9 @@ function getFlaggedExpenses(
             continue;
         }
 
-        const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-        // The report is one of the current user's OPEN expense reports (see isCurrentUserOpenExpenseReport),
-        // so the report owner is the current user and the owner login is currentUserEmail.
+        // The report is owned by the current user, so the owner login is currentUserEmail.
         const visibleViolations = getVisibleTransactionViolations(transaction, violations, currentUserEmail, currentUserAccountID, report, currentUserEmail, policy);
-        if (!hasReviewableViolation(visibleViolations)) {
+        if (!hasReviewableViolation(visibleViolations, isProcessingReport(report))) {
             continue;
         }
 

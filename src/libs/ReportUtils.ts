@@ -2043,6 +2043,15 @@ function isOpenOrProcessingReport(report: OnyxEntry<Report>): boolean {
     return isOpenReport(report) || isProcessingReport(report);
 }
 
+// Whether the submitter can still be nudged to fix violations: instant-submit workspaces allow it until approval
+// (reports start submitted there), every other workspace only on the draft.
+function isReportEligibleForViolationFix(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+    if (isInstantSubmitEnabled(policy)) {
+        return isOpenOrProcessingReport(report);
+    }
+    return isOpenReport(report);
+}
+
 /**
  * Checks if a report is in an open/unsubmitted state where its transactions can be deleted.
  * Returns true for:
@@ -10159,12 +10168,12 @@ function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionV
             if (!potentialReport) {
                 return false;
             }
-            // Allow both open and processing reports to show RBR for violations
-            if (!isOpenOrProcessingReport(potentialReport)) {
-                return false;
-            }
 
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${potentialReport.policyID}`];
+            // Keeps the RBR in step with Home's "Review X expenses" row.
+            if (!isReportEligibleForViolationFix(potentialReport, policy)) {
+                return false;
+            }
             // Ignore transactions that are already pending deletion (e.g. a reverted split child) so the LHN RBR stays
             // consistent with what the opened report renders, which also filters out DELETE-pending transactions.
             const transactions = getReportTransactions(potentialReport.reportID).filter((transaction) => !isTransactionPendingDelete(transaction));
@@ -14841,6 +14850,7 @@ export {
     isPolicyExpenseChat,
     isProcessingReport,
     isOpenReport,
+    isReportEligibleForViolationFix,
     isReportIDApproved,
     isAwaitingFirstLevelApproval,
     isPublicRoom,
