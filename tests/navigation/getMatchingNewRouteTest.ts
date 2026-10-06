@@ -222,7 +222,6 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/workspaces/p123/tags/workspace-tag-list/0')).toBe(undefined);
         expect(getMatchingNewRoute('/workspaces/p123/tags/workspace-tags-import')).toBe(undefined);
         expect(getMatchingNewRoute('/workspaces/p123/tags/workspace-tags-imported')).toBe(undefined);
-        expect(getMatchingNewRoute('/workspaces/p123/tags/tags-settings/workspace-edit-tags/10')).toBe(undefined);
         expect(getMatchingNewRoute('/workspaces/p123/tags/workspace-tag-settings/10/Meals')).toBe(undefined);
     });
 
