@@ -94,12 +94,7 @@ function OneTransactionThreadRedirectHandler() {
     const backTo = route.params?.backTo;
 
     const shouldRedirectToParentReport =
-        !!parentReportID &&
-        isOneTransactionThread &&
-        !isSteppingThroughExpenses &&
-        !hasLinkedReportAction &&
-        !isSingleExpenseReportViewLoading &&
-        !shouldUseTableViewForSingleExpense;
+        !!parentReportID && isOneTransactionThread && !isSteppingThroughExpenses && !hasLinkedReportAction && !isSingleExpenseReportViewLoading && !shouldUseTableViewForSingleExpense;
 
     useEffect(() => {
         if (!isFocused || !shouldRedirectToParentReport || !parentReportID) {

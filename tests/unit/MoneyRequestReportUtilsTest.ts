@@ -5,6 +5,7 @@ import {
     isBillableEnabledOnPolicy,
     isEveryReportTransactionSelected,
     isSelectableReportTransaction,
+    shouldDisplayReportTableView,
     shouldWaitForTransactions,
 } from '@libs/MoneyRequestReportUtils';
 
@@ -273,6 +274,29 @@ describe('MoneyRequestReportUtils', () => {
             const reportLoadingState: ReportLoadingState = {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: false};
 
             expect(shouldWaitForTransactions(reportBaseMock, [], reportLoadingState, false, false)).toBe(true);
+        });
+    });
+
+    describe('shouldDisplayReportTableView', () => {
+        const singleTransaction = createMock<Transaction>({transactionID: '555', reportID: reportBaseMock.reportID});
+        const secondTransaction = createMock<Transaction>({transactionID: '556', reportID: reportBaseMock.reportID});
+
+        test('uses the single-expense view for a single-expense report by default', () => {
+            // Given a report with one expense and no saved preference
+            // Then it renders in the single-expense view
+            expect(shouldDisplayReportTableView(reportBaseMock, [singleTransaction])).toBe(false);
+        });
+
+        test('uses the table view for a single-expense report when the user picked the table view', () => {
+            // Given a report with one expense and a user who picked the table view
+            // Then it renders in the table view
+            expect(shouldDisplayReportTableView(reportBaseMock, [singleTransaction], true)).toBe(true);
+        });
+
+        test('always uses the table view for a report with more than one expense', () => {
+            // Given a report with two expenses, the preference doesn't apply
+            expect(shouldDisplayReportTableView(reportBaseMock, [singleTransaction, secondTransaction])).toBe(true);
+            expect(shouldDisplayReportTableView(reportBaseMock, [singleTransaction, secondTransaction], true)).toBe(true);
         });
     });
 });
