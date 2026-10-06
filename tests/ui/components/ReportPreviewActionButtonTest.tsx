@@ -65,8 +65,8 @@ jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/AddExpenseActi
     },
 }));
 jest.mock('@components/Button', () => {
-    function MockButton() {
-        mockView();
+    function MockButton(props: unknown) {
+        mockView(props);
         return null;
     }
 
@@ -134,5 +134,18 @@ describe('ReportPreviewActionButton', () => {
         mockActionState.reportPreviewAction = CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
         const viewOnly = render(<ReportPreviewActionButton />);
         expect(flattenContainerStyle(viewOnly)).not.toEqual(expect.arrayContaining([mockStyles.flexRow]));
+    });
+
+    it('splits the row evenly between the primary action and View', () => {
+        // Given a report whose preview shows a primary action next to View
+        mockActionState.reportPreviewAction = CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
+
+        // When the buttons render
+        const rendered = render(<ReportPreviewActionButton />);
+
+        // Then both children of the row flex equally, so neither button hugs its label while the other fills the rest
+        const primaryWrapperStyle: unknown = rendered.UNSAFE_getAllByType(View).at(1)?.props.style;
+        expect(primaryWrapperStyle).toEqual(expect.arrayContaining([mockStyles.flex1]));
+        expect(mockView).toHaveBeenCalledWith(expect.objectContaining({style: mockStyles.flex1}));
     });
 });
