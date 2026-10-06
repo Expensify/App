@@ -6,6 +6,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -14,7 +15,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setEmployeeWorkArrangement} from '@libs/actions/Policy/DistanceRate';
 import {setWorkspaceInviteWorkArrangementDraft} from '@libs/actions/Policy/Member';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -57,6 +57,7 @@ type WorkArrangementPageProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route
 
 function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPageProps) {
     const isInviteFlow = route.name === SCREENS.WORKSPACE.INVITE_WORK_ARRANGEMENT;
+    const inviteBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_INVITE_WORK_ARRANGEMENT.path, isInviteFlow);
     const policyID = route.params.policyID;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -87,12 +88,7 @@ function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPa
 
     const navigateBackToDetails = () => {
         if (isInviteFlow) {
-            const activeRoute = Navigation.getActiveRoute().split('?').at(0) ?? '';
-            const inviteBaseRoute = activeRoute.match(/^(.*)\/invite-message\/work-arrangement\/?$/)?.[1];
-            const inviteConfirmationRoute = inviteBaseRoute
-                ? createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_INVITE_MESSAGE.path, inviteBaseRoute)
-                : ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(policyID);
-            Navigation.goBack(inviteConfirmationRoute);
+            Navigation.goBack(inviteBackPath);
             return;
         }
         Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, memberAccountID));

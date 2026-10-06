@@ -4,7 +4,10 @@ import Header from '@components/Header';
 import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginProvider';
 import SelectionList from '@components/SelectionList';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
+
 import {setEmployeeWorkArrangement} from '@libs/actions/Policy/DistanceRate';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {canMemberWrite} from '@libs/PolicyUtils';
 import {generateAccountID} from '@libs/UserUtils';
@@ -13,7 +16,7 @@ import WorkArrangementPage from '@pages/workspace/members/WorkArrangementPage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {PersonalDetails, PersonalDetailsList, Policy} from '@src/types/onyx';
 
@@ -40,10 +43,11 @@ jest.mock('@components/SelectionList', () => jest.fn(() => null));
 jest.mock('@components/SelectionList/ListItem/SingleSelectListItem', () => jest.fn(() => null));
 jest.mock('@components/Text', () => jest.fn(() => null));
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({login: 'admin@example.com'})));
+jest.mock('@hooks/useDynamicBackPath', () => jest.fn());
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
 jest.mock('@hooks/usePermissions', () => jest.fn(() => ({isBetaEnabled: () => true})));
 jest.mock('@hooks/useThemeStyles', () => jest.fn(() => new Proxy({}, {get: () => ({})})));
-jest.mock('@libs/Navigation/Navigation', () => ({getActiveRoute: jest.fn(), goBack: jest.fn()}));
+jest.mock('@libs/Navigation/Navigation', () => ({goBack: jest.fn()}));
 jest.mock('@libs/actions/Policy/DistanceRate', () => ({setEmployeeWorkArrangement: jest.fn()}));
 jest.mock('@libs/PolicyUtils', () => ({
     canMemberWrite: jest.fn(() => true),
@@ -90,7 +94,7 @@ describe('WorkArrangementPage', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
         jest.mocked(canMemberWrite).mockReturnValue(true);
-        jest.mocked(Navigation.getActiveRoute).mockReturnValue(ROUTES.WORKSPACE_INVITE_WORK_ARRANGEMENT.getRoute(policyID));
+        jest.mocked(useDynamicBackPath).mockReturnValue(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(policyID));
         await act(async () => {
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
             await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`, {});
@@ -206,11 +210,11 @@ describe('WorkArrangementPage', () => {
         // Given an unsent approver invite that was opened from the workflow expenses-from flow
         const inviteAccountID = 23456;
         const invitePolicy = createMock<Policy>({...policy, employeeList: {}});
-        const workflowInviteArrangementRoute = `workspaces/${policyID}/workflows/approvals/expenses-from/invite-message/work-arrangement`;
+        const workflowInviteConfirmationPath = createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_INVITE_MESSAGE.path, `workspaces/${policyID}/workflows/approvals/expenses-from`);
+        jest.mocked(useDynamicBackPath).mockReturnValue(workflowInviteConfirmationPath);
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`, {[memberLogin]: inviteAccountID});
         });
-        jest.mocked(Navigation.getActiveRoute).mockReturnValue(workflowInviteArrangementRoute);
         render(getPage(inviteAccountID, personalDetails, invitePolicy, true));
         await waitForBatchedUpdatesWithAct();
 
@@ -220,7 +224,7 @@ describe('WorkArrangementPage', () => {
         });
 
         // Then the workflow's invite confirmation stays as the return destination
-        expect(Navigation.goBack).toHaveBeenCalledWith(`workspaces/${policyID}/workflows/approvals/expenses-from/invite-message`);
+        expect(Navigation.goBack).toHaveBeenCalledWith(workflowInviteConfirmationPath);
     });
 
     it('uses the resolved account ID for the first arrangement change after an offline invite syncs', async () => {
