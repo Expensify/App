@@ -9996,6 +9996,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             title: 'Rapporten samenvoegen',
             description: 'Selecteer het rapport dat je wilt behouden. Alle uitgaven worden daarheen verplaatst en de andere rapporten worden verwijderd.',
         },
+        periodSoFar: ({period}: {period: string}) => `${period} tot nu toe`,
+        weekOf: ({date}: {date: string}) => `Week van ${date}`,
     },
     genericErrorPage: {
         title: 'Oeps, er is iets misgegaan!',

@@ -9621,6 +9621,8 @@ ${reportName}`,
             violationsBySubmitter: '提交人违规',
         },
         mergeReports: {title: '合并报表', description: '选择要保留的报表。所有费用都将移入该报表，其他报表将被删除。'},
+        periodSoFar: ({period}: {period: string}) => `目前 ${period}`,
+        weekOf: ({date}: {date: string}) => `${date} 当周`,
     },
     genericErrorPage: {
         title: '哎呀，出错了！',
