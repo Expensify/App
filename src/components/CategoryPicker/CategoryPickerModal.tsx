@@ -5,12 +5,16 @@ import type {ListItem} from '@components/SelectionList/types';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getSelectionListPopoverContentHeight from '@libs/getSelectionListPopoverContentHeight';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -68,8 +72,10 @@ function CategoryPickerModal({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match PopoverWithMeasuredContent's dock decision (bottom-docked only when isSmallScreenWidth)
-    const {isSmallScreenWidth} = useResponsiveLayout();
-    const {isKeyboardActive} = useKeyboardState();
+    const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
+    const {isKeyboardActive, keyboardActiveHeight} = useKeyboardState();
+    const {windowHeight} = useWindowDimensions();
+    const {top: safeAreaTop} = useSafeAreaInsets();
     const anchorRef = useRef<ComponentRef<typeof View>>(null);
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`, {selector: getEnabledCategoriesCount});
@@ -79,8 +85,12 @@ function CategoryPickerModal({
     const isSearchable = categoriesCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const estimatedContentHeight = getSelectionListPopoverContentHeight({optionCount: Math.max(renderedRowCount ?? categoriesCount, 1), isSearchable});
 
-    // A bottom sheet is sized by the screen, so the content estimate only applies to the pop-over.
-    const resolvedHeight = shouldFitContentHeight && !isSmallScreenWidth ? Math.min(popoverHeight, estimatedContentHeight) : popoverHeight;
+    // A bottom sheet is capped by the window height (lower in landscape) and, when raised above the keyboard, by the room below the status bar.
+    const maxBottomSheetHeight = styles.getPopoverMaxHeight(windowHeight, isInLandscapeMode).maxHeight - variables.componentBorderRadiusLarge;
+    const heightAboveKeyboard = windowHeight - keyboardActiveHeight - safeAreaTop - variables.componentBorderRadiusLarge;
+    const bottomSheetHeight = Math.min(popoverHeight, maxBottomSheetHeight, isKeyboardActive ? heightAboveKeyboard : maxBottomSheetHeight);
+    const popoverContentHeight = shouldFitContentHeight ? Math.min(popoverHeight, estimatedContentHeight) : popoverHeight;
+    const resolvedHeight = isSmallScreenWidth ? bottomSheetHeight : popoverContentHeight;
     const popoverDimensions = {width: popoverWidth, height: resolvedHeight};
 
     const handleCategorySelect = (item: ListItem) => {
@@ -108,7 +118,10 @@ function CategoryPickerModal({
             shouldMeasureAnchorPositionFromTop={shouldMeasureAnchorPositionFromTop}
             shouldSkipRemeasurement
             shouldDisplayBelowModals
+            shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
             enableEdgeToEdgeBottomSafeAreaPadding
+            avoidKeyboard={isSmallScreenWidth}
+            outerStyle={isSmallScreenWidth ? styles.w100 : undefined}
         >
             <View style={[StyleUtils.getHeight(popoverDimensions.height), styles.flexColumn, styles.pt4]}>
                 <CategoryPicker
