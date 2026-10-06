@@ -4312,6 +4312,42 @@ const staticStyles = (theme: ThemeColors) =>
             minWidth: variables.widgetItemButtonMinWidth,
         },
 
+        earlyRenewalOfferBackground: {
+            position: 'absolute',
+            top: variables.contentHeaderHeight + variables.earlyRenewalOfferBackgroundOffsetTop,
+            left: 0,
+            right: 0,
+            alignItems: 'center',
+            overflow: 'hidden',
+        },
+
+        earlyRenewalOfferOption: {
+            flex: 1,
+            alignItems: 'center',
+            gap: 8,
+            paddingTop: 32,
+            paddingBottom: 28,
+            paddingHorizontal: 12,
+            borderRadius: variables.componentBorderRadiusLarge,
+            backgroundColor: theme.highlightBG,
+        },
+
+        earlyRenewalOfferOptionSelected: {
+            backgroundColor: theme.trialBannerBackgroundColor,
+        },
+
+        earlyRenewalOfferOptionRadio: {
+            position: 'absolute',
+            top: 16,
+            left: 16,
+        },
+
+        earlyRenewalOfferOptionBadge: {
+            position: 'absolute',
+            top: 12,
+            right: 12,
+        },
+
         gettingStartedRowIconContainer: {
             width: variables.componentSizeNormal,
             height: variables.componentSizeNormal,

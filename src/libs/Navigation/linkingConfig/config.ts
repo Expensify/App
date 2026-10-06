@@ -137,6 +137,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.SUBSCRIPTION.EARLY_RENEWAL]: {
+                            path: ROUTES.SETTINGS_SUBSCRIPTION_EARLY_RENEWAL,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.EMAIL_ISSUE]: {
                             path: ROUTES.SETTINGS_EMAIL_ISSUE,
                             exact: true,

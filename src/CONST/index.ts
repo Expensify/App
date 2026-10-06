@@ -5621,6 +5621,8 @@ const CONST = {
             CAMPAIGN_END: '2027-01-01T00:00:00Z',
             OFFER_ID: {
                 NON_INCENTIVIZED_ONE_YEAR: 'nonIncentivizedOneYear',
+                INCENTIVIZED_ONE_YEAR: 'incentivizedOneYear',
+                INCENTIVIZED_TWO_YEARS: 'incentivizedTwoYears',
             },
         },
         TYPE: {
@@ -9341,6 +9343,9 @@ const CONST = {
         },
         OPTION_CARD_PICKER: {
             OPTION_ITEM: 'OptionCardPicker-OptionItem',
+        },
+        EARLY_RENEWAL_OFFER: {
+            OPTION: 'EarlyRenewalOffer-Option',
         },
         ATTACHMENT_CAMERA: {
             CLOSE: 'AttachmentCamera-Close',
