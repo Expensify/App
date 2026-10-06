@@ -35,6 +35,7 @@ import {
     getMemberAccountIDsForWorkspace,
     goBackFromInvalidPolicy,
     isSubmitPolicy,
+    shouldHideDynamicExternalWorkflowPeople,
     tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
 import {getAllPolicyExpenseChatReportActions} from '@libs/ReportUtils';
@@ -126,8 +127,10 @@ function WorkspaceInviteMessageComponent({
     // Derive whether a custom approval workflow exists instead of trusting `policy.approvalMode`: that flag is
     // written optimistically by several paths and drifts from the real workflow structure, so it can say ADVANCED
     // for a freshly upgraded workspace with no custom workflow, and stay BASIC for one that has several.
+    // A Dynamic External Workflow set to hide people keeps the approval workflows out of the customer's hands, so
+    // there is no approver for them to pick here either.
     const {isAdvanceApproval, rulesCollection} = useApprovalWorkflows(policy);
-    const shouldShowApproverRow = isAdvanceApproval && !!policy?.areWorkflowsEnabled;
+    const shouldShowApproverRow = isAdvanceApproval && !!policy?.areWorkflowsEnabled && !shouldHideDynamicExternalWorkflowPeople(policy);
 
     const isApproverValid = !!workspaceInviteApproverDraft && workspaceInviteApproverDraft in (policy?.employeeList ?? {});
     const validatedApprover = isApproverValid ? workspaceInviteApproverDraft : undefined;
