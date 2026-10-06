@@ -12,7 +12,7 @@ Customize hotel booking policies to guide travelers toward compliant, cost-effec
 
 Tap the **➕ Create** button at the bottom of your screen, then choose **Book travel**.
 
-If you don’t see **Book travel**, ask a Workspace Admin to [enable Expensify Travel](https://help.expensify.com/articles/travel/company-setup/Enable-Travel-on-a-Workspace) on the workspace. 
+If you don’t see **Book travel**, ask a Workspace Admin to finish setting up Expensify Travel on a workspace you belong to. **Book travel** stays hidden until travel setup is complete, even when the **Travel** toggle is on. Learn how to [enable Expensify Travel on a workspace](/articles/travel/company-setup/Enable-Travel-on-a-Workspace).
 
 ---
 
@@ -54,13 +54,13 @@ Configure hotel restrictions by property type.
 
 Configure the following settings:
 
-- **Property types to restrict** – Properties matching these types will be marked out-of-policy.  
+- **Property types to restrict** – Properties matching these types will be marked out-of-policy.
   *Note: Select from property types including Apartment, Castle, Health Spa, and Boatel.*
 
-- **Restricted properties can have their own Out of Policy action** – Choose how to handle bookings that violate this restriction.  
+- **Restricted properties can have their own Out of Policy action** – Choose how to handle bookings that violate this restriction.
   *Note: This allows you to set different approval requirements for specific property types.*
 
-- **Tier exception** – Allow preferred properties to bypass type restrictions.  
+- **Tier exception** – Allow preferred properties to bypass type restrictions.
   *Note: To set preferred hotels, go to Program > Company > Supplier > Supplier Management.
 
 ---
@@ -105,7 +105,7 @@ Set minimum and maximum star ratings to define acceptable hotel experiences.
 
 ## Nightly median rate
 
-Configure parameters to calculate the median hotel rate based on the traveler's search results. The median rate represents the midpoint price where half the hotels cost more and half cost less. 
+Configure parameters to calculate the median hotel rate based on the traveler's search results. The median rate represents the midpoint price where half the hotels cost more and half cost less.
 
 To configure:
 - **Search radius** – The radius (in miles) around a traveler’s search location used to calculate the median.
@@ -124,9 +124,9 @@ Enable travelers to create or select a reason when selecting an out-of-policy ho
 
 # FAQ
 
-**Does the “cheapest rate” rule consider taxes and fees?**  
+**Does the “cheapest rate” rule consider taxes and fees?**
 It depends on your configuration under the **Maximum price** setting — you can choose whether to include taxes and fees when evaluating the cheapest rate.
 
-**Can we use reason codes to track exceptions?**  
+**Can we use reason codes to track exceptions?**
 Yes. Reason codes help you understand booking behaviors and justify policy exceptions for reporting or compliance purposes. When viewing policy violations in the **Analytics** > **Company reports** < **Compliance** section, you can see data on reason usage as well.
 

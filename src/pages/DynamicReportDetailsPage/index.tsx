@@ -46,7 +46,7 @@ import Permissions from '@libs/Permissions';
 import {isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getOneTransactionThreadReportID, getOriginalMessage, getTrackExpenseActionableWhisper, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {
-    canDeleteCardTransactionByLiabilityType,
+    canDeleteCardTransaction,
     canDeleteTransaction,
     canLeaveChat,
     canWriteInReport,
@@ -81,7 +81,7 @@ import {
     navigateBackOnDeleteTransaction,
     navigateToPrivateNotes,
 } from '@libs/ReportUtils';
-import {getDeleteConfirmationPrompt, getDeleteExpenseTitle, getOriginalTransactionWithSplitInfo, isDemoTransaction} from '@libs/TransactionUtils';
+import {getDeleteConfirmationPrompt, getDeleteExpenseTitle, getOriginalTransactionWithSplitInfo, isDemoTransaction, isManagedCardTransaction} from '@libs/TransactionUtils';
 
 import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
 import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
@@ -195,6 +195,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: filteredPoliciesInfoSelector});
     const [preferredPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(preferredPolicyID)}`, {selector: billingRestrictionPolicySelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const {showConfirmModal} = useConfirmModal();
     const isPolicyAdmin = isPolicyAdminUtil(policy);
     const isPolicyEmployee = isPolicyEmployeeUtil(report?.policyID, policy);
@@ -262,6 +263,18 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const isMoneyRequestReportArchived = useReportIsArchived(moneyRequestReport?.reportID);
     const [moneyRequestReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(moneyRequestReport?.reportID)}`);
 
+    const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
+    const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
+    const [iouOriginalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransaction?.comment?.originalTransactionID)}`);
+    const hasWorkspaceToSubmitToSelector = createHasWorkspaceToSubmitToSelector(currentUserLogin);
+    const [hasWorkspaceToSubmitTo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasWorkspaceToSubmitToSelector});
+    const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(iouTransactionID ? [iouTransactionID] : []);
+    const {deleteTransactions, shouldOpenSplitExpenseEditFlowOnDelete} = useDeleteTransactions({
+        report: parentReport,
+        reportActions: requestParentReportAction ? [requestParentReportAction] : [],
+        policy,
+    });
+
     const isTaskOwnedByGuideOrConcierge = report.ownerAccountID === CONST.ACCOUNT_ID.CONCIERGE || (!!report.ownerAccountID && !!guideAccountIDs?.includes(report.ownerAccountID));
 
     // Setup flows later complete these tasks, including when another admin has no matching personal onboarding data
@@ -279,20 +292,12 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED &&
         !isClosedReport(report) &&
         ((isTaskModifiable && isTaskActionable) || canDeleteTaskAsPolicyAdmin);
-    const canDeleteRequest = isActionOwner && (canDeleteTransaction(moneyRequestReport, rules, isMoneyRequestReportArchived) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
-    const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
-    const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
-    const [iouOriginalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransaction?.comment?.originalTransactionID)}`);
-    const hasWorkspaceToSubmitToSelector = createHasWorkspaceToSubmitToSelector(currentUserLogin);
-    const [hasWorkspaceToSubmitTo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasWorkspaceToSubmitToSelector});
-    const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(iouTransactionID ? [iouTransactionID] : []);
-    const {deleteTransactions, shouldOpenSplitExpenseEditFlowOnDelete} = useDeleteTransactions({
-        report: parentReport,
-        reportActions: requestParentReportAction ? [requestParentReportAction] : [],
-        policy,
-    });
-    const isCardTransactionCanBeDeleted = canDeleteCardTransactionByLiabilityType(iouTransaction);
-    const shouldShowDeleteButton = shouldShowTaskDeleteButton || (canDeleteRequest && isCardTransactionCanBeDeleted) || isDemoTransaction(iouTransaction);
+    const canDeleteRequest =
+        (isActionOwner || (isPolicyAdmin && isManagedCardTransaction(iouTransaction))) &&
+        (canDeleteTransaction(moneyRequestReport, rules, isMoneyRequestReportArchived) || isSelfDMTrackExpenseReport) &&
+        !isDeletedParentAction;
+    const shouldShowDeleteButton = shouldShowTaskDeleteButton || (canDeleteRequest && canDeleteCardTransaction(iouTransaction, policy, cardList)) || isDemoTransaction(iouTransaction);
+
     const shouldShowEditSplitOnDeleteAction = iouTransactionID ? shouldOpenSplitExpenseEditFlowOnDelete([iouTransactionID]) : false;
     let deleteMenuItemTitle = translate('reportActionContextMenu.deleteAction', requestParentReportAction);
     if (shouldShowEditSplitOnDeleteAction) {
@@ -314,12 +319,21 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         // Resolve on tap from the module-scoped copies so this large page does not subscribe to whole collections.
         const lastAccessedReportID = findLastAccessedReport(false, guideAccountIDs, false, report.reportID)?.reportID;
         if (isRootGroupChat) {
-            leaveGroupChat(report, quickAction?.chatReportID?.toString() === report.reportID, currentUserAccountID, conciergeReportID, introSelected, isSelfTourViewed, lastAccessedReportID);
+            leaveGroupChat(
+                report,
+                quickAction?.chatReportID?.toString() === report.reportID,
+                currentUserAccountID,
+                conciergeReportID,
+                introSelected,
+                isSelfTourViewed,
+                personalDetails,
+                lastAccessedReportID,
+            );
             return;
         }
 
         const isWorkspaceMemberLeavingWorkspaceRoom = isWorkspaceMemberLeavingWorkspaceRoomUtil(report, isPolicyEmployee, isPolicyAdmin);
-        leaveRoom(report, currentUserAccountID, conciergeReportID, introSelected, isSelfTourViewed, isWorkspaceMemberLeavingWorkspaceRoom, lastAccessedReportID);
+        leaveRoom(report, currentUserAccountID, conciergeReportID, introSelected, isSelfTourViewed, personalDetails, isWorkspaceMemberLeavingWorkspaceRoom, lastAccessedReportID);
     };
 
     const showLastMemberLeavingModal = async () => {
