@@ -39,7 +39,6 @@ function ListItemPressable<TItem extends ListItem>({
     canSelectMultiple = false,
     onSelectRow,
     onDismissError = () => {},
-    errorRowStyles,
     children,
     isFocused,
     isFocusVisible = isFocused,
@@ -119,7 +118,7 @@ function ListItemPressable<TItem extends ListItem>({
             onClose={() => onDismissError(item)}
             pendingAction={item.pendingAction}
             errors={item.errors}
-            errorRowStyles={[styles.mh5, errorRowStyles]}
+            errorRowStyles={styles.mh5}
             contentContainerStyle={containerStyle}
         >
             <PressableWithFeedback

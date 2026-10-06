@@ -23,7 +23,7 @@ import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import type WithTestID from '@src/types/utils/TestID';
 
 import type {ComponentRef, PropsWithChildren} from 'react';
-import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
+import type {AccessibilityState, GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -51,9 +51,12 @@ type MenuItemRootProps = PropsWithChildren &
 
         /** Whether explicitly marked child text can start native browser text selection */
         shouldAllowTextSelection?: boolean;
+
+        /** Accessibility state for the row, e.g. `{expanded}`. Lands on the pressable, which is what a screen reader focuses. */
+        accessibilityState?: AccessibilityState;
     };
 
-function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testID, accessibilityLabel, style, shouldAllowTextSelection = false}: MenuItemRootProps) {
+function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testID, accessibilityLabel, style, shouldAllowTextSelection = false, accessibilityState}: MenuItemRootProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<ComponentRef<typeof View>>(null);
@@ -153,6 +156,7 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testI
                         role={isInteractive ? CONST.ROLE.BUTTON : undefined}
                         accessibilityLabel={accessibilityLabel ?? derivedAccessibilityLabel}
                         accessibilityHint={accessibilityHint}
+                        accessibilityState={accessibilityState}
                         accessible
                         tabIndex={isInteractive ? 0 : -1}
                         sentryLabel={sentryLabel}

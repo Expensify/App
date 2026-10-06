@@ -5,6 +5,7 @@ import compareOptionalValues from '@components/Table/compareOptionalValues';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getPolicyApproverLogins, isControlPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -18,6 +19,7 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 
@@ -28,7 +30,7 @@ type WorkspaceMembersTableColumnKey = 'member' | 'role' | 'actions' | 'customFie
 type WorkspaceMemberRowData = TableData & {
     accountID: number;
     login: string;
-    role?: string;
+    role?: ValueOf<typeof CONST.POLICY.ROLE>;
     employeeUserID?: string;
     employeePayrollID?: string;
     name: string;
@@ -41,6 +43,8 @@ type WorkspaceMemberRowData = TableData & {
     invitedSecondaryLogin: string;
     action: () => void;
     dismissError: () => void;
+    canEditRole?: boolean;
+    onChangeRole?: (role: ValueOf<typeof CONST.POLICY.ROLE>) => void;
 };
 
 type WorkspaceMembersTableProps = {
@@ -77,6 +81,7 @@ export default function WorkspaceMembersTable({
     onRowSelectionChange,
     headerComponent,
 }: WorkspaceMembersTableProps) {
+    const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     useCopySelectionHelper();
@@ -126,6 +131,10 @@ export default function WorkspaceMembersTable({
             key: 'role',
             label: translate('common.role'),
             sortable: true,
+            styling: {
+                // editableCellHeader matches the padded role cell so the label and value share an edge.
+                containerStyles: [styles.editableCellHeader],
+            },
             dynamicSizing: {
                 getContentToMeasure: (item) => [{text: translate('workspace.common.roleName', item.role), fontSize: fontScale.text}],
                 // A role is one of a short, known set of labels, so the column always shows them in full.
@@ -277,6 +286,7 @@ export default function WorkspaceMembersTable({
                 shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
                 shouldShowCustomField1Column={shouldShowCustomField1Column}
                 shouldShowCustomField2Column={shouldShowCustomField2Column}
+                policy={policy}
             />
         );
     };
