@@ -137,15 +137,6 @@ function getActivePolicies(policies: OnyxCollection<Policy> | null, currentUserL
 }
 
 /**
- * Get the active group policies where the current user can create policy rooms.
- */
-function getPoliciesForRoomCreation(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
-    return getActivePolicies(policies, currentUserLogin).filter(
-        (policy) => policy.type !== CONST.POLICY.TYPE.PERSONAL && !isPolicyGuest(policy, currentUserLogin),
-    );
-}
-
-/**
  * Filter out the active policies, which will exclude policies with pending deletion
  * and policies the current user doesn't belong to.
  * These will be policies that has expense chat enabled.
@@ -860,6 +851,13 @@ const isPolicyUser = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: strin
  * Checks if the current user is a guest of the policy.
  */
 const isPolicyGuest = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string): boolean => getPolicyRole(policy, currentUserLogin) === CONST.POLICY.ROLE.GUEST;
+
+/**
+ * Get the active group policies where the current user can create policy rooms.
+ */
+function getPoliciesForRoomCreation(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
+    return getActivePolicies(policies, currentUserLogin).filter((policy) => policy.type !== CONST.POLICY.TYPE.PERSONAL && !isPolicyGuest(policy, currentUserLogin));
+}
 
 /**
  * Checks if the current user is an auditor of the policy
