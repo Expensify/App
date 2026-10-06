@@ -1258,6 +1258,92 @@ describe('split expense', () => {
         expect(splitTransaction?.comment?.comment).toBe('<h1>test</h1>');
     });
 
+    it('should stop treating the split as a scan request once it is completed while offline', async () => {
+        // Given a scan split bill started offline, so it is marked as a scan request
+        const reportID = '1';
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+            reportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+            participants: {
+                [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                [CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+        });
+
+        const participants: IOUParticipant[] = [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}];
+        const participantsPolicyTags = await getParticipantsPolicyTags(participants);
+
+        mockFetch?.pause?.();
+
+        startSplitBill({
+            isFirstSplitInBatch: true,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            participants,
+            currentUserLogin: RORY_EMAIL,
+            currentUserAccountID: RORY_ACCOUNT_ID,
+            comment: '',
+            currency: CONST.CURRENCY.USD,
+            existingSplitChatReportID: reportID,
+            receipt: {source: 'file://receipt.jpg', filename: 'receipt.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_READY},
+            category: undefined,
+            tag: undefined,
+            taxCode: '',
+            taxAmount: 0,
+            quickAction: undefined,
+            policyRecentlyUsedCurrencies: [],
+            policyRecentlyUsedTags: undefined,
+            participantsPolicyTags,
+            delegateAccountID: undefined,
+            formatPhoneNumber,
+        });
+
+        await waitForBatchedUpdates();
+
+        let splitTransaction = await getScanSplitTransaction();
+        const splitTransactionID = splitTransaction?.transactionID;
+        expect(splitTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.SCAN);
+
+        const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+        const iouAction = Object.values(reportActions ?? {}).find((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU));
+
+        // When the user fills the fields in by hand and completes the split while still offline
+        completeSplitBill({
+            isVendorMatchingBetaEnabled: false,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            chatReportID: reportID,
+            reportAction: iouAction,
+            updatedTransaction: splitTransaction ? {...splitTransaction, amount: 100, modifiedAmount: 100, modifiedCurrency: CONST.CURRENCY.USD} : undefined,
+            sessionAccountID: RORY_ACCOUNT_ID,
+            isASAPSubmitBetaEnabled: false,
+            quickAction: undefined,
+            transactionViolations: {},
+            personalDetails: mockPersonalDetails,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
+            sessionEmail: RORY_EMAIL,
+            formatPhoneNumber,
+            rules: undefined,
+        });
+
+        await waitForBatchedUpdates();
+
+        // Then the optimistic transaction is no longer a scan request, so the split details page renders the
+        // manual layout right away instead of waiting for the server response to arrive
+        splitTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID}`);
+        expect(splitTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.MANUAL);
+
+        // When the CompleteSplitBill request fails
+        mockFetch?.fail?.();
+        await mockFetch?.resume?.();
+        await waitForBatchedUpdates();
+
+        // Then the split goes back to being a scan request so the user can retry from the original state
+        splitTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID}`);
+        expect(splitTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.SCAN);
+        expect(splitTransaction?.errors).toBeTruthy();
+    });
+
     it('should calculate proportional convertedAmount for split transactions with foreign currency', async () => {
         jest.setTimeout(10 * 1000);
 
