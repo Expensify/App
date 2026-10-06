@@ -174,6 +174,8 @@ function ConfirmationReceiptThumbnail({
                         style={styles.h100}
                     >
                         <PDFThumbnail
+                            // Remount per source so a renderer still loading the replaced file can't report through the new file's callbacks.
+                            key={resolvedReceiptImage}
                             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style -- resolvedReceiptImage is guaranteed string when isLocalFile + PDF
                             previewSourceURL={resolvedReceiptImage as string}
                             style={styles.h100}
