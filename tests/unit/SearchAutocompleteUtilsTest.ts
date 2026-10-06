@@ -137,6 +137,19 @@ describe('SearchAutocompleteUtils', () => {
             expect(result).toEqual([]);
         });
 
+        it('should highlight VENDOR filter with a typed vendor name', () => {
+            // Given a typed vendor filter, whose names are matched by text on the server
+            const input = 'vendor:"Acme Tools"';
+
+            // When the input is parsed for highlighting
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+
+            // Then the vendor value is highlighted like other free-text filters
+            expect(result).toEqual([
+                {start: 7, type: 'mention-user', length: 12}, // vendor:"Acme Tools"
+            ]);
+        });
+
         it('should highlight EXPORTED_TO filter when value is in predefined integrations or custom template list', () => {
             const input = 'exported-to:Xero';
 
@@ -558,6 +571,10 @@ describe('SearchAutocompleteUtils', () => {
                 expect(getStandardExportTemplateDisplayName(CONST.REPORT.EXPORT_OPTIONS.MULTIPLE_TAX_EXPORT)).toBe(CONST.REPORT.EXPORT_OPTION_LABELS.MULTIPLE_TAX_EXPORT);
             });
 
+            it('returns display name for the Reconciliation - All Expenses template', () => {
+                expect(getStandardExportTemplateDisplayName(CONST.REPORT.EXPORT_OPTIONS.RECONCILIATION_ALL_EXPENSES)).toBe(CONST.REPORT.EXPORT_OPTION_LABELS.RECONCILIATION_ALL_EXPENSES);
+            });
+
             it('returns template name as-is when no standard mapping', () => {
                 const customName = 'Custom Export Layout';
                 expect(getStandardExportTemplateDisplayName(customName)).toBe(customName);
@@ -569,6 +586,7 @@ describe('SearchAutocompleteUtils', () => {
                 expect(isStandardExportTemplate(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT)).toBe(true);
                 expect(isStandardExportTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT)).toBe(true);
                 expect(isStandardExportTemplate(CONST.REPORT.EXPORT_OPTIONS.MULTIPLE_TAX_EXPORT)).toBe(true);
+                expect(isStandardExportTemplate(CONST.REPORT.EXPORT_OPTIONS.RECONCILIATION_ALL_EXPENSES)).toBe(true);
             });
 
             it('returns false for a custom template ID', () => {
@@ -581,6 +599,7 @@ describe('SearchAutocompleteUtils', () => {
                 expect(isStandardExportTemplateLabel(CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT)).toBe(true);
                 expect(isStandardExportTemplateLabel(CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT)).toBe(true);
                 expect(isStandardExportTemplateLabel(CONST.REPORT.EXPORT_OPTION_LABELS.MULTIPLE_TAX_EXPORT)).toBe(true);
+                expect(isStandardExportTemplateLabel(CONST.REPORT.EXPORT_OPTION_LABELS.RECONCILIATION_ALL_EXPENSES)).toBe(true);
             });
 
             it('returns false for a custom template label', () => {

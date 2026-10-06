@@ -35,6 +35,7 @@
     category: "groupCategory",
     tag: "groupTag",
     merchant: "groupMerchant",
+    day: "groupday",
     month: "groupmonth",
     week: "groupweek",
     year: "groupyear",
@@ -48,6 +49,7 @@
     category: "asc",
     tag: "asc",
     merchant: "asc",
+    day: "desc",
     month: "desc",
     week: "desc",
     year: "desc",
@@ -56,7 +58,7 @@
 
   const DEFAULT_SORT_BY_VALUES = new Set([...Object.values(GROUP_BY_DEFAULT_SORT), "date"]);
 
-  const TIME_BASED_GROUP_BY = new Set(["week", "month", "year", "quarter"]);
+  const TIME_BASED_GROUP_BY = new Set(["day", "week", "month", "year", "quarter"]);
 
   const defaultValues = {
     type: "expense",
@@ -70,7 +72,7 @@
 
   // List fields where you cannot prefix it with "-" to negate it
   const nonNegatableKeys = new Set([
-    "type", "keyword", "groupCurrency", "groupBy", "columns", "limit", "view"
+    "type", "keyword", "groupCurrency", "groupBy", "columns", "limit", "view", "compare"
   ]);
 
   function isDefaultSortValue(sortBy) {
@@ -270,6 +272,7 @@ key "key"
       / groupCurrency
       / tag
       / category
+      / vendor
       / to
       / taxRate
       / cardID
@@ -281,6 +284,7 @@ key "key"
       / exporter
       / expenseType
       / receiptType
+      / transactionStatus
       / withdrawalType
       / withdrawalStatus
       / paidStatus
@@ -317,7 +321,7 @@ filterKey
       return k;
     }
     
-defaultKey "default key" = @(type / sortBy / sortOrder / groupBy / columns / limit / view)
+defaultKey "default key" = @(type / sortBy / sortOrder / groupBy / columns / limit / view / compare)
 
 identifier
   = (","+)? parts:(values / quotedString / alphanumeric)|1.., ","+| empty:(","+)? {

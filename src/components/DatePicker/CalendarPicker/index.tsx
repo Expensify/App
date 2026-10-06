@@ -10,6 +10,7 @@ import DateUtils from '@libs/DateUtils';
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import {addMonths, addYears, format, isSameDay, parseISO, setDate, setMonth, setYear, startOfDay, subMonths, subYears} from 'date-fns';
@@ -42,7 +43,6 @@ type CalendarPickerProps = {
     /** Day component to render for dates */
     DayComponent?: typeof Day;
 
-    /** A function called when the date is selected */
     onSelected?: (selectedDate: string) => void;
 
     /** Optional style override for the header container */
@@ -92,8 +92,8 @@ function CalendarPicker({
     const styles = useThemeStyles();
     const themeStyles = useThemeStyles();
     const {translate, dateFnsLocale} = useLocalize();
-    const pressableRef = useRef<View>(null);
-    const monthPressableRef = useRef<View>(null);
+    const pressableRef = useRef<ComponentRef<typeof View>>(null);
+    const monthPressableRef = useRef<ComponentRef<typeof View>>(null);
     const [currentDateView, setCurrentDateView] = useState(() => getInitialCurrentDateView(value, minDate, maxDate));
     const [isYearPickerVisible, setIsYearPickerVisible] = useState(false);
     const [isMonthPickerVisible, setIsMonthPickerVisible] = useState(false);

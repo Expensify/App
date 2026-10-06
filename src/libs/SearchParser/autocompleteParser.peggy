@@ -81,6 +81,7 @@ autocompleteKey "key"
       / total
       / tag
       / category
+      / vendor
       / to
       / taxRate
       / from
@@ -92,6 +93,7 @@ autocompleteKey "key"
       / assignee
       / expenseType
       / receiptType
+      / transactionStatus
       / withdrawalType
       / withdrawalStatus
       / paidStatus

@@ -48,12 +48,21 @@ import {submitWithDismissFirst} from './Navigation/helpers/submitWithDismissFirs
 import Navigation from './Navigation/Navigation';
 import {rand64} from './NumberUtils';
 import {getParticipantsOption, getReportOption} from './OptionsListUtils';
-import Permissions from './Permissions';
 import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {isTaxTrackingEnabled} from './PolicyUtils';
 import {getPolicyExpenseChat, getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from './ReportUtils';
 import shouldUseDefaultExpensePolicy from './shouldUseDefaultExpensePolicy';
-import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue, hasReceipt, isExpenseUnreported} from './TransactionUtils';
+import {
+    calculateTaxAmount,
+    getAmount,
+    getCurrency,
+    getDefaultTaxCode,
+    getIsFromGlobalCreate,
+    getTaxValue,
+    hasReceipt,
+    isExpenseUnreported,
+    isFailedScanAmountPlaceholder,
+} from './TransactionUtils';
 
 type SubmitAmountArgs = {
     dateFnsLocale: DateFnsLocale | undefined;
@@ -89,6 +98,7 @@ type SubmitAmountArgs = {
     isOffline?: boolean;
 
     // Submit-time Onyx data — supplied by the screen via AmountSubmitDataSync so this module owns no subscriptions.
+    rules: OnyxCollection<OnyxTypes.Rule>;
     allPersonalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     allReports: OnyxCollection<OnyxTypes.Report>;
     allReportDrafts: OnyxCollection<OnyxTypes.Report>;
@@ -102,8 +112,7 @@ type SubmitAmountArgs = {
     duplicateTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
     isTrackIntentUser: boolean | undefined;
     reportAttributesDerivedValue: OnyxEntry<ReportAttributesDerivedValue>;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
-    betaConfiguration: OnyxEntry<OnyxTypes.BetaConfiguration>;
+    isASAPSubmitBetaEnabled: boolean;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     onboarding: OnyxEntry<OnyxTypes.Onboarding>;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
@@ -114,7 +123,9 @@ type SubmitAmountArgs = {
     conciergeReportID: OnyxEntry<string>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 /**
@@ -180,6 +191,7 @@ type SubmitAmountContext = {
     existingTransactionID: string | undefined;
     isASAPSubmitBetaEnabled: boolean;
     newAmount: number;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 function navigateToConfirmationAfterAssigningParticipants(
@@ -221,7 +233,7 @@ function navigateToParticipantPageDeferred(iouType: IOUType, transactionID: stri
 }
 
 function buildSubmitAmountContext(args: SubmitAmountArgs): SubmitAmountContext {
-    const {action, iouType, transaction, splitDraftTransaction, report, policy, currentUserPersonalDetails, betas, betaConfiguration, amount} = args;
+    const {action, iouType, transaction, splitDraftTransaction, report, policy, currentUserPersonalDetails, isASAPSubmitBetaEnabled, amount} = args;
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreateAction = action === CONST.IOU.ACTION.CREATE;
     const isSubmitAction = action === CONST.IOU.ACTION.SUBMIT;
@@ -229,6 +241,7 @@ function buildSubmitAmountContext(args: SubmitAmountArgs): SubmitAmountContext {
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isEditingSplitBill = isEditing && isSplitBill;
     return {
+        isVendorMatchingBetaEnabled: args.isVendorMatchingBetaEnabled,
         isEditing,
         isCreateAction,
         isSubmitAction,
@@ -241,13 +254,26 @@ function buildSubmitAmountContext(args: SubmitAmountArgs): SubmitAmountContext {
         currentUserAccountID: currentUserPersonalDetails.accountID,
         currentUserEmail: currentUserPersonalDetails.login ?? '',
         existingTransactionID: getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction),
-        isASAPSubmitBetaEnabled: Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, betas, betaConfiguration),
+        isASAPSubmitBetaEnabled,
         newAmount: convertToBackendAmount(Number.parseFloat(amount)),
     };
 }
 
 function buildReportParticipants(args: SubmitAmountArgs) {
-    const {report, policy, currentUserPersonalDetails, reportAttributesDerivedValue, allReportDrafts, allReportNVPs, allPersonalDetails, conciergeReportID, translate, dateFnsLocale} = args;
+    const {
+        report,
+        policy,
+        currentUserPersonalDetails,
+        reportAttributesDerivedValue,
+        allReportDrafts,
+        allReportNVPs,
+        allPersonalDetails,
+        conciergeReportID,
+        translate,
+        dateFnsLocale,
+        convertToDisplayString,
+        rules,
+    } = args;
     const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
     const reportAttributesReports = reportAttributesDerivedValue?.reports;
     const reportIDToCheck = isMoneyRequestReport(report) ? report?.chatReportID : report?.reportID;
@@ -257,9 +283,21 @@ function buildReportParticipants(args: SubmitAmountArgs) {
         const privateIsArchived = !!allReportNVPs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`]?.private_isArchived;
         return participantAccountID
             ? getParticipantsOption(participant, allPersonalDetails, translate)
-            : getReportOption(participant, privateIsArchived, policy, allPersonalDetails, conciergeReportID, reportAttributesReports, reportDraft, currentUserPersonalDetails.accountID, {
-                  translate,
-                  dateFnsLocale,
+            : getReportOption({
+                  participant,
+                  privateIsArchived,
+                  policy,
+                  personalDetails: allPersonalDetails,
+                  conciergeReportID,
+                  reportAttributesDerived: reportAttributesReports,
+                  reportDraft,
+                  currentUserAccountID: currentUserPersonalDetails.accountID,
+                  localize: {
+                      translate,
+                      dateFnsLocale,
+                      convertToDisplayString,
+                  },
+                  rules,
               });
     });
 }
@@ -284,17 +322,16 @@ function submitSkipConfirmationPayment(args: SubmitAmountArgs, ctx: SubmitAmount
         getCurrencyDecimals,
     };
 
-    const executeSendMoneyWrite = (overrides?: {shouldDeferForSearch?: boolean}) => {
-        const mergedParams = {...sendMoneyParams, ...overrides};
+    const executeSendMoneyWrite = () => {
         if (paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-            sendMoneyWithWallet(mergedParams);
+            sendMoneyWithWallet(sendMoneyParams);
         } else {
-            sendMoneyElsewhere(mergedParams);
+            sendMoneyElsewhere(sendMoneyParams);
         }
     };
 
     submitWithDismissFirst({
-        executeWrite: () => executeSendMoneyWrite({shouldDeferForSearch: false}),
+        executeWrite: executeSendMoneyWrite,
         destinationReportID: chatReportID,
         telemetryContext: {
             scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.SEND_MONEY,
@@ -322,7 +359,6 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
         introSelected,
         isOffline,
         recentWaypoints,
-        betas,
         transactionViolations,
         transactionDrafts,
         storedTransaction,
@@ -334,6 +370,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
         isTrackIntentUser,
         formatPhoneNumber,
         getCurrencyDecimals,
+        rules,
     } = args;
     const {currentUserAccountID, currentUserEmail, existingTransactionID, isASAPSubmitBetaEnabled, newAmount: backendAmount} = ctx;
 
@@ -375,7 +412,6 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 conciergeChat,
                 quickAction,
                 recentWaypoints,
-                betas,
                 draftTransactionIDs: draftTransactionIDsList,
                 isSelfTourViewed,
                 optimisticChatReportID,
@@ -383,12 +419,13 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 delegateAccountID,
                 reportActionsList: undefined,
                 getCurrencyDecimals,
+                rules,
             });
         } else {
             const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
             requestMoney({
+                isVendorMatchingBetaEnabled: ctx.isVendorMatchingBetaEnabled,
                 report,
-                betas,
                 participantParams: {
                     participant: participant ?? {},
                     payeeEmail: currentUserEmail,
@@ -423,6 +460,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 isTrackIntentUser,
                 formatPhoneNumber,
                 getCurrencyDecimals,
+                rules,
             });
         }
         cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
@@ -611,12 +649,14 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
         reportPolicyTags,
         getCurrencyDecimals,
         getCurrencySymbol,
+        rules,
     } = args;
     const {currentTransaction, allowNegative, disableOppositeConversion, isSplitBill, currentUserAccountID, currentUserEmail, isASAPSubmitBetaEnabled, newAmount} = ctx;
 
     // If the value hasn't changed, don't request to save changes on the server and just close the modal
     const transactionCurrency = getCurrency(currentTransaction);
-    if (newAmount === getAmount(currentTransaction, false, false, allowNegative, disableOppositeConversion) && selectedCurrency === transactionCurrency) {
+    const hasFailedScanAmountPlaceholder = isFailedScanAmountPlaceholder(currentTransaction);
+    if (!hasFailedScanAmountPlaceholder && newAmount === getAmount(currentTransaction, false, false, allowNegative, disableOppositeConversion) && selectedCurrency === transactionCurrency) {
         navigateBack();
         return;
     }
@@ -646,6 +686,7 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
     const parentReport = report?.parentReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`] : undefined;
 
     updateMoneyRequestAmountAndCurrency({
+        isVendorMatchingBetaEnabled: ctx.isVendorMatchingBetaEnabled,
         transactionID,
         transactionThreadReport: report,
         parentReport,
@@ -668,6 +709,7 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
         isTrackIntentUser,
         getCurrencyDecimals,
         getCurrencySymbol,
+        rules,
     });
     navigateBack();
 }

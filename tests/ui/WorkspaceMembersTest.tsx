@@ -640,6 +640,35 @@ describe('WorkspaceMembers', () => {
         });
     });
 
+    describe('Secondary login invite', () => {
+        it('hides an empty employeeList entry and still shows a member whose personal details are missing', async () => {
+            // Given a secondary login left as an empty object after the backend nulls it and successData clears pendingAction,
+            // plus a real member who has no personal details
+            const secondaryEmail = 'secondary@example.com';
+            const memberWithoutDetails = 'nodetails@example.com';
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    employeeList: {
+                        [secondaryEmail]: {},
+                        [memberWithoutDetails]: {email: memberWithoutDetails, role: CONST.POLICY.ROLE.USER},
+                    },
+                });
+            });
+
+            // When the members page renders
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the empty secondary entry is not a row, and the member without personal details still is
+            await waitFor(() => {
+                expect(screen.getAllByText(memberWithoutDetails).length).toBeGreaterThan(0);
+            });
+            expect(screen.queryAllByText(secondaryEmail)).toHaveLength(0);
+
+            unmount();
+        });
+    });
+
     describe('Role display on Submit workspaces', () => {
         it('should show the workspace owner as Editor instead of Owner', async () => {
             // Given a Submit workspace, where every member (including the owner) uses the flat Editor role
@@ -658,6 +687,46 @@ describe('WorkspaceMembers', () => {
             const ownerLabel = TestHelper.translateLocal('workspace.common.roleName', CONST.POLICY.ROLE.OWNER);
             expect(within(ownerRow).getByText(editorLabel)).toBeOnTheScreen();
             expect(within(ownerRow).queryByText(ownerLabel)).not.toBeOnTheScreen();
+
+            unmount();
+        });
+    });
+
+    describe('Selection and search', () => {
+        it('should clear a Select All made inside a search once the search field is cleared', async () => {
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            await waitFor(() => {
+                expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
+            });
+
+            // Given a search that narrows the list to a subset of the members
+            const searchInput = screen.getByPlaceholderText(TestHelper.translateLocal('workspace.people.findMember'));
+            fireEvent.changeText(searchInput, auditorEmail);
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.queryByText(ADMIN_OPTION)).not.toBeOnTheScreen();
+
+            // When every visible row is selected via the header checkbox
+            // The table renders a second, hidden header for width measurement, so the label is not unique
+            const selectAllLabel = TestHelper.translateLocal('workspace.common.selectAll');
+            const getSelectAllCheckbox = () => {
+                const checkbox = screen.getAllByLabelText(selectAllLabel).at(0);
+                if (!checkbox) {
+                    throw new Error('No Select all checkbox rendered');
+                }
+                return checkbox;
+            };
+            fireEvent.press(getSelectAllCheckbox());
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.getByTestId('WorkspaceMembersPage-header-dropdown-menu-button')).toBeOnTheScreen();
+
+            // Then clearing the search drops the selection, because it only ever applied to the searched rows
+            fireEvent.changeText(searchInput, '');
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
+            expect(screen.queryByTestId('WorkspaceMembersPage-header-dropdown-menu-button')).not.toBeOnTheScreen();
+            expect(getSelectAllCheckbox()).not.toBeChecked();
 
             unmount();
         });

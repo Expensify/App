@@ -6,16 +6,17 @@ import StatusBadge from '@components/StatusBadge';
 import TransactionItemRow from '@components/TransactionItemRow';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import Navigation from '@libs/Navigation/Navigation';
+import {hasPendingSearchWrite} from '@libs/pendingSearchWrite';
 import {getReportStatusColorStyle, getReportStatusTooltipTranslation, getReportStatusTranslation, isOneTransactionReport} from '@libs/ReportUtils';
-import {createAndOpenSearchTransactionThread, getSections, getSortedSections, getValidGroupBy} from '@libs/SearchUIUtils';
+import {createAndOpenSearchTransactionThread, getSections, getSortedSections, getValidGroupBy, isCreatedDateType} from '@libs/SearchUIUtils';
 import {isDeletedTransaction} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -85,11 +86,11 @@ function SearchStaticList({
     const email = session?.email;
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
+    const delegateAccountID = useDelegateAccountID();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
-    const [showPendingExpensePlaceholder, setShowPendingExpensePlaceholder] = useState(
-        () => hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH) || Navigation.getIsFullscreenPreInsertedUnderRHP(),
-    );
+    const [showPendingExpensePlaceholder, setShowPendingExpensePlaceholder] = useState(() => hasPendingSearchWrite() || Navigation.getIsFullscreenPreInsertedUnderRHP());
 
     const {type, sortBy, sortOrder, groupBy} = queryJSON;
     const validGroupBy = getValidGroupBy(groupBy);
@@ -109,6 +110,7 @@ function SearchStaticList({
             translate,
             formatPhoneNumber,
             bankAccountList: undefined,
+            rules,
             conciergeReportID,
             convertToDisplayString,
             reportAttributesDerivedValue: undefined,
@@ -123,7 +125,7 @@ function SearchStaticList({
     // the destination is visible (focus signal for the dual-gate span ending).
     useFocusEffect(
         useCallback(() => {
-            const hasPendingWrite = hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+            const hasPendingWrite = hasPendingSearchWrite();
             if (!showPendingExpensePlaceholder && hasPendingWrite) {
                 setShowPendingExpensePlaceholder(true);
             } else if (showPendingExpensePlaceholder && !hasPendingWrite && sortedData.length > 0) {
@@ -139,7 +141,7 @@ function SearchStaticList({
 
         if (!item.reportAction?.childReportID) {
             const shouldOpenTransactionThread = !isOneTransactionReport(item.report) || item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-            // betas, introSelected and conciergeChat are passed as undefined to avoid extra Onyx subscriptions in this lightweight placeholder.
+            // introSelected and conciergeChat are passed as undefined to avoid extra Onyx subscriptions in this lightweight placeholder.
             // They're only used for guided-setup onboarding data, which is gated behind introSelected/onboarding checks
             // that won't apply here - the user has already completed onboarding if they're submitting expenses.
             createAndOpenSearchTransactionThread({
@@ -150,10 +152,10 @@ function SearchStaticList({
                 backTo,
                 currentUserLogin: email ?? '',
                 currentUserAccountID: accountID,
-                betas: undefined,
                 personalDetails,
                 isSelfTourViewed,
                 hasCompletedGuidedSetupFlow,
+                delegateAccountID,
                 IOUTransactionID: item.reportAction?.childReportID,
                 shouldNavigate: shouldOpenTransactionThread,
             });
@@ -295,6 +297,7 @@ function SearchStaticList({
                         shouldShowCheckbox={canSelectMultiple}
                         shouldShowErrors
                         violations={item.violations}
+                        isDateColumnCreated={isCreatedDateType(type)}
                         dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                         amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                         taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}

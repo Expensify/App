@@ -3,13 +3,13 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 
-import {isPersonalCard} from '@libs/CardUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
@@ -17,12 +17,13 @@ import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils
 import {isMarkAsResolvedAction} from '@libs/ReportPrimaryActionUtils';
 import {isSelfDM, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
 import {
-    getBrokenConnectionViolation,
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
+    isBrokenConnectionViolation,
     isDuplicate as isDuplicateTransactionUtils,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
     isScanning,
+    shouldSuppressBrokenConnectionStatus,
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
 } from '@libs/TransactionUtils';
 
@@ -31,7 +32,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
+import {loginSelector} from '@src/selectors/PersonalDetails';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {ReactNode} from 'react';
@@ -52,7 +53,6 @@ import MoneyRequestReportTransactionsNavigation from './MoneyRequestReportView/M
 import {useWideRHPState} from './WideRHPContextProvider';
 
 type MoneyRequestHeaderProps = {
-    /** The reportID of the report currently being looked at */
     reportID: string | undefined;
 
     /** Method to trigger when pressing close button of the header */
@@ -61,13 +61,13 @@ type MoneyRequestHeaderProps = {
 
 function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRequestHeaderProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDProp}`);
-    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.ownerAccountID)});
+    const [ownerLogin] = usePersonalDetail(report?.ownerAccountID, loginSelector);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
     const parentReportAction = useParentReportAction(report);
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use a correct layout for the hold expense modal https://github.com/Expensify/App/pull/47990#issuecomment-2362382026
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth, isMediumScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const route = useRoute<
         | PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
         | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>
@@ -80,7 +80,7 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
         }`,
         {},
     );
-    const transactionViolations = useTransactionViolations(transaction?.transactionID);
+    const transactionViolations = useTransactionViolations(transaction?.transactionID, false);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
     const styles = useThemeStyles();
@@ -101,8 +101,17 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
     const isReportInRHP = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
     const isFromReviewDuplicates = !!route.params.backTo && /\/duplicates\/review\/[^/]+$/.test(route.params.backTo.replaceAll(/\?.*/g, ''));
     const shouldDisplayTransactionNavigation = !!(reportID && isReportInRHP);
+    // `transaction` is resolved through this thread's parent report action, which isn't necessarily loaded yet on
+    // a cold open (e.g. opening an expense from the Spend page right after clearing the cache). The route carries
+    // the expense the screen was opened for, so fall back to it rather than hiding the carousel until data lands.
+    const anchorTransactionIDFromRoute = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? route.params.anchorTransactionID : undefined;
+    const carouselTransactionID = transaction?.transactionID ?? anchorTransactionIDFromRoute;
     const shouldOpenParentReportInCurrentTab = !isSelfDM(parentReport);
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine() && (wideRHPRouteKeys.length === 0 || isSmallScreenWidth);
+    // Only the carousel counter reads this, and MoneyReportHeader counts tablet-portrait as cramped for the same
+    // counter. The two have to agree: derived from different breakpoints, the counter was hidden on a report and
+    // shown on its own expense thread at one window size, popping into existence as the user stepped inward.
+    const shouldDisplayNarrowVersion = shouldDisplayButtonsInSeparateLine || (isMediumScreenWidth && !isInLandscapeMode);
 
     const getStatusIcon: (src: IconAsset) => ReactNode = (src) => (
         <Icon
@@ -129,14 +138,11 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
             return {icon: getStatusIcon(icons.CreditCardHourglass), description: translate('iou.transactionPendingDescription')};
         }
         if (!!transaction?.transactionID && !!transactionViolations.length && shouldShowBrokenConnectionViolation) {
-            const brokenConnectionError = getBrokenConnectionViolation(transactionViolations);
-            const cardID = brokenConnectionError?.data?.cardID;
-            const card = cardID ? cardList?.[cardID] : undefined;
+            const brokenConnectionViolations = transactionViolations.filter(isBrokenConnectionViolation);
 
-            // Only suppress the status bar for a personal card the current user actually holds. A company card the
-            // viewer doesn't own resolves to `undefined` here (it isn't in their cardList), and must still surface
-            // the broken/re-auth status to admins and approvers.
-            if (!!card && isPersonalCard(card) && brokenConnectionError) {
+            // Suppress the status only when every broken connection is on a personal card the current user holds.
+            // A company card missing from their cardList must still surface to admins and approvers.
+            if (shouldSuppressBrokenConnectionStatus(brokenConnectionViolations, cardList)) {
                 return undefined;
             }
             return {
@@ -182,16 +188,17 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
                 shouldEnableDetailPageNavigation
                 openParentReportInCurrentTab={shouldOpenParentReportInCurrentTab}
             >
-                {!shouldDisplayButtonsInSeparateLine && (
+                {!shouldDisplayButtonsInSeparateLine && !statusBarProps && (
                     <MoneyRequestHeaderActions
                         reportID={reportID}
                         onBackButtonPress={onBackButtonPress}
                     />
                 )}
-                {shouldDisplayTransactionNavigation && !!transaction && (
+                {shouldDisplayTransactionNavigation && !!carouselTransactionID && (
                     <MoneyRequestReportTransactionsNavigation
-                        currentTransactionID={transaction.transactionID}
+                        currentTransactionID={carouselTransactionID}
                         isFromReviewDuplicates={isFromReviewDuplicates}
+                        shouldDisplayNarrowVersion={shouldDisplayNarrowVersion}
                     />
                 )}
             </HeaderWithBackButton>
@@ -202,11 +209,19 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
                 />
             )}
             {!!statusBarProps && (
-                <View style={[styles.ph5, styles.pb3]}>
-                    <MoneyRequestHeaderStatusBar
-                        icon={statusBarProps.icon}
-                        description={statusBarProps.description}
-                    />
+                <View style={[styles.flexRow, styles.gap2, styles.justifyContentStart, styles.flexNoWrap, styles.ph5, styles.pb3]}>
+                    <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.flexWrap, styles.justifyContentCenter]}>
+                        <MoneyRequestHeaderStatusBar
+                            icon={statusBarProps.icon}
+                            description={statusBarProps.description}
+                        />
+                    </View>
+                    {!shouldDisplayButtonsInSeparateLine && (
+                        <MoneyRequestHeaderActions
+                            reportID={reportID}
+                            onBackButtonPress={onBackButtonPress}
+                        />
+                    )}
                 </View>
             )}
             <HeaderLoadingBar />
