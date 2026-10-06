@@ -80,7 +80,46 @@ function openPolicyTagsPage(policyID: string) {
         policyID,
     };
 
-    API.read(READ_COMMANDS.OPEN_POLICY_TAGS_PAGE, params);
+    type TagsLoadingKey = typeof ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE;
+    const loadingStateKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE}${policyID}` as const;
+
+    const optimisticData: Array<OnyxUpdate<TagsLoadingKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: loadingStateKey,
+            value: {isLoading: true},
+        },
+    ];
+
+    // `hasOnceLoaded` is only ever written here, so a read that never landed leaves the policy eligible for a retry.
+    // The collection existing in Onyx cannot stand in for this: it may hold only the tag already on the expense.
+    const successData: Array<OnyxUpdate<TagsLoadingKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: loadingStateKey,
+            value: {isLoading: false, hasOnceLoaded: true},
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<TagsLoadingKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: loadingStateKey,
+            value: {isLoading: false},
+        },
+    ];
+
+    API.read(READ_COMMANDS.OPEN_POLICY_TAGS_PAGE, params, {optimisticData, successData, failureData});
+}
+
+/**
+ * Clears the in-flight flag for a policy's tags read.
+ *
+ * A read cut off by a disconnect never gets a response, so its `failureData` never applies and `isLoading` would stay
+ * true for the rest of the session, blocking every retry. Callers clear it on reconnect.
+ */
+function clearPolicyTagsLoadingState(policyID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE}${policyID}`, {isLoading: false});
 }
 
 type BuildOptimisticPolicyRecentlyUsedTagsProps = {
@@ -1282,11 +1321,18 @@ type SetPolicyTagGLCodeProps = {
     tagListIndex: number;
     glCode: string;
     policyTags: OnyxEntry<PolicyTagLists>;
+    parentTagsFilter?: string;
 };
 
-function setPolicyTagGLCode({policyID, tagName, tagListIndex, glCode, policyTags}: SetPolicyTagGLCodeProps) {
+function setPolicyTagGLCode({policyID, tagName, tagListIndex, glCode, policyTags, parentTagsFilter}: SetPolicyTagGLCodeProps) {
     const tagListName = PolicyUtils.getTagListName(policyTags, tagListIndex);
-    const policyTagToUpdate = policyTags?.[tagListName]?.tags?.[tagName] ?? {};
+    const policyTagEntry = PolicyUtils.findPolicyTagEntryByParentFilter(policyTags?.[tagListName]?.tags, tagName, parentTagsFilter);
+
+    if (!policyTagEntry) {
+        return;
+    }
+
+    const {tag: policyTagToUpdate, tagKey} = policyTagEntry;
 
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_TAGS> = {
         optimisticData: [
@@ -1296,7 +1342,7 @@ function setPolicyTagGLCode({policyID, tagName, tagListIndex, glCode, policyTags
                 value: {
                     [tagListName]: {
                         tags: {
-                            [tagName]: {
+                            [tagKey]: {
                                 ...policyTagToUpdate,
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 pendingFields: {
@@ -1318,7 +1364,7 @@ function setPolicyTagGLCode({policyID, tagName, tagListIndex, glCode, policyTags
                 value: {
                     [tagListName]: {
                         tags: {
-                            [tagName]: {
+                            [tagKey]: {
                                 errors: null,
                                 pendingAction: null,
                                 pendingFields: {
@@ -1338,7 +1384,7 @@ function setPolicyTagGLCode({policyID, tagName, tagListIndex, glCode, policyTags
                 value: {
                     [tagListName]: {
                         tags: {
-                            [tagName]: {
+                            [tagKey]: {
                                 ...policyTagToUpdate,
                                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.updateGLCodeFailureMessage'),
                             },
@@ -1351,10 +1397,11 @@ function setPolicyTagGLCode({policyID, tagName, tagListIndex, glCode, policyTags
 
     const parameters: UpdatePolicyTagGLCodeParams = {
         policyID,
-        tagName,
+        tagName: policyTagToUpdate.name,
         tagListName,
         tagListIndex,
         glCode,
+        ...(parentTagsFilter ? {parentTagsFilter} : {}),
     };
 
     API.write(WRITE_COMMANDS.UPDATE_POLICY_TAG_GL_CODE, parameters, onyxData);
@@ -1474,6 +1521,7 @@ export {
     deletePolicyTags,
     enablePolicyTags,
     openPolicyTagsPage,
+    clearPolicyTagsLoadingState,
     renamePolicyTag,
     renamePolicyTagList,
     setWorkspaceTagEnabled,

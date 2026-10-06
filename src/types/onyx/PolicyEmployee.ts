@@ -33,6 +33,9 @@ type PolicyEmployee = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether the member holds an active Expensify Card on this workspace, which blocks removing them from it */
     hasActiveExpensifyCard?: boolean;
 
+    /** Whether the member is based in an office. When absent, the workspace default applies. */
+    hasOfficeWorkArrangement?: boolean;
+
     /**
      * Errors from api calls on the specific user
      * {<timestamp>: 'error message', <timestamp2>: 'error message 2'}
