@@ -1323,9 +1323,12 @@ const staticStyles = (theme: ThemeColors) =>
         /**
          * Cancels editableCell's horizontal chrome so the value lines up with a
          * sibling that has no edit padding, such as a card title under a cardholder name.
+         * The bottom margin removes the space the cell adds under its label, so the
+         * freeze message keeps the gap it had before this wrapper.
          */
         editableCellFlushWithSibling: {
             marginHorizontal: -(variables.editableCellChromeWidth / 2),
+            marginBottom: -((variables.editableCellHeight - variables.lineHeightNormal) / 2),
         },
 
         editableCell: {
