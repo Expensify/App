@@ -15,6 +15,11 @@ const ANCHOR_ALIGNMENT = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 } as const;
 
+const SIZES = {
+    [CONST.BUTTON_SIZE.SMALL]: {buttonSize: variables.componentSizeSmall, iconSize: variables.iconSizeExtraSmall},
+    [CONST.BUTTON_SIZE.MEDIUM]: {buttonSize: variables.componentSizeNormal, iconSize: variables.iconSizeSmall},
+} as const;
+
 type WidgetHeaderMenuProps = {
     /** Items shown in the popover opened by the three-dots trigger */
     menuItems: PopoverMenuItem[];
@@ -32,15 +37,14 @@ type WidgetHeaderMenuProps = {
  */
 function WidgetHeaderMenu({menuItems, size = CONST.BUTTON_SIZE.MEDIUM, testID, sentryLabel}: WidgetHeaderMenuProps) {
     const styles = useThemeStyles();
-    const isSmall = size === CONST.BUTTON_SIZE.SMALL;
-    const iconSize = isSmall ? variables.iconSizeExtraSmall : variables.iconSizeSmall;
+    const {buttonSize, iconSize} = SIZES[size];
 
     return (
         <ThreeDotsMenu
             menuItems={menuItems}
             shouldSelfPosition
             anchorAlignment={ANCHOR_ALIGNMENT}
-            iconStyles={styles.getWidgetHeaderMenuButtonStyle(isSmall ? variables.componentSizeSmall : variables.componentSizeNormal)}
+            iconStyles={styles.getWidgetHeaderMenuButtonStyle(buttonSize)}
             iconHoverStyle={styles.widgetHeaderMenuButtonHovered}
             iconWidth={iconSize}
             iconHeight={iconSize}
