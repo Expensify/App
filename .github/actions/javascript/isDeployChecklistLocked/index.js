@@ -22075,6 +22075,117 @@ var require_str = __commonJS({
       }
       return parameter;
     }
+    function compare(strA, strB) {
+      if (strA < strB) {
+        return -1;
+      }
+      if (strA > strB) {
+        return 1;
+      }
+      return 0;
+    }
+    function caseInsensitiveCompare(strA, strB) {
+      const lowerCaseStrA = strA.toLocaleLowerCase();
+      const lowerCaseStrB = strB.toLocaleLowerCase();
+      return compare(lowerCaseStrA, lowerCaseStrB);
+    }
+    function contains(haystack, needle) {
+      return haystack.indexOf(needle) !== -1;
+    }
+    function cutAfter(str, substr) {
+      const index = str.indexOf(substr);
+      if (index !== -1) {
+        return str.substring(0, index);
+      }
+      return str;
+    }
+    function cutBefore(str, substr) {
+      const index = str.indexOf(substr);
+      if (index !== -1) {
+        return str.substring(index + substr.length);
+      }
+      return str;
+    }
+    function extractEmailDomain(email) {
+      return cutBefore(email, "@");
+    }
+    function getExtension(url) {
+      var _a, _b;
+      if (typeof url !== "string") {
+        Log_1.default.warn("Str.getExtension: url is not a string", { url });
+        return void 0;
+      }
+      return (_b = (_a = url.split(".").pop()) === null || _a === void 0 ? void 0 : _a.split("?")[0]) === null || _b === void 0 ? void 0 : _b.toLowerCase();
+    }
+    function getRawByteSize(inputChar) {
+      const onlyChar = String(inputChar);
+      const c = onlyChar.charCodeAt(0);
+      if (c < 1 << 7) {
+        return 1;
+      }
+      if (c < 1 << 11) {
+        return 2;
+      }
+      if (c < 1 << 16) {
+        return 3;
+      }
+      if (c < 1 << 21) {
+        return 4;
+      }
+      if (c < 1 << 26) {
+        return 5;
+      }
+      if (c < 1 << 31) {
+        return 6;
+      }
+      return Number.NaN;
+    }
+    function htmlDecode(s) {
+      return HtmlEntities.decode(s);
+    }
+    function htmlEncode(s) {
+      return HtmlEntities.encode(s);
+    }
+    function isTypeOf(obj, type) {
+      return Object.prototype.toString.call(obj) === `[object ${type}]`;
+    }
+    function isNumber(obj) {
+      return isTypeOf(obj, "Number");
+    }
+    function isString(obj) {
+      return isTypeOf(obj, "String");
+    }
+    function isUndefined(obj) {
+      return obj === void 0;
+    }
+    function isValidE164Phone(phone) {
+      return Constants.CONST.SMS.E164_REGEX.test(phone);
+    }
+    function isValidEmail(str) {
+      if (!str || typeof str !== "string") {
+        return false;
+      }
+      const unicodeVersion = punycode_1.default.toUnicode(str);
+      if (String(unicodeVersion).match(Constants.CONST.REG_EXP.EMOJI_RULE)) {
+        return false;
+      }
+      return !!String(str).match(Constants.CONST.REG_EXP.EMAIL);
+    }
+    function maskFirstNCharacters(str, num, mask) {
+      if (!isString(str) || !isString(mask) || str.length === 0 || !isNumber(num)) {
+        return str;
+      }
+      return str.substring(0, num).replaceAll(/./g, mask) + str.substring(num);
+    }
+    function removeSMSDomain(text) {
+      return text.replaceAll(REMOVE_SMS_DOMAIN_PATTERN, "");
+    }
+    function removeTrailingComma(str) {
+      return str.trim().replaceAll(/(,$)/g, "");
+    }
+    function startsWith(haystack, needle) {
+      return isString(haystack) && isString(needle) && haystack.substring(0, needle.length) === needle;
+    }
     var Str2 = {
       /**
        * Return true if the string is ending with the provided suffix
@@ -22132,18 +22243,14 @@ var require_str = __commonJS({
        * @param s The string to decode.
        * @returns The decoded string.
        */
-      htmlDecode(s) {
-        return HtmlEntities.decode(s);
-      },
+      htmlDecode,
       /**
        * HTML encodes the given string.
        *
        * @param s The string to encode.
        * @return string @p s HTML encoded.
        */
-      htmlEncode(s) {
-        return HtmlEntities.encode(s);
-      },
+      htmlEncode,
       /**
        * Decodes the given HTML encoded string.
        *
@@ -22185,7 +22292,7 @@ var require_str = __commonJS({
        * @returns True when first === second, ignoring HTML encoding
        */
       htmlEncodingInsensitiveEquals(first, second) {
-        return first === second || this.htmlDecode(first) === second || this.htmlEncode(first) === second;
+        return first === second || htmlDecode(first) === second || htmlEncode(first) === second;
       },
       /**
        * Creates an ID that can be used as an HTML attribute from @p str.
@@ -22268,36 +22375,14 @@ var require_str = __commonJS({
        * one.
        * @returns Byte size of the character
        */
-      getRawByteSize(inputChar) {
-        const onlyChar = String(inputChar);
-        const c = onlyChar.charCodeAt(0);
-        if (c < 1 << 7) {
-          return 1;
-        }
-        if (c < 1 << 11) {
-          return 2;
-        }
-        if (c < 1 << 16) {
-          return 3;
-        }
-        if (c < 1 << 21) {
-          return 4;
-        }
-        if (c < 1 << 26) {
-          return 5;
-        }
-        if (c < 1 << 31) {
-          return 6;
-        }
-        return Number.NaN;
-      },
+      getRawByteSize,
       /**
        * Gets the length of a string in bytes, including non-ASCII characters
        * @returns The number of bytes used by string
        */
       getByteLength(input) {
         const stringInput = String(input);
-        const byteLength = Array.from(stringInput).reduce((acc, char) => acc + this.getRawByteSize(char), 0);
+        const byteLength = Array.from(stringInput).reduce((acc, char) => acc + getRawByteSize(char), 0);
         return byteLength;
       },
       /**
@@ -22309,7 +22394,7 @@ var require_str = __commonJS({
         const stringInput = String(input);
         let totalByteLength = 0;
         for (let i = 0; i < stringInput.length; i++) {
-          const charByteSize = this.getRawByteSize(stringInput[i]);
+          const charByteSize = getRawByteSize(stringInput[i]);
           if (charByteSize + totalByteLength > maxSize) {
             return `${stringInput.substr(0, i - 3)}...`;
           }
@@ -22324,9 +22409,7 @@ var require_str = __commonJS({
        * @param needle  The case-sensitive string to search for
        * @returns True if the haystack starts with the needle.
        */
-      startsWith(haystack, needle) {
-        return this.isString(haystack) && this.isString(needle) && haystack.substring(0, needle.length) === needle;
-      },
+      startsWith,
       /**
        * Gets the textual value of the given string.
        *
@@ -22334,7 +22417,7 @@ var require_str = __commonJS({
        * @returns The text from within the HTML string.
        */
       stripHTML(str) {
-        if (!this.isString(str)) {
+        if (!isString(str)) {
           return "";
         }
         return str.replaceAll(/<[^>]*>?/gm, "");
@@ -22357,13 +22440,7 @@ var require_str = __commonJS({
        * @param substr The substring to search for.
        * @returns The cut/trimmed string.
        */
-      cutAfter(str, substr) {
-        const index = str.indexOf(substr);
-        if (index !== -1) {
-          return str.substring(0, index);
-        }
-        return str;
-      },
+      cutAfter,
       /**
        * Returns a string containing all the characters str from after the first
        * occurrence of substr to the end of the string.
@@ -22373,13 +22450,7 @@ var require_str = __commonJS({
        * @param substr The substring to search for.
        * @returns The cut/trimmed string.
        */
-      cutBefore(str, substr) {
-        const index = str.indexOf(substr);
-        if (index !== -1) {
-          return str.substring(index + substr.length);
-        }
-        return str;
-      },
+      cutBefore,
       /**
        * Checks that the string is a domain name (e.g. example.com)
        *
@@ -22406,16 +22477,7 @@ var require_str = __commonJS({
        *
        * @returns True if the string is an email
        */
-      isValidEmail(str) {
-        if (!str || typeof str !== "string") {
-          return false;
-        }
-        const unicodeVersion = punycode_1.default.toUnicode(str);
-        if (String(unicodeVersion).match(Constants.CONST.REG_EXP.EMOJI_RULE)) {
-          return false;
-        }
-        return !!String(str).match(Constants.CONST.REG_EXP.EMAIL);
-      },
+      isValidEmail,
       /**
        * Checks if the string is an valid email address formed during comment markdown formation.
        *
@@ -22433,9 +22495,7 @@ var require_str = __commonJS({
        *
        * @returns string with the trailing comma removed
        */
-      removeTrailingComma(str) {
-        return str.trim().replaceAll(/(,$)/g, "");
-      },
+      removeTrailingComma,
       /**
        * Checks that the string is a list of coma separated email addresss.
        *
@@ -22444,12 +22504,12 @@ var require_str = __commonJS({
        * @returns True if all emails are valid or if input is empty
        */
       areValidEmails(str) {
-        const string = this.removeTrailingComma(str);
+        const string = removeTrailingComma(str);
         if (string === "") {
           return true;
         }
         const emails = string.split(",");
-        const result = emails.every((email) => this.isValidEmail(email.trim()));
+        const result = emails.every((email) => isValidEmail(email.trim()));
         return result;
       },
       /**
@@ -22466,9 +22526,7 @@ var require_str = __commonJS({
        *
        * @returns The domain name in the email address.
        */
-      extractEmailDomain(email) {
-        return this.cutBefore(email, "@");
-      },
+      extractEmailDomain,
       /**
        * Tries to extract the company name from the given email address
        * (e.g. "yelp" for "joe@yelp.co.uk").
@@ -22478,7 +22536,7 @@ var require_str = __commonJS({
        * @returns The company name in the email address or null.
        */
       extractCompanyNameFromEmailDomain(email) {
-        const domain = this.extractEmailDomain(email);
+        const domain = extractEmailDomain(email);
         if (!domain) {
           return null;
         }
@@ -22497,7 +22555,7 @@ var require_str = __commonJS({
        * @returns The local part in the email address.
        */
       extractEmailLocalPart(email) {
-        return this.cutAfter(email, "@");
+        return cutAfter(email, "@");
       },
       /**
        * Sanitize phone number to return only numbers. Return null if non valid phone number.
@@ -22555,13 +22613,13 @@ var require_str = __commonJS({
        * @returns true if the length is in the range, false otherwise
        */
       isOfLength(str, minimumLength, maximumLength) {
-        if (!this.isString(str)) {
+        if (!isString(str)) {
           return false;
         }
         if (str.length < minimumLength) {
           return false;
         }
-        if (!this.isUndefined(maximumLength) && str.length > maximumLength) {
+        if (!isUndefined(maximumLength) && str.length > maximumLength) {
           return false;
         }
         return true;
@@ -22614,9 +22672,7 @@ var require_str = __commonJS({
        *
        * @returns Returns true if the haystack contains the needle
        */
-      contains(haystack, needle) {
-        return haystack.indexOf(needle) !== -1;
-      },
+      contains,
       /**
        * Returns true if the haystack contains the needle, ignoring case
        *
@@ -22626,7 +22682,7 @@ var require_str = __commonJS({
        * @returns Returns true if the haystack contains the needle, ignoring case
        */
       caseInsensitiveContains(haystack, needle) {
-        return this.contains(haystack.toLowerCase(), needle.toLowerCase());
+        return contains(haystack.toLowerCase(), needle.toLowerCase());
       },
       /**
        * Case insensitive compare function
@@ -22638,11 +22694,7 @@ var require_str = __commonJS({
        *                   1 if first string > second string
        *                   0 if first string = second string
        */
-      caseInsensitiveCompare(strA, strB) {
-        const lowerCaseStrA = strA.toLocaleLowerCase();
-        const lowerCaseStrB = strB.toLocaleLowerCase();
-        return this.compare(lowerCaseStrA, lowerCaseStrB);
-      },
+      caseInsensitiveCompare,
       /**
        * Case insensitive equals
        *
@@ -22651,7 +22703,7 @@ var require_str = __commonJS({
        * @returns true when first == second except for case
        */
       caseInsensitiveEquals(strA, strB) {
-        return this.caseInsensitiveCompare(strA, strB) === 0;
+        return caseInsensitiveCompare(strA, strB) === 0;
       },
       /**
        * Compare function
@@ -22663,15 +22715,7 @@ var require_str = __commonJS({
        *                   1 if first string > second string
        *                   0 if first string = second string
        */
-      compare(strA, strB) {
-        if (strA < strB) {
-          return -1;
-        }
-        if (strA > strB) {
-          return 1;
-        }
-        return 0;
-      },
+      compare,
       /**
        * Check if a file extension is supported by SmartReports
        */
@@ -22690,45 +22734,37 @@ var require_str = __commonJS({
         const accountNumber = String(num);
         const len = accountNumber.length;
         if (len < 6 || len > 20) {
-          return this.maskFirstNCharacters(accountNumber, len, "X");
+          return maskFirstNCharacters(accountNumber, len, "X");
         }
         if (len < 14) {
-          return this.maskFirstNCharacters(accountNumber, len - 4, "X");
+          return maskFirstNCharacters(accountNumber, len - 4, "X");
         }
         const first = accountNumber.substr(0, 6);
         const last = accountNumber.substr(7);
-        const masked = this.maskFirstNCharacters(last, len - 11, "X");
+        const masked = maskFirstNCharacters(last, len - 11, "X");
         return `${first}${masked}`;
       },
       /**
        * Checks if something is a string
        * Stolen from underscore
        */
-      isString(obj) {
-        return this.isTypeOf(obj, "String");
-      },
+      isString,
       /**
        * Checks if something is a number
        * Stolen from underscore
        * @param obj
        */
-      isNumber(obj) {
-        return this.isTypeOf(obj, "Number");
-      },
+      isNumber,
       /**
        * Checks if something is a certain type
        * Stolen from underscore
        */
-      isTypeOf(obj, type) {
-        return Object.prototype.toString.call(obj) === `[object ${type}]`;
-      },
+      isTypeOf,
       /**
        * Checks to see if something is undefined
        * Stolen from underscore
        */
-      isUndefined(obj) {
-        return obj === void 0;
-      },
+      isUndefined,
       /**
        * Replace first N characters of the string with maskChar
        * eg: maskFirstNCharacters( '1234567890', 6, 'X' ) yields XXXXXX7890
@@ -22737,12 +22773,7 @@ var require_str = __commonJS({
        * @param mask String we want replace the first N chars with
        * @returns Masked string
        */
-      maskFirstNCharacters(str, num, mask) {
-        if (!this.isString(str) || !this.isString(mask) || str.length === 0 || !this.isNumber(num)) {
-          return str;
-        }
-        return str.substring(0, num).replaceAll(/./g, mask) + str.substring(num);
-      },
+      maskFirstNCharacters,
       /**
        * Trim a string
        */
@@ -22754,7 +22785,7 @@ var require_str = __commonJS({
        * @param percentageString The percentage as a string
        */
       percentageStringToNumber(percentageString) {
-        return Number(this.cutAfter(percentageString, "%"));
+        return Number(cutAfter(percentageString, "%"));
       },
       /**
        * Remove all the spaces from a string
@@ -22798,7 +22829,7 @@ var require_str = __commonJS({
        * Converts a value to boolean, case-insensitive.
        */
       toBool(value) {
-        if (this.isString(value)) {
+        if (isString(value)) {
           return value.toLowerCase() === "true";
         }
         return !!value;
@@ -22848,9 +22879,7 @@ var require_str = __commonJS({
       /**
        * Check for whether a phone number is valid according to E.164 standard.
        */
-      isValidE164Phone(phone) {
-        return Constants.CONST.SMS.E164_REGEX.test(phone);
-      },
+      isValidE164Phone,
       /**
        * Check for whether a phone number is valid in different formats/standards. For example:
        * significant: 4404589784
@@ -22876,14 +22905,12 @@ var require_str = __commonJS({
       /**
        * Returns text without our SMS domain
        */
-      removeSMSDomain(text) {
-        return text.replaceAll(REMOVE_SMS_DOMAIN_PATTERN, "");
-      },
+      removeSMSDomain,
       /**
        * Returns true if the text is a valid E.164 phone number with our SMS domain removed
        */
       isSMSLogin(text) {
-        return this.isValidE164Phone(this.removeSMSDomain(text));
+        return isValidE164Phone(removeSMSDomain(text));
       },
       /**
        * This method will return all matches of a single regex like preg_match_all() in PHP. This is not a common part of
@@ -22936,7 +22963,7 @@ var require_str = __commonJS({
           return url;
         }
         const website = match[3] ? match[2] : `${defaultScheme}://${match[2]}`;
-        return website.toLowerCase() + this.cutBefore(match[1], match[2]);
+        return website.toLowerCase() + cutBefore(match[1], match[2]);
       },
       /**
        * Checks if parameter is a string or function
@@ -22948,14 +22975,7 @@ var require_str = __commonJS({
        * Get file extension for a given url with or
        * without query parameters
        */
-      getExtension(url) {
-        var _a, _b;
-        if (typeof url !== "string") {
-          Log_1.default.warn("Str.getExtension: url is not a string", { url });
-          return void 0;
-        }
-        return (_b = (_a = url.split(".").pop()) === null || _a === void 0 ? void 0 : _a.split("?")[0]) === null || _b === void 0 ? void 0 : _b.toLowerCase();
-      },
+      getExtension,
       /**
        * Takes in a URL and checks if the file extension is PDF
        *
@@ -22963,7 +22983,7 @@ var require_str = __commonJS({
        * @returns Whether file path is PDF or not
        */
       isPDF(url) {
-        return this.getExtension(url) === "pdf";
+        return getExtension(url) === "pdf";
       },
       /**
        * Takes in a URL and checks if the file extension is an image
@@ -22974,7 +22994,7 @@ var require_str = __commonJS({
        * https://reactnative.dev/docs/image#source
        */
       isImage(url) {
-        const extension = this.getExtension(url);
+        const extension = getExtension(url);
         if (!extension) {
           return false;
         }
@@ -22990,7 +23010,7 @@ var require_str = __commonJS({
        * https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Video_codecs
        */
       isVideo(url) {
-        const extension = this.getExtension(url);
+        const extension = getExtension(url);
         if (!extension) {
           return false;
         }
@@ -23003,7 +23023,7 @@ var require_str = __commonJS({
        * @returns True if is a domain account email, otherwise false.
        */
       isDomainEmail(email) {
-        return this.startsWith(email, "+@");
+        return startsWith(email, "+@");
       },
       /**
        * Find the minimum indentation of any line in the string,
