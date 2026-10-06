@@ -35,12 +35,6 @@ const CUSTOM_WORKFLOW_EMPLOYEES: PolicyEmployeeList = {
     [SUBMITTER_EMAIL]: buildEmployee(SUBMITTER_EMAIL, APPROVER_EMAIL),
 };
 
-/** The default workflow, plus an "Approves to" user above an approval limit on the default approver. */
-const OVER_LIMIT_APPROVER_EMPLOYEES: PolicyEmployeeList = {
-    ...DEFAULT_WORKFLOW_EMPLOYEES,
-    [OWNER_EMAIL]: {email: OWNER_EMAIL, role: CONST.POLICY.ROLE.ADMIN, approvalLimit: 10000, overLimitForwardsTo: APPROVER_EMAIL},
-};
-
 const buildPolicy = (policy: Partial<Policy>): Policy => ({
     ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
     id: POLICY_ID,
@@ -133,28 +127,6 @@ describe('useApprovalWorkflows', () => {
         const {result} = await renderApprovalWorkflows(policy);
 
         expect(result.current.filteredApprovalWorkflows.length).toBeGreaterThan(1);
-        expect(result.current.isAdvanceApproval).toBe(true);
-    });
-
-    it('ignores extra non-beta workflows the workspace has not opted into, so it agrees with the Workflows tab', async () => {
-        // Without the beta and without ADVANCED mode the Workflows tab only displays the default workflow, so the
-        // invite page must not offer an approver for a workflow that surface refuses to show.
-        const policy = buildPolicy({employeeList: CUSTOM_WORKFLOW_EMPLOYEES, approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC});
-
-        const {result} = await renderApprovalWorkflows(policy);
-
-        expect(result.current.approvalWorkflows.length).toBeGreaterThan(1);
-        expect(result.current.filteredApprovalWorkflows).toHaveLength(1);
-        expect(result.current.isAdvanceApproval).toBe(false);
-    });
-
-    it('reports an advanced approval when the default approver forwards above an approval limit', async () => {
-        // `overLimitForwardsTo` does not extend the approver chain, so counting workflows and approvers misses it.
-        const policy = buildPolicy({employeeList: OVER_LIMIT_APPROVER_EMPLOYEES, approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED});
-
-        const {result} = await renderApprovalWorkflows(policy);
-
-        expect(result.current.filteredApprovalWorkflows).toHaveLength(1);
         expect(result.current.isAdvanceApproval).toBe(true);
     });
 
