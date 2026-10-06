@@ -37,19 +37,7 @@ type BankAccountValidationFormProps = {
     policy: OnyxEntry<Policy>;
 };
 
-type AmountValues = {
-    amount1: string;
-    amount2: string;
-    amount3: string;
-};
-
-function getAmountValues(values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): AmountValues {
-    return {
-        amount1: values?.amount1 ?? '',
-        amount2: values?.amount2 ?? '',
-        amount3: values?.amount3 ?? '',
-    };
-}
+const AMOUNT_KEYS = [INPUT_IDS.AMOUNT1, INPUT_IDS.AMOUNT2, INPUT_IDS.AMOUNT3] as const;
 
 const filterInput = (amount: string, amountRegex?: RegExp, permittedDecimalSeparator?: string) => {
     let value = amount ? amount.toString().trim() : '';
@@ -73,17 +61,15 @@ function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount,
     const permittedDecimalSeparator = getPermittedDecimalSeparator(decimalSeparator);
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> = {};
-        const amountValues = getAmountValues(values);
         const outputCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
         const amountRegex = RegExp(`^-?\\d{0,${CONST.IOU.AMOUNT_MAX_LENGTH}}([${permittedDecimalSeparator}]\\d{0,${getCurrencyDecimals(outputCurrency)}})?$`, 'i');
 
-        for (const key of Object.keys(amountValues)) {
-            const value = amountValues[key as keyof AmountValues];
-            const filteredValue = filterInput(value, amountRegex, permittedDecimalSeparator);
+        for (const key of AMOUNT_KEYS) {
+            const filteredValue = filterInput(values[key] ?? '', amountRegex, permittedDecimalSeparator);
             if (isRequiredFulfilled(filteredValue.toString())) {
                 continue;
             }
-            errors[key as keyof AmountValues] = translate('common.error.invalidAmount');
+            errors[key] = translate('common.error.invalidAmount');
         }
 
         return errors;
