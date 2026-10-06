@@ -21,7 +21,7 @@ const JS_SWITCHED_TABS = new Set<NavigationTab>([NAVIGATION_TABS.INBOX, NAVIGATI
 
 /**
  * What a tap on the native bar does on top of the tab switch, mirroring the JS tab buttons the native bar replaces.
- * Spend and Workspaces are handled by SpendTabPressListener and WorkspacesTabPressListener, which need Onyx data.
+ * Spend and Workspaces are handled by TabPressListeners, which need Onyx data.
  */
 const NAVIGATION_TAB_PRESS_HANDLERS: Partial<Record<NavigationTab, () => void>> = {
     [NAVIGATION_TABS.INBOX]: navigateToInboxTab,

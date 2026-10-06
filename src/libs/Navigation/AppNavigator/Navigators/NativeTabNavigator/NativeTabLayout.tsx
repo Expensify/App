@@ -14,7 +14,6 @@ import TabNavigatorBar from '@libs/Navigation/AppNavigator/Navigators/TabNavigat
 import NavigationTabBarFloatingActionButton from '@pages/inbox/sidebar/NavigationTabBarFloatingActionButton';
 
 import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
@@ -25,14 +24,10 @@ import {StyleSheet, View} from 'react-native';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 
 import NativeTabBarShadow from './NativeTabBarShadow';
-import SpendTabPressListener from './SpendTabPressListener';
+import TabPressListeners from './TabPressListeners';
 import {getFloatingButtonsBottom} from './useNativeTabBarOptions';
-import WorkspacesTabPressListener from './WorkspacesTabPressListener';
 
 type NativeTabLayoutProps = Parameters<NonNullable<NativeBottomTabNavigatorProps['layout']>>[0];
-
-/** A tab's own navigation, which receives the tab's `tabPress` events. */
-type NativeTabNavigation = NativeTabLayoutProps['descriptors'][string]['navigation'];
 
 function NativeTabLayout({children, state, descriptors}: NativeTabLayoutProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -43,13 +38,6 @@ function NativeTabLayout({children, state, descriptors}: NativeTabLayoutProps) {
     const selectedTab = ROUTE_TO_NAVIGATION_TAB[activeRoute?.name ?? SCREENS.HOME] ?? NAVIGATION_TABS.HOME;
     // The buttons follow whatever the navigator decided for the bar itself.
     const shouldShowNativeTabBar = shouldUseNarrowLayout && !!activeRoute && descriptors[activeRoute.key]?.options.tabBarStyle?.display !== 'none';
-    const getTabDescriptor = (routeName: string) => {
-        const route = state.routes.find((tabRoute) => tabRoute.name === routeName);
-        return route ? descriptors[route.key] : undefined;
-    };
-    const spendNavigation = getTabDescriptor(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR)?.navigation;
-    const spendOptions = getTabDescriptor(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR)?.options;
-    const workspacesNavigation = getTabDescriptor(NAVIGATORS.WORKSPACE_NAVIGATOR)?.navigation;
 
     if (!shouldUseNarrowLayout) {
         return (
@@ -63,13 +51,10 @@ function NativeTabLayout({children, state, descriptors}: NativeTabLayoutProps) {
     return (
         <View style={styles.flex1}>
             {children}
-            {!!spendNavigation && (
-                <SpendTabPressListener
-                    navigation={spendNavigation}
-                    isSwitchedByJS={spendOptions?.tabBarSelectionEnabled === false}
-                />
-            )}
-            {!!workspacesNavigation && <WorkspacesTabPressListener navigation={workspacesNavigation} />}
+            <TabPressListeners
+                state={state}
+                descriptors={descriptors}
+            />
             {!!isDebugModeEnabled && shouldShowNativeTabBar && <DebugTabView selectedTab={selectedTab} />}
             {shouldShowNativeTabBar && (
                 // The shadow and the buttons belong to the bar, so they fade with it rather than appearing in place.
@@ -98,4 +83,4 @@ function NativeTabLayout({children, state, descriptors}: NativeTabLayoutProps) {
 }
 
 export default NativeTabLayout;
-export type {NativeTabLayoutProps, NativeTabNavigation};
+export type {NativeTabLayoutProps};
