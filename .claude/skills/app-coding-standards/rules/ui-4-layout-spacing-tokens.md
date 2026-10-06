@@ -35,7 +35,7 @@ function CardRow() {
 }
 ```
 
-Available from `useLayoutSpacing()`: `cardPadding`, `cardPaddingHorizontal`, `cardPaddingTop`, `cardPaddingBottom`, `cardPaddingLeft`, `cardEdgeToEdge`, `cardMenuItemInset`, `cardGapBottom`, `pageGutter`, `pageGutterMargin`, `pageGutterRight`. Tokens live in `src/styles/layoutSpacing.ts`; add a new one there rather than writing a ternary.
+See `useLayoutSpacing`'s implementation for available options. Tokens live in `src/styles/layoutSpacing.ts`; add a new one there rather than writing a ternary.
 
 ---
 
@@ -48,7 +48,7 @@ Flag ONLY when ALL of these are true:
 
 **DO NOT flag if:**
 
-- The conditional picks vertical rhythm only (`pt`, `pb`, `pv`, `mt`, `mb`, `mv`, `gap`)
+- The conditional picks vertical spacing only (`pt`, `pb`, `pv`, `mt`, `mb`, `mv`, `gap`)
 - The values are not a card inset or page gutter and no token exists yet (suggest adding one instead)
 - The code is inside `src/styles/`
 
