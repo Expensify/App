@@ -91,7 +91,7 @@ function searchForReportsAndUsersInServer(searchInput: string) {
 
 function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDisplayed, ref}: SearchRouterProps) {
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {setShouldResetSearchQuery, getSearchKeyForQuery} = useSearchQueryActions();
@@ -109,6 +109,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const personalDetails = usePersonalDetails();
     const sortedReportActionsData = useSortedReportActionsData();
     const sortedActions = sortedReportActionsData?.sortedActions;
+    const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
+    const lastActions = sortedReportActionsData?.lastActions;
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
     const listRef = useRef<SelectionListWithSectionsHandle>(null);
@@ -226,9 +228,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 return undefined;
             }
             let reportForContextualSearch = recentReports.find((option) => option.reportID === contextualReportID);
-            const reportForContextualSearchReport = reportForContextualSearch ? contextualReport : undefined;
-            const reportAction = getReportAction(reportForContextualSearchReport?.parentReportID, reportForContextualSearchReport?.parentReportActionID);
-            const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
+            const reportAction = getReportAction(contextualReport?.parentReportID, contextualReport?.parentReportActionID);
+            const shouldParserToHTML = !!reportAction && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
             if (!reportForContextualSearch) {
                 if (!contextualReport || isHiddenForCurrentUser(contextualReport)) {
                     return undefined;
@@ -237,19 +238,23 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 const option = createOptionFromReport({
                     dateFnsLocale,
                     convertToDisplayString,
+                    convertToDisplayStringWithoutCurrency,
                     report: contextualReport,
                     personalDetails,
                     privateIsArchived: contextualReportNVP,
                     rules,
                     policy: contextualReportPolicy,
                     sortedActions,
+                    transactionThreadIDs,
+                    lastActions,
+                    currentUserAccountID,
+                    currentUserLogin: currentUserPersonalDetails.login,
                     conciergeReportID,
                     reportAttributesDerived: reportAttributes,
                     config: {
                         showPersonalDetails: isOneOnOneChat(contextualReport),
                     },
                     isTrackIntentUser,
-                    currentUserAccountID,
                 });
                 reportForContextualSearch = option;
             }
@@ -292,7 +297,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                             singleIcon: expensifyIcons.MagnifyingGlass,
                             searchQuery: reportQueryValue,
                             autocompleteID,
-                            itemStyle: styles.activeComponentBG,
                             keyForList: 'contextualSearch',
                             searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION,
                             roomType,
@@ -311,10 +315,12 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             isSearchRouterScreen,
             translate,
             expensifyIcons.MagnifyingGlass,
-            styles.activeComponentBG,
             contextualReport,
             personalDetails,
             sortedActions,
+            transactionThreadIDs,
+            lastActions,
+            currentUserPersonalDetails.login,
             contextualReportNVP,
             contextualReportPolicy,
             reportAttributes,
@@ -322,6 +328,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             dateFnsLocale,
             currentUserAccountID,
             convertToDisplayString,
+            convertToDisplayStringWithoutCurrency,
             rules,
         ],
     );
@@ -332,7 +339,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                   text: textInputValue,
                   singleIcon: expensifyIcons.MagnifyingGlass,
                   searchQuery: textInputValue,
-                  itemStyle: styles.activeComponentBG,
                   keyForList: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM,
                   searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
               },
@@ -343,7 +349,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                             singleIcon: expensifyIcons.ConciergeAvatar,
                             shouldIconApplyFill: false,
                             searchQuery: textInputValue,
-                            itemStyle: styles.activeComponentBG,
                             keyForList: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.ASK_CONCIERGE,
                             searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.ASK_CONCIERGE,
                         },

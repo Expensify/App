@@ -9,6 +9,7 @@ import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import IntlStore from '@src/languages/IntlStore';
 import type * as CardArtworkColorsModule from '@src/libs/CardArtworkColors';
 import {
+    checkIfNewFeedConnected,
     doesCardFeedExist,
     feedHasCards,
     filterAllInactiveCards,
@@ -28,6 +29,7 @@ import {
     getCardFeedIcon,
     getCardFeedWithDomainID,
     getCardHintText,
+    getCardNameError,
     getCardsByCardholderName,
     getCardSettings,
     getCommercialFeedCardDescription,
@@ -42,12 +44,18 @@ import {
     getCustomOrFormattedFeedName,
     getDefaultCommercialFeedDisplayName,
     getDefaultExpensifyCardLimitType,
+    getDisplayedExpensifyCardLimitType,
+    getExpensifyCardLimitChangeWarningKey,
+    getExpensifyCardLimitError,
+    getExpensifyCardLimitTypeChangeWarningKey,
+    getExpensifyCardNewAvailableSpend,
     getDisplayableExpensifyCards,
     getDisplayableThirdPartyCards,
     getDomainByFundID,
     getDomainOrWorkspaceAccountID,
     getEligibleBankAccountsForCard,
     getEligibleBankAccountsForUkEuCard,
+    getExpensifyCardEnrollmentRoute,
     getFeedNameForDisplay,
     getFeedType,
     getFilteredCardList,
@@ -57,6 +65,7 @@ import {
     getPlaidInstitutionId,
     getSelectedFeed,
     getTranslationKeyForCardStatus,
+    getVisibleExpensifyCardLimitTypes,
     getWalletProviderNameKey,
     getYearFromExpirationDateString,
     hasActiveExpensifyCard,
@@ -64,6 +73,8 @@ import {
     hasCardPendingDigitalWalletApproval,
     hasIssuedExpensifyCard,
     hasOnlyOneCardToAssign,
+    shouldConfirmExpensifyCardLimitTypeChange,
+    shouldShowExpensifyCardFixedLimitType,
     isBrokenConnectionPastDismissThreshold,
     isCardAlreadyAssigned,
     isCardFrozen,
@@ -92,6 +103,7 @@ import {
 } from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {
     BankAccountList,
     Card,
@@ -107,6 +119,7 @@ import type {
 } from '@src/types/onyx';
 import type {CardFeedWithNumber, CompanyFeeds} from '@src/types/onyx/CardFeeds';
 import type {Connections} from '@src/types/onyx/Policy';
+import type {ACHDataReimbursementAccount} from '@src/types/onyx/ReimbursementAccount';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {FC} from 'react';
@@ -1324,6 +1337,23 @@ describe('CardUtils', () => {
         });
     });
 
+    describe('checkIfNewFeedConnected', () => {
+        it('Should retain the Plaid feed after the initial feed update', () => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Plaid institution IDs are dynamic runtime feed keys that CompanyCardFeedWithDomainID cannot represent.
+            const plaidFeed = 'plaid.ins_123456#1' as CompanyCardFeedWithDomainID;
+            const cardFeeds = createMock<CombinedCardFeeds>({
+                [plaidFeed]: {
+                    domainID: 1,
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Plaid institution IDs are dynamic runtime feed keys that CompanyCardFeed cannot represent.
+                    feed: 'plaid.ins_123456' as CompanyCardFeed,
+                    pending: false,
+                },
+            });
+
+            expect(checkIfNewFeedConnected(cardFeeds, cardFeeds, 'ins_123456')).toEqual({isNewFeedConnected: plaidFeed, newFeed: undefined});
+        });
+    });
+
     describe('isCSVUploadFeed', () => {
         it('Should return true for ccupload feed', () => {
             expect(isCSVUploadFeed(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)).toBe(true);
@@ -2232,6 +2262,243 @@ describe('CardUtils', () => {
             });
 
             expect(getDefaultExpensifyCardLimitType(policy)).toBe(CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART);
+        });
+    });
+
+    describe('getDisplayedExpensifyCardLimitType', () => {
+        it('keeps a stored limit type', () => {
+            // Given a card that already has a limit type, on a workspace whose default is a different type
+            // When the displayed type is resolved
+            const displayedLimitType = getDisplayedExpensifyCardLimitType(CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED, CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY);
+
+            // Then the stored type is shown, because the default only fills in a missing type
+            expect(displayedLimitType).toBe(CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED);
+        });
+
+        it('uses the workspace default when the card has no stored limit type', () => {
+            // Given a card issued before a limit type was stored, on a workspace that defaults to Monthly
+            // When the displayed type is resolved
+            const displayedLimitType = getDisplayedExpensifyCardLimitType(undefined, CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY);
+
+            // Then Monthly is shown, rather than the Smart limit that getTranslationKeyForLimitType falls back to for a missing type
+            expect(displayedLimitType).toBe(CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY);
+        });
+    });
+
+    describe('shouldShowExpensifyCardFixedLimitType', () => {
+        it('hides Fixed when a monthly card has already spent its full unapproved limit', () => {
+            const card = createMock<Card>({
+                totalSpend: -5000,
+                nameValuePairs: {
+                    limitType: CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY,
+                    unapprovedExpenseLimit: 4000,
+                },
+            });
+
+            expect(shouldShowExpensifyCardFixedLimitType(card)).toBe(false);
+        });
+
+        it('shows Fixed when spend is under the unapproved limit', () => {
+            const card = createMock<Card>({
+                totalSpend: -2000,
+                nameValuePairs: {
+                    limitType: CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART,
+                    unapprovedExpenseLimit: 4000,
+                },
+            });
+
+            expect(shouldShowExpensifyCardFixedLimitType(card)).toBe(true);
+        });
+
+        it('shows Fixed when the current type is already Fixed', () => {
+            const card = createMock<Card>({
+                totalSpend: -5000,
+                nameValuePairs: {
+                    limitType: CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED,
+                    unapprovedExpenseLimit: 4000,
+                },
+            });
+
+            expect(shouldShowExpensifyCardFixedLimitType(card)).toBe(true);
+        });
+
+        it('uses the fallback limit type when the card has no limitType', () => {
+            const card = createMock<Card>({
+                totalSpend: -5000,
+                nameValuePairs: {
+                    unapprovedExpenseLimit: 4000,
+                },
+            });
+
+            expect(shouldShowExpensifyCardFixedLimitType(card)).toBe(true);
+            expect(shouldShowExpensifyCardFixedLimitType(card, CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY)).toBe(false);
+        });
+    });
+
+    describe('getVisibleExpensifyCardLimitTypes', () => {
+        const policy = createMock<Policy>({
+            type: CONST.POLICY.TYPE.CORPORATE,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+        });
+
+        it('offers Smart, Monthly, and Fixed on a physical card that has not spent its limit', () => {
+            // Given a physical card whose unapproved spend is still under the limit
+            const card = createMock<Card>({
+                totalSpend: -1000,
+                nameValuePairs: {
+                    isVirtual: false,
+                    limitType: CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY,
+                    unapprovedExpenseLimit: 4000,
+                },
+            });
+
+            // When the limit types this card can show are resolved
+            const limitTypes = getVisibleExpensifyCardLimitTypes(card, policy);
+
+            // Then Single Use is omitted, because it only exists on virtual cards
+            expect(limitTypes).toEqual([CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART, CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY, CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED]);
+        });
+
+        it('hides Fixed when a monthly card has already spent its full unapproved limit', () => {
+            // Given a monthly card that has already spent its full unapproved limit
+            const card = createMock<Card>({
+                totalSpend: -5000,
+                nameValuePairs: {
+                    isVirtual: false,
+                    limitType: CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY,
+                    unapprovedExpenseLimit: 4000,
+                },
+            });
+
+            // When the limit types this card can show are resolved
+            const limitTypes = getVisibleExpensifyCardLimitTypes(card, policy);
+
+            // Then Fixed is hidden, so the card cannot be switched onto a type that would decline new spend
+            expect(limitTypes).toEqual([CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART, CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY]);
+        });
+
+        it('offers Single Use on a virtual card', () => {
+            // Given a virtual card that has already spent its full unapproved limit
+            const card = createMock<Card>({
+                totalSpend: -5000,
+                nameValuePairs: {
+                    isVirtual: true,
+                    limitType: CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY,
+                    unapprovedExpenseLimit: 4000,
+                },
+            });
+
+            // When the limit types this card can show are resolved
+            const limitTypes = getVisibleExpensifyCardLimitTypes(card, policy);
+
+            // Then Single Use is offered and Fixed stays hidden
+            expect(limitTypes).toEqual([CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART, CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY, CONST.EXPENSIFY_CARD.LIMIT_TYPES.SINGLE_USE]);
+        });
+    });
+
+    describe('shouldConfirmExpensifyCardLimitTypeChange', () => {
+        const overLimitCard = createMock<Card>({
+            unapprovedSpend: -5000,
+            nameValuePairs: {
+                limitType: CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY,
+                unapprovedExpenseLimit: 4000,
+            },
+        });
+
+        it('confirms switching from Monthly to Smart when unapproved spend is over the limit', () => {
+            expect(shouldConfirmExpensifyCardLimitTypeChange(overLimitCard, CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART)).toBe(true);
+        });
+
+        it('does not confirm switching from Monthly to Fixed', () => {
+            expect(shouldConfirmExpensifyCardLimitTypeChange(overLimitCard, CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED)).toBe(false);
+        });
+
+        it('does not confirm when unapproved spend is under the limit', () => {
+            const card = createMock<Card>({
+                unapprovedSpend: -2000,
+                nameValuePairs: {
+                    limitType: CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY,
+                    unapprovedExpenseLimit: 4000,
+                },
+            });
+
+            expect(shouldConfirmExpensifyCardLimitTypeChange(card, CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART)).toBe(false);
+        });
+
+        it('uses the fallback limit type when the card has no limitType', () => {
+            const card = createMock<Card>({
+                unapprovedSpend: -5000,
+                nameValuePairs: {
+                    unapprovedExpenseLimit: 4000,
+                },
+            });
+
+            expect(shouldConfirmExpensifyCardLimitTypeChange(card, CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART)).toBe(false);
+            expect(shouldConfirmExpensifyCardLimitTypeChange(card, CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART, CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY)).toBe(true);
+        });
+    });
+
+    describe('getExpensifyCardLimitTypeChangeWarningKey', () => {
+        it('warns about Smart Limit when the current type is Monthly or Fixed', () => {
+            expect(getExpensifyCardLimitTypeChangeWarningKey(CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY)).toBe('workspace.expensifyCard.changeCardSmartLimitTypeWarning');
+            expect(getExpensifyCardLimitTypeChangeWarningKey(CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED)).toBe('workspace.expensifyCard.changeCardSmartLimitTypeWarning');
+        });
+
+        it('warns about Monthly when the current type is Smart', () => {
+            expect(getExpensifyCardLimitTypeChangeWarningKey(CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART)).toBe('workspace.expensifyCard.changeCardMonthlyLimitTypeWarning');
+        });
+    });
+
+    describe('getExpensifyCardNewAvailableSpend', () => {
+        it('subtracts current spend from the new limit', () => {
+            const card = createMock<Card>({
+                availableSpend: 4000,
+                nameValuePairs: {
+                    unapprovedExpenseLimit: 10000,
+                },
+            });
+
+            expect(getExpensifyCardNewAvailableSpend(card, 5000)).toBe(-1000);
+            expect(getExpensifyCardNewAvailableSpend(card, 20000)).toBe(14000);
+        });
+    });
+
+    describe('getExpensifyCardLimitChangeWarningKey', () => {
+        it('returns the warning for the current limit type', () => {
+            expect(getExpensifyCardLimitChangeWarningKey(CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART)).toBe('workspace.expensifyCard.smartLimitWarning');
+            expect(getExpensifyCardLimitChangeWarningKey(CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY)).toBe('workspace.expensifyCard.monthlyLimitWarning');
+            expect(getExpensifyCardLimitChangeWarningKey(CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED)).toBe('workspace.expensifyCard.fixedLimitWarning');
+            expect(getExpensifyCardLimitChangeWarningKey(undefined)).toBe('workspace.expensifyCard.fixedLimitWarning');
+        });
+    });
+
+    describe('getCardNameError', () => {
+        it('rejects empty, whitespace-only, and invisible-only names', () => {
+            expect(getCardNameError('')).toBe(CONST.INPUT_VALIDATION_ERRORS.REQUIRED);
+            expect(getCardNameError('   ')).toBe(CONST.INPUT_VALIDATION_ERRORS.REQUIRED);
+            expect(getCardNameError('\u200B')).toBe(CONST.INPUT_VALIDATION_ERRORS.REQUIRED);
+        });
+
+        it('measures length after sanitizing so padding does not count', () => {
+            const paddedName = `${'a'.repeat(CONST.STANDARD_LENGTH_LIMIT)}   `;
+
+            expect(getCardNameError(paddedName)).toBeUndefined();
+            expect(getCardNameError('a'.repeat(CONST.STANDARD_LENGTH_LIMIT + 1))).toBe(CONST.INPUT_VALIDATION_ERRORS.TOO_LONG);
+        });
+    });
+
+    describe('getExpensifyCardLimitError', () => {
+        it('rejects empty, non-numeric, fractional, and oversized limits', () => {
+            expect(getExpensifyCardLimitError('')).toBe(CONST.INPUT_VALIDATION_ERRORS.REQUIRED);
+            expect(getExpensifyCardLimitError('abc')).toBe(CONST.INPUT_VALIDATION_ERRORS.INVALID);
+            expect(getExpensifyCardLimitError('10.5')).toBe(CONST.INPUT_VALIDATION_ERRORS.NOT_INTEGER);
+            expect(getExpensifyCardLimitError(String(CONST.EXPENSIFY_CARD.LIMIT_VALUE + 1))).toBe(CONST.INPUT_VALIDATION_ERRORS.TOO_HIGH);
+        });
+
+        it('accepts integer amounts at or below the max', () => {
+            expect(getExpensifyCardLimitError('0')).toBeUndefined();
+            expect(getExpensifyCardLimitError('1000')).toBeUndefined();
+            expect(getExpensifyCardLimitError(String(CONST.EXPENSIFY_CARD.LIMIT_VALUE))).toBeUndefined();
         });
     });
 
@@ -4685,6 +4952,72 @@ describe('getEligibleBankAccountsForUkEuCard', () => {
         const result = getEligibleBankAccountsForUkEuCard(bankAccounts, undefined, 'GBP');
         expect(result).toHaveLength(1);
         expect(result.at(0)?.bankCountry).toBe('GB');
+    });
+});
+
+describe('getExpensifyCardEnrollmentRoute', () => {
+    const policyID = 'policy123';
+    const addBankAccountRoute = ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID, backTo: ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)});
+    const eligibleBankAccounts: BankAccountList = {
+        '1': {
+            accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, allowDebit: true, state: CONST.BANK_ACCOUNT.STATE.OPEN},
+            bankCurrency: CONST.CURRENCY.USD,
+            bankCountry: 'US',
+        },
+    };
+
+    it('returns the add bank account route when no eligible account exists', () => {
+        expect(
+            getExpensifyCardEnrollmentRoute({
+                policyID,
+                currencyCode: CONST.CURRENCY.USD,
+                isUkEuCurrencySupported: false,
+                bankAccountsList: {},
+                supportedCountriesByCurrency: undefined,
+                achData: undefined,
+            }),
+        ).toBe(addBankAccountRoute);
+    });
+
+    it('returns the bank account selector route when an eligible account exists', () => {
+        expect(
+            getExpensifyCardEnrollmentRoute({
+                policyID,
+                currencyCode: CONST.CURRENCY.USD,
+                isUkEuCurrencySupported: false,
+                bankAccountsList: eligibleBankAccounts,
+                supportedCountriesByCurrency: undefined,
+                achData: undefined,
+            }),
+        ).toBe(ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.getRoute(policyID));
+    });
+
+    it('returns the add bank account route when setup is in progress', () => {
+        const achData = createMock<ACHDataReimbursementAccount>({bankAccountID: 1, state: CONST.BANK_ACCOUNT.STATE.SETUP, policyID});
+        expect(
+            getExpensifyCardEnrollmentRoute({
+                policyID,
+                currencyCode: CONST.CURRENCY.USD,
+                isUkEuCurrencySupported: false,
+                bankAccountsList: eligibleBankAccounts,
+                supportedCountriesByCurrency: undefined,
+                achData,
+            }),
+        ).toBe(addBankAccountRoute);
+    });
+
+    it('returns the bank account selector route when another workspace has setup in progress', () => {
+        const achData = createMock<ACHDataReimbursementAccount>({bankAccountID: 1, state: CONST.BANK_ACCOUNT.STATE.SETUP, policyID: 'anotherPolicy'});
+        expect(
+            getExpensifyCardEnrollmentRoute({
+                policyID,
+                currencyCode: CONST.CURRENCY.USD,
+                isUkEuCurrencySupported: false,
+                bankAccountsList: eligibleBankAccounts,
+                supportedCountriesByCurrency: undefined,
+                achData,
+            }),
+        ).toBe(ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.getRoute(policyID));
     });
 });
 

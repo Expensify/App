@@ -44,9 +44,17 @@ function getInsights(dashboard: InsightsDashboardID, hash: number, jsonQuery: st
         },
     ];
 
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = snapshotHashes.map((snapshotHash) => ({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`,
+        value: {
+            search: {state: CONST.SEARCH.SNAPSHOT_STATE.LOADED, type: CONST.SEARCH.DATA_TYPES.EXPENSE, hash: snapshotHash},
+        },
+    }));
+
     waitForWrites(READ_COMMANDS.GET_INSIGHTS).then(() =>
         // API.read() hides the response code and network rejections, which are needed to tell backend errors from failed requests, same as Search
-        makeRequestWithSideEffects(READ_COMMANDS.GET_INSIGHTS, {jsonQuery}, {optimisticData, failureData})
+        makeRequestWithSideEffects(READ_COMMANDS.GET_INSIGHTS, {jsonQuery}, {optimisticData, successData, failureData})
             .then((result) => {
                 if (typeof result?.jsonCode !== 'number' || result.jsonCode === CONST.JSON_CODE.SUCCESS) {
                     return;

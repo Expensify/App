@@ -142,6 +142,9 @@ describe('OptionsListUtils', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
+            initialKeyStates: {
+                [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: 'policy1',
+            },
         });
 
         Onyx.multiSet({
@@ -194,22 +197,23 @@ describe('OptionsListUtils', () => {
             undefined,
         );
         await measureFunction(() => {
-            filterAndOrderOptions(
-                formattedOptions,
-                SEARCH_VALUE,
-                COUNTRY_CODE,
+            filterAndOrderOptions({
+                options: formattedOptions,
+                searchInputValue: SEARCH_VALUE,
+                countryCode: COUNTRY_CODE,
                 loginList,
-                MOCK_CURRENT_USER_EMAIL,
-                MOCK_CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: MOCK_CURRENT_USER_EMAIL,
+                currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 personalDetails,
-                {
+                config: {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 },
-                translateLocal,
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID: 'policy1',
+            });
         });
     });
     test('[OptionsListUtils] getFilteredOptions with empty search value', async () => {
@@ -227,22 +231,23 @@ describe('OptionsListUtils', () => {
             undefined,
         );
         await measureFunction(() => {
-            filterAndOrderOptions(
-                formattedOptions,
-                '',
-                COUNTRY_CODE,
+            filterAndOrderOptions({
+                options: formattedOptions,
+                searchInputValue: '',
+                countryCode: COUNTRY_CODE,
                 loginList,
-                MOCK_CURRENT_USER_EMAIL,
-                MOCK_CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: MOCK_CURRENT_USER_EMAIL,
+                currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 personalDetails,
-                {
+                config: {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 },
-                translateLocal,
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID: 'policy1',
+            });
         });
     });
 
@@ -445,22 +450,23 @@ describe('OptionsListUtils', () => {
         );
 
         await measureFunction(() => {
-            filterAndOrderOptions(
-                formattedOptions,
-                'Email Report Five',
-                COUNTRY_CODE,
+            filterAndOrderOptions({
+                options: formattedOptions,
+                searchInputValue: 'Email Report Five',
+                countryCode: COUNTRY_CODE,
                 loginList,
-                MOCK_CURRENT_USER_EMAIL,
-                MOCK_CURRENT_USER_ACCOUNT_ID,
-                largePersonalDetails,
-                {
+                currentUserEmail: MOCK_CURRENT_USER_EMAIL,
+                currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
+                personalDetails: largePersonalDetails,
+                config: {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 },
-                translateLocal,
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID: 'policy1',
+            });
         });
     });
 

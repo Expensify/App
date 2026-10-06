@@ -412,8 +412,6 @@ const translations: TranslationDeepObject<typeof en> = {
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
         skip: 'スキップ',
-        chatWithAccountManager: (accountManagerDisplayName: string) => `特定のご要望がありますか？アカウントマネージャーの${accountManagerDisplayName}とチャットしましょう。`,
-        chatNow: '今すぐチャット',
         workEmail: '勤務先メール',
         destination: '宛先',
         subrate: 'サブレート',
@@ -514,6 +512,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: '前年',
         nextYear: '来年',
         avatar: 'アバター',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${total} 件中 ${current} 件目`,
         editor: '編集者',
         restrictions: '制限',
         tryAgain: '再試行',
@@ -523,6 +522,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noResultsFoundSubtitle: '結果がありません。フィルターや検索キーワードを調整してお試しください',
         unableToDisplayChart: 'グラフを表示できません',
         webGLNotSupported: 'お使いのブラウザは WebGL に対応していません。有効にするか、別のブラウザに切り替えてください。',
+        chartFailedToLoad: 'グラフを読み込めませんでした。ページを再読み込みして、もう一度お試しください。',
         apiKey: 'API キー',
         exportsTo: 'エクスポート先',
     },
@@ -1324,6 +1324,8 @@ const translations: TranslationDeepObject<typeof en> = {
                     : '距離を記録する前に、プライベートプロフィールに自宅住所を追加する必要があります。このワークスペースでは、その住所を通勤控除に使用します。',
             cta: '自宅住所を追加',
         },
+        expenseAdded: '経費を追加しました',
+        invoiceSent: '請求書を送信しました',
         amount: '金額',
         percent: 'パーセント',
         date: '日付',
@@ -1895,6 +1897,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'ワークスペースでタグを有効にすると、この経費の詳細を編集したり、この経費からタグを削除したりできます。',
             confirmText: 'タグを削除',
         },
+        undeletedExpense: 'この経費を復元しました',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `新しいワークスペース「${policyName}」の距離単価を更新しました`,
     },
     transactionMerge: {
@@ -2984,7 +2987,7 @@ ${date} の ${merchant} への ${amount}`,
             `${memberName}はすでに${approverName}に提出する承認ワークフローに属しています。ここに追加すると、このワークフローに移動します。`,
         moveEveryoneToThisWorkflowTitle: '全員をこのワークフローに移動する',
         moveEveryoneToThisWorkflowPrompt:
-            'すべてのメンバーをこの承認ワークフローに移動しようとしています。他のすべての承認ワークフローは削除され、全員がこのワークフローに移行されます。この操作は元に戻せません。',
+            'すべてのメンバーをこの新しい承認ワークフローに移動しようとしています。保存すると、他のすべての承認ワークフローが削除されます。この操作は元に戻せません。',
     },
     workflowsApproverPage: {
         genericErrorMessage: '承認者を変更できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。',
@@ -3118,6 +3121,8 @@ ${date} の ${merchant} への ${amount}`,
             updateAvatar: 'このエージェントのアバターを更新する際に問題が発生しました',
         },
     },
+    agentPromptUpdated: ({updatedBy, previousPrompt, newPrompt}: {updatedBy: string; previousPrompt: string; newPrompt: string}) =>
+        `${updatedBy} がこのエージェントの指示を更新しました。\n以前の指示:\n${previousPrompt}\n新しい指示:\n${newPrompt}`,
     newAgentPage: {
         title: '新しいエージェント',
         buildCustomAgent: 'カスタムエージェントを作成',
@@ -3382,9 +3387,9 @@ ${date} の ${merchant} への ${amount}`,
             otherAccountingSoftware: 'ソフトウェア名',
         },
         interestedFeatures: {
-            title: 'どの機能にご興味がありますか？',
-            featuresAlreadyEnabled: '当社で最も人気のある機能はこちらです。',
-            featureYouMayBeInterestedIn: '追加機能を有効にする:',
+            title: 'ご希望の機能を選択してください',
+            featuresAlreadyEnabled: 'ワークスペースでは、すでに次の機能が有効になっています：',
+            featureYouMayBeInterestedIn: '興味のありそうな追加機能を有効にする：',
         },
         error: {
             requiredFirstName: '続行するには名を入力してください',
@@ -4631,19 +4636,21 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         },
         nudge: {
             airfareManual:
-                'Expensify でフライトの予約や管理ができることをご存じでしたか？次回からは経費を手動で作成する手間を省き、<a href="https://travel.expensify.com">Expensify Travel</a> から簡単に予約しましょう ✈️',
+                'Expensify で直接フライトを予約しても、マイレージプログラムでマイルを獲得できることをご存じでしたか？ 次回からは経費を手動で作成する手間を省き、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください ✈️',
             airfareCard:
-                'Expensify でフライトの予約や管理ができることをご存じでしたか？しかも領収書は自動でアップロードされます。次回からは、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> で予約してください ✈️',
+                'Expensify で直接フライトを予約しても、お持ちのマイレージプログラムでマイルを貯められることをご存じでしたか？領収書も自動的にアップロードされます。次回からは、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> からご予約ください ✈️',
             hotelManual:
-                'Expensify でホテルの予約や管理ができることをご存じですか？次回からは経費を手入力する手間を省き、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください 🏨',
-            hotelCard: 'Expensify でホテルの予約や管理ができることをご存じでしたか？次回からは、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> 経由で予約してください 🏨',
+                'Expensify から直接ホテルを予約しても、ホテルのロイヤリティプログラムをそのまま使えることをご存じでしたか？次回からは経費を手動で作成する手間を省き、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約しましょう 🏨',
+            hotelCard:
+                'Expensify から直接ホテルを予約しても、ホテルのロイヤリティプログラムをそのまま利用できることをご存じでしたか？次回からは、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> 経由で予約してください 🏨',
             carManual:
-                'Expensify でレンタカーの予約や管理ができることをご存じですか？次回からは経費を手動で作成する手間を省き、<a href="https://travel.expensify.com">Expensify Travel</a> から予約するだけで済みます。',
-            carCard: 'Expensify でレンタカーの予約や管理ができることをご存じですか？次回からは、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> からご予約ください。',
+                'Expensify でレンタカーを直接予約できて、レンタカーのロイヤルティプログラムもそのままご利用いただけることをご存じでしたか？次回からは経費を手動で作成する手間を省き、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください 🚗',
+            carCard:
+                'Expensify からそのままレンタカーを予約しても、お持ちのレンタカー会員プログラムを引き続きご利用いただけることをご存じでしたか？次回からは、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> でご予約ください 🚗',
             railManual:
-                'Expensify で列車の予約や管理ができることをご存じでしたか？次回からは、経費を手動で作成する手間を省いて、<a href="https://travel.expensify.com">Expensify Travel</a> から簡単に予約しましょう。',
+                'Expensify で列車の予約ができて、しかも鉄道のロイヤルティプログラムやレールカードもそのまま使えることをご存じでしたか？次回からは、経費を手動で作成する手間を省き、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください 🚂',
             railCard:
-                'Expensify で電車の予約や管理ができることをご存じでしたか？しかも領収書も自動でアップロードされます。次回からは、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください 🚂',
+                'Expensify で鉄道の乗車券を直接予約できて、鉄道のロイヤルティプログラムやレールカードもそのまま使えることをご存じでしたか？領収書も自動的にアップロードされます。次回からは <a href="https://travel.expensify.com">Expensify Travel</a> から簡単に予約しましょう。',
             hotelBlockManual:
                 'Expensify では、このようなグループ旅行の予約と管理を直接行えることをご存じでしたか？次回は面倒を省くために、ぜひ <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> ツールをお試しください。',
             hotelBlockCard:
@@ -4709,6 +4716,12 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             settlementFrequency: '清算頻度',
             setAsDefault: 'デフォルトのワークスペースに設定',
             defaultNote: `${CONST.EMAIL.RECEIPTS} に送信されたレシートは、このワークスペースに表示されます。`,
+            archive: 'ワークスペースをアーカイブ',
+            archiveConfirmation: 'このワークスペースをアーカイブしてもよろしいですか？',
+            archiveWithThirdPartyCardsConfirmation:
+                'このワークスペースをアーカイブしてもよろしいですか？ すべてのクレジットカードのユーザーへの割り当てが解除され、未申請のカード経費は完全に削除されます。',
+            archiveWithExpensifyCardsConfirmation:
+                'このワークスペースをアーカイブしてもよろしいですか？ すべての Expensify カードの利用限度額が $0 に設定され、新しい購入はすべて自動的に拒否されます。',
             deleteWorkspaceTitle: (workspaceName: string) => `${workspaceName} を削除しますか？`,
             deleteConfirmation: 'このワークスペースを削除してもよろしいですか？',
             deleteWithCardsConfirmation: 'このワークスペースを削除してもよろしいですか？ すべてのカードフィードと割り当て済みカードが削除されます。',
@@ -5419,6 +5432,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             journalEntriesProvTaxPostingAccount: '仕訳の地方税計上勘定',
             foreignCurrencyAmount: '外貨金額をエクスポート',
             exportToNextOpenPeriod: '次の未締め期間にエクスポート',
+            exportToNextOpenPeriodLockedSubtitle: '次の未締め期間へのエクスポートを無効にするには、先に立替精算対象外エクスポートの期間ごとの分割を無効にしてください。',
+            splitExportsByPostingPeriod: '転記期間ごとにエクスポートを分割',
+            splitExportsByPostingPeriodSubtitle: 'NetSuiteで立替精算対象外エクスポートの期間ごとの分割を有効にするには、次の未締め期間へのエクスポートを有効にしてください',
             nonReimbursableJournalPostingAccount: '立替精算対象外の仕訳計上勘定',
             reimbursableJournalPostingAccount: '立替精算用仕訳計上勘定',
             journalPostingPreference: {
@@ -6303,6 +6319,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             csvColumnType: 'タイプ',
             csvColumnLimitType: '限度タイプ',
             csvColumnLimit: '限度額',
+            noCardFeedsAvailable: '利用できるカードフィードがありません',
+            noCardFeedsAvailableDescription: 'このワークスペースで利用できるカードフィードはありません。',
         },
         categories: {
             deleteCategories: 'カテゴリを削除',
@@ -6534,7 +6552,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 corporate: '取引の削除を制限',
                 personal: '取引の削除を許可',
                 setFeedNameDescription: '他と区別できるように、カードフィードに一意の名前を付けてください',
-                setTransactionLiabilityDescription: '有効にすると、カード保有者はカード取引を削除できるようになります。新しい取引にもこのルールが適用されます。',
+                setTransactionLiabilityDescription: 'カード保有者は取引を削除できます。新しい取引にのみ適用されます。',
                 emptyAddedFeedTitle: 'このフィードにはカードがありません',
                 emptyAddedFeedDescription: '銀行のカード明細フィードにカードが含まれていることを確認してください。',
                 pendingFeedTitle: `リクエストを確認しています…`,
@@ -8151,6 +8169,7 @@ ${reportName}`,
                 flagAmountsOver: '超過金額にフラグを付ける',
                 flagAmountsOverDescription: (categoryName: string) => `カテゴリ「${categoryName}」に適用されます。`,
                 flagAmountsOverSubtitle: 'これは、すべての経費の上限金額を上書きします。',
+                expenseLimitType: '経費上限の種類',
                 expenseLimitTypes: {
                     expense: '個別経費',
                     expenseSubtitle:
@@ -8734,6 +8753,35 @@ ${reportName}`,
             syncTravelInvoicingSettlements: '出張請求の精算を同期',
             travelInvoicingSettlementAccount: {label: '出張請求精算口座', description: '精算に使う口座を選択してください。選択された口座で、Campfire に支払いを作成します。'},
             travelInvoicingPayableAccount: {label: '旅行請求買掛金勘定'},
+            exportToMultipleAccounts: '複数の勘定科目へのエクスポートを設定する',
+            cardProgramAccount: {
+                label: 'カードプログラム口座',
+                description: 'これらのカードプログラムのワークスペースアカウントを上書きします。',
+                descriptionLevel2: 'このカードプログラムのワークスペース口座を上書きします。',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'すべてのプログラムはデフォルトアカウントを使用します';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `カスタム勘定科目を使用するプログラム：${customAccountsCount} 件`;
+                    }
+                    return `${customAccountsCount} 件のプログラム（カスタムアカウントあり）`;
+                },
+            },
+            cardAccount: {
+                label: 'カード単位の口座',
+                description: '個々のカードに対してプログラム口座を上書きします。',
+                descriptionLevel2: 'これらのカードのプログラム口座を上書きします。',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'すべてのカードはプログラムアカウントを使用します';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `カスタム口座付きカード ${customAccountsCount} 枚`;
+                    }
+                    return `カスタム口座のあるカードが ${customAccountsCount} 枚`;
+                },
+            },
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central のセットアップ',
@@ -8750,6 +8798,51 @@ ${reportName}`,
             importDescription: 'Dynamics 365 Business Central からインポートするコーディング構成を選択してください。',
             items: 'アイテム',
             enableNewCategories: '新しくインポートされたカテゴリを有効にする',
+            exportDescription: 'Expensify のデータを Dynamics 365 Business Central にエクスポートする方法を設定します。',
+            exportDate: {
+                label: '取引日',
+                description: 'レポートを Dynamics 365 Business Central にエクスポートするときは、この日付を使用します。',
+                values: {
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: '最終支出日',
+                        description: 'レポートに記載されている最新の支出日。',
+                    },
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'エクスポート日',
+                        description: 'レポートが Dynamics 365 Business Central にエクスポートされた日付。',
+                    },
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: '提出日',
+                        description: 'レポートが承認のために提出された日付。',
+                    },
+                },
+            },
+            exportReimbursable: '返金対象経費の書き出し形式',
+            exportNonReimbursable: '会社カード経費のエクスポート形式',
+            exportDestination: {
+                [CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.JOURNAL_ENTRY]: '一般仕訳帳',
+                [CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE]: '購入請求書',
+            },
+            reimbursableAccount: {
+                label: '返金対象経費の口座',
+                description: '返金対象経費のエクスポート先を選択してください。',
+            },
+            defaultCompanyCardVendor: {
+                label: 'デフォルトの会社カードベンダー',
+                description: '自動的に一致しない経費に使用する、デフォルトの Dynamics 365 Business Central ベンダーを選択してください。',
+            },
+            companyCardAccount: {
+                label: '会社カード口座',
+                description: '会社カード取引のエクスポート先を選択してください。',
+            },
+            paymentMethod: {
+                label: '支払方法',
+                description: 'Dynamics 365 Business Central が銀行と照合できるよう、購入請求書の支払方法を選択してください。',
+            },
+            noBankAccountsFound: '銀行口座が見つかりません',
+            noBankAccountsFoundDescription: 'Dynamics 365 Business Central で銀行口座を追加し、接続を再度同期してください',
+            noPaymentMethodsFound: '支払方法が見つかりません',
+            noPaymentMethodsFoundDescription: 'Dynamics 365 Business Central で支払方法を追加し、接続を再度同期してください',
         },
     },
     getAssistancePage: {
@@ -9733,6 +9826,7 @@ ${reportName}`,
         noCategory: 'カテゴリなし',
         noMerchant: '店舗なし',
         noTag: 'タグなし',
+        noVendor: 'ベンダーなし',
         expenseType: '経費の種類',
         receiptType: '領収書の種類',
         receiptTypeValues: {
@@ -9790,7 +9884,12 @@ ${reportName}`,
             violationsBySubmitter: '申請者による違反',
         },
         mergeReports: {title: 'レポートをマージする', description: '保持するレポートを選択してください。すべての経費はそのレポートに移動され、他のレポートは削除されます。'},
-        percentOfSpend: ({percent}: {percent: string}) => `支出の${percent}`,
+        saveEdits: {
+            title: '編集を保存',
+            prompt: ({name}: {name: string}) => `「${name}」を更新しますか、それとも新規作成しますか？`,
+            createNew: '新規作成',
+            updateExisting: '既存のものを更新',
+        },
     },
     genericErrorPage: {
         title: 'おっと、問題が発生しました！',
@@ -10151,6 +10250,12 @@ ${reportName}`,
     distance: {
         addStop: '経由地を追加',
         address: '住所',
+        reuseRoute: 'ルートを再利用',
+        reusePriorRoute: '前回の経路を再利用',
+        choosePreviousRoute: '以前のルートを以下から選択してください。',
+        findARoute: '経路を検索',
+        lastUsed: ({date}: {date: string}) => `最終利用日：${date}`,
+        end: '終了',
         waypointDescription: {
             start: '開始',
             stop: '停止',
@@ -10828,7 +10933,18 @@ ${reportName}`,
                 invalid: 'このコードは無効です',
             },
         },
-        paymentHistory: {title: '支払い履歴を表示', subtitle: 'このアカウントに請求された毎月の支払い履歴のすべてです。'},
+        paymentHistory: {
+            title: '支払い履歴を表示',
+            subtitle: 'このアカウントに請求された毎月の支払い履歴のすべてです。',
+            payments: '支払い',
+            inclTax: '税込み',
+            empty: 'まだ支払いはありません。',
+            activeUsers: ({count}: {count: number}) => ({
+                one: 'アクティブユーザー 1 人',
+                other: `アクティブユーザー ${count} 名`,
+            }),
+            state: {paid: '支払い済み', cleared: '決済済み', failed: '失敗しました', refunded: '返金済み', disputed: '異議あり', balanceTransfer: '残高振替'},
+        },
         subscriptionSettings: {
             title: 'サブスクリプション設定',
             summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>
@@ -11394,6 +11510,13 @@ ${reportName}`,
             title: '独自のエージェントを作成する',
             description: `<muted-text>設定したルールに基づいて経費を確認、承認、振り分けるカスタムエージェントを作成できます。<a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">さらに詳しく</a>。</muted-text>`,
         },
+    },
+    earlyRenewal: {
+        confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} から ${endDate} までの12か月契約でサブスクリプションを更新します。`,
+        title: 'Expensify のサブスクリプションを更新する',
+        subtitle: '新年までにやることがひとつ減りました。',
+        confirmTitle: '更新を確認',
+        renew: '更新する',
     },
 };
 export default translations;

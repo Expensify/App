@@ -12,6 +12,7 @@ import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {CAROUSEL_SOURCE} from '@libs/actions/TransactionThreadNavigation';
 import {getMoneyRequestSpendBreakdown, getReportOfflinePendingActionAndErrors, isExpenseReport, isIOUReport} from '@libs/ReportUtils';
 import {getTransactionPendingAction} from '@libs/TransactionUtils';
 
@@ -227,7 +228,7 @@ function MoneyRequestReportTransactionList({
     const shouldShowGroupedTransactions = isExpenseReport(report) && !isIOUReport(report);
     const {currentSelection, currentGroupBy, shouldGroupTransactions, selectLayout} = useMoneyRequestReportLayout(shouldShowGroupedTransactions);
 
-    const {groupedTransactions, listItems, visualOrderTransactionIDs, lastTransactionID} = useMoneyRequestReportGroupedTransactions({
+    const {groupedTransactions, listItems, visualOrderTransactions, visualOrderTransactionIDs, lastTransactionID} = useMoneyRequestReportGroupedTransactions({
         reportCurrency: report.currency ?? '',
         sortedTransactions,
         resolvedTransactions,
@@ -235,12 +236,14 @@ function MoneyRequestReportTransactionList({
         shouldGroupTransactions,
         isOffline,
     });
-    useMoneyRequestReportActiveTransactionIDs(visualOrderTransactionIDs);
+    useMoneyRequestReportActiveTransactionIDs(visualOrderTransactionIDs, report?.reportID);
 
-    const {isMobileSelectionModeEnabled, toggleTransaction, isTransactionSelected, groupSelectionState, toggleGroupSelection} = useMoneyRequestReportTransactionSelection({
-        reportID,
-        groupedTransactions,
-    });
+    const {isMobileSelectionModeEnabled, toggleTransaction, isTransactionSelected, groupSelectionState, toggleGroupSelection, selectableTransactionIDs, toggleAll} =
+        useMoneyRequestReportTransactionSelection({
+            reportID,
+            groupedTransactions,
+            visualOrderTransactions,
+        });
 
     const {columnsToShow, dateColumnSize, postedColumnSize, amountColumnSize, taxAmountColumnSize, minTableWidth, shouldScrollHorizontally, isExpenseReportViewFromIOUReport} =
         useMoneyRequestReportColumns({report, policy, transactions, reportActions});
@@ -262,6 +265,9 @@ function MoneyRequestReportTransactionList({
             report,
             transaction: sortedTransactions.find((t) => t.transactionID === activeTransactionID),
             siblingTransactionIDs: visualOrderTransactionIDs,
+            // Not `carouselSource`: this list unmounts behind the expense it just opened, and its teardown must
+            // not clear the carousel it seeded for that expense.
+            carouselSource: CAROUSEL_SOURCE.reportRow(report?.reportID),
         });
     };
 
@@ -406,7 +412,8 @@ function MoneyRequestReportTransactionList({
     const tableColumnHeader =
         isEmptyTransactions || shouldUseNarrowLayout ? null : (
             <MoneyRequestReportTableHeaderRow
-                transactions={transactions}
+                selectableTransactionIDs={selectableTransactionIDs}
+                onToggleAll={toggleAll}
                 pendingAction={reportPendingAction}
                 columns={columnsToShow}
                 sortBy={sortBy}
