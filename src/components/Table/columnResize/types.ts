@@ -1,10 +1,10 @@
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
-/** A later column that pays for another column's resize. */
+/** A later column that absorbs another column's resize. */
 type ColumnAbsorber = {
     columnKey: string;
 
-    /** Narrowest it may be squeezed to, usually its content width so paying never truncates what it shows. */
+    /** Narrowest it may be squeezed to, usually its content width so absorbing never truncates what it shows. */
     minWidth: number;
 };
 
@@ -12,7 +12,7 @@ type ColumnAbsorber = {
 type ResizableColumn = {
     columnKey: string;
 
-    /** Later columns that pay for this one, in render order. Empty means resizing it overflows the table and scrolls. */
+    /** Later columns that absorb this one's resize, in render order. Empty means resizing it overflows the table and scrolls. */
     absorbers: ColumnAbsorber[];
 };
 

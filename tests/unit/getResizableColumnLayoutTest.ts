@@ -121,10 +121,10 @@ describe('getResizableColumnLayout', () => {
             rowChromeWidths,
         });
 
-        // Then the last headed column pays from its leftover, since the content-fitted column between has nothing to give
+        // Then the last headed column absorbs from its leftover, since the content-fitted column between has nothing to give
         expect(resolvedColumnWidths).toEqual({name: 260, email: 160, role: 140, arrow: 40});
 
-        // And it pays during the drag too, so the column doesn't jump on release, while the headless arrow never pays
+        // And it absorbs during the drag too, so the column doesn't jump on release, while the headless arrow never absorbs
         expect(resizableColumns.find((resizableColumn) => resizableColumn.columnKey === 'name')?.absorbers.map((absorber) => absorber.columnKey)).toEqual(['email', 'role']);
     });
 });

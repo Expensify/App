@@ -7,12 +7,9 @@ import type {ResizableColumn} from './types';
 import {getColumnWidthValue} from './columnWidthExpressions';
 import resolveOverriddenColumnWidths from './resolveOverriddenColumnWidths';
 
-/** What resizing needs to know about a column, whatever lays the columns out. */
-type ColumnWidthOverrideColumn = OverridableColumn;
-
 type ApplyColumnWidthOverridesParams = {
     /** Every column, in render order. */
-    columns: ColumnWidthOverrideColumn[];
+    columns: OverridableColumn[];
 
     /** Widths before stored overrides are applied. */
     baseColumnWidths: Record<string, number>;
@@ -33,22 +30,21 @@ type AppliedColumnWidthOverrides = {
 
 /** Layout-agnostic, so it serves grid tracks and flex basis alike. */
 function applyColumnWidthOverrides({columns, baseColumnWidths, columnWidthOverrides}: ApplyColumnWidthOverridesParams): AppliedColumnWidthOverrides {
-    const {columnWidths, payingColumnsByIndex} = resolveOverriddenColumnWidths({columns, baseColumnWidths, columnWidthOverrides});
+    const {columnWidths, absorbersByColumnKey} = resolveOverriddenColumnWidths({columns, baseColumnWidths, columnWidthOverrides});
 
     const columnWidthValues = columns.map((column) => getColumnWidthValue(column.key, columnWidths[column.key] ?? 0));
     const resizableColumns: ResizableColumn[] = [];
 
-    for (const [index, column] of columns.entries()) {
+    for (const column of columns) {
         // Only headed, content-sized columns drag. Columns with a declared width, like a switch, status or count, hold fixed-size content.
         if (!column.label || column.hasDeclaredWidth) {
             continue;
         }
 
-        resizableColumns.push({columnKey: column.key, absorbers: payingColumnsByIndex.at(index) ?? []});
+        resizableColumns.push({columnKey: column.key, absorbers: absorbersByColumnKey[column.key] ?? []});
     }
 
     return {columnWidths, columnWidthValues, resizableColumns};
 }
 
 export default applyColumnWidthOverrides;
-export type {ColumnWidthOverrideColumn};

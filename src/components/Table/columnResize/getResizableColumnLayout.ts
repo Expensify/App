@@ -33,7 +33,7 @@ type GetResizableColumnLayoutParams<DataType extends TableData, ColumnKey extend
 
     columnWidthOverrides: ColumnWidthOverrides | undefined;
 
-    /** Width each content-sized column's content and header need, which paying for another column never squeezes it below. */
+    /** Width each content-sized column's content and header need, which absorbing another column's resize never squeezes it below. */
     fitColumnWidths: Record<string, number>;
 
     /** Measured width of the area the table renders into. */
@@ -79,7 +79,7 @@ function getResizableColumnLayout<DataType extends TableData, ColumnKey extends 
     const availableColumnsWidth = tableWidth - rowMarginWidth - selectionColumnWidth - totalGapWidth - rowPaddingWidth;
     const baseColumnWidths = {...resolvedColumnWidths};
 
-    // Pays for wider columns to its left from the room it paints, leftover included, so that room is the first to go.
+    // Absorbs wider columns to its left from the room it paints, leftover included.
     // Floored so the row never overflows the table by a fraction of a pixel.
     if (growableColumnKey) {
         const leftoverWidth = Math.floor(availableColumnsWidth - getColumnsWidthSum(columns, resolvedColumnWidths));
@@ -119,7 +119,7 @@ function getResizableColumnLayout<DataType extends TableData, ColumnKey extends 
         dragMinWidths[growableColumnKey] = Math.min(minWidth, paintedWidth);
     }
 
-    // Scroll at the live column sum, so a drag that exhausts the paying columns starts scrolling mid-drag.
+    // Scroll at the live column sum, so a drag that exhausts the absorbers starts scrolling mid-drag.
     return {
         gridTemplateColumns,
         scrollWidth: getColumnsWidthExpression(rowWidthValues, totalGapWidth + rowMarginWidth + rowPaddingWidth, '100%'),

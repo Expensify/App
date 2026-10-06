@@ -1,8 +1,7 @@
 /**
- * Web column resizing: dragging a column's right edge sets its width, paid by the columns to its right. Widths live in
+ * Web column resizing: dragging a column's right edge sets its width, absorbed by the columns to its right. Widths live in
  * CSS custom properties so React doesn't render mid-drag. Only the dragged column's final width is stored in Onyx.
  */
-import type {AbsorberWidths} from '@components/Table/columnResize/columnResizeGestures';
 import {getDraggedColumnWidth, getResizedColumnWidths} from '@components/Table/columnResize/columnResizeGestures';
 import type {ResizableColumn} from '@components/Table/columnResize/types';
 
@@ -42,8 +41,8 @@ type Drag = {
     /** The column's width when the drag started. */
     startWidth: number;
 
-    /** Paying columns' widths when the drag started, read once so shares don't compound across moves. */
-    absorberStartWidths: AbsorberWidths;
+    /** Absorbers' widths by column key when the drag started, read once so shares don't compound across moves. */
+    absorberStartWidths: Record<string, number>;
 };
 
 function useColumnResize({columnResizingID, resizableColumns, resolvedColumnWidths, dragMinWidths, columnGap}: UseColumnResizeParams): ColumnResizeController | undefined {
@@ -56,9 +55,9 @@ function useColumnResize({columnResizingID, resizableColumns, resolvedColumnWidt
         document.body.style.cursor = '';
     };
 
-    /** Paying columns with their painted widths. Unreadable ones are skipped rather than pinned at zero. */
-    const readAbsorberWidths = (column: ResizableColumn): AbsorberWidths => {
-        const absorberWidths: AbsorberWidths = [];
+    /** Absorbers' painted widths. Unreadable ones are left out, so they're skipped rather than pinned at zero. */
+    const readAbsorberStartWidths = (column: ResizableColumn): Record<string, number> => {
+        const absorberStartWidths: Record<string, number> = {};
 
         for (const absorber of column.absorbers) {
             const startWidth = readColumnWidth(absorber.columnKey);
@@ -67,10 +66,10 @@ function useColumnResize({columnResizingID, resizableColumns, resolvedColumnWidt
                 continue;
             }
 
-            absorberWidths.push({...absorber, startWidth});
+            absorberStartWidths[absorber.columnKey] = startWidth;
         }
 
-        return absorberWidths;
+        return absorberStartWidths;
     };
 
     // Shared by pointerup, lost capture and cancel, so every way a drag can end keeps the width the user sees.
@@ -86,7 +85,7 @@ function useColumnResize({columnResizingID, resizableColumns, resolvedColumnWidt
             return;
         }
 
-        // Only the dragged column is stored. The resolver re-derives the payers, and storing them would mark them as user-sized.
+        // Only the dragged column is stored. The resolver re-derives the absorbers, and storing them would mark them as user-sized.
         setTableColumnWidth(columnResizingID, drag.column.columnKey, width);
     };
 
@@ -109,7 +108,7 @@ function useColumnResize({columnResizingID, resizableColumns, resolvedColumnWidt
             column,
             startClientX: event.clientX,
             startWidth: readColumnWidth(column.columnKey) ?? 0,
-            absorberStartWidths: readAbsorberWidths(column),
+            absorberStartWidths: readAbsorberStartWidths(column),
         };
         document.body.style.cursor = CONST.TABLES.COLUMN_RESIZE.CURSOR;
     };
@@ -124,7 +123,15 @@ function useColumnResize({columnResizingID, resizableColumns, resolvedColumnWidt
         const width = getDraggedColumnWidth(drag.startWidth, drag.startClientX, event.clientX, dragMinWidths?.[drag.column.columnKey]);
 
         // The line rides the handle, so it follows the clamped width, not the pointer.
-        for (const [columnKey, resizedWidth] of Object.entries(getResizedColumnWidths(drag.column.columnKey, width, drag.startWidth, drag.absorberStartWidths))) {
+        const resizedWidths = getResizedColumnWidths({
+            columnKey: drag.column.columnKey,
+            width,
+            startWidth: drag.startWidth,
+            absorbers: drag.column.absorbers,
+            absorberStartWidths: drag.absorberStartWidths,
+        });
+
+        for (const [columnKey, resizedWidth] of Object.entries(resizedWidths)) {
             writeColumnWidth(columnKey, resizedWidth);
         }
     };
