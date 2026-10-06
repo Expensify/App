@@ -90,7 +90,7 @@ function Text({
     }
 
     // Mobile WebKit shows only the ellipsis for very long single-line texts, so we pass at most MAX_SINGLE_LINE_TEXT_LENGTH characters there.
-    const shouldTruncateChildren = isMobileWebKit() &&props.numberOfLines === 1 && typeof children === 'string';
+    const shouldTruncateChildren = isMobileWebKit() && props.numberOfLines === 1 && typeof children === 'string';
     const displayedChildren = shouldTruncateChildren ? StringUtils.truncate(children, CONST.MAX_SINGLE_LINE_TEXT_LENGTH) : children;
 
     return (
