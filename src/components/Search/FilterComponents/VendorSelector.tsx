@@ -27,9 +27,7 @@ function VendorSelector({value = [], policyID, selectionListTextInputStyle, sele
     const {isBetaEnabled} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
 
-    // Only workspaces with the vendor feature on are offered, so a disconnected integration's leftover list never shows.
-    // Those workspaces always have their connections loaded, which carry the synced vendors, the same list the expense
-    // Vendor field offers. Only the names are kept so the selector result stays small.
+    // Uses the same synced vendors the expense Vendor field offers, keeping only the names so the selector result stays small.
     const vendorNamesSelector = useCallback(
         (allPolicies: OnyxCollection<Policy>) =>
             Object.fromEntries(
