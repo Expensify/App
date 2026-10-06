@@ -61,6 +61,7 @@ import type DatabaseSizeMeasurement from './DatabaseSizeMeasurement';
 import type {
     CardFeedErrorsDerivedValue,
     GuideAccountIDsDerivedValue,
+    SpendDataSignatureDerivedValue,
     LoginToAccountIDMapDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
     OneOnOneChatReportIDsDerivedValue,
@@ -140,6 +141,7 @@ import type PlaidData from './PlaidData';
 import type Policy from './Policy';
 import type {AutoReportingOffset, PolicyConnectionName, PolicyConnectionSyncProgress, PolicyReportField, TaxRate, TaxRates, TaxRatesWithDefault} from './Policy';
 import type {PolicyCategories, PolicyCategory} from './PolicyCategory';
+import type PolicyDataLoadingState from './PolicyDataLoadingState';
 import type {PolicyEmployeeList} from './PolicyEmployee';
 import type PolicyEmployee from './PolicyEmployee';
 import type PolicyJoinMember from './PolicyJoinMember';
@@ -323,6 +325,7 @@ export type {
     Policy,
     PolicyCategories,
     PolicyCategory,
+    PolicyDataLoadingState,
     PolicyVendors,
     PolicyEmployee,
     PolicyEmployeeList,
@@ -458,6 +461,7 @@ export type {
     CardFeedErrorsDerivedValue,
     LoginToAccountIDMapDerivedValue,
     GuideAccountIDsDerivedValue,
+    SpendDataSignatureDerivedValue,
     OneOnOneChatReportIDsDerivedValue,
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
