@@ -153,7 +153,7 @@ function DynamicFormFlow({
         clearSensitiveAnswers(formID);
     }, [isSubmitting, submitError, formID]);
 
-    // A page the answers now skip moves on to the next shown page, or back to the previous one. A stale link opens where a new visit would start.
+    // A page the answers now skip is replaced by the next shown page, or the previous one, so Back never lands on it. A stale link opens where a new visit would start.
     const pageNames = pages.map((page) => page.pageName);
     const nextShownPageName = pageNames.find((pageName, index) => index > pageIndex && !skipPages.includes(pageName));
     const previousShownPageName = pageNames.findLast((pageName, index) => index < pageIndex && !skipPages.includes(pageName));
@@ -162,8 +162,8 @@ function DynamicFormFlow({
         if (!isOnUnavailablePage || !unavailablePageTarget) {
             return;
         }
-        resetToPage(unavailablePageTarget);
-    }, [isOnUnavailablePage, resetToPage, unavailablePageTarget]);
+        Navigation.navigate(buildRoute(unavailablePageTarget), {forceReplace: true});
+    }, [isOnUnavailablePage, buildRoute, unavailablePageTarget]);
 
     /** Typed answers are drafted as FormProvider cleaned them and inputs left untouched are drafted with their defaults, so the draft matches what the page validated. Lists are drafted as they change, and their submitted entries carry sensitive answers, so they are left out. */
     const handleGroupSubmit = (group: DynamicFormGroup, pageValues: DynamicFormValues) => {

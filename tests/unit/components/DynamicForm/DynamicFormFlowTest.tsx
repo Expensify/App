@@ -250,13 +250,23 @@ describe('DynamicFormFlow', () => {
         expect(subPageOptions.startFrom).toBe(0);
     });
 
-    it('moves a URL naming a skipped page on to the next shown page', async () => {
+    it('replaces a URL naming a skipped page with the next shown page', async () => {
         // Given a private recipient, so the company page has nothing to ask, and a confirmation page after it
         // When the URL names the company page
         await renderFlow({draft: {legalType: 'PRIVATE'}, currentPageName: 'company', pageIndex: 2, hasConfirmation: true});
 
-        // Then the flow moves on to the confirmation page instead of showing an empty one
-        expect(mockResetToPage).toHaveBeenCalledWith('confirm');
+        // Then the confirmation page takes the company page's place in the stack, so Back does not return to the empty page
+        expect(Navigation.navigate).toHaveBeenCalledWith(buildRoute('confirm'), {forceReplace: true});
+        expect(mockResetToPage).not.toHaveBeenCalled();
+    });
+
+    it('replaces a URL naming an unknown page with the page a new visit starts on', async () => {
+        // Given a new form
+        // When the URL names a page the form does not have, as an old link would
+        await renderFlow({currentPageName: 'removed-page', pageIndex: 0});
+
+        // Then the first page takes its place in the stack
+        expect(Navigation.navigate).toHaveBeenCalledWith(buildRoute('personal-details'), {forceReplace: true});
     });
 
     it('drafts the page answers, keeps sensitive ones in memory, and hands the screen the page values', async () => {
