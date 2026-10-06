@@ -1127,6 +1127,9 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether we should export to the most recent open period if the current one is closed  */
         exportToNextOpenPeriod: boolean;
 
+        /** Whether non-reimbursable exports are split into one transaction per calendar month */
+        splitExportsByPostingPeriod?: boolean;
+
         /** Whether we will include the original foreign amount of a transaction to NetSuite */
         allowForeignCurrency?: boolean;
 
@@ -2672,6 +2675,44 @@ type BusinessCentralCodingFieldMappingsOfflineFeedbackKey = `${typeof CONST.BUSI
 type BusinessCentralCodingOfflineFeedbackKeys = keyof Omit<BusinessCentralCoding, 'fieldMappings'> | BusinessCentralCodingFieldMappingsOfflineFeedbackKey;
 
 /**
+ * Export configuration for Business Central.
+ */
+type BusinessCentralExport = {
+    /** Email of the workspace admin who exports reports to Business Central */
+    exporter: string;
+
+    /** Which date exported documents are dated with */
+    exportDate: ValueOf<typeof CONST.BUSINESS_CENTRAL_EXPORT_DATE>;
+
+    /** Business Central document reimbursable expenses export to */
+    reimbursable: ValueOf<typeof CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION>;
+
+    /** Business Central document non-reimbursable expenses export to */
+    nonReimbursable: ValueOf<typeof CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION>;
+
+    /** ID of the Business Central bank account reimbursable expenses export against */
+    reimbursableAccount: string;
+
+    /** ID of the Business Central bank account non-reimbursable expenses export against */
+    nonReimbursableAccount: string;
+
+    /** ID of the Business Central vendor company card expenses fall back to when no other vendor applies */
+    defaultVendorID: string;
+
+    /** Code of the Business Central payment method added to purchase invoices, empty when none is set */
+    paymentMethodCode: string;
+
+    /** Whether exported documents are only created or also posted in Business Central */
+    postingMode: ValueOf<typeof CONST.BUSINESS_CENTRAL_POSTING_MODE>;
+
+    /** Whether vendors and employees missing in Business Central are created on export */
+    autoCreateEntities: boolean;
+
+    /** Accounting method used during export */
+    accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
+};
+
+/**
  * Automatic synchronization settings for Business Central.
  */
 type BusinessCentralAutoSync = {
@@ -2702,6 +2743,9 @@ type BusinessCentralConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Coding settings */
         coding?: BusinessCentralCoding;
 
+        /** Export settings */
+        export?: BusinessCentralExport;
+
         /** Auto-sync settings */
         autoSync?: BusinessCentralAutoSync;
 
@@ -2711,7 +2755,7 @@ type BusinessCentralConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of form field errors  */
         errorFields?: OnyxCommon.ErrorFields;
     },
-    'companyID' | 'enableNewCategories' | BusinessCentralCodingOfflineFeedbackKeys | keyof BusinessCentralAutoSync
+    'companyID' | 'enableNewCategories' | BusinessCentralCodingOfflineFeedbackKeys | keyof BusinessCentralExport | keyof BusinessCentralAutoSync
 >;
 
 /** Gusto connection data */
@@ -3249,11 +3293,11 @@ type CodingRuleTax = {
         /** The external ID of the tax rate */
         externalID: string;
 
-        /** The tax rate value (e.g., "8.5%") */
-        value: string;
+        /** The tax rate value (e.g., "8.5%"). Absent when the rule was saved before the policy's rates loaded. */
+        value?: string;
 
-        /** The name of the tax rate */
-        name: string;
+        /** The name of the tax rate. Absent when the rule was saved before the policy's rates loaded. */
+        name?: string;
     };
 };
 
@@ -3796,7 +3840,6 @@ export type {
     ExpenseRule,
     CodingRule,
     CodingRuleFilter,
-    CodingRuleTax,
     NetSuiteConnectionConfig,
     MccGroup,
     Subrate,
@@ -3845,5 +3888,6 @@ export type {
     CampfireSync,
     BusinessCentralCompany,
     BusinessCentralCoding,
+    BusinessCentralExport,
     BusinessCentralCodingOfflineFeedbackKeys,
 };

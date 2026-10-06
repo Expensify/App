@@ -69,8 +69,12 @@ const VictoryTheme = {
         xLineWidth: 0,
         /** Line width for Y-axis grid lines */
         yLineWidth: 1,
-        /** Desired visual gap (px) between axis labels and the chart edge, used for both axes */
+        /** Dash and gap lengths (px) of the grid lines */
+        gridDashIntervals: [4, 8],
+        /** Desired visual gap (px) between axis labels and the chart edge */
         labelGap: 12,
+        /** Gap (px) between the plot and the X-axis labels */
+        xAxisLabelGap: 24,
         /** Base chart padding applied to all sides */
         padding: {top: 5, left: 5, right: 5, bottom: 5},
     },

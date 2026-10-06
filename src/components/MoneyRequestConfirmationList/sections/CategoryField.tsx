@@ -1,16 +1,22 @@
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getDecodedLeafCategoryName} from '@libs/CategoryUtils';
+import {getDecodedLeafCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import {hasEnabledOptions} from '@libs/OptionsListUtils';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -18,10 +24,13 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 
-import ExpenseFieldRow from './ExpenseFieldRow';
+import CategoryFieldDropdown from './CategoryFieldDropdown';
+import ExpenseFieldDropdown from './ExpenseFieldDropdown';
 import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {categoryStateSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
+
+const hasEnabledCategoriesSelector = (policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>) => hasEnabledOptions(Object.values(policyCategories ?? {}));
 
 type CategoryFieldProps = {
     isCategoryRequired: boolean;
@@ -53,19 +62,26 @@ function CategoryField({
     shouldSelectPolicy,
 }: CategoryFieldProps) {
     const {shouldUseDropdownRows} = useExpenseFormLayout();
+    const {isEditingSplitBill} = useConfirmationFields();
+    const {isBetaEnabled} = usePermissions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles']);
 
     const categoryState = useTransactionSelector(transactionID, categoryStateSelector);
+    const [hasEnabledCategories = false] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policy?.id)}`, {selector: hasEnabledCategoriesSelector});
 
     const shouldDisplayCategoryError = formError === 'violations.categoryOutOfPolicy';
     const iouCategory = categoryState?.category ?? '';
     const willAutoFill = categoryState?.willAutoFill ?? false;
     const isAutoFillFromReceipt = categoryState?.isAutoFillFromReceipt ?? false;
     const decodedCategoryName = getDecodedLeafCategoryName(iouCategory);
+    // The list marks and clears by the stored category name, not by the leaf name the row shows.
+    const selectedCategory = isCategoryMissing(iouCategory) ? '' : iouCategory;
 
-    const shouldPromiseAutomaticCategory = willAutoFill && (isAutoFillFromReceipt || !isCategoryRequired);
+    // The workspace setting defaults to on. Turning it off means nothing will pick a category, so the row must not promise one.
+    const isAutoCategorizationEnabled = policy?.autoCategorizeNewExpenses !== false;
+    const shouldPromiseAutomaticCategory = isAutoCategorizationEnabled && willAutoFill && (isAutoFillFromReceipt || !isCategoryRequired);
 
     const getCategoryRightLabelIcon = () => (shouldPromiseAutomaticCategory ? icons.Sparkles : undefined);
     const getCategoryRightLabel = () => {
@@ -133,9 +149,14 @@ function CategoryField({
         }
     };
 
+    const canSaveFromThisForm = action !== CONST.IOU.ACTION.EDIT || isEditingSplitBill;
+    const canUseAnchoredFieldDropdowns = isBetaEnabled(CONST.BETAS.ANCHORED_FIELD_DROPDOWNS);
+    const shouldOpenInDropdown =
+        canUseAnchoredFieldDropdowns && !!transactionID && !!policy && !shouldNavigateToUpgradePath && !shouldSelectPolicy && hasEnabledCategories && canSaveFromThisForm;
+
     if (shouldUseDropdownRows) {
         return (
-            <ExpenseFieldRow
+            <ExpenseFieldDropdown
                 name={translate('common.category')}
                 value={decodedCategoryName}
                 numberOfLinesValue={2}
@@ -144,9 +165,20 @@ function CategoryField({
                 // On a scan, `Automatic` describes the category Concierge picked, so it has to outlive the field
                 // being filled in. On a manual expense it only promises a category for a field that is still
                 // empty, so there it goes the moment the field holds one, the same way `Required` does.
-                shouldKeepRightLabelWhenFilled={willAutoFill && isAutoFillFromReceipt}
+                shouldKeepRightLabelWhenFilled={shouldPromiseAutomaticCategory && isAutoFillFromReceipt}
                 errorText={shouldDisplayCategoryError ? translate(formError as TranslationPaths) : ''}
                 onPress={openCategoryPage}
+                shouldOpenInDropdown={shouldOpenInDropdown && !isReadOnly && !didConfirm}
+                renderDropdown={(dropdownProps) =>
+                    !!transactionID && (
+                        <CategoryFieldDropdown
+                            {...dropdownProps}
+                            transactionID={transactionID}
+                            policy={policy}
+                            selectedCategory={selectedCategory}
+                        />
+                    )
+                }
                 isDisabled={didConfirm}
                 isInteractive={!isReadOnly}
                 sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.CATEGORY_FIELD}
