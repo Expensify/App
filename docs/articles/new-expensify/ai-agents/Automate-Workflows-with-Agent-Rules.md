@@ -194,9 +194,7 @@ RuleBot enforces your Agent rules, so it can't be removed, demoted, or deleted w
 
 ## Can I use RuleBot in an approval workflow?
 
-Yes. On Control plans, RuleBot can be used anywhere an approver can be selected, including multi-step approval workflows.
-
-On Collect plans, workspaces support a single approver. RuleBot can be used as that approver.
+Yes. As a workspace member, RuleBot can be used anywhere an approver can be selected, including multi-step approval workflows.
 
 ## Where can I see a history of Agent rule changes?
 
