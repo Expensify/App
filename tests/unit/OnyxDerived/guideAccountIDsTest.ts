@@ -47,4 +47,36 @@ describe('guideAccountIDs', () => {
         expect(guideAccountIDsConfig.compute([guideListedLast], {})).toEqual([otherGuideAccountID, guideAccountID]);
         expect(guideAccountIDsConfig.compute([sameGuidesPlusAnAvatarChange], {})).toEqual([otherGuideAccountID, guideAccountID]);
     });
+
+    it('should return the current value when the guides are unchanged', () => {
+        // Given the guide accountIDs computed from the current personal details
+        const personalDetailsList: PersonalDetailsList = {
+            [guideAccountID]: {accountID: guideAccountID, login: guideLogin},
+            [memberAccountID]: {accountID: memberAccountID, login: 'member@example.com'},
+        };
+        const currentValue = guideAccountIDsConfig.compute([personalDetailsList], {});
+
+        // When a member changes their name, which leaves the set of guides as it was
+        const renamedMember: PersonalDetailsList = {...personalDetailsList, [memberAccountID]: {accountID: memberAccountID, login: 'member@example.com', displayName: 'Renamed'}};
+
+        // Then the same array comes back, so consumers comparing by reference don't re-render
+        expect(guideAccountIDsConfig.compute([renamedMember], {currentValue})).toBe(currentValue);
+    });
+
+    it('should return a new array when a guide is removed', () => {
+        // Given two guides
+        const twoGuides: PersonalDetailsList = {
+            [guideAccountID]: {accountID: guideAccountID, login: guideLogin},
+            [otherGuideAccountID]: {accountID: otherGuideAccountID, login: otherGuideLogin},
+        };
+        const currentValue = guideAccountIDsConfig.compute([twoGuides], {});
+
+        // When one of them leaves the personal details
+        const oneGuide: PersonalDetailsList = {[guideAccountID]: {accountID: guideAccountID, login: guideLogin}};
+        const result = guideAccountIDsConfig.compute([oneGuide], {currentValue});
+
+        // Then a shorter list must not be mistaken for the current one
+        expect(result).not.toBe(currentValue);
+        expect(result).toEqual([guideAccountID]);
+    });
 });
