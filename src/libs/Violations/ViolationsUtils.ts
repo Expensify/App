@@ -356,7 +356,10 @@ function buildRuleViolationMessage(
         const op = filter.operator;
 
         if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
-            const expenseTypesString = values.map((value) => (value === 'perDiem' ? translate('violations.ruleViolation.perDiem') : value)).join(` ${translate('common.or')} `);
+            const expenseTypesString = values
+                .map((value) => (value === CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM ? translate('violations.ruleViolation.perDiem') : value))
+                .join(` ${translate('common.or')} `);
+
             const capitalizedExpenseTypesString = `${expenseTypesString.charAt(0).toUpperCase()}${expenseTypesString.slice(1)}`;
             if (op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
                 adjectives.push(capitalizedExpenseTypesString);
@@ -368,7 +371,7 @@ function buildRuleViolationMessage(
                 continue;
             }
 
-            const isTrue = (firstValue === 'yes') !== (op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO);
+            const isTrue = (firstValue === CONST.SEARCH.BOOLEAN.YES) !== (op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO);
             if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE) {
                 adjectives.push(translate(isTrue ? 'violations.ruleViolation.billable.enabled' : 'violations.ruleViolation.billable.disabled'));
             } else {
@@ -421,11 +424,12 @@ function buildRuleViolationMessage(
             }
         } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) {
             if (op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
-                phrases.push(
+                const phrase =
                     hasSingleValue && firstValue === CONST.SEARCH.TAG_EMPTY_VALUE
                         ? translate('violations.ruleViolation.withoutTag')
-                        : translate('violations.ruleViolation.tagged', filterValuesString),
-                );
+                        : translate('violations.ruleViolation.tagged', filterValuesString);
+
+                phrases.push(phrase);
             }
         } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY) {
             if (op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
@@ -443,11 +447,15 @@ function buildRuleViolationMessage(
             const isNegated = op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO || op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_CONTAINS;
             const isEqualToOp = op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO || op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO;
             const isContainsOp = op === CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS || op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_CONTAINS;
+
             if (!isEqualToOp && !isContainsOp) {
                 continue;
             }
 
-            const attributes = values.map((value) => (value === 'attachment' ? translate('violations.ruleViolation.attachment') : translate('violations.ruleViolation.attribute', value)));
+            const attributes = values.map((value) => {
+                return value === CONST.SEARCH.HAS_VALUES.ATTACHMENT ? translate('violations.ruleViolation.attachment') : translate('violations.ruleViolation.attribute', value);
+            });
+
             const attributesTranslationKey = isNegated ? 'violations.ruleViolation.withoutAttributes' : 'violations.ruleViolation.withAttributes';
             phrases.push(translate(attributesTranslationKey, attributes.join(` ${translate('common.or')} `)));
         } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.MCC && op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
@@ -1262,6 +1270,8 @@ const ViolationsUtils = {
                 return translate('violations.itemizedReceiptRequired', !isEmptyObject(violation.data) ? convertToDisplayString(amount, currency) : undefined);
             case 'customRules':
                 return translate('violations.customRules', message);
+            case 'ruleViolation':
+                return buildRuleViolationMessage(violation.data?.filters, currency, convertToDisplayString, translate);
             case 'rter': {
                 let isPersonalCardViolation = false;
                 if (cardID !== undefined && cardID !== null && card) {
