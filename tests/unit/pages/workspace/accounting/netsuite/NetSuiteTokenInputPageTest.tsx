@@ -228,7 +228,7 @@ describe('NetSuiteTokenInputPage', () => {
         // When the credentials page is rendered for reconnection
         renderPage(PAGE_NAME.CREDENTIALS, undefined, policy);
 
-        // Then the OAuth form is shown — TBA auth errors now migrate through OAuth
+        // Then the OAuth form is shown. TBA auth errors now migrate through OAuth.
         expect(screen.getByTestId('oauth-form')).toBeOnTheScreen();
         expect(mockStepNames.current).toBe(CONST.NETSUITE_CONFIG.TOKEN_INPUT.OAUTH_STEP_INDEX_LIST);
     });
