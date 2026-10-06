@@ -550,24 +550,25 @@ describe('WorkspaceMoreFeaturesPage', () => {
         });
 
         it.each([
-            {isConfigured: true, isBetaEnabled: false, shouldShowVendors: true},
-            {isConfigured: true, isBetaEnabled: true, shouldShowVendors: true},
-            {isConfigured: false, isBetaEnabled: false, shouldShowVendors: false},
-            {isConfigured: false, isBetaEnabled: true, shouldShowVendors: false},
-            {isConfigured: undefined, isBetaEnabled: false, shouldShowVendors: false},
-            {isConfigured: undefined, isBetaEnabled: true, shouldShowVendors: false},
-        ])('sets Campfire Vendors visibility to $shouldShowVendors with configured=$isConfigured and beta=$isBetaEnabled', async ({isConfigured, isBetaEnabled, shouldShowVendors}) => {
-            // Given a Campfire connection whose configuration determines vendor availability
+            {isConfigured: true, isBetaEnabled: false, isVendorsActive: true},
+            {isConfigured: true, isBetaEnabled: true, isVendorsActive: true},
+            {isConfigured: false, isBetaEnabled: false, isVendorsActive: false},
+            {isConfigured: false, isBetaEnabled: true, isVendorsActive: false},
+            {isConfigured: undefined, isBetaEnabled: false, isVendorsActive: false},
+            {isConfigured: undefined, isBetaEnabled: true, isVendorsActive: false},
+        ])('shows the Campfire Vendors row with active=$isVendorsActive for configured=$isConfigured and beta=$isBetaEnabled', async ({isConfigured, isBetaEnabled, isVendorsActive}) => {
+            // Given a Campfire connection whose configuration determines whether vendor matching is active
             const connections = {[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {config: {isConfigured}}};
 
             // When the More features page renders with the selected beta state
             await renderWithVendorMatching(connections, isBetaEnabled);
 
-            // Then configured Campfire workspaces show the active, locked switch without requiring the beta
-            if (shouldShowVendors) {
-                expect(await findLockedSwitch('workspace.moreFeatures.vendors.subtitle')).toBeChecked();
+            // Then the locked row shows without the beta so admins can discover it, and is only on once Campfire is configured
+            const vendorsSwitch = await findLockedSwitch('workspace.moreFeatures.vendors.subtitle');
+            if (isVendorsActive) {
+                expect(vendorsSwitch).toBeChecked();
             } else {
-                expect(vendorsSwitchQuery()).toBeNull();
+                expect(vendorsSwitch).not.toBeChecked();
             }
         });
 
