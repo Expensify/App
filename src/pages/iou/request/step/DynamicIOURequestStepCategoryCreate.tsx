@@ -26,6 +26,7 @@ import getPathWithoutDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesU
 import Navigation from '@libs/Navigation/Navigation';
 import {hasTags} from '@libs/PolicyUtils';
 import {isSelfDM} from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CategoryForm from '@pages/workspace/categories/CategoryForm';
@@ -125,7 +126,7 @@ function DynamicIOURequestStepCategoryCreate({
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS);
 
     const createCategory = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
-        const categoryName = values.categoryName.trim();
+        const categoryName = StringUtils.sanitizeName(values.categoryName);
 
         if (!policyID) {
             return;
