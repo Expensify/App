@@ -63,7 +63,7 @@ import {
 } from './helpers/preMountBuffer';
 import replaceWithSplitNavigator from './helpers/replaceWithSplitNavigator';
 import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionToMicrotaskQueue';
-import {linkingConfig} from './linkingConfig';
+import {config as linkingConfig} from './linkingConfig/config';
 import {SPLIT_TO_SIDEBAR} from './linkingConfig/RELATIONS';
 import navigationRef from './navigationRef';
 import TransitionTracker from './TransitionTracker';
@@ -515,7 +515,7 @@ function goUp(backToRoute: Route, options?: GoBackOptions): boolean {
 
     const stateFromPath = getStateFromPath(backToRoute);
 
-    const action = getActionFromState(stateFromPath, linkingConfig.config);
+    const action = getActionFromState(stateFromPath, linkingConfig);
 
     if (!action) {
         Log.hmmm(`[Navigation] Unable to go up. Action is undefined.`);
