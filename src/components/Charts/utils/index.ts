@@ -468,10 +468,22 @@ function getNiceValueTicks(domain: [number, number], tickCount: number): number[
  * Horizontal plot bounds of a vertical bar chart for a container width, mirroring victory-native's layout.
  * Deriving it from the width (not post-mount) lets the wrapper re-decide orientation on every resize.
  */
-function getVerticalBarPlotBounds(chartWidth: number, paddingLeft: number): {left: number; right: number; width: number} {
-    const left = paddingLeft + VictoryTheme.axis.labelGap;
-    const right = Math.max(left, chartWidth - VictoryTheme.axis.padding.right);
+function getVerticalBarPlotBounds(chartWidth: number, paddingRight: number): {left: number; right: number; width: number} {
+    const left = VictoryTheme.axis.padding.left;
+    const right = Math.max(left, chartWidth - paddingRight - VictoryTheme.axis.labelGap);
     return {left, right, width: right - left};
+}
+
+/**
+ * Domain padding that leaves `edgeSpace` px between the plot edges and the first and last points.
+ * victory-native fits the padded domain back into the plot width, so the space on screen is smaller than the padding.
+ */
+function getDomainPaddingForEdgeSpace(edgeSpace: {left: number; right: number}, plotWidth: number): {left: number; right: number} {
+    const pointsSpan = plotWidth - edgeSpace.left - edgeSpace.right;
+    if (pointsSpan <= 0) {
+        return edgeSpace;
+    }
+    return {left: (edgeSpace.left * plotWidth) / pointsSpan, right: (edgeSpace.right * plotWidth) / pointsSpan};
 }
 
 /**
@@ -565,6 +577,7 @@ export {
     getHorizontalChartHeight,
     getVerticalBarPlotBounds,
     getVerticalBarLabelLayoutInputs,
+    getDomainPaddingForEdgeSpace,
 };
 
 export type {ChartLabelHitTestParams};

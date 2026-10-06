@@ -7,6 +7,7 @@ import {
     effectiveWidth,
     findSliceAtPosition,
     getAdditionalOffset,
+    getDomainPaddingForEdgeSpace,
     getHorizontalChartHeight,
     getNiceYAxisTicks,
     getVerticalBarLabelLayoutInputs,
@@ -752,19 +753,19 @@ describe('getHorizontalChartHeight', () => {
 });
 
 describe('getVerticalBarPlotBounds', () => {
-    // labelGap = 12, padding.right = 5 (from VictoryTheme.axis)
+    // labelGap = 12, padding.left = 5 (from VictoryTheme.axis)
     const LABEL_GAP = VictoryTheme.axis.labelGap;
-    const PADDING_RIGHT = VictoryTheme.axis.padding.right;
+    const PADDING_LEFT = VictoryTheme.axis.padding.left;
 
-    it('reserves the left gutter for labels and the right base padding', () => {
-        // Given a 300px container with a 30px left gutter
+    it('reserves the right gutter for labels and the left base padding', () => {
+        // Given a 300px container with a 30px right gutter
         // When computing the plot bounds
-        // Then the plot starts past the gutter+labelGap and ends before the right padding
-        expect(getVerticalBarPlotBounds(300, 30)).toEqual({left: 30 + LABEL_GAP, right: 300 - PADDING_RIGHT, width: 300 - PADDING_RIGHT - (30 + LABEL_GAP)});
+        // Then the plot starts after the left padding and ends before the gutter+labelGap
+        expect(getVerticalBarPlotBounds(300, 30)).toEqual({left: PADDING_LEFT, right: 300 - 30 - LABEL_GAP, width: 300 - 30 - LABEL_GAP - PADDING_LEFT});
     });
 
     it('grows the plot width one-for-one with the container width', () => {
-        // Given the same left gutter but a wider container
+        // Given the same right gutter but a wider container
         // When comparing plot widths
         // Then every extra container pixel becomes plot width (lets a horizontal chart switch back to vertical as it grows)
         const narrow = getVerticalBarPlotBounds(300, 30).width;
@@ -773,12 +774,12 @@ describe('getVerticalBarPlotBounds', () => {
     });
 
     it('clamps to a zero-width plot when the container is too small for the gutters', () => {
-        // Given a container narrower than the left gutter itself
+        // Given a container narrower than the right gutter itself
         // When computing the plot bounds
-        // Then the right edge clamps to the left edge instead of going negative
+        // Then the right edge clamps to the left edge instead of going past it
         const bounds = getVerticalBarPlotBounds(10, 30);
-        expect(bounds.left).toBe(30 + LABEL_GAP);
-        expect(bounds.right).toBe(30 + LABEL_GAP);
+        expect(bounds.left).toBe(PADDING_LEFT);
+        expect(bounds.right).toBe(PADDING_LEFT);
         expect(bounds.width).toBe(0);
     });
 });
@@ -816,5 +817,28 @@ describe('getVerticalBarLabelLayoutInputs', () => {
         expect(inputs.tickSpacing).toBe(230);
         expect(inputs.firstTickLeftSpace).toBe(50);
         expect(inputs.lastTickRightSpace).toBe(20);
+    });
+});
+
+describe('getDomainPaddingForEdgeSpace', () => {
+    it('returns the padding victory-native shrinks back to the requested edge space', () => {
+        // Given a 200px plot and the space wanted before the first and after the last point
+        const plotWidth = 200;
+        const edgeSpace = {left: 40, right: 10};
+
+        // When converting it to domain padding
+        const padding = getDomainPaddingForEdgeSpace(edgeSpace, plotWidth);
+
+        // Then victory-native's scaling (padding * plotWidth / (plotWidth + both paddings)) lands back on the requested space
+        const scale = plotWidth / (plotWidth + padding.left + padding.right);
+        expect(padding.left * scale).toBeCloseTo(edgeSpace.left, 5);
+        expect(padding.right * scale).toBeCloseTo(edgeSpace.right, 5);
+    });
+
+    it('returns the edge space unchanged when it leaves no room for the points', () => {
+        // Given edge space that covers the whole plot (or a plot that is not measured yet)
+        // When converting it to domain padding
+        // Then it is returned as is instead of dividing by zero or going negative
+        expect(getDomainPaddingForEdgeSpace({left: 30, right: 0}, 0)).toEqual({left: 30, right: 0});
     });
 });
