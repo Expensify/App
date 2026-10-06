@@ -24,6 +24,13 @@ type MerchantRuleSuggestion = {
     editedFields: Record<string, Partial<Record<MerchantRuleSuggestionField, boolean>>>;
 
     /**
+     * Fields the server judged worth a rule, keyed the same way as `editedFields`. A field is recorded on the edit and
+     * confirmed later, once the response says the same value has been given to the same merchant often enough. The
+     * callout waits for at least one confirmed field, so a one-off edit never offers.
+     */
+    confirmedFields?: Record<string, Partial<Record<MerchantRuleSuggestionField, boolean>>>;
+
+    /**
      * Which levels of a multi-level tag were edited, keyed by expense then by level. Only these levels seed the rule,
      * so editing one level does not commit the rule to the levels the user left alone.
      */

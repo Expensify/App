@@ -11,9 +11,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 type TrackMerchantRuleSuggestionParams = {
-    /** The server's answer on whether this edit repeats often enough to be worth a rule */
-    suggestNewRuleCreation: boolean | undefined;
-
     /** The edited expense */
     transactionID: string | undefined;
 
@@ -42,29 +39,16 @@ type TrackMerchantRuleSuggestionParams = {
 /**
  * Records an edit that could become a merchant rule, so the expense can offer to create one.
  *
- * Driven by the server's `suggestNewRuleCreation`, which counts how often the same merchant has been given the same
- * value for the same field. An edit nobody repeats is not worth a rule, so one edit alone records nothing. The offer
- * is therefore lost while offline, since there is no response to read until the queued write reaches the server.
+ * Only the server can tell whether an edit repeats, since it alone sees the user's history, so the record starts
+ * unconfirmed and `confirmMerchantRuleSuggestion` promotes it when the response says the same merchant has been given
+ * the same value often enough. Recording here rather than waiting keeps the workspace and expense checks at the call
+ * site, where the data already is, and lets an edit made offline still offer once its queued write is sent.
  *
  * Edits accumulate per expense until the offer is taken, so one rule can carry category, tag and tax together. Only
  * the most recently edited expense offers. Recorded for anyone on the workspace; `useMerchantRuleSuggestion` decides
  * who actually sees the callout.
  */
-function trackMerchantRuleSuggestion({
-    suggestNewRuleCreation,
-    transactionID,
-    field,
-    reportID,
-    policy,
-    policyCategories,
-    transaction,
-    parentReport,
-    editedTagLevels,
-}: TrackMerchantRuleSuggestionParams) {
-    if (!suggestNewRuleCreation) {
-        return;
-    }
-
+function trackMerchantRuleSuggestion({transactionID, field, reportID, policy, policyCategories, transaction, parentReport, editedTagLevels}: TrackMerchantRuleSuggestionParams) {
     // Skip workspaces that could not hold a merchant rule, otherwise an edit made with Rules off would surface the
     // moment somebody turned Rules on. Control only, matching the rule page the callout leads to, so an edit on a
     // Collect workspace does not pay for a write that could never be shown.
@@ -91,11 +75,26 @@ function trackMerchantRuleSuggestion({
         transactionID,
         reportID,
         editedFields: {[transactionID]: {[field]: true}},
+        // A fresh edit of this field answers to its own response, so an earlier confirmation of it must not stand in
+        // for one. Other fields keep theirs, which is what lets an offer earned on category survive editing the tag.
+        confirmedFields: {[transactionID]: {[field]: null}},
         // Keyed by level so editing several levels of one tag accumulates, the same way fields do.
         ...(editedTagLevels?.length ? {editedTagLevels: {[transactionID]: Object.fromEntries(editedTagLevels.map((level) => [level, true]))}} : {}),
         seenInReportID: null,
         isRetired: null,
     });
+}
+
+/**
+ * Promotes a recorded edit to one worth offering, once the server has said the same merchant keeps being given this
+ * value. Called from the `ConfirmMerchantRuleSuggestion` middleware, since a queued write never returns its response
+ * to the caller.
+ *
+ * Keyed by expense and field rather than set on the record as a whole, so a response that lands after the user has
+ * moved on to another expense cannot confirm that one.
+ */
+function confirmMerchantRuleSuggestion(transactionID: string, field: MerchantRuleSuggestionField) {
+    Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {confirmedFields: {[transactionID]: {[field]: true}}});
 }
 
 /**
@@ -122,7 +121,11 @@ function dismissMerchantRuleSuggestion(suggestion: MerchantRuleSuggestion) {
  * the offer is taken.
  */
 function clearMerchantRuleSuggestionFields(transactionID: string) {
-    Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {editedFields: {[transactionID]: null}, editedTagLevels: {[transactionID]: null}});
+    Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {
+        editedFields: {[transactionID]: null},
+        confirmedFields: {[transactionID]: null},
+        editedTagLevels: {[transactionID]: null},
+    });
 }
 
 /** Ends the current offer without silencing the expense. Returning shows nothing; editing it again offers afresh. */
@@ -130,4 +133,11 @@ function retireMerchantRuleSuggestion() {
     Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {isRetired: true});
 }
 
-export {trackMerchantRuleSuggestion, dismissMerchantRuleSuggestion, markMerchantRuleSuggestionSeen, retireMerchantRuleSuggestion, clearMerchantRuleSuggestionFields};
+export {
+    trackMerchantRuleSuggestion,
+    confirmMerchantRuleSuggestion,
+    dismissMerchantRuleSuggestion,
+    markMerchantRuleSuggestionSeen,
+    retireMerchantRuleSuggestion,
+    clearMerchantRuleSuggestionFields,
+};

@@ -61,6 +61,11 @@ function useMerchantRuleSuggestion(reportID: string | undefined, policyID: strin
     const editedFields = suggestion ? suggestion.editedFields?.[suggestion.transactionID] : undefined;
     const fields = Object.values(CONST.MERCHANT_RULE_SUGGESTION_FIELDS).filter((field) => !!editedFields?.[field]);
 
+    // One confirmed field is enough to earn the offer, and the rule then carries every field edited alongside it. A
+    // field the backend has not confirmed is an edit nobody repeats, which is not reason enough to offer on its own.
+    const confirmedFields = suggestion ? suggestion.confirmedFields?.[suggestion.transactionID] : undefined;
+    const hasConfirmedField = fields.some((field) => !!confirmedFields?.[field]);
+
     const editedTagLevels = suggestion?.editedTagLevels?.[suggestion.transactionID];
     // Built here rather than only on press, so an offer that would apply nothing never appears. Clearing a field is
     // still an edit worth recording, but the rule it would make sets that field to empty, which changes nothing.
@@ -69,7 +74,7 @@ function useMerchantRuleSuggestion(reportID: string | undefined, policyID: strin
 
     // A rule matches on merchant, so an expense without one (a receipt still scanning) can't seed one. Nor can an
     // offer with nothing recorded, which is how an expense reads once its fields are cleared.
-    if (!suggestion || !transaction || isMerchantMissing(transaction) || fields.length === 0 || !hasUpdatesToApply) {
+    if (!suggestion || !hasConfirmedField || !transaction || isMerchantMissing(transaction) || fields.length === 0 || !hasUpdatesToApply) {
         return {suggestion: undefined, fields: [], editedTagLevels: undefined, transaction: undefined, policy: undefined};
     }
 

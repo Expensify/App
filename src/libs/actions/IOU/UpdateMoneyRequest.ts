@@ -427,17 +427,15 @@ function updateMoneyRequestBillable({
         getCurrencySymbol,
         rules,
     });
-    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_BILLABLE, params, onyxData).then((response) => {
-        trackMerchantRuleSuggestion({
-            suggestNewRuleCreation: response?.suggestNewRuleCreation,
-            transactionID,
-            field: CONST.MERCHANT_RULE_SUGGESTION_FIELDS.BILLABLE,
-            reportID: transactionThreadReport.reportID,
-            policy,
-            policyCategories,
-            transaction,
-            parentReport,
-        });
+    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_BILLABLE, params, onyxData);
+    trackMerchantRuleSuggestion({
+        transactionID,
+        field: CONST.MERCHANT_RULE_SUGGESTION_FIELDS.BILLABLE,
+        reportID: transactionThreadReport.reportID,
+        policy,
+        policyCategories,
+        transaction,
+        parentReport,
     });
 }
 
@@ -514,17 +512,15 @@ function updateMoneyRequestReimbursable({
         getCurrencySymbol,
         rules,
     });
-    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_REIMBURSABLE, params, onyxData).then((response) => {
-        trackMerchantRuleSuggestion({
-            suggestNewRuleCreation: response?.suggestNewRuleCreation,
-            transactionID,
-            field: CONST.MERCHANT_RULE_SUGGESTION_FIELDS.REIMBURSABLE,
-            reportID: transactionThreadReport.reportID,
-            policy,
-            policyCategories,
-            transaction,
-            parentReport,
-        });
+    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_REIMBURSABLE, params, onyxData);
+    trackMerchantRuleSuggestion({
+        transactionID,
+        field: CONST.MERCHANT_RULE_SUGGESTION_FIELDS.REIMBURSABLE,
+        reportID: transactionThreadReport.reportID,
+        policy,
+        policyCategories,
+        transaction,
+        parentReport,
     });
 }
 
@@ -972,18 +968,16 @@ function updateMoneyRequestTag({
     } else if (transaction) {
         editedTagLevels = getChangedTagLevels(getTag(transaction), tag);
     }
-    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAG, params, onyxData).then((response) => {
-        trackMerchantRuleSuggestion({
-            suggestNewRuleCreation: response?.suggestNewRuleCreation,
-            transactionID,
-            field: CONST.MERCHANT_RULE_SUGGESTION_FIELDS.TAG,
-            reportID: transactionThreadReport?.reportID,
-            policy,
-            policyCategories,
-            transaction,
-            parentReport,
-            editedTagLevels,
-        });
+    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAG, params, onyxData);
+    trackMerchantRuleSuggestion({
+        transactionID,
+        field: CONST.MERCHANT_RULE_SUGGESTION_FIELDS.TAG,
+        reportID: transactionThreadReport?.reportID,
+        policy,
+        policyCategories,
+        transaction,
+        parentReport,
+        editedTagLevels,
     });
 }
 
@@ -1130,17 +1124,15 @@ function updateMoneyRequestTaxRate({
         rules,
     });
 
-    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAX_RATE, params, onyxData).then((response) => {
-        trackMerchantRuleSuggestion({
-            suggestNewRuleCreation: response?.suggestNewRuleCreation,
-            transactionID,
-            field: CONST.MERCHANT_RULE_SUGGESTION_FIELDS.TAX,
-            reportID: transactionThreadReport?.reportID,
-            policy,
-            policyCategories,
-            transaction,
-            parentReport,
-        });
+    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAX_RATE, params, onyxData);
+    trackMerchantRuleSuggestion({
+        transactionID,
+        field: CONST.MERCHANT_RULE_SUGGESTION_FIELDS.TAX,
+        reportID: transactionThreadReport?.reportID,
+        policy,
+        policyCategories,
+        transaction,
+        parentReport,
     });
 }
 
@@ -1397,17 +1389,15 @@ function updateMoneyRequestCategory({
         getCurrencySymbol,
         rules,
     });
-    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_CATEGORY, params, onyxData).then((response) => {
-        trackMerchantRuleSuggestion({
-            suggestNewRuleCreation: response?.suggestNewRuleCreation,
-            transactionID,
-            field: CONST.MERCHANT_RULE_SUGGESTION_FIELDS.CATEGORY,
-            reportID: transactionThreadReport?.reportID,
-            policy,
-            policyCategories,
-            transaction,
-            parentReport,
-        });
+    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_CATEGORY, params, onyxData);
+    trackMerchantRuleSuggestion({
+        transactionID,
+        field: CONST.MERCHANT_RULE_SUGGESTION_FIELDS.CATEGORY,
+        reportID: transactionThreadReport?.reportID,
+        policy,
+        policyCategories,
+        transaction,
+        parentReport,
     });
 }
 
@@ -1501,17 +1491,15 @@ function updateMoneyRequestDescription({
     }
     const {params, onyxData} = data;
     params.description = parsedComment;
-    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DESCRIPTION, params, onyxData).then((response) => {
-        trackMerchantRuleSuggestion({
-            suggestNewRuleCreation: response?.suggestNewRuleCreation,
-            transactionID,
-            field: CONST.MERCHANT_RULE_SUGGESTION_FIELDS.DESCRIPTION,
-            reportID: transactionThreadReport?.reportID,
-            policy,
-            policyCategories,
-            transaction,
-            parentReport,
-        });
+    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DESCRIPTION, params, onyxData);
+    trackMerchantRuleSuggestion({
+        transactionID,
+        field: CONST.MERCHANT_RULE_SUGGESTION_FIELDS.DESCRIPTION,
+        reportID: transactionThreadReport?.reportID,
+        policy,
+        policyCategories,
+        transaction,
+        parentReport,
     });
 }
 
