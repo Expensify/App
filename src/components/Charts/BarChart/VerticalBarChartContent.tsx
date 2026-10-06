@@ -1,5 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import BAR_INNER_PADDING, {VERTICAL_BAR_DOMAIN_PADDING} from '@components/Charts/barChartConstants';
+import ChartGridLines from '@components/Charts/components/ChartGridLines';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
@@ -196,28 +197,27 @@ function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosit
                     labelSkipInterval={labelSkipInterval}
                     fontSize={variables.iconSizeExtraSmall}
                     fontManager={fontManager}
-                    labelColor={theme.textSupporting}
+                    labelColor={theme.icon}
                     xScale={args.xScale}
                     chartBoundsBottom={chartBoundsBottom}
                 />
                 <ChartYAxisLabels
                     yTicks={args.yTicks}
                     yScale={args.yScale}
-                    chartBounds={args.chartBounds}
+                    canvasWidth={args.canvasSize.width}
                     fontSize={variables.iconSizeExtraSmall}
                     fontManager={fontManager}
-                    labelColor={theme.textSupporting}
+                    labelColor={theme.icon}
                     formatValue={formatCompactValue}
-                    leftAlign
                 />
             </>
         );
     };
 
-    const labelSpace = VictoryTheme.axis.labelGap + (xAxisLabelHeight ?? 0);
+    const labelSpace = VictoryTheme.axis.xAxisLabelGap + (xAxisLabelHeight ?? 0);
     const dynamicChartStyle = {height: CHART_CONTENT_MIN_HEIGHT + labelSpace};
     const yAxisLabelWidth = getYAxisLabelWidth(data, formatCompactValue, fontManager, variables.iconSizeExtraSmall, VERTICAL_BAR_DOMAIN_PADDING);
-    const chartPadding = {...VictoryTheme.axis.padding, bottom: labelSpace + VictoryTheme.axis.padding.bottom, left: yAxisLabelWidth + GLYPH_PADDING};
+    const chartPadding = {...VictoryTheme.axis.padding, bottom: labelSpace + VictoryTheme.axis.padding.bottom, right: yAxisLabelWidth + GLYPH_PADDING};
 
     if (isLoading || !fontManager) {
         return (
@@ -259,8 +259,8 @@ function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosit
                         yAxis={[
                             {
                                 tickCount: VictoryTheme.axis.tickCount,
-                                lineWidth: VictoryTheme.axis.yLineWidth,
-                                lineColor: theme.border,
+                                axisSide: 'right',
+                                lineWidth: 0,
                                 labelOffset: VictoryTheme.axis.labelGap,
                                 domain: yAxisDomain,
                             },
@@ -268,7 +268,17 @@ function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosit
                         frame={{lineWidth: 0}}
                         data={chartData}
                     >
-                        {({points, chartBounds}) => points.y.map((point) => renderBar(point, chartBounds, points.y.length))}
+                        {({points, chartBounds, yScale, yTicks}) => (
+                            <>
+                                <ChartGridLines
+                                    yTicks={yTicks}
+                                    yScale={yScale}
+                                    chartBounds={chartBounds}
+                                    color={theme.border}
+                                />
+                                {points.y.map((point) => renderBar(point, chartBounds, points.y.length))}
+                            </>
+                        )}
                     </CartesianChart>
                 )}
                 <ChartTooltipLayer

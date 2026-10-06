@@ -1912,6 +1912,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY]: DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.path,
                         [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY_CREATE]: DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY_CREATE.path,
                         [SCREENS.MONEY_REQUEST.STEP_VENDOR]: ROUTES.MONEY_REQUEST_STEP_VENDOR.route,
+                        [SCREENS.MONEY_REQUEST.STEP_REUSE_ROUTE]: ROUTES.MONEY_REQUEST_STEP_REUSE_ROUTE.route,
                         [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION]: ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.route,
                         [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DATE]: DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DATE.path,
                         [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESCRIPTION]: DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.path,
@@ -2276,7 +2277,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             exact: true,
                         },
                         [SCREENS.WORKSPACES_ADD_DOMAIN]: ROUTES.WORKSPACES_ADD_DOMAIN,
-                        [SCREENS.WORKSPACES_ADD_DOMAIN_VERIFY_ACCOUNT]: ROUTES.WORKSPACES_ADD_DOMAIN_VERIFY_ACCOUNT,
                         [SCREENS.WORKSPACES_DOMAIN_ADDED]: {
                             path: ROUTES.WORKSPACES_DOMAIN_ADDED.route,
                             exact: true,

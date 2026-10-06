@@ -39,16 +39,8 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getPhoneNumber, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
-import {
-    canMemberAssignRole,
-    canMemberManageMemberWithRole,
-    canMemberWrite,
-    getReimburserEmail,
-    isControlPolicy,
-    isPolicyApprover,
-    PAYER_ROLES,
-    tryNavigateToSubmitWorkspaceUpgrade,
-} from '@libs/PolicyUtils';
+import {isPolicyReimburser} from '@libs/PolicyMemberRoleUtils';
+import {canMemberAssignRole, canMemberManageMemberWithRole, canMemberWrite, isControlPolicy, isPolicyApprover, PAYER_ROLES, tryNavigateToSubmitWorkspaceUpgrade} from '@libs/PolicyUtils';
 import {isApproverOfOutstandingPolicyReports} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
@@ -141,8 +133,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const isSMSLogin = Str.isSMSLogin(memberLogin);
     const phoneNumber = getPhoneNumber(details);
     const memberLoginToCopy = isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : memberLogin;
-    const reimburserEmail = getReimburserEmail(policy);
-    const isReimburser = !!reimburserEmail && reimburserEmail === memberLogin;
+    const isReimburser = isPolicyReimburser(policy, memberLogin);
     // Only let the Authorized Payer change roles when there is another payer role they can actually move to.
     const assignablePayerRoles = PAYER_ROLES.filter((payerRole) => canMemberAssignRole(policy, currentUserLogin, payerRole));
     const canReimburserChangeRole = assignablePayerRoles.some((payerRole) => payerRole !== member?.role);
