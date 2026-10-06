@@ -87,13 +87,15 @@ function getOverlayOpacity() {
 
 describe('FlashList native sticky-header release patch', () => {
     it('hides the stale overlay when native scroll returns above its boundary before JS receives the event', () => {
+        // Given an active sticky copy whose manager still reports a scrolled list.
         const {scrollY, onChangeStickyIndex} = setup();
         expect(screen.getByTestId('sticky-copy')).toBeTruthy();
         expect(getOverlayOpacity()).toBe(1);
         onChangeStickyIndex.mockClear();
 
-        // Move the native-driven value without updating the manager or dispatching reportScrollEvent.
+        // When native scrolling returns to the top before JavaScript receives the scroll event.
         act(() => scrollY.setValue(0));
+        // Then the mounted copy hides immediately without changing the JavaScript sticky index.
         expect(screen.getByTestId('sticky-copy')).toBeTruthy();
         expect(onChangeStickyIndex).not.toHaveBeenCalled();
         expect(getOverlayOpacity()).toBe(0);
@@ -103,14 +105,17 @@ describe('FlashList native sticky-header release patch', () => {
     });
 
     it('refreshes the boundary after page-header and item layout changes without waiting for scrolling', () => {
+        // Given a sticky copy below its original page-header boundary.
         const {scrollY, stickyHeaderRef, managerState, layout} = setup();
         act(() => scrollY.setValue(150));
         expect(getOverlayOpacity()).toBe(1);
 
+        // When layout moves that boundary below the current scroll offset.
         act(() => {
             managerState.firstItemOffset = 180;
             stickyHeaderRef.current?.reportLayout();
         });
+        // Then visibility follows the new boundary before another scroll event arrives.
         expect(getOverlayOpacity()).toBe(0);
 
         act(() => {
@@ -126,8 +131,11 @@ describe('FlashList native sticky-header release patch', () => {
     it.each([{hideWhenInactive: false}, {hideRelatedCell: true}, {inverted: true}, {stickyHeaderIndices: [0, 2]}])(
         'preserves the existing overlay behavior outside the supported opt-in: %j',
         (options) => {
+            // Given a sticky configuration outside the patch's supported opt-in.
             const {scrollY} = setup(options);
+            // When native scrolling returns to the top.
             act(() => scrollY.setValue(0));
+            // Then the patch does not add an opacity override.
             expect(getOverlayOpacity()).toBeUndefined();
         },
     );

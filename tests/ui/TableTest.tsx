@@ -2308,6 +2308,7 @@ describe('Table', () => {
         });
 
         it('should reset a focused page-header table offset when search or filtered results change', async () => {
+            // Given a focused page-header search whose results can also be changed by a filter.
             const props = createDefaultProps();
             const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey, 'category'>>();
             const filterConfig: FilterConfig<'category'> = {
@@ -2339,7 +2340,9 @@ describe('Table', () => {
             fireEvent(searchInput, 'focus');
             mockFlashListScrollToOffset.mockClear();
 
+            // When the query changes, including whitespace-only edits.
             fireEvent.changeText(searchInput, ' ');
+            // Then each change returns the search header to the top without animation.
             expect(mockFlashListScrollToOffset).toHaveBeenLastCalledWith({offset: 0, animated: false});
             mockFlashListScrollToOffset.mockClear();
 

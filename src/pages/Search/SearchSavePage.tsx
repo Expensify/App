@@ -26,7 +26,7 @@ import {saveSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
-import {getCustomColumnDefault, getSearchColumnTranslationKey, mapFiltersFormToLabelValueList} from '@libs/SearchUIUtils';
+import {getCustomColumnDefault, getSearchColumnTranslationKey, getValidGroupBy, mapFiltersFormToLabelValueList} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
@@ -119,7 +119,7 @@ function FilterValue({filterKey, value}: FilterValueWithKeyProps) {
 
 function getAppliedDisplays(searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>, queryJSON: SearchQueryJSON | undefined, translate: LocalizedTranslate) {
     const appliedDisplays = [];
-    const groupBy = searchAdvancedFiltersForm.groupBy;
+    const groupBy = getValidGroupBy(searchAdvancedFiltersForm.groupBy);
     if (groupBy) {
         appliedDisplays.push({label: translate('search.display.groupBy'), value: translate(`search.filters.groupBy.${groupBy}`)});
     }
@@ -137,7 +137,7 @@ function getAppliedDisplays(searchAdvancedFiltersForm: Partial<SearchAdvancedFil
     }
 
     if (queryJSON?.sortBy) {
-        appliedDisplays.push({label: translate('search.display.sortBy'), value: translate(getSearchColumnTranslationKey(queryJSON.sortBy))});
+        appliedDisplays.push({label: translate('search.display.sortBy'), value: translate(getSearchColumnTranslationKey(queryJSON.sortBy, queryJSON.type))});
     }
 
     if (queryJSON?.sortOrder) {
@@ -151,7 +151,7 @@ function getAppliedDisplays(searchAdvancedFiltersForm: Partial<SearchAdvancedFil
 
         const isDefaultState = columns.length === defaultCustomColumns.length && columns.every((col, index) => col === defaultCustomColumns.at(index));
         if (!isDefaultState) {
-            appliedDisplays.push({label: translate('search.columns'), value: columns.map((column) => translate(getSearchColumnTranslationKey(column))).join(', ')});
+            appliedDisplays.push({label: translate('search.columns'), value: columns.map((column) => translate(getSearchColumnTranslationKey(column, queryType))).join(', ')});
         }
     }
 

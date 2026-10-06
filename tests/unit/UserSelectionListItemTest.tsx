@@ -52,7 +52,7 @@ describe('UserSelectionListItem', () => {
         );
 
         // The row's display name resolves via getDisplayNameForParticipant, which must receive the translate from useLocalize.
-        expect(mockGetDisplayNameForParticipant).toHaveBeenCalledWith(expect.objectContaining({accountID: ITEM_ACCOUNT_ID, translate: mockTranslate}));
+        expect(mockGetDisplayNameForParticipant).toHaveBeenCalledWith(expect.objectContaining({accountID: ITEM_ACCOUNT_ID, hiddenTranslation: 'common.hidden'}));
     });
 
     describe('user handle', () => {

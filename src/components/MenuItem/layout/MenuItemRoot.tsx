@@ -20,8 +20,8 @@ import CONST from '@src/CONST';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import type WithTestID from '@src/types/utils/TestID';
 
-import type {PropsWithChildren} from 'react';
-import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
+import type {ComponentRef, PropsWithChildren} from 'react';
+import type {AccessibilityState, GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 
 import React, {useRef} from 'react';
 import {View} from 'react-native';
@@ -40,12 +40,21 @@ type MenuItemRootProps = PropsWithChildren &
          * their text statically should pass it.
          */
         accessibilityLabel?: string;
+
+        /**
+         * Styles layered on top of the row's own, e.g. to give it a bordered container. Applied
+         * before the hover/press background so the row keeps its interaction feedback.
+         */
+        style?: StyleProp<ViewStyle>;
+
+        /** Accessibility state for the row, e.g. `{expanded}`. Lands on the pressable, which is what a screen reader focuses. */
+        accessibilityState?: AccessibilityState;
     };
 
-function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testID, accessibilityLabel}: MenuItemRootProps) {
+function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testID, accessibilityLabel, style, accessibilityState}: MenuItemRootProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const pressableRef = useRef<View>(null);
+    const pressableRef = useRef<ComponentRef<typeof View>>(null);
     const isCompactPopover = useIsCompactPopover();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isInteractive = !!onPress;
@@ -93,6 +102,7 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testI
                                 styles.popoverMenuItem,
                                 !isInteractive && styles.cursorDefault,
                                 isCompactPopover && styles.compactPopoverMenuItemBase,
+                                style,
                                 StyleUtils.getButtonBackgroundColorStyle(getButtonState({isActive: isHovered, isPressed: pressed, isDisabled, isInteractive}), true),
                                 isDisabled && styles.buttonOpacityDisabled,
                                 isHovered && isInteractive && !pressed && styles.hoveredComponentBG,
@@ -103,6 +113,7 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testI
                         role={isInteractive ? CONST.ROLE.BUTTON : undefined}
                         accessibilityLabel={accessibilityLabel ?? derivedAccessibilityLabel}
                         accessibilityHint={accessibilityHint}
+                        accessibilityState={accessibilityState}
                         accessible
                         tabIndex={isInteractive ? 0 : -1}
                         sentryLabel={sentryLabel}

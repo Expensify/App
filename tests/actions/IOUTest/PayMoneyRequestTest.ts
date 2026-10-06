@@ -3,7 +3,9 @@ import {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, pay
 import {requestMoney} from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, generatePolicyID} from '@libs/actions/Policy/Policy';
-import {notifyNewAction} from '@libs/actions/Report';
+import {notifyNewAction} from '@libs/actions/Report/reportActionSubscribers';
+import * as APIActions from '@libs/API';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionHtml, getReportActionText, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction} from '@libs/ReportUtils';
@@ -16,7 +18,7 @@ import DateUtils from '@src/libs/DateUtils';
 import Navigation from '@src/libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {IntroSelected, Policy, Report} from '@src/types/onyx';
+import type {IntroSelected, Policy, Report, TransactionViolation} from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {ReportActions, ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -25,7 +27,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import Onyx from 'react-native-onyx';
 
 import type {MockFetch} from '../../utils/TestHelper';
@@ -36,13 +37,17 @@ import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {createGlobalFetchMock, formatPhoneNumber, getCurrencyDecimalsLocal, getOnyxData, translateLocal} from '../../utils/TestHelper';
+import {createGlobalFetchMock, formatPhoneNumber, getCurrencyDecimalsLocal, getOnyxData, getRequiredOnyxUpdate, getRequiredWriteCall, translateLocal} from '../../utils/TestHelper';
+import {readProperty, requireRecordArrayProperty, requireStringProperty} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
 
 function chatReportPolicyFromChat(chatReport: OnyxEntry<Report>): Policy {
-    return {...createRandomPolicy(0), id: chatReport?.policyID ?? CONST.POLICY.ID_FAKE};
+    return {
+        ...createRandomPolicy(0),
+        id: chatReport?.policyID ?? CONST.POLICY.ID_FAKE,
+    };
 }
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -68,26 +73,12 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 
 jest.mock('@react-navigation/native');
 
-jest.mock('@src/libs/actions/Report', () => {
-    const originalModule = jest.requireActual('@src/libs/actions/Report');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...originalModule,
-        notifyNewAction: jest.fn(),
-    };
-});
+jest.mock('@src/libs/actions/Report/reportActionSubscribers', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@src/libs/actions/Report/reportActionSubscribers'),
+    notifyNewAction: jest.fn(),
+}));
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
-jest.mock('@libs/deferredLayoutWrite', () => ({
-    registerDeferredWrite: (_key: string, callback: () => void) => callback(),
-    flushDeferredWrite: jest.fn(),
-    cancelDeferredWrite: jest.fn(),
-    hasDeferredWrite: () => false,
-    getOptimisticWatchKey: () => undefined,
-    deferOrExecuteWrite: (apiWrite: () => void) => apiWrite(),
-    reserveDeferredWriteChannel: jest.fn(),
-    resetForTesting: jest.fn(),
-}));
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
 jest.mock('@libs/PolicyUtils', () => ({
@@ -108,7 +99,9 @@ describe('actions/IOU/PayMoneyRequest', () => {
             keys: ONYXKEYS,
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    [RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+                },
             },
         });
         initOnyxDerivedValues();
@@ -258,7 +251,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         introSelected: undefined,
                         currentUserAccountID,
                         currentUserLogin,
-                        betas: [CONST.BETAS.ALL],
                         isSelfTourViewed: false,
                         userBillingGracePeriodEnds: undefined,
                         amountOwed: 0,
@@ -379,7 +371,10 @@ describe('actions/IOU/PayMoneyRequest', () => {
             let chatReport: OnyxEntry<Report>;
 
             mockFetch?.pause?.();
-            Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            Onyx.set(ONYXKEYS.SESSION, {
+                email: CARLOS_EMAIL,
+                accountID: CARLOS_ACCOUNT_ID,
+            });
             return waitForBatchedUpdates()
                 .then(() => {
                     createWorkspace({
@@ -392,7 +387,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         currentUserEmailParam: CARLOS_EMAIL,
                         currency: undefined,
                         isSelfTourViewed: false,
-                        betas: undefined,
                         hasActiveAdminPolicies: false,
                         hasOwnedPaidPolicy: false,
                         activePolicy: undefined,
@@ -423,7 +417,10 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             participantParams: {
                                 payeeEmail: RORY_EMAIL,
                                 payeeAccountID: RORY_ACCOUNT_ID,
-                                participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                                participant: {
+                                    login: CARLOS_EMAIL,
+                                    accountID: CARLOS_ACCOUNT_ID,
+                                },
                             },
                             transactionParams: {
                                 amount,
@@ -479,7 +476,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         introSelected: undefined,
                         currentUserAccountID: CARLOS_ACCOUNT_ID,
                         currentUserLogin: CARLOS_EMAIL,
-                        betas: [CONST.BETAS.ALL],
                         isSelfTourViewed: false,
                         userBillingGracePeriodEnds: undefined,
                         amountOwed: 0,
@@ -555,7 +551,10 @@ describe('actions/IOU/PayMoneyRequest', () => {
             let expenseReport: OnyxEntry<Report>;
             let chatReport: OnyxEntry<Report>;
 
-            Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            Onyx.set(ONYXKEYS.SESSION, {
+                email: CARLOS_EMAIL,
+                accountID: CARLOS_ACCOUNT_ID,
+            });
             return waitForBatchedUpdates()
                 .then(() => {
                     createWorkspace({
@@ -568,7 +567,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         currentUserEmailParam: CARLOS_EMAIL,
                         currency: undefined,
                         isSelfTourViewed: false,
-                        betas: undefined,
                         hasActiveAdminPolicies: false,
                         hasOwnedPaidPolicy: false,
                         activePolicy: undefined,
@@ -599,7 +597,10 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             participantParams: {
                                 payeeEmail: RORY_EMAIL,
                                 payeeAccountID: RORY_ACCOUNT_ID,
-                                participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                                participant: {
+                                    login: CARLOS_EMAIL,
+                                    accountID: CARLOS_ACCOUNT_ID,
+                                },
                             },
                             transactionParams: {
                                 amount,
@@ -656,7 +657,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         introSelected: undefined,
                         currentUserAccountID: CARLOS_ACCOUNT_ID,
                         currentUserLogin: CARLOS_EMAIL,
-                        betas: [CONST.BETAS.ALL],
                         isSelfTourViewed: false,
                         userBillingGracePeriodEnds: undefined,
                         amountOwed: 0,
@@ -715,7 +715,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 introSelected: undefined,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
                 currentUserLogin: CARLOS_EMAIL,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
@@ -804,7 +803,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     introSelected: undefined,
                     currentUserAccountID: CARLOS_ACCOUNT_ID,
                     currentUserLogin: CARLOS_EMAIL,
-                    betas: [CONST.BETAS.ALL],
                     isSelfTourViewed: false,
                     userBillingGracePeriodEnds: undefined,
                     amountOwed: 0,
@@ -873,17 +871,40 @@ describe('actions/IOU/PayMoneyRequest', () => {
             for (const iouAction of iouActions) {
                 actions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction.reportActionID}`] = iouAction;
             }
-            const actionCollectionDataSet: ReportActionsCollectionDataSet = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: actions};
+            const actionCollectionDataSet: ReportActionsCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: actions,
+            };
 
             return waitForBatchedUpdates()
-                .then(() => Onyx.multiSet({...transactionCollectionDataSet, ...actionCollectionDataSet}))
+                .then(() =>
+                    Onyx.multiSet({
+                        ...transactionCollectionDataSet,
+                        ...actionCollectionDataSet,
+                    }),
+                )
                 .then(() => {
-                    putOnHold(transaction1.transactionID, 'comment', iouReport.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined, {rules: undefined, ancestors: []});
+                    putOnHold({
+                        transactionID: transaction1.transactionID,
+                        transaction: transaction1,
+                        comment: 'comment',
+                        initialReportID: iouReport.reportID,
+                        isOffline: false,
+                        currentUserLogin: RORY_EMAIL,
+                        currentUserAccountID: RORY_ACCOUNT_ID,
+                        transactionViolations: undefined,
+                        isTrackIntentUser: false,
+                        delegateAccountID: undefined,
+                        rules: undefined,
+                        ancestors: [],
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
                     // When partially paying  an iou report from the chat report via the report preview
-                    const partialPayChatReport = {reportID: topMostReportID, policyID: CONST.POLICY.ID_FAKE};
+                    const partialPayChatReport = {
+                        reportID: topMostReportID,
+                        policyID: CONST.POLICY.ID_FAKE,
+                    };
                     payMoneyRequest({
                         isASAPSubmitBetaEnabled: false,
                         conciergeChat: undefined,
@@ -894,7 +915,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         currentUserAccountID: CARLOS_ACCOUNT_ID,
                         currentUserLogin: CARLOS_EMAIL,
                         full: false,
-                        betas: [CONST.BETAS.ALL],
                         isSelfTourViewed: false,
                         userBillingGracePeriodEnds: undefined,
                         amountOwed: 0,
@@ -997,7 +1017,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 full: false,
                 policy,
                 chatReportPolicy: policy,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
@@ -1032,13 +1051,23 @@ describe('actions/IOU/PayMoneyRequest', () => {
             } as Report;
 
             const buildTransaction = (transactionID: string, amount: number, isScanFailed: boolean): Transaction => ({
-                ...buildOptimisticTransaction({transactionParams: {amount, currency: 'USD', reportID: '123', merchant: 'Valid merchant'}}),
+                ...buildOptimisticTransaction({
+                    transactionParams: {
+                        amount,
+                        currency: 'USD',
+                        reportID: '123',
+                        merchant: 'Valid merchant',
+                    },
+                }),
                 transactionID,
                 ...(isScanFailed
                     ? {
                           merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                           iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
-                          receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED, source: 'receipt.jpg'},
+                          receipt: {
+                              state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
+                              source: 'receipt.jpg',
+                          },
                       }
                     : {}),
             });
@@ -1095,7 +1124,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     full: true,
                     policy: scanFailedPolicy,
                     chatReportPolicy: scanFailedPolicy,
-                    betas: [CONST.BETAS.ALL],
                     isASAPSubmitBetaEnabled: true,
                     isSelfTourViewed: false,
                     userBillingGracePeriodEnds: undefined,
@@ -1183,7 +1211,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 introSelected: undefined,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
                 currentUserLogin: CARLOS_EMAIL,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: true,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
@@ -1239,7 +1266,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 introSelected: undefined,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
                 currentUserLogin: CARLOS_EMAIL,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
@@ -1336,7 +1362,10 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 [reportPreview1.reportActionID]: reportPreview1,
                 [reportPreview2.reportActionID]: reportPreview2,
             };
-            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+            await Onyx.merge(ONYXKEYS.SESSION, {
+                accountID: currentUserAccountID,
+                email: currentUserEmail,
+            });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, mockChatReportActions);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
@@ -1346,7 +1375,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             mockFetch?.pause?.();
 
-            markReportPaymentReceived(chatReport, reimbursedReport, currentUserAccountID, currentUserEmail, mockChatReportActions, false, getCurrencyDecimalsLocal, undefined);
+            markReportPaymentReceived(chatReport, reimbursedReport, currentUserAccountID, currentUserEmail, mockChatReportActions, false, undefined, getCurrencyDecimalsLocal, undefined);
             await waitForBatchedUpdates();
 
             const updatedChatReport = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -1368,7 +1397,10 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const policyID = generatePolicyID();
             const ownerAccountID = CARLOS_ACCOUNT_ID;
 
-            await Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            await Onyx.set(ONYXKEYS.SESSION, {
+                email: CARLOS_EMAIL,
+                accountID: CARLOS_ACCOUNT_ID,
+            });
             const policy = {
                 ...createRandomPolicy(Number(policyID)),
                 id: policyID,
@@ -1409,7 +1441,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 introSelected: undefined,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
                 currentUserLogin: CARLOS_EMAIL,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 100,
@@ -1432,7 +1463,10 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const workspacePolicyID = generatePolicyID();
             const expensePolicyID = generatePolicyID();
 
-            await Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            await Onyx.set(ONYXKEYS.SESSION, {
+                email: CARLOS_EMAIL,
+                accountID: CARLOS_ACCOUNT_ID,
+            });
 
             const workspacePolicy = {
                 ...createRandomPolicy(9001),
@@ -1481,7 +1515,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 introSelected: undefined,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
                 currentUserLogin: CARLOS_EMAIL,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 100,
@@ -1503,7 +1536,10 @@ describe('actions/IOU/PayMoneyRequest', () => {
         it('should not navigate to restricted when chatReportPolicy passes billing check with future owner grace period', async () => {
             const policyID = generatePolicyID();
 
-            await Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            await Onyx.set(ONYXKEYS.SESSION, {
+                email: CARLOS_EMAIL,
+                accountID: CARLOS_ACCOUNT_ID,
+            });
             const workspacePolicy = {
                 ...createRandomPolicy(9003),
                 id: policyID,
@@ -1543,7 +1579,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 introSelected: undefined,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
                 currentUserLogin: CARLOS_EMAIL,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 100,
@@ -1587,7 +1622,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 introSelected: undefined,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
                 currentUserLogin: CARLOS_EMAIL,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
@@ -1617,6 +1651,304 @@ describe('actions/IOU/PayMoneyRequest', () => {
             mockFetch?.resume?.();
         });
     });
+    describe('markReportPaymentReceived', () => {
+        const CURRENT_USER_ACCOUNT_ID = CARLOS_ACCOUNT_ID;
+        const CURRENT_USER_EMAIL = CARLOS_EMAIL;
+
+        const autoRejectedViolation: TransactionViolation = {
+            name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+        };
+
+        let writeSpy: jest.SpiedFunction<typeof APIActions.write>;
+
+        beforeEach(() => {
+            writeSpy = jest.spyOn(APIActions, 'write').mockImplementation(jest.fn());
+        });
+
+        afterEach(() => {
+            writeSpy.mockRestore();
+        });
+
+        const getOnyxDataArg = () => getRequiredWriteCall(writeSpy.mock.calls, 0)[2];
+
+        /**
+         * Builds a policy expense chat holding two sibling expense reports:
+         * - `reimbursedReport` is the approved report that gets marked as paid.
+         * - `outstandingReport` is an OPEN sibling the current user still has to submit, which is what keeps the
+         *   chat's `hasOutstandingChildRequest` true. Its single transaction is the one an auto-rejected violation
+         *   can be attached to, so the tests can flip `hasOutstandingChildRequest` purely through the violations
+         *   argument without touching any other input.
+         */
+        async function setUpChatWithOutstandingSibling() {
+            const policy: Policy = {
+                ...createRandomPolicy(6),
+                role: CONST.POLICY.ROLE.ADMIN,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                areRulesEnabled: true,
+                preventSelfApproval: false,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
+                harvesting: {
+                    enabled: false,
+                },
+            };
+            const chatReport: Report = {
+                ...createRandomReport(11, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                policyID: policy.id,
+                hasOutstandingChildRequest: true,
+                isOwnPolicyExpenseChat: true,
+            };
+            const reimbursedReport: Report = {
+                ...createRandomReport(5, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                managerID: CURRENT_USER_ACCOUNT_ID,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                policyID: policy.id,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                chatReportID: chatReport.reportID,
+                parentReportID: chatReport.reportID,
+                total: -100,
+                nonReimbursableTotal: 0,
+            };
+            const outstandingReport: Report = {
+                ...createRandomReport(6, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                managerID: CURRENT_USER_ACCOUNT_ID,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                policyID: policy.id,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                chatReportID: chatReport.reportID,
+                parentReportID: chatReport.reportID,
+            };
+            const reimbursedReportPreview: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                originalMessage: {
+                    linkedReportID: reimbursedReport.reportID,
+                },
+            };
+            const outstandingReportPreview: ReportAction = {
+                ...createRandomReportAction(2),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                originalMessage: {
+                    linkedReportID: outstandingReport.reportID,
+                },
+            };
+            const outstandingTransaction: Transaction = {
+                ...createRandomTransaction(22),
+                reportID: outstandingReport.reportID,
+            };
+            const chatReportActions: ReportActions = {
+                [reimbursedReportPreview.reportActionID]: reimbursedReportPreview,
+                [outstandingReportPreview.reportActionID]: outstandingReportPreview,
+            };
+
+            await Onyx.merge(ONYXKEYS.SESSION, {
+                accountID: CURRENT_USER_ACCOUNT_ID,
+                email: CURRENT_USER_EMAIL,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, chatReportActions);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reimbursedReport.reportID}`, reimbursedReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${outstandingReport.reportID}`, outstandingReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${outstandingTransaction.transactionID}`, outstandingTransaction);
+            await waitForBatchedUpdates();
+
+            return {
+                chatReport,
+                reimbursedReport,
+                outstandingReport,
+                outstandingTransaction,
+                chatReportActions,
+            };
+        }
+
+        const getOptimisticChatReportValue = (chatReportID: string) =>
+            getRequiredOnyxUpdate(getOnyxDataArg(), 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, Onyx.METHOD.MERGE, true).value;
+
+        it('does nothing when the chat report is missing', () => {
+            markReportPaymentReceived(
+                undefined,
+                {
+                    ...createRandomReport(1, undefined),
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                },
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                false,
+                {},
+                getCurrencyDecimalsLocal,
+                undefined,
+            );
+
+            expect(writeSpy).not.toHaveBeenCalled();
+        });
+
+        it('does nothing when the IOU report is missing', () => {
+            markReportPaymentReceived(createRandomReport(1, undefined), undefined, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, false, {}, getCurrencyDecimalsLocal, undefined);
+
+            expect(writeSpy).not.toHaveBeenCalled();
+        });
+
+        it('marks the report as reimbursed and detaches it from the chat report', async () => {
+            // Given a chat report holding an approved expense report
+            const {chatReport, reimbursedReport, chatReportActions} = await setUpChatWithOutstandingSibling();
+
+            // When the submitter marks the payment as received
+            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, {}, getCurrencyDecimalsLocal, undefined);
+
+            // Then the expense report optimistically moves to the reimbursed state and the chat drops its iouReportID
+            const [command, parameters] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+            expect(command).toBe(WRITE_COMMANDS.MARK_REPORT_PAYMENT_RECEIVED);
+            expect(parameters.reportID).toBe(reimbursedReport.reportID);
+
+            const optimisticIOUReport = getRequiredOnyxUpdate(getOnyxDataArg(), 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT}${reimbursedReport.reportID}`, Onyx.METHOD.MERGE, true).value;
+            expect(optimisticIOUReport).toMatchObject({
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                hasOutstandingChildRequest: false,
+            });
+            expect(getOptimisticChatReportValue(chatReport.reportID)).toMatchObject({
+                iouReportID: null,
+            });
+        });
+
+        it('adds an optimistic PAY report action carrying the "received payment" copy', async () => {
+            // Given a chat report holding an approved expense report
+            const {chatReport, reimbursedReport, chatReportActions} = await setUpChatWithOutstandingSibling();
+
+            // When the submitter marks the payment as received
+            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, {}, getCurrencyDecimalsLocal, undefined);
+
+            // Then a PAY action is added to the expense report, reported to the API and pending
+            const [, parameters] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+            const payActionID = requireStringProperty(parameters, 'reportActionID');
+            const optimisticReportActions = getRequiredOnyxUpdate(
+                getOnyxDataArg(),
+                'optimisticData',
+                `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reimbursedReport.reportID}`,
+                Onyx.METHOD.MERGE,
+                true,
+            ).value;
+            const payAction = optimisticReportActions[payActionID];
+            expect(readProperty(payAction, 'actionName')).toBe(CONST.REPORT.ACTIONS.TYPE.IOU);
+            expect(readProperty(readProperty(payAction, 'originalMessage'), 'type')).toBe(CONST.IOU.REPORT_ACTION_TYPE.PAY);
+            expect(readProperty(payAction, 'pendingAction')).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+
+            // And its message uses the "received payment" copy rather than the default "paid elsewhere" copy,
+            // so the chat and report previews that derive their last message from this action read correctly.
+            const [messageFragment] = requireRecordArrayProperty(payAction, 'message');
+            const receivedPaymentMessage = translateLocal('iou.receivedPaymentReportAction', undefined);
+            expect(requireStringProperty(messageFragment, 'text')).toBe(receivedPaymentMessage);
+            expect(getOptimisticChatReportValue(chatReport.reportID)).toMatchObject({
+                lastMessageText: receivedPaymentMessage,
+                lastMessageHtml: receivedPaymentMessage,
+            });
+        });
+
+        it('keeps the chat flagged as outstanding when the passed violations leave a sibling report actionable', async () => {
+            // Given a chat that still holds an OPEN sibling report the current user has to submit
+            const {chatReport, reimbursedReport, chatReportActions} = await setUpChatWithOutstandingSibling();
+
+            // When the payment is marked as received with no violations
+            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, {}, getCurrencyDecimalsLocal, undefined);
+
+            // Then the chat keeps its outstanding flag because the sibling report is still awaiting the user
+            expect(getOptimisticChatReportValue(chatReport.reportID)).toMatchObject({
+                hasOutstandingChildRequest: true,
+            });
+        });
+
+        it('clears the chat outstanding flag when the passed violations auto-reject every sibling transaction', async () => {
+            // Given the sibling report's only transaction is auto-rejected, per the violations passed in
+            const {chatReport, reimbursedReport, outstandingTransaction, chatReportActions} = await setUpChatWithOutstandingSibling();
+
+            // When the payment is marked as received with those violations
+            markReportPaymentReceived(
+                chatReport,
+                reimbursedReport,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                chatReportActions,
+                false,
+                {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${outstandingTransaction.transactionID}`]: [autoRejectedViolation],
+                },
+                getCurrencyDecimalsLocal,
+                undefined,
+            );
+
+            // Then nothing is left for the user to act on, so the chat's outstanding flag is cleared
+            expect(getOptimisticChatReportValue(chatReport.reportID)).toMatchObject({
+                hasOutstandingChildRequest: false,
+            });
+        });
+
+        it('reads violations from the passed argument and not from the global Onyx collection', async () => {
+            // Given Onyx holds the auto-rejected violation for the sibling transaction
+            const {chatReport, reimbursedReport, outstandingTransaction, chatReportActions} = await setUpChatWithOutstandingSibling();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${outstandingTransaction.transactionID}`, [autoRejectedViolation]);
+            await waitForBatchedUpdates();
+
+            // When the payment is marked as received while an empty violations collection is passed in
+            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, {}, getCurrencyDecimalsLocal, undefined);
+
+            // Then the outstanding flag still reflects the argument (no auto-rejection), proving the global collection is ignored
+            expect(getOptimisticChatReportValue(chatReport.reportID)).toMatchObject({
+                hasOutstandingChildRequest: true,
+            });
+        });
+
+        it('treats an undefined violations argument as no violations', async () => {
+            // Given a chat that still holds an OPEN sibling report, and Onyx holding an auto-rejected violation for it
+            const {chatReport, reimbursedReport, outstandingTransaction, chatReportActions} = await setUpChatWithOutstandingSibling();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${outstandingTransaction.transactionID}`, [autoRejectedViolation]);
+            await waitForBatchedUpdates();
+
+            // When the caller has no violations loaded yet and passes undefined
+            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, undefined, getCurrencyDecimalsLocal, undefined);
+
+            // Then it behaves like an empty collection rather than falling back to Onyx
+            expect(getOptimisticChatReportValue(chatReport.reportID)).toMatchObject({
+                hasOutstandingChildRequest: true,
+            });
+        });
+
+        it('clears the report pending fields in successData and restores the previous reports in failureData', async () => {
+            // Given a chat report holding an approved expense report
+            const {chatReport, reimbursedReport, chatReportActions} = await setUpChatWithOutstandingSibling();
+
+            // When the submitter marks the payment as received
+            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, {}, getCurrencyDecimalsLocal, undefined);
+
+            // Then a server confirmation clears the pending fields
+            const successReport = getRequiredOnyxUpdate(getOnyxDataArg(), 'successData', `${ONYXKEYS.COLLECTION.REPORT}${reimbursedReport.reportID}`, Onyx.METHOD.MERGE, true).value;
+            expect(successReport).toMatchObject({
+                pendingFields: {
+                    preview: null,
+                    reimbursed: null,
+                    partial: null,
+                    nextStep: null,
+                },
+            });
+
+            // And a server rejection rolls both reports back to what they were before the optimistic write
+            const failureIOUReport = getRequiredOnyxUpdate(getOnyxDataArg(), 'failureData', `${ONYXKEYS.COLLECTION.REPORT}${reimbursedReport.reportID}`, Onyx.METHOD.MERGE, true).value;
+            expect(failureIOUReport).toMatchObject({
+                statusNum: reimbursedReport.statusNum,
+                stateNum: reimbursedReport.stateNum,
+            });
+
+            const failureChatReport = getRequiredOnyxUpdate(getOnyxDataArg(), 'failureData', `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, Onyx.METHOD.MERGE, true).value;
+            expect(failureChatReport).toMatchObject({
+                hasOutstandingChildRequest: true,
+            });
+        });
+    });
 
     describe('a expense chat with a cancelled payment', () => {
         const amount = 10000;
@@ -1632,7 +1964,10 @@ describe('actions/IOU/PayMoneyRequest', () => {
             let chatReport: OnyxEntry<Report>;
 
             // Given a signed in account, which owns a workspace, and has a policy expense chat
-            Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            Onyx.set(ONYXKEYS.SESSION, {
+                email: CARLOS_EMAIL,
+                accountID: CARLOS_ACCOUNT_ID,
+            });
             return waitForBatchedUpdates()
                 .then(() => {
                     // Which owns a workspace
@@ -1646,7 +1981,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         currentUserEmailParam: CARLOS_EMAIL,
                         currency: undefined,
                         isSelfTourViewed: false,
-                        betas: undefined,
                         hasActiveAdminPolicies: false,
                         hasOwnedPaidPolicy: false,
                         activePolicy: undefined,
@@ -1672,7 +2006,10 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             participantParams: {
                                 payeeEmail: RORY_EMAIL,
                                 payeeAccountID: RORY_ACCOUNT_ID,
-                                participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                                participant: {
+                                    login: CARLOS_EMAIL,
+                                    accountID: CARLOS_ACCOUNT_ID,
+                                },
                             },
                             transactionParams: {
                                 amount,
@@ -1724,7 +2061,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         introSelected: undefined,
                         currentUserAccountID: CARLOS_ACCOUNT_ID,
                         currentUserLogin: CARLOS_EMAIL,
-                        betas: [CONST.BETAS.ALL],
                         isSelfTourViewed: false,
                         userBillingGracePeriodEnds: undefined,
                         amountOwed: 0,
@@ -1771,7 +2107,10 @@ describe('actions/IOU/PayMoneyRequest', () => {
             let chatReport: OnyxEntry<Report>;
 
             // Given a signed in account, which owns a workspace, and has a policy expense chat
-            Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            Onyx.set(ONYXKEYS.SESSION, {
+                email: CARLOS_EMAIL,
+                accountID: CARLOS_ACCOUNT_ID,
+            });
             // Which owns a workspace
             await waitForBatchedUpdates();
             createWorkspace({
@@ -1784,7 +2123,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 currentUserEmailParam: CARLOS_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
@@ -1870,7 +2208,10 @@ describe('actions/IOU/PayMoneyRequest', () => {
             // Given a P2P "send money" IOU report that is waiting for the receiver to set up their wallet
             const chatReportID = '7777';
             const iouReportID = '8888';
-            const chatReport: Report = {...createRandomReport(7777, undefined), reportID: chatReportID};
+            const chatReport: Report = {
+                ...createRandomReport(7777, undefined),
+                reportID: chatReportID,
+            };
             const iouReport: Report = {
                 ...createRandomReport(8888, undefined),
                 reportID: iouReportID,
@@ -1911,7 +2252,10 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const employeeEmail = 'employee@expensifail.com';
             const employeeAccountID = 11;
 
-            await Onyx.set(ONYXKEYS.SESSION, {email: adminEmail, accountID: adminAccountID});
+            await Onyx.set(ONYXKEYS.SESSION, {
+                email: adminEmail,
+                accountID: adminAccountID,
+            });
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
                 [adminAccountID]: {
                     accountID: adminAccountID,
@@ -1935,7 +2279,14 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 type: CONST.POLICY.TYPE.CORPORATE,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
-                achAccount: {bankAccountID: 1, accountNumber: '123456789', routingNumber: '011000015', addressName: 'Test User', bankName: 'Test Bank', reimburser: 'admin@expensifail.com'},
+                achAccount: {
+                    bankAccountID: 1,
+                    accountNumber: '123456789',
+                    routingNumber: '011000015',
+                    addressName: 'Test User',
+                    bankName: 'Test Bank',
+                    reimburser: 'admin@expensifail.com',
+                },
             };
 
             const expenseReport = {
@@ -1984,7 +2335,10 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const employeeEmail = 'employee2@expensifail.com';
             const employeeAccountID = 21;
 
-            await Onyx.set(ONYXKEYS.SESSION, {email: adminEmail, accountID: adminAccountID});
+            await Onyx.set(ONYXKEYS.SESSION, {
+                email: adminEmail,
+                accountID: adminAccountID,
+            });
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
                 [adminAccountID]: {
                     accountID: adminAccountID,
@@ -2049,6 +2403,70 @@ describe('actions/IOU/PayMoneyRequest', () => {
             expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
             expect(updatedReport?.nextStep?.messageKey).toBe(CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION);
         });
+
+        it('clears canCancelReimbursement optimistically and restores it when the cancellation fails', async () => {
+            const adminEmail = 'admin3@expensifail.com';
+            const adminAccountID = 30;
+
+            await Onyx.set(ONYXKEYS.SESSION, {email: adminEmail, accountID: adminAccountID});
+
+            const policy = {
+                id: 'cancelReimbursementPolicy',
+                name: 'Test Policy',
+                role: CONST.POLICY.ROLE.ADMIN,
+                owner: adminEmail,
+                ownerAccountID: adminAccountID,
+                outputCurrency: CONST.CURRENCY.USD,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+            };
+
+            const expenseReport = {
+                reportID: 'cancelReimbursementExpense',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: adminAccountID,
+                managerID: adminAccountID,
+                policyID: policy.id,
+                stateNum: CONST.REPORT.STATE_NUM.BILLING,
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                canCancelReimbursement: true,
+                total: -1000,
+                nonReimbursableTotal: 0,
+                currency: 'USD',
+                parentReportID: 'cancelReimbursementChat',
+                chatReportID: 'cancelReimbursementChat',
+            };
+
+            const chatReport = {
+                reportID: 'cancelReimbursementChat',
+                isOwnPolicyExpenseChat: true,
+                ownerAccountID: adminAccountID,
+                iouReportID: expenseReport.reportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+
+            mockFetch?.pause?.();
+
+            cancelPayment(expenseReport, chatReport, policy, true, adminAccountID, adminEmail, false, false, undefined);
+            await waitForBatchedUpdates();
+
+            const optimisticReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            expect(optimisticReport?.canCancelReimbursement).toBe(false);
+
+            mockFetch?.fail?.();
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            const restoredReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            expect(restoredReport?.canCancelReimbursement).toBe(true);
+        });
     });
 
     describe('payMoneyRequest', () => {
@@ -2065,7 +2483,10 @@ describe('actions/IOU/PayMoneyRequest', () => {
             let chatReport: OnyxEntry<Report>;
 
             // Given a signed in account, which owns a workspace, and has a policy expense chat
-            Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            Onyx.set(ONYXKEYS.SESSION, {
+                email: CARLOS_EMAIL,
+                accountID: CARLOS_ACCOUNT_ID,
+            });
             // Which owns a workspace
             await waitForBatchedUpdates();
             createWorkspace({
@@ -2079,7 +2500,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 currency: undefined,
                 activePolicy: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 delegateAccountID: undefined,
                 hasOwnedPaidPolicy: false,
@@ -2152,7 +2572,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     introSelected: undefined,
                     currentUserAccountID: CARLOS_ACCOUNT_ID,
                     currentUserLogin: CARLOS_EMAIL,
-                    betas: [CONST.BETAS.ALL],
                     isSelfTourViewed: false,
                     userBillingGracePeriodEnds: undefined,
                     amountOwed: 0,
@@ -2188,7 +2607,10 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
         beforeEach(async () => {
             completeOnboardingSpy = jest.spyOn(require('@libs/actions/Report'), 'completeOnboarding').mockImplementation(jest.fn());
-            await Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            await Onyx.set(ONYXKEYS.SESSION, {
+                email: CARLOS_EMAIL,
+                accountID: CARLOS_ACCOUNT_ID,
+            });
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
                 [CARLOS_ACCOUNT_ID]: {
                     accountID: CARLOS_ACCOUNT_ID,
@@ -2204,7 +2626,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
         });
 
         it('should not call completeOnboarding when introSelected is undefined', () => {
-            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, undefined, false, [CONST.BETAS.ALL], CARLOS_ACCOUNT_ID, undefined, undefined);
+            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, undefined, false, CARLOS_ACCOUNT_ID, undefined, undefined);
             expect(completeOnboardingSpy).not.toHaveBeenCalled();
         });
 
@@ -2217,7 +2639,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     isInviteOnboardingComplete: true,
                 },
                 false,
-                [CONST.BETAS.ALL],
                 CARLOS_ACCOUNT_ID,
                 undefined,
                 undefined,
@@ -2232,7 +2653,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     inviteType: CONST.ONBOARDING_INVITE_TYPES.IOU,
                 },
                 false,
-                [CONST.BETAS.ALL],
                 CARLOS_ACCOUNT_ID,
                 undefined,
                 undefined,
@@ -2247,7 +2667,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 },
                 false,
-                [CONST.BETAS.ALL],
                 CARLOS_ACCOUNT_ID,
                 undefined,
                 undefined,
@@ -2261,7 +2680,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 inviteType: CONST.ONBOARDING_INVITE_TYPES.IOU,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO,
             };
-            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, false, [CONST.BETAS.ALL], CARLOS_ACCOUNT_ID, undefined, undefined);
+            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, false, CARLOS_ACCOUNT_ID, undefined, undefined);
 
             expect(completeOnboardingSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -2281,7 +2700,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 inviteType: CONST.ONBOARDING_INVITE_TYPES.INVOICE,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
             };
-            completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, false, [CONST.BETAS.ALL], CARLOS_ACCOUNT_ID, undefined, undefined);
+            completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, false, CARLOS_ACCOUNT_ID, undefined, undefined);
 
             expect(completeOnboardingSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -2300,7 +2719,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 inviteType: CONST.ONBOARDING_INVITE_TYPES.INVOICE,
             };
-            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, false, [CONST.BETAS.ALL], CARLOS_ACCOUNT_ID, undefined, undefined);
+            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, false, CARLOS_ACCOUNT_ID, undefined, undefined);
 
             expect(completeOnboardingSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -2316,7 +2735,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 choice: CONST.ONBOARDING_CHOICES.SUBMIT,
                 inviteType: CONST.ONBOARDING_INVITE_TYPES.IOU,
             };
-            completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, false, [CONST.BETAS.ALL], CARLOS_ACCOUNT_ID, undefined, undefined);
+            completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, false, CARLOS_ACCOUNT_ID, undefined, undefined);
 
             expect(completeOnboardingSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -2333,7 +2752,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 inviteType: CONST.ONBOARDING_INVITE_TYPES.CHAT,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MEDIUM,
             };
-            completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, false, [CONST.BETAS.ALL], CARLOS_ACCOUNT_ID, undefined, undefined, 'adminsChatReport123', 'policyID456');
+            completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, false, CARLOS_ACCOUNT_ID, undefined, undefined, 'adminsChatReport123', 'policyID456');
 
             expect(completeOnboardingSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -2352,7 +2771,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 inviteType: CONST.ONBOARDING_INVITE_TYPES.IOU,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO,
             };
-            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, true, [CONST.BETAS.ALL], CARLOS_ACCOUNT_ID, undefined, undefined);
+            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, true, CARLOS_ACCOUNT_ID, undefined, undefined);
 
             expect(completeOnboardingSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -2369,7 +2788,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO,
             };
             const conciergeChat = {reportID: 'concierge-onboarding-1'};
-            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, false, [CONST.BETAS.ALL], CARLOS_ACCOUNT_ID, conciergeChat, undefined);
+            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, false, CARLOS_ACCOUNT_ID, conciergeChat, undefined);
 
             expect(completeOnboardingSpy).toHaveBeenCalledWith(
                 expect.objectContaining({

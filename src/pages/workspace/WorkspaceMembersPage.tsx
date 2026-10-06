@@ -14,12 +14,13 @@ import TextLink from '@components/TextLink';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useHRSyncResultsPage from '@hooks/useHRSyncResultsPage';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useMergeSyncResultsPage from '@hooks/useMergeSyncResultsPage';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePrevious from '@hooks/usePrevious';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -31,6 +32,7 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {isConnectionInProgress, syncConnection} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {updateMemberRoleInline} from '@libs/actions/Policy/InlineEdit';
 import {
     clearAddMemberError,
     clearDeleteMemberError,
@@ -53,11 +55,13 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isPersonalDetailsReady} from '@libs/OptionsListUtils';
 import {getPersonalDetailsByID, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {isPolicyReimburser} from '@libs/PolicyMemberRoleUtils';
 import {
     canEditWorkspaceSettings as canEditWorkspaceSettingsUtil,
     canMemberAssignRole,
     canMemberManageMemberWithRole,
     canMemberWrite,
+    canRolePay,
     getConnectionExporters,
     getMemberAccountIDsForWorkspace,
     getReimburserEmail,
@@ -68,6 +72,7 @@ import {
     isPaidGroupPolicy,
     isPolicyApprover,
     isSubmitPolicy,
+    PAYER_ROLES,
     shouldFilterExpensifyTeam,
 } from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant, isApproverOfOutstandingPolicyReports} from '@libs/ReportUtils';
@@ -84,13 +89,13 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, PolicyEmployee} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
 
 import type {ValueOf} from 'type-fest';
 
 import {useIsFocused} from '@react-navigation/native';
 import {createOutstandingReportsForPolicySelector} from '@selectors/Report';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useEffectEvent, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
@@ -112,13 +117,20 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     useWorkspaceDocumentTitle(policy?.name, 'common.members');
     const tableRef = useRef<TableHandle<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey, string>>(null);
     const icons = useMemoizedLazyExpensifyIcons(['Download', 'FallbackAvatar', 'MakeAdmin', 'Plus', 'RemoveMembers', 'Sync', 'Table', 'User', 'UserEye']);
-    const policyMemberEmailsToAccountIDs = useMemo(() => getMemberAccountIDsForWorkspace(policy?.employeeList, true), [policy?.employeeList]);
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
+    const policyMemberEmailsToAccountIDs = useMemo(
+        () => getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails, true),
+        [policy?.employeeList, employeePersonalDetails],
+    );
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
     const {showConfirmModal} = useConfirmModal();
     const showRuleBotGuardModal = useRuleBotGuardModal();
-    const {isOffline} = useNetwork();
-    const prevIsOffline = usePrevious(isOffline);
+    const getWorkspaceMembers = () => {
+        const clientMemberEmails = Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails));
+        openWorkspaceMembersPage(route.params.policyID, clientMemberEmails);
+    };
+    const {isOffline} = useNetwork({onReconnect: getWorkspaceMembers});
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
@@ -168,6 +180,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const canSelectMultiple = canWriteMembers && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
 
     const confirmModalPrompt = useMemo(() => {
+        const hiddenText = translate('common.hidden');
         const approverEmail = selectedEmployees.find(
             (selectedEmployee) =>
                 isPolicyApprover(policy, selectedEmployee) ||
@@ -178,8 +191,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             const approverAccountID = policyMemberEmailsToAccountIDs[approverEmail];
             return translate(
                 'workspace.people.removeMembersWarningPrompt',
-                getDisplayNameForParticipant({accountID: approverAccountID, formatPhoneNumber, translate}),
-                getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber, translate}),
+                getDisplayNameForParticipant({accountID: approverAccountID, formatPhoneNumber, hiddenTranslation: hiddenText}),
+                getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber, hiddenTranslation: hiddenText}),
             );
         }
 
@@ -189,8 +202,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         if (userExporter) {
             const exporterAccountID = policyMemberEmailsToAccountIDs[userExporter];
             return translate('workspace.people.removeMemberPromptExporter', {
-                memberName: getDisplayNameForParticipant({accountID: exporterAccountID, formatPhoneNumber, translate}),
-                workspaceOwner: getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber, translate}),
+                memberName: getDisplayNameForParticipant({accountID: exporterAccountID, formatPhoneNumber, hiddenTranslation: hiddenText}),
+                workspaceOwner: getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber, hiddenTranslation: hiddenText}),
             });
         }
 
@@ -201,25 +214,10 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         });
     }, [selectedEmployees, policyMemberEmailsToAccountIDs, translate, policy, formatPhoneNumber, personalDetails, outstandingReportsForPolicy, privateIsArchivedMap]);
 
-    /**
-     * Get members for the current workspace
-     */
-    const getWorkspaceMembers = useCallback(() => {
-        const clientMemberEmails = Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList));
-        openWorkspaceMembersPage(route.params.policyID, clientMemberEmails);
-    }, [route.params.policyID, policy?.employeeList]);
-
+    const getWorkspaceMembersEvent = useEffectEvent(() => getWorkspaceMembers());
     useEffect(() => {
-        getWorkspaceMembers();
-    }, [getWorkspaceMembers]);
-
-    useEffect(() => {
-        const isReconnecting = prevIsOffline && !isOffline;
-        if (!isReconnecting) {
-            return;
-        }
-        getWorkspaceMembers();
-    }, [isOffline, prevIsOffline, getWorkspaceMembers]);
+        getWorkspaceMembersEvent();
+    }, []);
 
     /**
      * Open the modal to invite a user
@@ -335,6 +333,24 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         [route.params.policyID],
     );
 
+    const changeMemberRole = (login: string, accountID: number, currentRole: string | undefined, newRole: ValueOf<typeof CONST.POLICY.ROLE>) => {
+        if (newRole === currentRole || !canMemberAssignRole(policy, currentUserLogin ?? '', newRole)) {
+            return;
+        }
+
+        // A reimburser must stay a valid payer, so reject any role that cannot pay.
+        if (getReimburserEmail(policy) === login && !canRolePay(newRole)) {
+            return;
+        }
+
+        if (newRole !== CONST.POLICY.ROLE.ADMIN && isRuleBotEnforcingRules(accountID, policy)) {
+            showRuleBotGuardModal('changeRole', policyID);
+            return;
+        }
+
+        updateMemberRoleInline(policy, login, accountID, currentRole, newRole);
+    };
+
     const policyOwner = policy?.owner;
     const canAssignElevatedRoles = canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES);
     const invitedPrimaryToSecondaryLogins = useMemo(() => invertObject(policy?.primaryLoginsInvited ?? {}), [policy?.primaryLoginsInvited]);
@@ -345,7 +361,10 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         const result: Array<{email: string; policyEmployee: PolicyEmployee; accountID: number; details: PersonalDetails}> = [];
 
         for (const [email, policyEmployee] of Object.entries(policy?.employeeList ?? {})) {
-            if (isDeletedPolicyEmployee(policyEmployee, isOffline)) {
+            // Inviting a secondary login leaves an empty employeeList entry: the backend nulls that key, then
+            // successData merges {pendingAction: null} back onto it. Skip it so it doesn't render as a second
+            // member. A real member whose personal details haven't loaded still has a role and stays visible.
+            if (isEmptyValueObject(policyEmployee) || isDeletedPolicyEmployee(policyEmployee, isOffline)) {
                 continue;
             }
 
@@ -385,15 +404,36 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     // Submit workspaces have a flat role model where every member, including the owner, is an Editor.
     const isSubmitWorkspace = isSubmitPolicy(policy);
 
+    const isSelectionModeActive = selectedEmployees.length > 0 || isMobileSelectionModeEnabled;
+    // Role assignment is a Collect/Control capability. Submit locks every member to Editor.
+    const canAssignMemberRole = isGroupPolicy(policy) && !isSubmitWorkspace;
+
     const data: WorkspaceMemberRowData[] = useMemo(() => {
         const ownerDisplayRole = isSubmitWorkspace ? CONST.POLICY.ROLE.EDITOR : CONST.POLICY.ROLE.OWNER;
+        const assignablePayerRoles = PAYER_ROLES.filter((payerRole) => canMemberAssignRole(policy, currentUserLogin ?? '', payerRole));
+        const policyRoles = Object.values(CONST.POLICY.ROLE);
+
         return filteredMembers.map(({policyEmployee, accountID, details}) => {
             const isPendingDeleteOrError = canEditWorkspaceSettings && (policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors));
-            const role = policy?.owner === details.login ? ownerDisplayRole : policyEmployee.role;
+            const employeeRole = policyRoles.find((policyRole) => policyRole === policyEmployee.role);
+            const role = policy?.owner === details.login ? ownerDisplayRole : employeeRole;
 
             const login = details.login ?? '';
             const memberEmail = formatPhoneNumber(login);
             const memberName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber});
+            const isOwner = policy?.owner === login;
+            const isCurrentUser = accountID === session?.accountID;
+            const isReimburser = isPolicyReimburser(policy, login);
+            const canReimburserChangeRole = assignablePayerRoles.some((payerRole) => payerRole !== policyEmployee.role);
+            const canEditRole =
+                canAssignMemberRole &&
+                !isSelectionModeActive &&
+                !isPendingDeleteOrError &&
+                !isOwner &&
+                !isCurrentUser &&
+                !details.isOptimisticPersonalDetail &&
+                canMemberAssignRole(policy, currentUserLogin ?? '', policyEmployee.role) &&
+                (!isReimburser || canReimburserChangeRole);
 
             return {
                 keyForList: login,
@@ -415,6 +455,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 errors: getLatestErrorMessageField(policyEmployee),
                 pendingAction: policyEmployee.pendingAction,
                 disabled: isPendingDeleteOrError,
+                canEditRole,
+                onChangeRole: (newRole) => changeMemberRole(login, accountID, policyEmployee.role, newRole),
                 // Note which secondary login was used to invite this primary login
                 invitedSecondaryLogin: details?.login ? (invitedPrimaryToSecondaryLogins[details.login] ?? '') : '',
                 action: () => openMemberDetails(accountID, login),
@@ -425,9 +467,11 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         filteredMembers,
         canEditWorkspaceSettings,
         canWriteMembers,
+        canAssignMemberRole,
         currentUserLogin,
         policy,
         isSubmitWorkspace,
+        isSelectionModeActive,
         formatPhoneNumber,
         translate,
         session?.accountID,
@@ -436,6 +480,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         invitedPrimaryToSecondaryLogins,
         openMemberDetails,
         dismissError,
+        changeMemberRole,
     ]);
 
     useEffect(() => {
@@ -465,7 +510,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         }
     }, [invitedEmailsToAccountIDsDraft, isFocused, accountIDs, prevAccountIDs, invitedEmails, policyID]);
 
-    useHRSyncResultsPage(connectionSyncProgress, isFocused);
+    useMergeSyncResultsPage(policyID);
 
     const headerMessage = useMemo(() => {
         if (isOfflineAndNoMemberDataAvailable) {

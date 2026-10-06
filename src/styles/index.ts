@@ -47,6 +47,7 @@ import pointerEventsAuto from './utils/pointerEventsAuto';
 import pointerEventsBoxNone from './utils/pointerEventsBoxNone';
 import pointerEventsNone from './utils/pointerEventsNone';
 import positioning from './utils/positioning';
+import scrollbarGutterStable from './utils/scrollbarGutterStable';
 import sizing from './utils/sizing';
 import spacing from './utils/spacing';
 import textDecorationLine from './utils/textDecorationLine';
@@ -82,6 +83,20 @@ type SelectionListPopover = {
     extraHeight?: number;
 };
 
+// Shared chrome of every RHP card in the stacked report flow, where the frame is invisible and each card draws its own inset bordered modal. Only the width differs.
+const getRHPExtendedCardFrame = (theme: ThemeColors): ViewStyle => ({
+    position: 'absolute',
+    top: variables.rhpFloatingCardMargin,
+    bottom: variables.rhpFloatingCardMargin,
+    right: 0,
+    height: 'auto',
+    borderRadius: variables.componentBorderRadiusLarge,
+    borderWidth: variables.rhpFloatingCardBorderWidth,
+    borderColor: theme.border,
+    overflow: 'hidden',
+    boxShadow: theme.shadow,
+});
+
 const getReceiptDropZoneViewStyle = (theme: ThemeColors, margin: number, paddingVertical: number): ViewStyle => ({
     borderRadius: variables.componentBorderRadiusLarge,
     borderColor: theme.borderFocus,
@@ -104,6 +119,8 @@ type WebViewStyle = {
 type CustomPickerStyle = PickerStyle & {icon?: ViewStyle};
 
 type OverlayStylesParams = Animated.AnimatedInterpolation<string | number> | Animated.Value;
+
+type OverlayPositionValue = number | Animated.Value | Animated.AnimatedAddition<number> | Animated.AnimatedSubtraction<string | number>;
 
 type TwoFactorAuthCodesBoxParams = {isExtraSmallScreenWidth: boolean; isSmallScreenWidth: boolean};
 type WorkspaceUpgradeIntroBoxParams = {isExtraSmallScreenWidth: boolean};
@@ -190,7 +207,7 @@ const headlineItalicFont = {
 const modalNavigatorContainer = (isSmallScreenWidth: boolean) =>
     ({
         position: 'absolute',
-        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+        width: isSmallScreenWidth ? '100%' : variables.rhpWidth,
         height: '100%',
     }) satisfies ViewStyle;
 
@@ -476,6 +493,10 @@ const staticStyles = (theme: ThemeColors) =>
             textAlignVertical: 'top',
         },
 
+        textAlignVerticalCenter: {
+            textAlignVertical: 'center',
+        },
+
         lineHeightUndefined: {
             lineHeight: undefined,
         },
@@ -515,6 +536,11 @@ const staticStyles = (theme: ThemeColors) =>
             color: theme.textSupporting,
             fontSize: fontScale.label,
             lineHeight: lineHeightScale.label,
+        },
+
+        /** Gives every digit the same advance so a counter doesn't shift sideways as its digits change. */
+        tabularNums: {
+            fontVariant: ['tabular-nums'],
         },
 
         mutedNormalTextLabel: {
@@ -697,10 +723,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         opacity1: {
             opacity: 1,
-        },
-
-        textDanger: {
-            color: theme.danger,
         },
 
         borderRadiusNormal: {
@@ -1298,6 +1320,14 @@ const staticStyles = (theme: ThemeColors) =>
             paddingHorizontal: 4,
         },
 
+        /**
+         * Cancels editableCell's horizontal chrome so the value lines up with a
+         * sibling that has no edit padding, such as a card title under a cardholder name.
+         */
+        editableCellFlushWithSibling: {
+            marginHorizontal: -(variables.editableCellChromeWidth / 2),
+        },
+
         editableCell: {
             width: '100%',
             borderWidth: 1,
@@ -1600,7 +1630,7 @@ const staticStyles = (theme: ThemeColors) =>
             width: '100%',
             zIndex: 1,
             transformOrigin: 'left center',
-        },
+        } satisfies ViewStyle & {transformOrigin?: string},
 
         textInputLabel: {
             fontSize: fontScale.text,
@@ -3303,19 +3333,28 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         flipUpsideDown: {
-            transform: `rotate(180deg)`,
-        },
-
-        // Use this instead of `flipUpsideDown` when the element being flipped has asymmetric horizontal padding.
-        // `rotate(180deg)` turns the whole box about its centre, so it mirrors that padding too and the content
-        // visibly slides sideways. Mirroring on the vertical axis leaves the box where it is, and looks identical
-        // for content that is already symmetric left-to-right (a caret, a chevron, a tooltip pointer).
-        flipUpsideDownInPlace: {
-            transform: `scaleY(-1)`,
+            transform: [{rotate: '180deg'}],
         },
 
         navigationScreenCardStyle: {
             height: '100%',
+        },
+
+        // Invisible frame for the stacked report flow. Clipping here would cut off the cards' shadows.
+        RHPCenteredFrame: {
+            right: variables.rhpFloatingCardMargin,
+            height: '100%',
+        },
+
+        // Anchors the floating RHP card on web wide layout in place of `r0` and `h100`. Width comes from the call site.
+        RHPFloatingCard: {
+            top: variables.rhpFloatingCardMargin,
+            right: variables.rhpFloatingCardMargin,
+            bottom: variables.rhpFloatingCardMargin,
+            borderRadius: variables.componentBorderRadiusLarge,
+            borderWidth: variables.rhpFloatingCardBorderWidth,
+            borderColor: theme.border,
+            boxShadow: theme.shadow,
         },
 
         invisible: {
@@ -3504,6 +3543,45 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: variables.inputHeight + 2 * (variables.formErrorLineHeight + 8),
         },
 
+        // Bordered container of a confirmation row that picks a value (category, tag, tax, ...), so it reads as
+        // one of the form's fields rather than as a link out of the flow. Mirrors `textInputContainer`, down to
+        // taking its height from the same place the text fields beside it do, so all of them scale together with
+        // the device font size.
+        moneyRequestFieldRow: {
+            minHeight: variables.inputHeight,
+            paddingHorizontal: 8,
+            paddingVertical: 6,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusNormal,
+            borderColor: theme.bordersBold,
+            overflow: 'hidden',
+        },
+
+        // `moneyRequestFieldRow` for a field the user cannot change. Takes its fill and border straight from
+        // `textInputDisabledContainer`, so a locked row reads as the disabled input it is rather than as a field
+        // still waiting to be filled in.
+        moneyRequestFieldRowDisabled: {
+            backgroundColor: theme.highlightBG,
+            borderColor: theme.borderLighter,
+        },
+
+        // Fill behind `moneyRequestFieldRow`. The row's own background would cover anything drawn under it, so the
+        // fill is a layer of its own for a highlight animation to take over.
+        moneyRequestFieldRowFill: {
+            borderRadius: variables.componentBorderRadiusNormal,
+            backgroundColor: theme.appBG,
+        },
+
+        // Circular icon-only button sitting beside the amount field, standing in for the full-width add-receipt button.
+        moneyRequestAddReceiptButton: {
+            width: variables.inputHeight,
+            height: variables.inputHeight,
+            borderRadius: variables.inputHeight / 2,
+            backgroundColor: theme.buttonDefaultBG,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
         moneyRequestPreviewBox: {
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusLarge,
@@ -3560,7 +3638,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         growlNotificationWrapper: {
-            zIndex: 2,
+            zIndex: variables.growlNotificationZIndex,
         },
 
         growlNotificationContainer: {
@@ -4093,6 +4171,39 @@ const staticStyles = (theme: ThemeColors) =>
             marginLeft: 0,
         },
 
+        reuseRouteCard: {
+            ...spacing.mh5,
+            ...spacing.mb3,
+            borderRadius: variables.componentBorderRadiusLarge,
+            backgroundColor: theme.cardBG,
+        },
+
+        reuseRouteThumbnailWrapper: {
+            ...spacing.p1,
+        },
+
+        reuseRouteThumbnail: {
+            width: '100%',
+            aspectRatio: 1.84,
+            borderRadius: 12,
+            overflow: 'hidden',
+            backgroundColor: theme.border,
+        },
+
+        // Floats above the map thumbnail so the date stays readable over the map image.
+        reuseRouteLastUsedBadge: {
+            position: 'absolute',
+            top: 12,
+            left: 12,
+            marginLeft: 0,
+            backgroundColor: colors.productDark400,
+            borderColor: colors.productDark400,
+        },
+
+        reuseRouteLastUsedBadgeText: {
+            color: colors.productDark900,
+        },
+
         receiptActionButton: {
             width: 40,
             height: 40,
@@ -4193,7 +4304,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         widgetItemButton: {
-            minWidth: 68,
+            minWidth: variables.widgetItemButtonMinWidth,
         },
 
         gettingStartedRowIconContainer: {
@@ -4284,6 +4395,11 @@ const staticStyles = (theme: ThemeColors) =>
         quickCreationActionsBarButtonText: {
             fontSize: variables.fontSizeSmall,
             lineHeight: 14,
+        },
+
+        // Reserved so the centered home layout does not slide sideways when the scrollbar appears.
+        homePageScrollView: {
+            ...scrollbarGutterStable,
         },
 
         homePageContentContainer: {
@@ -4584,7 +4700,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         textSuccess: {
-            color: theme.success,
+            color: theme.textSuccess,
         },
 
         footerRow: {
@@ -4796,12 +4912,12 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         taskRightIconContainer: {
-            width: variables.componentSizeNormal,
+            width: variables.iconSizeNormal,
             marginLeft: 'auto',
-            ...spacing.mt1,
             ...pointerEventsAuto,
             ...display.dFlex,
-            ...flex.alignItemsCenter,
+            ...flex.justifyContentCenter,
+            ...flex.alignItemsEnd,
         },
 
         shareCodeContainer: {
@@ -5139,16 +5255,16 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         rotate90: {
-            transform: 'rotate(90deg)',
+            transform: [{rotate: '90deg'}],
         },
 
         emojiStatusLHN: {
             fontSize: 9,
-            ...(getBrowser() && !isMobile() && {transform: 'scale(.5)', fontSize: 22, overflow: 'visible'}),
+            ...(getBrowser() && !isMobile() && {transform: [{scale: 0.5}], fontSize: 22, overflow: 'visible'}),
             ...(getBrowser() &&
                 isSafari() &&
                 !isMobile() && {
-                    transform: 'scale(0.7)',
+                    transform: [{scale: 0.7}],
                     fontSize: 13,
                     lineHeight: 15,
                     overflow: 'visible',
@@ -5158,10 +5274,6 @@ const staticStyles = (theme: ThemeColors) =>
         onboardingVideoPlayer: {
             borderRadius: 12,
             backgroundColor: theme.highlightBG,
-        },
-
-        onboardingSmallIcon: {
-            padding: 10,
         },
 
         sidebarStatusAvatarContainer: {
@@ -5602,7 +5714,7 @@ const staticStyles = (theme: ThemeColors) =>
             alignSelf: 'flex-start',
         },
 
-        searchFiltersResetButton: {
+        searchFiltersBarButton: {
             flexDirection: 'row',
             gap: 4,
             alignItems: 'center',
@@ -5728,27 +5840,44 @@ const staticStyles = (theme: ThemeColors) =>
             marginTop: 12,
         },
 
-        onboardingAccountingItem: {
+        onboardingTile: {
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusNormal,
-            paddingHorizontal: 16,
+            // Keeps "Intuit Enterprise Suite" on one line in narrow tiles.
+            paddingHorizontal: 8,
             paddingVertical: 20,
+            alignItems: 'center',
             flexGrow: 1,
             flexShrink: 1,
-
-            flexBasis: '35%',
         },
 
-        onboardingInterestedFeaturesItem: {
-            backgroundColor: theme.cardBG,
-            borderRadius: variables.componentBorderRadiusNormal,
-            padding: 16,
-            display: 'flex',
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexGrow: 1,
-            flexShrink: 1,
+        // Three 32% tiles plus gaps overflow the 576px row, so wrap at 30% and cap the width instead.
+        // Uses width, not flexBasis, since native Yoga caches a flexBasis percentage across rotations.
+        onboardingAccountingItemWide: {
+            width: '30%',
+            maxWidth: '32%',
+        },
+
+        onboardingTileNarrow: {
+            width: '45%',
+            maxWidth: '48.5%',
+        },
+
+        onboardingTileSelected: {
+            backgroundColor: theme.selectedOptionBG,
+        },
+
+        // Positioned via the wrapper, since `SelectionButton` applies `style` to the inner pressable.
+        onboardingTileSelectionButton: {
+            position: 'absolute',
+            top: 12,
+            left: 12,
+        },
+
+        // Four 23.4% tiles plus gaps fill the 576px row exactly, so wrap at 22% to survive the scrollbar.
+        onboardingInterestedFeaturesItemWide: {
+            width: '22%',
+            maxWidth: '23.4%',
         },
 
         checkboxWithLabelCheckboxStyle: {
@@ -6463,17 +6592,13 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         wideRHPExtendedCardInterpolatorStyles: {
-            position: 'absolute',
-            height: '100%',
-            right: 0,
+            ...getRHPExtendedCardFrame(theme),
             width: animatedWideRHPWidth,
         },
 
         singleRHPExtendedCardInterpolatorStyles: {
-            position: 'absolute',
-            height: '100%',
-            right: 0,
-            width: variables.sideBarWidth,
+            ...getRHPExtendedCardFrame(theme),
+            width: variables.rhpWidth,
         },
 
         flexibleHeight: {
@@ -6763,6 +6888,8 @@ const staticStyles = (theme: ThemeColors) =>
             marginTop: variables.qrShareHorizontalPadding,
             flexDirection: 'row',
             flexWrap: 'wrap',
+            rowGap: 8,
+            columnGap: 16,
         },
         pieChartCenterLabel: {
             position: 'absolute',
@@ -6779,10 +6906,19 @@ const staticStyles = (theme: ThemeColors) =>
             width: 12,
             height: 12,
         },
-        discoverSectionImage: {
-            width: '100%',
-            height: undefined,
-            aspectRatio: 2.2,
+        chartInlineTable: {
+            marginTop: 32,
+            rowGap: 24,
+        },
+        chartInlineTableDot: {
+            borderRadius: '50%',
+            width: 16,
+            height: 16,
+            margin: 2,
+        },
+        chartInlineTableAvatarBorder: {
+            borderWidth: 2,
+            borderRadius: '50%',
         },
         homeWidgetIconContainer: {
             width: variables.iconSizeExtraLarge,
@@ -6806,9 +6942,7 @@ const dynamicStyles = (theme: ThemeColors) =>
         // See https://github.com/Expensify/App/issues/99035
         getSuperWideRHPExtendedCardInterpolatorStyles: (width: Animated.AnimatedSubtraction<number>) =>
             ({
-                position: 'absolute',
-                height: '100%',
-                right: 0,
+                ...getRHPExtendedCardFrame(theme),
                 width,
             }) satisfies ViewStyle,
 
@@ -6863,7 +6997,7 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         modalStackNavigatorContainerWidth: (isSmallScreenWidth: boolean) =>
             ({
-                width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+                width: isSmallScreenWidth ? '100%' : variables.rhpWidth,
             }) satisfies ViewStyle,
 
         OnboardingNavigatorInnerView: (shouldUseNarrowLayout: boolean) =>
@@ -6893,18 +7027,26 @@ const dynamicStyles = (theme: ThemeColors) =>
             progress,
             positionLeftValue,
             positionRightValue,
+            positionTopValue,
+            positionBottomValue,
+            maxOpacity,
         }: {
             progress: OverlayStylesParams;
-            positionLeftValue: number | Animated.Value | Animated.AnimatedAddition<number>;
-            positionRightValue: number | Animated.Value | Animated.AnimatedAddition<number>;
+            positionLeftValue: OverlayPositionValue;
+            positionRightValue: OverlayPositionValue;
+            positionTopValue: number;
+            positionBottomValue: number;
+            maxOpacity: number;
         }) =>
             ({
                 // We need to stretch the overlay to cover the sidebar and the translate animation distance.
                 left: positionLeftValue,
                 right: positionRightValue,
+                top: positionTopValue,
+                bottom: positionBottomValue,
                 opacity: progress.interpolate({
                     inputRange: [0, 0.5],
-                    outputRange: [0, variables.overlayOpacity],
+                    outputRange: [0, maxOpacity],
                     extrapolate: 'clamp',
                 }),
             }) satisfies ViewStyle,
@@ -6970,7 +7112,8 @@ const dynamicStyles = (theme: ThemeColors) =>
             } satisfies ViewStyle;
         },
 
-        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWithLHBWidth, flex: 1}) satisfies ViewStyle,
+        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean, sidebarWidth: number = variables.sideBarWithLHBWidth) =>
+            ({marginLeft: isSmallScreenWidth ? 0 : sidebarWidth, flex: 1}) satisfies ViewStyle,
 
         RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}) satisfies ViewStyle,
 
@@ -7084,7 +7227,7 @@ const dynamicStyles = (theme: ThemeColors) =>
             maxWidth: shouldUseNarrowLayout ? '100%' : 300,
         }),
 
-        getForYouSectionContainerStyle: (shouldUseNarrowLayout: boolean): ViewStyle => ({
+        getWidgetRowGroupStyle: (shouldUseNarrowLayout: boolean): ViewStyle => ({
             flexDirection: 'column',
             marginBottom: shouldUseNarrowLayout ? 8 : 20,
         }),
@@ -7095,6 +7238,11 @@ const dynamicStyles = (theme: ThemeColors) =>
             top: 0,
             bottom: 0,
             width,
+        }),
+
+        getSplashScreenHiderPosition: (left: number, right: number): ViewStyle => ({
+            left: -left,
+            right: -right,
         }),
 
         getSelectionListPopoverHeight: ({
@@ -7109,11 +7257,11 @@ const dynamicStyles = (theme: ThemeColors) =>
             isNegatable,
             extraHeight = 0,
         }: SelectionListPopover) => {
-            const MODAL_VERTICAL_PADDING = 32;
+            const MODAL_VERTICAL_PADDING = variables.popoverVerticalPadding;
             const BUTTON_HEIGHT = hasButton ? 48 : 0;
             const HEADER_HEIGHT = hasHeader ? 48 : 0;
             const TITLE_HEIGHT = hasTitle ? 34 : 0;
-            const SEARCHBAR_HEIGHT = isSearchable ? 64 : 0;
+            const SEARCHBAR_HEIGHT = isSearchable ? variables.popoverSearchInputHeight : 0;
             const NEGATION_TOGGLE_BORDER_WIDTH = 1;
             const NEGATION_TOGGLE_HEIGHT = isNegatable ? variables.componentSizeSmall + NEGATION_TOGGLE_BORDER_WIDTH * 2 + spacing.gap3.gap : 0;
 
@@ -7182,6 +7330,7 @@ const dynamicStyles = (theme: ThemeColors) =>
             return {
                 width: shouldUseNarrowLayout ? '100%' : '91%',
                 height,
+                maxHeight: '100%',
                 borderRadius: variables.componentBorderRadiusLarge,
                 borderBottomRightRadius: borderBottomRadius,
                 borderBottomLeftRadius: borderBottomRadius,
@@ -7379,6 +7528,8 @@ const plainStyles = (theme: ThemeColors) =>
                 color,
             }) satisfies TextStyle,
 
+        getWidgetContainerBottomPaddingStyle: (shouldUseNarrowLayout: boolean): ViewStyle => (shouldUseNarrowLayout ? spacing.pb2 : spacing.pb5),
+
         getWidgetContainerHeaderStyle: (shouldUseNarrowLayout: boolean) =>
             ({
                 flexDirection: 'row',
@@ -7416,6 +7567,14 @@ const plainStyles = (theme: ThemeColors) =>
             paddingRight: 24,
         },
 
+        conciergePromptBoxPlaceholderSkeleton: {
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: variables.composerTextInputPaddingLeft,
+            justifyContent: 'center',
+        },
+
         widgetItemIconContainer: {
             alignItems: 'center',
             justifyContent: 'center',
@@ -7441,6 +7600,37 @@ const plainStyles = (theme: ThemeColors) =>
         homePageLeftColumn: {flex: 7, flexBasis: '58.333%', maxWidth: variables.homePageLeftColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle,
 
         homePageRightColumn: {flex: 5, flexBasis: '41.667%', flexDirection: 'column', gap: 20} satisfies ViewStyle,
+
+        insightsDashboardLayout: {
+            width: '100%',
+            maxWidth: variables.centeredContentMaxWidth,
+            alignSelf: 'center',
+            gap: variables.insightsCardGap,
+        } satisfies ViewStyle,
+
+        insightsDashboardScrollView: {
+            ...scrollbarGutterStable,
+        },
+
+        insightsPageControlsContainer: {
+            ...scrollbarGutterStable,
+            overflow: 'hidden',
+        },
+
+        insightsChartGrid: {
+            flexDirection: 'row',
+            alignItems: 'flex-start',
+            gap: variables.insightsCardGap,
+        } satisfies ViewStyle,
+
+        insightsChartColumn: {
+            gap: variables.insightsCardGap,
+        } satisfies ViewStyle,
+
+        insightsEmptyStateIllustration: {
+            width: variables.insightsEmptyStateIllustrationSize,
+            height: variables.insightsEmptyStateIllustrationSize,
+        } satisfies ImageStyle,
     }) satisfies Styles;
 
 const styles = (theme: ThemeColors) =>
@@ -7453,4 +7643,4 @@ const styles = (theme: ThemeColors) =>
 type ThemeStyles = ReturnType<typeof styles>;
 
 export default styles;
-export type {ThemeStyles, StatusBarStyle, ColorScheme, AnchorPosition, AnchorDimensions, OverlayStylesParams};
+export type {ThemeStyles, StatusBarStyle, ColorScheme, AnchorPosition, AnchorDimensions, OverlayStylesParams, OverlayPositionValue};
