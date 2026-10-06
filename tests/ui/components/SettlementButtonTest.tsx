@@ -12,6 +12,7 @@ import type SettlementButtonProps from '@components/SettlementButton/types';
 
 import {createWorkspace} from '@libs/actions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
+import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -24,7 +25,7 @@ import type {ValueOf} from 'type-fest';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
-import {translateLocal} from '../../utils/TestHelper';
+import {getOnyxData, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
@@ -579,6 +580,132 @@ describe('SettlementButton', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(createWorkspaceMock).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('expense payment funding source', () => {
+        const workspaceBankAccount = {
+            bankAccountID: BANK_ACCOUNT_ID + 1,
+            accountNumber: 'XXXX1111',
+            routingNumber: '123456789',
+            addressName: 'Workspace account',
+            bankName: 'Workspace bank',
+            reimburser: 'payer@test.com',
+            state: CONST.BANK_ACCOUNT.STATE.OPEN,
+        };
+
+        async function selectExpensePaymentOption(policy: Policy, optionText: string, bankAccountList?: BankAccountList) {
+            const expenseReport = createExpenseReport();
+            await setupOnyxState({report: expenseReport, chatReport: createChatReport(), policy, bankAccountList});
+            render(
+                <SettlementButtonWrapper>
+                    <SettlementButton
+                        {...defaultProps}
+                        iouReport={expenseReport}
+                    />
+                </SettlementButtonWrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(screen.getByText(translateLocal('iou.settlePayment', '$100.00')));
+            await waitForBatchedUpdatesWithAct();
+            const menuItem = screen.getByTestId(`PopoverMenuItem-${optionText}`);
+            fireEvent.press(menuItem, {nativeEvent: {}, type: 'press', target: menuItem, currentTarget: menuItem});
+            await waitForBatchedUpdatesWithAct();
+        }
+
+        it.each([CONST.BANK_ACCOUNT.STATE.OPEN, CONST.BANK_ACCOUNT.STATE.LOCKED])('adds a standalone account when the inaccessible workspace account is %s', async (state) => {
+            // Given an existing workspace account and stale setup data, neither may be used for a new funding source.
+            const policy = createTestPolicy({achAccount: {...workspaceBankAccount, state}});
+            await Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {bankAccountID: workspaceBankAccount.bankAccountID, policyID: POLICY_ID}});
+            await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {accountNumber: '1111'});
+
+            // When an admin without that account chooses business-bank payment.
+            await selectExpensePaymentOption(policy, translateLocal('iou.settleBusiness', ''));
+
+            // Then setup receives no policyID and cannot replace the workspace account or reuse stale account details.
+            expect(navigateToBankAccountRoute).toHaveBeenCalledWith({backTo: ''});
+            expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(POLICY_ID));
+            await getOnyxData({
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                callback: (setup) => {
+                    expect(setup?.achData?.policyID).toBeFalsy();
+                    expect(setup?.achData?.bankAccountID).toBeFalsy();
+                },
+            });
+            await getOnyxData({key: `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, callback: (workspace) => expect(workspace?.achAccount).toEqual(policy.achAccount)});
+        });
+
+        it('does not connect an unrelated partially configured account to the workspace', async () => {
+            // Given an existing workspace account and another bank account that the admin has not finished setting up.
+            const policy = createTestPolicy({achAccount: workspaceBankAccount});
+            const bankAccountList = createBankAccountList();
+            bankAccountList[BANK_ACCOUNT_ID].accountData = {...bankAccountList[BANK_ACCOUNT_ID].accountData, state: CONST.BANK_ACCOUNT.STATE.SETUP};
+
+            // When business-bank payment would otherwise open connect-existing setup.
+            await selectExpensePaymentOption(policy, translateLocal('iou.settleBusiness', ''), bankAccountList);
+
+            // Then the new funding source is set up independently of the workspace account.
+            expect(navigateToBankAccountRoute).toHaveBeenCalledWith({backTo: ''});
+            expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(POLICY_ID));
+            await getOnyxData({key: `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, callback: (workspace) => expect(workspace?.achAccount).toEqual(workspaceBankAccount)});
+        });
+
+        it('resumes an accessible partially configured workspace account by its bank account ID', async () => {
+            // Given the workspace account itself is shared with the admin and still needs setup.
+            const bankAccountList = createBankAccountList();
+            bankAccountList[BANK_ACCOUNT_ID].accountData = {...bankAccountList[BANK_ACCOUNT_ID].accountData, state: CONST.BANK_ACCOUNT.STATE.SETUP};
+            const policy = createTestPolicy({achAccount: {...workspaceBankAccount, bankAccountID: BANK_ACCOUNT_ID, state: CONST.BANK_ACCOUNT.STATE.SETUP}});
+
+            // When the admin chooses business-bank payment.
+            await selectExpensePaymentOption(policy, translateLocal('iou.settleBusiness', ''), bankAccountList);
+
+            // Then continue this account rather than creating or connecting a replacement.
+            expect(navigateToBankAccountRoute).toHaveBeenCalledWith({bankAccountID: BANK_ACCOUNT_ID, backTo: ''});
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
+        it('pays from another accessible business account without connecting it to the workspace', async () => {
+            // Given the admin owns a usable account different from the workspace account.
+            const policy = createTestPolicy({achAccount: workspaceBankAccount});
+            const bankAccountList = createBankAccountList('5678');
+
+            // When the admin selects that account directly in the pay menu.
+            await selectExpensePaymentOption(policy, 'Test Bank Account', bankAccountList);
+
+            // Then the selected account funds payment without entering workspace bank setup.
+            expect(defaultProps.onPress).toHaveBeenCalledWith({
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                payAsBusiness: true,
+                methodID: BANK_ACCOUNT_ID,
+                paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+            });
+            expect(navigateToBankAccountRoute).not.toHaveBeenCalled();
+            await getOnyxData({key: `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, callback: (workspace) => expect(workspace?.achAccount).toEqual(workspaceBankAccount)});
+        });
+
+        it('keeps first-account setup linked to a workspace with no bank account', async () => {
+            // Given the workspace has no bank account and the admin has no existing accounts.
+            const policy = createTestPolicy();
+
+            // When the admin chooses business-bank payment.
+            await selectExpensePaymentOption(policy, translateLocal('iou.settleBusiness', ''));
+
+            // Then the normal setup may establish the workspace's first account.
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: POLICY_ID, backTo: ''}));
+            expect(navigateToBankAccountRoute).not.toHaveBeenCalled();
+        });
+
+        it('marks a report as paid without entering bank setup', async () => {
+            // Given the admin cannot access the workspace bank account.
+            const policy = createTestPolicy({achAccount: workspaceBankAccount});
+
+            // When the admin chooses pay elsewhere.
+            await selectExpensePaymentOption(policy, translateLocal('iou.payElsewhere', ''));
+
+            // Then manual payment proceeds independently of bank-account setup.
+            expect(defaultProps.onPress).toHaveBeenCalledWith({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, payAsBusiness: false});
+            expect(navigateToBankAccountRoute).not.toHaveBeenCalled();
+            expect(Navigation.navigate).not.toHaveBeenCalled();
         });
     });
 

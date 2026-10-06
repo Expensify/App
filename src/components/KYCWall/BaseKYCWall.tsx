@@ -11,14 +11,16 @@ import useReportTransactions from '@hooks/useReportTransactions';
 
 import {openPersonalBankAccountSetupView, setPersonalBankAccountContinueKYCOnSuccess} from '@libs/actions/BankAccounts';
 import {completePaymentOnboarding, savePreferredPaymentMethod} from '@libs/actions/IOU/PayMoneyRequest';
-import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
+import {clearReimbursementAccount, clearReimbursementAccountDraft, navigateToBankAccountRoute, updateReimbursementAccountDraft} from '@libs/actions/ReimbursementAccount';
 import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
-import {doesPolicyHavePartiallySetupBankAccount} from '@libs/BankAccountUtils';
+import {doesPolicyHavePartiallySetupBankAccount, isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Log from '@libs/Log';
+import mapCurrencyToCountry from '@libs/mapCurrencyToCountry';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
+import {getAccessiblePolicyBankAccount} from '@libs/PolicyPaymentUtils';
 import {getAllPolicyExpenseChatReportActions, getBankAccountRoute, getInvoiceReceiverPolicyID, isExpenseReport as isExpenseReportReportUtils, isIOUReport} from '@libs/ReportUtils';
 import {getEligibleExistingBusinessBankAccounts, getOpenConnectedToPolicyBusinessBankAccounts} from '@libs/WorkflowUtils';
 
@@ -243,6 +245,24 @@ function KYCWall({
                     setNavigationActionToMicrotaskQueue(() => {
                         Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID, backTo: workspaceReportRoute}));
                     });
+                    return;
+                }
+
+                // Adding a funding source for a report must preserve an existing workspace bank account. Use the
+                // wallet setup without a policyID, rather than linking a new or existing account to the workspace.
+                const expenseReportPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`] ?? policy;
+                if (isExpenseReportReportUtils(iouReport) && expenseReportPolicy?.achAccount?.bankAccountID) {
+                    const workspaceBankAccount = getAccessiblePolicyBankAccount(expenseReportPolicy, bankAccountList);
+                    if (workspaceBankAccount && isBankAccountPartiallySetup(workspaceBankAccount.accountData?.state)) {
+                        navigateToBankAccountRoute({bankAccountID: expenseReportPolicy.achAccount.bankAccountID, backTo: Navigation.getActiveRoute()});
+                        return;
+                    }
+
+                    const currency = expenseReportPolicy.outputCurrency ?? iouReport?.currency ?? CONST.CURRENCY.USD;
+                    clearReimbursementAccount();
+                    clearReimbursementAccountDraft();
+                    updateReimbursementAccountDraft({country: mapCurrencyToCountry(currency), currency});
+                    navigateToBankAccountRoute({backTo: Navigation.getActiveRoute()});
                     return;
                 }
 
