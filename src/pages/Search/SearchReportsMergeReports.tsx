@@ -54,6 +54,7 @@ function SearchMergeReports() {
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
 
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
@@ -187,6 +188,7 @@ function SearchMergeReports() {
             allReportsTransactions,
             bankAccountList,
             rules,
+            cardList,
             hash: currentSearchHash,
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
@@ -240,7 +242,6 @@ function SearchMergeReports() {
                     data={reportItems}
                     onSelectRow={onSelection}
                     ListItem={SearchMergeReportsListItem}
-                    isRowMultilineSupported
                     shouldSingleExecuteRowSelect
                     canSelectMultiple={false}
                     shouldShowLoadingPlaceholder={isLoading}

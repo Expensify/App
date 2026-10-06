@@ -671,7 +671,6 @@ function IOURequestStepConfirmationContent({
         participants,
         iouType,
         action,
-        requestType,
         isDistanceRequest,
         isManualDistanceRequest,
         isOdometerDistanceRequest,
