@@ -10356,6 +10356,12 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
     distance: {
         addStop: 'Adicionar parada',
         address: 'Endereço',
+        reuseRoute: 'Reutilizar rota',
+        reusePriorRoute: 'Reutilizar rota anterior',
+        choosePreviousRoute: 'Escolha uma rota anterior abaixo:',
+        findARoute: 'Encontrar rota',
+        lastUsed: ({date}: {date: string}) => `Último uso em ${date}`,
+        end: 'Fim',
         waypointDescription: {
             start: 'Iniciar',
             stop: 'Parar',

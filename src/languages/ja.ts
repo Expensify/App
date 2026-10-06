@@ -10238,6 +10238,12 @@ ${reportName}`,
     distance: {
         addStop: '経由地を追加',
         address: '住所',
+        reuseRoute: 'ルートを再利用',
+        reusePriorRoute: '前回の経路を再利用',
+        choosePreviousRoute: '以前のルートを以下から選択してください。',
+        findARoute: '経路を検索',
+        lastUsed: ({date}: {date: string}) => `最終利用日：${date}`,
+        end: '終了',
         waypointDescription: {
             start: '開始',
             stop: '停止',
