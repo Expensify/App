@@ -15,7 +15,7 @@ import {
     canSendInvoiceFromWorkspace,
     evaluateApprovalWorkflowRule,
     findVendorByID,
-    getVendorFeaturePolicyIDs,
+    getVendorFeaturePolicies,
     getVendorDisplayName,
     hasVendorFeatureOnAnyPolicy,
     getActivePolicies,
@@ -5594,7 +5594,7 @@ describe('PolicyUtils', () => {
             });
         });
 
-        describe('hasVendorFeatureOnAnyPolicy and getVendorFeaturePolicyIDs', () => {
+        describe('hasVendorFeatureOnAnyPolicy and getVendorFeaturePolicies', () => {
             const qboPolicy: Policy = {...buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), id: 'qbo'};
             const xeroPolicy: Policy = {...buildXeroPolicy(), id: 'xero'};
             const businessCentralPolicy: Policy = {...buildBusinessCentralPolicy(), id: 'businessCentral'};
@@ -5645,17 +5645,17 @@ describe('PolicyUtils', () => {
                 expect(isVendorFeatureAvailable).toBe(false);
             });
 
-            it('lists the workspaces that have the vendor feature', () => {
+            it('returns the workspaces that have the vendor feature, keyed like the policy collection', () => {
                 // Given QBO, Xero and Business Central workspaces next to one with no accounting connection
                 const policies = {[qboKey]: qboPolicy, [xeroKey]: xeroPolicy, [businessCentralKey]: businessCentralPolicy, [plainKey]: plainPolicy};
 
-                // When the workspace IDs are listed with and without the vendorMatching beta
-                const policyIDsWithBeta = getVendorFeaturePolicyIDs(policies, true);
-                const policyIDsWithoutBeta = getVendorFeaturePolicyIDs(policies, false);
+                // When the workspaces are filtered with and without the vendorMatching beta
+                const policiesWithBeta = getVendorFeaturePolicies(policies, true);
+                const policiesWithoutBeta = getVendorFeaturePolicies(policies, false);
 
-                // Then every connected workspace is listed with the beta, and Business Central is dropped without it because it still depends on the beta
-                expect(policyIDsWithBeta.toSorted()).toEqual(['businessCentral', 'qbo', 'xero']);
-                expect(policyIDsWithoutBeta.toSorted()).toEqual(['qbo', 'xero']);
+                // Then every connected workspace is kept with the beta, and Business Central is dropped without it because it still depends on the beta
+                expect(policiesWithBeta).toEqual({[qboKey]: qboPolicy, [xeroKey]: xeroPolicy, [businessCentralKey]: businessCentralPolicy});
+                expect(policiesWithoutBeta).toEqual({[qboKey]: qboPolicy, [xeroKey]: xeroPolicy});
             });
         });
 

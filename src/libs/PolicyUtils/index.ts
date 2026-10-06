@@ -2408,16 +2408,17 @@ function hasVendorFeatureOnAnyPolicy(policies: OnyxCollection<Policy>, isVendorM
 }
 
 /**
- * IDs of the workspaces that have the vendor feature, so the Search vendor filter only offers their vendor lists.
+ * The workspaces that have the vendor feature, keyed like the policy collection, so the Search vendor filter only offers
+ * their vendor lists.
  */
-function getVendorFeaturePolicyIDs(policies: OnyxCollection<Policy>, isVendorMatchingBetaEnabled: boolean): string[] {
-    const policyIDs: string[] = [];
-    for (const policy of Object.values(policies ?? {})) {
+function getVendorFeaturePolicies(policies: OnyxCollection<Policy>, isVendorMatchingBetaEnabled: boolean): OnyxCollection<Policy> {
+    const vendorFeaturePolicies: NonNullable<OnyxCollection<Policy>> = {};
+    for (const [key, policy] of Object.entries(policies ?? {})) {
         if (policy?.id && hasVendorFeature(policy, isVendorMatchingBetaEnabled)) {
-            policyIDs.push(policy.id);
+            vendorFeaturePolicies[key] = policy;
         }
     }
-    return policyIDs;
+    return vendorFeaturePolicies;
 }
 
 /**
@@ -3282,7 +3283,7 @@ export {
     isXeroVendorMatchingActive,
     hasVendorFeature,
     hasVendorFeatureOnAnyPolicy,
-    getVendorFeaturePolicyIDs,
+    getVendorFeaturePolicies,
     isMatchingVendorListLoaded,
     getValidConnectedIntegration,
     getIneligibleInvitees,
