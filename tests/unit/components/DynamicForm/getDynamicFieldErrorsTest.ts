@@ -203,21 +203,4 @@ describe('getDynamicFieldErrors', () => {
         expect(ukErrors).toEqual({});
         expect(incompleteErrors).toEqual({phone: translateLocal('common.error.phoneNumber')});
     });
-
-    it('accepts No as the answer to a lone boolean, but not to a checkbox among other fields', () => {
-        // Given a required boolean alone on its page, asked as Yes/No, and a required checkbox next to another question
-        const hasOtherOwners: DynamicFormField = {key: 'hasOtherOwners', type: 'boolean', required: true};
-        const acceptTerms: DynamicFormField = {key: 'acceptTerms', type: 'boolean', required: true};
-        const fullName: DynamicFormField = {key: 'fullName', type: 'text', required: false};
-
-        // When the question is answered No or not at all, and the checkbox is left empty
-        const noErrors = getDynamicFieldErrors([hasOtherOwners], {hasOtherOwners: false}, translateLocal);
-        const unansweredErrors = getDynamicFieldErrors([hasOtherOwners], {hasOtherOwners: ''}, translateLocal);
-        const consentErrors = getDynamicFieldErrors([acceptTerms, fullName], {acceptTerms: false}, translateLocal);
-
-        // Then No answers the question, while an unanswered question and an empty checkbox are flagged
-        expect(noErrors).toEqual({});
-        expect(unansweredErrors).toEqual({hasOtherOwners: translateLocal('common.error.fieldRequired')});
-        expect(consentErrors).toEqual({acceptTerms: translateLocal('common.error.fieldRequired')});
-    });
 });

@@ -8,17 +8,17 @@ import {isValidDate, isValidLegalName, isValidPastDate, isValidPhoneInternationa
 import type {DynamicFormChoiceField, DynamicFormField, DynamicFormFieldType, DynamicFormNumberField, DynamicFormSchemaField, DynamicFormTextField} from '@src/types/onyx';
 
 import getFieldOptions from './getFieldOptions';
-import getVisibleFields, {getLoneField} from './getVisibleFields';
+import getVisibleFields from './getVisibleFields';
 import isSupportedField from './isSupportedField';
 import logSchemaProblem from './logSchemaProblem';
 
 /** Checks a field the user has answered. Unanswered fields only get the required check. */
 type FieldValidator<TType extends DynamicFormFieldType> = (field: DynamicFormFieldOfType<TType>, values: DynamicFormValues, translate: LocalizedTranslate) => string[];
 
-/** A checkbox that is not ticked is unanswered. `isNoAnAnswer` is for a boolean asked as a Yes/No question, where No answers it. */
-function isAnswered(value: FormValue | undefined, isNoAnAnswer = false): boolean {
+/** A checkbox that is not ticked is unanswered. */
+function isAnswered(value: FormValue | undefined): boolean {
     if (typeof value === 'boolean') {
-        return value || isNoAnAnswer;
+        return value;
     }
     if (typeof value === 'string') {
         return value.trim() !== '';
@@ -115,12 +115,11 @@ function validateField<TType extends DynamicFormFieldType>(field: DynamicFormFie
 function getDynamicFieldErrors(fields: DynamicFormSchemaField[], values: DynamicFormValues, translate: LocalizedTranslate): Record<string, string> {
     const errors: Record<string, string> = {};
     const visibleFields = getVisibleFields(fields.filter(isSupportedField), values);
-    const loneField = getLoneField(visibleFields);
     for (const field of visibleFields) {
         if (field.readonly) {
             continue;
         }
-        if (!isAnswered(values[field.key], field.type === 'boolean' && field === loneField)) {
+        if (!isAnswered(values[field.key])) {
             if (field.required) {
                 addErrorMessage(errors, field.key, translate('common.error.fieldRequired'));
             }

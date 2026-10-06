@@ -23,7 +23,7 @@ type CountryPickerProps = {
     /** Form Error description */
     errorText?: string;
 
-    /** Row title. Defaults to "Country". */
+    /** Row title */
     label?: string;
 };
 
