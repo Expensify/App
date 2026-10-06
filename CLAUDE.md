@@ -63,6 +63,7 @@ Do not use `useMemo`, `useCallback`, or `React.memo` in components or hooks that
 ### Code Quality
 
 - **ESLint**: Linter. Pre-existing violations are grandfathered via the seatbelt ratchet in `scripts/lint/`.
+- **Coding standards**: Before you write or review code, read the rules in [`.claude/skills/app-coding-standards/`](.claude/skills/app-coding-standards/SKILL.md). The automated Claude review checks each pull request against them when it opens.
 
 ### Post-Edit Checklist (IMPORTANT)
 
