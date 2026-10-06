@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {clearDisableTwoFactorAuthErrors} from '@libs/actions/Session';
+import {clearAccountMessages, clearDisableTwoFactorAuthErrors} from '@libs/actions/Session';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
@@ -28,6 +28,13 @@ function DisablePage() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
     const formRef = useRef<BaseTwoFactorAuthFormRef>(null);
+
+    useEffect(() => {
+        clearAccountMessages();
+        return () => {
+            clearAccountMessages();
+        };
+    }, []);
 
     useEffect(() => {
         if (account?.requiresTwoFactorAuth) {
