@@ -330,7 +330,7 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
                 <ChartYAxisLabels
                     yTicks={chartData.map((point) => point.y)}
                     yScale={args.yScale}
-                    chartBounds={args.chartBounds}
+                    canvasWidth={args.canvasSize.width}
                     fontSize={variables.iconSizeExtraSmall}
                     fontManager={fontManager}
                     labelColor={theme.textSupporting}
