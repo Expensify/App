@@ -4780,7 +4780,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             memberAlternateText: 'レポートを提出して承認します。',
             adminAlternateText: 'レポートとワークスペースの設定を管理します。',
             auditorAlternateText: 'レポートを表示してコメントします。',
-            guestAlternateText: 'レポートの提出と承認、招待制チャットができます。',
+            guestAlternateText: '表示を限定してレポートを提出します。',
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.OWNER:
@@ -4788,7 +4788,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'ワークスペース管理者';
                     case CONST.POLICY.ROLE.AUDITOR:
-                        return '監査人';
+                        return '監査担当者';
                     case CONST.POLICY.ROLE.GUEST:
                         return 'ゲスト';
                     case CONST.POLICY.ROLE.EDITOR:
