@@ -201,6 +201,7 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestStepCategory').default,
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY_CREATE]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestStepCategoryCreate').default,
     [SCREENS.MONEY_REQUEST.STEP_VENDOR]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepVendor').default,
+    [SCREENS.MONEY_REQUEST.STEP_REUSE_ROUTE]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepReuseRoute').default,
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DATE]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestStepDate').default,
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESCRIPTION]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestStepDescription').default,
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestStepDistance').default,
@@ -1467,7 +1468,6 @@ const WorkspacesDomainModalStackNavigator = createModalStackNavigator<Workspaces
     [SCREENS.WORKSPACES_DOMAIN_VERIFIED]: () => require<ReactComponentModule>('../../../../pages/domain/WorkspacesDomainVerifiedPage').default,
     [SCREENS.WORKSPACES_ADD_DOMAIN]: () => require<ReactComponentModule>('../../../../pages/domain/AddDomainPage').default,
     [SCREENS.WORKSPACES_DOMAIN_ADDED]: () => require<ReactComponentModule>('../../../../pages/domain/DomainAddedPage').default,
-    [SCREENS.WORKSPACES_ADD_DOMAIN_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/domain/AddDomainVerifyAccountPage').default,
     [SCREENS.WORKSPACES_DOMAIN_ACCESS_RESTRICTED]: () => require<ReactComponentModule>('../../../../pages/domain/DomainAccessRestrictedPage').default,
     [SCREENS.WORKSPACES_DOMAIN_ALREADY_EXISTS]: () => require<ReactComponentModule>('../../../../pages/domain/DomainAlreadyExistsPage').default,
 });
