@@ -1,4 +1,5 @@
 import {setInboxTab} from '@libs/actions/User';
+import getReportAttributesUpdates from '@libs/getReportAttributesUpdates';
 import Log from '@libs/Log';
 import SidebarUtils from '@libs/SidebarUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
@@ -116,7 +117,8 @@ function SidebarOrderedReportsContextProvider({
     const prevGuideAccountIDs = usePrevious(guideAccountIDs);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const reportAttributes = useReportAttributes();
-    const reportAttributesUpdates = useCollectionDelta(reportAttributes);
+    const prevReportAttributes = usePrevious(reportAttributes);
+    const reportAttributesUpdates = useMemo(() => getReportAttributesUpdates(reportAttributes, prevReportAttributes), [reportAttributes, prevReportAttributes]);
     const [currentReportsToDisplay, setCurrentReportsToDisplay] = useState<ReportsToDisplayInLHN>({});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
@@ -156,7 +158,7 @@ function SidebarOrderedReportsContextProvider({
             }
         }
         if (reportAttributesUpdates) {
-            for (const reportID of Object.keys(reportAttributesUpdates)) {
+            for (const reportID of reportAttributesUpdates) {
                 reportsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
             }
         }
