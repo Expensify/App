@@ -59,7 +59,7 @@ function useInlineEditState<T>(
         }
         hasEndedRef.current = true;
 
-        const shouldSave = !!onSave && (isEqual ? !isEqual(localValue, value) : !Object.is(localValue, value));
+        const shouldSave = isEqual ? !isEqual(localValue, value) : !Object.is(localValue, value);
         if (!shouldSave || !onSave) {
             closeEditing();
             return;
