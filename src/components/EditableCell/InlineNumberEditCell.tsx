@@ -5,7 +5,8 @@
  *
  * Callers convert to a frontend numeric string before passing `value`. Invalid values are
  * handled by onSave, which no-ops on rejection. The cell then reverts to the original value.
- * If onSave returns false, or a promise of false, the editor stays open with the typed value.
+ * A promise keeps the typed value on screen until the confirm modal closes. Cancelling that modal
+ * closes the editor. A synchronous false leaves the editor open with the typed value.
  */
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';

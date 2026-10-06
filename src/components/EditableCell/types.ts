@@ -1,6 +1,7 @@
 /**
- * false, or a promise of false, keeps the inline editor open with the typed value.
- * Use that when the write waits on a confirm modal. Anything else closes the editor.
+ * A promise keeps the editor open until the confirm modal settles, so the typed value stays visible.
+ * Once it settles, the editor closes. Resolving false means the user cancelled, and the draft is dropped.
+ * A synchronous false keeps the editor open with the typed value.
  */
 type InlineEditSaveResult = void | boolean | Promise<boolean>;
 

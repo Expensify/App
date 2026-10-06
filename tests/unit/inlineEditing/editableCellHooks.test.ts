@@ -183,6 +183,41 @@ describe('useInlineEditState', () => {
         expect(result.current.localValue).toBe('updated externally');
     });
 
+    it('adopts an external update when the editor is open but untouched, so blur does not write the stale value', () => {
+        // Given an open editor the user has not typed in
+        const onSave = jest.fn();
+        const {result, rerender} = setupInline('old', {onSave});
+
+        startInlineEditing(result);
+
+        // When an external rename lands before the user changes anything, then they blur
+        rerender({value: 'renamed', canEdit: true});
+        saveInline(result);
+
+        // Then the cell shows the rename and does not write the stale buffer back over it
+        expect(onSave).not.toHaveBeenCalled();
+        expect(result.current.isEditing).toBe(false);
+        expect(result.current.localValue).toBe('renamed');
+    });
+
+    it('adopts an external update when the open edit only differs by the caller equality check', () => {
+        // Given an open editor whose buffer matches the original once normalized, the way "1.00" matches "1"
+        const onSave = jest.fn();
+        const isEqual = (newValue: string, originalValue: string) => Number(newValue) === Number(originalValue);
+        const {result, rerender} = setupInline('1', {onSave, isEqual});
+
+        startInlineEditing(result);
+        setInlineValue(result, '1.00');
+
+        // When an external update lands, then the user blurs
+        rerender({value: '2', canEdit: true});
+        saveInline(result);
+
+        // Then the normalized edit is not treated as a draft, so blur does not write "1.00" over the update
+        expect(onSave).not.toHaveBeenCalled();
+        expect(result.current.localValue).toBe('2');
+    });
+
     it('cancels editing when canEdit becomes false while editing', () => {
         const onSave = jest.fn();
         const {result, rerender} = setupInline('hello', {canEdit: true, onSave});
@@ -280,16 +315,16 @@ describe('useInlineEditState', () => {
         expect(result.current.localValue).toBe('0');
         expect(onKeepEditing).not.toHaveBeenCalled();
 
-        // When confirmation is declined
+        // When the user cancels the confirm modal
         await act(async () => {
             resolveSave(false);
         });
 
-        // Then the editor stays open and focus can return to the input, because the limit was not written
-        expect(result.current.isEditing).toBe(true);
+        // Then the editor closes and the draft is dropped, so leaving the field cannot open the same modal again
+        expect(result.current.isEditing).toBe(false);
         expect(result.current.isAwaitingConfirm).toBe(false);
-        expect(result.current.localValue).toBe('0');
-        expect(onKeepEditing).toHaveBeenCalledTimes(1);
+        expect(result.current.localValue).toBe('10');
+        expect(onKeepEditing).not.toHaveBeenCalled();
     });
 
     it('closes the editor after a deferred save is confirmed', async () => {
