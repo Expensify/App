@@ -1,7 +1,10 @@
-import {render, screen, waitFor} from '@testing-library/react-native';
+import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
 import CategoryField from '@components/MoneyRequestConfirmationList/sections/CategoryField';
+import ExpenseFormLayoutContext, {dropdownRowsExpenseFormLayout} from '@components/MoneyRequestConfirmationList/sections/ExpenseFormLayoutContext';
+
+import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,6 +29,40 @@ jest.mock('@components/MenuItemWithTopDescription', () => {
 
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
 jest.mock('@hooks/useThemeStyles', () => () => ({}));
+jest.mock('@hooks/usePermissions', () => () => ({isBetaEnabled: () => true}));
+
+let mockIsFocused = true;
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
+    useIsFocused: () => mockIsFocused,
+}));
+
+jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn()}));
+
+// Run the post-transition work right away, since no screen actually closes in a unit test.
+jest.mock('@libs/Navigation/TransitionTracker', () => ({
+    runAfterTransitions: ({callback}: {callback: () => void}) => {
+        callback();
+        return {cancel: () => {}};
+    },
+}));
+
+const mockOpenDropdown = jest.fn();
+jest.mock('@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown', () => {
+    const {useImperativeHandle} = jest.requireActual<typeof React>('react');
+    const {Pressable, Text} = jest.requireActual<Record<'Pressable' | 'Text', React.ComponentType<{children?: React.ReactNode; onPress?: () => void; role?: string}>>>('react-native');
+    return ({name, onPress, ref}: {name: string; onPress: () => void; ref?: React.Ref<{open: () => void}>}) => {
+        useImperativeHandle(ref, () => ({open: mockOpenDropdown}));
+        return (
+            <Pressable
+                role="button"
+                onPress={onPress}
+            >
+                <Text>{name}</Text>
+            </Pressable>
+        );
+    };
+});
 
 const TRANSACTION_ID = '1';
 const REPORT_ID = 'reportID';
@@ -145,6 +182,76 @@ describe('CategoryField', () => {
             expect(screen.getByText('Travel')).toBeOnTheScreen();
         });
         expect(screen.queryByText('common.automatic')).toBeNull();
+    });
+
+    describe('after an upgrade started from the category row', () => {
+        const renderDropdownCategoryField = (shouldNavigateToUpgradePath: boolean) => (
+            <ConfirmationFieldsProvider
+                transactionID={TRANSACTION_ID}
+                reportID={REPORT_ID}
+                action={CONST.IOU.ACTION.CREATE}
+                iouType={CONST.IOU.TYPE.TRACK}
+            >
+                <ExpenseFormLayoutContext.Provider value={dropdownRowsExpenseFormLayout}>
+                    <CategoryField
+                        isCategoryRequired={false}
+                        didConfirm={false}
+                        isReadOnly={false}
+                        transactionID={TRANSACTION_ID}
+                        action={CONST.IOU.ACTION.CREATE}
+                        iouType={CONST.IOU.TYPE.TRACK}
+                        reportID={REPORT_ID}
+                        reportActionID={undefined}
+                        policy={shouldNavigateToUpgradePath ? undefined : enabledPolicy}
+                        formError=""
+                        shouldNavigateToUpgradePath={shouldNavigateToUpgradePath}
+                        shouldSelectPolicy={false}
+                    />
+                </ExpenseFormLayoutContext.Provider>
+            </ConfirmationFieldsProvider>
+        );
+
+        beforeEach(() => {
+            mockIsFocused = true;
+            jest.clearAllMocks();
+        });
+
+        it('opens the category list in place once the user is back with a workspace', async () => {
+            // Given an expense with no workspace, whose category row sends the user to upgrade
+            await givenManualExpense();
+            const {rerender} = render(renderDropdownCategoryField(true));
+
+            // When the user presses the row, upgrades on the upgrade screen, and comes back to the form
+            fireEvent.press(screen.getByText('common.category'));
+            mockIsFocused = false;
+            rerender(renderDropdownCategoryField(false));
+            mockIsFocused = true;
+            rerender(renderDropdownCategoryField(false));
+
+            // Then the upgrade screen is told to return to the form rather than open the full-page Category step,
+            // and the form opens the anchored list itself, so the user lands where they were heading
+            expect(jest.mocked(Navigation.navigate).mock.calls.at(0)?.at(0)).toContain('shouldReturnToConfirmation=true');
+            await waitFor(() => {
+                expect(mockOpenDropdown).toHaveBeenCalledTimes(1);
+            });
+        });
+
+        it('does not open the category list when the user backs out of the upgrade', async () => {
+            // Given an expense with no workspace, whose category row sends the user to upgrade
+            await givenManualExpense();
+            const {rerender} = render(renderDropdownCategoryField(true));
+
+            // When the user presses the row but closes the upgrade screen without upgrading
+            fireEvent.press(screen.getByText('common.category'));
+            mockIsFocused = false;
+            rerender(renderDropdownCategoryField(true));
+            mockIsFocused = true;
+            rerender(renderDropdownCategoryField(true));
+            await waitForBatchedUpdates();
+
+            // Then nothing opens, because there is still no workspace to pick a category from
+            expect(mockOpenDropdown).not.toHaveBeenCalled();
+        });
     });
 
     it('shows Required instead of Automatic when the category is required and auto-categorization is off', async () => {

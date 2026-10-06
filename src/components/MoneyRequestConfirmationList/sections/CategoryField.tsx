@@ -11,6 +11,7 @@ import {getDecodedLeafCategoryName, isCategoryMissing} from '@libs/CategoryUtils
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 
 import CONST from '@src/CONST';
@@ -22,7 +23,10 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React from 'react';
+import {useIsFocused} from '@react-navigation/native';
+import React, {useEffect, useRef} from 'react';
+
+import type {ExpenseFieldDropdownHandle} from './ExpenseFieldDropdown';
 
 import CategoryFieldDropdown from './CategoryFieldDropdown';
 import ExpenseFieldDropdown from './ExpenseFieldDropdown';
@@ -67,6 +71,9 @@ function CategoryField({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles']);
+    const isFocused = useIsFocused();
+    const dropdownRef = useRef<ExpenseFieldDropdownHandle>(null);
+    const isAwaitingUpgradeRef = useRef(false);
 
     const categoryState = useTransactionSelector(transactionID, categoryStateSelector);
     const [hasEnabledCategories = false] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policy?.id)}`, {selector: hasEnabledCategoriesSelector});
@@ -94,12 +101,33 @@ function CategoryField({
         return '';
     };
 
+    const canSaveFromThisForm = action !== CONST.IOU.ACTION.EDIT || isEditingSplitBill;
+    const canUseAnchoredFieldDropdowns = isBetaEnabled(CONST.BETAS.ANCHORED_FIELD_DROPDOWNS);
+    const shouldOpenInDropdown =
+        canUseAnchoredFieldDropdowns && !!transactionID && !!policy && !shouldNavigateToUpgradePath && !shouldSelectPolicy && hasEnabledCategories && canSaveFromThisForm;
+    const canOpenInDropdownAfterUpgrade = canUseAnchoredFieldDropdowns && shouldUseDropdownRows && canSaveFromThisForm;
+
+    useEffect(() => {
+        if (!isFocused || !isAwaitingUpgradeRef.current) {
+            return;
+        }
+        isAwaitingUpgradeRef.current = false;
+
+        if (shouldNavigateToUpgradePath) {
+            return;
+        }
+
+        const handle = TransitionTracker.runAfterTransitions({callback: () => dropdownRef.current?.open(), waitForUpcomingTransition: 'navigation'});
+        return () => handle.cancel();
+    }, [isFocused, shouldNavigateToUpgradePath]);
+
     const openCategoryPage = () => {
         if (!transactionID) {
             return;
         }
 
         if (shouldNavigateToUpgradePath) {
+            isAwaitingUpgradeRef.current = canOpenInDropdownAfterUpgrade;
             Navigation.navigate(
                 createDynamicRoute(
                     DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
@@ -117,6 +145,7 @@ function CategoryField({
                             }),
                         ),
                         upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
+                        shouldReturnToConfirmation: canOpenInDropdownAfterUpgrade,
                     }),
                 ),
             );
@@ -149,14 +178,10 @@ function CategoryField({
         }
     };
 
-    const canSaveFromThisForm = action !== CONST.IOU.ACTION.EDIT || isEditingSplitBill;
-    const canUseAnchoredFieldDropdowns = isBetaEnabled(CONST.BETAS.ANCHORED_FIELD_DROPDOWNS);
-    const shouldOpenInDropdown =
-        canUseAnchoredFieldDropdowns && !!transactionID && !!policy && !shouldNavigateToUpgradePath && !shouldSelectPolicy && hasEnabledCategories && canSaveFromThisForm;
-
     if (shouldUseDropdownRows) {
         return (
             <ExpenseFieldDropdown
+                ref={dropdownRef}
                 name={translate('common.category')}
                 value={decodedCategoryName}
                 numberOfLinesValue={2}

@@ -2051,8 +2051,17 @@ const DYNAMIC_ROUTES = {
     MONEY_REQUEST_UPGRADE: {
         path: 'money-request-upgrade',
         entryScreens: ['*'],
-        getRoute: (params: {action: IOUAction; iouType: IOUType; transactionID: string; reportID: string; upgradeBackTo?: string; shouldSubmitExpense?: boolean; upgradePath?: string}) => {
-            const {action, iouType, transactionID, reportID, upgradeBackTo, shouldSubmitExpense, upgradePath} = params;
+        getRoute: (params: {
+            action: IOUAction;
+            iouType: IOUType;
+            transactionID: string;
+            reportID: string;
+            upgradeBackTo?: string;
+            shouldSubmitExpense?: boolean;
+            upgradePath?: string;
+            shouldReturnToConfirmation?: boolean;
+        }) => {
+            const {action, iouType, transactionID, reportID, upgradeBackTo, shouldSubmitExpense, upgradePath, shouldReturnToConfirmation} = params;
             return getUrlWithParams('money-request-upgrade', {
                 action,
                 iouType,
@@ -2061,9 +2070,10 @@ const DYNAMIC_ROUTES = {
                 upgradeBackTo,
                 shouldSubmitExpense: shouldSubmitExpense ? 'true' : undefined,
                 upgradePath,
+                shouldReturnToConfirmation: shouldReturnToConfirmation ? 'true' : undefined,
             });
         },
-        queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'upgradeBackTo', 'shouldSubmitExpense', 'upgradePath'],
+        queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'upgradeBackTo', 'shouldSubmitExpense', 'upgradePath', 'shouldReturnToConfirmation'],
     },
 } as const satisfies DynamicRoutes;
 
