@@ -242,4 +242,11 @@ second
             expect(result).toBe('ab😊');
         });
     });
+
+    describe('sanitizeName', () => {
+        it('converts non-breaking spaces and trims surrounding whitespace', () => {
+            expect(StringUtils.sanitizeName(`\u00A0Paris\u00A0`)).toBe('Paris');
+            expect(StringUtils.sanitizeName(`  Custom rate  `)).toBe('Custom rate');
+        });
+    });
 });

@@ -21,6 +21,14 @@ function sanitizeString(str: string): string {
 }
 
 /**
+ * Converts non-breaking spaces to regular spaces and trims surrounding whitespace.
+ * Pasted names from docs and spreadsheets often include NBSP, which would otherwise fail uniqueness and empty checks.
+ */
+function sanitizeName(name: string): string {
+    return name.replaceAll(CONST.REGEX.NON_BREAKING_SPACE, ' ').trim();
+}
+
+/**
  *  Check if the string would be empty if all invisible characters were removed.
  */
 function isEmptyString(value: string): boolean {
@@ -256,6 +264,7 @@ function truncate(str: string, maxLength: number): string {
 
 export default {
     sanitizeString,
+    sanitizeName,
     isEmptyString,
     removeInvisibleCharacters,
     normalize,
