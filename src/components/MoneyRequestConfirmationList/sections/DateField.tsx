@@ -1,5 +1,6 @@
 import DatePicker from '@components/DatePicker';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -183,19 +184,23 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
     }
 
     return (
-        <MenuItemWithTopDescription
-            shouldShowRightIcon={!isReadOnly}
-            title={readOnlyDate}
-            description={translate('common.date')}
-            style={[styles.moneyRequestMenuItem]}
-            titleStyle={styles.flex1}
-            onPress={openDatePage}
-            disabled={didConfirm}
-            interactive={!isReadOnly}
-            brickRoadIndicator={shouldDisplayFieldError && createdMissing ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-            errorText={dateErrorText}
+        <MenuItem.Root
+            isDisabled={didConfirm}
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DATE_FIELD}
-        />
+        >
+            <MenuItemField.Row
+                name={translate('common.date')}
+                value={readOnlyDate}
+            >
+                {shouldDisplayFieldError && createdMissing && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+            </MenuItemField.Row>
+            {!!dateErrorText && (
+                <MenuItem.HelpText
+                    isError
+                    message={dateErrorText}
+                />
+            )}
+        </MenuItem.Root>
     );
 }
 

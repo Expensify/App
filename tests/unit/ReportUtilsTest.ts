@@ -47,6 +47,7 @@ import {
     buildOptimisticHoldReportActionComment,
     buildOptimisticInvoiceReport,
     buildOptimisticIOUReportAction,
+    buildOptimisticModifiedExpenseReportAction,
     buildOptimisticMoneyRequestEntities,
     buildOptimisticRejectReportAction,
     buildOptimisticRejectReportActionComment,
@@ -120,6 +121,7 @@ import {
     getOneOnOneChatParticipants,
     getOriginalReportID,
     getOutstandingChildRequest,
+    getOutstandingReportsForUser,
     getParentNavigationSubtitle,
     getParentReport,
     getParsedComment,
@@ -5877,7 +5879,17 @@ describe('ReportUtils', () => {
                 canUnholdRequest: false,
             });
 
-            putOnHold(expenseTransaction.transactionID, 'hold', transactionThreadReport.reportID, false, currentUserEmail, currentUserAccountID, undefined, false, undefined, {
+            putOnHold({
+                transactionID: expenseTransaction.transactionID,
+                transaction: expenseTransaction,
+                comment: 'hold',
+                initialReportID: transactionThreadReport.reportID,
+                isOffline: false,
+                currentUserLogin: currentUserEmail,
+                currentUserAccountID,
+                transactionViolations: undefined,
+                isTrackIntentUser: false,
+                delegateAccountID: undefined,
                 rules: undefined,
                 ancestors: [],
             });
@@ -6276,7 +6288,7 @@ describe('ReportUtils', () => {
                     },
                 });
             });
-            expect(canDeleteMoneyRequestReport(invoiceReport, [transaction], [iouAction], currentUserAccountID, undefined)).toBe(true);
+            expect(canDeleteMoneyRequestReport(invoiceReport, [transaction], [iouAction], currentUserAccountID, undefined, undefined, undefined)).toBe(true);
         });
 
         describe('draft reports', () => {
@@ -6295,14 +6307,14 @@ describe('ReportUtils', () => {
                 const transaction = {...createRandomTransaction(901), reportID: draftReport.reportID, managedCard: false};
                 const iouAction = buildIOUActionForTransaction(draftReport.reportID, transaction.transactionID, 777);
 
-                expect(canDeleteMoneyRequestReport(draftReport, [transaction], [iouAction], currentUserAccountID, undefined, adminPolicy, true)).toBe(true);
+                expect(canDeleteMoneyRequestReport(draftReport, [transaction], [iouAction], currentUserAccountID, undefined, adminPolicy, undefined, true)).toBe(true);
             });
 
             it('should not allow an admin to delete a single expense on a draft report they do not own', () => {
                 const transaction = {...createRandomTransaction(901), reportID: draftReport.reportID, managedCard: false};
                 const iouAction = buildIOUActionForTransaction(draftReport.reportID, transaction.transactionID, 777);
 
-                expect(canDeleteMoneyRequestReport(draftReport, [transaction], [iouAction], currentUserAccountID, undefined, adminPolicy)).toBe(false);
+                expect(canDeleteMoneyRequestReport(draftReport, [transaction], [iouAction], currentUserAccountID, undefined, adminPolicy, undefined)).toBe(false);
             });
 
             it('should allow the submitter to delete their own draft report', () => {
@@ -6310,14 +6322,14 @@ describe('ReportUtils', () => {
                 const transaction = {...createRandomTransaction(902), reportID: ownDraftReport.reportID, managedCard: false};
                 const iouAction = buildIOUActionForTransaction(ownDraftReport.reportID, transaction.transactionID, currentUserAccountID);
 
-                expect(canDeleteMoneyRequestReport(ownDraftReport, [transaction], [iouAction], currentUserAccountID, undefined, memberPolicy)).toBe(true);
+                expect(canDeleteMoneyRequestReport(ownDraftReport, [transaction], [iouAction], currentUserAccountID, undefined, memberPolicy, undefined)).toBe(true);
             });
 
             it('should not allow a non-admin who does not own the transaction to delete a draft report', () => {
                 const transaction = {...createRandomTransaction(903), reportID: draftReport.reportID, managedCard: false};
                 const iouAction = buildIOUActionForTransaction(draftReport.reportID, transaction.transactionID, 777);
 
-                expect(canDeleteMoneyRequestReport(draftReport, [transaction], [iouAction], currentUserAccountID, undefined, memberPolicy)).toBe(false);
+                expect(canDeleteMoneyRequestReport(draftReport, [transaction], [iouAction], currentUserAccountID, undefined, memberPolicy, undefined)).toBe(false);
             });
 
             it('should allow an admin to delete a draft report holding a card transaction with restricted liability, since the expenses become unreported rather than deleted', () => {
@@ -6329,7 +6341,7 @@ describe('ReportUtils', () => {
                 };
                 const iouAction = buildIOUActionForTransaction(draftReport.reportID, transaction.transactionID, currentUserAccountID);
 
-                expect(canDeleteMoneyRequestReport(draftReport, [transaction], [iouAction], currentUserAccountID, undefined, adminPolicy, true)).toBe(true);
+                expect(canDeleteMoneyRequestReport(draftReport, [transaction], [iouAction], currentUserAccountID, undefined, adminPolicy, undefined, true)).toBe(true);
             });
         });
 
@@ -6369,7 +6381,54 @@ describe('ReportUtils', () => {
                 });
             });
 
-            expect(canDeleteMoneyRequestReport(expenseReport, [], [], currentUserAccountID, undefined)).toBe(true);
+            expect(canDeleteMoneyRequestReport(expenseReport, [], [], currentUserAccountID, undefined, undefined, undefined)).toBe(true);
+        });
+
+        it('should allow card expense deletion as the policy admin', async () => {
+            const adminPolicy = createMock<Policy>({
+                id: 'report-id-123',
+                role: CONST.POLICY.ROLE.ADMIN,
+                type: CONST.POLICY.TYPE.TEAM,
+                employeeList: {
+                    [currentUserEmail]: {
+                        email: currentUserEmail,
+                        submitsTo: currentUserEmail,
+                    },
+                },
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${adminPolicy.id}`, adminPolicy);
+
+            const expenseReport: Report = {
+                reportID: 'policy-id-123',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: 777,
+                managerID: 888,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                participants: {
+                    [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+                policyID: adminPolicy.id,
+            };
+
+            const cardTransaction: Transaction = {
+                ...mockTransaction,
+                managedCard: true,
+            };
+
+            // Wait for Onyx to load session data before calling canDeleteMoneyRequestReport, since it relies on the
+            // session subscription for currentUserAccountID.
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connectWithoutView({
+                    key: `${ONYXKEYS.SESSION}`,
+                    callback: () => {
+                        Onyx.disconnect(connection);
+                        resolve();
+                    },
+                });
+            });
+
+            expect(canDeleteMoneyRequestReport(expenseReport, [cardTransaction], [], currentUserAccountID, undefined, adminPolicy, undefined, false)).toBe(true);
         });
     });
 
@@ -7610,6 +7669,7 @@ describe('ReportUtils', () => {
                     transaction,
                     report: openExpenseReport,
                     policy: policyWithWorkflow,
+                    reportNameValuePairs: undefined,
                 }),
             ).toBe(false);
         });
@@ -7680,6 +7740,7 @@ describe('ReportUtils', () => {
                     transaction,
                     report: openExpenseReport,
                     policy: policyWithWorkflow,
+                    reportNameValuePairs: undefined,
                 }),
             ).toBe(true);
             expect(
@@ -7690,6 +7751,7 @@ describe('ReportUtils', () => {
                     transaction,
                     report: openExpenseReport,
                     policy: policyWithWorkflow,
+                    reportNameValuePairs: undefined,
                 }),
             ).toBe(true);
         });
@@ -7751,6 +7813,7 @@ describe('ReportUtils', () => {
                     transaction,
                     report: openExpenseReport,
                     policy: policyWithWorkflow,
+                    reportNameValuePairs: undefined,
                 }),
             ).toBe(true);
 
@@ -7763,6 +7826,7 @@ describe('ReportUtils', () => {
                     report: workspaceChat,
                     policy: policyWithWorkflow,
                     rules: undefined,
+                    reportNameValuePairs: undefined,
                 }),
             ).toBe(false);
         });
@@ -7859,6 +7923,7 @@ describe('ReportUtils', () => {
                     transaction,
                     report: openExpenseReport,
                     policy: policyWithWorkflow,
+                    reportNameValuePairs: undefined,
                 }),
             ).toBe(true);
         });
@@ -7922,6 +7987,7 @@ describe('ReportUtils', () => {
                     transaction,
                     report: openExpenseReport,
                     policy: submitAndClosePolicy,
+                    reportNameValuePairs: undefined,
                 }),
             ).toBe(false);
         });
@@ -8001,6 +8067,7 @@ describe('ReportUtils', () => {
                     transaction,
                     report: openExpenseReport,
                     policy: ruleOnlyPolicy,
+                    reportNameValuePairs: undefined,
                 }),
             ).toBe(false);
         });
@@ -8059,6 +8126,7 @@ describe('ReportUtils', () => {
                     transaction,
                     report: openExpenseReport,
                     policy: policyWithWorkflow,
+                    reportNameValuePairs: undefined,
                 }),
             ).toBe(false);
         });
@@ -8131,6 +8199,7 @@ describe('ReportUtils', () => {
                     transaction,
                     report: openExpenseReport,
                     policy: failClosedPolicy,
+                    reportNameValuePairs: undefined,
                 }),
             ).toBe(false);
         });
@@ -10188,7 +10257,7 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
 
             // Then the owner cannot delete it because the card transaction's liability type restricts deletion
-            expect(canDeleteReportAction(moneyRequestAction, expenseReport.reportID, transaction, undefined, undefined, currentUserAccountID, undefined)).toBe(false);
+            expect(canDeleteReportAction(moneyRequestAction, expenseReport.reportID, transaction, undefined, undefined, currentUserAccountID, undefined, undefined)).toBe(false);
         });
 
         it('should let an admin delete a draft report they did not submit from its report preview', async () => {
@@ -10212,7 +10281,7 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}9002-policy`, {...createRandomPolicy(1), id: '9002-policy', role: CONST.POLICY.ROLE.ADMIN});
 
             // Then the admin can delete it, because deleting a preview deletes the whole report
-            expect(canDeleteReportAction(reportPreviewAction, draftReport.reportID, undefined, undefined, undefined, currentUserAccountID, undefined)).toBe(true);
+            expect(canDeleteReportAction(reportPreviewAction, draftReport.reportID, undefined, undefined, undefined, currentUserAccountID, undefined, undefined)).toBe(true);
         });
 
         it('should return true for demo transaction', () => {
@@ -10256,7 +10325,7 @@ describe('ReportUtils', () => {
                 },
             };
 
-            expect(canDeleteReportAction(moneyRequestAction, '1', transaction, undefined, undefined, currentUserAccountID, undefined)).toBe(true);
+            expect(canDeleteReportAction(moneyRequestAction, '1', transaction, undefined, undefined, currentUserAccountID, undefined, undefined)).toBe(true);
         });
 
         it('should return false for unreported card expense imported with deleting disabled', async () => {
@@ -10302,7 +10371,7 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
 
             // Then it should return false since the unreported card expense is imported with deleting disabled
-            expect(canDeleteReportAction(trackExpenseAction, selfDMReport.reportID, transaction, undefined, undefined, currentUserAccountID, undefined)).toBe(false);
+            expect(canDeleteReportAction(trackExpenseAction, selfDMReport.reportID, transaction, undefined, undefined, currentUserAccountID, undefined, undefined)).toBe(false);
         });
 
         it("should return false for ADD_COMMENT report action the current user (admin of the personal policy) didn't comment", async () => {
@@ -10329,7 +10398,7 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${adminPolicy.id}`, adminPolicy);
 
-            expect(canDeleteReportAction(reportAction, report.reportID, undefined, undefined, undefined, currentUserAccountID, undefined)).toBe(false);
+            expect(canDeleteReportAction(reportAction, report.reportID, undefined, undefined, undefined, currentUserAccountID, undefined, undefined)).toBe(false);
         });
     });
 
@@ -11567,7 +11636,7 @@ describe('ReportUtils', () => {
                     login: currentUserEmail,
                 },
             });
-            expect(isReportOutstanding(report, policy.id, undefined)).toBe(true);
+            expect(isReportOutstanding(report, policy.id, undefined, {})).toBe(true);
         });
         it('should return false for submitted reports if we specify it', () => {
             const report: Report = {
@@ -11577,7 +11646,7 @@ describe('ReportUtils', () => {
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
-            expect(isReportOutstanding(report, policy.id, undefined, undefined, false)).toBe(false);
+            expect(isReportOutstanding(report, policy.id, undefined, {}, false)).toBe(false);
         });
         it('should return true for submitted reports if top most report ID is processing', async () => {
             const report: Report = {
@@ -11606,7 +11675,7 @@ describe('ReportUtils', () => {
                 },
             });
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${activeReport.reportID}`, activeReport);
-            expect(isReportOutstanding(report, policy.id, undefined)).toBe(true);
+            expect(isReportOutstanding(report, policy.id, undefined, {})).toBe(true);
         });
         it('should return false for archived report', async () => {
             const report: Report = {
@@ -11619,6 +11688,38 @@ describe('ReportUtils', () => {
 
             const reportNameValuePair = {private_isArchived: '2024-01-01 00:00:00.000'};
             expect(isReportOutstanding(report, policy.id, undefined, reportNameValuePair)).toBe(false);
+        });
+    });
+
+    describe('getOutstandingReportsForUser', () => {
+        it('should return outstanding reports and exclude archived reports', () => {
+            const activeReport: Report = {
+                ...createRandomReport(1, undefined),
+                policyID: policy.id,
+                ownerAccountID: currentUserAccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const archivedReport: Report = {
+                ...createRandomReport(2, undefined),
+                policyID: policy.id,
+                ownerAccountID: currentUserAccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${activeReport.reportID}`]: activeReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${archivedReport.reportID}`]: archivedReport,
+            };
+            const reportNameValuePairs = {
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${activeReport.reportID}`]: {},
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`]: {private_isArchived: '2024-01-01 00:00:00.000'},
+            };
+
+            const result = getOutstandingReportsForUser(policy.id, currentUserAccountID, undefined, reportNameValuePairs, reports);
+            expect(result).toEqual([activeReport]);
         });
     });
 
@@ -26189,6 +26290,38 @@ describe('hold/unhold/reject optimistic builders set delegateAccountID', () => {
     it('buildOptimisticReportLevelRejectCommentAction sets the passed delegateAccountID', () => {
         expect(buildOptimisticReportLevelRejectCommentAction('reject reason', currentUserAccountID, 'Test User', undefined, DELEGATE_ACCOUNT_ID).delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
         expect(buildOptimisticReportLevelRejectCommentAction('reject reason', currentUserAccountID, 'Test User', undefined, undefined).delegateAccountID).toBeUndefined();
+    });
+});
+
+describe('buildOptimisticModifiedExpenseReportAction sets delegateAccountID', () => {
+    const DELEGATE_ACCOUNT_ID = 424242;
+    const DELEGATE_LOGIN = 'copilot@example.com';
+
+    afterAll(async () => {
+        await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegate: undefined}});
+        await waitForBatchedUpdates();
+    });
+
+    it('sets the passed delegateAccountID', () => {
+        // Given a copilot accountID supplied by the caller
+        // When the modified expense action is built
+        const reportAction = buildOptimisticModifiedExpenseReportAction(undefined, undefined, {}, false, undefined, DELEGATE_ACCOUNT_ID);
+
+        // Then the action is attributed to that copilot
+        expect(reportAction.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+    });
+
+    it('does not fall back to the signed-in delegate when no delegateAccountID is passed', async () => {
+        // Given a signed-in copilot stored in Onyx
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[DELEGATE_ACCOUNT_ID]: {accountID: DELEGATE_ACCOUNT_ID, login: DELEGATE_LOGIN}});
+        await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegate: DELEGATE_LOGIN}});
+        await waitForBatchedUpdates();
+
+        // When the caller passes no delegate
+        const reportAction = buildOptimisticModifiedExpenseReportAction(undefined, undefined, {}, false, undefined, undefined);
+
+        // Then the builder leaves the action unattributed instead of reading the signed-in copilot
+        expect(reportAction.delegateAccountID).toBeUndefined();
     });
 });
 

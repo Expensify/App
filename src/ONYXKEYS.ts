@@ -14,6 +14,7 @@ import type {Attendee, DistanceExpenseType, Participant} from './types/onyx/IOU'
 import type Onboarding from './types/onyx/Onboarding';
 import type {AnyOnyxUpdate} from './types/onyx/Request';
 import type {SavedCSVColumnLayoutList} from './types/onyx/SavedCSVColumnLayout';
+import type {SearchDataTypes} from './types/onyx/SearchResults';
 import type AssertTypesEqual from './types/utils/AssertTypesEqual';
 import type DeepValueOf from './types/utils/DeepValueOf';
 
@@ -45,6 +46,9 @@ const ONYXKEYS = {
 
     /** Whether a semantic modal is covering the product marketing window in this app instance */
     RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED: 'isProductMarketingWindowCovered',
+
+    /** Whether the current user can claim or nudge a billing owner about the Early Renewal 2027 offer */
+    EARLY_RENEWAL_OFFER_ELIGIBILITY: 'earlyRenewalOfferEligibility',
 
     /** Boolean flag set whenever we are searching for reports in the server */
     RAM_ONLY_IS_SEARCHING_FOR_REPORTS: 'isSearchingForReports',
@@ -478,6 +482,10 @@ const ONYXKEYS = {
 
     IS_LOADING_APP: 'isLoadingApp',
 
+    /** Set when we are switching to a delegator */
+    IS_SWITCHING_TO_DELEGATOR: 'isSwitchingToDelegator',
+
+    /** Is loading policy rules preview? */
     IS_LOADING_POLICY_CODING_RULES_PREVIEW: 'isLoadingPolicyCodingRulesPreview',
 
     /** Is loading agent rule suggestions for the add-rule Suggestions tab? */
@@ -498,8 +506,23 @@ const ONYXKEYS = {
     /** Set whether the search filters category data has loaded */
     IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED: 'isSearchFiltersCategoryDataLoaded',
 
+    /**
+     * Set once `GetRules` has answered, so screens that only consume the rules collection fetch it once.
+     * RAM only, so a new session fetches again rather than trusting a collection another device has since changed.
+     */
+    RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED: 'hasRulesDataBeenFetched',
+
+    /** Set while a `GetRules` request is in flight, so screens can wait for it instead of reading an empty collection */
+    RAM_ONLY_IS_LOADING_RULES: 'isLoadingRules',
+
     /** Set while search filter category data is loading */
     RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA: 'isLoadingSearchFiltersCategoryData',
+
+    /** Set whether the search filters vendor data has loaded */
+    IS_SEARCH_FILTERS_VENDOR_DATA_LOADED: 'isSearchFiltersVendorDataLoaded',
+
+    /** Set while search filter vendor data is loading */
+    RAM_ONLY_IS_LOADING_SEARCH_FILTERS_VENDOR_DATA: 'isLoadingSearchFiltersVendorData',
 
     HAS_LOADED_APP: 'hasLoadedApp',
 
@@ -745,7 +768,7 @@ const ONYXKEYS = {
     /** Caches converted footer-total amounts (by transaction and by whole-search query, nested by currency) for the Search footer currency picker */
     SEARCH_FOOTER_CONVERSION: 'searchFooterConversion',
 
-    /** Maps each loaded search snapshot's hash to its original query string, used to fan optimistic IOU updates to every matching snapshot */
+    /** @deprecated Use `search.inputQuery` on the snapshot. Only read by the MoveSearchQueryByHashToSnapshots migration. */
     SEARCH_QUERY_BY_HASH: 'searchQueryByHash',
 
     /** Stores recently used currencies */
@@ -853,6 +876,10 @@ const ONYXKEYS = {
     /** List of transaction IDs used when navigating to prev/next transaction when viewing it in RHP */
     TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS: 'transactionThreadNavigationTransactionIDs',
 
+    /** Hash of the search snapshot that holds the transactions referenced by TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS.
+     * Used to fall back to snapshot data when the live transaction collection hasn't loaded those transactions yet (e.g. opening an expense from the Spend page as an approver). */
+    TRANSACTION_THREAD_NAVIGATION_SNAPSHOT_HASH: 'transactionThreadNavigationSnapshotHash',
+
     /** Optional map of transactionID -> sibling descriptor for prev/next navigation in snapshot-backed flows (e.g. Home "Recently added"), where siblings may be absent from the main Onyx collections. When set, navigation resolves (and lazily creates) each sibling's thread on demand from its descriptor. */
     TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS: 'transactionThreadNavigationThreadReportIDs',
 
@@ -887,8 +914,8 @@ const ONYXKEYS = {
     /** Whether the user has denied the contact import permission prompt */
     HAS_DENIED_CONTACT_IMPORT_PROMPT: 'hasDeniedContactImportPrompt',
 
-    /** The transaction IDs to be highlighted when opening the Expenses search route page */
-    TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE: 'transactionIdsHighlightOnSearchRoute',
+    /** Maps each newly-added transaction ID to its search data type, flagging it for the "Expense added" growl */
+    RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS: 'expenseAddedGrowlTransactionIDs',
 
     /** The report ID to be highlighted when returning to the workspace rooms page */
     ROOM_ID_HIGHLIGHT_ON_ROOMS_PAGE: 'roomIDHighlightOnRoomsPage',
@@ -1369,6 +1396,8 @@ const ONYXKEYS = {
         RAM_ONLY_SORTED_REPORT_ACTIONS: 'sortedReportActions',
         LOGIN_TO_ACCOUNT_ID_MAP: 'loginToAccountIDMap',
         GUIDE_ACCOUNT_IDS: 'guideAccountIDs',
+        SPEND_DATA_SIGNATURE: 'spendDataSignature',
+        ONE_ON_ONE_CHAT_REPORT_IDS: 'oneOnOneChatReportIDs',
     },
 
     /** Stores HybridApp specific state required to interoperate with OldDot */
@@ -1612,6 +1641,7 @@ type OnyxCollectionValuesMapping = {
 type OnyxValuesMapping = {
     [ONYXKEYS.ACCOUNT]: OnyxTypes.Account;
     [ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID]: string;
+    [ONYXKEYS.EARLY_RENEWAL_OFFER_ELIGIBILITY]: OnyxTypes.EarlyRenewalOfferEligibility;
     [ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE]: DefaultP2PMileageRate;
     [ONYXKEYS.GOVERNMENT_MILEAGE_RATES]: OnyxTypes.GovernmentMileageRate[];
 
@@ -1625,6 +1655,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_HAS_SEEDED_MY_EXPENSES_SEARCH]: boolean;
     [ONYXKEYS.SEARCH_CONTEXT]: OnyxTypes.SearchContext;
     [ONYXKEYS.SEARCH_FOOTER_CONVERSION]: OnyxTypes.SearchFooterConversion;
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- the key stays typed while the migration still reads it
     [ONYXKEYS.SEARCH_QUERY_BY_HASH]: Record<string, string>;
     [ONYXKEYS.RECENTLY_USED_CURRENCIES]: string[];
     [ONYXKEYS.ACTIVE_CLIENTS]: string[];
@@ -1750,11 +1781,16 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_LOADING_REPORT_DATA]: boolean;
     [ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED]: boolean;
     [ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED]: boolean;
+    [ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED]: boolean;
+    [ONYXKEYS.RAM_ONLY_IS_LOADING_RULES]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA]: boolean;
+    [ONYXKEYS.IS_SEARCH_FILTERS_VENDOR_DATA_LOADED]: boolean;
+    [ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_VENDOR_DATA]: boolean;
     [ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA]: boolean;
     [ONYXKEYS.IS_PENDING_UPDATE_PERSONAL_KARMA]: boolean;
     [ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN]: boolean;
     [ONYXKEYS.IS_LOADING_APP]: boolean;
+    [ONYXKEYS.IS_SWITCHING_TO_DELEGATOR]: boolean;
     [ONYXKEYS.ARE_AGENTS_LOADED]: boolean;
     [ONYXKEYS.AGENT_NEW_AVATAR_DRAFT]: OnyxTypes.AgentNewAvatarDraft;
     [ONYXKEYS.POLICY_ROOMS_METADATA]: Record<string, OnyxTypes.PolicyRoomsMetadata>;
@@ -1893,6 +1929,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY]: OnyxTypes.LastSearchParams;
     [ONYXKEYS.NVP_LAST_ANDROID_LOGIN]: string;
     [ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS]: string[];
+    [ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_SNAPSHOT_HASH]: number;
     [ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS]: Record<string, TransactionThreadNavigationDescriptor>;
     [ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES]: OnyxTypes.ExportTemplate[];
     [ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION]: OnboardingAccounting;
@@ -1907,7 +1944,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS]: string[];
     [ONYXKEYS.HAS_DENIED_CONTACT_IMPORT_PROMPT]: boolean | undefined;
     [ONYXKEYS.PERSONAL_POLICY_ID]: string;
-    [ONYXKEYS.TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE]: Record<string, Record<string, boolean>>;
+    [ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS]: Record<string, SearchDataTypes>;
     [ONYXKEYS.ROOM_ID_HIGHLIGHT_ON_ROOMS_PAGE]: string | null;
     [ONYXKEYS.DOMAIN_GROUP_CREATE_PREFERRED_POLICY_ID]: string | undefined;
 };
@@ -1922,7 +1959,9 @@ type OnyxDerivedValuesMapping = {
     [ONYXKEYS.DERIVED.CARD_FEED_ERRORS]: OnyxTypes.CardFeedErrorsDerivedValue;
     [ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS]: OnyxTypes.SortedReportActionsDerivedValue;
     [ONYXKEYS.DERIVED.LOGIN_TO_ACCOUNT_ID_MAP]: OnyxTypes.LoginToAccountIDMapDerivedValue;
+    [ONYXKEYS.DERIVED.SPEND_DATA_SIGNATURE]: OnyxTypes.SpendDataSignatureDerivedValue;
     [ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS]: OnyxTypes.GuideAccountIDsDerivedValue;
+    [ONYXKEYS.DERIVED.ONE_ON_ONE_CHAT_REPORT_IDS]: OnyxTypes.OneOnOneChatReportIDsDerivedValue;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping & OnyxDerivedValuesMapping;

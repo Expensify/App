@@ -9,7 +9,7 @@ import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionAction
 import {getSearchGroupCountByKey} from '@components/Search/selectionBuilders';
 import type {BulkPaySelectionData, PaymentData, QueryFilterKey, SearchColumnType, SearchFilterKey, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 
-import {getAccountingIntegrationDisplayName, getExportLabelForConnection} from '@libs/AccountingUtils';
+import {getAccountingIntegrationDisplayName, getExportLabelForConnection, isIntuitEnterpriseSuiteConnection} from '@libs/AccountingUtils';
 import {getExpensifyCardStatementPDF} from '@libs/actions/CompanyCards';
 import {exportReceiptsToZip, exportReportsToPDF} from '@libs/actions/Export';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
@@ -34,6 +34,7 @@ import {
     getSearchPayOnyxData,
     getTotalFormattedAmount,
     isCurrencySupportWalletBulkPay,
+    queueBulkMarkAsExported,
     queueBulkPayReports,
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
@@ -629,6 +630,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
     const isExpenseReportType = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -2256,7 +2258,36 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     .map((report) => report.reportID)
                     .filter((reportID): reportID is string => reportID !== undefined);
                 if (reportIDsToMark.length > 0) {
-                    const handleMarkAction = buildIntegrationHandleExportAction(reportIDsToMark, integration, integrationGroupSize, false, connectionNameFriendly);
+                    // Under "select all matching", the loaded page can only ever hold a subset of the full matching
+                    // set, so the partial-export and export-again modals below (built from page-scoped counts) do
+                    // not apply. Send the query instead of the loaded IDs, the same way bulk pay does, so the
+                    // backend resolves and marks every matching report on this connection, not just this page.
+                    const handleMarkAllMatchingAction = () => {
+                        if (!hash || !queryJSON) {
+                            return;
+                        }
+                        if (isOffline) {
+                            setIsOfflineModalVisible(true);
+                            return;
+                        }
+                        clearSelectedTransactions();
+                        const qboIntegrationAlias =
+                            integration === CONST.POLICY.CONNECTIONS.NAME.QBO && isIntuitEnterpriseSuiteConnection(integrationPolicy)
+                                ? CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE
+                                : undefined;
+                        queueBulkMarkAsExported(serializeQueryJSONForBackend(queryJSON), integration, qboIntegrationAlias);
+                        playSound(SOUNDS.SUCCESS);
+                    };
+                    const handleMarkAction = areAllMatchingItemsSelected
+                        ? handleMarkAllMatchingAction
+                        : () =>
+                              buildIntegrationHandleExportAction(
+                                  reportIDsToMark,
+                                  integration,
+                                  integrationGroupSize,
+                                  false,
+                                  connectionNameFriendly,
+                              )(() => markAsManuallyExported(reportIDsToMark, integration, integrationPolicy));
                     exportOptions.push({
                         text: translate('workspace.common.markAsExported'),
                         value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
@@ -2264,7 +2295,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         // which screen readers can't announce. Append the integration name so assistive tech can distinguish them.
                         accessibilityLabel: `${translate('workspace.common.markAsExported')}, ${connectionNameFriendly}`,
                         icon: integrationIcon,
-                        onSelected: () => handleMarkAction(() => markAsManuallyExported(reportIDsToMark, integration, integrationPolicy)),
+                        onSelected: handleMarkAction,
                         shouldCloseModalOnSelect: true,
                         shouldCallAfterModalHide: true,
                         displayInDefaultIconColor: true,
@@ -3003,7 +3034,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         const firstTransactionKey = selectedTransactionsKeys.at(0);
         const firstTransactionMeta = firstTransactionKey ? selectedTransactions[firstTransactionKey] : undefined;
-        const canShowDeleteAction = shouldShowDeleteOption(selectedTransactions, currentSearchResults?.data, accountID, rules, selectedReports, queryJSON?.type);
+        const canShowDeleteAction = shouldShowDeleteOption(selectedTransactions, currentSearchResults?.data, accountID, rules, cardList, selectedReports, queryJSON?.type);
 
         const isSplittable = !!firstTransactionMeta?.canSplit;
         const isAlreadySplit = !!firstTransactionMeta?.hasBeenSplit;
@@ -3103,6 +3134,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         return buildResult(options);
     }, [
         selectedTransactionsKeys,
+        cardList,
         hash,
         selectedTransactions,
         excludedTransactions,

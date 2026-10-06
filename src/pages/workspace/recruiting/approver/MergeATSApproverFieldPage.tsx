@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -76,7 +76,7 @@ function MergeATSApproverFieldPage({
                 enableEdgeToEdgeBottomSafeAreaPadding
                 testID="MergeATSApproverFieldPage"
             >
-                <HeaderWithBackButton title={translate('workspace.recruiting.approverField')} />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.recruiting.approverField')} />
                 <View style={styles.flex1}>
                     <Text style={[styles.textSupporting, styles.ph5, styles.mb3]}>{translate('workspace.recruiting.approverFieldDescription', providerName)}</Text>
                     <SelectionList
