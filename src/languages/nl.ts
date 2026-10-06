@@ -4752,6 +4752,12 @@ ${amount} voor ${merchant} - ${date}`,
             settlementFrequency: 'Uitbetalingsfrequentie',
             setAsDefault: 'Instellen als standaardwerkruimte',
             defaultNote: `Bonnetjes die naar ${CONST.EMAIL.RECEIPTS} worden gestuurd, verschijnen in deze workspace.`,
+            archive: 'Werkruimte archiveren',
+            archiveConfirmation: 'Weet je zeker dat je deze werkruimte wilt archiveren?',
+            archiveWithThirdPartyCardsConfirmation:
+                'Weet je zeker dat je deze werkruimte wilt archiveren? Hiermee worden alle creditcards van gebruikers losgekoppeld en worden alle niet-ingediende kaartuitgaven permanent verwijderd.',
+            archiveWithExpensifyCardsConfirmation:
+                'Weet je zeker dat je deze werkruimte wilt archiveren? Hiermee worden alle Expensify Card-limieten op $0 gezet en worden nieuwe aankooppogingen automatisch geweigerd.',
             deleteWorkspaceTitle: (workspaceName: string) => `${workspaceName} verwijderen?`,
             deleteConfirmation: 'Weet je zeker dat je deze werkruimte wilt verwijderen?',
             deleteWithCardsConfirmation: 'Weet je zeker dat je deze werkruimte wilt verwijderen? Hiermee worden alle kaartfeeds en toegewezen kaarten verwijderd.',
