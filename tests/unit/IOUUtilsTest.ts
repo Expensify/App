@@ -28,6 +28,7 @@ import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import initCurrencyListContext from '../utils/initCurrencyListContext';
 import {getCurrencyDecimalsLocal} from '../utils/TestHelper';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const testDate = DateUtils.getDBTime();
 const currentUserAccountID = 5;
@@ -938,6 +939,22 @@ describe('getExistingTransactionID', () => {
             // Then the persisted chat wins because no optimistic replacement is needed
             expect(result.chatReportID).toBe('existing-123');
             expect(result.optimisticChatReportID).toBeUndefined();
+        });
+
+        it('should generate a fresh optimistic ID when the preferred ID already belongs to a report', async () => {
+            // Given a caller-reserved optimistic ID that already belongs to a stored chat, as happens when a draft still
+            // holds a stale optimistic accountID that no longer matches the chat's participants
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}taken-123`, {reportID: 'taken-123'});
+            await waitForBatchedUpdates();
+
+            // When chat resolution cannot match that chat by participants
+            const result = IOUUtils.resolveOptimisticChatReportID([100001, 100002], undefined, 'taken-123');
+
+            // Then a fresh ID is generated so the new optimistic chat can't overwrite the stored one
+            expect(result.chatReportID).not.toBe('taken-123');
+            expect(result.optimisticChatReportID).toBe(result.chatReportID);
+
+            await Onyx.clear();
         });
     });
 

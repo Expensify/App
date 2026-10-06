@@ -7835,6 +7835,23 @@ describe('OptionsListUtils', () => {
             expect(result.text).not.toBe('');
         });
 
+        it('resolves a stale optimistic accountID to the canonical account by login', () => {
+            // Given a draft participant whose optimistic accountID was dropped from personal details after the server
+            // assigned the real account, while its login still maps to that real account
+            const participant: Participant = {
+                accountID: 9999997,
+                login: 'tonystark@expensify.com',
+            };
+
+            // When the participant option is built
+            const result = getParticipantsOption(participant, PERSONAL_DETAILS, translateLocal);
+
+            // Then it points at the canonical account so the existing chat with them can be found
+            expect(result.accountID).toBe(2);
+            expect(result.keyForList).toBe('2');
+            expect(result.login).toBe('tonystark@expensify.com');
+        });
+
         it('uses participant.login when no accountID is provided', () => {
             const participant: Participant = {login: 'guest@example.com'};
 

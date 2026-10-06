@@ -17,7 +17,7 @@ import Navigation from './Navigation/Navigation';
 import {isGroupPolicy} from './PolicyUtils';
 import {getOriginalMessage} from './ReportActionMessageUtils';
 import {isMoneyRequestAction} from './ReportActionTypeGuards';
-import {canAddTransaction, generateReportID, getChatByParticipants, isArchivedReport, isSelfDM} from './ReportUtils';
+import {canAddTransaction, generateReportID, getChatByParticipants, getReportOrDraftReport, isArchivedReport, isSelfDM} from './ReportUtils';
 import {endSpan, getSpan, startSpan} from './telemetry/activeSpans';
 import {getTagArrayFromName, hasRoute, isDistanceRequest} from './TransactionUtils';
 
@@ -514,7 +514,9 @@ function resolveOptimisticChatReportID(participantAccountIDs: number[], existing
         return {optimisticChatReportID: undefined, chatReportID: existingChat.reportID};
     }
 
-    const chatReportID = optimisticChatReportID ?? generateReportID();
+    // The new chat is written with Onyx.SET, so never reuse an ID that already belongs to a report or it would be wiped.
+    const isOptimisticChatReportIDTaken = !!optimisticChatReportID && !!getReportOrDraftReport(optimisticChatReportID, undefined, undefined, {})?.reportID;
+    const chatReportID = optimisticChatReportID && !isOptimisticChatReportIDTaken ? optimisticChatReportID : generateReportID();
     return {optimisticChatReportID: chatReportID, chatReportID};
 }
 
