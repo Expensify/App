@@ -8,10 +8,7 @@ import {getColumnWidthValue} from './columnWidthExpressions';
 import resolveOverriddenColumnWidths from './resolveOverriddenColumnWidths';
 
 /** What resizing needs to know about a column, whatever lays the columns out. */
-type ColumnWidthOverrideColumn = OverridableColumn & {
-    /** Headless columns hold fixed-size content like an icon, checkbox or arrow, so they get no edge. */
-    label: string;
-};
+type ColumnWidthOverrideColumn = OverridableColumn;
 
 type ApplyColumnWidthOverridesParams = {
     /** Every column, in render order. */

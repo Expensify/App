@@ -10,6 +10,9 @@ type OverridableColumn = {
     /** Key a stored width is filed under. */
     key: string;
 
+    /** Headless columns hold fixed-size content like an icon, checkbox or arrow, so they never pay. */
+    label: string;
+
     /** Columns with a declared width don't share the row. */
     hasDeclaredWidth: boolean;
 
@@ -44,11 +47,11 @@ function getStoredColumnWidth(width: number): number {
 }
 
 /**
- * Applies stored widths in render order, each paid by the later columns still sharing the row (not fixed, user-sized or
- * growable) down to their fit width. Uses the same split as the drag, so columns don't jump on release.
+ * Applies stored widths in render order, each paid by the later columns still sharing the row (not headless, fixed,
+ * user-sized or growable) down to their fit width. Uses the same split as the drag, so columns don't jump on release.
  */
 function resolveOverriddenColumnWidths({columns, baseColumnWidths, columnWidthOverrides, growableColumnKey}: ResolveOverriddenColumnWidthsParams): ResolvedOverriddenColumnWidths {
-    const canColumnPay = columns.map((column) => !column.hasDeclaredWidth && columnWidthOverrides?.[column.key] === undefined && column.key !== growableColumnKey);
+    const canColumnPay = columns.map((column) => !!column.label && !column.hasDeclaredWidth && columnWidthOverrides?.[column.key] === undefined && column.key !== growableColumnKey);
 
     const payingColumnsByIndex = columns.map((column, index) =>
         columns

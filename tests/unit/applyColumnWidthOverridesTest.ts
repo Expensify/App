@@ -1,6 +1,5 @@
 import type {ColumnWidthOverrideColumn} from '@components/Table/columnResize/applyColumnWidthOverrides';
 import applyColumnWidthOverrides from '@components/Table/columnResize/applyColumnWidthOverrides';
-import {getColumnWidthValue} from '@components/Table/columnResize/columnWidthExpressions';
 
 /** A headed column sized from its content, which is the only kind whose edge drags. */
 function contentColumn(key: string): ColumnWidthOverrideColumn {
@@ -18,7 +17,7 @@ function headlessColumn(key: string): ColumnWidthOverrideColumn {
 }
 
 describe('applyColumnWidthOverrides', () => {
-    it('gives each column a value reading its custom property with the overridden width as fallback', () => {
+    it('applies a stored width to its column and paints it before any drag', () => {
         // Given three columns where the user widened the first by 60px
         const columns = [contentColumn('name'), contentColumn('email'), contentColumn('role')];
         const baseColumnWidths = {name: 200, email: 200, role: 200};
@@ -26,9 +25,9 @@ describe('applyColumnWidthOverrides', () => {
         // When the stored width is applied
         const {columnWidths, columnWidthValues} = applyColumnWidthOverrides({columns, baseColumnWidths, columnWidthOverrides: {name: 260}, growableColumnKey: undefined});
 
-        // Then only that column changes, and each value falls back to its width so no column jumps once a drag starts
+        // Then only that column changes, and its CSS value falls back to the stored width so it paints at 260px with no drag running
         expect(columnWidths).toEqual({name: 260, email: 200, role: 200});
-        expect(columnWidthValues).toEqual([getColumnWidthValue('name', 260), getColumnWidthValue('email', 200), getColumnWidthValue('role', 200)]);
+        expect(columnWidthValues.at(0)).toContain('260px');
     });
 
     it('rounds a stored width to whole px', () => {

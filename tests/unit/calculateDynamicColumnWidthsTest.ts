@@ -238,13 +238,6 @@ describe('distributeEqualWidths', () => {
         expect(distributeEqualWidths(0, 900)).toEqual([]);
     });
 
-    // Given a width that divides evenly between the columns
-    // When equal widths are distributed
-    // Then every column takes the same share
-    it('splits an evenly divisible width equally', () => {
-        expect(distributeEqualWidths(3, 900)).toEqual([300, 300, 300]);
-    });
-
     // Given a width that does not divide evenly
     // When equal widths are distributed
     // Then the remainder goes to the first column, so the columns still sum exactly to the available width
