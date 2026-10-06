@@ -5,6 +5,7 @@ keywords: [agent templates, agents, TipMaster, Translator Tess, Splitter Sam, De
 internalScope: Audience is New Expensify members creating AI agents. Covers the built-in agent templates available when creating a new agent and what each one does. Does not cover creating custom agents, editing agent instructions, Agent rules, or RuleBot.
 contentType: topic
 platform: New Expensify
+order: 6
 ---
 
 # Use Agent Templates
@@ -69,6 +70,6 @@ Description Dan is useful for recurring purchases where you typically use the sa
 
 ## Related articles
 
-- [Learn about agents](/articles/new-expensify/ai-agents/Learn-About-Agents)
+- [Understand how agents work](/articles/new-expensify/ai-agents/Understand-How-Agents-Work)
 - [Create and use agents](/articles/new-expensify/ai-agents/Create-and-Use-Agents)
 - [Write agent instructions](/articles/new-expensify/ai-agents/How-to-Write-Agent-Instructions)
