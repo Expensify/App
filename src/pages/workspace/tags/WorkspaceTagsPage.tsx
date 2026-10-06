@@ -34,6 +34,7 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {renameTagInline} from '@libs/actions/Policy/InlineEdit';
 import {
     clearPolicyTagErrors,
     clearPolicyTagListErrors,
@@ -323,6 +324,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }
     }, [canWriteTags, hasDependentTags, isMultiLevelTags, policyTagLists, updateWorkspaceRequiresTag]);
 
+    const isSelectionModeActive = selectedTagKeys.length > 0 || isMobileSelectionModeEnabled;
+
     const tagRows = useMemo<WorkspaceTagTableRowData[]>(() => {
         if (isMultiLevelTags) {
             return policyTagLists.reduce<WorkspaceTagTableRowData[]>((acc, policyTagList) => {
@@ -351,6 +354,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     pendingAction: getPendingAction(policyTagList),
                     isLocked: !canWriteTags || isMakingLastRequiredTagListOptional(policy, policyTags, [policyTagList]),
                     showEnabledSwitch: false,
+                    // Inline renaming targets single-level tags only; tag lists are renamed from their settings page.
                     action: () => navigateToTagSettings(policyTagList.name, policyTagList.orderWeight),
                     onClose: () => {},
                 });
@@ -392,8 +396,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 pending: shouldShowPendingSwitch && tag.pendingFields?.enabled === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 isLocked: !canWriteTags || isLastEnabledTagAndEnabled,
                 showEnabledSwitch: true,
+                canEditName: canWriteTags && !isSelectionModeActive,
                 action: () => navigateToTagSettings(tag.name),
                 onToggleEnabled: (enabled: boolean) => handleTagEnabledToggle(enabled, tag),
+                onRenameName: (newName: string) => renameTagInline(policyData, tag.name, newName, isVendorMatchingBetaEnabled),
                 onClose: () => clearPolicyTagErrors({policyID, tagName: tag.name, tagListIndex: 0, policyTags}),
             });
 
@@ -401,6 +407,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }, []);
     }, [
         canWriteTags,
+        isSelectionModeActive,
+        policyData,
         handleTagEnabledToggle,
         isMultiLevelTags,
         isOffline,
@@ -413,6 +421,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         tagApproverEmails,
         employeePersonalDetails,
         formatPhoneNumber,
+        isVendorMatchingBetaEnabled,
     ]);
 
     const tagRowsKeyedByName = useMemo(
