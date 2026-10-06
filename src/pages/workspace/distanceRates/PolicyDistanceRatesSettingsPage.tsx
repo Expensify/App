@@ -1,6 +1,6 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import CustomUnitDefaultCategorySelector from '@components/CustomUnitDefaultCategorySelector';
-import Header from '@components/Header';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
@@ -218,9 +218,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                 style={[styles.defaultModalContainer]}
                 testID="PolicyDistanceRatesSettingsPage"
             >
-                <Header>
-                    <Header.Title title={translate('workspace.common.settings')} />
-                </Header>
+                <HeaderWithBackButton title={translate('workspace.common.settings')} />
                 <ContentWrapper shouldBlockWhenOffline={!customUnit}>
                     {!!defaultUnit && (
                         <OfflineWithFeedback
