@@ -48,19 +48,9 @@ function IOURequestRedirectToStartPage({route}: IOURequestRedirectToStartPagePro
         // undefined) before the drafts load, so a fallback alone would clear nothing.
         clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, [CONST.IOU.OPTIMISTIC_TRANSACTION_ID, ...(draftTransactionIDs ?? [])]);
 
-        // Wait for the NavigationContainer before touching navigation. On a cold load (this route pasted into the
-        // address bar) this effect runs while the container is still initializing, and the dismiss and the redirect
-        // are then deferred through two different mechanisms: navigate() parks the route in `pendingNavigationCall`
-        // while dismissModal() queues itself on the navigation-ready promise. setIsNavigationReady() drains the
-        // pending route first and resolves the promise second, so the new modal is pushed and then immediately
-        // dismissed, dropping the user on the fullscreen page behind it instead of the start page. Running both
-        // inside one isNavigationReady() callback keeps them in the intended order: dismiss, then redirect.
         let isCancelled = false;
 
         Navigation.isNavigationReady().then(() => {
-            // The page can be gone by the time the container is ready. dismissModal() tears down whatever modal is on
-            // top, so replaying this after the user left would dismiss a modal we never opened and push the start page
-            // over it.
             if (isCancelled) {
                 return;
             }
@@ -82,11 +72,9 @@ function IOURequestRedirectToStartPage({route}: IOURequestRedirectToStartPagePro
         });
 
         return () => {
+            // This page is getting unmounted so we cancel any navigation effects
             isCancelled = true;
 
-            // Release the once-only guard so a remount can schedule the redirect this cleanup just cancelled. A real
-            // unmount throws the ref away with the instance, so this only matters when the same instance is cleaned up
-            // and immediately remounted (StrictMode does that to effects in dev).
             didRedirectRef.current = false;
         };
 

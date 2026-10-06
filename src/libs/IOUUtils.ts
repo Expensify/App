@@ -56,9 +56,7 @@ function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: I
 }
 
 /**
- * `request` and `send` are deprecated OldDot aliases of `submit` and `pay`. They still arrive from old links, and
- * `isValidMoneyRequestType` still accepts them, but the create flow rejects them: `withWritableReportOrNotFound`
- * filters both out of the valid iouType list, so any create route built with one renders "Not found". Resolve an
+ * `request` and `send` are deprecated OldDot aliases of `submit` and `pay`. This resolves an
  * alias to the type NewDot actually renders before building a route with it.
  */
 function getNonDeprecatedIOUType(iouType: IOUType): IOUType {
