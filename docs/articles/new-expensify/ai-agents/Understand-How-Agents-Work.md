@@ -8,11 +8,11 @@ contentType: topic
 order: 1
 ---
 
-# Learn About Agents
+# Understand How Agents Work
 
 Expensify includes AI-powered Agents that can automate tasks on your behalf.
 
-This article covers the two AI Agent features in Expensify:
+This article covers the two Agent features in Expensify:
 
 - Agents, which help manage your own work.
 - Agent rules, which automate how expenses and reports are handled in a workspace.
