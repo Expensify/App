@@ -22,8 +22,7 @@ jest.mock('@src/CONFIG', () => ({
 }));
 
 /** Resolves on demand, so a case can assert before the native beta check settles. Shared, the way getEnvironment memoizes. */
-// eslint-disable-next-line no-var -- var so the hoisting the mock factory relies on is guaranteed by the language, not by the transform
-var mockEnvironmentDeferred: {promise: Promise<string>; resolve: (environment: string) => void} = {
+const mockEnvironmentDeferred: {promise: Promise<string>; resolve: (environment: string) => void} = {
     promise: Promise.resolve(CONST.ENVIRONMENT.DEV),
     resolve: () => {},
 };
@@ -32,7 +31,7 @@ jest.mock('@libs/Environment/getEnvironment', () => {
     const {ENVIRONMENT} = jest.requireActual<{default: {ENVIRONMENT: Record<string, string>}}>('@src/CONST').default;
     return {
         __esModule: true,
-        // The fallback matters: anything calling this at module scope runs before the deferred is initialised
+        // The fallback matters: anything calling this at module scope runs before the deferred is initialized
         default: () => mockEnvironmentDeferred?.promise ?? Promise.resolve(ENVIRONMENT.DEV),
     };
 });
