@@ -25,7 +25,7 @@ function ReportActionItemBasicMessage({message, children}: ReportActionItemBasic
     const selectableStyle = !canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone;
 
     return (
-        <View>
+        <View style={styles.renderHTML}>
             {!!message &&
                 (messageContainsCustomEmojiWithText ? (
                     <TextWithEmojiFragment
