@@ -11,7 +11,7 @@ Workspace rules let admins enforce expense policies by setting requirements for 
 
 The **Rules** page is organized into tabs: **General**, **Card restrictions**, **Expense defaults**, **Field requirements**, **Flag for review**, and **Agents**.
 
-If your requirements can't be handled with these rules alone, create an Agent Rule. Agent Rules are AI-powered rules that automate report reviews, routing, approvals, and other workspace actions using natural-language instructions. [Learn how to create Agent Rules](/articles/new-expensify/ai-agents/Create-Agent-Rules).
+If your requirements can't be handled with these rules alone, create an Agent Rule. Agent Rules are AI-powered rules that automate report reviews, routing, approvals, and other workspace actions using natural-language instructions. [Learn how to create Agent Rules](/articles/new-expensify/ai-agents/Automate-Workflows-with-Agent-Rules).
 
 ---
 
@@ -132,7 +132,7 @@ The **Agents** tab holds Agent Rules, which are written in plain language and ru
 3. Select **Agents**.
 4. Select **Add AI rule**.
 
-[Learn how to create Agent Rules](/articles/new-expensify/ai-agents/Create-Agent-Rules).
+[Learn how to create Agent Rules](/articles/new-expensify/ai-agents/Automate-Workflows-with-Agent-Rules).
 
 ---
 

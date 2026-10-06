@@ -39,7 +39,7 @@ Instead of creating an Agent directly, you create natural-language rules in a wo
 
 These rules can review reports, request additional information, update expenses, route reports, or approve reports when the conditions you define are met.
 
-To learn more about agent rules, see [Automate Workflows with Agent Rules](/articles/new-expensify/ai-agents/Automate-Workflows-with-Agent-Rules.md).
+To learn more about agent rules, see [Automate Workflows with Agent Rules](/articles/new-expensify/ai-agents/Automate-Workflows-with-Agent-Rules).
 
 ---
 
@@ -69,7 +69,7 @@ Suggested rules are pre-written Agent rules for common workspace workflows.
 
 Instead of starting with a blank Agent rule, you can choose a suggested rule and edit it before saving.
 
-To learn about the available suggested rules, see [Use Suggested Agent Rules](/articles/new-expensify/ai-agents/Use-Suggested-Agent-Rules.md).
+To learn about the available suggested rules, see [Use Suggested Agent Rules](/articles/new-expensify/ai-agents/Use-Suggested-Agent-Rules).
 
 ---
 

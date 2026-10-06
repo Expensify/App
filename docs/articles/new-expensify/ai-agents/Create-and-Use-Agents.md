@@ -1,8 +1,10 @@
 ---
 title: Create and Use Agents
-description: Create personal agents in New Expensify, chat with them, and Copilot into their accounts. New agents are automatically added as full-access Copilots on your account so they can act on your behalf.
-keywords: [custom agents, agents, new agent, ai agent, agent instructions, agent template, build custom agent, copilot into account, agent copilot permissions, agent edit expenses, agent edit access, new expensify]
-internalScope: Audience is individual New Expensify users. Covers creating, configuring, and managing agents from the Agents page in Account settings. Does not cover Agent Rules, RuleBot, or workspace-level automation.
+description: Create, edit, chat with, Copilot into, and delete personal AI Agents that help automate your workflows. New agents are automatically added as full-access Copilots on your account so they can act on your behalf.
+keywords: [Agents, personal agents, custom agents, new agent, AI agent, agent instructions, agent template, build custom agent, create agent, manage agent, Copilot, delegated access, copilot into account, agent copilot permissions, agent edit expenses, agent edit access, new expensify]
+internalScope: Audience is members with access to Agents. Covers creating (from scratch or from a template), configuring, managing, chatting with, Copiloting into, and deleting personal Agents, and using an Agent as a workspace approver. Does not cover Agent rules, RuleBot, what each agent template does, or best practices for writing agent instructions.
+retrievalIntent: How do I create and use a personal Agent?
+contentType: task
 ---
 
 # Create and Use Agents
@@ -13,7 +15,7 @@ Every agent has its own Expensify account. You can Copilot into the agent's acco
 
 When you create an agent, it's automatically added as a full-access Copilot on your own account. This gives the agent delegated access to your account so it can use your personal context and manage expenses and reports on your behalf, while continuing to operate from its own account. You can review or remove this access at any time in the **Copilot: Delegated Access** section under **Account > Security**.
 
-Expensify also supports Agent rules, which are workspace-level AI automations enforced by RuleBot. [Learn how to Create Agent Rules](/articles/new-expensify/ai-agents/Create-Agent-Rules). 
+Expensify also supports Agent rules, which are workspace-level AI automations enforced by RuleBot. To learn how Agents work and how they differ from Agent rules, see [Learn About Agents](/articles/new-expensify/ai-agents/Learn-About-Agents).
 
 ---
 
@@ -43,6 +45,8 @@ When you click **New agent**, the **New agent** screen opens. From here you can 
 8. Click **Create agent**.
 
 **To start from a template:**
+
+To learn what each template does, see [Use Agent Templates](/articles/new-expensify/ai-agents/Use-Agent-Templates).
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Account**.
 2. Click **Agents**.
@@ -80,7 +84,7 @@ Agent instructions are written in natural language. Describe the role, responsib
 
 If you’re unsure how to write instructions, you can chat with the agent and describe the outcome you want. The agent can ask clarifying questions, help draft instructions, and explain how it would behave in a specific situation based on the instructions.
 
-Agent instructions use the same natural-language prompting concepts as Agent rules. For guidance, examples, and prompt-writing best practices, [learn how to write agent rules](/articles/new-expensify/ai-agents/How-to-Write-Agent-Rules).
+Agent instructions use the same natural-language prompting concepts as Agent rules. For guidance, examples, and prompt-writing best practices, see [How to Write Agent Instructions](/articles/new-expensify/ai-agents/How-to-Write-Agent-Instructions).
 
 ---
 

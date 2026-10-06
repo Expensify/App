@@ -69,5 +69,6 @@ Description Dan is useful for recurring purchases where you typically use the sa
 
 ## Related articles
 
-- [Create and use agents](/articles/new-expensify/ai-agents/Create-and-Use-Custom-Agents)
-- [Write agent rules](/articles/new-expensify/ai-agents/How-to-Write-Agent-Rules)
+- [Learn about agents](/articles/new-expensify/ai-agents/Learn-About-Agents)
+- [Create and use agents](/articles/new-expensify/ai-agents/Create-and-Use-Agents)
+- [Write agent instructions](/articles/new-expensify/ai-agents/How-to-Write-Agent-Instructions)
