@@ -3,6 +3,7 @@ import {act, render} from '@testing-library/react-native';
 import AmountField from '@components/MoneyRequestConfirmationList/sections/AmountField';
 
 import {setMoneyRequestAmount, setMoneyRequestCurrency} from '@libs/actions/IOU/MoneyRequest';
+import type * as ReportUtils from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 
@@ -78,7 +79,7 @@ jest.mock('@libs/IOUUtils', () => ({calculateAmount: jest.fn(), isMovingTransact
 jest.mock('@libs/MoneyRequestUtils', () => ({isConfirmationAmountMissing: () => false}));
 jest.mock('@libs/Navigation/Navigation', () => ({__esModule: true, default: {navigate: jest.fn()}}));
 jest.mock('@libs/ReportUtils', () => ({
-    ...jest.requireActual<typeof import('@libs/ReportUtils')>('@libs/ReportUtils'),
+    ...jest.requireActual<typeof ReportUtils>('@libs/ReportUtils'),
     shouldEnableNegative: () => true,
 }));
 jest.mock('@libs/TransactionUtils', () => ({calculateTaxAmount: jest.fn(), getTaxCode: jest.fn(), getTaxValue: jest.fn(), hasAnyManuallyEnteredScanField: () => false}));

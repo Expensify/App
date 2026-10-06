@@ -41,7 +41,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {Platform, View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
 
@@ -60,6 +60,17 @@ type IOURequestStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS
 
 // Tab indices for IOURequestStartPage
 const PER_DIEM_TAB_INDEX = 2;
+
+type PayAmountBaseline = {
+    isAmountSet: boolean;
+    amount: number | undefined;
+};
+
+// Browser Forward recreates this screen but restores the same navigation route. Retaining the initial Pay amount
+// per route lets the recreated screen distinguish a restored unsaved draft from an amount that was supplied when a
+// new Pay route first opened. Native navigation does not recreate its history entries this way, so it uses the local
+// baseline only.
+const payAmountBaselinesByRouteKey = new Map<string, PayAmountBaseline>();
 
 function IOURequestStartPage({
     route,
@@ -230,7 +241,19 @@ function IOURequestStartPage({
     const isDiscardNavigationPendingRef = useRef(false);
     const focusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const hasAmountChanged = transaction?.isAmountSet === true;
+    const isPayFlow = iouType === CONST.IOU.TYPE.PAY;
+    const cachedPayAmountBaseline = isPayFlow && Platform.OS === 'web' ? payAmountBaselinesByRouteKey.get(route.key) : undefined;
+    const [payAmountBaseline, setPayAmountBaseline] = useState<PayAmountBaseline | undefined>(cachedPayAmountBaseline);
+    if (isPayFlow && !isLoadingTransaction && transaction?.transactionID && !payAmountBaseline) {
+        const nextPayAmountBaseline = cachedPayAmountBaseline ?? {isAmountSet: transaction.isAmountSet === true, amount: transaction.amount};
+        if (Platform.OS === 'web') {
+            payAmountBaselinesByRouteKey.set(route.key, nextPayAmountBaseline);
+        }
+        setPayAmountBaseline(nextPayAmountBaseline);
+    }
+    const hasAmountChanged = isPayFlow
+        ? !!payAmountBaseline && ((transaction?.isAmountSet === true && !payAmountBaseline.isAmountSet) || transaction?.amount !== payAmountBaseline.amount)
+        : transaction?.isAmountSet === true;
 
     useFocusEffect(
         useCallback(() => {
