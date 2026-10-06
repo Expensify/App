@@ -78,7 +78,6 @@ function createBill(params: CreateBillInput, accountID: number) {
                     key,
                     value: {
                         reportID,
-                        invoiceID: invoiceReportID,
                         type: CONST.REPORT.TYPE.BILL,
                         reportName: params.merchant,
                         ownerAccountID: accountID,
@@ -89,6 +88,11 @@ function createBill(params: CreateBillInput, accountID: number) {
                         statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                         pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
                     },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
+                    value: {invoiceID: invoiceReportID},
                 },
             ],
             successData: [{onyxMethod: Onyx.METHOD.MERGE, key, value: {pendingFields: {createChat: null}}}],

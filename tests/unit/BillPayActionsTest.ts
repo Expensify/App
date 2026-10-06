@@ -4,6 +4,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 jest.mock('@libs/API');
 jest.mock('@libs/Navigation/Navigation');
@@ -30,5 +31,21 @@ describe('Bill Pay actions', () => {
         expect(request).toHaveProperty('reportID', expect.any(String));
         expect(request).toHaveProperty('invoiceReportID', expect.any(String));
         expect(request).not.toHaveProperty('vendorEmail');
+    });
+
+    it('stores the optimistic invoice link as a report name value pair', () => {
+        // Given a bill created from the plus menu, whose link to its invoice is a standard rNVP on the backend.
+        createBill({domain: 'receiver.com', vendorEmail: 'sender@example.com', merchant: 'Gardening supplies', amount: 1250, currency: CONST.CURRENCY.USD, date: '2026-10-05'}, 170);
+
+        // When the request queues its optimistic data.
+        const [, request, onyxData] = jest.mocked(write).mock.calls.at(-1) ?? [];
+        const reportID = request && 'reportID' in request ? String(request.reportID) : '';
+        const invoiceReportID = request && 'invoiceReportID' in request ? request.invoiceReportID : undefined;
+
+        // Then the link goes to reportNameValuePairs, where the backend sends it, and not onto the report.
+        expect(onyxData?.optimisticData).toEqual(
+            expect.arrayContaining([expect.objectContaining({key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, value: {invoiceID: invoiceReportID}})]),
+        );
+        expect(onyxData?.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${reportID}`)?.value).not.toHaveProperty('invoiceID');
     });
 });

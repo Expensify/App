@@ -14,7 +14,7 @@ function isBillPayReport(report: OnyxEntry<Report>, accountID: number): boolean 
     if (!report || report.isHiddenForBillReceiver) {
         return false;
     }
-    return isBillReport(report) || (report.type === CONST.REPORT.TYPE.INVOICE && (report.isBillPayReport ?? (!report.billID && report.managerID === accountID)));
+    return isBillReport(report) || (report.type === CONST.REPORT.TYPE.INVOICE && (report.isBillPayReport ?? report.managerID === accountID));
 }
 
 function canApproveBill(report: OnyxEntry<Report>, accountID: number): boolean {

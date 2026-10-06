@@ -190,7 +190,7 @@ describe('Bill Pay', () => {
         expect(isBillPayReport(invoice, accountID)).toBe(true);
         expect(canPayBill(invoice, undefined, accountID, email)).toBe(true);
         expect(isBillPayReport(invoice, 456)).toBe(false);
-        expect(isBillPayReport({...invoice, billID: bill.reportID, isHiddenForBillReceiver: true}, accountID)).toBe(false);
+        expect(isBillPayReport({...invoice, isHiddenForBillReceiver: true}, accountID)).toBe(false);
     });
 
     it('keeps business invoices visible to receivers identified by Auth', () => {

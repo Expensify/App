@@ -62,6 +62,12 @@ type ReportNameValuePairs = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Original reportID that spawned the current report */
     originalID?: string;
 
+    /** On an invoice, the reportID of the bill linked to it. The backend sends numeric IDs as numbers. */
+    billID?: string | number;
+
+    /** On a bill, the reportID of the invoice linked to it. The backend sends numeric IDs as numbers. */
+    invoiceID?: string | number;
+
     /** Set on a thread the backend opened to collect feedback on a Concierge answer, naming the rated action */
     conciergeFeedbackForReportActionID?: string;
 
