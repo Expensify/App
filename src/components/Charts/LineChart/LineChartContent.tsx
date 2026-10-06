@@ -70,6 +70,8 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
 
     const chartBottom = useSharedValue(0);
     const plotTop = useSharedValue(0);
+    const plotLeft = useSharedValue(0);
+    const plotRight = useSharedValue(0);
     const bandHalfWidth = useSharedValue(0);
 
     const measurements = useChartLabelMeasurements(data, fontManager, variables.iconSizeExtraSmall);
@@ -134,21 +136,37 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
 
     const handleChartBoundsChange = (bounds: ChartBounds) => {
         plotTop.set(bounds.top);
+        plotLeft.set(bounds.left);
+        plotRight.set(bounds.right);
         setPlotAreaWidth(bounds.right - bounds.left);
         setBoundsLeft(bounds.left);
         setBoundsRight(bounds.right);
     };
 
+    const labelSpace = VictoryTheme.axis.xAxisLabelGap + (xAxisLabelHeight ?? 0);
+
+    const isInPlotArea = (args: HitTestArgs) => {
+        'worklet';
+
+        return args.cursorX >= plotLeft.get() && args.cursorX <= plotRight.get() && args.cursorY >= plotTop.get() && args.cursorY <= args.chartBottom + labelSpace;
+    };
+
     const checkIsOverBand = (args: HitTestArgs) => {
         'worklet';
 
-        return Math.abs(args.cursorX - args.targetX) <= bandHalfWidth.get() && args.cursorY >= plotTop.get() && args.cursorY <= args.chartBottom;
+        return isInPlotArea(args) && Math.abs(args.cursorX - args.targetX) <= bandHalfWidth.get();
+    };
+
+    const checkIsOverLabelInPlotArea = (args: HitTestArgs, activeIndex: number) => {
+        'worklet';
+
+        return isInPlotArea(args) && isCursorOverLabel(args, activeIndex);
     };
 
     const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition, activePointPosition} = useChartInteractions({
         handlePress: handlePointPress,
         checkIsOver: checkIsOverBand,
-        isCursorOverLabel,
+        isCursorOverLabel: checkIsOverLabelInPlotArea,
         resolveLabelTouchX: findLabelCursorX,
         chartBottom,
     });
@@ -214,7 +232,6 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
         );
     };
 
-    const labelSpace = VictoryTheme.axis.xAxisLabelGap + (xAxisLabelHeight ?? 0);
     const dynamicChartStyle = {height: CHART_CONTENT_MIN_HEIGHT + labelSpace};
     const chartPadding = {
         ...VictoryTheme.axis.padding,
