@@ -3028,7 +3028,7 @@ ${amount} für ${merchant} – ${date}`,
             `${memberName} befindet sich bereits in einem Genehmigungs-Workflow, der an ${approverName} übermittelt wird. Wenn du das Mitglied hier hinzufügst, wird es in diesen Workflow verschoben.`,
         moveEveryoneToThisWorkflowTitle: 'Verschieben Sie alle in diesen Workflow',
         moveEveryoneToThisWorkflowPrompt:
-            'Sie sind dabei, alle auf diesen Genehmigungs-Workflow umzustellen. Dadurch werden alle anderen Genehmigungs-Workflows gelöscht und alle auf diesen verschoben. Diese Aktion kann nicht rückgängig gemacht werden.',
+            'Sie sind dabei, alle auf diesen neuen Genehmigungs-Workflow umzustellen. Beim Speichern werden alle anderen Genehmigungs-Workflows gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.',
     },
     workflowsApproverPage: {
         genericErrorMessage: 'Die genehmigende Person konnte nicht geändert werden. Bitte versuche es erneut oder kontaktiere den Support.',
@@ -4781,6 +4781,12 @@ ${amount} für ${merchant} – ${date}`,
             settlementFrequency: 'Auszahlungsfrequenz',
             setAsDefault: 'Als Standard-Arbeitsbereich festlegen',
             defaultNote: `Belege, die an ${CONST.EMAIL.RECEIPTS} gesendet werden, erscheinen in diesem Workspace.`,
+            archive: 'Workspace archivieren',
+            archiveConfirmation: 'Möchten Sie diesen Workspace wirklich archivieren?',
+            archiveWithThirdPartyCardsConfirmation:
+                'Möchten Sie diesen Workspace wirklich archivieren? Dadurch werden allen Benutzern die Kreditkarten entzogen und alle nicht eingereichten Kartenausgaben endgültig gelöscht.',
+            archiveWithExpensifyCardsConfirmation:
+                'Möchten Sie diesen Workspace wirklich archivieren? Dadurch werden alle Expensify Card-Limits auf 0 $ gesetzt und neue Kaufversuche automatisch abgelehnt.',
             deleteWorkspaceTitle: (workspaceName: string) => `${workspaceName} löschen?`,
             deleteConfirmation: 'Möchten Sie diesen Workspace wirklich löschen?',
             deleteWithCardsConfirmation: 'Möchtest du diesen Workspace wirklich löschen? Dadurch werden alle Kartenfeeds und zugewiesenen Karten entfernt.',
@@ -10078,6 +10084,12 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         },
         periodSoFar: ({period}: {period: string}) => `${period} bisher`,
         weekOf: ({date}: {date: string}) => `Woche vom ${date}`,
+        saveEdits: {
+            title: 'Änderungen speichern',
+            prompt: ({name}: {name: string}) => `Änderungen an „${name}“ aktualisieren oder eine neue erstellen?`,
+            createNew: 'Neu erstellen',
+            updateExisting: 'Vorhandene aktualisieren',
+        },
     },
     genericErrorPage: {
         title: 'Ups, da ist etwas schiefgelaufen!',
@@ -10440,6 +10452,12 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
     distance: {
         addStop: 'Stopp hinzufügen',
         address: 'Adresse',
+        reuseRoute: 'Route wiederverwenden',
+        reusePriorRoute: 'Vorherige Route wiederverwenden',
+        choosePreviousRoute: 'Wählen Sie unten eine frühere Route aus:',
+        findARoute: 'Route finden',
+        lastUsed: ({date}: {date: string}) => `Zuletzt verwendet am ${date}`,
+        end: 'Ende',
         waypointDescription: {
             start: 'Start',
             stop: 'Stopp',

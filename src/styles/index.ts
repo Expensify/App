@@ -4171,6 +4171,39 @@ const staticStyles = (theme: ThemeColors) =>
             marginLeft: 0,
         },
 
+        reuseRouteCard: {
+            ...spacing.mh5,
+            ...spacing.mb3,
+            borderRadius: variables.componentBorderRadiusLarge,
+            backgroundColor: theme.cardBG,
+        },
+
+        reuseRouteThumbnailWrapper: {
+            ...spacing.p1,
+        },
+
+        reuseRouteThumbnail: {
+            width: '100%',
+            aspectRatio: 1.84,
+            borderRadius: 12,
+            overflow: 'hidden',
+            backgroundColor: theme.border,
+        },
+
+        // Floats above the map thumbnail so the date stays readable over the map image.
+        reuseRouteLastUsedBadge: {
+            position: 'absolute',
+            top: 12,
+            left: 12,
+            marginLeft: 0,
+            backgroundColor: colors.productDark400,
+            borderColor: colors.productDark400,
+        },
+
+        reuseRouteLastUsedBadgeText: {
+            color: colors.productDark900,
+        },
+
         receiptActionButton: {
             width: 40,
             height: 40,
@@ -5681,7 +5714,7 @@ const staticStyles = (theme: ThemeColors) =>
             alignSelf: 'flex-start',
         },
 
-        searchFiltersResetButton: {
+        searchFiltersBarButton: {
             flexDirection: 'row',
             gap: 4,
             alignItems: 'center',

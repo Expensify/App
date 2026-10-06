@@ -3032,7 +3032,7 @@ ${amount} pour ${merchant} - ${date}`,
             `${memberName} fait déjà partie d’un workflow d’approbation qui soumet à ${approverName}. L’ajouter ici le déplacera vers ce workflow.`,
         moveEveryoneToThisWorkflowTitle: 'Déplacer tout le monde vers ce workflow',
         moveEveryoneToThisWorkflowPrompt:
-            'Vous êtes sur le point de déplacer tout le monde vers ce workflow d’approbation. Cela supprimera tous les autres workflows d’approbation et déplacera tout le monde vers celui-ci. Cette action est irréversible.',
+            'Vous êtes sur le point de déplacer tout le monde vers ce nouveau workflow d’approbation. En l’enregistrant, vous supprimerez tous les autres workflows d’approbation. Cette action est irréversible.',
         header: 'Quand les membres suivants soumettent des dépenses :',
     },
     workflowsApproverPage: {
@@ -4788,6 +4788,12 @@ ${amount} pour ${merchant} - ${date}`,
             settlementFrequency: 'Fréquence de règlement',
             setAsDefault: 'Définir comme espace de travail par défaut',
             defaultNote: `Les reçus envoyés à ${CONST.EMAIL.RECEIPTS} apparaîtront dans cet espace de travail.`,
+            archive: 'Archiver l’espace de travail',
+            archiveConfirmation: 'Voulez-vous vraiment archiver cet espace de travail ?',
+            archiveWithThirdPartyCardsConfirmation:
+                'Voulez-vous vraiment archiver cet espace de travail ? Cela désassignera toutes les cartes de crédit des utilisateurs et supprimera définitivement toutes les dépenses de carte non soumises.',
+            archiveWithExpensifyCardsConfirmation:
+                'Voulez-vous vraiment archiver cet espace de travail ? Cela fixera toutes les limites des Expensify Card à 0 $ et refusera automatiquement toute nouvelle tentative d’achat.',
             deleteWorkspaceTitle: (workspaceName: string) => `Supprimer ${workspaceName} ?`,
             deleteConfirmation: 'Voulez-vous vraiment supprimer cet espace de travail ?',
             deleteWithCardsConfirmation: 'Voulez-vous vraiment supprimer cet espace de travail ? Cela supprimera tous les flux de cartes et les cartes assignées.',
@@ -10101,6 +10107,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         periodSoFar: ({period}: {period: string}) => `${period} jusqu’à présent`,
         weekOf: ({date}: {date: string}) => `Semaine du ${date}`,
+        saveEdits: {
+            title: 'Enregistrer les modifications',
+            prompt: ({name}: {name: string}) => `Mettre à jour les modifications de « ${name} » ou en créer une nouvelle ?`,
+            createNew: 'Créer nouveau',
+            updateExisting: 'Mettre à jour l’existant',
+        },
     },
     genericErrorPage: {
         title: 'Oups, quelque chose s’est mal passé !',
@@ -10463,6 +10475,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
     distance: {
         addStop: 'Ajouter un arrêt',
         address: 'Adresse',
+        reuseRoute: 'Réutiliser l’itinéraire',
+        reusePriorRoute: 'Réutiliser l’itinéraire précédent',
+        choosePreviousRoute: 'Choisissez un itinéraire précédent ci-dessous :',
+        findARoute: 'Trouver un itinéraire',
+        lastUsed: ({date}: {date: string}) => `Dernière utilisation le ${date}`,
+        end: 'Fin',
         waypointDescription: {
             start: 'Démarrer',
             stop: 'Arrêter',
