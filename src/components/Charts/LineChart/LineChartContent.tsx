@@ -17,7 +17,7 @@ import {
     useLabelHitTesting,
 } from '@components/Charts/hooks';
 import {getDomainPaddingForEdgeSpace, getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
-import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING, LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
+import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, DASH_INTERVALS, GLYPH_PADDING, LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
 
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -27,6 +27,7 @@ import variables from '@styles/variables';
 import type {LayoutChangeEvent} from 'react-native';
 import type {CartesianChartRenderArg, ChartBounds, Scale} from 'victory-native';
 
+import {DashPathEffect} from '@shopify/react-native-skia';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
@@ -40,6 +41,9 @@ const DOT_RADIUS = 4;
 
 /** Extra hover area beyond the dot radius for easier touch targeting */
 const DOT_HOVER_EXTRA_RADIUS = 2;
+
+/** Stroke width (px) of the dashed line into a point whose period hasn't ended yet */
+const IN_PROGRESS_STROKE_WIDTH = 4;
 
 /** Base domain padding applied to all sides */
 const BASE_DOMAIN_PADDING = {top: 16, bottom: 16, left: 0, right: 0};
@@ -58,6 +62,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
     const [boundsRight, setBoundsRight] = useState(0);
 
     const yAxisDomain = useDynamicYDomain(data);
+    const isLastPointInProgress = !!data.at(-1)?.isInProgress;
     const chartData = data.map((point, index) => ({
         x: index,
         y: point.total,
@@ -182,6 +187,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
                     points={args.points.y}
                     radius={DOT_RADIUS}
                     color={VictoryTheme.colors.defaultDot}
+                    isLastPointHollow={isLastPointInProgress}
                 />
                 {xAxisLabelHeight !== undefined && !!fontManager && (
                     <ChartXAxisLabels
@@ -272,27 +278,41 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
                         frame={{lineWidth: 0}}
                         data={chartData}
                     >
-                        {({points, yScale, yTicks, chartBounds}) => (
-                            <>
-                                <ChartGridLines
-                                    yTicks={yTicks}
-                                    yScale={yScale}
-                                    chartBounds={chartBounds}
-                                    color={theme.border}
-                                />
-                                <AreaGradient
-                                    points={points.y}
-                                    baselineY={yScale(Math.min(...yTicks))}
-                                    color={VictoryTheme.colors.default}
-                                />
-                                <Line
-                                    points={points.y}
-                                    color={VictoryTheme.colors.default}
-                                    strokeWidth={2}
-                                    curveType="linear"
-                                />
-                            </>
-                        )}
+                        {({points, yScale, yTicks, chartBounds}) => {
+                            const completePoints = isLastPointInProgress ? points.y.slice(0, -1) : points.y;
+                            return (
+                                <>
+                                    <ChartGridLines
+                                        yTicks={yTicks}
+                                        yScale={yScale}
+                                        chartBounds={chartBounds}
+                                        color={theme.border}
+                                    />
+                                    <AreaGradient
+                                        points={completePoints}
+                                        baselineY={yScale(Math.min(...yTicks))}
+                                        color={VictoryTheme.colors.default}
+                                    />
+                                    <Line
+                                        points={completePoints}
+                                        color={VictoryTheme.colors.default}
+                                        strokeWidth={2}
+                                        curveType="linear"
+                                    />
+                                    {isLastPointInProgress && points.y.length > 1 && (
+                                        <Line
+                                            points={points.y.slice(-2)}
+                                            color={VictoryTheme.colors.default}
+                                            strokeWidth={IN_PROGRESS_STROKE_WIDTH}
+                                            strokeCap="round"
+                                            curveType="linear"
+                                        >
+                                            <DashPathEffect intervals={DASH_INTERVALS} />
+                                        </Line>
+                                    )}
+                                </>
+                            );
+                        }}
                     </CartesianChart>
                 )}
                 <ChartTooltipLayer

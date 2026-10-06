@@ -27,6 +27,9 @@ type BuildChartSeriesParams = {
 
     /** Color every bar is drawn in. Left out, each bar takes a different color from the palette. */
     color?: string;
+
+    /** Returns the label of a group whose period hasn't ended yet, or undefined for a finished one */
+    getInProgressLabel?: (item: GroupedItem) => string | undefined;
 };
 
 /** Pie colors follow the slice ranking rather than the array order. Groups the donut leaves out get no color. */
@@ -46,15 +49,23 @@ function getSliceColorsByDataIndex(data: ChartDataPoint[]): Array<string | undef
 }
 
 /** This is the single place group totals are turned into plotted values. */
-function buildChartSeries({data, view, getLabel, getShortLabel, getCurrencyDecimals, color: barColor}: BuildChartSeriesParams): SearchChartDataRow[] {
+function buildChartSeries({data, view, getLabel, getShortLabel, getCurrencyDecimals, color: barColor, getInProgressLabel}: BuildChartSeriesParams): SearchChartDataRow[] {
     const rows = data.map((item) => {
         const decimals = getCurrencyDecimals(item.currency ?? CONST.CURRENCY.USD);
+        const label = StringUtils.normalize(getLabel(item));
+        const shortLabel = getShortLabel?.(item);
+        const inProgressLabel = getInProgressLabel?.(item);
         const point: ChartDataPoint = {
-            label: StringUtils.normalize(getLabel(item)),
-            shortLabel: getShortLabel?.(item),
+            label,
+            shortLabel,
             total: convertToFrontendAmountAsInteger(item.total ?? 0, decimals),
             percentOfTotal: item.percentOfTotal,
         };
+        if (inProgressLabel !== undefined) {
+            point.label = inProgressLabel;
+            point.shortLabel = shortLabel ?? label;
+            point.isInProgress = true;
+        }
 
         return {point, item};
     });

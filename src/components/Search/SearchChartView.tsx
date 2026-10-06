@@ -12,6 +12,7 @@ import ROUTES from '@src/ROUTES';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
+import {format} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -20,6 +21,7 @@ import type {ChartView, GroupedItem, SearchChartDataRow, SearchGroupBy, SearchQu
 import {buildChartSeries} from './buildChartSeries';
 import {buildChartDrillDownQuery} from './chartDrillDown';
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
+import getInProgressBucketLabel from './getInProgressBucketLabel';
 import {useSearchQueryContext} from './SearchContext';
 
 type SearchChartViewProps = {
@@ -51,13 +53,22 @@ type SearchChartViewProps = {
  * and handles navigation/drill-down logic
  */
 function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, renderDetails, chartContainerStyle}: SearchChartViewProps) {
-    const {preferredLocale} = useLocalize();
+    const {preferredLocale, translate, dateFnsLocale} = useLocalize();
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {currentSearchKey} = useSearchQueryContext();
 
     const {getLabel, getShortLabel, getFilterQuery} = CHART_GROUP_BY_CONFIG[groupBy];
 
-    const rows = buildChartSeries({data, view, getLabel, getShortLabel, getCurrencyDecimals, color});
+    const today = format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
+    const rows = buildChartSeries({
+        data,
+        view,
+        getLabel,
+        getShortLabel,
+        getCurrencyDecimals,
+        color,
+        getInProgressLabel: (item) => getInProgressBucketLabel({groupBy, item, today, dateFnsLocale, translate}),
+    });
     const points = rows.map((row) => row.point);
 
     const handleItemPress = (index: number) => {
