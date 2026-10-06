@@ -21,7 +21,11 @@ jest.mock('@src/CONFIG', () => ({
     },
 }));
 
-/** Resolves on demand, so a case can assert before the native beta check settles. Shared, the way getEnvironment memoizes. */
+/**
+ * Resolves on demand, so a case can assert before the native beta check settles. Shared, the way getEnvironment memoizes.
+ * Modules like ApiUtils and ReportUtils resolve the environment at load time, so importing one here throws on this,
+ * which is intended.
+ */
 const mockEnvironmentDeferred: {promise: Promise<string>; resolve: (environment: string) => void} = {
     promise: Promise.resolve(CONST.ENVIRONMENT.DEV),
     resolve: () => {},
