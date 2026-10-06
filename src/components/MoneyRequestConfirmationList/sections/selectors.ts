@@ -8,11 +8,12 @@ import {
     hasReceipt,
     isAmountMissing,
     isCreatedMissing,
+    isFailedScanAmountPlaceholder,
     isMerchantMissing,
+    isScanRequest,
     willFieldBeAutomaticallyFilled,
 } from '@libs/TransactionUtils';
 
-import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 
@@ -108,7 +109,7 @@ const createTagDisplaySelector = (tagIndex: number) => (t: OnyxEntry<Transaction
 
 // --- CategoryField ---
 
-type CategoryState = {category: string; willAutoFill: boolean};
+type CategoryState = {category: string; willAutoFill: boolean; isAutoFillFromReceipt: boolean};
 
 const categoryStateSelector = (t: OnyxEntry<Transaction>): CategoryState | undefined => {
     if (!t) {
@@ -117,6 +118,10 @@ const categoryStateSelector = (t: OnyxEntry<Transaction>): CategoryState | undef
     return {
         category: getCategory(t),
         willAutoFill: willFieldBeAutomaticallyFilled(t, 'category'),
+        // On a scan the category is read off the receipt, so `Automatic` describes the value the row ends up
+        // holding. On a manual expense it is a promise about a field that is still empty, since categorization
+        // only runs once the expense is created.
+        isAutoFillFromReceipt: isScanRequest(t),
     };
 };
 
@@ -174,6 +179,7 @@ type AmountSlice = {
     comment: {type: NonNullable<Transaction['comment']>['type']; customUnit: NonNullable<Transaction['comment']>['customUnit']} | undefined;
     isAmountMissing: boolean;
     isAmountSet: Transaction['isAmountSet'];
+    isFailedScanAmountPlaceholder: boolean;
     taxCode: Transaction['taxCode'];
     // The Scan confirmation's amount / merchant / date are all-or-nothing, so the amount field reads the other two.
     isMerchantSet: boolean;
@@ -194,6 +200,7 @@ const amountSliceSelector = (t: OnyxEntry<Transaction>): AmountSlice | undefined
         comment: t.comment ? {type: t.comment.type, customUnit: t.comment.customUnit} : undefined,
         isAmountMissing: isAmountMissing(t),
         isAmountSet: t.isAmountSet,
+        isFailedScanAmountPlaceholder: isFailedScanAmountPlaceholder(t),
         taxCode: t.taxCode,
         isMerchantSet: t.isMerchantSet ?? false,
         isCreatedSet: t.isCreatedSet ?? false,
@@ -358,9 +365,6 @@ const reportFieldTransactionStateSelector = (t: OnyxEntry<Transaction>): ReportF
     };
 };
 
-const createOutstandingReportsForPolicySelector = (policyID: string | undefined) => (derived: OnyxEntry<OnyxTypes.OutstandingReportsByPolicyIDDerivedValue>) =>
-    derived?.[policyID ?? CONST.DEFAULT_NUMBER_ID];
-
 // --- InvoiceSenderField ---
 
 type InvoiceSenderWorkspace = {id: string | undefined; name: string | undefined; avatarURL: string | undefined} | undefined;
@@ -384,7 +388,6 @@ export {
     attendeeSliceSelector,
     categoryStateSelector,
     createCanUpdateSenderWorkspaceSelector,
-    createOutstandingReportsForPolicySelector,
     createTagDisplaySelector,
     dateStateSelector,
     derivedFlagsSliceSelector,

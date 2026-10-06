@@ -1,3 +1,4 @@
+import {useActivePolicyContext} from '@components/ActivePolicyProvider';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
@@ -10,8 +11,9 @@ import useFilteredOptions from '@hooks/useFilteredOptions';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
-import useSortedActions from '@hooks/useSortedActions';
+import useSortedReportActionsData from '@hooks/useSortedReportActionsData';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getOptimisticChatReport, saveReportDraft, searchInServer} from '@libs/actions/Report';
@@ -41,17 +43,19 @@ const defaultListOptions = {
 function ShareTab() {
     const styles = useThemeStyles();
     const {translate, dateFnsLocale} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const [textInputValue, debouncedTextInputValue, setTextInputValue] = useDebouncedState('');
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const {isBetaEnabled} = usePermissions();
     const [selectedReportID, setSelectedReportID] = useState<string | number | undefined>();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const {activePolicyID} = useActivePolicyContext();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
-    const sortedActions = useSortedActions();
+    const sortedReportActionsData = useSortedReportActionsData();
+    const sortedActions = sortedReportActionsData?.sortedActions;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -61,7 +65,11 @@ function ShareTab() {
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
-    const {options: listOptions, isLoading} = useFilteredOptions({
+    const {
+        options: listOptions,
+        isLoading,
+        getReportByID,
+    } = useFilteredOptions({
         enabled: didScreenTransitionEnd,
         isSearching: !!debouncedTextInputValue.trim(),
         includeP2P: true,
@@ -76,9 +84,10 @@ function ShareTab() {
         ? getSearchOptions({
               dateFnsLocale,
               convertToDisplayString,
+              convertToDisplayStringWithoutCurrency,
               options: listOptions ?? {reports: [], personalDetails: []},
               draftComments,
-              betas: betas ?? [],
+              isDefaultRoomsBetaEnabled: isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
               isUsedInChatFinder: false,
               includeReadOnly: false,
               searchQuery: textInputValue,
@@ -95,6 +104,7 @@ function ShareTab() {
               conciergeReportID,
               isTrackIntentUser,
               translate,
+              getReportByID,
               rules,
           }).options
         : defaultListOptions;
@@ -103,7 +113,7 @@ function ShareTab() {
     if (textInputValue.trim() === '') {
         recentReportsOptions = optionsOrderBy(searchOptions.recentReports, recentReportComparator, 20).options;
     } else {
-        const orderedOptions = combineOrderingOfReportsAndPersonalDetails(searchOptions, textInputValue, {
+        const orderedOptions = combineOrderingOfReportsAndPersonalDetails(searchOptions, textInputValue, activePolicyID, {
             sortByReportTypeInSearch: true,
             preferChatRoomsOverThreads: true,
         });

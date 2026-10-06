@@ -7,6 +7,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useResetBankAccountModal from '@hooks/useResetBankAccountModal';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -53,7 +54,7 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, policy, se
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
@@ -64,17 +65,15 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, policy, se
     });
 
     const handleNavigateToConciergeChat = () =>
-        navigateToConciergeChat(
+        navigateToConciergeChat({
             conciergeReportID,
             introSelected,
             currentUserAccountID,
             isSelfTourViewed,
-            betas,
-            true,
-            undefined,
-            undefined,
-            reimbursementAccount?.achData?.ACHRequestReportActionID,
-        );
+            conciergePersonalDetails,
+            shouldDismissModal: true,
+            reportActionID: reimbursementAccount?.achData?.ACHRequestReportActionID,
+        });
 
     const icons = useMemoizedLazyExpensifyIcons(['ChatBubble', 'Pencil', 'RotateLeft']);
     const illustrations = useMemoizedLazyIllustrations(['ConciergeBubble']);

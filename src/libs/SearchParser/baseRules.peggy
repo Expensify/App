@@ -29,6 +29,7 @@ groupCurrency
   / "group-currency"i { return "groupCurrency"; }
 tag = "tag"i { return "tag"; }
 category = "category"i { return "category"; }
+vendor = "vendor"i { return "vendor"; }
 to = "to"i { return "to"; }
 exporter = "exporter"i { return "exporter"; }
 payer = "payer"i { return "payer"; }
@@ -52,6 +53,9 @@ expenseType
 receiptType
   = "receiptType"
   / "receipt-type"i { return "receiptType"; }
+transactionStatus
+  = "transactionStatus"
+  / "transaction-status"i { return "transactionStatus"; }
 withdrawalType
   = "withdrawalType"
   / "withdrawal-type"i { return "withdrawalType"; }
@@ -105,6 +109,7 @@ columns = "columns"i {
   return "columns";
 }
 view = "view"i {return "view"}
+compare = "compare"i {return "compare"}
 
 // Value transformation rules
 values
@@ -140,6 +145,7 @@ columnsValues
   / groupCategory
   / groupTag
   / groupMerchant
+  / groupDay
   / groupMonth
   / groupWeek
   / groupYear
@@ -178,6 +184,7 @@ amountReimbursedColumn  = "amount-reimbursed"i &wordBoundary        { return "am
 groupCategory           = "group-category"i &wordBoundary          { return "groupCategory"; }
 groupTag                = "group-tag"i &wordBoundary               { return "groupTag"; }
 groupMerchant           = "group-merchant"i &wordBoundary          { return "groupMerchant"; }
+groupDay                = "group-day"i &wordBoundary               { return "groupday"; }
 groupMonth              = "group-month"i &wordBoundary              { return "groupmonth"; }
 groupWeek               = "group-week"i &wordBoundary               { return "groupweek"; }
 groupYear               = "group-year"i &wordBoundary               { return "groupyear"; }
@@ -207,7 +214,7 @@ escapedChar = "\\" c:[,"”“\\] { return c; }
 
 alphanumeric "word" = chars:(escapedChar / [^ ,\t\n\r\xA0])+ { return chars.join("").trim(); } //handle no-breaking space
 
-logicalAnd = _ { 
+logicalAnd = _ {
   isColumnsContext = false;
   return "and";
 }

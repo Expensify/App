@@ -5,6 +5,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {isAnyHRConnected, isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/merge/HRUtils';
+import {isAnyRecruitingConnected} from '@libs/merge/RecruitingUtils';
 import {getObjectKeys} from '@libs/ObjectUtils';
 import {
     arePolicyRulesEnabled,
@@ -19,6 +20,7 @@ import {
     isMCPEnabled,
     isPerDiemEnabled,
     isPolicyAdmin,
+    isQBORefreshTokenExpiringSoonSelector,
     isTimeTrackingEnabled,
     shouldShowEmployeeListError,
     shouldShowSyncError,
@@ -66,7 +68,8 @@ type WorkspaceMenuIconMap = Record<
     | 'InvoiceGeneric'
     | 'Gear'
     | 'Bolt'
-    | 'Bot',
+    | 'Bot'
+    | 'UserPlus',
     IconAsset
 >;
 
@@ -98,6 +101,8 @@ type GetWorkspaceMenuItemsParams = {
     isConnectionInProgress?: boolean;
     /** Categories used to determine category-related errors. */
     policyCategories?: OnyxTypes.PolicyCategories;
+    /** Whether any of the policy's merchant rules failed to save, used to surface a red dot on the Rules row. */
+    hasMerchantRuleErrors?: boolean;
     /** Previous pending fields used to identify the most recently enabled feature. */
     previousPendingFields?: OnyxTypes.Policy['pendingFields'];
     /** Whether receipt partner credentials require attention. */
@@ -106,6 +111,8 @@ type GetWorkspaceMenuItemsParams = {
     shouldShowRBR?: boolean;
     /** Whether the vendor matching beta is enabled. */
     isVendorMatchingBetaEnabled?: boolean;
+    /** Whether the Merge ATS beta gating the Recruiting feature is enabled. */
+    isRecruitingBetaEnabled?: boolean;
     /** Formats the invoice account balance for its menu badge. */
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
@@ -117,10 +124,12 @@ function getWorkspaceMenuItems({
     icons,
     isConnectionInProgress = false,
     policyCategories,
+    hasMerchantRuleErrors,
     previousPendingFields,
     shouldShowEnterCredentialsError = false,
     shouldShowRBR = false,
     isVendorMatchingBetaEnabled = false,
+    isRecruitingBetaEnabled = false,
     convertToDisplayString,
 }: GetWorkspaceMenuItemsParams): WorkspaceMenuItem[] {
     const canReadPolicyFeature = (policyFeature: PolicyFeature) => canMemberRead(policy, currentUserLogin ?? '', policyFeature);
@@ -168,6 +177,10 @@ function getWorkspaceMenuItems({
         [CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED]: policy?.areCompanyCardsEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]: !!policy?.areConnectionsEnabled || hasAccountingFeatureConnection(policy),
         [CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED]: (policy?.isHREnabled === true || isAnyHRConnected(policy)) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED),
+        [CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED]:
+            isRecruitingBetaEnabled &&
+            (policy?.isRecruitingEnabled === true || isAnyRecruitingConnected(policy)) &&
+            canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED),
         [CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED]: policy?.areExpensifyCardsEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED]: policy?.areReportFieldsEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED]: arePolicyRulesEnabled(policy, policyCategories),
@@ -218,11 +231,17 @@ function getWorkspaceMenuItems({
         }
 
         if (policyFeatureStates[CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED] && canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.ACCOUNTING)) {
+            let accountingBrickRoadIndicator;
+            if (hasSyncError || shouldShowQBOReimbursableExportDestinationAccountError(policy)) {
+                accountingBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+            } else if (isQBORefreshTokenExpiringSoonSelector(policy)) {
+                accountingBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+            }
             items.push({
                 translationKey: 'workspace.common.accounting',
                 icon: icons.Sync,
                 getRoute: () => ROUTES.POLICY_ACCOUNTING.getRoute(policyID),
-                brickRoadIndicator: hasSyncError || shouldShowQBOReimbursableExportDestinationAccountError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                brickRoadIndicator: accountingBrickRoadIndicator,
                 screenName: SCREENS.WORKSPACE.ACCOUNTING.ROOT,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.ACCOUNTING,
                 highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED,
@@ -238,6 +257,17 @@ function getWorkspaceMenuItems({
                 screenName: SCREENS.WORKSPACE.HR,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.HR,
                 highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
+            });
+        }
+
+        if (policyFeatureStates[CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED] && canReadMoreFeatures) {
+            items.push({
+                translationKey: 'workspace.common.recruiting',
+                icon: icons.UserPlus,
+                getRoute: () => ROUTES.WORKSPACE_RECRUITING.getRoute(policyID),
+                screenName: SCREENS.WORKSPACE.RECRUITING,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.RECRUITING,
+                highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED,
             });
         }
 
@@ -276,16 +306,6 @@ function getWorkspaceMenuItems({
             });
         }
 
-        if (canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.VENDORS) && hasVendorFeature(policy, isVendorMatchingBetaEnabled) && isMatchingVendorListLoaded(policy)) {
-            items.push({
-                translationKey: 'workspace.common.vendors',
-                icon: icons.Briefcase,
-                getRoute: () => ROUTES.WORKSPACE_VENDORS.getRoute(policyID),
-                screenName: SCREENS.WORKSPACE.VENDORS,
-                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.VENDORS,
-            });
-        }
-
         if (policyFeatureStates[CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED] && canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.TAGS)) {
             items.push({
                 translationKey: 'workspace.common.tags',
@@ -309,6 +329,16 @@ function getWorkspaceMenuItems({
             });
         }
 
+        if (canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.VENDORS) && hasVendorFeature(policy, isVendorMatchingBetaEnabled) && isMatchingVendorListLoaded(policy)) {
+            items.push({
+                translationKey: 'workspace.common.vendors',
+                icon: icons.Briefcase,
+                getRoute: () => ROUTES.WORKSPACE_VENDORS.getRoute(policyID),
+                screenName: SCREENS.WORKSPACE.VENDORS,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.VENDORS,
+            });
+        }
+
         if (policyFeatureStates[CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED] && canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.WORKFLOWS)) {
             items.push({
                 translationKey: 'workspace.common.workflows',
@@ -326,7 +356,7 @@ function getWorkspaceMenuItems({
                 translationKey: 'workspace.common.rules',
                 icon: icons.Bolt,
                 getRoute: () => ROUTES.WORKSPACE_RULES.getRoute(policyID),
-                brickRoadIndicator: hasPolicyRulesError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                brickRoadIndicator: hasPolicyRulesError(policy, hasMerchantRuleErrors ?? false) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 screenName: SCREENS.WORKSPACE.RULES,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.RULES,
                 highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,

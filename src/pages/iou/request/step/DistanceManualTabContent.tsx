@@ -15,6 +15,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Unit} from '@src/types/onyx/Policy';
 
+import type {ComponentRef} from 'react';
 import type {TextInput} from 'react-native';
 
 import React from 'react';
@@ -38,7 +39,7 @@ function DistanceManualTabContent({currentDistance, distanceUnit, onSubmit, manu
     const setInputRef = (ref: BaseTextInputRef | null) => {
         // eslint-disable-next-line no-param-reassign -- Assign to ref's .current which is a safe mutation, not a true parameter reassignment
         manualTextInputRef.current = ref;
-        inputCallbackRef(ref as unknown as TextInput | null);
+        inputCallbackRef(ref as unknown as ComponentRef<typeof TextInput> | null);
     };
 
     return (

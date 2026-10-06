@@ -5,7 +5,6 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -15,13 +14,16 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
+import usePermissions from '@hooks/usePermissions';
+import usePersonalDetailByLogin, {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {openExternalLink} from '@libs/actions/Link';
 import {addMembersToWorkspace, clearWorkspaceInviteApproverDraft, clearWorkspaceInviteRoleDraft} from '@libs/actions/Policy/Member';
 import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
+import {saveFastEditApprovalWorkflow} from '@libs/actions/Workflow';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getNewAccountIDsAndLogins, getPersonalDetailsForAccountIDs, getPersonalDetailsOnyxDataForOptimisticUsers, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -38,6 +40,7 @@ import {
 import {getAllPolicyExpenseChatReportActions} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import {getSearchParamFromPath} from '@libs/Url';
+import {filterRulesForPolicy} from '@libs/WorkflowUtils';
 
 import variables from '@styles/variables';
 
@@ -49,10 +52,11 @@ import type {Route as Routes} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/WorkspaceInviteMessageForm';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
+import type Rule from '@src/types/onyx/Rule';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
 
 import {Str} from 'expensify-common';
@@ -92,9 +96,14 @@ function WorkspaceInviteMessageComponent({
     const subtitle = isWorkflowApprovalExpensesFromRoute ? undefined : policyName;
 
     const [formData, formDataResult] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM_DRAFT);
-    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [allPersonalDetails] = useAllPersonalDetails();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+    // Only used when this page finishes a "+N more" workflow edit, which has no edit page behind it to save the workflow.
+    const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
+    const policyRulesSelector = useCallback((rules: OnyxCollection<Rule>) => filterRulesForPolicy(rules, policyID), [policyID]);
+    const [rulesCollection] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: policyRulesSelector});
+    const {isBetaEnabled} = usePermissions();
 
     const [welcomeNote, setWelcomeNote] = useState<string>();
 
@@ -116,6 +125,7 @@ function WorkspaceInviteMessageComponent({
     const [approverDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`);
     const workspaceInviteApproverDraft = approverDraft ?? defaultApprover;
     const approverDetails = usePersonalDetailByLogin(workspaceInviteApproverDraft);
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
 
     const isControl = isControlPolicy(policy);
     const shouldShowApproverRow = isControl && policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED && policy?.areWorkflowsEnabled;
@@ -183,7 +193,7 @@ function WorkspaceInviteMessageComponent({
     const sendInvitation = () => {
         Keyboard.dismiss();
         const filteredReportActions = getAllPolicyExpenseChatReportActions(allReports, allReportActions);
-        const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
+        const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails, false, false));
         const {newAccountIDs, newLogins} = getNewAccountIDsAndLogins(invitedEmailsToAccountIDsDraft, allPersonalDetails);
         // Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
         // See https://github.com/Expensify/App/blob/main/README.md#workspace, we set conditions about who can leave the workspace
@@ -215,6 +225,11 @@ function WorkspaceInviteMessageComponent({
             const nestedBackTo = getSearchParamFromPath(backTo?.toString() ?? '', 'backTo');
             if (nestedBackTo) {
                 Navigation.goBack(nestedBackTo as Routes);
+            } else if (approvalWorkflow?.isFastEdit) {
+                Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID), {
+                    afterTransition: () =>
+                        saveFastEditApprovalWorkflow({approvalWorkflow, policy, rules: rulesCollection, isMultipleApproversBetaEnabled: isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS)}),
+                });
             } else {
                 // forceReplace so the invite page is removed from the stack. Otherwise it stays
                 // underneath the Approver page and an iOS swipe-back reopens the invite confirm page.
@@ -321,11 +336,10 @@ function WorkspaceInviteMessageComponent({
                                 />
                             )}
                             {shouldShowMemberNames && !isInviteNewMemberStep && (
-                                <MenuItemWithTopDescription
-                                    title={memberNames}
-                                    description={translate('common.members')}
-                                    numberOfLinesTitle={2}
-                                    shouldShowRightIcon
+                                <MenuItemField
+                                    name={translate('common.members')}
+                                    value={memberNames}
+                                    numberOfLinesValue={2}
                                     onPress={() => {
                                         Navigation.goBack(backTo);
                                     }}

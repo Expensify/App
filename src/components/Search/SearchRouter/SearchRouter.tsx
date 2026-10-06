@@ -19,17 +19,17 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
-import useSortedActions from '@hooks/useSortedActions';
+import useSortedReportActionsData from '@hooks/useSortedReportActionsData';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {scrollToRight} from '@libs/InputUtils';
-import backHistory from '@libs/Navigation/helpers/backHistory';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import type {SearchOption} from '@libs/OptionsListUtils';
 import {createOptionFromReport} from '@libs/OptionsListUtils';
@@ -54,6 +54,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type Report from '@src/types/onyx/Report';
 
+import type {ComponentRef} from 'react';
 import type {TextInputProps} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
@@ -80,7 +81,7 @@ type SearchRouterProps = {
     onRouterClose: (afterClose?: () => void) => void;
     shouldHideInputCaret?: TextInputProps['caretHidden'];
     isSearchRouterDisplayed?: boolean;
-    ref?: React.Ref<View>;
+    ref?: React.Ref<ComponentRef<typeof View>>;
 };
 
 function searchForReportsAndUsersInServer(searchInput: string) {
@@ -90,10 +91,10 @@ function searchForReportsAndUsersInServer(searchInput: string) {
 
 function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDisplayed, ref}: SearchRouterProps) {
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {setShouldResetSearchQuery, resetSearchKey} = useSearchQueryActions();
+    const {setShouldResetSearchQuery, getSearchKeyForQuery} = useSearchQueryActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
@@ -102,12 +103,14 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [searchContext] = useOnyx(ONYXKEYS.SEARCH_CONTEXT);
     const isSupportalSession = useIsSupportalSession();
     const personalDetails = usePersonalDetails();
-    const sortedActions = useSortedActions();
+    const sortedReportActionsData = useSortedReportActionsData();
+    const sortedActions = sortedReportActionsData?.sortedActions;
+    const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
+    const lastActions = sortedReportActionsData?.lastActions;
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
     const listRef = useRef<SelectionListWithSectionsHandle>(null);
@@ -116,12 +119,13 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const {query: pendingInitialQuery, isFromSearchPageSearchButton} = peekPendingRouterState();
-    const {currentSearchQueryJSON, currentSearchHash} = useSearchQueryContext();
+    const {currentSearchQueryJSON, currentSearchHash, currentSearchKey} = useSearchQueryContext();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const reportAttributes = useReportAttributes();
 
@@ -235,12 +239,17 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 const option = createOptionFromReport({
                     dateFnsLocale,
                     convertToDisplayString,
+                    convertToDisplayStringWithoutCurrency,
                     report: contextualReport,
                     personalDetails,
                     privateIsArchived: contextualReportNVP,
                     rules,
                     policy: contextualReportPolicy,
                     sortedActions,
+                    transactionThreadIDs,
+                    lastActions,
+                    currentUserAccountID,
+                    currentUserLogin: currentUserPersonalDetails.login,
                     conciergeReportID,
                     reportAttributesDerived: reportAttributes,
                     config: {
@@ -289,7 +298,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                             singleIcon: expensifyIcons.MagnifyingGlass,
                             searchQuery: reportQueryValue,
                             autocompleteID,
-                            itemStyle: styles.activeComponentBG,
                             keyForList: 'contextualSearch',
                             searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION,
                             roomType,
@@ -308,16 +316,20 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             isSearchRouterScreen,
             translate,
             expensifyIcons.MagnifyingGlass,
-            styles.activeComponentBG,
             contextualReport,
             personalDetails,
             sortedActions,
+            transactionThreadIDs,
+            lastActions,
+            currentUserPersonalDetails.login,
             contextualReportNVP,
             contextualReportPolicy,
             reportAttributes,
             isTrackIntentUser,
             dateFnsLocale,
+            currentUserAccountID,
             convertToDisplayString,
+            convertToDisplayStringWithoutCurrency,
             rules,
         ],
     );
@@ -328,7 +340,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                   text: textInputValue,
                   singleIcon: expensifyIcons.MagnifyingGlass,
                   searchQuery: textInputValue,
-                  itemStyle: styles.activeComponentBG,
                   keyForList: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM,
                   searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
               },
@@ -339,7 +350,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                             singleIcon: expensifyIcons.ConciergeAvatar,
                             shouldIconApplyFill: false,
                             searchQuery: textInputValue,
-                            itemStyle: styles.activeComponentBG,
                             keyForList: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.ASK_CONCIERGE,
                             searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.ASK_CONCIERGE,
                         },
@@ -379,7 +389,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
     const submitSearch = useCallback(
         (queryString: SearchQueryString, shouldSkipAmountConversion = false) => {
-            const queryWithSubstitutions = getQueryWithSubstitutions(queryString, autocompleteSubstitutions, currentUserAccountID);
+            const queryWithSubstitutions = getQueryWithSubstitutions(queryString, autocompleteSubstitutions, currentUserAccountID, getPersonalDetailsByLogin());
             const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions, shouldSkipAmountConversion, policies);
             if (!updatedQuery) {
                 return;
@@ -388,17 +398,17 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             // Reset the search query flag when performing a new search
             setShouldResetSearchQuery(false);
 
-            backHistory(() => {
-                onRouterClose();
-                setSearchContext(true);
-                const updatedQueryJSON = buildSearchQueryJSON(updatedQuery);
-                if (currentSearchHash !== updatedQueryJSON?.hash) {
-                    resetSearchKey(updatedQueryJSON);
-                }
-                Navigation.navigate(
-                    ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery, rawQuery: shouldSkipAmountConversion || !isFromSearchPageSearchButton ? undefined : queryWithSubstitutions}),
-                );
-            });
+            onRouterClose();
+            setSearchContext(true);
+            const updatedQueryJSON = buildSearchQueryJSON(updatedQuery);
+            const searchKey = updatedQueryJSON?.hash === currentSearchHash ? currentSearchKey : getSearchKeyForQuery(updatedQueryJSON);
+            Navigation.navigate(
+                ROUTES.SEARCH_ROOT.getRoute({
+                    query: updatedQuery,
+                    rawQuery: shouldSkipAmountConversion || !isFromSearchPageSearchButton ? undefined : queryWithSubstitutions,
+                    searchKey,
+                }),
+            );
 
             setTextInputValue('');
             setAutocompleteQueryValue('');
@@ -406,12 +416,14 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
         [
             autocompleteSubstitutions,
             currentUserAccountID,
-            currentSearchHash,
+            getPersonalDetailsByLogin,
             onRouterClose,
             setAutocompleteQueryValue,
             setTextInputValue,
             setShouldResetSearchQuery,
-            resetSearchKey,
+            getSearchKeyForQuery,
+            currentSearchHash,
+            currentSearchKey,
             isFromSearchPageSearchButton,
             policies,
         ],
@@ -429,9 +441,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
             if (isSearchQueryItem(item)) {
                 if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.NAVIGATE && item.action) {
-                    backHistory(() => {
-                        onRouterClose(item.action);
-                    });
+                    onRouterClose(item.action);
                     return;
                 }
 
@@ -470,32 +480,27 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     setFocusAndScrollToRight();
                 } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.ASK_CONCIERGE) {
                     const {searchQuery} = item;
-                    backHistory(() => {
-                        askConcierge(searchQuery);
-                    });
+                    askConcierge(searchQuery);
                     onRouterClose();
                 } else {
                     submitSearch(item.searchQuery, item.keyForList !== CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM);
                 }
             } else {
-                backHistory(() => {
-                    if (item?.reportID) {
-                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.reportID));
-                    } else if ('login' in item) {
-                        navigateToAndOpenReport({
-                            userLogins: item.login ? [item.login] : [],
-                            personalDetails,
-                            currentUserAccountID,
-                            introSelected,
-                            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
-                            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-                            betas,
-                            conciergeChat,
-                            isSupportalSession,
-                            shouldDismissModal: false,
-                        });
-                    }
-                });
+                if (item?.reportID) {
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.reportID));
+                } else if ('login' in item) {
+                    navigateToAndOpenReport({
+                        userLogins: item.login ? [item.login] : [],
+                        personalDetails,
+                        currentUserAccountID,
+                        introSelected,
+                        isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+                        hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                        conciergeChat,
+                        isSupportalSession,
+                        shouldDismissModal: false,
+                    });
+                }
                 onRouterClose();
             }
         },
@@ -510,7 +515,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             introSelected,
             guidedSetupAndTourStatus?.isSelfTourViewed,
             guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-            betas,
             conciergeChat,
             isSupportalSession,
             contextualPoliciesMap,

@@ -3,6 +3,7 @@ import type {MultifactorAuthenticationChallengeObject} from '@libs/MultifactorAu
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 
 import type TransactionsPending3DSReview from './TransactionsPending3DSReview';
+import type {VacationDelegatePolicyDiff} from './VacationDelegate';
 
 /** Model of commands data */
 type Data = {
@@ -11,6 +12,9 @@ type Data = {
 
     /** Collection of auth write requests */
     authWriteCommands: string[];
+
+    /** Workspaces the vacation delegate is missing from, returned with jsonCode 305 by SetVacationDelegate */
+    policyDiff?: VacationDelegatePolicyDiff;
 };
 
 /** Model of server response */
