@@ -673,6 +673,8 @@ function getAccountingIntegrationData(
                     CONST.BUSINESS_CENTRAL_CONFIG.ENABLE_NEW_CATEGORIES,
                     CONST.BUSINESS_CENTRAL_CONFIG.SYNC_ITEMS,
                     CONST.BUSINESS_CENTRAL_CONFIG.SYNC_TAX_RATES,
+                    CONST.BUSINESS_CENTRAL_FIELD_MAPPING.CUSTOMERS,
+                    CONST.BUSINESS_CENTRAL_FIELD_MAPPING.PROJECTS,
                     ...(policy?.connections?.businessCentral?.data?.dimensions?.map((dimension) => `${CONST.BUSINESS_CENTRAL_CONFIG.FIELD_MAPPING_PREFIX}${dimension.id}`) ?? []),
                 ],
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT.getRoute(policyID)),
