@@ -5080,7 +5080,7 @@ ${amount} dla ${merchant} - ${date}`,
                 autoSyncDescription: 'Expensify będzie automatycznie synchronizować się z QuickBooks Desktop każdego dnia.',
                 createEntities: 'Automatycznie twórz jednostki',
                 createEntitiesDescription: 'Expensify automatycznie utworzy dostawców w QuickBooks Desktop, jeśli jeszcze nie istnieją.',
-                fxExpenseAccount: 'Konto opłat za przewalutowanie',
+                fxExpenseAccount: 'Konto opłaty za przewalutowanie',
                 fxExpenseAccountDescription:
                     'Gdy twoja firma pokrywa koszt przewalutowania przy zwrocie wypłacanym za granicą, dodamy go do eksportu jako osobną pozycję zaksięgowaną na to konto.',
             },
@@ -6016,6 +6016,10 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     }
                     return `${customAccountsCount} karty z niestandardowymi kontami`;
                 },
+            },
+            fxExpenseAccount: {
+                label: 'Konto opłaty za przewalutowanie Rillet',
+                description: 'Gdy twoja firma pokrywa koszt przewalutowania przy płatności dokonanej za granicą, zaksięgujemy ten koszt na tym koncie w Rillet jako zapis w dzienniku.',
             },
         },
         dualEntry: {

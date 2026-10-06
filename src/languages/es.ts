@@ -5013,7 +5013,7 @@ ${amount} para ${merchant} - ${date}`,
                 autoSyncDescription: 'Expensify se sincronizará automáticamente con QuickBooks Desktop todos los días.',
                 createEntities: 'Crear entidades automáticamente',
                 createEntitiesDescription: 'Expensify creará automáticamente proveedores en QuickBooks Desktop si aún no existen.',
-                fxExpenseAccount: 'Cuenta de comisión por conversión de moneda',
+                fxExpenseAccount: 'Cuenta de comisión por conversión de divisa',
                 fxExpenseAccountDescription:
                     'Cuando tu empresa cubra el coste de conversión de divisa en un reembolso pagado en el extranjero, lo añadiremos a la exportación como una línea adicional codificada a esta cuenta.',
             },
@@ -5918,6 +5918,11 @@ ${amount} para ${merchant} - ${date}`,
                     }
                     return `${customAccountsCount} tarjetas con cuentas personalizadas`;
                 },
+            },
+            fxExpenseAccount: {
+                label: 'Cuenta de comisión por conversión de divisa de Rillet',
+                description:
+                    'Cuando tu empresa cubra el coste de conversión de divisa en un pago realizado en el extranjero, registraremos ese coste en esta cuenta en Rillet como un asiento contable.',
             },
         },
         dualEntry: {
