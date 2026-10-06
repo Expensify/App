@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -154,7 +154,7 @@ function DynamicFlagCommentPage({parentReportAction, report, parentReport, repor
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!shouldShowFlagComment(reportAction, report, conciergeReportID, isReportArchived, currentUserAccountID)}>
-                    <HeaderWithBackButton
+                    <HeaderWithBackButtonAndTitle
                         title={translate('reportActionContextMenu.flagAsOffensive')}
                         onBackButtonPress={() => Navigation.goBack(backPath)}
                     />

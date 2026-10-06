@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -80,7 +80,7 @@ function DynamicReportParticipantRoleSelectionPage({report, route}: DynamicRepor
 
     return (
         <ScreenWrapper testID="DynamicReportParticipantRoleSelectionPage">
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('common.role')}
                 onBackButtonPress={() => Navigation.goBack(backPath)}
             />
