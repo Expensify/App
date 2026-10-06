@@ -4765,7 +4765,7 @@ ${amount} para ${merchant} - ${date}`,
             memberAlternateText: 'Presentar y aprobar informes.',
             adminAlternateText: 'Gestionar informes y configuración del área de trabajo.',
             auditorAlternateText: 'Ver y comentar los informes.',
-            guestAlternateText: 'Envía y aprueba informes, con chats solo por invitación.',
+            guestAlternateText: 'Envía informes con visibilidad limitada.',
             reimbursementChoice: {
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES]: 'Directo',
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO]: 'Ninguno',
@@ -4784,9 +4784,9 @@ ${amount} para ${merchant} - ${date}`,
                     case CONST.POLICY.ROLE.EDITOR:
                         return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
-                        return 'Administrador de tarjeta';
+                        return 'Administrador de tarjetas';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'Administración de personas';
+                        return 'Administrar personas';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Administrador de pagos';
                     case CONST.POLICY.ROLE.USER:
@@ -6981,8 +6981,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 other: 'Convertir en auditores',
             }),
             makeGuest: () => ({
-                one: 'Convertir en invitado',
-                other: 'Convertir en invitados',
+                one: 'Hacer invitado',
+                other: 'Hacer invitados',
             }),
             makePeopleAdmin: () => ({
                 one: 'Hacer administrador de personas',

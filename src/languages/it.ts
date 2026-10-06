@@ -4808,13 +4808,13 @@ ${amount} per ${merchant} - ${date}`,
             memberAlternateText: 'Invia e approva i report.',
             adminAlternateText: 'Gestisci i report e le impostazioni dello spazio di lavoro.',
             auditorAlternateText: 'Visualizza e commenta i report.',
-            guestAlternateText: 'Invia e approva i report, con chat solo su invito.',
+            guestAlternateText: 'Invia i report con visibilità limitata.',
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.OWNER:
                         return 'Proprietario';
                     case CONST.POLICY.ROLE.ADMIN:
-                        return 'Amministratore spazio di lavoro';
+                        return 'Amministratore dello spazio di lavoro';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Revisore';
                     case CONST.POLICY.ROLE.GUEST:
@@ -4824,7 +4824,7 @@ ${amount} per ${merchant} - ${date}`,
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return 'Amministrazione carta';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'Amministrazione persone';
+                        return 'Gestione persone';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Amministratore pagamenti';
                     case CONST.POLICY.ROLE.USER:

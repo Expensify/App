@@ -4838,7 +4838,7 @@ ${amount} dla ${merchant} - ${date}`,
             memberAlternateText: 'Przesyłaj i zatwierdzaj raporty.',
             adminAlternateText: 'Zarządzaj raportami i ustawieniami przestrzeni roboczej.',
             auditorAlternateText: 'Przeglądaj i komentuj raporty.',
-            guestAlternateText: 'Wysyłaj i zatwierdzaj raporty oraz korzystaj z czatów tylko na zaproszenie.',
+            guestAlternateText: 'Przesyłaj raporty z ograniczoną widocznością.',
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.OWNER:
@@ -7084,7 +7084,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             }),
             makeGuest: () => ({
                 one: 'Ustaw jako gościa',
-                other: 'Utwórz gości',
+                other: 'Dodaj gości',
             }),
             makePeopleAdmin: () => ({
                 one: 'Ustaw jako administratora osób',
