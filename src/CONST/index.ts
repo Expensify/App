@@ -9301,8 +9301,11 @@ const CONST = {
             /** Width of the invisible drag strip centred on a column's edge. */
             HANDLE_HIT_WIDTH: 12,
 
-            /** Width of the line shown while a column's edge is dragged. */
+            /** Width of the line shown while a column's edge is dragged, and of the grip shown while its heading is hovered. */
             INDICATOR_WIDTH: 2,
+
+            /** How long, in ms, the grip takes to stretch into the line once its edge is pressed. */
+            INDICATOR_MORPH_DURATION: 150,
 
             /** Shown on the handle, and on the whole page mid-drag so it doesn't flicker once the pointer outruns the handle. */
             CURSOR: 'col-resize',
