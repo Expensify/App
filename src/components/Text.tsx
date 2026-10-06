@@ -1,5 +1,6 @@
 import useTheme from '@hooks/useTheme';
 
+import {isMobileSafari} from '@libs/Browser';
 import {containsOnlyCustomEmoji} from '@libs/CustomEmojiUtils';
 import StringUtils from '@libs/StringUtils';
 
@@ -88,8 +89,8 @@ function Text({
         componentStyle.fontFamily = FontUtils.fontFamily.single.CUSTOM_EMOJI_FONT?.fontFamily;
     }
 
-    // WebKit shows only the ellipsis for very long single-line texts, so we pass at most MAX_SINGLE_LINE_TEXT_LENGTH characters on web.
-    const shouldTruncateChildren = Platform.OS === 'web' && props.numberOfLines === 1 && typeof children === 'string';
+    // Mobile Safari shows only the ellipsis for very long single-line texts, so we pass at most MAX_SINGLE_LINE_TEXT_LENGTH characters there.
+    const shouldTruncateChildren = isMobileSafari() && props.numberOfLines === 1 && typeof children === 'string';
     const displayedChildren = shouldTruncateChildren ? StringUtils.truncate(children, CONST.MAX_SINGLE_LINE_TEXT_LENGTH) : children;
 
     return (
