@@ -1,7 +1,7 @@
 /**
  * Full-screen page (narrow layout / RHP) wrapping the "Describe your search" natural-language filter input.
  */
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchNLFilterContent from '@components/Search/FilterComponents/AdvancedFilters/SearchNLFilterContent';
 
@@ -42,7 +42,7 @@ function SearchNLFilterPage() {
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('search.filters.describeSearch.title')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS)}
             />
