@@ -4,7 +4,8 @@ import {after, before, describe, test} from 'node:test';
 import createWorkerHarness from './createWorkerHarness.ts';
 
 const HASHED_BUNDLE_PATH = '/main-0123456789abcdef.bundle.js';
-const NAVIGATION_HEADERS = {'Sec-Fetch-Mode': 'navigate', 'Sec-Fetch-Dest': 'document'};
+// Node's fetch overwrites Sec-Fetch-Mode with the request mode. Miniflare restores this header as Sec-Fetch-Mode.
+const NAVIGATION_HEADERS = {'MF-Sec-Fetch-Mode': 'navigate'};
 
 function getHTMLNonce(html: string): string | undefined {
     return /<script nonce="([^"]+)"/.exec(html)?.[1];
