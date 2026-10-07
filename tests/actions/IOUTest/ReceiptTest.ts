@@ -923,7 +923,7 @@ describe('actions/IOU/Receipt', () => {
             await waitForBatchedUpdates();
 
             // Then nothing is shown optimistically on the expense report, because whether the backend writes
-            // its MANAGERDETACHRECEIPT action depends on who is acting and whether the report was submitted
+            // its MANAGER_DETACH_RECEIPT action depends on who is acting and whether the report was submitted
             const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
             expect(Object.values(reportActions ?? {})).toHaveLength(0);
 

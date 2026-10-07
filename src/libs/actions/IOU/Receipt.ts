@@ -213,7 +213,7 @@ function detachReceipt({
         );
     }
 
-    // The expense report's own MANAGERDETACHRECEIPT action is only written by the backend when someone other
+    // The expense report's own MANAGER_DETACH_RECEIPT action is only written by the backend when someone other
     // than the report owner detaches, or the report has been submitted, so it cannot be shown optimistically.
     // We still name it, so the action the backend may create reconciles with this ID.
     const parameters: DetachReceiptParams = {
