@@ -13,6 +13,8 @@ import {requestValidateCodeAction} from '@userActions/User';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import {CONST as COMMON_CONST} from 'expensify-common';
+
 function ValidateCodeStep({onNext, prevPage}: SubPageProps) {
     const {translate} = useLocalize();
     const primaryLogin = usePrimaryContactMethod();
@@ -31,7 +33,8 @@ function ValidateCodeStep({onNext, prevPage}: SubPageProps) {
         <ValidateCodeActionContent
             title={translate('delegate.makeSureItIsYou')}
             descriptionPrimary={translate('contacts.enterSecurityCode', primaryLogin ?? '')}
-            sendValidateCode={() => requestValidateCodeAction()}
+            sendValidateCode={() => requestValidateCodeAction({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.UPDATE_PERSONAL_DETAILS})}
+            validateCodeReasonCode={COMMON_CONST.VALIDATE_CODE_REASONS.UPDATE_PERSONAL_DETAILS}
             validateCodeActionErrorField="addPersonalBankAccount"
             handleSubmitForm={onNext}
             validateError={submitError}

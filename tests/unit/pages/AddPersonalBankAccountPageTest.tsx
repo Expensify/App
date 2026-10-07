@@ -14,6 +14,7 @@ import AddPersonalBankAccountPage from '@pages/AddPersonalBankAccountPage';
 
 import {addPersonalBankAccount} from '@userActions/BankAccounts';
 import {openReport} from '@userActions/Report';
+import {requestValidateCodeAction} from '@userActions/User';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -27,6 +28,7 @@ import type {NavigatorScreenParams} from '@react-navigation/native';
 import {PortalProvider} from '@gorhom/portal';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {NavigationContainer} from '@react-navigation/native';
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -53,6 +55,11 @@ jest.mock('@userActions/PaymentMethods', () => ({
 
 jest.mock('@userActions/Report', () => ({
     openReport: jest.fn(),
+}));
+
+jest.mock('@userActions/User', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@userActions/User'),
+    requestValidateCodeAction: jest.fn(),
 }));
 
 jest.mock('@components/ValidateCodeActionModal/ValidateCodeActionContent', () => jest.fn(() => null));
@@ -312,6 +319,23 @@ describe('AddPersonalBankAccountPage', () => {
             // Then they must enter a magic code, since the flow would write those details to their profile
             expect(navigateSpy).toHaveBeenCalledWith(ROUTES.BANK_ACCOUNT_PERSONAL.getRoute(SUB_PAGE_NAMES.VALIDATE_CODE, undefined));
             expect(addPersonalBankAccount).not.toHaveBeenCalled();
+        });
+
+        it('requests the magic code for updating personal details, the reason the backend verifies it against', async () => {
+            // Given a user on the magic code step after changing their phone number
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, SAVED_PRIVATE_PERSONAL_DETAILS);
+                await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {...MANUAL_BANK_ACCOUNT_DRAFT, phoneNumber: '+14155550199'});
+            });
+            await renderPageOverTab(settingsTabIndex, SUB_PAGE_NAMES.VALIDATE_CODE);
+
+            // When the step sends the magic code
+            const validateCodeContentProps = jest.mocked(ValidateCodeActionContent).mock.lastCall?.[0];
+            validateCodeContentProps?.sendValidateCode();
+
+            // Then the code is bound to updating personal details, as in Profile > Private, so the backend accepts it, and a recent code requested for another flow doesn't stop a new one from being sent
+            expect(requestValidateCodeAction).toHaveBeenCalledWith({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.UPDATE_PERSONAL_DETAILS});
+            expect(validateCodeContentProps?.validateCodeReasonCode).toBe(COMMON_CONST.VALIDATE_CODE_REASONS.UPDATE_PERSONAL_DETAILS);
         });
 
         it('adds the bank account with the entered magic code', async () => {
