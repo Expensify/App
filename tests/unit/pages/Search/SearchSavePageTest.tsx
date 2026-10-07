@@ -11,6 +11,7 @@ import * as SearchUIUtils from '@libs/SearchUIUtils';
 import SearchSavePage from '@pages/Search/SearchSavePage';
 
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {Card, CardList} from '@src/types/onyx';
@@ -53,16 +54,24 @@ jest.mocked(useOnyx).mockImplementation((key) => {
             return [undefined, {status: 'loaded'}];
     }
 });
+// Without a loaded locale, translate returns key paths and translated filter values never show the user's text.
+beforeAll(() => IntlStore.load(CONST.LOCALES.EN));
 beforeEach(() => jest.clearAllMocks());
 it.each([[['12']], [['12', '23']], [['123']]])('renders canonical card selection %j exactly', (cardID) => {
+    // Given a saved search form with cards, feeds, tax rates and a Merchant filter that uses the default "contains" match
     form = {cardID, feed: ['feed-a', 'feed-b'], taxRate: ['tax-a', 'tax-b'], merchant: 'Coffee Shop'};
+
+    // When the save page renders the filter summary
     const output = JSON.stringify(render(<SearchSavePage />).toJSON());
+
+    // Then only the selected card titles, the feed and tax display values, and the localized Merchant label show
     const expectedDescriptions = cardID.at(0) === '123' ? [false, false, true] : [true, cardID.length === 2, false];
     expect(['Selected Alpha', 'Selected Beta', 'Unselected Overlap'].map((text) => output.includes(text))).toEqual(expectedDescriptions);
     expect(['12', '23', '123'].map((rawID) => output.includes(rawID))).toEqual([false, false, false]);
     expect(jest.mocked(useFilterFeedValue)).toHaveBeenCalledWith(['feed-a', 'feed-b']);
     expect(jest.mocked(useFilterTaxRateValue)).toHaveBeenCalledWith(['tax-a', 'tax-b']);
-    expect(['feed:feed-a|feed-b', 'tax:tax-a|tax-b', 'Coffee Shop'].every((text) => output.includes(text))).toBe(true);
+    // The output is a JSON string, so the quotes in the Merchant label are escaped.
+    expect(['feed:feed-a|feed-b', 'tax:tax-a|tax-b', 'Contains \\"Coffee Shop\\"'].every((text) => output.includes(text))).toBe(true);
 });
 it('renders scalar feed and tax values without calling array display hooks', () => {
     jest.spyOn(SearchUIUtils, 'mapFiltersFormToLabelValueList').mockReturnValueOnce([
