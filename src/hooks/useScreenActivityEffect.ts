@@ -25,16 +25,12 @@ function runCleanup(effect: LiveEffect): void {
     cleanup?.();
 }
 
-function runSetup(effect: LiveEffect, setup: EffectCallback): void {
-    effect.isSetupPending = false;
-    effect.cleanup = setup();
-}
 /* eslint-enable no-param-reassign */
 
-/** Reports an error the work throws instead of rethrowing it, as React does for a cleanup that throws during a commit. */
-function runAndReportError(work: () => void): void {
+/** Reports an error the cleanup throws instead of rethrowing it, as React does for a cleanup that throws during a commit. */
+function runCleanupAndReportError(effect: LiveEffect): void {
     try {
-        work();
+        runCleanup(effect);
     } catch (error) {
         console.error(error);
     }
@@ -47,9 +43,7 @@ function flushPendingCleanups(): void {
     for (const effect of pendingCleanups) {
         // The entry leaves the set first so a cleanup that synchronously commits another root cannot release the same work twice.
         pendingCleanups.delete(effect);
-        if (!effect.isMounted) {
-            runAndReportError(() => runCleanup(effect));
-        }
+        runCleanupAndReportError(effect);
     }
 }
 
@@ -101,8 +95,9 @@ function useScreenActivityEffect(setup: EffectCallback, deps: DependencyList): v
         effect.isVisible = true;
         if (effect.isSetupPending) {
             // A cleanup that throws must not stop the setup that follows it.
-            runAndReportError(() => runCleanup(effect));
-            runSetup(effect, setup);
+            runCleanupAndReportError(effect);
+            effect.isSetupPending = false;
+            effect.cleanup = setup();
         }
         return () => {
             effect.isVisible = false;
