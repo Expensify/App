@@ -10105,6 +10105,8 @@ const translations = {
         mySavedSearch: 'My expenses',
         urlCopied: 'URL copied',
         spendOverTime: 'Spend over time',
+        periodSoFar: ({period}: {period: string}) => `${period} so far`,
+        weekOf: ({date}: {date: string}) => `Week of ${date}`,
         groupedExpenses: 'grouped expenses',
         bulkActions: {
             editMultiple: 'Edit multiple',

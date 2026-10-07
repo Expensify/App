@@ -10291,6 +10291,8 @@ ${reportName}`,
             title: 'Λήψη κατάστασης',
             oneFeedAtATime: 'Παρακαλούμε επιλέγετε διακανονισμούς από μία ροή Κάρτας Expensify κάθε φορά.',
         },
+        periodSoFar: ({period}: {period: string}) => `${period} μέχρι τώρα`,
+        weekOf: ({date}: {date: string}) => `Εβδομάδα από ${date}`,
         saveEdits: {
             title: 'Αποθήκευση αλλαγών',
             prompt: ({name}: {name: string}) => `Θέλετε να ενημερώσετε τις αλλαγές στο «${name}» ή να δημιουργήσετε νέο;`,
