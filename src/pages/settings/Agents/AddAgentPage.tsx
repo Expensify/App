@@ -43,9 +43,9 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {TextInputKeyPressEvent} from 'react-native';
 
 import React, {useCallback, useEffect, useRef} from 'react';
-import {View} from 'react-native';
+import {Platform, View} from 'react-native';
 
-import {PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE} from './const';
+import {PROMPT_MAX_AUTO_GROW_HEIGHT, PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE} from './const';
 import scrollToMultilineInput from './scrollToMultilineInput';
 
 type AddAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.ADD>;
@@ -66,6 +66,10 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
     const {windowWidth, windowHeight} = useWindowDimensions();
     const {isKeyboardActive} = useKeyboardState();
     const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
+    // On native portrait the prompt grows with its content up to a max height instead of filling the screen, so the open
+    // keyboard can't squeeze it or hide the line being edited, and the form scrolls to fit it above the keyboard.
+    const shouldAutoGrowPromptInput = Platform.OS !== 'web' && !isInLandscapeMode;
+    const shouldUseScrollableLayout = shouldAutoGrowPromptInput || isInLandscapeMode;
     const shouldShrinkPromptInput = isInLandscapeMode && isKeyboardActive;
     const {accountID: ownerAccountID, login: ownerLogin, displayName} = useCurrentUserPersonalDetails();
     const defaultAgentName = template?.name ?? (displayName ? translate('addAgentPage.defaultAgentName', displayName) : undefined);
@@ -182,7 +186,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
     };
 
     const promptTopOffsetRef = useRef(0);
-    const handleInputFocus = () => scrollToMultilineInput(formRef, isInLandscapeMode, promptTopOffsetRef.current);
+    const handleInputFocus = () => scrollToMultilineInput(formRef, shouldUseScrollableLayout, promptTopOffsetRef.current);
 
     const agentAvatar = avatarSource ? (
         <UserAvatar
@@ -197,6 +201,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
             testID={AddAgentPage.displayName}
             includeSafeAreaPaddingBottom
             offlineIndicatorStyle={styles.mtAuto}
+            shouldEnableMaxHeight={shouldAutoGrowPromptInput}
         >
             <CollapsibleHeaderOnKeyboard>
                 <HeaderWithBackButton
@@ -211,7 +216,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                 validate={validate}
                 submitButtonText={translate('addAgentPage.createAgent')}
                 style={[styles.flex1, styles.ph5]}
-                shouldUseScrollView={isInLandscapeMode}
+                shouldUseScrollView={shouldUseScrollableLayout}
                 submitFlexEnabled={false}
                 shouldHideFixErrorsAlert
                 enabledWhenOffline
@@ -240,7 +245,11 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                         defaultValue={defaultAgentName}
                     />
                     <View
-                        style={shouldShrinkPromptInput ? StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE) : [isInLandscapeMode ? styles.h42 : styles.flex1]}
+                        style={
+                            shouldShrinkPromptInput
+                                ? StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE)
+                                : [isInLandscapeMode && styles.h42, !isInLandscapeMode && !shouldAutoGrowPromptInput && styles.flex1]
+                        }
                         onLayout={(event) => {
                             promptTopOffsetRef.current = event.nativeEvent.layout.y;
                         }}
@@ -256,9 +265,11 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                             onKeyPress={submitFormOnModEnter}
                             defaultValue={defaultPrompt}
                             multiline
-                            containerStyles={[styles.h100]}
-                            touchableInputWrapperStyle={[styles.flex1]}
-                            inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
+                            autoGrowHeight={shouldAutoGrowPromptInput}
+                            maxAutoGrowHeight={shouldAutoGrowPromptInput ? PROMPT_MAX_AUTO_GROW_HEIGHT : undefined}
+                            containerStyles={shouldAutoGrowPromptInput ? undefined : [styles.h100]}
+                            touchableInputWrapperStyle={shouldAutoGrowPromptInput ? undefined : [styles.flex1]}
+                            inputStyle={[!shouldAutoGrowPromptInput && styles.flex1, styles.textAlignVerticalTop]}
                             onFocus={handleInputFocus}
                         />
                     </View>
