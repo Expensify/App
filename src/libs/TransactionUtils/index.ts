@@ -40,7 +40,6 @@ import type {ValueOf} from 'type-fest';
 import {differenceInCalendarDays, format, isValid, parse, parseISO} from 'date-fns';
 import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
-import isEmpty from 'lodash/isEmpty';
 
 import {hasValidModifiedAmount, isAmountMissing, isFailedScanAmountPlaceholder} from './amountUtils';
 // These cycle imports are safe because buildOptimisticTransaction, getUpdatedTransaction, and the duplicates and tax helpers were extracted from this file to keep it under the max-lines limit.
@@ -1273,54 +1272,6 @@ function isWaypointNullIsland(waypoint: RecentWaypoint | Waypoint): boolean {
 }
 
 /**
- * A waypoint is empty when it carries nothing but its `keyForList`.
- */
-function isWaypointEmpty(waypoint?: Waypoint): boolean {
-    if (!waypoint) {
-        return true;
-    }
-    const {keyForList, ...waypointWithoutKey} = waypoint;
-    return isEmpty(waypointWithoutKey);
-}
-
-/**
- * Removes empty waypoints and renumbers the remaining keys.
- */
-function removeEmptyWaypoints(waypoints: WaypointCollection | undefined): WaypointCollection {
-    if (!waypoints) {
-        return {};
-    }
-
-    return Object.keys(waypoints)
-        .map(getWaypointIndex)
-        .sort((a, b) => a - b)
-        .reduce<WaypointCollection>((acc, index) => {
-            const waypoint = waypoints[`waypoint${index}`];
-            if (isWaypointEmpty(waypoint)) {
-                return acc;
-            }
-            acc[`waypoint${Object.keys(acc).length}`] = waypoint;
-            return acc;
-        }, {});
-}
-
-/**
- * Compacts empty waypoints out of a collection and derives the validation flags the distance
- * submit flows check. Gaps could otherwise satisfy the two-waypoint checks and resurface as
- * wrong waypoints on edit.
- */
-function validateCompactedWaypoints(waypoints: WaypointCollection | undefined) {
-    const compactedWaypoints = removeEmptyWaypoints(waypoints);
-    const hasEmptyWaypoints = Object.keys(compactedWaypoints).length !== Object.keys(waypoints ?? {}).length;
-    const compactedNonEmptyCount = Object.keys(compactedWaypoints).length;
-    const compactedValidatedCount = Object.keys(getValidWaypoints(compactedWaypoints)).length;
-    const hasDuplicateWaypointsError = compactedNonEmptyCount >= 2 && compactedValidatedCount !== compactedNonEmptyCount;
-    const hasAtLeastTwoDifferentWaypointsError = compactedValidatedCount < 2;
-
-    return {compactedWaypoints, hasEmptyWaypoints, hasDuplicateWaypointsError, hasAtLeastTwoDifferentWaypointsError};
-}
-
-/**
  * Converts the key of a waypoint to its index
  */
 function getWaypointIndex(key: string): number {
@@ -1810,7 +1761,8 @@ function getSelectedRouteDistance(transaction: OnyxEntry<Transaction>): number |
     }
 
     const selectedRouteKey = getSelectedRouteKey(transaction);
-    return transaction?.routes?.[selectedRouteKey]?.distance ?? undefined;
+    const reusedRouteDistance = transaction?.isReusedRoute ? transaction.comment?.customUnit?.routeDistanceMeters : undefined;
+    return transaction?.routes?.[selectedRouteKey]?.distance ?? reusedRouteDistance ?? undefined;
 }
 
 /**
@@ -1940,10 +1892,7 @@ export {
     hasPendingUI,
     getWaypointIndex,
     waypointHasValidAddress,
-    isWaypointEmpty,
     isWaypointNullIsland,
-    removeEmptyWaypoints,
-    validateCompactedWaypoints,
     getRecentTransactions,
     hasReservationList,
     hasViolation,

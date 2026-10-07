@@ -23,14 +23,14 @@ import useWaypointItems from '@hooks/useWaypointItems';
 
 import {init, stop} from '@libs/actions/MapboxToken';
 import {fetchReusableDistanceRoutes} from '@libs/actions/ReusableDistanceRoutes';
-import {compactTransactionWaypoints, openDraftDistanceExpense, removeWaypoint, updateWaypoints as updateWaypointsUtil} from '@libs/actions/Transaction';
+import {openDraftDistanceExpense, removeWaypoint, updateWaypoints as updateWaypointsUtil} from '@libs/actions/Transaction';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
-import {doesMoneyRequestDraftHaveUserInput, getRateID, getRequestType, validateCompactedWaypoints} from '@libs/TransactionUtils';
+import {doesMoneyRequestDraftHaveUserInput, getRateID, getRequestType} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -319,20 +319,14 @@ function IOURequestStepDistanceMap({
         if (blockDistanceRequestIfNeeded()) {
             return;
         }
-        // Gaps could otherwise satisfy the two-waypoint checks and resurface as wrong waypoints on edit.
-        const {hasEmptyWaypoints, hasDuplicateWaypointsError, hasAtLeastTwoDifferentWaypointsError} = validateCompactedWaypoints(waypoints);
-
         // If there is any error or loading state, don't let user go to next page.
-        if (hasDuplicateWaypointsError || hasAtLeastTwoDifferentWaypointsError || hasRouteError || isLoadingRoute || isLoading) {
+        if (duplicateWaypointsError || atLeastTwoDifferentWaypointsError || hasRouteError || isLoadingRoute || isLoading) {
             setShouldShowAtLeastTwoDifferentWaypointsError(true);
             return;
         }
-        if (hasEmptyWaypoints) {
-            compactTransactionWaypoints(transactionID, waypoints, transactionState);
-        }
         suppressDiscardPrompt();
         navigateToNextStep();
-    }, [blockDistanceRequestIfNeeded, hasRouteError, isLoadingRoute, isLoading, suppressDiscardPrompt, navigateToNextStep, transactionID, transactionState, waypoints]);
+    }, [blockDistanceRequestIfNeeded, duplicateWaypointsError, atLeastTwoDifferentWaypointsError, hasRouteError, isLoadingRoute, isLoading, suppressDiscardPrompt, navigateToNextStep]);
 
     const renderItem = useCallback(
         ({item, drag, isActive, getIndex}: RenderItemParams<string>) => {

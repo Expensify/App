@@ -1,6 +1,16 @@
-import {isWaypointEmpty, isWaypointNullIsland} from '@libs/TransactionUtils';
+import {isWaypointNullIsland} from '@libs/TransactionUtils';
 
-import type {WaypointCollection} from '@src/types/onyx/Transaction';
+import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
+
+import isEmpty from 'lodash/isEmpty';
+
+const isWaypointEmpty = (waypoint?: Waypoint): boolean => {
+    if (!waypoint) {
+        return true;
+    }
+    const {keyForList, ...waypointWithoutKey} = waypoint;
+    return isEmpty(waypointWithoutKey);
+};
 
 type UseWaypointValidationParams = {
     /** All waypoints in the editor, including any optimistic ones the user is dragging. */
