@@ -6978,6 +6978,16 @@ const staticStyles = (theme: ThemeColors) =>
 
 const dynamicStyles = (theme: ThemeColors) =>
     ({
+        // Measured from the bottom of the screen, because only some tab roots pad the indicator's container with the inset.
+        iosNativeTabBarOfflineIndicator: (bottom: number) =>
+            ({
+                position: 'absolute',
+                right: 0,
+                bottom,
+                left: 0,
+                backgroundColor: theme.appBG,
+            }) satisfies ViewStyle,
+
         // Zero-height strip anchored above the native tab bar, so the floating buttons can be positioned
         // against it without taking part in the tab screen's layout.
         nativeTabBarFloatingButtons: (bottom: number) =>
