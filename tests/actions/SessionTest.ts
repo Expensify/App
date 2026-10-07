@@ -844,6 +844,7 @@ describe('Session', () => {
 
     describe('validateTwoFactorAuth', () => {
         test('forced onboarding path updates auth token before clearing Onyx without openApp', async () => {
+            // Given a user completing forced-onboarding 2FA while the success screen remains open.
             const makeRequestSpy = jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue({
                 authToken: 'newAuthToken',
                 encryptedAuthToken: 'newEncryptedAuthToken',
@@ -853,9 +854,11 @@ describe('Session', () => {
             const clearSpy = jest.spyOn(Onyx, 'clear').mockResolvedValue(undefined);
             const writeWithNoDuplicatesSpy = jest.spyOn(API, 'writeWithNoDuplicatesConflictAction').mockResolvedValue(undefined);
 
+            // When the 2FA validation succeeds.
             SessionUtil.validateTwoFactorAuth('123456', false, {shouldKeepTwoFactorAuthFlowOpen: true});
             await waitForBatchedUpdates();
 
+            // Then the next authenticated state is seeded before Onyx is cleared without entering the global loading state.
             expect(makeRequestSpy).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.TWO_FACTOR_AUTH_VALIDATE, {twoFactorAuthCode: '123456'}, expect.any(Object));
             expect(setAuthTokenSpy).toHaveBeenCalledWith('newAuthToken');
             expect(setAuthTokenSpy.mock.invocationCallOrder.at(0)).toBeLessThan(multiSetSpy.mock.invocationCallOrder.at(0) ?? Number.MAX_SAFE_INTEGER);
@@ -870,6 +873,7 @@ describe('Session', () => {
                     [ONYXKEYS.NVP_ONBOARDING]: {
                         hasCompletedGuidedSetupFlow: false,
                     },
+                    [ONYXKEYS.IS_LOADING_APP]: false,
                 }),
             );
             expect(clearSpy).toHaveBeenCalled();

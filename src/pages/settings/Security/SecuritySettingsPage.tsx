@@ -25,6 +25,7 @@ import useWaitForNavigation from '@hooks/useWaitForNavigation';
 
 import {deleteAgent} from '@libs/actions/Agent';
 import {DISCONNECT_RESULT, disconnect, openSecuritySettingsPage} from '@libs/actions/Delegate';
+import {clearDraftValues} from '@libs/actions/FormActions';
 import {getRuleBotEnforcedPolicy} from '@libs/AgentRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasDeviceManagementError} from '@libs/UserUtils';
@@ -236,6 +237,7 @@ function SecuritySettingsPage() {
                     deleteAgent(agentAccountID, agentLogin, allPolicies, false);
                     return;
                 }
+                clearDraftValues(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM);
                 Navigation.navigate(ROUTES.SETTINGS_CLOSE);
             },
         });
