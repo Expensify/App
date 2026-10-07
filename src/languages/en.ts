@@ -282,6 +282,7 @@ const translations = {
             invalidDateShouldBeFuture: 'Please choose today or a future date',
             invalidTimeShouldBeFuture: 'Please choose a time at least one minute ahead',
             invalidCharacter: 'Invalid character',
+            invalidField: (fieldName: string) => `Invalid ${fieldName}`,
             enterMerchant: 'Enter a merchant name',
             enterAmount: 'Enter an amount',
             missingMerchantName: 'Missing merchant name',

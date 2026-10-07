@@ -53,6 +53,9 @@ const ONYXKEYS = {
     /** Boolean flag set whenever we are searching for reports in the server */
     RAM_ONLY_IS_SEARCHING_FOR_REPORTS: 'isSearchingForReports',
 
+    /** Whether the reimbursement countries needed by the collect deposit account flow are still loading */
+    RAM_ONLY_IS_LOADING_DEPOSIT_ACCOUNT_SETUP: 'isLoadingDepositAccountSetup',
+
     /** Ordered reportIDs from the latest SearchForReports response, used to display server search results in the tier order Auth returned. */
     RAM_ONLY_SEARCH_RESULT_REPORT_IDS: 'searchResultReportIDs',
     /** Boolean flag set whenever we are searching for users in the server */
@@ -1187,6 +1190,8 @@ const ONYXKEYS = {
         HOME_ADDRESS_FORM_DRAFT: 'homeAddressFormDraft',
         PERSONAL_DETAILS_FORM: 'personalDetailsForm',
         PERSONAL_DETAILS_FORM_DRAFT: 'personalDetailsFormDraft',
+        COLLECT_DEPOSIT_ACCOUNT_FORM: 'collectDepositAccountForm',
+        COLLECT_DEPOSIT_ACCOUNT_FORM_DRAFT: 'collectDepositAccountFormDraft',
         INTERNATIONAL_BANK_ACCOUNT_FORM: 'internationalBankAccountForm',
         INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT: 'internationalBankAccountFormDraft',
         NEW_ROOM_FORM: 'newRoomForm',
@@ -1522,6 +1527,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.DEBUG_DETAILS_FORM]: FormTypes.DebugReportForm | FormTypes.DebugReportActionForm | FormTypes.DebugTransactionForm | FormTypes.DebugTransactionViolationForm;
     [ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM]: FormTypes.OnboardingWorkEmailForm;
     [ONYXKEYS.FORMS.MERGE_ACCOUNT_DETAILS_FORM]: FormTypes.MergeAccountDetailsForm;
+    [ONYXKEYS.FORMS.COLLECT_DEPOSIT_ACCOUNT_FORM]: FormTypes.CollectDepositAccountForm;
     [ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM]: FormTypes.InternationalBankAccountForm;
     [ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM]: FormTypes.WorkspacePerDiemForm;
     [ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS]: FormTypes.EnableGlobalReimbursementsForm;
@@ -1842,6 +1848,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID]: string;
     [ONYXKEYS.ONBOARDING_LAST_VISITED_PATH]: string;
     [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS]: boolean;
+    [ONYXKEYS.RAM_ONLY_IS_LOADING_DEPOSIT_ACCOUNT_SETUP]: boolean;
     [ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS]: string[] | null;
     [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN]: boolean;

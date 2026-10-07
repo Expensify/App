@@ -229,6 +229,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidDateShouldBeFuture: 'Wybierz dzisiejszą lub przyszłą datę',
             invalidTimeShouldBeFuture: 'Wybierz godzinę co najmniej o minutę późniejszą',
             invalidCharacter: 'Nieprawidłowy znak',
+            invalidField: (fieldName) => `Nieprawidłowe pole: ${fieldName}`,
             enterMerchant: 'Wprowadź nazwę sprzedawcy',
             enterAmount: 'Wprowadź kwotę',
             missingMerchantName: 'Brak nazwy sprzedawcy',

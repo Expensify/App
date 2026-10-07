@@ -225,6 +225,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidDateShouldBeFuture: '本日または将来の日付を選択してください',
             invalidTimeShouldBeFuture: '少なくとも1分先の時刻を選択してください',
             invalidCharacter: '無効な文字',
+            invalidField: (fieldName) => `無効な項目: ${fieldName}`,
             enterMerchant: '店舗名を入力してください',
             enterAmount: '金額を入力してください',
             missingMerchantName: '加盟店名がありません',

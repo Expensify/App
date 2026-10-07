@@ -83,6 +83,7 @@ const SCREENS = {
         APP_DOWNLOAD_LINKS: 'Settings_App_Download_Links',
         ADD_DEBIT_CARD: 'Settings_Add_Debit_Card',
         ADD_BANK_ACCOUNT: 'Settings_Add_Bank_Account',
+        COLLECT_DEPOSIT_ACCOUNT: 'Settings_Collect_Deposit_Account',
         ADD_US_BANK_ACCOUNT: 'Settings_Add_US_Bank_Account',
         ADD_US_BANK_ACCOUNT_ENTRY_POINT: 'Settings_Add_US_Bank_Account_Entry_Point',
         UPDATE_PERSONAL_BANK_ACCOUNT: 'Settings_Update_Personal_Bank_Account',
