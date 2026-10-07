@@ -1284,6 +1284,7 @@ function shouldReportActionBeVisible(
     canUserPerformWriteAction?: boolean,
     currentUserAccountID?: number,
     reportID?: string,
+    reportActions?: OnyxEntry<ReportActions>,
 ): boolean {
     if (!reportAction) {
         return false;
@@ -1360,7 +1361,7 @@ function shouldReportActionBeVisible(
 
         // The isNewDot/shouldShow are baked at write time and can be stale for actions created outside NewDot (e.g OldDot or a background job).
         // Not applied to REIMBURSED, which carries bank account details PAY doesn't replace.
-        if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED) && hasSiblingPayReportAction(reportAction, reportAction.reportID ?? reportID)) {
+        if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED) && hasSiblingPayReportAction(reportAction, reportAction.reportID ?? reportID, reportActions)) {
             return false;
         }
     }
@@ -1394,6 +1395,8 @@ function isReportActionVisible(
     visibleReportActions?: VisibleReportActionsDerivedValue,
     // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number,
+    // Report actions from outside the Onyx collection (e.g. a Search snapshot), used for sibling lookups when the report timeline isn't loaded
+    reportActions?: OnyxEntry<ReportActions>,
 ): boolean {
     if (!reportAction?.reportActionID) {
         return false;
@@ -1403,18 +1406,18 @@ function isReportActionVisible(
     // from what's cached in visibleReportActions (which reflects persisted Onyx data).
     // We must recalculate visibility at runtime to ensure accuracy for these transient states.
     if (reportAction.pendingAction) {
-        return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID);
+        return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID, reportActions);
     }
 
     if (visibleReportActions && reportID) {
         const reportCache = visibleReportActions[reportID];
         if (!reportCache) {
-            return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID);
+            return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID, reportActions);
         }
         const staticVisibility = reportCache[reportAction.reportActionID];
         // If action is not in derived value cache, fall back to runtime calculation
         if (staticVisibility === undefined) {
-            return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID);
+            return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID, reportActions);
         }
         if (!staticVisibility) {
             return false;
@@ -1424,7 +1427,7 @@ function isReportActionVisible(
         }
         return true;
     }
-    return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID);
+    return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID, reportActions);
 }
 
 /**
@@ -1918,15 +1921,17 @@ function isPaymentAttemptBoundary(action: OnyxEntry<ReportAction>): boolean {
  * Finds MARKED_REIMBURSED actions with a PAY sibling in the same payment attempt. A historical PAY
  * must not hide a later manual reimbursement after that payment was canceled or failed.
  * The write-time isNewDot/shouldShow flags can be stale for background jobs (Expensify/Expensify#636674).
+ * `fallbackReportActions` (e.g. a Search snapshot) is used when the report timeline isn't loaded into Onyx.
  */
-function hasSiblingPayReportAction(reportAction: OnyxEntry<ReportAction>, reportID: string | undefined): boolean {
+function hasSiblingPayReportAction(reportAction: OnyxEntry<ReportAction>, reportID: string | undefined, fallbackReportActions?: OnyxEntry<ReportActions>): boolean {
     if (!reportID || !reportAction?.reportActionID) {
         return false;
     }
 
-    const reportActions = getAllReportActions(reportID);
+    const loadedReportActions = getAllReportActions(reportID);
+    const reportActions = loadedReportActions[reportAction.reportActionID] ? loadedReportActions : fallbackReportActions;
     // An action absent from loaded history cannot be matched. Avoid caching the empty fallback for unknown reports.
-    if (!reportActions[reportAction.reportActionID]) {
+    if (!reportActions?.[reportAction.reportActionID]) {
         return false;
     }
 
