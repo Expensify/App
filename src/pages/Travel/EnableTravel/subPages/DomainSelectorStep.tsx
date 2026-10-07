@@ -1,6 +1,7 @@
+import Badge from '@components/Badge';
 import Button from '@components/Button';
 import SelectionList from '@components/SelectionList';
-import TravelDomainListItem from '@components/SelectionList/ListItem/TravelDomainListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
@@ -19,7 +20,6 @@ import {View} from 'react-native';
 
 type DomainItem = ListItem & {
     value: string;
-    isRecommended: boolean;
 };
 
 function DomainSelectorStep({policy, onNext}: EnableTravelSubPageProps) {
@@ -37,9 +37,9 @@ function DomainSelectorStep({policy, onNext}: EnableTravelSubPageProps) {
             isSelected: domain === selectedDomain,
             keyForList: domain,
             text: domain,
-            isRecommended: domain === recommendedDomain,
+            rightElement: domain === recommendedDomain ? <Badge text={translate('travel.domainSelector.recommended')} /> : undefined,
         }));
-    }, [domains, recommendedDomain, selectedDomain]);
+    }, [domains, recommendedDomain, selectedDomain, translate]);
 
     const handleContinue = () => {
         if (!selectedDomain) {
@@ -59,7 +59,8 @@ function DomainSelectorStep({policy, onNext}: EnableTravelSubPageProps) {
             <SelectionList
                 onSelectRow={(option) => setSelectedDomain(option.value)}
                 data={data}
-                ListItem={TravelDomainListItem}
+                ListItem={SingleSelectListItem}
+                selectionButtonPosition={CONST.SELECTION_BUTTON_POSITION.LEFT}
                 shouldShowTooltips
                 footerContent={
                     <Button

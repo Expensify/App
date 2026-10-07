@@ -1,19 +1,26 @@
 import {act, renderHook, waitFor} from '@testing-library/react-native';
 
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
 
+import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {getExportTemplates, queueExportSearchItemsToCSV, queueExportSearchWithTemplate} from '@libs/actions/Search';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportAction} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
+
+import createRandomTransaction from '../../utils/collections/transaction';
+import createMock from '../../utils/createMock';
 
 const mockQueueExportSearchItemsToCSV = jest.mocked(queueExportSearchItemsToCSV);
 const mockQueueExportSearchWithTemplate = jest.mocked(queueExportSearchWithTemplate);
 const mockGetExportTemplates = jest.mocked(getExportTemplates);
+const mockUnholdRequest = jest.mocked(unholdRequest);
 
 jest.mock('@libs/actions/Export', () => ({
     clearExportDownload: jest.fn(),
@@ -37,6 +44,10 @@ jest.mock('@libs/actions/Search', () => ({
     payMoneyRequestOnSearch: jest.fn(),
     submitMoneyRequestOnSearch: jest.fn(),
     unholdMoneyRequestOnSearch: jest.fn(),
+}));
+
+jest.mock('@libs/actions/IOU/Hold', () => ({
+    unholdRequest: jest.fn(),
 }));
 
 jest.mock('@libs/actions/MergeTransaction', () => ({
@@ -279,7 +290,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
         mockSelectedTransactions = {tx1: makeSelectedTransaction()};
         mockExcludedTransactions = {tx2: makeSelectedTransaction()};
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
@@ -308,7 +319,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
             },
         };
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
@@ -360,7 +371,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
             },
         };
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: filteredGroupedExpenseQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: filteredGroupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
@@ -399,7 +410,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
         mockSelectedTransactions = {tx1: makeSelectedTransaction()};
         mockExcludedTransactions = {[excludedGroupKey]: makeSelectedTransaction()};
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
@@ -419,7 +430,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
         mockSelectedTransactions = {};
         mockExcludedTransactions = {tx1: makeSelectedTransaction()};
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT)).toBe(true);
@@ -431,7 +442,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
         mockSelectedTransactions = {};
         mockExcludedTransactions = {tx1: makeSelectedTransaction()};
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT)).toBe(true);
@@ -443,7 +454,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
         mockSelectedTransactions = {tx1: makeSelectedTransaction({reportID: 'report1'})};
         mockExcludedTransactions = {tx2: makeSelectedTransaction({reportID: 'report2'})};
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
@@ -473,7 +484,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
         mockAreAllMatchingItemsSelected = false;
         mockSelectedTransactions = {tx1: makeSelectedTransaction()};
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
@@ -490,7 +501,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
             defaultTemplates: [],
         });
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
@@ -524,7 +535,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
             ],
         });
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
@@ -536,5 +547,46 @@ describe('useSearchBulkActions - CSV export flow', () => {
         expect(exportItems.some((item) => item.text === 'Default template')).toBe(false);
         expect(exportItems.some((item) => item.text === 'export.currentView')).toBe(true);
         expect(exportItems.some((item) => item.text === 'export.basicExport')).toBe(true);
+    });
+
+    describe('bulk unhold', () => {
+        it('calls unholdRequest with the live Onyx transaction instead of the stale selection snapshot', async () => {
+            const transactionID = 'tx1';
+            const liveTransaction = createRandomTransaction(1);
+            const staleSnapshotTransaction = createRandomTransaction(2);
+            liveTransaction.transactionID = transactionID;
+            liveTransaction.merchant = 'Live Onyx merchant';
+            staleSnapshotTransaction.transactionID = transactionID;
+            staleSnapshotTransaction.merchant = 'Stale snapshot merchant';
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, liveTransaction);
+
+            mockSelectedTransactions = {
+                [transactionID]: makeSelectedTransaction({
+                    canUnhold: true,
+                    policyID: undefined,
+                    transaction: staleSnapshotTransaction,
+                    reportAction: createMock<ReportAction>({childReportID: 'childReport1'}),
+                }),
+            };
+
+            const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD)).toBeDefined();
+            });
+
+            act(() => {
+                result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD)?.onSelected?.();
+            });
+
+            expect(mockUnholdRequest).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionID,
+                    transaction: expect.objectContaining({transactionID, merchant: 'Live Onyx merchant'}),
+                    reportID: 'childReport1',
+                }),
+            );
+        });
     });
 });

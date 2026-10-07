@@ -77,7 +77,7 @@ type CrossReportMergeToSourceReportFixtures = {
     mergeTransaction: MergeTransactionType;
     mergeTransactionID: string;
     sourceExpenseReport: Report;
-    sourceTransactionThread: Report;
+    sourceChatReport: Report;
     targetReport: Report;
     sourceIOUAction: ReportAction;
     sourceIOUActionID: string;
@@ -97,9 +97,12 @@ async function setupCrossReportMergeToSourceReportFixtures(): Promise<CrossRepor
         category: 'Original Category',
         reportID: 'target-report-456',
     };
+    const sourceChatReport = {...createRandomReport(5, undefined), reportID: 'source-chat-report-123'};
+
     const sourceExpenseReport = {
         ...createExpenseReport(1),
         reportID: 'source-report-123',
+        chatReportID: sourceChatReport.reportID,
     };
     const targetReport = {
         ...createExpenseReport(1),
@@ -167,20 +170,20 @@ async function setupCrossReportMergeToSourceReportFixtures(): Promise<CrossRepor
     await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`, targetTransaction);
     await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`, sourceTransaction);
     await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceExpenseReport.reportID}`, sourceExpenseReport);
+    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceChatReport.reportID}`, sourceChatReport);
     await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceExpenseReport.reportID}`, {[sourceIOUAction.reportActionID]: sourceIOUAction});
     await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceTransactionThread.reportID}`, sourceTransactionThread);
     await Onyx.set(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, mergeTransaction);
     await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${targetReport.reportID}`, targetReport);
     await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetReport.reportID}`, {[targetIOUAction.reportActionID]: targetIOUAction});
     await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThread.reportID}`, targetTransactionThread);
-
     return {
         targetTransaction,
         sourceTransaction,
         mergeTransaction,
         mergeTransactionID,
         sourceExpenseReport,
-        sourceTransactionThread,
+        sourceChatReport,
         targetReport,
         sourceIOUAction,
         sourceIOUActionID,
@@ -192,8 +195,7 @@ async function setupCrossReportMergeToSourceReportFixtures(): Promise<CrossRepor
 }
 
 function runCrossReportMergeToSourceReportRequest(fixtures: CrossReportMergeToSourceReportFixtures) {
-    const {mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction, mockViolations, targetReport, sourceIOUAction, sourceExpenseReport, sourceTransactionThread} =
-        fixtures;
+    const {mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction, mockViolations, targetReport, sourceIOUAction, sourceExpenseReport, sourceChatReport} = fixtures;
 
     mergeTransactionRequest({
         isVendorMatchingBetaEnabled: false,
@@ -220,7 +222,7 @@ function runCrossReportMergeToSourceReportRequest(fixtures: CrossReportMergeToSo
         sourceTransactionThreadReportActions: undefined,
         sourceIOUAction,
         sourceActionIOUReport: sourceExpenseReport,
-        sourceActionChatReport: sourceTransactionThread,
+        sourceActionChatReport: sourceChatReport,
         getCurrencyDecimals: getCurrencyDecimalsLocal,
         getCurrencySymbol: getCurrencySymbolLocal,
         rules: undefined,
@@ -1809,6 +1811,7 @@ describe('getTransactionsForMerging', () => {
             isOffline: true,
             targetTransaction,
             transactions: {},
+            reportTransactions: [],
             policy: undefined,
             report: undefined,
             currentUserLogin: undefined,
@@ -1819,6 +1822,42 @@ describe('getTransactionsForMerging', () => {
         // Then no merge transaction entry is written for the empty key
         const mergeTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${targetTransaction.transactionID}`);
         expect(mergeTransaction).toBeUndefined();
+    });
+
+    it('builds the eligible list from reportTransactions when a workspace approver merges from a report they did not submit', async () => {
+        // Given a workspace approver (policy admin) reviewing a report submitted by someone else (TEST_ACCOUNT_ID
+        // is the signed-in user for this file, so ownerAccountID must differ from it for isCurrentUserSubmitter to be false)
+        const policy: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), role: CONST.POLICY.ROLE.ADMIN};
+        const report = {...createRandomReport(1), ownerAccountID: TEST_ACCOUNT_ID + 1};
+        const targetTransaction = {...createRandomTransaction(1), reportID: report.reportID, managedCard: false, cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME, amount: 1000};
+        const eligibleTransaction = {...createRandomTransaction(2), reportID: report.reportID, managedCard: false, cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME, amount: 2000};
+        const pendingDeleteTransaction = {
+            ...createRandomTransaction(3),
+            reportID: report.reportID,
+            managedCard: false,
+            cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
+            amount: 3000,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        };
+
+        // When we request merge candidates, passing the report's already-loaded transactions via reportTransactions
+        // (the collect/control workspace path no longer falls back to the deprecated getReportTransactions global lookup)
+        getTransactionsForMerging({
+            isOffline: false,
+            targetTransaction,
+            transactions: {},
+            reportTransactions: [targetTransaction, eligibleTransaction, pendingDeleteTransaction],
+            policy,
+            report,
+            currentUserLogin: 'approver@example.com',
+            rules: undefined,
+        });
+        await waitForBatchedUpdates();
+
+        // Then the eligible list is built from reportTransactions: it excludes the target transaction itself and the
+        // pending-delete transaction, keeping only the transaction that is actually eligible for merge
+        const mergeTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${targetTransaction.transactionID}`);
+        expect(mergeTransaction?.eligibleTransactions).toStrictEqual([eligibleTransaction]);
     });
 });
 

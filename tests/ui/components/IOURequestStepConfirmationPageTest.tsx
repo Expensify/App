@@ -9,6 +9,7 @@ import type {ParticipantPickerProps} from '@components/ParticipantPicker/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import {startSplitBill} from '@libs/actions/IOU/Split';
+import getCurrentPosition from '@libs/getCurrentPosition';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import * as IOUUtils from '@libs/IOUUtils';
 import * as SubmitWithDismissFirst from '@libs/Navigation/helpers/submitWithDismissFirst';
@@ -32,6 +33,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+import {check, RESULTS} from 'react-native-permissions';
 
 import * as MoneyRequest from '../../../src/libs/actions/IOU/MoneyRequest';
 import * as Split from '../../../src/libs/actions/IOU/Split';
@@ -642,6 +644,26 @@ describe('IOURequestStepConfirmationPageTest', () => {
             expect(jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.[0].transactionParams).toEqual(
                 expect.objectContaining({amount: 1234, merchant: 'Starbucks', created: '2025-01-15'}),
             );
+        });
+
+        describe('location at submit', () => {
+            it('creates the expense with the position the scan screen cached, without reading the device again', async () => {
+                // Given a scan on the confirm screen, location permission already granted, and a position the scan screen cached when it opened
+                jest.mocked(check).mockResolvedValue(RESULTS.GRANTED);
+                await act(async () => {
+                    await Onyx.merge(ONYXKEYS.USER_LOCATION, {latitude: 40.7128, longitude: -74.006});
+                });
+                await renderScanConfirmation();
+
+                // When the user submits the scan
+                fireEvent.press(screen.getByText(translateLocal('iou.createExpense')));
+                await waitForBatchedUpdatesWithAct();
+
+                // Then the expense is created carrying the cached position, with no location read holding the tap up
+                expect(TrackExpense.requestMoney).toHaveBeenCalledTimes(1);
+                expect(jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.[0].gpsPoint).toEqual({lat: 40.7128, long: -74.006});
+                expect(getCurrentPosition).not.toHaveBeenCalled();
+            });
         });
     });
 
@@ -1317,7 +1339,6 @@ describe('IOURequestStepConfirmationPageTest', () => {
             const chatReportID = 'p2p-chat-1';
             const iouReportID = 'p2p-iou-report-1';
             const transactionID = 'tx-from-iou-report';
-            const getChatByParticipantsSpy = jest.spyOn(ReportUtils, 'getChatByParticipants').mockReturnValue({reportID: chatReportID});
             jest.mocked(getIsNarrowLayout).mockReturnValue(true);
 
             try {
@@ -1344,6 +1365,12 @@ describe('IOURequestStepConfirmationPageTest', () => {
                         created: '2025-01-15',
                         iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
                         participants: [{accountID: PARTICIPANT_ACCOUNT_ID, reportID: chatReportID, selected: true}],
+                    });
+                    // The page resolves the participant chat through the derived index, so seed the entry the
+                    // derived value would produce for this chat report.
+                    await Onyx.merge(ONYXKEYS.DERIVED.ONE_ON_ONE_CHAT_REPORT_IDS, {
+                        reportIDs: {[ReportUtils.getParticipantsChatKey([PARTICIPANT_ACCOUNT_ID, ACCOUNT_ID])]: chatReportID},
+                        accountID: ACCOUNT_ID,
                     });
                 });
 
@@ -1375,11 +1402,9 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 await waitForBatchedUpdatesWithAct();
 
                 // Then the IOU report the flow started from is pre-inserted, not the participant chat the lookup resolved
-                expect(getChatByParticipantsSpy).toHaveBeenCalled();
                 await waitFor(() => expect(Navigation.preInsertFullscreenUnderRHP).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(iouReportID)), {timeout: 2000});
                 expect(Navigation.preInsertFullscreenUnderRHP).not.toHaveBeenCalledWith(expect.stringContaining(chatReportID));
             } finally {
-                getChatByParticipantsSpy.mockRestore();
                 jest.mocked(getIsNarrowLayout).mockReturnValue(false);
             }
         });
