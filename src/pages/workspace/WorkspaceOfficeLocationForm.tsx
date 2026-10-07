@@ -31,12 +31,15 @@ type WorkspaceOfficeLocationFormProps = {
     /** Whether the location name can't be left empty */
     isNameRequired: boolean;
 
+    /** Names of the other locations of the workspace, which the location name can't match regardless of case */
+    takenNames: string[];
+
     /** Called with the trimmed name, the office address and whether the office is the primary one */
     onSubmit: (name: string, address: CompanyAddress, isPrimary: boolean) => void;
 };
 
 /** The location name, address and "Set as primary" fields shared by the pages that add and edit workspace offices */
-function WorkspaceOfficeLocationForm({officeLocation, isPrimary, isPrimaryLocked, isNameRequired, onSubmit}: WorkspaceOfficeLocationFormProps) {
+function WorkspaceOfficeLocationForm({officeLocation, isPrimary, isPrimaryLocked, isNameRequired, takenNames, onSubmit}: WorkspaceOfficeLocationFormProps) {
     const {translate} = useLocalize();
     const address = officeLocation?.address;
     const {streetLineOne, streetLineTwo} = getWorkspaceAddressStreetLines(address?.addressStreet, address?.addressStreet2);
@@ -77,6 +80,9 @@ function WorkspaceOfficeLocationForm({officeLocation, isPrimary, isPrimaryLocked
             errors[INPUT_IDS.LOCATION_NAME] = translate('common.error.fieldRequired');
         } else if (name.length > CONST.FORM_CHARACTER_LIMIT) {
             errors[INPUT_IDS.LOCATION_NAME] = translate('common.error.characterLimitExceedCounter', name.length, CONST.FORM_CHARACTER_LIMIT);
+        } else if (!!name && name !== officeLocation?.name && takenNames.some((takenName) => takenName.trim().toLowerCase() === name.toLowerCase())) {
+            // Like the server, only a changed name is checked, so an office whose name was already taken can still save other changes
+            errors[INPUT_IDS.LOCATION_NAME] = translate('workspace.officeLocations.existingOfficeLocationError');
         }
         return errors;
     };

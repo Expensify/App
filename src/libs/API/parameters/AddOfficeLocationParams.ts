@@ -8,7 +8,7 @@ type AddOfficeLocationParams = {
     address: string;
 
     /** Nickname of the office. Offices added without one are named "Office location N" */
-    name?: string;
+    officeName?: string;
 
     /** Whether the office becomes the workspace default */
     isDefault?: boolean;

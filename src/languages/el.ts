@@ -8011,6 +8011,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             primary: 'Κύρια',
             deleteOfficeLocation: 'Διαγραφή τοποθεσίας γραφείου',
             deleteOfficeLocationConfirmation: 'Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτή την τοποθεσία γραφείου;',
+            existingOfficeLocationError: 'Υπάρχει ήδη τοποθεσία γραφείου με αυτό το όνομα',
         },
         bankAccount: {
             continueWithSetup: 'Συνεχίστε τη ρύθμιση',

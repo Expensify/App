@@ -7660,6 +7660,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             primary: 'Principal',
             deleteOfficeLocation: 'Excluir local de escritório',
             deleteOfficeLocationConfirmation: 'Tem certeza de que deseja excluir este local de escritório?',
+            existingOfficeLocationError: 'Já existe um local de escritório com este nome',
         },
         bankAccount: {
             continueWithSetup: 'Continuar configuração',

@@ -7674,6 +7674,7 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             primary: 'Principale',
             deleteOfficeLocation: 'Elimina sede dell’ufficio',
             deleteOfficeLocationConfirmation: 'Sei sicuro di voler eliminare questa sede dell’ufficio?',
+            existingOfficeLocationError: 'Esiste già una sede dell’ufficio con questo nome',
         },
         bankAccount: {
             continueWithSetup: 'Continua configurazione',

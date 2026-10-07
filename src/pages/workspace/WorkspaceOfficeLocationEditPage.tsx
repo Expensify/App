@@ -41,12 +41,19 @@ function WorkspaceOfficeLocationEditPage({route}: WorkspaceOfficeLocationEditPag
 
     // The company address counts as an office, so only a workspace without one keeps at least one office and can't delete
     // its last office. Offices being deleted and additions that failed aren't on the server, so they don't count.
-    const savedOfficeCount = Object.values(officeLocations ?? {}).filter(
-        (otherOfficeLocation) =>
+    const savedOfficeLocations = Object.entries(officeLocations ?? {}).filter(
+        ([, otherOfficeLocation]) =>
             otherOfficeLocation.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
             !(otherOfficeLocation.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(otherOfficeLocation.errors)),
-    ).length;
-    const canDelete = savedOfficeCount > 1 || hasCompanyAddress(policy);
+    );
+    const isCompanyAddressShown = hasCompanyAddress(policy);
+    const canDelete = savedOfficeLocations.length > 1 || isCompanyAddressShown;
+
+    // The company address row is listed with the offices, so its label is taken too
+    const takenNames = [
+        ...savedOfficeLocations.filter(([otherOfficeID]) => otherOfficeID !== officeID).map(([, otherOfficeLocation]) => otherOfficeLocation.name),
+        ...(isCompanyAddressShown ? [translate('common.companyAddress')] : []),
+    ];
 
     const saveOffice = (name: string, address: CompanyAddress, isPrimary: boolean) => {
         if (!officeLocation) {
@@ -104,6 +111,7 @@ function WorkspaceOfficeLocationEditPage({route}: WorkspaceOfficeLocationEditPag
                     isPrimary={!!officeLocation?.isDefault}
                     isPrimaryLocked={!!officeLocation?.isDefault}
                     isNameRequired
+                    takenNames={takenNames}
                     onSubmit={saveOffice}
                 />
             </ScreenWrapper>

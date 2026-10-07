@@ -7396,6 +7396,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             primary: '主要',
             deleteOfficeLocation: '删除办公地点',
             deleteOfficeLocationConfirmation: '确定要删除此办公地点吗？',
+            existingOfficeLocationError: '已存在同名的办公地点',
         },
         bankAccount: {
             continueWithSetup: '继续设置',

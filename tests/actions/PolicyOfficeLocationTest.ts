@@ -142,7 +142,7 @@ describe('actions/PolicyOfficeLocation', () => {
 
             // Then no name is sent, so the server names the office
             const params = getRequestParams(WRITE_COMMANDS.ADD_OFFICE_LOCATION);
-            expect(params.name).toBeUndefined();
+            expect(params.officeName).toBeUndefined();
 
             // And the office shows the default name meanwhile
             const officeLocations = (await getPolicy(policyID))?.officeLocations ?? {};
@@ -187,7 +187,7 @@ describe('actions/PolicyOfficeLocation', () => {
 
             // And only the changed fields are sent
             const params = getRequestParams(WRITE_COMMANDS.UPDATE_OFFICE_LOCATION);
-            expect(params.name).toBe('HQ');
+            expect(params.officeName).toBe('HQ');
             expect(JSON.parse(params.address)).toEqual(NEW_JERSEY_ADDRESS);
             expect(params.isDefault).toBeUndefined();
 

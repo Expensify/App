@@ -41,14 +41,18 @@ function WorkspaceOfficeLocationAddPage({route}: WorkspaceOfficeLocationAddPageP
 
     // The company address counts as an office, the primary one while no office is, so only a workspace without one makes
     // its first office primary
-    const isOnlyOffice = officeCount === 0 && !hasCompanyAddress(policy);
+    const isCompanyAddressShown = hasCompanyAddress(policy);
+    const isOnlyOffice = officeCount === 0 && !isCompanyAddressShown;
+
+    // The company address row is listed with the offices, so its label is taken too
+    const takenNames = [...savedOfficeLocations.map((officeLocation) => officeLocation.name), ...(isCompanyAddressShown ? [translate('common.companyAddress')] : [])];
 
     const addOffice = (name: string, address: CompanyAddress, isPrimary: boolean) => {
         // An office added without a name shows this one until the server names it the same way: numbered after the existing
-        // offices, skipping names already in use
-        const officeNames = new Set(savedOfficeLocations.map((officeLocation) => officeLocation.name));
+        // offices, skipping names already in use regardless of case
+        const lowerCaseTakenNames = new Set(takenNames.map((takenName) => takenName.toLowerCase()));
         let officeNumber = officeCount + 1;
-        while (officeNames.has(translate('workspace.officeLocations.defaultName', {officeNumber}))) {
+        while (lowerCaseTakenNames.has(translate('workspace.officeLocations.defaultName', {officeNumber}).toLowerCase())) {
             officeNumber++;
         }
         addOfficeLocation(policyID, officeLocations, address, isPrimary, name, translate('workspace.officeLocations.defaultName', {officeNumber}));
@@ -70,6 +74,7 @@ function WorkspaceOfficeLocationAddPage({route}: WorkspaceOfficeLocationAddPageP
                     isPrimary={isOnlyOffice}
                     isPrimaryLocked={isOnlyOffice}
                     isNameRequired={false}
+                    takenNames={takenNames}
                     onSubmit={addOffice}
                 />
             </ScreenWrapper>

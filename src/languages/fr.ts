@@ -7737,6 +7737,7 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             primary: 'Principal',
             deleteOfficeLocation: 'Supprimer le lieu de travail',
             deleteOfficeLocationConfirmation: 'Voulez-vous vraiment supprimer ce lieu de travail ?',
+            existingOfficeLocationError: 'Un lieu de travail portant ce nom existe déjà',
         },
         bankAccount: {
             continueWithSetup: 'Continuer la configuration',

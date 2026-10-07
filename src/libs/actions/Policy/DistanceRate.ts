@@ -835,7 +835,7 @@ function addOfficeLocation(policyID: string, officeLocations: Record<string, Off
         ],
     };
 
-    const parameters: AddOfficeLocationParams = {policyID, officeID, name: name || undefined, address: JSON.stringify(address), isDefault};
+    const parameters: AddOfficeLocationParams = {policyID, officeID, officeName: name || undefined, address: JSON.stringify(address), isDefault};
     API.write(WRITE_COMMANDS.ADD_OFFICE_LOCATION, parameters, onyxData);
 }
 
@@ -905,7 +905,7 @@ function updateOfficeLocation(
     const parameters: UpdateOfficeLocationParams = {
         policyID,
         officeID,
-        name: changes.name,
+        officeName: changes.name,
         address: changes.address ? JSON.stringify(changes.address) : undefined,
         isDefault: changes.isDefault,
     };

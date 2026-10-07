@@ -8229,6 +8229,7 @@ const translations = {
             primary: 'Primary',
             deleteOfficeLocation: 'Delete office location',
             deleteOfficeLocationConfirmation: 'Are you sure you want to delete this office location?',
+            existingOfficeLocationError: 'An office location with this name already exists',
         },
         bankAccount: {
             continueWithSetup: 'Continue setup',

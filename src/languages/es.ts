@@ -7737,6 +7737,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             primary: 'Principal',
             deleteOfficeLocation: 'Eliminar ubicación de oficina',
             deleteOfficeLocationConfirmation: '¿Estás seguro de que quieres eliminar esta ubicación de oficina?',
+            existingOfficeLocationError: 'Ya existe una ubicación de oficina con este nombre',
         },
         bankAccount: {
             continueWithSetup: 'Continuar con la configuración',

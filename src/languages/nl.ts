@@ -7655,6 +7655,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             primary: 'Primair',
             deleteOfficeLocation: 'Kantoorlocatie verwijderen',
             deleteOfficeLocationConfirmation: 'Weet je zeker dat je deze kantoorlocatie wilt verwijderen?',
+            existingOfficeLocationError: 'Er bestaat al een kantoorlocatie met deze naam',
         },
         bankAccount: {
             continueWithSetup: 'Setup voortzetten',

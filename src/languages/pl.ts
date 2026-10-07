@@ -7677,6 +7677,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             primary: 'Główna',
             deleteOfficeLocation: 'Usuń lokalizację biura',
             deleteOfficeLocationConfirmation: 'Czy na pewno chcesz usunąć tę lokalizację biura?',
+            existingOfficeLocationError: 'Lokalizacja biura o tej nazwie już istnieje',
         },
         bankAccount: {
             continueWithSetup: 'Kontynuuj konfigurację',

@@ -7581,6 +7581,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             primary: 'メイン',
             deleteOfficeLocation: 'オフィスの所在地を削除',
             deleteOfficeLocationConfirmation: 'このオフィスの所在地を削除してもよろしいですか？',
+            existingOfficeLocationError: 'この名前のオフィスの所在地はすでに存在します',
         },
         bankAccount: {
             continueWithSetup: 'セットアップを続行',
