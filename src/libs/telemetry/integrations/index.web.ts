@@ -16,9 +16,13 @@ function isApplicationKeyStamped(): boolean {
 /**
  * Browser tracing integration is enabled on Web to support web health measurements
  * such as INP, LCP, FCP, CLS.
+ *
+ * Asset loads and background beacons add noise to page load and navigation traces without measuring
+ * application operations. Filtering their resource spans leaves web health measurements enabled.
  */
 const tracingIntegration = SentryReact.browserTracingIntegration({
     shouldCreateSpanForRequest,
+    ignoreResourceSpans: ['resource.link', 'resource.script', 'resource.beacon'],
 });
 
 /**

@@ -156,6 +156,8 @@ exports[`getOptionData alternateText parity snapshots special-action chain branc
 
 exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_AGENT_RULE 1`] = `"updated an agent rule to: "`;
 
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_APPROVAL_LIMIT 1`] = `"Fixture message html"`;
+
 exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_APPROVER_RULE 1`] = `"Fixture message html"`;
 
 exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_AUDIT_RATE 1`] = `"Fixture message html"`;
@@ -236,6 +238,8 @@ exports[`getOptionData alternateText parity snapshots special-action chain branc
 
 exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_NAME 1`] = `"Fixture message html"`;
 
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_OVER_LIMIT_FORWARDS_TO 1`] = `"changed the approval workflow for  to stop forwarding reports over $0.00"`;
+
 exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_OWNERSHIP 1`] = `"Fixture message html"`;
 
 exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_PROHIBITED_EXPENSES 1`] = `"Fixture message html"`;
@@ -283,6 +287,8 @@ exports[`getOptionData alternateText parity snapshots special-action chain branc
 exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) TAKECONTROL 1`] = `"changed the approver to @Hidden"`;
 
 exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) TASKCOMPLETED 1`] = `"marked as complete"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) UNDELETEDTRANSACTION 1`] = `"undeleted this expense"`;
 
 exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) UNREPORTEDTRANSACTION 1`] = `"moved this expense from another report"`;
 

@@ -53,10 +53,15 @@ jest.mock(
         },
 );
 
+const mockReceiptImage = {shouldCompleteLoad: true};
+
 jest.mock('@components/ReportActionItem/ReportActionItemImage', () => {
     const {useEffect} = jest.requireActual<typeof React>('react');
     function MockReportActionItemImage({onLoad}: {onLoad?: () => void}) {
         useEffect(() => {
+            if (!mockReceiptImage.shouldCompleteLoad) {
+                return;
+            }
             onLoad?.();
         }, [onLoad]);
         return null;
@@ -260,6 +265,7 @@ describe('MoneyRequestReceiptView', () => {
     });
 
     beforeEach(async () => {
+        mockReceiptImage.shouldCompleteLoad = true;
         jest.clearAllMocks();
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${TEST_PARENT_REPORT_ID}`, {
@@ -307,6 +313,23 @@ describe('MoneyRequestReceiptView', () => {
     });
 
     describe('receipt page count badge', () => {
+        it('does not show the page count while the receipt is still loading', async () => {
+            mockReceiptImage.shouldCompleteLoad = false;
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithMultiPagePDFReceipt);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(translateLocal('receipt.pageCount', {pageCount: 3}))).toBeNull();
+        });
+
         it('shows the page count for a multi-page PDF receipt', async () => {
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithMultiPagePDFReceipt);
@@ -368,6 +391,27 @@ describe('MoneyRequestReceiptView', () => {
         it('does not show the page count for a receipt without one', async () => {
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(translateLocal('receipt.pageCount', {pageCount: 3}))).toBeNull();
+        });
+
+        // The regenerated receipt makes the old count stale
+        it('does not show the page count while a map distance receipt is regenerating', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, {
+                    ...transactionWithMultiPagePDFReceipt,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                    pendingFields: {merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                });
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -585,8 +629,8 @@ describe('MoneyRequestReceiptView', () => {
             );
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText(translateLocal('iou.error.receiptUploadFailedMessage'))).toBeTruthy();
-            expect(screen.getByText(translateLocal('iou.error.saveReceipt'))).toBeTruthy();
+            expect(screen.getByText(translateLocal('iou.error.receiptUploadFailedSaveOnlyMessage'))).toBeTruthy();
+            expect(screen.getByText(translateLocal('common.save'))).toBeTruthy();
         });
 
         it('does not show the receipt-upload error for a distance expense', async () => {
@@ -602,8 +646,8 @@ describe('MoneyRequestReceiptView', () => {
             );
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.queryByText(translateLocal('iou.error.receiptUploadFailedMessage'))).toBeNull();
-            expect(screen.queryByText(translateLocal('iou.error.saveReceipt'))).toBeNull();
+            expect(screen.queryByText(translateLocal('iou.error.receiptUploadFailedSaveOnlyMessage'))).toBeNull();
+            expect(screen.queryByText(translateLocal('common.save'))).toBeNull();
         });
 
         it('shows the receipt-upload error for an odometer distance expense (real uploaded file)', async () => {
@@ -619,8 +663,8 @@ describe('MoneyRequestReceiptView', () => {
             );
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText(translateLocal('iou.error.receiptUploadFailedMessage'))).toBeTruthy();
-            expect(screen.getByText(translateLocal('iou.error.saveReceipt'))).toBeTruthy();
+            expect(screen.getByText(translateLocal('iou.error.receiptUploadFailedSaveOnlyMessage'))).toBeTruthy();
+            expect(screen.getByText(translateLocal('common.save'))).toBeTruthy();
         });
     });
 });

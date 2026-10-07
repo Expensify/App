@@ -1,16 +1,12 @@
-import AvatarFromIcon from '@components/Avatar/AvatarFromIcon';
-
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
-import type {Icon} from '@src/types/onyx/OnyxCommon';
 
 import React from 'react';
-import {View} from 'react-native';
 
-import type {ListItem, MultiSelectListItemProps} from './types';
+import type {ListItem, ListItemProps} from './types';
 
-import BaseSelectListItem from './BaseSelectListItem';
+import SingleSelectListItem from './SingleSelectListItem';
 
 /**
  * A compact row with a checkbox and optional avatar, used in multi-choice picker lists
@@ -25,60 +21,32 @@ function MultiSelectListItem<TItem extends ListItem>({
     onSelectRow,
     onDismissError,
     shouldPreventEnterKeySubmit,
-    isMultilineSupported = false,
-    isAlternateTextMultilineSupported = false,
-    alternateTextNumberOfLines = 2,
     onFocus,
     shouldSyncFocus,
-    wrapperStyle,
-    titleStyles,
-    shouldHighlightSelectedItem,
     titleNumberOfLines,
-}: MultiSelectListItemProps<TItem>) {
+    alternateTextNumberOfLines,
+}: ListItemProps<TItem>) {
     const styles = useThemeStyles();
     const icon = item.icons?.at(0);
 
-    const itemWithAvatar = {
-        ...item,
-        leftElement: icon ? <AvatarLeftElement icon={icon} /> : item.leftElement,
-    };
-    const computedWrapperStyle = [icon ? [styles.pv0, styles.mnh13] : styles.optionRowCompact, wrapperStyle];
-
     return (
-        <BaseSelectListItem
-            item={itemWithAvatar}
+        <SingleSelectListItem
+            item={item}
             isFocused={isFocused}
             isFocusVisible={isFocusVisible}
             showTooltip={showTooltip}
             isDisabled={isDisabled}
             canSelectMultiple
-            onSelectRow={onSelectRow}
             accessibilityRole={CONST.ROLE.CHECKBOX}
+            onSelectRow={onSelectRow}
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
-            isMultilineSupported={isMultilineSupported}
-            isAlternateTextMultilineSupported={isAlternateTextMultilineSupported}
-            alternateTextNumberOfLines={alternateTextNumberOfLines}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            wrapperStyle={computedWrapperStyle}
-            titleStyles={titleStyles}
-            shouldHighlightSelectedItem={shouldHighlightSelectedItem}
+            wrapperStyle={icon ? [styles.pv0, styles.mnh13] : styles.optionRowCompact}
             titleNumberOfLines={titleNumberOfLines}
+            alternateTextNumberOfLines={alternateTextNumberOfLines}
         />
-    );
-}
-
-function AvatarLeftElement({icon}: {icon: Icon}) {
-    const styles = useThemeStyles();
-
-    return (
-        <View style={[styles.mentionSuggestionsAvatarContainer, styles.mr3]}>
-            <AvatarFromIcon
-                icon={icon}
-                size={CONST.AVATAR_SIZE.X_SMALL}
-            />
-        </View>
     );
 }
 

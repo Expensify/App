@@ -4,7 +4,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import type {ForwardedRef} from 'react';
+import type {ComponentRef, ForwardedRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
@@ -16,40 +16,20 @@ import InteractiveStepSubHeader from './InteractiveStepSubHeader';
 import ScreenWrapper from './ScreenWrapper';
 
 type InteractiveStepWrapperProps = {
-    // Step content
     children: React.ReactNode;
-
-    // ID of the wrapper
     wrapperID: string;
-
-    // Function to handle back button press
     handleBackButtonPress: () => void;
-
-    // Title of the back button header
     headerTitle: string;
-
-    // Subtitle of the back button header
     headerSubtitle?: string;
 
-    // Index of the highlighted step
+    /** Index of the highlighted step */
     startStepIndex?: number;
 
-    // Array of step names
     stepNames?: readonly string[];
-
-    // Should enable max height
     shouldEnableMaxHeight?: boolean;
-
-    // Should show offline indicator
     shouldShowOfflineIndicator?: boolean;
-
-    // Should show offline indicator in wide screen
     shouldShowOfflineIndicatorInWideScreen?: boolean;
-
-    // Should enable picker avoiding
     shouldEnablePickerAvoiding?: boolean;
-
-    // Offline indicator style
     offlineIndicatorStyle?: StyleProp<ViewStyle>;
 
     /**
@@ -65,13 +45,8 @@ type InteractiveStepWrapperProps = {
      */
     enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
 
-    /**
-     * Callback to be called when the screen entry transition ends.
-     */
     onEntryTransitionEnd?: () => void;
-
-    // Reference to the outer element
-    ref?: ForwardedRef<View>;
+    ref?: ForwardedRef<ComponentRef<typeof View>>;
 };
 
 const INPUT_HEADER_HEIGHT = variables.lineHeightXXLarge;

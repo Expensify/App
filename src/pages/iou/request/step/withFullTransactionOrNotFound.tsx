@@ -28,7 +28,6 @@ type WithFullTransactionOrNotFoundOnyxProps = {
     /** Indicates whether the report data is loading */
     transaction: OnyxEntry<Transaction>;
 
-    /** Indicates whether the transaction data is loading */
     isLoadingTransaction?: boolean;
 };
 
@@ -48,6 +47,7 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAX_RATE
     | typeof SCREENS.MONEY_REQUEST.STEP_VENDOR
+    | typeof SCREENS.MONEY_REQUEST.STEP_REUSE_ROUTE
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SCAN
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SEND_FROM
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_REPORT

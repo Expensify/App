@@ -19,7 +19,6 @@ type AccordionProps = {
     /** Additional external style */
     style?: StyleProp<ViewStyle>;
 
-    /** Was toggle triggered */
     isToggleTriggered: SharedValue<boolean>;
 };
 
@@ -77,8 +76,8 @@ function Accordion({isExpanded, children, duration = 300, isToggleTriggered, sty
         }
 
         return {
-            height: !isToggleTriggered.get() ? undefined : derivedHeight.get(),
-            maxHeight: !isToggleTriggered.get() ? undefined : derivedHeight.get(),
+            height: !isToggleTriggered.get() ? 'auto' : derivedHeight.get(),
+            maxHeight: !isToggleTriggered.get() ? 'none' : derivedHeight.get(),
             opacity: derivedOpacity.get(),
             overflow: isAnimating.get() ? 'hidden' : 'visible',
             display,

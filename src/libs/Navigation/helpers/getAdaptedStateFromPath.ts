@@ -429,7 +429,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
  */
 // We keep `options` in the signature for `linkingConfig` compatibility with react-navigation.
 const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldReplacePathInNestedState = true) => {
-    let normalizedPath = !path.startsWith('/') ? `/${path}` : path;
+    let normalizedPath = normalizePath(path);
     normalizedPath = getMatchingNewRoute(normalizedPath) ?? normalizedPath;
 
     const state = getStateFromPath(normalizedPath as RoutePath) as PartialState<NavigationState<RootNavigatorParamList>>;

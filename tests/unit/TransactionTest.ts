@@ -10,6 +10,7 @@ import {
     sanitizeWaypointsForAPI,
     saveWaypoint,
     setSelectedRoute,
+    updateWaypoints,
 } from '@libs/actions/Transaction';
 import * as API from '@libs/API';
 import type {ChangeTransactionsReportParams} from '@libs/API/parameters';
@@ -22,17 +23,19 @@ import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {TransactionViolation} from '@src/types/onyx';
+import type {CardList, TransactionViolation} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {ReportCollectionDataSet, ReportNextStep} from '@src/types/onyx/Report';
 import type {OnyxData} from '@src/types/onyx/Request';
+import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+import {createCashCard} from 'tests/utils/collections/card';
 
 import type {UpdateMoneyRequestDataKeys} from '../../src/libs/actions/IOU/UpdateMoneyRequest';
 import type {PersonalDetails, Policy, PolicyTagLists, RecentWaypoint, Report, ReportAction, ReportActions, Transaction} from '../../src/types/onyx';
@@ -50,7 +53,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type LegacyChangeTransactionsReportProps = Omit<
     Parameters<typeof changeTransactionsReportAction>[0],
-    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions' | 'delegateAccountID' | 'getCurrencyDecimals' | 'getCurrencySymbol'
+    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions' | 'delegateAccountID' | 'getCurrencyDecimals' | 'getCurrencySymbol' | 'rules'
 > & {
     allTransactions: OnyxCollection<Transaction>;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
@@ -88,6 +91,7 @@ function changeTransactionsReport({allTransactions, transactionIDs, transactionV
         delegateAccountID: undefined,
         getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
         getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
+        rules: undefined,
         ...rest,
     });
 }
@@ -114,6 +118,7 @@ function generateTransaction(values: Partial<Transaction> = {}): Transaction {
 }
 
 const CURRENT_USER_ID = 1;
+const CURRENT_USER_CASH_CARD_ID = 777;
 const FAKE_NEW_REPORT_ID = '2';
 const FAKE_OLD_REPORT_ID = '3';
 const FAKE_SELF_DM_REPORT_ID = '4';
@@ -186,6 +191,10 @@ describe('Transaction', () => {
     describe('changeTransactionsReport', () => {
         let reports: OnyxCollection<Report>;
 
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
         async function loadReports() {
             await TestHelper.getOnyxData({
                 key: ONYXKEYS.COLLECTION.REPORT,
@@ -227,6 +236,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -238,6 +248,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
             const reportActions = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
@@ -267,6 +278,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -278,6 +290,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
             const reportActions = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
@@ -317,6 +330,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -328,6 +342,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -347,8 +362,14 @@ describe('Transaction', () => {
         it('correctly handles reportNextStep parameter when moving transactions to unreported report', async () => {
             const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
+            // Given a cash transaction for the current user
+            const cardList: CardList = {
+                [CURRENT_USER_CASH_CARD_ID]: createCashCard(CURRENT_USER_ID, CURRENT_USER_CASH_CARD_ID),
+            };
+
             const transaction = generateTransaction({
                 reportID: FAKE_OLD_REPORT_ID,
+                cardID: CURRENT_USER_CASH_CARD_ID,
             });
             const oldIOUAction = createIOUAction(transaction);
 
@@ -368,6 +389,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -379,6 +401,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList,
             });
             await waitForBatchedUpdates();
 
@@ -428,6 +451,7 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -443,6 +467,7 @@ describe('Transaction', () => {
                 },
                 reports: undefined,
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -505,6 +530,7 @@ describe('Transaction', () => {
             });
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [firstTransaction.transactionID, secondTransaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -522,6 +548,7 @@ describe('Transaction', () => {
                 },
                 reports: undefined,
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -555,6 +582,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -566,6 +594,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -612,6 +641,7 @@ describe('Transaction', () => {
 
             await loadReports();
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -623,6 +653,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -666,6 +697,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: true,
                 accountID: CURRENT_USER_ID,
@@ -677,6 +709,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -711,6 +744,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: customAccountID,
@@ -722,6 +756,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -735,6 +770,40 @@ describe('Transaction', () => {
             expect(parameters.transactionList).toBe(transaction.transactionID);
 
             mockAPIWrite.mockRestore();
+        });
+
+        it('does not create an IOU action in the selfDM when undeleting a managed card transaction that belongs to another user', async () => {
+            // Given a deleted managed card transaction whose card is not in the current user's card list, so it belongs to another user
+            const transaction = generateTransaction({
+                reportID: FAKE_OLD_REPORT_ID,
+                managedCard: true,
+                cardID: 12345,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(ONYXKEYS.SELF_DM_REPORT_ID, FAKE_SELF_DM_REPORT_ID);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_SELF_DM_REPORT_ID}`, selfDM);
+            await loadReports();
+
+            // When the transaction is undeleted by moving it to the unreported report
+            changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
+                transactionIDs: [transaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                policy: undefined,
+                allTransactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction},
+                policyTagList: undefined,
+                reports,
+                isTrackIntentUser: false,
+                cardList: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then no IOU action is written to the selfDM, since the current user has no access to the other user's selfDM
+            const selfDMActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_SELF_DM_REPORT_ID}`);
+            expect(selfDMActions).toBeUndefined();
         });
 
         it('should update the target report total when the currency is the same', async () => {
@@ -762,6 +831,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -773,6 +843,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -813,6 +884,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -824,6 +896,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -871,6 +944,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -882,6 +956,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -929,6 +1004,7 @@ describe('Transaction', () => {
 
             await loadReports();
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -940,6 +1016,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -982,6 +1059,7 @@ describe('Transaction', () => {
             };
             await loadReports();
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -993,6 +1071,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1037,6 +1116,7 @@ describe('Transaction', () => {
             };
             await loadReports();
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -1048,6 +1128,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1106,6 +1187,7 @@ describe('Transaction', () => {
             };
             await loadReports();
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [firstTransaction.transactionID, secondTransaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -1116,6 +1198,7 @@ describe('Transaction', () => {
                 policyTagList: undefined,
                 reports,
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1202,6 +1285,7 @@ describe('Transaction', () => {
 
                 await loadReports();
                 changeTransactionsReport({
+                    isVendorMatchingBetaEnabled: false,
                     transactionIDs: [usdTransaction.transactionID, movedBgnTransaction.transactionID],
                     isASAPSubmitBetaEnabled: false,
                     accountID: CURRENT_USER_ID,
@@ -1213,6 +1297,7 @@ describe('Transaction', () => {
                     reports,
                     transactionViolations: {},
                     isTrackIntentUser: false,
+                    cardList: undefined,
                 });
 
                 await waitForBatchedUpdates();
@@ -1268,6 +1353,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -1280,6 +1366,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1322,6 +1409,7 @@ describe('Transaction', () => {
 
             await loadReports();
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -1334,6 +1422,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1381,6 +1470,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction1.transactionID, transaction2.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -1392,6 +1482,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1423,6 +1514,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -1434,6 +1526,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1460,6 +1553,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -1471,11 +1565,98 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
             const updatedViolations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`);
             expect(updatedViolations).toBeFalsy();
+        });
+
+        it('should optimistically update search snapshots when moving a transaction to unreported', async () => {
+            const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [CURRENT_USER_ID]: {
+                    accountID: CURRENT_USER_ID,
+                    displayName: 'Current User',
+                    login: 'test@example.com',
+                },
+            });
+            await Onyx.merge(ONYXKEYS.SELF_DM_REPORT_ID, FAKE_SELF_DM_REPORT_ID);
+
+            // Given a cash transaction for the current user
+            const cardList: CardList = {
+                [CURRENT_USER_CASH_CARD_ID]: createCashCard(CURRENT_USER_ID, CURRENT_USER_CASH_CARD_ID),
+            };
+
+            const transaction = generateTransaction({
+                reportID: FAKE_OLD_REPORT_ID,
+                cardID: CURRENT_USER_CASH_CARD_ID,
+            });
+            const oldIOUAction = createIOUAction(transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                newReport: undefined,
+                policy: undefined,
+                allTransactions: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+                },
+                policyTagList: undefined,
+                reports,
+                transactionViolations: {},
+                isTrackIntentUser: false,
+                isVendorMatchingBetaEnabled: false,
+                cardList,
+            });
+            await waitForBatchedUpdates();
+
+            expect(mockAPIWrite).toHaveBeenCalled();
+            const onyxData = mockAPIWrite.mock.calls.at(0)?.at(2);
+            expect(isCapturedOnyxData(onyxData)).toBe(true);
+            if (!isCapturedOnyxData(onyxData)) {
+                throw new Error('Expected changeTransactionsReport Onyx data');
+            }
+
+            const snapshotUpdates = onyxData.optimisticData?.filter((update) => update.key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT)) ?? [];
+            expect(snapshotUpdates.length).toBeGreaterThan(0);
+
+            const hasPersonalDetails = snapshotUpdates.some((update) => {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+                const value = update.value as {data?: Record<string, unknown>} | undefined;
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+                const personalDetails = value?.data?.[ONYXKEYS.PERSONAL_DETAILS_LIST] as Record<string, {displayName?: string}> | undefined;
+                return personalDetails?.[CURRENT_USER_ID]?.displayName === 'Current User';
+            });
+            expect(hasPersonalDetails).toBe(true);
+
+            const hasSelfDMAction = snapshotUpdates.some((update) => {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+                const value = update.value as {data?: Record<string, unknown>} | undefined;
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+                const reportActions = value?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_SELF_DM_REPORT_ID}`] as Record<string, {actorAccountID?: number}> | undefined;
+                return Object.values(reportActions ?? {}).some((action) => action?.actorAccountID === CURRENT_USER_ID);
+            });
+            expect(hasSelfDMAction).toBe(true);
+
+            const hasClearedOldAction = snapshotUpdates.some((update) => {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+                const value = update.value as {data?: Record<string, unknown>} | undefined;
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+                const reportActions = value?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`] as
+                    | Record<string, {originalMessage?: {IOUTransactionID?: string | null}}>
+                    | undefined;
+                return reportActions?.[oldIOUAction.reportActionID]?.originalMessage?.IOUTransactionID === null;
+            });
+            expect(hasClearedOldAction).toBe(true);
+
+            mockAPIWrite.mockRestore();
         });
 
         it('should clear convertedAmount on transaction when moving between workspaces with different currencies', async () => {
@@ -1510,6 +1691,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -1521,6 +1703,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1572,6 +1755,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -1583,6 +1767,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1620,6 +1805,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -1631,6 +1817,7 @@ describe('Transaction', () => {
                 transactionViolations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [receiptNoticeViolation]},
                 reports,
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1684,6 +1871,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -1695,6 +1883,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1734,6 +1923,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -1744,6 +1934,7 @@ describe('Transaction', () => {
                 policyTagList: {},
                 reports,
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1811,6 +2002,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -1822,6 +2014,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1898,6 +2091,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -1909,6 +2103,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1976,6 +2171,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -1987,6 +2183,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2055,6 +2252,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -2066,6 +2264,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2074,28 +2273,255 @@ describe('Transaction', () => {
             expect(updatedTransaction?.comment?.customUnit?.customUnitRateID).toBe(validRateID);
         });
 
-        it('should not create MOVED_TRANSACTION action when moving expenses from a Draft report', async () => {
+        describe('when all matching items are selected (jsonQuery + hash)', () => {
+            const FAKE_JSON_QUERY = 'type:expense status:all';
+            const FAKE_HASH = 123456;
+
+            it('sends the search jsonQuery and hash with an empty transaction list instead of the explicit transactions', async () => {
+                const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+
+                const transaction = generateTransaction({reportID: FAKE_OLD_REPORT_ID});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
+                const allTransactions = {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+                };
+
+                changeTransactionsReport({
+                    isVendorMatchingBetaEnabled: false,
+                    transactionIDs: [transaction.transactionID],
+                    isASAPSubmitBetaEnabled: false,
+                    accountID: CURRENT_USER_ID,
+                    email: 'test@example.com',
+                    newReport: report,
+                    policy: undefined,
+                    allTransactions,
+                    policyTagList: undefined,
+                    transactionViolations: {},
+                    reports: undefined,
+                    isTrackIntentUser: false,
+                    jsonQuery: FAKE_JSON_QUERY,
+                    hash: FAKE_HASH,
+                    cardList: undefined,
+                });
+                await waitForBatchedUpdates();
+
+                expect(mockAPIWrite).toHaveBeenCalled();
+
+                const parameters = mockAPIWrite.mock.calls.at(0)?.[1];
+
+                expect(parameters).toEqual(
+                    expect.objectContaining({
+                        reportID: FAKE_NEW_REPORT_ID,
+                        // The list stays empty so the backend moves every matching expense from the query
+                        transactionList: '',
+                        jsonQuery: FAKE_JSON_QUERY,
+                        hash: FAKE_HASH,
+                    }),
+                );
+
+                // The loaded transaction's optimistic action and thread IDs go out so the backend reuses them
+                const transactionData = parseJSONRecord(readProperty(parameters, 'transactionIDToReportActionAndThreadData'));
+                expect(hasDefinedProperty(transactionData, transaction.transactionID)).toBe(true);
+
+                mockAPIWrite.mockRestore();
+            });
+
+            it('falls back to the unreported report ID when removing all matching expenses from a report', async () => {
+                const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+
+                const transaction = generateTransaction({reportID: FAKE_OLD_REPORT_ID});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                const allTransactions = {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+                };
+
+                changeTransactionsReport({
+                    isVendorMatchingBetaEnabled: false,
+                    transactionIDs: [transaction.transactionID],
+                    isASAPSubmitBetaEnabled: false,
+                    accountID: CURRENT_USER_ID,
+                    email: 'test@example.com',
+                    newReport: undefined,
+                    policy: undefined,
+                    allTransactions,
+                    policyTagList: undefined,
+                    transactionViolations: {},
+                    reports: undefined,
+                    isTrackIntentUser: false,
+                    jsonQuery: FAKE_JSON_QUERY,
+                    hash: FAKE_HASH,
+                    cardList: undefined,
+                });
+                await waitForBatchedUpdates();
+
+                expect(mockAPIWrite).toHaveBeenCalled();
+
+                const parameters = mockAPIWrite.mock.calls.at(0)?.[1];
+
+                expect(parameters).toEqual(
+                    expect.objectContaining({
+                        reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                        transactionList: '',
+                        jsonQuery: FAKE_JSON_QUERY,
+                        hash: FAKE_HASH,
+                    }),
+                );
+
+                mockAPIWrite.mockRestore();
+            });
+
+            it('optimistically flags the destination report as pending and clears it after the request succeeds', async () => {
+                const destinationReport = {
+                    ...createRandomReport(7, undefined),
+                    ownerAccountID: CURRENT_USER_ID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                };
+                const destinationReportKey = `${ONYXKEYS.COLLECTION.REPORT}${destinationReport.reportID}` as const;
+
+                mockFetch.pause();
+                try {
+                    await Onyx.merge(destinationReportKey, destinationReport);
+
+                    changeTransactionsReport({
+                        isVendorMatchingBetaEnabled: false,
+                        transactionIDs: [],
+                        isASAPSubmitBetaEnabled: false,
+                        accountID: CURRENT_USER_ID,
+                        email: 'test@example.com',
+                        newReport: destinationReport,
+                        policy: undefined,
+                        allTransactions: {},
+                        policyTagList: undefined,
+                        transactionViolations: {},
+                        reports: undefined,
+                        isTrackIntentUser: false,
+                        jsonQuery: FAKE_JSON_QUERY,
+                        hash: FAKE_HASH,
+                        cardList: undefined,
+                    });
+                    await waitForBatchedUpdates();
+
+                    // The destination stays pending while the request is in flight
+                    const pendingReport = await getOnyxValue(destinationReportKey);
+                    expect(pendingReport?.pendingFields?.reportID).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                } finally {
+                    await mockFetch.resume();
+                }
+                await waitForBatchedUpdates();
+
+                // The pending flag clears once the request resolves
+                const resolvedReport = await getOnyxValue(destinationReportKey);
+                expect(resolvedReport?.pendingFields?.reportID).toBeFalsy();
+            });
+
+            it('optimistically moves the loaded transactions so their rows leave the list before the server answers', async () => {
+                const transaction = generateTransaction({reportID: FAKE_OLD_REPORT_ID});
+                const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}` as const;
+                await Onyx.merge(transactionKey, transaction);
+                const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
+                const allTransactions = {[transactionKey]: transaction};
+
+                // Pause the request instead of mocking API.write so the optimistic data really reaches Onyx
+                mockFetch.pause();
+                try {
+                    changeTransactionsReport({
+                        isVendorMatchingBetaEnabled: false,
+                        transactionIDs: [transaction.transactionID],
+                        isASAPSubmitBetaEnabled: false,
+                        accountID: CURRENT_USER_ID,
+                        email: 'test@example.com',
+                        newReport: report,
+                        policy: undefined,
+                        allTransactions,
+                        policyTagList: undefined,
+                        transactionViolations: {},
+                        reports: undefined,
+                        isTrackIntentUser: false,
+                        jsonQuery: FAKE_JSON_QUERY,
+                        hash: FAKE_HASH,
+                        cardList: undefined,
+                    });
+                    await waitForBatchedUpdates();
+
+                    // The all-matching move applies the same optimistic update as a per-page move
+                    const movedTransaction = await getOnyxValue(transactionKey);
+                    expect(movedTransaction?.reportID).toBe(FAKE_NEW_REPORT_ID);
+                } finally {
+                    await mockFetch.resume();
+                }
+            });
+
+            it('uses the normal explicit-transaction path when a hash is passed without a jsonQuery', async () => {
+                const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+
+                const transaction = generateTransaction({reportID: FAKE_OLD_REPORT_ID});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
+                const allTransactions = {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+                };
+
+                changeTransactionsReport({
+                    isVendorMatchingBetaEnabled: false,
+                    transactionIDs: [transaction.transactionID],
+                    isASAPSubmitBetaEnabled: false,
+                    accountID: CURRENT_USER_ID,
+                    email: 'test@example.com',
+                    newReport: report,
+                    policy: undefined,
+                    allTransactions,
+                    policyTagList: undefined,
+                    transactionViolations: {},
+                    reports: undefined,
+                    isTrackIntentUser: false,
+                    jsonQuery: undefined,
+                    hash: FAKE_HASH,
+                    cardList: undefined,
+                });
+                await waitForBatchedUpdates();
+
+                expect(mockAPIWrite).toHaveBeenCalled();
+
+                const parameters = mockAPIWrite.mock.calls.at(0)?.[1];
+
+                // Without a jsonQuery the explicit list goes out and no all-matching params leak through
+                expect(parameters).toEqual(
+                    expect.objectContaining({
+                        transactionList: transaction.transactionID,
+                    }),
+                );
+                expect(parameters).not.toHaveProperty('jsonQuery');
+                expect(parameters).not.toHaveProperty('hash');
+
+                mockAPIWrite.mockRestore();
+            });
+        });
+
+        it('should not create MOVED_TRANSACTION action when moving expenses into a Draft report', async () => {
             const mockAPIWrite = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
 
-            const draftReport = {
+            const submittedReport = {
                 ...createRandomReport(10, undefined),
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 currency: CONST.CURRENCY.USD,
             };
-            const transaction = generateTransaction({reportID: draftReport.reportID});
+            const transaction = generateTransaction({reportID: submittedReport.reportID});
             const oldIOUAction = createIOUAction(transaction);
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${draftReport.reportID}`, draftReport);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${draftReport.reportID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${submittedReport.reportID}`, submittedReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${submittedReport.reportID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
+            // FAKE_NEW_REPORT_ID is an open (draft) report, which the backend never creates the moved message on
             const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
             const allTransactions = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -2105,8 +2531,9 @@ describe('Transaction', () => {
                 allTransactions,
                 policyTagList: undefined,
                 transactionViolations: {},
-                reports: {[`${ONYXKEYS.COLLECTION.REPORT}${draftReport.reportID}`]: draftReport},
+                reports: {[`${ONYXKEYS.COLLECTION.REPORT}${submittedReport.reportID}`]: submittedReport},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2120,28 +2547,36 @@ describe('Transaction', () => {
             mockAPIWrite.mockRestore();
         });
 
-        it('should create MOVED_TRANSACTION action when moving expenses from a non-Draft report', async () => {
+        it('should create MOVED_TRANSACTION action when moving expenses into a non-Draft report', async () => {
             const mockAPIWrite = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
 
-            const submittedReport = {
+            const draftReport = {
                 ...createRandomReport(11, undefined),
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                currency: CONST.CURRENCY.USD,
+            };
+            const submittedDestinationReport = {
+                ...createRandomReport(12, undefined),
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 currency: CONST.CURRENCY.USD,
             };
-            const transaction = generateTransaction({reportID: submittedReport.reportID});
+            const transaction = generateTransaction({reportID: draftReport.reportID});
             const oldIOUAction = createIOUAction(transaction);
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${submittedReport.reportID}`, submittedReport);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${submittedReport.reportID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${draftReport.reportID}`, draftReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${submittedDestinationReport.reportID}`, submittedDestinationReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${draftReport.reportID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
-            const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
+            const report = await getReportFromUseOnyx(submittedDestinationReport.reportID);
             const allTransactions = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -2151,8 +2586,12 @@ describe('Transaction', () => {
                 allTransactions,
                 policyTagList: undefined,
                 transactionViolations: {},
-                reports: {[`${ONYXKEYS.COLLECTION.REPORT}${submittedReport.reportID}`]: submittedReport},
+                reports: {
+                    [`${ONYXKEYS.COLLECTION.REPORT}${draftReport.reportID}`]: draftReport,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${submittedDestinationReport.reportID}`]: submittedDestinationReport,
+                },
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2279,6 +2718,25 @@ describe('Transaction', () => {
             expect(transaction?.routes?.route0?.geometry?.coordinates ?? null).toBeNull();
         });
 
+        it('should clear the commuter exclusion preview, which was decided for the trip being replaced', async () => {
+            const transactionID = 'txn-commuter-preview';
+            const index = '0';
+            const waypoint: RecentWaypoint = {
+                address: 'Clear Commuter Preview',
+                lat: 11,
+                lng: 12,
+            };
+            const existingTransaction = generateTransaction({transactionID, reportID: '1'});
+            existingTransaction.commuterExclusionPreview = {policyID: 'policy1', hasExclusion: true, isWholeTripExcluded: true, commuteDistanceMeters: 0};
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, existingTransaction);
+
+            saveWaypoint({transactionID, index, waypoint, isDraft: false, recentWaypointsList: []});
+            await waitForBatchedUpdates();
+
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(transaction?.commuterExclusionPreview ?? null).toBeNull();
+        });
+
         it('should clear the selected route key so it does not point at a route that no longer exists', async () => {
             const transactionID = 'txn6';
             const index = '0';
@@ -2316,6 +2774,25 @@ describe('Transaction', () => {
                 }),
             ).toBe(CONST.TRANSACTION.DEFAULT_ROUTE_KEY);
         });
+
+        it('should clear isReusedRoute so route fetching can run again', async () => {
+            const transactionID = 'txn-reuse-save';
+            const index = '2';
+            const waypoint: RecentWaypoint = {
+                address: 'New Waypoint',
+                lat: 10,
+                lng: 20,
+            };
+            const existingTransaction = generateTransaction({transactionID, reportID: '1'});
+            existingTransaction.isReusedRoute = true;
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, existingTransaction);
+
+            saveWaypoint({transactionID, index, waypoint, isDraft: true, recentWaypointsList: []});
+            await waitForBatchedUpdates();
+
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(transaction?.isReusedRoute ?? null).toBeNull();
+        });
     });
 
     describe('removeWaypoint', () => {
@@ -2344,6 +2821,73 @@ describe('Transaction', () => {
             const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
             expect(transaction?.comment?.selectedRouteKey ?? null).toBeNull();
             expect(transaction?.comment?.customUnit?.routeDistanceMeters ?? null).toBeNull();
+        });
+
+        it('should clear isReusedRoute so route fetching can run again', async () => {
+            const transactionID = 'txn-reuse-remove';
+            const existingTransaction = generateTransaction({transactionID, reportID: '1'});
+            existingTransaction.isReusedRoute = true;
+            existingTransaction.comment = {
+                ...existingTransaction.comment,
+                waypoints: {
+                    waypoint0: {address: 'A', lat: 1, lng: 1},
+                    waypoint1: {address: 'B', lat: 2, lng: 2},
+                    waypoint2: {address: 'C', lat: 3, lng: 3},
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, existingTransaction);
+
+            await removeWaypoint(existingTransaction, '1', true);
+            await waitForBatchedUpdates();
+
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(transaction?.isReusedRoute ?? null).toBeNull();
+        });
+    });
+
+    describe('updateWaypoints', () => {
+        it('should clear extra existing waypoints when new waypoints are fewer', async () => {
+            const transactionID = 'txn-update-waypoints-fewer';
+            const existingTransaction = generateTransaction({transactionID, reportID: '1'});
+            existingTransaction.comment = {
+                ...existingTransaction.comment,
+                waypoints: {
+                    waypoint0: {address: 'A', lat: 1, lng: 1},
+                    waypoint1: {address: 'B', lat: 2, lng: 2},
+                    waypoint2: {address: 'C', lat: 3, lng: 3},
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, existingTransaction);
+
+            const newWaypoints: WaypointCollection = {
+                waypoint0: {address: 'X', lat: 10, lng: 20},
+                waypoint1: {address: 'Y', lat: 30, lng: 40},
+            };
+
+            await updateWaypoints(transactionID, newWaypoints, CONST.TRANSACTION.STATE.DRAFT, existingTransaction.comment?.waypoints);
+            await waitForBatchedUpdates();
+
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(Object.keys(transaction?.comment?.waypoints ?? {})).toEqual(['waypoint0', 'waypoint1']);
+            expect(transaction?.comment?.waypoints?.waypoint2).toBeUndefined();
+        });
+
+        it('should clear isReusedRoute so route fetching can run again', async () => {
+            const transactionID = 'txn-update-waypoints-reused';
+            const existingTransaction = generateTransaction({transactionID, reportID: '1'});
+            existingTransaction.isReusedRoute = true;
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, existingTransaction);
+
+            const newWaypoints: WaypointCollection = {
+                waypoint0: {address: 'X', lat: 10, lng: 20},
+                waypoint1: {address: 'Y', lat: 30, lng: 40},
+            };
+
+            await updateWaypoints(transactionID, newWaypoints, CONST.TRANSACTION.STATE.DRAFT);
+            await waitForBatchedUpdates();
+
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(transaction?.isReusedRoute ?? null).toBeNull();
         });
     });
 
@@ -2760,6 +3304,7 @@ describe('Transaction', () => {
                 allTransactions,
                 currentTransactionViolations: [{transactionID, violations: mockViolations}],
                 isTrackIntentUser: false,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2826,6 +3371,7 @@ describe('Transaction', () => {
                 allTransactions,
                 currentTransactionViolations: [{transactionID, violations: mockViolations}],
                 isTrackIntentUser: false,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2905,6 +3451,7 @@ describe('Transaction', () => {
                 allTransactions: {[transactionKey]: staleTransaction},
                 currentTransactionViolations: [{transactionID, violations: mockViolations}],
                 isTrackIntentUser: false,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2944,6 +3491,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 allTransactions,
                 isTrackIntentUser: false,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3000,6 +3548,7 @@ describe('Transaction', () => {
                         allTransactions,
                         currentTransactionViolations: [{transactionID, violations: mockViolations}],
                         isTrackIntentUser: false,
+                        rules: undefined,
                     });
                     await waitForBatchedUpdates();
                 });

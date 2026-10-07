@@ -58,6 +58,7 @@ Export settings determine how Expensify sends data to Xero.
 - **Sync Consolidated Travel Billing settlements** – This toggle is on the **Consolidated Travel Billing** page, below **Travel payable account**. Turn it on to continuously reconcile settlements through Xero. Turning it on opens a picker where you choose the **Reconciliation account** that matches your settlement account, and that account then appears in a **Reconciliation account** row below the toggle. The toggle stays locked until you select a **Travel payable account** and enable **Auto-sync** on the **Advanced** page.
 - **Export company card expenses as** – All company card expenses are exported as bank transactions (not editable).
 - **Xero bank account** – Select the account to post non-reimbursable expenses.
+- **Default vendor** – Select a supplier to apply to company card (non-reimbursable) expenses that don't have a supplier assigned when they export to Xero.
 
 ---
 

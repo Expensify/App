@@ -1,6 +1,6 @@
 import getCollectionDelta from '@libs/getCollectionDelta';
 import Log from '@libs/Log';
-import {endSpan, getSpan, getSpanByPrefix, startSpan} from '@libs/telemetry/activeSpans';
+import {endSpan, getSpan, getSpanByPrefix, getUniqueSpanByPrefix, startSpan} from '@libs/telemetry/activeSpans';
 import detectOnyxDerivedLoop from '@libs/telemetry/detectOnyxDerivedLoop';
 
 import CONST from '@src/CONST';
@@ -26,6 +26,20 @@ import type {DerivedValueContext} from './types';
 
 import ONYX_DERIVED_VALUES from './ONYX_DERIVED_VALUES';
 import {setDerivedValue} from './utils';
+
+// Derived values that share a collection dependency get the same snapshot from one write and usually diff it against
+// the same baseline, so the first one's delta is reused. One slot per collection, so no chain of old snapshots is kept.
+const lastCollectionDeltas = new Map<OnyxKey, {current: OnyxCollection<unknown>; previous: OnyxCollection<unknown>; delta: OnyxCollection<unknown> | undefined}>();
+
+function getSharedCollectionDelta(collectionKey: OnyxKey, current: OnyxCollection<unknown>, previous: OnyxCollection<unknown>): OnyxCollection<unknown> | undefined {
+    const cached = lastCollectionDeltas.get(collectionKey);
+    if (cached && cached.current === current && cached.previous === previous) {
+        return cached.delta;
+    }
+    const delta = getCollectionDelta<unknown>(current, previous);
+    lastCollectionDeltas.set(collectionKey, {current, previous, delta});
+    return delta;
+}
 
 /**
  * Initialize all Onyx derived values, store them in Onyx, and setup listeners to update them when dependencies change.
@@ -105,6 +119,7 @@ function init() {
                 derivedValue = undefined;
                 hasFlushedOnce = false;
                 lastFlushedCollectionValues.length = 0;
+                lastCollectionDeltas.clear();
                 onReset?.();
             };
 
@@ -116,13 +131,16 @@ function init() {
                 const spanId = `${CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE}_${key}`;
                 // No-splash flows end ManualAppStartup before the startup response lands, so without this fallback onlyIfParent drops every recompute it triggers.
                 const startupSpan = getSpan(CONST.TELEMETRY.SPAN_APP_STARTUP) ?? getSpanByPrefix(CONST.TELEMETRY.SPAN_STARTUP_DATA.APPLY);
+                // A recompute can be triggered by several sends at once, so with more than one in flight there is no correct parent to pick.
+                const parentSpan = startupSpan ?? getUniqueSpanByPrefix(CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE);
                 startSpan(spanId, {
                     name: CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE,
                     op: CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE,
-                    parentSpan: startupSpan,
+                    parentSpan,
                     // A span with no parent is sent as its own transaction, one per recompute.
                     onlyIfParent: true,
-                    attributes: {derivedKey: key, [CONST.TELEMETRY.ATTRIBUTE_IS_STARTUP]: !!startupSpan},
+                    forceTransaction: false,
+                    attributes: {derivedKey: key, triggeredKeys: [...triggeredKeys].join(','), [CONST.TELEMETRY.ATTRIBUTE_IS_STARTUP]: !!startupSpan},
                 });
 
                 try {
@@ -168,7 +186,7 @@ function init() {
                         const dependencyOnyxKey = dependencies[index];
                         if (OnyxKeys.isCollectionKey(dependencyOnyxKey)) {
                             const currentValue = readCollectionDependency(index);
-                            const delta = getCollectionDelta<unknown>(currentValue, lastFlushedCollectionValues.at(index));
+                            const delta = getSharedCollectionDelta(dependencyOnyxKey, currentValue, lastFlushedCollectionValues.at(index));
                             stagedBaselines.push([index, currentValue]);
                             if (delta !== undefined) {
                                 sourceValues ??= {};

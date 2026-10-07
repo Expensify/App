@@ -52,7 +52,7 @@ To accomplish this, include phrases like:
 
 ## How to write instructions that reject expense reports
 
-**Goal:** Sends an Outstanding (submitted) expense report back to the submitter with a user-facing rejection comment explaining why.
+**Goal:** Sends an entire Outstanding (submitted) expense report back to the submitter with a user-facing rejection comment explaining why.
 
 To accomplish this, include phrases like:
 - Reject reports that have violations
@@ -61,6 +61,18 @@ To accomplish this, include phrases like:
 - Reject reports that contain duplicate expenses
 - Reject reports from submitters who have outstanding compliance issues
 - Reject and explain why the report was returned
+
+---
+
+## How to write instructions that reject individual expenses
+
+**Goal:** Rejects selected expenses from an Outstanding (submitted) report individually, giving the submitter a reason for each expense while compliant expenses continue through approval.
+
+To accomplish this, include phrases like:
+- Reject each expense over $500 and approve the rest
+- Reject individual expenses that are not reimbursable and were not paid with a company card
+- Reject every duplicate expense with a reason specific to that expense
+- Reject noncompliant expenses without rejecting the whole report
 
 ---
 
@@ -161,6 +173,18 @@ To accomplish this, include phrases like:
 
 ---
 
+## How to write instructions that delete expense reports
+
+**Goal:** Deletes an unsubmitted expense report the requester owns, after they confirm the deletion. Only reports that are still open or in draft can be deleted — a report that has been submitted, approved, reimbursed, or closed cannot be. Deleting an individual expense rather than a whole report is covered by the edit-expenses capability.
+
+To accomplish this, include phrases like:
+- Delete this report
+- Remove the report I just created
+- Cancel this expense report
+- Delete the report named Q1 Travel
+
+---
+
 ## How to write instructions that create expenses
 
 **Goal:** Creates a new expense — a cash or receipt expense, or a distance/mileage entry — for the person who asked, using the details in their message.
@@ -200,6 +224,20 @@ To accomplish this, include phrases like:
 - Acknowledge receipt of the report with a message
 - Post a summary of the analysis performed before approving
 - Leave a reminder for the submitter about next steps
+
+---
+
+## How to write instructions that send direct messages to workspace members
+
+**Goal:** Opens a 1:1 direct message with any workspace member and sends a message from the agent, creating the DM thread if one does not already exist.
+
+To accomplish this, include phrases like:
+- Send each employee a reminder to submit their expenses at the end of the month
+- Message the submitter directly when their report is rejected
+- Notify individual workspace members of a workspace change
+- DM each person with outstanding reports a personalized nudge
+- Send a private message to the submitter when a receipt is missing
+- Reach out to each team member individually with their spending summary
 
 ---
 
@@ -257,4 +295,4 @@ To accomplish this, include phrases like:
 
 ---
 
-*This reference covers all 19 AI Agent capabilities.*
+*This reference covers all 22 AI Agent capabilities.*

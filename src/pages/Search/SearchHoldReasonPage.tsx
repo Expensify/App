@@ -9,6 +9,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useTransactionsByID from '@hooks/useTransactionsByID';
 
 import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
 import {putOnHold, putTransactionsOnHold} from '@libs/actions/IOU/Hold';
@@ -47,10 +48,12 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
 
     const relevantTransactionIDs = useMemo(() => (isBulkHold ? selectedTransactionIDs : Object.keys(selectedTransactions)), [isBulkHold, selectedTransactionIDs, selectedTransactions]);
     const [selectedTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: transactionViolationsByIDsSelector(relevantTransactionIDs)});
+    const [relevantTransactions] = useTransactionsByID(relevantTransactionIDs);
     const {isOffline} = useNetwork();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
         selector: isTrackIntentUserSelector,
     });
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const selectedTransactionsList = Object.values(selectedTransactions);
     const isSubmitter = report ? report.ownerAccountID === currentUserAccountID : selectedTransactionsList.some((t) => t.ownerAccountID === currentUserAccountID);
@@ -65,36 +68,42 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                 return;
             }
             if (isBulkHold) {
-                putTransactionsOnHold(
-                    selectedTransactionIDs,
+                putTransactionsOnHold({
+                    transactionsID: selectedTransactionIDs,
                     comment,
                     reportID,
                     isOffline,
-                    currentUserLogin ?? '',
+                    currentUserLogin: currentUserLogin ?? '',
                     currentUserAccountID,
-                    selectedTransactionViolations,
+                    allTransactionViolations: selectedTransactionViolations,
+                    transactions: relevantTransactions,
                     isTrackIntentUser,
                     delegateAccountID,
+                    rules,
                     ancestors,
-                );
+                });
                 clearSelectedTransactions(true);
             } else {
                 const transactionIDs = Object.keys(selectedTransactions);
                 for (const transactionID of transactionIDs) {
                     const transactionThreadReportID = selectedTransactions[transactionID].reportAction?.childReportID;
                     const transactionViolations = selectedTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
-                    putOnHold(
+                    const transaction = relevantTransactions.find((t) => t.transactionID === transactionID) ?? selectedTransactions[transactionID].transaction;
+
+                    putOnHold({
                         transactionID,
+                        transaction,
                         comment,
-                        transactionThreadReportID,
+                        initialReportID: transactionThreadReportID,
                         isOffline,
-                        currentUserLogin ?? '',
+                        currentUserLogin: currentUserLogin ?? '',
                         currentUserAccountID,
                         transactionViolations,
                         isTrackIntentUser,
                         delegateAccountID,
+                        rules,
                         ancestors,
-                    );
+                    });
                 }
                 clearSelectedTransactions();
             }
@@ -108,14 +117,16 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
             selectedTransactionIDs,
             reportID,
             isOffline,
-            ancestors,
-            clearSelectedTransactions,
-            selectedTransactions,
             currentUserLogin,
             currentUserAccountID,
             selectedTransactionViolations,
+            relevantTransactions,
             isTrackIntentUser,
             delegateAccountID,
+            rules,
+            ancestors,
+            clearSelectedTransactions,
+            selectedTransactions,
         ],
     );
 

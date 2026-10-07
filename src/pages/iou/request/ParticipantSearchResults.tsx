@@ -8,6 +8,7 @@ import type {Section, SelectionListWithSectionsHandle} from '@components/Selecti
 
 import useContactImport from '@hooks/useContactImport';
 import useContactPermissionModal from '@hooks/useContactPermissionModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -76,11 +77,11 @@ type ParticipantSearchResultsProps = {
     /** The IOU action (create, submit, share, categorize, etc.) */
     action: IOUAction;
 
-    /** Selected participants */
     participants: Participant[] | typeof CONST.EMPTY_ARRAY;
-
-    /** Whether the IOU is workspaces only */
     isWorkspacesOnly: boolean;
+
+    /** Whether owned workspace chats should be left out of the list */
+    shouldExcludeWorkspaces?: boolean;
 
     /** Whether this is a per diem expense request */
     isPerDiemRequest: boolean;
@@ -91,7 +92,6 @@ type ParticipantSearchResultsProps = {
     /** Whether the platform is native (iOS/Android) */
     isNative: boolean;
 
-    /** Whether this is a transaction from a credit card import */
     isTransactionFromCreditCardImport: boolean;
 
     /** Whether to exclude P2P recipients (and the invite-by-email option) from the list. Used for negative amounts, which P2P chats don't support. */
@@ -100,7 +100,6 @@ type ParticipantSearchResultsProps = {
     /** Forwarded ref for the SelectionList — used by the parent's useImperativeHandle */
     selectionListRef: Ref<SelectionListWithSectionsHandle | null>;
 
-    /** Whether the text input should auto-focus */
     textInputAutoFocus: boolean;
 
     /** Setter to toggle textInputAutoFocus from the contact permission flow */
@@ -118,7 +117,6 @@ type ParticipantSearchResultsProps = {
     /** Whether to find the participant matching initiallySelectedReportID and move it to the top of the list */
     shouldMoveSelectedToTop?: boolean;
 
-    /** Callback to handle restricted participant selection */
     onRestrictedParticipantSelected?: () => void;
 
     /** Callback to dismiss the participant picker overlay before the referral banner navigates, so the referral RHP isn't covered */
@@ -136,6 +134,7 @@ function ParticipantSearchResults({
     action,
     participants,
     isWorkspacesOnly,
+    shouldExcludeWorkspaces = false,
     isPerDiemRequest,
     isTimeRequest,
     isNative,
@@ -164,11 +163,12 @@ function ParticipantSearchResults({
         action !== CONST.IOU.ACTION.CATEGORIZE;
     const icons = useMemoizedLazyExpensifyIcons(['UserPlus']);
     const {translate, dateFnsLocale} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {contactPermissionState, contacts, setContactPermissionState} = useContactImport();
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
+    const [isSearchingForUsers] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -187,6 +187,7 @@ function ParticipantSearchResults({
     // Policy and billing data — owned here, used for getValidOptionsConfig and billing gate in onSelectRow
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const getReportByID = useSelectedExpenseReports(participants);
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`];
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
@@ -202,7 +203,8 @@ function ParticipantSearchResults({
     const getValidOptionsConfig = {
         selectedOptions: participants as Participant[],
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-        includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK,
+        includeOwnedWorkspaceChats:
+            !shouldExcludeWorkspaces && (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK),
         excludeNonAdminWorkspaces: action === CONST.IOU.ACTION.SHARE,
         includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest && !isTransactionFromCreditCardImport && !shouldExcludeP2P,
         includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
@@ -293,7 +295,7 @@ function ParticipantSearchResults({
         !!availableOptions?.userToInvite,
         debouncedSearchTerm.trim(),
         countryCode,
-        participants.some((participant) => doesPersonalDetailMatchSearchTerm(participant, currentUserAccountID, cleanSearchTerm)),
+        participants.some((participant) => doesPersonalDetailMatchSearchTerm(participant, currentUserAccountID, cleanSearchTerm, translate)),
     );
 
     const showImportContacts =
@@ -319,12 +321,14 @@ function ParticipantSearchResults({
             currentUserAccountID,
             allPolicies,
             translate,
+            convertToDisplayString,
             dateFnsLocale,
+            getReportByID,
+            rules,
             personalDetails,
             true,
             undefined,
             reportAttributesDerived,
-            getReportByID,
         );
         sections.push({...formatResults.section, sectionIndex: 0});
 
@@ -395,8 +399,9 @@ function ParticipantSearchResults({
                               personalDetails,
                               userToInviteExpenseReport,
                               userToInviteExpenseReportPolicy,
-                              {translate, dateFnsLocale},
+                              {translate, dateFnsLocale, convertToDisplayString},
                               currentUserAccountID,
+                              rules,
                               reportAttributesDerived,
                           )
                         : getParticipantsOption(participant, personalDetails, translate);
@@ -524,7 +529,7 @@ function ParticipantSearchResults({
     ) : null;
 
     const ClickableImportContactTextComponent =
-        !searchTerm.length && !isSearchingForReports ? (
+        !searchTerm.length && !isSearchingForUsers ? (
             <ImportContactButton
                 showImportContacts={contactState?.showImportUI ?? showImportContacts}
                 inputHelperText={translate('contact.importContactsTitle')}
@@ -560,6 +565,10 @@ function ParticipantSearchResults({
         <SelectionListWithSections
             confirmButtonOptions={{
                 onConfirm: handleConfirmSelection,
+                isFooterConfirmEnabled: selectedOptions.length > 0 || isCategorizeOrShareAction,
+                // Pass the footer Next button's disabled state so Enter falls back to the list when split-bill disables Next;
+                // otherwise Enter can't toggle off the conflicting row.
+                isDisabled: shouldShowSplitBillErrorMessage,
             }}
             sections={sections}
             ListItem={InviteMemberListItem}
@@ -581,7 +590,7 @@ function ParticipantSearchResults({
             shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
             shouldShowTextInput
             canSelectMultiple={isIOUSplit && isAllowedToSplit}
-            isLoadingNewOptions={!!isSearchingForReports}
+            isLoadingNewOptions={!!isSearchingForUsers}
             shouldShowListEmptyContent={shouldShowListEmptyContent}
             ref={selectionListRef}
             onEndReached={onListEndReached}
