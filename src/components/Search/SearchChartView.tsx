@@ -36,8 +36,8 @@ type SearchChartViewProps = {
 
     isLoading?: boolean;
 
-    /** Color every bar is drawn in. Only a bar chart reads it. */
-    color?: string;
+    /** Whether a bar chart labels its bars and a donut chart shows its legend. Line chart labels always show. */
+    shouldShowGroupLabels?: boolean;
 
     /** Renders the details of the plotted groups below the chart */
     renderDetails?: (rows: SearchChartDataRow[]) => React.ReactNode;
@@ -50,14 +50,14 @@ type SearchChartViewProps = {
  * Layer 3 component - dispatches to the appropriate chart type based on view parameter
  * and handles navigation/drill-down logic
  */
-function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, renderDetails, chartContainerStyle}: SearchChartViewProps) {
+function SearchChartView({queryJSON, view, groupBy, data, isLoading, shouldShowGroupLabels = true, renderDetails, chartContainerStyle}: SearchChartViewProps) {
     const {preferredLocale} = useLocalize();
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {currentSearchKey} = useSearchQueryContext();
 
     const {getLabel, getShortLabel, getFilterQuery} = CHART_GROUP_BY_CONFIG[groupBy];
 
-    const rows = buildChartSeries({data, view, getLabel, getShortLabel, getCurrencyDecimals, color});
+    const rows = buildChartSeries({data, view, getLabel, getShortLabel, getCurrencyDecimals});
     const points = rows.map((row) => row.point);
 
     const handleItemPress = (index: number) => {
@@ -91,7 +91,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, rend
                 onBarPress={(dataPoint, index) => handleItemPress(index)}
                 yAxisUnit={unit}
                 yAxisUnitPosition={unitPosition}
-                color={color}
+                shouldShowLabels={shouldShowGroupLabels}
             />
         ),
         [CONST.SEARCH.VIEW.LINE]: (
@@ -110,7 +110,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, rend
                 onSlicePress={(dataPoint, index) => handleItemPress(index)}
                 valueUnit={unit.value}
                 valueUnitPosition={unitPosition}
-                shouldShowLegend={!renderDetails}
+                shouldShowLegend={shouldShowGroupLabels}
             />
         ),
     };

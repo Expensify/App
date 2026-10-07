@@ -83,9 +83,11 @@ function CategoryField({
     // The list marks and clears by the stored category name, not by the leaf name the row shows.
     const selectedCategory = isCategoryMissing(iouCategory) ? '' : iouCategory;
 
-    // The workspace setting defaults to on. Turning it off means nothing will pick a category, so the row must not promise one.
-    const isAutoCategorizationEnabled = policy?.autoCategorizeNewExpenses !== false;
-    const shouldPromiseAutomaticCategory = isAutoCategorizationEnabled && willAutoFill && (isAutoFillFromReceipt || !isCategoryRequired);
+    // Categorization comes from the workspace, so there is nothing to promise without one. The setting itself defaults to on.
+    const isAutoCategorizationEnabled = !!policy && policy.autoCategorizeNewExpenses !== false;
+    // Invoices are never auto-categorized, so the row must not promise a category it will never get.
+    const isInvoice = iouType === CONST.IOU.TYPE.INVOICE;
+    const shouldPromiseAutomaticCategory = isAutoCategorizationEnabled && !isInvoice && willAutoFill && (isAutoFillFromReceipt || !isCategoryRequired);
 
     const getCategoryRightLabelIcon = () => (shouldPromiseAutomaticCategory ? icons.Sparkles : undefined);
     const getCategoryRightLabel = () => {

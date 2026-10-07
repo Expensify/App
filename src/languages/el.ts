@@ -1055,6 +1055,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({date}: {date: string}) => `Η συνδρομή λήγει στις ${date}`,
                 cta: 'Διαχείριση',
             },
+            emailDeliveryFailure: {title: 'Δεν μπορούμε να σας στέλνουμε ειδοποιήσεις μέσω email', subtitle: 'Λογαρια​σμός'},
         },
         freeTrialSection: {
             title: ({count}: {count: number}) => ({
@@ -3072,7 +3073,7 @@ ${amount} για ${merchant} - ${date}`,
             `Ο/Η ${memberName} βρίσκεται ήδη σε ροή έγκρισης που υποβάλλεται σε ${approverName}. Η προσθήκη τους εδώ θα τους μετακινήσει σε αυτήν τη ροή.`,
         moveEveryoneToThisWorkflowTitle: 'Μετακινήστε όλους σε αυτήν τη ροή εργασίας',
         moveEveryoneToThisWorkflowPrompt:
-            'Πρόκειται να μετακινήσετε όλους/όλες σε αυτήν τη ροή έγκρισης. Αυτό θα διαγράψει όλες τις άλλες ροές έγκρισης και θα μετακινήσει όλους/όλες σε αυτήν. Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.',
+            'Πρόκειται να μετακινήσετε όλους/όλες σε αυτήν τη νέα ροή έγκρισης. Με την αποθήκευση θα διαγραφούν όλες οι άλλες ροές έγκρισης. Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.',
     },
     workflowsApproverPage: {
         genericErrorMessage: 'Δεν ήταν δυνατή η αλλαγή του εγκρίνοντα. Δοκιμάστε ξανά ή επικοινωνήστε με την υποστήριξη.',
@@ -4849,6 +4850,12 @@ ${amount} για ${merchant} - ${date}`,
             settlementFrequency: 'Συχνότητα εκκαθάρισης',
             setAsDefault: 'Ορισμός ως προεπιλεγμένου χώρου εργασίας',
             defaultNote: `Οι αποδείξεις που αποστέλλονται στο ${CONST.EMAIL.RECEIPTS} θα εμφανίζονται σε αυτόν τον χώρο εργασίας.`,
+            archive: 'Αρχειοθέτηση χώρου εργασίας',
+            archiveConfirmation: 'Είστε βέβαιοι ότι θέλετε να αρχειοθετήσετε αυτόν τον χώρο εργασίας;',
+            archiveWithThirdPartyCardsConfirmation:
+                'Είστε βέβαιοι ότι θέλετε να αρχειοθετήσετε αυτόν τον χώρο εργασίας; Θα καταργηθεί η ανάθεση όλων των πιστωτικών καρτών από τους χρήστες και θα διαγραφούν οριστικά όσες δαπάνες καρτών δεν έχουν υποβληθεί.',
+            archiveWithExpensifyCardsConfirmation:
+                'Είστε βέβαιοι ότι θέλετε να αρχειοθετήσετε αυτόν τον χώρο εργασίας; Όλα τα όρια των Expensify Card θα οριστούν σε $0 και κάθε νέα απόπειρα αγοράς θα απορρίπτεται αυτόματα.',
             deleteWorkspaceTitle: (workspaceName: string) => `Διαγραφή του ${workspaceName};`,
             deleteConfirmation: 'Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτόν τον χώρο εργασίας;',
             deleteWithCardsConfirmation: 'Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτόν τον χώρο εργασίας; Θα αφαιρεθούν όλες οι ροές καρτών και οι ανατεθειμένες κάρτες.',
@@ -5150,7 +5157,7 @@ ${amount} για ${merchant} - ${date}`,
                 autoSyncDescription: 'Το Expensify θα συγχρονίζεται αυτόματα με το QuickBooks Desktop κάθε μέρα.',
                 createEntities: 'Αυτόματη δημιουργία οντοτήτων',
                 createEntitiesDescription: 'Η Expensify θα δημιουργεί αυτόματα προμηθευτές στο QuickBooks Desktop, αν δεν υπάρχουν ήδη.',
-                fxExpenseAccount: 'Λογαριασμός προμήθειας μετατροπής συναλλάγματος',
+                fxExpenseAccount: 'Λογαριασμός προμήθειας μετατροπής νομίσματος',
                 fxExpenseAccountDescription:
                     'Όταν η εταιρεία σας καλύπτει το κόστος μετατροπής νομίσματος σε μια αποζημίωση που καταβάλλεται στο εξωτερικό, θα το προσθέτουμε στην εξαγωγή ως επιπλέον γραμμή που θα κωδικοποιείται σε αυτόν τον λογαριασμό.',
             },
@@ -6130,6 +6137,11 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                     }
                     return `${customAccountsCount} κάρτες με προσαρμοσμένους λογαριασμούς`;
                 },
+            },
+            fxExpenseAccount: {
+                label: 'Λογαριασμός προμήθειας μετατροπής νομίσματος Rillet',
+                description:
+                    'Όταν η εταιρεία σας καλύπτει το κόστος μετατροπής νομίσματος για μια πληρωμή στο εξωτερικό, θα καταχωρούμε αυτό το κόστος σε αυτόν τον λογαριασμό στο Rillet ως λογιστική εγγραφή.',
             },
         },
         dualEntry: {
@@ -7279,6 +7291,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 `Ο/Η ${memberName} έχει σε εκκρεμότητα αναφορές εξόδων προς έγκριση. Παρακαλούμε ζητήστε τους να τις εγκρίνουν ή αναλάβετε τον έλεγχο των αναφορών τους προτού τους αφαιρέσετε από τον χώρο εργασίας.`,
             removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
                 `Δεν μπορείτε να αφαιρέσετε τον/την ${memberName} από αυτόν τον χώρο εργασίας. Ορίστε έναν νέο υπεύθυνο αποζημιώσεων στις Ροές εργασιών > Πραγματοποιήστε ή παρακολουθήστε πληρωμές και μετά δοκιμάστε ξανά.`,
+            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
+                `Δεν μπορείτε να αφαιρέσετε τον/την ${memberName} από αυτόν τον χώρο εργασίας όσο έχει Κάρτα Expensify. Απενεργοποιήστε την κάρτα του/της στο Χώρος εργασίας > Κάρτα Expensify και μετά δοκιμάστε ξανά.`,
             removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
                 `Αν αφαιρέσετε τον/την ${memberName} από αυτόν τον χώρο εργασίας, θα τον/την αντικαταστήσουμε ως προτιμώμενο εξαγωγέα με τον/την ${workspaceOwner}, τον/την κάτοχο του χώρου εργασίας.`,
             removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
@@ -7823,6 +7837,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             approvalModeWarningTitle: 'Αλλαγή λειτουργίας έγκρισης;',
             approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
                 `Είστε βέβαιοι ότι θέλετε να αλλάξετε τη λειτουργία έγκρισης για αυτόν τον χώρο εργασίας; Μάθετε περισσότερα σχετικά με τις διαφορετικές λειτουργίες ροής εργασιών με ενεργοποιημένο το ${providerName} στον <a href="${helpSiteURL}">ιστότοπο βοήθειας</a> μας.`,
+            approvalModeDeleteWorkflowsWarningPrompt: (providerName: string, helpSiteURL: string) =>
+                `Η αλλαγή της λειτουργίας έγκρισης θα διαγράψει όλες τις υπάρχουσες ροές εργασιών έγκρισης. Μάθετε περισσότερα σχετικά με τις διαφορετικές λειτουργίες ροής εργασιών με ενεργοποιημένο το ${providerName} στον <a href="${helpSiteURL}">ιστότοπο βοήθειάς</a> μας.`,
             approvalModeWarningConfirm: 'Αλλαγή λειτουργίας έγκρισης',
             syncingModalTitle: 'Η σύνδεσή σας συγχρονίζεται',
             syncingModalDescription: 'Η πρώτη σύνδεση μπορεί να πάρει λίγο χρόνο. Θα ενημερωθείτε για τυχόν σφάλματα.',
@@ -10223,7 +10239,6 @@ ${reportName}`,
         noCategory: 'Χωρίς κατηγορία',
         noMerchant: 'Χωρίς έμπορο',
         noTag: 'Χωρίς ετικέτα',
-        noVendor: 'Χωρίς προμηθευτή',
         expenseType: 'Τύπος εξόδου',
         receiptType: 'Τύπος απόδειξης',
         receiptTypeValues: {
@@ -10272,6 +10287,12 @@ ${reportName}`,
         expensifyCardStatementPDF: {
             title: 'Λήψη κατάστασης',
             oneFeedAtATime: 'Παρακαλούμε επιλέγετε διακανονισμούς από μία ροή Κάρτας Expensify κάθε φορά.',
+        },
+        saveEdits: {
+            title: 'Αποθήκευση αλλαγών',
+            prompt: ({name}: {name: string}) => `Θέλετε να ενημερώσετε τις αλλαγές στο «${name}» ή να δημιουργήσετε νέο;`,
+            createNew: 'Δημιουργία νέου',
+            updateExisting: 'Ενημέρωση υπάρχοντος',
         },
     },
     genericErrorPage: {
@@ -10639,6 +10660,12 @@ ${reportName}`,
     distance: {
         addStop: 'Προσθήκη στάσης',
         address: 'Διεύθυνση',
+        reuseRoute: 'Επαναχρησιμοποίηση διαδρομής',
+        reusePriorRoute: 'Επαναχρησιμοποίηση προηγούμενης διαδρομής',
+        choosePreviousRoute: 'Επιλέξτε μια προηγούμενη διαδρομή παρακάτω:',
+        findARoute: 'Βρείτε διαδρομή',
+        lastUsed: ({date}: {date: string}) => `Τελευταία χρήση ${date}`,
+        end: 'Τέλος',
         waypointDescription: {
             start: 'Έναρξη',
             stop: 'Διακοπή',
@@ -11952,12 +11979,45 @@ ${reportName}`,
         employeePays: 'Ο εργαζόμενος πληρώνει',
         errorMessage: 'Δεν ήταν δυνατή η αλλαγή της προτίμησης χρέωσης μετατροπής νομίσματος. Παρακαλούμε δοκιμάστε ξανά ή επικοινωνήστε με την υποστήριξη.',
     },
+    emailIssuePage: {
+        title: 'Πρόβλημα email',
+        intro: (login: string) => `Ο πάροχος email μας διέκοψε την αποστολή προς τη διεύθυνση <strong>${login}</strong> λόγω προβλημάτων παράδοσης. Για να διορθώσετε αυτό το ζήτημα:`,
+        confirmEmailTitle: 'Επιβεβαιώστε τη διεύθυνση email σας',
+        confirmEmailDescription: (login: string) =>
+            `Βεβαιωθείτε ότι το <strong>${login}</strong> είναι σωστά γραμμένο και αντιστοιχεί σε πραγματικά εισερχό​μενα. Τα ψευδώνυμα όπως «expenses@domain.com» χρειάζονται τα δικά τους λειτουργικά εισερχό​μενα για να συνδεθούν στο Expensify.`,
+        allowlistTitle: 'Προσθέστε το expensify.com στη λίστα επιτρεπόμενων',
+        allowlistDescription: `Προσθέστε το <strong>expensify.com</strong> στη λίστα επιτρεπόμενων του προγράμματος ηλεκτρονικής αλληλογραφίας σας. Ίσως χρειαστείτε το τμήμα IT για να προσαρμόσει τις ρυθμίσεις διακομιστή μέσω <a href="${CONST.SET_NOTIFICATION_LINK}">αυτών των οδηγιών</a>.`,
+        getHelpFromConcierge: 'Λάβετε βοήθεια από το Concierge',
+        completedSteps: 'Ολοκλήρωσα τα παραπάνω βήματα',
+        errorTitle: 'Κάτι πήγε στραβά. Δοκιμάστε ξανά',
+        errorPrompt: 'Φαίνεται πως κάτι δεν λειτούργησε. Δοκιμάστε ξανά. Αν το πρόβλημα συνεχιστεί, επικοινωνήστε με το Concierge.',
+    },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Ανανεώστε τη συνδρομή σας για περίοδο 12 μηνών, από ${startDate} έως ${endDate}.`,
         title: 'Ανανεώστε τη συνδρομή σας στο Expensify',
         subtitle: 'Ένα πράγμα λιγότερο να κάνετε πριν από το νέο έτος.',
         confirmTitle: 'Επιβεβαίωση ανανέωσης',
         renew: 'Ανανέωση',
+        incentivizedTitle: 'Ανανεώστε νωρίς, κερδίστε έως και 2 μήνες δωρεάν',
+        incentivizedSubtitle: 'Διεκδικήστε έκπτωση στη ετήσια συνδρομή σας.',
+        claim: 'Αίτημα',
+        offer: {
+            heading: 'Επιλέξτε την έκπτωσή σας',
+            subtitle: 'Δύο εξαιρετικές προσφορές για να διαλέξετε:',
+            oneYear: 'Ανανεώστε για 1 χρόνο, πάρτε 1 μήνα δωρεάν',
+            twoYears: 'Ανανεώστε για 2 χρόνια,  \nλάβετε 2 μήνες δωρεάν',
+            bestDeal: 'Καλύτερη προσφορά',
+            disclaimer: 'Η παραπάνω προσφορά θα εφαρμοστεί ως έκπτωση 9% στην ετήσια συνδρομή σας. Τυχόν επιπλέον χρεώσεις δεν περιλαμβάνονται.',
+            renewAndClaim: 'Ανανεώστε και διεκδικήστε έκπτωση',
+            chooseOptionError: 'Παρακαλούμε επιλέξτε μια επιλογή.',
+        },
+        adminTitle: 'Ζητήστε από τον υπεύθυνο χρέωσης να ανανεώσει νωρίτερα',
+        adminSubtitle: 'Μπορούν να λάβουν έως και 2 μήνες δωρεάν με την ετήσια συνδρομή σας.',
+        adminCTA: 'Υπενθύμιση',
+        draftMessage: ({billingOwnerEmail, subscriptionURL}: {billingOwnerEmail: string; subscriptionURL: string}) =>
+            `@${billingOwnerEmail}, μπορείτε να ανανεώσετε νωρίτερα τη συνδρομή μας στο Expensify; Θα κερδίσουμε έως και 2 μήνες δωρεάν. Διεκδικήστε την εδώ: [σελίδα συνδρομής](${subscriptionURL})`,
+        mobileRenewPrompt: 'Επισκεφθείτε το Expensify στον περιηγητή ιστού σας για να ανανεώσετε νωρίτερα.',
+        mobileClaimPrompt: 'Επισκεφθείτε το Expensify στον φυλλομετρητή σας για να διεκδικήσετε την έκπτωση ανανέωσης.',
     },
 };
 export default translations;
