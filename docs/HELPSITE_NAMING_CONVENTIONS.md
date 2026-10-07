@@ -92,7 +92,10 @@ The primary navigation (**Home**, **Inbox**, **Spend**, **Workspaces**, **Accoun
 - Bold each tab name and use the exact name shown in the UI.
 - Do not wrap tab names in quotation marks.
 - Do not paraphrase tab names.
-- The only position description allowed is this exact parenthetical: **(on the left on web, on the bottom on mobile)**. Use it when members may need help finding the tabs. Do not use any other position wording.
+- Only use these position descriptions. Do not use any other position wording.
+  - **(on the left on web, on the bottom on mobile)**: Use when members may need help finding the tabs on both platforms.
+  - **In the navigation tabs on the left**: Use in web-only instructions.
+  - **In the navigation tabs on the bottom**: Use in mobile-only instructions.
 
 > **Examples:**
 >
