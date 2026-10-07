@@ -79,7 +79,8 @@ function DynamicConfirmationPage() {
         () => TransactionUtils.buildMergeDuplicatesParams(reviewDuplicates, duplicates ?? [], newTransaction, duplicatedTransaction),
         [duplicates, reviewDuplicates, newTransaction, duplicatedTransaction],
     );
-    const transactionThreadReportIDMap = useTransactionThreadReportIDs(transactionsMergeParams.transactionList.map((transaction) => transaction.transactionID));
+    const transactionListID = transactionsMergeParams.transactionList.map((transaction) => transaction.transactionID);
+    const transactionThreadReportIDMap = useTransactionThreadReportIDs(transactionListID);
     const reviewDuplicatesTaxCode = reviewDuplicates?.taxCode;
     const reviewDuplicatesTaxAmount = reviewDuplicates?.taxAmount;
     const duplicatedTransactionTaxCode = duplicatedTransaction?.taxCode;
@@ -236,12 +237,7 @@ function DynamicConfirmationPage() {
                                 }
                                 // Auth's MergeTransactions also rejects a merge when the kept expense's report is no
                                 // longer editable, so block it here and explain rather than failing server-side.
-                                if (
-                                    !TransactionUtils.canMergeDuplicates(
-                                        iouReport,
-                                        transactionsMergeParams.transactionList.map((transaction) => transaction.transactionID),
-                                    )
-                                ) {
+                                if (!TransactionUtils.canMergeDuplicates(iouReport, transactionListID)) {
                                     setMergeErrorMessage(translate('violations.cannotMergeDuplicates'));
                                     return;
                                 }
