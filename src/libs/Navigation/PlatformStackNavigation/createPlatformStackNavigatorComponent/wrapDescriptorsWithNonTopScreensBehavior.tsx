@@ -51,6 +51,7 @@ function wrapDescriptorsWithNonTopScreensBehavior<T extends Descriptor>(
         const NonTopScreenWrapper = WRAPPER_FOR_BEHAVIOR[behavior];
         // The state always carries a top route, but a missing key must leave every screen visible instead of blurring the whole stack.
         const isCovered = topRouteKey !== undefined && key !== topRouteKey;
+
         // A wide submit pre-mount keeps its wrapper, so the reveal does not remount it, but must render while covered.
         const isLivePreMount = isLiveWideTabPreMountRouteKey(key);
         const isScreenBlurred = isCovered && !isLivePreMount;

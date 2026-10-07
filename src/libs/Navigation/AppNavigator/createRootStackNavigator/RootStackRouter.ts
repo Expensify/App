@@ -38,6 +38,7 @@ import {
     handleToggleModalWithHistoryAction,
     handleToggleSidePanelWithHistoryAction,
     MODAL_ROUTES_TO_DISMISS,
+    removeStalePreMountsFromResetAction,
 } from './GetStateForActionHandlers';
 import syncBrowserHistory from './syncBrowserHistory';
 
@@ -189,7 +190,9 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
 
     return {
         ...stackRouter,
-        getStateForAction(state: StackNavigationState<ParamListBase>, action: RootStackNavigatorAction, configOptions: RouterConfigOptions) {
+        getStateForAction(state: StackNavigationState<ParamListBase>, rawAction: RootStackNavigatorAction, configOptions: RouterConfigOptions) {
+            const action = removeStalePreMountsFromResetAction(rawAction);
+
             // Evaluate navigation guards FIRST
             const guardState = handleNavigationGuards(state, action, configOptions, stackRouter);
             if (guardState) {

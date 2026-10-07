@@ -5,6 +5,15 @@ let liveRouteKey: string | undefined;
 // Tab route holding the live pre-mount. Background tabs are frozen on web, so this one must stay rendered to mount the screen.
 let liveTabRouteKey: string | undefined;
 
+const ROUTE_KEY_INFIX = '-wide-pre-mount-';
+
+// A revealed pre-mount becomes a regular screen but keeps its key, so it must never count as stale.
+const revealedRouteKeys = new Set<string>();
+
+// Tab route keys a pre-mount marked preloaded, so a saved browser history entry cannot keep a covered tab unfrozen forever.
+const preloadedRouteKeysAddedByPreMount = new Set<string>();
+let livePreloadedRouteKey: string | undefined;
+
 function setLiveWideTabPreMountRouteKey(key: string | undefined) {
     liveRouteKey = key;
 }
@@ -21,4 +30,26 @@ function isLiveWideTabPreMountTabRouteKey(key: string | undefined): boolean {
     return !!key && key === liveTabRouteKey;
 }
 
-export {setLiveWideTabPreMountRouteKey, isLiveWideTabPreMountRouteKey, setLiveWideTabPreMountTabRouteKey, isLiveWideTabPreMountTabRouteKey};
+function markWideTabPreMountRouteKeyRevealed(key: string) {
+    revealedRouteKeys.add(key);
+}
+
+/** True for a pre-mount that was neither revealed nor still live, e.g. restored from a saved browser history entry. */
+function isStaleWideTabPreMountRouteKey(key: string | undefined): boolean {
+    return !!key && key.includes(ROUTE_KEY_INFIX) && key !== liveRouteKey && !revealedRouteKeys.has(key);
+}
+
+/** True for a tab preload that an earlier pre-mount added and the live one does not own. */
+function isStaleWideTabPreMountPreloadedRouteKey(key: string): boolean {
+    return preloadedRouteKeysAddedByPreMount.has(key) && key !== livePreloadedRouteKey;
+}
+
+export {
+    setLiveWideTabPreMountRouteKey,
+    isLiveWideTabPreMountRouteKey,
+    setLiveWideTabPreMountTabRouteKey,
+    isLiveWideTabPreMountTabRouteKey,
+    markWideTabPreMountRouteKeyRevealed,
+    isStaleWideTabPreMountRouteKey,
+    isStaleWideTabPreMountPreloadedRouteKey,
+};
