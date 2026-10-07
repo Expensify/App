@@ -112,8 +112,8 @@ The script diffs status, caching and security headers for a fixed set of paths. 
 
 | Environment | Worker | Route |
 | --- | --- | --- |
-| `staging` | `staging-new-expensify-assets` | `test-staging.new.expensify.com/*` until cutover, then `staging.new.expensify.com/*` |
-| `production` | `new-expensify-assets` | None until cutover, then `new.expensify.com/*` |
+| `staging` | `staging-new-expensify-assets` | `test-staging.new.expensify.com/*` until switchover, then `staging.new.expensify.com/*` |
+| `production` | `new-expensify-assets` | None until switchover, then `new.expensify.com/*` |
 
 Deploys will run `wrangler deploy --env staging|production` from CI, with `CLOUDFLARE_ACCOUNT_ID` and a scoped `CLOUDFLARE_API_TOKEN` supplied as environment secrets. Run `npm run prepare-dist` first so `.assetsignore` is applied.
 
