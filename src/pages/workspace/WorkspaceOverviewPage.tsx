@@ -201,6 +201,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const currencyReadOnly = readOnly || isBankAccountVerified;
     const isCurrencyInteractive = !shouldBlockCurrencyChange && !currencyReadOnly;
     const isOwner = isPolicyOwner(policy, currentUserPersonalDetails.accountID);
+    const canUnarchive = canUnarchivePolicy(isArchivedPolicy(policy), policy?.ownerAccountID, currentUserPersonalDetails.accountID, canArchivePolicies);
     const shouldShowAddress = !readOnly || !!formattedAddress;
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
@@ -379,7 +380,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const secondaryActions: Array<DropdownOption<string>> = [];
 
     if (readOnly) {
-        if (canUnarchivePolicy(isArchivedPolicy(policy), policy?.ownerAccountID, currentUserPersonalDetails.accountID, canArchivePolicies)) {
+        if (canUnarchive) {
             secondaryActions.push({
                 value: 'unarchive',
                 text: translate('workspace.common.unarchive'),
