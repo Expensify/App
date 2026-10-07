@@ -100,8 +100,8 @@ function useColumnResize({
 
         const width = clampColumnWidth(contentWidth);
 
-        // Storing a width Onyx already holds renders nothing, so the painted width would never be cleared. The last
-        // column paints wider than its stored width, so the painted width alone can't tell it is already fitted.
+        // The last column stretches into leftover room, so it can be drawn wider than its stored width. Compare against the
+        // stored width too, or an already-fitted last column looks unfitted and gets re-stored with no render to follow.
         if (columnWidthOverrides?.[columnKey] === width || readColumnWidth(columnKey) === width) {
             return;
         }
