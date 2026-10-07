@@ -193,11 +193,11 @@ function IOURequestStepDistanceMap({
 
     // Load the reusable routes on mount so the Reuse route button visibility is known before the user opens the picker
     useEffect(() => {
-        if (action !== CONST.IOU.ACTION.CREATE || !isBetaEnabled(CONST.BETAS.REUSABLE_DISTANCE_ROUTES)) {
+        if (action !== CONST.IOU.ACTION.CREATE) {
             return;
         }
         fetchReusableDistanceRoutes();
-    }, [action, isBetaEnabled]);
+    }, [action]);
 
     const navigateToReuseRoutePage = () => {
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_REUSE_ROUTE.getRoute(action, iouType, transactionID, reportID));
