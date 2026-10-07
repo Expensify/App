@@ -10,19 +10,9 @@ import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {isPolicyAdmin} from '@libs/PolicyUtils';
-import {
-    canWriteInReport,
-    findLastAccessedReport,
-    isAdminRoom,
-    isCanceledTaskReport as isCanceledTaskReportUtil,
-    isClosedReport,
-    isDefaultRoom,
-    isTaskReport as isTaskReportUtil,
-    isUserCreatedPolicyRoom,
-} from '@libs/ReportUtils';
+import {canWriteInReport, findLastAccessedReport, isCanceledTaskReport as isCanceledTaskReportUtil, isClosedReport, isTaskReport as isTaskReportUtil} from '@libs/ReportUtils';
 
-import {canActionTask, canModifyTask} from '@userActions/Task';
+import {canActionTask, canDeleteTaskAsPolicyAdmin, canModifyTask} from '@userActions/Task';
 import {deleteTask} from '@userActions/TaskDeletion';
 
 import CONST from '@src/CONST';
@@ -105,16 +95,6 @@ function ReportDetailsTaskDeleteAction({reportID, showDeleteModal}: ReportDetail
     const currentUserAccountID = currentUserPersonalDetails?.accountID;
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
 
-    const isTaskOwnedByGuideOrConcierge = report?.ownerAccountID === CONST.ACCOUNT_ID.CONCIERGE || (!!report?.ownerAccountID && !!guideAccountIDs?.includes(report.ownerAccountID));
-
-    // Setup flows later complete these tasks, including when another admin has no matching personal onboarding data
-    const isSetupTask = isAdminRoom(parentReport) && isTaskOwnedByGuideOrConcierge;
-    const canDeleteTaskAsPolicyAdmin =
-        isPolicyAdmin(policy) &&
-        policy?.type !== CONST.POLICY.TYPE.PERSONAL &&
-        (isUserCreatedPolicyRoom(parentReport) || isDefaultRoom(parentReport)) &&
-        !isParentReportArchived &&
-        !isSetupTask;
     const shouldShowTaskDeleteButton =
         isTaskReportUtil(report) &&
         !isCanceledTaskReportUtil(report, parentReportAction) &&
@@ -122,7 +102,7 @@ function ReportDetailsTaskDeleteAction({reportID, showDeleteModal}: ReportDetail
         report?.stateNum !== CONST.REPORT.STATE_NUM.APPROVED &&
         !isClosedReport(report) &&
         ((canModifyTask(report, currentUserAccountID, isParentReportArchived) && canActionTask(report, parentReportAction, currentUserAccountID, parentReport, isParentReportArchived)) ||
-            canDeleteTaskAsPolicyAdmin);
+            canDeleteTaskAsPolicyAdmin(report, parentReport, policy, guideAccountIDs, isParentReportArchived));
 
     if (!report?.reportID || !shouldShowTaskDeleteButton) {
         return null;
