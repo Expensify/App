@@ -18,6 +18,7 @@ import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 
 import {addPersonalBankAccount, clearPersonalBankAccount} from '@userActions/BankAccounts';
+import {setDraftValues} from '@userActions/FormActions';
 import {continueSetup} from '@userActions/PaymentMethods';
 
 import CONST from '@src/CONST';
@@ -74,7 +75,6 @@ function AddPersonalBankAccountPage() {
     const [fullPersonalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
     const isManual = personalBankAccount?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL || urlSubPage === SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETAILS;
     const error = getLatestErrorMessage(fullPersonalBankAccount ?? DEFAULT_OBJECT);
-    const confirmedOwnershipDetails = useRef(false);
     const hasRefreshedExitReport = useRef(false);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
@@ -150,10 +150,6 @@ function AddPersonalBankAccountPage() {
             ...bankAccountWithToken,
             phoneNumber: formatE164PhoneNumber(finalPhoneNumber, countryCode),
         };
-        if (confirmedOwnershipDetails.current) {
-            accountData.confirmedOwnershipDetails = true;
-        }
-
         // Compare against the values exactly as saved, without the fallbacks and formatting applied above, so that anything the backend treats as a change also asks for the magic
         // code here. At worst this asks for a code the backend wouldn't need, such as when a saved phone number isn't in E.164 format.
         const savedPersonalDetails = {
@@ -195,6 +191,11 @@ function AddPersonalBankAccountPage() {
     const successIndex = pages.findIndex((page) => page.pageName === SUB_PAGE_NAMES.SUCCESS);
 
     const handleNext = (data?: unknown) => {
+        // Submitting a details step may change what the user confirmed after an account ownership error, so they need to confirm again
+        if (currentPageName !== SUB_PAGE_NAMES.CONFIRMATION && currentPageName !== SUB_PAGE_NAMES.VALIDATE_CODE) {
+            setDraftValues(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM, {confirmedOwnershipDetails: null});
+        }
+
         // When editing a field from the confirmation step, jump straight back to it.
         if (isEditing) {
             moveTo(confirmationIndex, false);
@@ -259,16 +260,13 @@ function AddPersonalBankAccountPage() {
         });
     }, [shouldShowSuccess, exitReportID, currentPageName, openReport, hasExitReportActions]);
 
+    // Once the backend reports an account ownership mismatch, the next submission confirms the details as entered. Each substep is a separate screen, and the magic code step clears
+    // the error when the user types or goes back, so the confirmation is kept in the form draft, where every substep and later retry reads it.
     useEffect(() => {
-        if (!error) {
+        if (!error?.includes(ACCOUNT_OWNERSHIP_ERROR_SUBSTRING)) {
             return;
         }
-        if (error.includes(ACCOUNT_OWNERSHIP_ERROR_SUBSTRING)) {
-            confirmedOwnershipDetails.current = true;
-        }
-        return () => {
-            confirmedOwnershipDetails.current = false;
-        };
+        setDraftValues(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM, {confirmedOwnershipDetails: true});
     }, [error]);
 
     if (isRedirecting) {

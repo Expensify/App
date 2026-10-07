@@ -30,6 +30,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import getOnyxValue from '../../utils/getOnyxValue';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('react-native-plaid-link-sdk', () => ({
@@ -43,6 +44,7 @@ jest.mock('react-native-plaid-link-sdk', () => ({
 jest.mock('@userActions/BankAccounts', () => ({
     addPersonalBankAccount: jest.fn(),
     clearPersonalBankAccount: jest.fn(),
+    clearPersonalBankAccountErrors: jest.fn(),
 }));
 
 jest.mock('@userActions/PaymentMethods', () => ({
@@ -331,6 +333,50 @@ describe('AddPersonalBankAccountPage', () => {
             const [accountData, , , , , validateCode] = jest.mocked(addPersonalBankAccount).mock.lastCall ?? [];
             expect(accountData).toEqual(expect.objectContaining({phoneNumber: '+14155550199'}));
             expect(validateCode).toBe('123456');
+        });
+
+        it('confirms the ownership details when the magic code step is reopened after the account ownership error', async () => {
+            // Given a user on the magic code step whose first submission failed the account ownership check
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, SAVED_PRIVATE_PERSONAL_DETAILS);
+                await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {...MANUAL_BANK_ACCOUNT_DRAFT, legalFirstName: 'Janet'});
+            });
+            await renderPageOverTab(settingsTabIndex, SUB_PAGE_NAMES.VALIDATE_CODE);
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {errors: {[Date.now()]: 'Unable to verify bank account ownership.'}});
+            });
+
+            // When they go back, which clears the error, and Confirm opens a new magic code screen where they submit a code
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {errors: null});
+            });
+            screen.unmount();
+            await renderPageOverTab(settingsTabIndex, SUB_PAGE_NAMES.VALIDATE_CODE);
+            const validateCodeContentProps = jest.mocked(ValidateCodeActionContent).mock.lastCall?.[0];
+            act(() => {
+                validateCodeContentProps?.handleSubmitForm('654321');
+            });
+
+            // Then the retry confirms the ownership details, so the backend doesn't return the same error again
+            const [accountData] = jest.mocked(addPersonalBankAccount).mock.lastCall ?? [];
+            expect(accountData).toEqual(expect.objectContaining({confirmedOwnershipDetails: true}));
+        });
+
+        it('asks to confirm the ownership details again after a details step is submitted', async () => {
+            // Given a user who confirmed their ownership details after an account ownership error
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, SAVED_PRIVATE_PERSONAL_DETAILS);
+                await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {...MANUAL_BANK_ACCOUNT_DRAFT, phoneNumber: '+14155550199', confirmedOwnershipDetails: true});
+            });
+            await renderPageOverTab(settingsTabIndex, SUB_PAGE_NAMES.PHONE_NUMBER);
+
+            // When they submit the phone number step, which may change the details they confirmed
+            fireEvent.press(screen.getByText('Next'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the confirmation is dropped, so the next submission checks ownership against the new details
+            const draft = await getOnyxValue(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
+            expect(draft).not.toHaveProperty('confirmedOwnershipDetails');
         });
     });
 });
